@@ -1,0 +1,16 @@
+dn: uid=pshelton,ou=People,o=bob tests,dc=com
+changetype: delete
+
+dn: uid=jrentz,ou=People,o=bob tests,dc=com
+changetype: delete
+
+dn: uid=plorig,ou=People,o=bob tests,dc=com
+changetype: delete
+
+dn: uid=ajensen,ou=People,o=bob tests,dc=com
+changetype: delete
+
+dn: uid=kschmith,ou=People,o=bob tests,dc=com
+changetype: delete
+
+

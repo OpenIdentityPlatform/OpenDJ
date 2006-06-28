@@ -1,0 +1,10 @@
+dn: cn=untyped object,o=rfc tests,dc=com
+objectclass: top
+objectclass: untypedObject
+cn: untyped object
+ou: Accounting
+ou: People
+street: Rue Quebec
+l: Toronto
+c: Canada
+

@@ -1,0 +1,182 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ */
+package org.opends.server.tools;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.LDAPControl;
+
+import static org.opends.server.loggers.Debug.*;
+
+
+
+/**
+ * This class provides utility functions for all the client side tools.
+ */
+public class LDAPToolUtils
+{
+  /**
+   * The fully-qualified name of this class for debugging purposes.
+   */
+  private static final String CLASS_NAME =
+       "org.opends.server.tools.LDAPToolUtils";
+
+
+  /**
+   * Parse the specified command line argument to create the
+   * appropriate LDAPControl. The argument string should be in the format
+   * controloid[:criticality[:value|::b64value|:&lt;fileurl]]
+   *
+   * @param  argString  The argument string containing the encoded control
+   *                    information.
+   *
+   * @return  The control decoded from the provided string.
+   */
+  public static LDAPControl getControl(String argString)
+  {
+    LDAPControl control = null;
+    String controlOID = null;
+    boolean controlCriticality = false;
+    ASN1OctetString controlValue = null;
+
+    int idx = argString.indexOf(":");
+    if(idx == -1)
+    {
+      control = new LDAPControl(argString);
+      return control;
+    }
+
+    controlOID = argString.substring(0, idx);
+    String remainder = argString.substring(idx+1, argString.length());
+
+    idx = remainder.indexOf(":");
+    if(idx == -1)
+    {
+      if(remainder.equalsIgnoreCase("true"))
+      {
+        controlCriticality = true;
+      } else if(remainder.equalsIgnoreCase("false"))
+      {
+        controlCriticality = false;
+      } else
+      {
+        System.err.println("Invalid format for criticality value:" + remainder);
+        return null;
+      }
+      control = new LDAPControl(controlOID, controlCriticality);
+      return control;
+
+    }
+
+    String critical = remainder.substring(0, idx);
+    if(critical.equalsIgnoreCase("true"))
+    {
+      controlCriticality = true;
+    } else if(critical.equalsIgnoreCase("false"))
+    {
+      controlCriticality = false;
+    } else
+    {
+      System.err.println("Invalid format for criticality value:" + critical);
+      return null;
+    }
+
+    String valString = remainder.substring(idx+1, remainder.length());
+    if(valString.charAt(0) == ':')
+    {
+      controlValue =
+           new ASN1OctetString(valString.substring(1, valString.length()));
+    } else if(valString.charAt(0) == '<')
+    {
+      // Read data from the file.
+      String fileURL = valString.substring(1, valString.length());
+      byte[] val = readBytesFromFile(fileURL);
+      controlValue = new ASN1OctetString(val);
+    } else
+    {
+      controlValue = new ASN1OctetString(valString);
+    }
+
+    control = new LDAPControl(controlOID, controlCriticality, controlValue);
+    return control;
+
+  }
+
+  /**
+   * Read the data from the specified file and return it in a byte array.
+   *
+   * @param  fileURL  The URL to the file that should be read.
+   *
+   * @return  A byte array containing the contents of the requested file.
+   */
+  public static byte[] readBytesFromFile(String fileURL)
+  {
+      byte[] val = null;
+      FileInputStream fis = null;
+      try
+      {
+        File file = new File(fileURL);
+        fis = new FileInputStream (file);
+        long length = file.length();
+        val = new byte[(int)length];
+        // Read in the bytes
+        int offset = 0;
+        int numRead = 0;
+        while (offset < val.length &&
+               (numRead=fis.read(val, offset, val.length-offset)) >= 0) {
+          offset += numRead;
+        }
+
+        // Ensure all the bytes have been read in
+        if (offset < val.length)
+        {
+          System.err.println("Could not completely read file "+fileURL);
+          return null;
+        }
+
+        return val;
+      } catch(IOException ie)
+      {
+        System.err.println("Could not completely read file "+fileURL);
+        System.err.println(ie.getMessage());
+        return null;
+      } finally
+      {
+        try
+        {
+          fis.close();
+        } catch(IOException ioe)
+        {
+        }
+      }
+  }
+
+}
+

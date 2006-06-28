@@ -1,0 +1,795 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2006 Sun Microsystems, Inc.
+ ! -->
+
+<project name="Directory Server" basedir="." default="package">
+  <description>
+    This is the build script for the OpenDS Directory Server.  See the BUILDING
+    file in this directory for build instructions.
+  </description>
+
+
+
+
+  <!-- General server-wide properties                              -->
+  <property name="src.dir"       location="src/server"              />
+  <property name="build.dir"     location="build"                   />
+  <property name="classes.dir"   location="${build.dir}/classes"    />
+  <property name="lib.dir"       location="lib"                     />
+  <property name="ext.dir"       location="ext"                     />
+  <property name="package.dir"   location="${build.dir}/package"    />
+  <property name="javadoc.dir"   location="${build.dir}/javadoc"    />
+  <property name="resource.dir"  location="resource"                />
+  <property name="scripts.dir"   location="${resource.dir}/bin"     />
+  <property name="config.dir"    location="${resource.dir}/config"  />
+
+  <!-- Properties for use in unit testing.                           -->
+  <property name="unittest.dir"        location="tests/unit-tests"    />
+  <property name="unittest.src.dir"    location="${unittest.dir}/src" />
+
+  <property name="unittest.testng.dir" location="tests/unit-tests-testng"/>
+  <property name="unittest.testng.src.dir"
+    location="${unittest.testng.dir}/src"/>
+
+  <property name="unittest.classes.dir"
+       location="${build.dir}/unit-tests/classes" />
+  <property name="unittest.report.dir"
+       location="${build.dir}/unit-tests/report"/>
+
+  <!-- Properties for use with the DSML component.                      -->
+  <property name="dsml.dir"         location="resource/dsml"             />
+  <property name="dsml.src.dir"     location="src/dsml"                  />
+  <property name="dsml.lib.dir"     location="${dsml.dir}/lib"           />
+  <property name="dsml.gen.dir"     location="${build.dir}/dsml/gen"     />
+  <property name="dsml.classes.dir" location="${build.dir}/dsml/classes" />
+
+  <!-- Properties for code coverage testing.                            -->
+  <property name="coverage.dir"         location="build/coverage"         />
+  <property name="coverage.report.dir"  location="${coverage.dir}/report" />
+  <property name="coverage.instr.dir"
+       location="${coverage.dir}/instrumentedcode"                        />
+  <property name="coverage.data.dir"
+       location="${coverage.dir}/gathereddata"                            />
+
+  <!-- Properties for the EMMA code coverage tool.                 -->
+  <property name="emma.dir" location="${ext.dir}/emma/lib"          />
+
+  <!-- Properties for the TestNG unit testing  tool.               -->
+  <property name="testng.dir" location="${ext.dir}/testng"          />
+  <property name="testng.lib.dir" location="${testng.dir}/lib"      />
+
+  <!-- Properties for the checkstyle tool.                         -->
+  <property name="checkstyle.dir"  location="${ext.dir}/checkstyle" />
+
+  <!-- Properties for Directory Server version information.              -->
+  <property name="dynconstants.file"
+       location="${src.dir}/org/opends/server/util/DynamicConstants.java" />
+  <property file="PRODUCT"                                                />
+
+
+
+
+  <!-- Create a package bundle containing the DSML library. -->
+  <target name="dsml" depends="predsml,package"
+       description="Build a Directory Server package bundle with DSML.">
+  </target>
+
+
+
+
+  <!-- The build target that should be used before committing code. -->
+  <target name="precommit" depends="checkstyle,dsml,javadoc,test"
+       description="Perform all processing needed before committing code." />
+
+
+
+
+  <!-- The build target that should be used for nightly builds. -->
+  <target name="nightly"
+       depends="checkstyle,dsml,javadoc,coverage,test"
+       description="Perform all processing needed for nightly builds." />
+
+
+
+
+  <!-- The build target that should be used for weekly builds. -->
+  <target name="weekly" depends="nightly"
+       description="Perform all processing needed for weekly builds." />
+
+
+
+
+  <!-- The build target that should be used to build everything. -->
+  <target name="all"
+       depends="checkstyle,dsml,javadoc,coverage,test"
+       description="Build using all defined targets." />
+
+
+
+
+  <!-- Remove all dynamically-generated build files. -->
+  <target name="clean"
+       description="Clean up any files generated during the build process">
+
+    <delete dir="${build.dir}"           />
+    <delete file="${dynconstants.file}"  />
+  </target>
+
+
+
+
+  <!-- Perform common initialization common to several targets. -->
+  <target name="init" depends="clean">
+
+    <tstamp>
+      <format property="timestamp" pattern="yyyyMMddHHmmss" />
+    </tstamp>
+
+    <condition property="DEBUG_BUILD" value="false">
+      <not>
+        <isset property="DEBUG_BUILD" />
+      </not>
+    </condition>
+
+    <condition property="MEM" value="128M">
+      <not>
+        <isset property="MEM" />
+      </not>
+    </condition>
+
+
+    <!--
+     ! For some reason, some Apple VMs put quotes around the value of the
+     ! java.vm.vendor property, which wreaks havoc with DynamicConstants.  This
+     ! pair of conditions attempts to work around that by detecting the quote
+     ! and surrounding the value with backslashes.
+     ! -->
+    <condition property="JVM_VENDOR" value="Apple Computer">
+      <contains string="${java.vm.vendor}" substring="Apple Computer"
+           casesensitive="false" />
+    </condition>
+
+    <condition property="JVM_VENDOR" value="${java.vm.vendor}">
+      <not>
+        <isset property="JVM_VENDOR" />
+      </not>
+    </condition>
+
+
+    <!-- Generate the DynamicConstants.java file. -->
+    <echo file="${dynconstants.file}">/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ */
+package org.opends.server.util;
+
+/**
+ * This file contains a number of constants that are used throughout the
+ * Directory Server source.  It was dynamically generated as part of the
+ * Directory Server build process and should not be edited directly.
+ */
+public class DynamicConstants
+{
+  /**
+   * The official full product name for the Directory Server.
+   */
+  public static final String PRODUCT_NAME = "${PRODUCT_NAME}";
+
+  /**
+   * The short product name for the Directory Server.
+   */
+  public static final String SHORT_NAME = "${SHORT_NAME}";
+
+  /**
+   * The major version number for the Directory Server.
+   */
+  public static final int MAJOR_VERSION = ${MAJOR_VERSION};
+
+  /**
+   * The minor version number for the Directory Server.
+   */
+  public static final int MINOR_VERSION = ${MINOR_VERSION};
+
+  /**
+   * The point version number for the Directory Server.
+   */
+  public static final int POINT_VERSION = ${POINT_VERSION};
+
+  /**
+   * The version qualifier string for the Directory Server.
+   */
+  public static final String VERSION_QUALIFIER = "${VERSION_QUALIFIER}";
+
+  /**
+   * The set of bug IDs for fixes included in this build of the Directory
+   * Server.
+   */
+  public static final String FIX_IDS = "${FIX_IDS}";
+
+  /**
+   * The build ID for the generated build of the Directory Server.
+   */
+  public static final String BUILD_ID = "${timestamp}";
+
+  /**
+   * The username of the user that created this build.
+   */
+  public static final String BUILD_USER = "${user.name}";
+
+  /**
+   * The Java version used to generate this build.
+   */
+  public static final String BUILD_JAVA_VERSION = "${java.version}";
+
+  /**
+   * The vendor for the Java version used to generate this build.
+   */
+  public static final String BUILD_JAVA_VENDOR = "${java.vendor}";
+
+  /**
+   * The JVM version used to generate this build.
+   */
+  public static final String BUILD_JVM_VERSION = "${java.vm.version}";
+
+  /**
+   * The vendor for the JVM used to generate this build.
+   */
+  public static final String BUILD_JVM_VENDOR = "${JVM_VENDOR}";
+
+  /**
+   * The operating system on which this build was generated.
+   */
+  public static final String BUILD_OS = "${os.name} ${os.version} ${os.arch}";
+
+  /**
+   * Indicates whether this is a debug build of the Directory Server that may
+   * include additional debugging facilities not available in standard release
+   * versions.
+   */
+  public static final boolean DEBUG_BUILD = ${DEBUG_BUILD};
+}
+
+</echo>
+  </target>
+
+
+
+
+  <!-- Ensure that the source code meets basic style requirements. -->
+  <target name="checkstyle" description="Perform basic source style checks">
+
+    <taskdef resource="checkstyletask.properties"
+         classpath="${checkstyle.dir}/checkstyle-all-4.1.jar" />
+
+    <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+         failOnViolation="true">
+      <fileset dir="${src.dir}" includes="**/*.java" />
+      <formatter type="plain" />
+    </checkstyle>
+
+    <checkstyle config="${checkstyle.dir}/opends-doctarget-checkstyle.xml"
+         failOnViolation="true">
+      <fileset dir="${src.dir}/org/opends/server/api" includes="**/*.java" />
+      <fileset dir="${src.dir}/org/opends/server/protocols/internal"
+           includes="**/*.java" />
+      <fileset dir="${src.dir}/org/opends/server/types"
+           includes="**/*.java" />
+      <formatter type="plain" />
+    </checkstyle>
+  </target>
+
+
+
+
+  <!-- Compile the Directory Server source files. -->
+  <target name="compile" depends="init"
+       description="Compile the Directory Server source files.">
+
+    <mkdir dir="${classes.dir}" />
+
+    <javac srcdir="${src.dir}" destdir="${classes.dir}" optimize="true"
+         debug="on" debuglevel="lines,source" source="1.5" target="1.5"
+         deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </javac>
+  </target>
+
+
+
+
+  <!--
+   ! Rebuild the Directory Server without destorying any existing configuration
+   ! or data.  It will only overwrite the libraries, classes, and scripts, and
+   ! it will not re-package.  It will also not do a complete initialization, so
+   ! DynamicConstants.java won't be regenerated.
+   ! -->
+  <target name="rebuild"
+       description="Rebuild the server without destroying config or data.">
+
+    <!-- Set the amount of memory to use for the build -->
+    <condition property="MEM" value="128M">
+      <not>
+        <isset property="MEM" />
+      </not>
+    </condition>
+
+    <!-- Set properties needed to find the packaged files -->
+    <property name="pkgversion"
+         value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}" />
+    <property name="pdir"
+         location="${package.dir}/OpenDS-${pkgversion}" />
+
+    <!-- Clean up a minimal set of files/directories for the rebuild. -->
+    <delete dir="${classes.dir}" />
+    <delete file="${package.dir}/lib/OpenDS.jar" />
+    <delete file="${pdir}.zip" />
+
+    <!-- Recreate the classes directory and recompile into it. -->
+    <mkdir dir="${classes.dir}" />
+    <javac srcdir="${src.dir}" destdir="${classes.dir}" optimize="true"
+         debug="on" debuglevel="lines,source" source="1.5" target="1.5"
+         deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </javac>
+
+    <!-- Generate the OpenDS.jar file -->
+    <jar jarfile="${pdir}/lib/OpenDS.jar"
+         basedir="${classes.dir}" compress="true" index="true" />
+  </target>
+
+
+
+
+  <!-- Populate the Directory Server package, but don't zip it up. -->
+  <target name="prepackage" depends="compile"
+       description="Prepare the Directory Server package structure.">
+
+    <property name="pkgversion"
+         value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}" />
+    <property name="pdir"
+         location="${package.dir}/OpenDS-${pkgversion}" />
+
+    <mkdir dir="${pdir}"                 />
+    <mkdir dir="${pdir}/bak"             />
+    <mkdir dir="${pdir}/bin"             />
+    <mkdir dir="${pdir}/classes"         />
+    <mkdir dir="${pdir}/config"          />
+    <mkdir dir="${pdir}/config/schema"   />
+    <mkdir dir="${pdir}/config/messages" />
+    <mkdir dir="${pdir}/db"              />
+    <mkdir dir="${pdir}/changelogDb"     />
+    <mkdir dir="${pdir}/ldif"            />
+    <mkdir dir="${pdir}/lib"             />
+    <mkdir dir="${pdir}/locks"           />
+    <mkdir dir="${pdir}/logs"            />
+    <mkdir dir="${pdir}/war"             />
+
+    <jar jarfile="${pdir}/lib/OpenDS.jar"
+         basedir="${classes.dir}" compress="true" index="true" />
+
+    <copy todir="${pdir}/lib">
+      <fileset file="${lib.dir}/*.jar" />
+    </copy>
+
+    <copy todir="${pdir}/bin">
+      <fileset file="${scripts.dir}/*" />
+    </copy>
+
+    <copy todir="${pdir}/config">
+      <fileset file="${config.dir}/*" />
+    </copy>
+
+    <copy todir="${pdir}/config/schema">
+      <fileset dir="${resource.dir}/schema" />
+    </copy>
+
+    <copy todir="${pdir}/config/messages">
+      <fileset dir="${resource.dir}/messages" />
+    </copy>
+
+    <chmod file="${pdir}/bin/*.sh" perm="755" />
+  </target>
+
+
+
+
+  <!-- Package the Directory Server for distribution. -->
+  <target name="package" depends="prepackage"
+       description="Package the Directory Server for distribution.">
+
+    <zip destfile="${package.dir}/OpenDS-${pkgversion}.zip">
+      <zipfileset dir="${package.dir}" includes="**/*" excludes="**/*.sh"
+           filemode="644" dirmode="755" />
+      <zipfileset dir="${package.dir}" includes="**/*.sh" filemode="755"
+           dirmode="755" />
+    </zip>
+  </target>
+
+
+
+
+  <!-- Prepare the Directory Server DSML library. -->
+  <target name="predsml" depends="prepackage"
+       description="Prepare the Directory Server DSML library.">
+
+    <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
+      <classpath>
+        <fileset dir="${dsml.lib.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <mkdir dir="${dsml.gen.dir}/org/opends/dsml/protocol" />
+    <xjc target="${dsml.gen.dir}" schema="${dsml.dir}/schema/DSMLv2.xsd"
+         removeOldOutput="yes" package="org.opends.dsml.protocol">
+      <produces dir="${dsml.gen.dir}/org/opends/dsml/protocol"
+           includes="* impl/*" />
+    </xjc>
+
+    <mkdir dir="${dsml.classes.dir}" />
+
+    <javac srcdir="${dsml.gen.dir}" destdir="${dsml.classes.dir}"
+         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+
+      <classpath>
+        <fileset dir="${dsml.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </javac>
+
+    <javac srcdir="${dsml.src.dir}" destdir="${dsml.classes.dir}"
+         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+
+      <classpath>
+        <fileset dir="${dsml.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <dirset dir="${classes.dir}" />
+      </classpath>
+    </javac>
+
+    <war destfile="${classes.dir}/dsml.war"
+         webxml="${dsml.dir}/webapp/web.xml">
+      <fileset file="${dsml.dir}/webapp/server.properties" />
+
+      <webinf dir="${dsml.dir}/webapp" includes="**/*"
+           excludes="web.xml, **/*.jar, **/*.properties" />
+
+      <classes dir="${dsml.classes.dir}" />
+
+      <lib dir="${dsml.lib.dir}">
+        <exclude name="j2ee.jar" />
+      </lib>
+
+      <lib dir="${pdir}/lib">
+        <exclude name="activation.jar" />
+        <exclude name="je.jar" />
+      </lib>
+    </war>
+
+    <copy todir="${pdir}/war">
+      <fileset file="${classes.dir}/*.war" />
+    </copy>
+  </target>
+
+
+
+
+  <!-- Generate JavaDoc documentation from the source files -->
+  <target name="javadoc" depends="package"
+       description="Generate JavaDoc documentation.">
+
+    <mkdir dir="${javadoc.dir}" />
+
+    <javadoc destdir="${javadoc.dir}" source="1.5" additionalparam="-quiet"
+         linksource="yes" windowtitle="${PRODUCT_NAME} API Documentation"
+         maxmemory="${MEM}">
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <fileset dir="${dsml.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <dirset dir="${classes.dir}" />
+        <dirset dir="${dsml.classes.dir}" />
+      </classpath>
+
+      <packageset dir="${src.dir}" />
+      <packageset dir="${dsml.src.dir}" />
+    </javadoc>
+  </target>
+
+
+
+
+  <!-- Prepare to generate a code coverage report. -->
+  <target name="coverage" description="Generate a code coverage report.">
+
+    <property name="coverage.enabled" value="true" />
+
+    <mkdir dir="${coverage.dir}"        />
+    <mkdir dir="${coverage.data.dir}"   />
+    <mkdir dir="${coverage.instr.dir}"  />
+    <mkdir dir="${coverage.report.dir}" />
+
+    <path id="run.classpath">
+      <pathelement location="${classes.dir}" />
+    </path>
+  </target>
+
+
+
+
+  <!-- Prepare to execute the Directory Server unit tests. -->
+  <target name="testinit" depends="compile"
+       description="Prepare to execute the Directory Server unit tests.">
+
+    <!-- If we are to perform coverage tests, then set that up. -->
+    <path id="emma.lib">
+      <pathelement location="${emma.dir}/emma.jar"     />
+      <pathelement location="${emma.dir}/emma_ant.jar" />
+    </path>
+
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+
+    <emma enabled="${coverage.enabled}">
+      <instr instrpathref="run.classpath" destdir="${coverage.instr.dir}"
+           metadatafile="${coverage.data.dir}/metadata.emma" merge="true" />
+    </emma>
+
+    <!-- Compile the test cases -->
+    <mkdir dir="${unittest.classes.dir}" />
+    <javac srcdir="${unittest.src.dir}" destdir="${unittest.classes.dir}"
+         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <fileset dir="${ext.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <path refid="run.classpath" />
+      </classpath>
+    </javac>
+  </target>
+
+
+
+
+  <!-- Execute the Directory Server unit tests in text mode. -->
+  <target name="test" depends="testinit"
+       description="Execute the Directory Server unit tests in text mode.">
+    <mkdir dir="${unittest.report.dir}" />
+
+    <junit printsummary="withOutAndErr" fork="yes" maxmemory="${MEM}"
+           haltonfailure="on">
+      <classpath>
+        <pathelement location="${coverage.instr.dir}" />
+
+        <path refid="run.classpath" />
+        <path refid="emma.lib"      />
+
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <fileset dir="${ext.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <pathelement location="${unittest.classes.dir}" />
+      </classpath>
+
+      <jvmarg
+           value="-Demma.coverage.out.file=${coverage.data.dir}/coverage.emma" />
+      <jvmarg value="-Demma.coverage.out.merge=false" />
+      <formatter type="xml" />
+      <test todir="${unittest.report.dir}" outfile="DirectoryServerTestSuite"
+          name="org.opends.server.DirectoryServerTestSuite">
+        <formatter type="plain" />
+      </test>
+    </junit>
+
+    <!-- Generate a coverage report from these test cases -->
+    <emma enabled="${coverage.enabled}">
+      <report sourcepath="${src.dir}">
+        <fileset dir="${coverage.data.dir}">
+          <include name="*.emma" />
+        </fileset>
+
+        <txt  outfile="${coverage.report.dir}/coverage.txt" />
+        <html outfile="${coverage.report.dir}/index.html"   />
+      </report>
+    </emma>
+  </target>
+
+
+
+  <!-- Execute the Directory Server unit tests using a Swing GUI. -->
+  <target name="testgui" depends="testinit"
+       description="Execute the Directory Server unit tests in GUI mode.">
+    <java classname="junit.swingui.TestRunner" fork="true" maxmemory="${MEM}">
+      <arg value="org.opends.server.DirectoryServerTestSuite" />
+
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <fileset dir="${ext.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <pathelement location="${classes.dir}"      />
+        <pathelement location="${unittest.classes.dir}" />
+      </classpath>
+    </java>
+  </target>
+
+  <!-- Prepare to execute the Directory Server TestNG unit tests. -->
+  <target name="testng-testinit" depends="compile"
+         description="Prepare to execute the Directory Server TestNG unit tests.">
+
+    <!-- If we are to perform coverage tests, then set that up. -->
+    <path id="emma.lib">
+      <pathelement location="${emma.dir}/emma.jar"     />
+      <pathelement location="${emma.dir}/emma_ant.jar" />
+    </path>
+
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+
+    <emma enabled="${coverage.enabled}">
+      <instr instrpathref="run.classpath" destdir="${coverage.instr.dir}"
+             metadatafile="${coverage.data.dir}/metadata.emma" merge="true" />
+    </emma>
+
+    <!-- Compile the test cases -->
+    <mkdir dir="${unittest.classes.dir}" />
+    <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}"
+           optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+           target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+           memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <fileset dir="${testng.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <path refid="run.classpath" />
+      </classpath>
+    </javac>
+  </target>
+
+  <!-- Execute the Directory Server TestNG unit tests in text mode. -->
+  <target name="testng-test"
+            depends="testng-testinit"
+            description="Execute the Directory Server TestNG unit tests in text mode.">
+    <mkdir dir="${unittest.report.dir}" />
+
+    <taskdef resource="testngtasks">
+      <classpath>
+        <fileset dir="${testng.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <testng outputdir="${unittest.report.dir}" haltonfailure="true"
+            enableAssert="false">
+      <classpath>
+        <pathelement location="${coverage.instr.dir}" />
+
+        <path refid="run.classpath" />
+        <!--<path refid="emma.lib" />-->
+
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <fileset dir="${testng.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+
+        <pathelement location="${unittest.classes.dir}" />
+      </classpath>
+
+      <xmlfileset dir="${testng.dir}" includes="testng.xml" />
+    </testng>
+  </target>
+
+  <target name="testng-report"
+        depends="testng-test"
+        description="Takes testng results and convert them into JUnit compatible xml">
+    <junitreport todir="${unittest.report.dir}">
+      <fileset dir="${unittest.report.dir}">
+        <include name="*.xml"/>
+      </fileset>
+
+      <report format="noframes"  todir="${unittest.report.dir}"/>
+    </junitreport>
+  </target>
+
+</project>
+

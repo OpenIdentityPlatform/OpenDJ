@@ -1,0 +1,4 @@
+dn:uid=prose, ou=people, o=bob tests,dc=com
+changetype: modrdn
+newrdn: uid=thisisaminoradjustment
+deleteoldrdn: 0

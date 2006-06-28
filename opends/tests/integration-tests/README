@@ -1,0 +1,32 @@
+The functional test suite, also known as the acceptance test suite,
+will eventually be a standalone library from the Directory Server.
+
+Thus the build environment was kept completely separate from that
+for Directory Server.
+
+To run the functional test suite from a fresh check out, the following
+steps will be necessary.
+
+1. Build the DirectoryServer.jar in the build process for Directory
+Server. This is of course not necessary if you already have
+a DirectoryServer.jar.
+
+2. Copy the ext and the lib sub-directories from the Directory Server
+build environment to the functional-test directory.
+
+3. Copy the DirectoryServer.jar into the functional-tests/lib
+directory.
+
+4. Edit the file, src/com/sun/directory/DirectoryServerAcceptanceTestCase.java,
+with the appropriate directory paths and variable values.
+
+5. Run ./build.sh
+
+6. Ensure that your java classpath includes junit.jar, je.jar,
+the new DirectoryServer.jar, and the directory where the 
+functional test classes reside.
+
+7. Execute the functional tests with the command
+java com.sun.directory.DirectoryServerAcceptanceTestSuite
+
+

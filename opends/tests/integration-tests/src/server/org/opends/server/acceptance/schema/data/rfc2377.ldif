@@ -1,0 +1,102 @@
+dn: dc=rfc-2377-tests,dc=com
+dc: rfc-2377-tests
+o: Crucial RFC Tests 
+objectclass: top
+objectclass: dcObject
+objectclass: organization
+
+dn: dc=Europe, dc=rfc-2377-tests,dc=com
+dc: Europe
+o: Europe Crucial RFC Tests 
+objectclass: top
+objectclass: dcObject
+objectclass: organization
+
+dn: dc=North America, dc=rfc-2377-tests,dc=com
+dc: North America
+objectclass: top
+objectclass: domain
+
+dn: ou=People,dc=Europe,dc=rfc-2377-tests,dc=com
+ou: People
+objectclass: top
+objectclass: organizationalunit
+
+dn: ou=People,dc=North America,dc=rfc-2377-tests,dc=com
+ou: People
+objectclass: top
+objectclass: organizationalunit
+
+dn: uid=nmiller, ou=People,dc=Europe,dc=rfc-2377-tests,dc=com
+cn: Nate Miller
+sn: Miller
+givenname: Nate
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: nmiller
+mail: nmiller@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+
+dn: uid=lmiller, ou=People,dc=North America,dc=rfc-2377-tests,dc=com
+cn: Late Miller
+sn: Miller
+givenname: Late
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: lmiller
+mail: lmiller@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+
+dn: cn=Anton Miller, ou=People,dc=Europe,dc=rfc-2377-tests,dc=com
+cn: Anton Miller
+sn: Miller
+givenname: Anton
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: amiller
+mail: amiller@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+
+dn: cn=Art Miller, ou=People,dc=North America,dc=rfc-2377-tests,dc=com
+cn: Art Miller
+sn: Miller
+givenname: Art
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: amiller
+mail: amiller@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+
+

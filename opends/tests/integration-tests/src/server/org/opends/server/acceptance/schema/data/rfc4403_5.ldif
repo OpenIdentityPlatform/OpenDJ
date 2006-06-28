@@ -1,0 +1,6 @@
+dn: uddiUUID=5001,ou=uddi tests,o=rfc tests,dc=com
+objectclass: top
+objectclass: uddiContact
+uddiPersonName: John Doe
+uddiUUID: 5001
+
