@@ -1,0 +1,84 @@
+dn: uid=foo37, ou=People, o=bob tests,dc=com
+cn: foo 37
+sn: 37
+givenname: foo
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foobar
+uid: foo37
+mail: foo37@example.com
+telephonenumber: +1 408 555 1221
+facsimiletelephonenumber: + 1 408 555 1221
+roomnumber: 7t
+pager: +1 999 555 1212
+
+dn: uid=foo38, ou=People, o=bob tests,dc=com
+cn: foo 38
+sn: 38
+givenname: foo
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foobar
+uid: foo38
+mail: foo38@example.com
+telephonenumber: +1 408 555 1221
+facsimiletelephonenumber: + 1 408 555 1221
+roomnumber: 7t
+pager: +1 999 555 1212
+
+dn: uid=foo39, ou=People, o=bob tests,dc=com
+cn: foo39 
+sn: 39
+givenname: foo39
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foo39bar
+uid: foo39
+mail: foo39@example.com
+telephonenumber: +1 408 555 1221
+facsimiletelephonenumber: + 1 408 555 1221
+roomnumber: 7t
+pager: +1 999 555 1212
+
+dn: uid=foo40, ou=People, o=bob tests,dc=com
+cn: foo40 
+sn: 40
+givenname: foo40
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foo40bar
+uid: foo40
+mail: foo40@example.com
+telephonenumber: +1 408 555 1221
+facsimiletelephonenumber: + 1 408 555 1221
+roomnumber: 7t
+pager: +1 999 555 1212
+
+dn: uid=foo41, ou=People, o=bob tests,dc=com
+cn: foo41 
+sn: 41
+givenname: foo41
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foo41bar
+uid: foo41
+mail: foo41@example.com
+telephonenumber: +1 418 555 1221
+facsimiletelephonenumber: + 1 418 555 1221
+roomnumber: 7t
+pager: +1 999 555 1212

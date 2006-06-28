@@ -1,0 +1,8 @@
+dn: cn=another new author,o=rfc tests,dc=com
+objectclass: top
+objectclass: document
+cn: another new author
+documentLocation: archives
+documentTitle: The Ying and Yang of Mathematical Ring Theory - The Sequel
+documentAuthor: uid=kvaughan, ou=People, o=schema tests,dc=com
+

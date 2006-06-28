@@ -1,0 +1,10 @@
+dn: o=branch test seven, o=import tests, dc=com
+objectclass: top
+objectclass: organization
+o: branch test seven 
+
+dn: ou=People, o=branch test seven, o=import tests, dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+

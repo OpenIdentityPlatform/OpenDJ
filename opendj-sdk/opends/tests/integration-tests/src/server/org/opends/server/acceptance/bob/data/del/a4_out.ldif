@@ -1,0 +1,14 @@
+dn: uid=tmason, ou=People, o=bob tests,dc=com
+changetype: delete
+
+dn: uid=bhall, ou=People, o=bob tests,dc=com
+changetype: delete
+
+dn: uid=btalbot, ou=People, o=bob tests,dc=com
+changetype: delete
+
+dn: uid=bad, ou=People, o=bob tests,dc=com
+changetype: delete
+
+dn: uid=bjablons, ou=People, o=bob tests,dc=com
+changetype: delete

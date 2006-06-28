@@ -1,0 +1,5 @@
+uid=trigden, ou=People, o=bob tests,dc=com
+uid=cschmith, ou=People, o=bob tests,dc=com
+uid=jwallace, ou=People, o=bob tests,dc=com
+uid=bad, ou=People, o=bob tests,dc=com
+uid=tclow, ou=People, o=bob tests,dc=com

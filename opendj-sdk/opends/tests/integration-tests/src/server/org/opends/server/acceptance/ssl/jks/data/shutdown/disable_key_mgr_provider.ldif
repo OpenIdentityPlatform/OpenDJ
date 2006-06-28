@@ -1,0 +1,5 @@
+dn: cn=Key Manager Provider,cn=SSL,cn=config
+changetype: modify
+replace: ds-config-keyManagerProviderEnabled
+ds-config-keyManagerProviderEnabled: false
+

@@ -1,0 +1,4 @@
+dn: uid=gfarmer, ou=People, o=frontend tests,dc=com
+changetype: modrdn
+newrdn: uid=gfarmersmith
+deleteoldrdn: 0

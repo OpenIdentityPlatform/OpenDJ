@@ -1,0 +1,6 @@
+dn: cn=Trust Manager Provider,cn=SSL,cn=config
+changetype: modify
+replace: ds-config-trustManagerProviderEnabled
+ds-config-trustManagerProviderEnabled: false
+
+

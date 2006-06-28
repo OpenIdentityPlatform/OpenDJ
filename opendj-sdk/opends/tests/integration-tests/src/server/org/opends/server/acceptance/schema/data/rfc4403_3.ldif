@@ -1,0 +1,5 @@
+dn: uddiServiceKey=bad service dn,ou=uddi tests,o=rfc tests,dc=com
+objectclass: top
+objectclass: uddiBusinessService
+uddiServiceKey: bad service dn
+

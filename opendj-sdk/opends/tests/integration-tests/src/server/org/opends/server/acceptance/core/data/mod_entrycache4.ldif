@@ -1,0 +1,5 @@
+dn: cn=Entry Cache,cn=config
+changetype: modify
+add: ds-cfg-max-entries
+ds-cfg-max-entries: 100000
+

@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+
+
+<module name="Checker">
+  <module name="TreeWalker">
+    <!-- Ensure that each source file starts with the appropriate header -->
+    <module name="Header">
+      <property name="headerFile" value="${basedir}/ext/checkstyle/opends.sourceheader" />
+    </module>
+
+
+    <!-- Ensure that all classes and interfaces are documented -->
+    <module name="JavadocType">
+      <property name="scope" value="private" />
+    </module>
+
+
+    <!-- Ensure that all non-private methods are documented -->
+    <module name="JavadocMethod">
+      <property name="scope" value="package" />
+      <property name="allowUndeclaredRTE" value="false" />
+      <property name="allowMissingParamTags" value="false" />
+      <property name="allowMissingJavadoc" value="false" />
+    </module>
+
+
+    <!-- Ensure that all public and protected fields are documented -->
+    <module name="JavadocVariable">
+      <property name="scope" value="protected" />
+    </module>
+
+
+    <!-- Ensure that all Javadoc comments are well-formed -->
+    <module name="JavadocStyle">
+      <property name="scope" value="private" />
+      <property name="checkFirstSentence" value="true" />
+      <property name="checkEmptyJavadoc" value="true" />
+      <property name="checkHtml" value="true" />
+    </module>
+
+
+    <!-- Ensure that no line exceeds 80 characters in length -->
+    <module name="LineLength">
+      <property name="max" value="80" />
+    </module>
+
+
+    <!-- Ensure that no tab characters are used -->
+    <module name="TabCharacter" />
+
+
+    <!-- Ensure that no line ends with whitespace -->
+    <module name="GenericIllegalRegexp">
+      <property name="format" value="\s$" />
+      <property name="message" value="Line ends with whitespace." />
+    </module>
+
+
+    <!-- Check for string == rather than .equals checks -->
+    <module name="StringLiteralEquality" />
+
+
+    <!-- Check to ensure that anything implmenting .equals(Object) also
+         implements .hashCode() -->
+    <module name="EqualsHashCode" />
+
+
+    <!-- Make sure that all classes have a package statement -->
+    <module name="PackageDeclaration" />
+
+
+    <!-- Identify any switch statements with fall-through -->
+    <module name="FallThrough" />
+
+
+    <!-- Make sure that long constants are defined with an uppercase L -->
+    <module name="UpperEll" />
+
+
+    <!-- Perform basic validation on imports -->
+    <module name="RedundantImport" />
+    <module name="UnusedImports" />
+    <module name="IllegalImport">
+      <property name="illegalPkgs" value="sun" />
+    </module>
+
+
+    <!-- Don't allow empty statements (those that contain just a semicolon) -->
+    <module name="EmptyStatement" />
+  </module>
+</module>
+

@@ -1,0 +1,215 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ */
+package org.opends.server.util;
+
+
+
+import static org.opends.server.loggers.Debug.*;
+
+
+
+/**
+ * This class defines an exception that may be thrown while attempting to parse
+ * LDIF content.
+ */
+public class LDIFException
+       extends Exception
+{
+  /**
+   * The fully-qualified name of this class for debugging purposes.
+   */
+  private static final String CLASS_NAME =
+       "org.opends.server.util.LDIFException";
+
+
+
+  /**
+   * The serial version identifier required to satisfy the compiler because this
+   * class extends <CODE>java.lang.Exception</CODE>, which implements the
+   * <CODE>java.io.Serializable</CODE> interface.  This value was generated
+   * using the <CODE>serialver</CODE> command-line utility included with the
+   * Java SDK.
+   */
+  private static final long serialVersionUID = 2291731429121120364L;
+
+
+
+  // Indicates whether this exception is severe enough that it is no longer
+  // possible to keep reading.
+  private boolean canContinueReading;
+
+  // The line number of the last line read from the LDIF source.
+  private long lineNumber;
+
+  // The unique message ID for the associated message.
+  private int messageID;
+
+
+
+  /**
+   * Creates a new LDIF exception with the provided information.
+   *
+   * @param  messageID  The unique message ID for the provided message.
+   * @param  message    The message to use for this LDIF exception.
+   */
+  public LDIFException(int messageID, String message)
+  {
+    super(message);
+
+    assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
+                            String.valueOf(message));
+
+    this.messageID     = messageID;
+    lineNumber         = -1;
+    canContinueReading = true;
+  }
+
+
+
+  /**
+   * Creates a new LDIF exception with the provided information.
+   *
+   * @param  messageID  The unique message ID for the provided message.
+   * @param  message    The message to use for this LDIF exception.
+   * @param  cause      The underlying cause that triggered this LDIF exception.
+   */
+  public LDIFException(int messageID, String message, Throwable cause)
+  {
+    super(message, cause);
+
+    assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
+                            String.valueOf(message), String.valueOf(cause));
+
+    this.messageID     = messageID;
+    lineNumber         = -1;
+    canContinueReading = true;
+  }
+
+
+
+  /**
+   * Creates a new LDIF exception with the provided information.
+   *
+   * @param  messageID           The unique message ID for the provided message.
+   * @param  message             The message to use for this LDIF exception.
+   * @param  lineNumber          The line number of the last line read from the
+   *                             LDIF source.
+   * @param  canContinueReading  Indicates whether it is possible to continue
+   *                             reading from the LDIF input source.
+   */
+  public LDIFException(int messageID, String message, long lineNumber,
+                       boolean canContinueReading)
+  {
+    super(message);
+
+    assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
+                            String.valueOf(message), String.valueOf(lineNumber),
+                            String.valueOf(canContinueReading));
+
+    this.messageID          = messageID;
+    this.lineNumber         = lineNumber;
+    this.canContinueReading = canContinueReading;
+  }
+
+
+
+  /**
+   * Creates a new configuration exception with the provided message and
+   * underlying cause.
+   *
+   * @param  messageID           The unique message ID for the provided message.
+   * @param  message             The message to use for this LDIF exception.
+   * @param  canContinueReading  Indicates whether it is possible to continue
+   *                             reading from the LDIF input source.
+   * @param  lineNumber          The line number of the last line read from the
+   *                             LDIF source.
+   * @param  cause               The underlying cause that triggered this LDIF
+   *                             exception.
+   */
+  public LDIFException(int messageID, String message, long lineNumber,
+                       boolean canContinueReading, Throwable cause)
+  {
+    super(message, cause);
+
+    assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
+                            String.valueOf(message), String.valueOf(lineNumber),
+                            String.valueOf(canContinueReading),
+                            String.valueOf(cause));
+
+    this.messageID          = messageID;
+    this.lineNumber         = lineNumber;
+    this.canContinueReading = canContinueReading;
+  }
+
+
+
+  /**
+   * Retrieves the message ID for this exception.
+   *
+   * @return  The message ID for this exception.
+   */
+  public int getMessageID()
+  {
+    assert debugEnter(CLASS_NAME, "getMessageID");
+
+    return messageID;
+  }
+
+
+
+  /**
+   * Retrieves the line number of the last line read from the LDIF source.
+   *
+   * @return  The line number of the last line read from the LDIF source.
+   */
+  public long getLineNumber()
+  {
+    assert debugEnter(CLASS_NAME, "getLineNumber");
+
+    return lineNumber;
+  }
+
+
+
+  /**
+   * Indicates whether the nature of this exception allows the caller to
+   * continue reading LDIF data.  If this method returns <CODE>false</CODE>,
+   * then the associated reader should be closed by the caller.
+   *
+   * @return  <CODE>true</CODE> if the problem was with a single entry but it is
+   *          possible to continue reading with the next entry, or
+   *          <CODE>false</CODE> if the problem was such that it is no longer
+   *          possible to continue reading the data.
+   */
+  public boolean canContinueReading()
+  {
+    assert debugEnter(CLASS_NAME, "canContinueReading");
+
+    return canContinueReading;
+  }
+}
+

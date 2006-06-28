@@ -1,0 +1,5 @@
+dn: uddiServiceKey=ldap service,uddiBusinessKey=biz,ou=uddi tests,o=rfc tests,dc=com
+objectclass: top
+objectclass: uddiBusinessService
+uddiServiceKey: ldap service
+

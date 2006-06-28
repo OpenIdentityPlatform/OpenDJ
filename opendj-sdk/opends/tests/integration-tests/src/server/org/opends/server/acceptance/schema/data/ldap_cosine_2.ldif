@@ -1,0 +1,9 @@
+dn: cn=new author,o=rfc tests,dc=com
+objectclass: top
+objectclass: document
+documentIdentifier: ldap cosine 2
+cn: new author
+documentLocation: archives
+documentTitle: The Ying and Yang of Mathematical Ring Theory
+documentAuthor: uid=kvaughan, ou=People, o=schema tests,dc=com
+

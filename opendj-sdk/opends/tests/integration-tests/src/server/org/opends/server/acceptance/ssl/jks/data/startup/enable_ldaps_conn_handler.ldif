@@ -1,0 +1,22 @@
+dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
+objectclass: top
+objectclass: ds-cfg-connection-handler
+objectclass: ds-cfg-ldap-connection-handler
+cn: LDAPS Connection Handler
+ds-cfg-connection-handler-class: org.opends.server.protocols.ldap.LDAPConnectionHandler
+ds-cfg-connection-handler-enabled: true
+ds-cfg-listen-address: 0.0.0.0
+ds-cfg-listen-port: 636
+ds-cfg-allow-ldapv2: true
+ds-cfg-keep-stats: true
+ds-cfg-use-tcp-keepalive: true
+ds-cfg-use-tcp-nodelay: true
+ds-cfg-allow-tcp-reuse-address: true
+ds-cfg-send-rejection-notice: true
+ds-cfg-max-request-size: 5 MB
+ds-cfg-num-request-handlers: 2
+ds-cfg-allow-start-tls: false
+ds-cfg-use-ssl: true
+ds-cfg-ssl-client-auth-policy: optional
+ds-cfg-ssl-cert-nickname: server-cert
+

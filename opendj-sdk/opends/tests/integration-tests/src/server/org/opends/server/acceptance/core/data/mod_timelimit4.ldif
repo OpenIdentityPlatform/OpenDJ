@@ -1,0 +1,4 @@
+dn: cn=Directory Manager,cn=Root DNs,cn=config
+changetype: modify
+replace: ds-rlim-time-limit
+ds-rlim-time-limit: 60

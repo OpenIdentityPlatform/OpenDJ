@@ -1,0 +1,4 @@
+dn: uid=bschneid, ou=people, o=bob tests,dc=com
+changetype: modify
+replace: seeAlso
+seeAlso: cn=Directory Manager, o=bob tests,dc=com

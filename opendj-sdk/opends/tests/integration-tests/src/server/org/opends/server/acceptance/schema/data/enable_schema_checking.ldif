@@ -1,0 +1,4 @@
+dn: cn=config
+changetype: modify
+replace: ds-cfg-check-schema
+ds-cfg-check-schema: true
