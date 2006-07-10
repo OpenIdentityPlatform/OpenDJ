@@ -544,7 +544,7 @@ public class DynamicConstants
 
 
   <!-- Generate JavaDoc documentation from the source files -->
-  <target name="javadoc" depends="package"
+  <target name="javadoc" depends="dsml"
        description="Generate JavaDoc documentation.">
 
     <mkdir dir="${javadoc.dir}" />
