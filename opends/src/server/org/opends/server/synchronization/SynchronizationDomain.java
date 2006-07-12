@@ -916,4 +916,20 @@ public class SynchronizationDomain extends DirectoryThread
                                   maxReceiveQueue, maxSendDelay, maxSendQueue,
                                   state);
   }
+
+  /**
+   * This methods is called when an error happends while replaying
+   * and operation.
+   * It is necessary because the postOPeration does not always get
+   * called when error or Exceptions happen during the operation replay.
+   *
+   * @param changeNumber the ChangeNumber of the operation with error.
+   */
+  public void updateError(ChangeNumber changeNumber)
+  {
+    synchronized (pendingChanges)
+    {
+      pendingChanges.remove(changeNumber);
+    }
+  }
 }

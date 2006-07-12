@@ -27,6 +27,8 @@
 package org.opends.server.synchronization;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.util.zip.DataFormatException;
 
 /**
  * This Class is used to send acks between LDAP and changelog servers.
@@ -49,6 +51,34 @@ public class AckMessage extends SynchronizationMessage implements Serializable
   }
 
   /**
+   * Creates a new AckMessage by decoding the provided byte array.
+   *
+   * @param in The byte array containing the encoded form of the AckMessage.
+   * @throws DataFormatException If in does not contain a properly encoded
+   *                             AckMessage.
+   */
+  public AckMessage(byte[] in) throws DataFormatException
+  {
+    try
+    {
+      /* first byte is the type */
+      if (in[0] != MSG_TYPE_ACK)
+        throw new DataFormatException("byte[] is not a valid modify msg");
+      int pos = 1;
+
+      /* read the changeNumber
+       * it is always 24 characters long
+       */
+      String changenumberStr = new  String(in, pos, 24, "UTF-8");
+      changeNumber = new ChangeNumber(changenumberStr);
+      pos +=24;
+    } catch (UnsupportedEncodingException e)
+    {
+      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
+  }
+
+  /**
    * Get the ChangeNumber from the message.
    *
    * @return the ChangeNumber
@@ -57,6 +87,7 @@ public class AckMessage extends SynchronizationMessage implements Serializable
   {
     return changeNumber;
   }
+
   /**
    * {@inheritDoc}
    */
@@ -65,5 +96,37 @@ public class AckMessage extends SynchronizationMessage implements Serializable
   {
     domain.receiveAck(this);
     return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes()
+  {
+    try
+    {
+      int length = 1 + 24;
+      byte[] resultByteArray = new byte[length];
+      int pos = 1;
+
+      /* put the type of the operation */
+      resultByteArray[0] = MSG_TYPE_ACK;
+
+      resultByteArray[pos++] = 0;
+      /* put the ChangeNumber */
+      byte[] changeNumberByte;
+
+      changeNumberByte = this.getChangeNumber().toString().getBytes("UTF-8");
+
+      for (int i=0; i<24; i++,pos++)
+      {
+        resultByteArray[pos] = changeNumberByte[i];
+      }
+      return resultByteArray;
+    } catch (UnsupportedEncodingException e)
+    {
+      return null;
+    }
   }
 }

@@ -26,10 +26,10 @@
  */
 package org.opends.server.synchronization;
 
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.synchronization.SynchMessages.SYNCHRONIZATION;
 
 import java.io.UnsupportedEncodingException;
+import java.util.zip.DataFormatException;
 
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.Operation;
@@ -58,13 +58,13 @@ public class DeleteMsg extends UpdateMessage
    * Creates a new Add message from a byte[].
    *
    * @param in The byte[] from which the operation must be read.
-   * @throws Exception The input byte[] is not a valid AddMsg
+   * @throws DataFormatException The input byte[] is not a valid AddMsg
    */
-  public DeleteMsg(byte[] in) throws Exception
+  public DeleteMsg(byte[] in) throws DataFormatException
   {
     /* first byte is the type */
-    if (in[0] != OP_TYPE_DELETE_REQUEST)
-      throw new Exception("byte[] is not a valid delete msg");
+    if (in[0] != MSG_TYPE_DELETE_REQUEST)
+      throw new DataFormatException("byte[] is not a valid delete msg");
     int pos = 1;
 
     /* read the dn
@@ -75,16 +75,22 @@ public class DeleteMsg extends UpdateMessage
     while (in[pos++] != 0)
     {
       if (pos > in.length)
-        throw new Exception("byte[] is not a valid delete msg");
+        throw new DataFormatException("byte[] is not a valid delete msg");
       length++;
     }
-    dn = new String(in, offset, length, "UTF-8");
+    try
+    {
+      dn = new String(in, offset, length, "UTF-8");
 
-    /* read the changeNumber
-     * it is always 24 characters long
-     */
-    String changenumberStr = new String(in, pos, 24, "UTF-8");
-    changeNumber = new ChangeNumber(changenumberStr);
+      /* read the changeNumber
+       * it is always 24 characters long
+       */
+      String changenumberStr = new String(in, pos, 24, "UTF-8");
+      changeNumber = new ChangeNumber(changenumberStr);
+    } catch (UnsupportedEncodingException e)
+    {
+      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
   }
 
 
@@ -111,7 +117,7 @@ public class DeleteMsg extends UpdateMessage
    * @return The byte array representation of this Message.
    */
   @Override
-  public byte[] getByte()
+  public byte[] getBytes()
   {
     byte[] byteDn;
     try
@@ -128,7 +134,7 @@ public class DeleteMsg extends UpdateMessage
       int pos = 1;
 
       /* put the type of the operation */
-      resultByteArray[0] = OP_TYPE_DELETE_REQUEST;
+      resultByteArray[0] = MSG_TYPE_DELETE_REQUEST;
 
       /* put the DN and a terminating 0 */
       for (int i = 0; i< byteDn.length; i++,pos++)

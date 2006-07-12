@@ -41,7 +41,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import org.opends.server.changelog.ProtocolSession;
-import org.opends.server.changelog.SerializingProtocolSession;
+import org.opends.server.changelog.SocketSession;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
@@ -69,7 +69,7 @@ public class ChangelogBroker implements InternalSearchListener
   private Object lock = new Object();
   private String changelogServer = "Not connected";
   private TreeSet<FakeOperation> replayOperations;
-  private SerializingProtocolSession session = null;
+  private ProtocolSession session = null;
 
   /**
    * Creates a new Changelog Broker for a particular SynchronizationDomain.
@@ -142,7 +142,7 @@ public class ChangelogBroker implements InternalSearchListener
               InetAddress.getByName(hostname), Integer.parseInt(port));
           Socket socket = new Socket();
           socket.connect(ServerAddr, 500);
-          session = new SerializingProtocolSession(socket);
+          session = new SocketSession(socket);
 
           /*
            * Send our ServerStartMessage.

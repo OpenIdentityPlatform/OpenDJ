@@ -38,8 +38,10 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.DataFormatException;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 
 import org.opends.server.core.AddOperation;
 import org.opends.server.types.Control;
@@ -72,16 +74,21 @@ import org.opends.server.types.SearchScope;
  * from each server.
  * It is exchanged with the changelog servers at connection establishment time
  * It is locally saved in the database
+ * TODO : should extract from this object the code that read/save
+ * from/to the database on the LDAP server side and put it in a new class
+ * that is only used on the LDAP server side and that encapsulate this class.
  */
 public class ServerState implements Serializable
 {
   private static final long serialVersionUID = 314772980474416183L;
-  private static final String SYNCHRONIZATION_STATE = "ds-sync-state";
+
   private HashMap<Short, ChangeNumber> list;
+  transient private static final String
+                                  SYNCHRONIZATION_STATE = "ds-sync-state";
   transient private DN baseDn;
   transient boolean savedStatus = true;
   transient private InternalClientConnection conn =
-    new InternalClientConnection();
+                                              new InternalClientConnection();
   transient private ASN1OctetString serverStateAsn1Dn;
   transient private DN serverStateDn;
 
@@ -103,6 +110,74 @@ public class ServerState implements Serializable
     {
       // never happens
     }
+  }
+
+  /**
+   * Creates a new ServerState object from its encoded form.
+   *
+   * @param in The byte array containing the encoded ServerState form.
+   * @param pos The position in the byte array where the encoded ServerState
+   *            starts.
+   * @param endpos The position in the byte array where the encoded ServerState
+   *               ends.
+   * @throws DataFormatException If the encoded form was not correct.
+   */
+  public ServerState(byte[] in, int pos, int endpos)
+         throws DataFormatException
+  {
+    try
+    {
+      list = new HashMap<Short, ChangeNumber>();
+
+      while (endpos > pos)
+      {
+        /*
+         * read the ServerId
+         */
+        int length = getNextLength(in, pos);
+        String serverIdString = new String(in, pos, length, "UTF-8");
+        short serverId = Short.valueOf(serverIdString);
+        pos += length +1;
+
+        /*
+         * read the ChangeNumber
+         */
+        length = getNextLength(in, pos);
+        String cnString = new String(in, pos, length, "UTF-8");
+        ChangeNumber cn = new ChangeNumber(cnString);
+        pos += length +1;
+
+        /*
+         * Add the serverid
+         */
+        list.put(serverId, cn);
+      }
+
+    } catch (UnsupportedEncodingException e)
+    {
+      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
+  }
+
+  /**
+   * Get the length of the next String encoded in the in byte array.
+   *
+   * @param in the byte array where to calculate the string.
+   * @param pos the position whre to start from in the byte array.
+   * @return the length of the next string.
+   * @throws DataFormatException If the byte array does not end with null.
+   */
+  private int getNextLength(byte[] in, int pos) throws DataFormatException
+  {
+    int offset = pos;
+    int length = 0;
+    while (in[offset++] != 0)
+    {
+      if (offset >= in.length)
+        throw new DataFormatException("byte[] is not a valid modify msg");
+      length++;
+    }
+    return length;
   }
 
   /**
@@ -197,7 +272,7 @@ public class ServerState implements Serializable
    */
   public void save()
   {
-    if (list.size() == 0)
+    if ((list.size() == 0) || savedStatus)
       return;
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
@@ -208,6 +283,7 @@ public class ServerState implements Serializable
         ASN1OctetString value = new ASN1OctetString(list.get(id).toString());
         values.add(value);
       }
+      savedStatus = true;
     }
     LDAPAttribute attr = new LDAPAttribute(SYNCHRONIZATION_STATE, values);
     LDAPModification mod = new LDAPModification(ModificationType.REPLACE, attr);
@@ -239,6 +315,7 @@ public class ServerState implements Serializable
         }
         else
         {
+          savedStatus = false;
           int msgID = MSGID_ERROR_UPDATING_RUV;
           String message = getMessage(msgID,
               op.getResultCode().getResultCodeName(),
@@ -388,4 +465,55 @@ public class ServerState implements Serializable
     return serverStateDn;
   }
 
+  /**
+   * Add the tail into resultByteArray at position pos.
+   */
+  private int addByteArray(byte[] tail, byte[] resultByteArray, int pos)
+  {
+    for (int i=0; i<tail.length; i++,pos++)
+    {
+      resultByteArray[pos] = tail[i];
+    }
+    resultByteArray[pos++] = 0;
+    return pos;
+  }
+
+  /**
+   * Encode this ServerState object and return its byte array representation.
+   *
+   * @return a byte array with an encoded representation of this object.
+   * @throws UnsupportedEncodingException if UTF8 is not supported by the JVM.
+   */
+  public byte[] getBytes() throws UnsupportedEncodingException
+  {
+    synchronized (this)
+    {
+      int length = 0;
+      List<String> idList = new ArrayList<String>(list.size());
+      for (short id : list.keySet())
+      {
+        String temp = String.valueOf(id);
+        idList.add(temp);
+        length += temp.length() + 1;
+      }
+      List<String> cnList = new ArrayList<String>(list.size());
+      for (ChangeNumber cn : list.values())
+      {
+        String temp = cn.toString();
+        cnList.add(temp);
+        length += temp.length() + 1;
+      }
+      byte[] result = new byte[length];
+
+      int pos = 0;
+      for (int i=0; i< list.size(); i++)
+      {
+        String str = idList.get(i);
+        pos = addByteArray(str.getBytes("UTF-8"), result, pos);
+        str = cnList.get(i);
+        pos = addByteArray(str.getBytes("UTF-8"), result, pos);
+      }
+      return result;
+    }
+  }
 }

@@ -26,10 +26,10 @@
  */
 package org.opends.server.synchronization;
 
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.synchronization.SynchMessages.SYNCHRONIZATION;
 
 import java.io.UnsupportedEncodingException;
+import java.util.zip.DataFormatException;
 
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.Operation;
@@ -56,7 +56,10 @@ public class ModifyDNMsg extends UpdateMessage
   {
     dn = op.getRawEntryDN().stringValue();
     deleteOldRdn = op.deleteOldRDN();
-    newSuperior = op.getRawNewSuperior().stringValue();
+    if (op.getRawNewSuperior() != null)
+      newSuperior = op.getRawNewSuperior().stringValue();
+    else
+      newSuperior = null;
     newRDN = op.getRawNewRDN().stringValue();
     changeNumber = (ChangeNumber) op.getAttachment(SYNCHRONIZATION);
   }
@@ -65,13 +68,13 @@ public class ModifyDNMsg extends UpdateMessage
    * Creates a new Add message from a byte[].
    *
    * @param in The byte[] from which the operation must be read.
-   * @throws Exception The input byte[] is not a valid AddMsg
+   * @throws DataFormatException The input byte[] is not a valid AddMsg
    */
-  public ModifyDNMsg(byte[] in) throws Exception
+  public ModifyDNMsg(byte[] in) throws DataFormatException
   {
     /* first byte is the type */
-    if (in[0] != OP_TYPE_MODIFY_DN_REQUEST)
-      throw new Exception("byte[] is not a valid add msg");
+    if (in[0] != MSG_TYPE_MODIFYDN_REQUEST)
+      throw new DataFormatException("byte[] is not a valid add msg");
     int pos = 1;
 
     /* read the dn
@@ -82,49 +85,58 @@ public class ModifyDNMsg extends UpdateMessage
     while (in[pos++] != 0)
     {
       if (pos > in.length)
-        throw new Exception("byte[] is not a valid add msg");
+        throw new DataFormatException("byte[] is not a valid add msg");
       length++;
     }
-    dn = new String(in, offset, length, "UTF-8");
-
-    /* read the changeNumber
-     * it is always 24 characters long
-     */
-    String changenumberStr = new  String(in, pos, 24, "UTF-8");
-    changeNumber = new ChangeNumber(changenumberStr);
-    pos +=24;
-
-    /* read the newRDN
-     * first calculate the length then construct the string
-     */
-    length = 0;
-    offset = pos;
-    while (in[pos++] != 0)
+    try
     {
-      if (pos > in.length)
-        throw new Exception("byte[] is not a valid add msg");
-      length++;
-    }
-    newRDN = new String(in, offset, length, "UTF-8");
+      dn = new String(in, offset, length, "UTF-8");
 
-    /* read the newSuperior
-     * first calculate the length then construct the string
-     */
-    length = 0;
-    offset = pos;
-    while (in[pos++] != 0)
+      /* read the changeNumber
+       * it is always 24 characters long
+       */
+      String changenumberStr = new  String(in, pos, 24, "UTF-8");
+      changeNumber = new ChangeNumber(changenumberStr);
+      pos +=24;
+
+      /* read the newRDN
+       * first calculate the length then construct the string
+       */
+      length = 0;
+      offset = pos;
+      while (in[pos++] != 0)
+      {
+        if (pos > in.length)
+          throw new DataFormatException("byte[] is not a valid add msg");
+        length++;
+      }
+      newRDN = new String(in, offset, length, "UTF-8");
+
+      /* read the newSuperior
+       * first calculate the length then construct the string
+       */
+      length = 0;
+      offset = pos;
+      while (in[pos++] != 0)
+      {
+        if (pos > in.length)
+          throw new DataFormatException("byte[] is not a valid add msg");
+        length++;
+      }
+      if (length != 0)
+        newSuperior = new String(in, offset, length, "UTF-8");
+      else
+        newSuperior = null;
+
+      /* get the deleteoldrdn flag */
+      if (in[pos] == 0)
+        deleteOldRdn = false;
+      else
+        deleteOldRdn = true;
+    } catch (UnsupportedEncodingException e)
     {
-      if (pos > in.length)
-        throw new Exception("byte[] is not a valid add msg");
-      length++;
+      throw new DataFormatException("UTF-8 is not supported by this jvm.");
     }
-    newSuperior = new String(in, offset, length, "UTF-8");
-
-    /* get the deleteoldrdn flag */
-    if (in[pos] == 0)
-      deleteOldRdn = false;
-    else
-      deleteOldRdn = true;
   }
 
   /**
@@ -136,12 +148,11 @@ public class ModifyDNMsg extends UpdateMessage
   public Operation createOperation(InternalClientConnection connection)
   {
     ModifyDNOperation moddn =  new ModifyDNOperation(connection,
-                                 InternalClientConnection.nextOperationID(),
-                                 InternalClientConnection.nextMessageID(), null,
-                                 new ASN1OctetString(dn),
-                                 new ASN1OctetString(newRDN),
-                                 deleteOldRdn,
-                                 new ASN1OctetString(newSuperior));
+               InternalClientConnection.nextOperationID(),
+               InternalClientConnection.nextMessageID(), null,
+               new ASN1OctetString(dn), new ASN1OctetString(newRDN),
+               deleteOldRdn,
+               (newSuperior == null ? null : new ASN1OctetString(newSuperior)));
     moddn.setAttachment(SYNCHRONIZATION, getChangeNumber());
     return moddn;
   }
@@ -152,7 +163,7 @@ public class ModifyDNMsg extends UpdateMessage
    * @return The byte array representation of this Message.
    */
   @Override
-  public byte[] getByte()
+  public byte[] getBytes()
   {
     try
     {
@@ -178,7 +189,7 @@ public class ModifyDNMsg extends UpdateMessage
       int pos = 1;
 
       /* put the type of the operation */
-      resultByteArray[0] = OP_TYPE_MODIFY_DN_REQUEST;
+      resultByteArray[0] = MSG_TYPE_MODIFYDN_REQUEST;
 
       /* put the DN and a terminating 0 */
       for (int i = 0; i< byteDn.length; i++,pos++)
@@ -198,7 +209,7 @@ public class ModifyDNMsg extends UpdateMessage
       /* put the new RDN and a terminating 0 */
       for (int i = 0; i< byteNewRdn.length; i++,pos++)
       {
-        resultByteArray[pos] = byteDn[i];
+        resultByteArray[pos] = byteNewRdn[i];
       }
       resultByteArray[pos++] = 0;
 
@@ -207,7 +218,7 @@ public class ModifyDNMsg extends UpdateMessage
       {
         for (int i = 0; i< byteNewSuperior.length; i++,pos++)
         {
-          resultByteArray[pos] = byteDn[i];
+          resultByteArray[pos] = byteNewSuperior[i];
         }
         resultByteArray[pos++] = 0;
       }

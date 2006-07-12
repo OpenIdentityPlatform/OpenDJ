@@ -209,7 +209,7 @@ public class ModifyOperation
     this.entryDN       = entryDN;
     this.modifications = modifications;
 
-    rawEntryDN = new ASN1OctetString(rawEntryDN.toString());
+    rawEntryDN = new ASN1OctetString(entryDN.toString());
 
     rawModifications = new ArrayList<LDAPModification>(modifications.size());
     for (Modification m : modifications)
@@ -1706,7 +1706,7 @@ modifyProcessing:
           return;
         }
 
-
+        // If the operation is not a synchronization operation,
         // Invoke the pre-operation modify plugins.
         if (!isSynchronizationOperation())
         {
