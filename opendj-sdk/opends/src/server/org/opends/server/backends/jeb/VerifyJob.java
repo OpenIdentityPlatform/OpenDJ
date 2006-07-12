@@ -216,14 +216,14 @@ public class VerifyJob
    */
   public void verifyBackend() throws DatabaseException, JebException
   {
-    String backendDirectory = config.getBackendDirectory();
+    File backendDirectory = config.getBackendDirectory();
 
     // Open the environment read-only.
     EnvironmentConfig envConfig = config.getEnvironmentConfig();
     envConfig.setReadOnly(true);
     envConfig.setAllowCreate(false);
     envConfig.setTransactional(false);
-    env = new Environment(new File(backendDirectory), envConfig);
+    env = new Environment(backendDirectory, envConfig);
 
     Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
                        CLASS_NAME, "verifyBackend",

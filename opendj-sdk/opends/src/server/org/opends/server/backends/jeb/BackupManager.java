@@ -236,7 +236,7 @@ public class BackupManager
     // If this is an incremental, determine the base backup for this backup.
     HashSet<String> dependencies = new HashSet<String>();
     BackupInfo baseBackup = null;
-    File backendDir = new File(config.getBackendDirectory());
+    File backendDir = config.getBackendDirectory();
 /*
     FilenameFilter backupTagFilter = new FilenameFilter()
     {
@@ -717,9 +717,8 @@ public class BackupManager
 
     // Create a restore directory with a different name to the backend
     // directory.
-    String backendDirectory = config.getBackendDirectory();
-    File currentDir = new File(backendDirectory);
-    File restoreDir = new File(backendDirectory + "-restore-" + backupID);
+    File currentDir = config.getBackendDirectory();
+    File restoreDir = new File(currentDir.getPath() + "-restore-" + backupID);
     if (!verifyOnly)
     {
       File[] files = restoreDir.listFiles();

@@ -153,7 +153,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
    */
   public void importLDIF() throws DatabaseException, IOException, JebException
   {
-    String backendDirectory = config.getBackendDirectory();
+    File backendDirectory = config.getBackendDirectory();
 
     EnvironmentConfig envConfig = config.getEnvironmentConfig();
     envConfig.setConfigParam("je.env.runCheckpointer", "false");
@@ -176,8 +176,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       envConfig.setConfigParam("je.env.isLocking", "false");
     }
 
-    File envHome = new File(backendDirectory);
-    env = new Environment(envHome, envConfig);
+    env = new Environment(backendDirectory, envConfig);
 
     if (!ldifImportConfig.appendToExistingData())
     {
@@ -185,8 +184,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       // environment and re-open it. Only do this when we are
       // importing to all the base DNs in the backend.
       env.close();
-      EnvManager.removeFiles(backendDirectory);
-      env = new Environment(envHome, envConfig);
+      EnvManager.removeFiles(backendDirectory.getPath());
+      env = new Environment(backendDirectory, envConfig);
     }
 
     // Divide the total buffer size by the number of threads
