@@ -116,10 +116,9 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   private Config config;
 
   /**
-   * The pathname of the directory containing persistent storage for the
-   * backend.
+   * The directory containing persistent storage for the backend.
    */
-  private String backendDirectory;
+  private File backendDirectory;
 
   /**
    * The base DNs contained in this backend.
@@ -367,12 +366,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
     // Get the backend database directory.
     backendDirectory = config.getBackendDirectory();
-
-    File dir = new File(backendDirectory);
-    if (!dir.isDirectory())
+    if (!backendDirectory.isDirectory())
     {
       String message = getMessage(MSGID_JEB_DIRECTORY_INVALID,
-                                  backendDirectory);
+                                  backendDirectory.getPath());
       throw new InitializationException(MSGID_JEB_DIRECTORY_INVALID,
                                         message);
     }
@@ -394,7 +391,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     // Open the database environment
     try
     {
-      dbEnv = new Environment(new File(backendDirectory),
+      dbEnv = new Environment(backendDirectory,
                               config.getEnvironmentConfig());
 
       Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
@@ -511,11 +508,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
     };
 
-    File f = new File(backendDirectory);
-    int beforeLogfileCount = f.list(filenameFilter).length;
+    int beforeLogfileCount = backendDirectory.list(filenameFilter).length;
 
     msgID = MSGID_JEB_CLEAN_DATABASE_START;
-    message = getMessage(msgID, beforeLogfileCount, backendDirectory);
+    message = getMessage(msgID, beforeLogfileCount, backendDirectory.getPath());
     logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
              msgID);
 
@@ -538,7 +534,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       dbEnv.checkpoint(force);
     }
 
-    int afterLogfileCount = f.list(filenameFilter).length;
+    int afterLogfileCount = backendDirectory.list(filenameFilter).length;
 
     msgID = MSGID_JEB_CLEAN_DATABASE_FINISH;
     message = getMessage(msgID, afterLogfileCount);
@@ -1164,8 +1160,8 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
 
       // Open a new environment handle.
-      String backendDirectory = config.getBackendDirectory();
-      env = new Environment(new File(backendDirectory), envConfig);
+      File backendDirectory = config.getBackendDirectory();
+      env = new Environment(backendDirectory, envConfig);
 
       Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
                          CLASS_NAME, "exportLDIF",

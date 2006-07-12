@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.io.File;
 
 import static org.opends.server.loggers.Debug.debugException;
 
@@ -223,7 +224,7 @@ public class Config
   /**
    * The backend directory (file system pathname).
    */
-  private String backendDirectory = null;
+  private File backendDirectory = null;
 
   /**
    * Number of times we should retry database transactions that get aborted
@@ -327,7 +328,12 @@ public class Config
       String message = getMessage(msgID, configEntry.getDN().toString());
       throw new ConfigException(msgID, message);
     }
-    backendDirectory = backendDirectoryAttr.activeValue();
+    backendDirectory = new File(backendDirectoryAttr.activeValue());
+    if (!backendDirectory.isAbsolute())
+    {
+      backendDirectory = new File(DirectoryServer.getServerRoot(),
+                                  backendDirectoryAttr.activeValue());
+    }
 
     // ds-cfg-backendIndexEntryLimit
     // Optional, single-valued config attribute requiring admin action on change
@@ -701,9 +707,9 @@ public class Config
   /**
    * Get the backend directory.
    *
-   * @return A string containing the pathname to the backend directory
+   * @return A file representing the backend directory
    */
-  public String getBackendDirectory()
+  public File getBackendDirectory()
   {
     return backendDirectory;
   }
