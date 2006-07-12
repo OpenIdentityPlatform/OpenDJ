@@ -1142,7 +1142,8 @@ addProcessing:
             List<Attribute> attrList = operationalAttributes.get(t);
             if (attrList == null)
             {
-              if (DirectoryServer.addMissingRDNAttributes())
+              if (isSynchronizationOperation() ||
+                  DirectoryServer.addMissingRDNAttributes())
               {
                 LinkedHashSet<AttributeValue> valueList =
                      new LinkedHashSet<AttributeValue>(1);
@@ -1187,7 +1188,8 @@ addProcessing:
 
               if (! found)
               {
-                if (DirectoryServer.addMissingRDNAttributes())
+                if (isSynchronizationOperation() ||
+                    DirectoryServer.addMissingRDNAttributes())
                 {
                   LinkedHashSet<AttributeValue> valueList =
                        new LinkedHashSet<AttributeValue>(1);
@@ -1212,7 +1214,8 @@ addProcessing:
             List<Attribute> attrList = userAttributes.get(t);
             if (attrList == null)
             {
-              if (DirectoryServer.addMissingRDNAttributes())
+              if (isSynchronizationOperation() ||
+                  DirectoryServer.addMissingRDNAttributes())
               {
                 LinkedHashSet<AttributeValue> valueList =
                      new LinkedHashSet<AttributeValue>(1);
@@ -1257,7 +1260,8 @@ addProcessing:
 
               if (! found)
               {
-                if (DirectoryServer.addMissingRDNAttributes())
+                if (isSynchronizationOperation() ||
+                    DirectoryServer.addMissingRDNAttributes())
                 {
                   LinkedHashSet<AttributeValue> valueList =
                        new LinkedHashSet<AttributeValue>(1);
@@ -1766,27 +1770,31 @@ addProcessing:
         }
 
 
-        // Invoke the pre-operation add plugins.
-        PreOperationPluginResult preOpResult =
-             pluginConfigManager.invokePreOperationAddPlugins(this);
-        if (preOpResult.connectionTerminated())
+        // If the operation is not a synchronization operation,
+        // Invoke the pre-operation modify plugins.
+        if (!isSynchronizationOperation())
         {
-          // There's no point in continuing with anything.  Log the result
-          // and return.
-          setResultCode(ResultCode.CANCELED);
+          PreOperationPluginResult preOpResult =
+            pluginConfigManager.invokePreOperationAddPlugins(this);
+          if (preOpResult.connectionTerminated())
+          {
+            // There's no point in continuing with anything.  Log the result
+            // and return.
+            setResultCode(ResultCode.CANCELED);
 
-          int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-          appendErrorMessage(getMessage(msgID));
+            int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
+            appendErrorMessage(getMessage(msgID));
 
-          processingStopTime = System.currentTimeMillis();
+            processingStopTime = System.currentTimeMillis();
 
-          logAddResponse(this);
-          return;
-        }
-        else if (preOpResult.sendResponseImmediately())
-        {
-          skipPostOperation = true;
-          break addProcessing;
+            logAddResponse(this);
+            return;
+          }
+          else if (preOpResult.sendResponseImmediately())
+          {
+            skipPostOperation = true;
+            break addProcessing;
+          }
         }
 
 
@@ -2425,5 +2433,6 @@ addProcessing:
     buffer.append(rawEntryDN);
     buffer.append(")");
   }
+
 }
 

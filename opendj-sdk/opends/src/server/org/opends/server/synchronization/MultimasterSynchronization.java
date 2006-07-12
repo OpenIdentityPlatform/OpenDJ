@@ -67,12 +67,8 @@ public class MultimasterSynchronization extends SynchronizationProvider
   private static Map<DN, SynchronizationDomain> domains =
     new HashMap<DN, SynchronizationDomain>() ;
 
-
- /**
-   * InitializePlugin function.
-   * called at server initialization time
-   * @param configEntry the Entry that contains configuration
-   * @throws ConfigException if config is invalid
+  /**
+   * {@inheritDoc}
    */
   public void initializeSynchronizationProvider(ConfigEntry configEntry)
   throws ConfigException
@@ -210,8 +206,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
   }
 
   /**
-   * Post-Operation method, called by server when processing is complete.
-   * @param modifyDNOperation Operation for which the post-operation is called
+   * {@inheritDoc}
    */
   public void doPostOperation(ModifyDNOperation modifyDNOperation)
   {
@@ -220,9 +215,9 @@ public class MultimasterSynchronization extends SynchronizationProvider
   }
 
   /**
-   * Post-Operation method, called by server when processing is complete.
-   * @param modifyOperation Operation for which the post-operation is called
+   * {@inheritDoc}
    */
+  @Override
   public void doPostOperation(ModifyOperation modifyOperation)
   {
     DN dn = modifyOperation.getEntryDN();
@@ -230,12 +225,9 @@ public class MultimasterSynchronization extends SynchronizationProvider
   }
 
   /**
-   * Handle the conflict resolution.
-   * Called by the core server after locking the entry and before
-   * starting the actual modification.
-   * @param modifyOperation the operation
-   * @return code indicating is operation must proceed
+   * {@inheritDoc}
    */
+  @Override
   public SynchronizationProviderResult handleConflictResolution(
                                                 ModifyOperation modifyOperation)
   {
@@ -246,13 +238,9 @@ public class MultimasterSynchronization extends SynchronizationProvider
     return domain.handleConflictResolution(modifyOperation);
   }
 
+
   /**
-   * Pre-operation processing.
-   * Called after operation has been processed by the core server
-   * but before being committed to the backend
-   * Generate the Change number and update the historical information
-   * @param modifyOperation the current operation
-   * @return code indicating if operation must be processed
+   * {@inheritDoc}
    */
   @Override
   public SynchronizationProviderResult
@@ -277,12 +265,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
   }
 
   /**
-   * Pre-operation processing.
-   * Called after operation has been processed by the core server
-   * but before being committed to the backend
-   * Generate the Change number and update the historical information
-   * @param addOperation the current operation
-   * @return code indicating if operation must be processed
+   * {@inheritDoc}
    */
   @Override
   public SynchronizationProviderResult doPreOperation(AddOperation addOperation)
@@ -300,6 +283,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
    * Called after operation has been processed by the core server
    * but before being committed to the backend
    * Generate the Change number and update the historical information
+   *
    * @param deleteOperation the current operation
    * @return code indicating if operation must be processed
    */
@@ -321,6 +305,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
    * Called after operation has been processed by the core server
    * but before being committed to the backend
    * Generate the Change number and update the historical information
+   *
    * @param modifyDNOperation the current operation
    * @return code indicating if operation must be processed
    */
@@ -394,12 +379,14 @@ public class MultimasterSynchronization extends SynchronizationProvider
       return;
 
     domain.synchronize(operation);
+
     return;
   }
 
   /**
    * Get the ServerState associated to the SynchronizationDomain
    * with a given DN.
+   *
    * @param baseDn The DN of the Synchronization Domain for which the
    *               ServerState must be returned.
    * @return the ServerState associated to the SynchronizationDomain
@@ -410,6 +397,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
     SynchronizationDomain domain = findDomain(baseDn);
     return domain.getServerState();
   }
+
 }
 
 

@@ -27,6 +27,8 @@
 package org.opends.server.changelog;
 
 import java.io.IOException;
+import java.util.zip.DataFormatException;
+
 import org.opends.server.synchronization.SynchronizationMessage;
 
 /**
@@ -75,7 +77,10 @@ public interface ProtocolSession
    * @throws IOException When error happened durin IO process.
    * @throws ClassNotFoundException When the data received does extend the
    *         SynchronizationMessage class.
+   * @throws DataFormatException When the data received is not formatted as a
+   *         SynchronizationMessage.
    */
   public abstract SynchronizationMessage receive()
-                  throws IOException, ClassNotFoundException;
+                  throws IOException, ClassNotFoundException,
+                         DataFormatException;
 }

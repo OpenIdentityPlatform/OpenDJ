@@ -1029,12 +1029,18 @@ public class ServerHandler extends MonitorProvider
   public String toString()
   {
     String localString;
-    if (serverIsLDAPserver)
-      localString = "Directory Server ";
-    else
-      localString = "Changelog Server ";
+    if (serverId != 0)
+    {
+      if (serverIsLDAPserver)
+        localString = "Directory Server ";
+      else
+        localString = "Changelog Server ";
 
-    localString += serverId + " " + serverURL + " " + baseDn;
+
+      localString += serverId + " " + serverURL + " " + baseDn;
+    }
+    else
+      localString = "Unknown server";
 
     return localString;
   }

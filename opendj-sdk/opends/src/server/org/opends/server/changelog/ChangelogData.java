@@ -27,13 +27,8 @@
 package org.opends.server.changelog;
 
 import com.sleepycat.je.DatabaseEntry;
-import org.opends.server.synchronization.AddMsg;
-import org.opends.server.synchronization.DeleteMsg;
-import org.opends.server.synchronization.ModifyDNMsg;
-import org.opends.server.synchronization.ModifyMsg;
+import org.opends.server.synchronization.SynchronizationMessage;
 import org.opends.server.synchronization.UpdateMessage;
-
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
 
 /**
  * SuperClass of DatabaseEntry used for data stored in the Changelog Databases.
@@ -46,7 +41,7 @@ public class ChangelogData extends DatabaseEntry
    */
   public ChangelogData(UpdateMessage change)
   {
-    this.setData(change.getByte());
+    this.setData(change.getBytes());
   }
 
   /**
@@ -58,22 +53,6 @@ public class ChangelogData extends DatabaseEntry
   public static UpdateMessage generateChange(byte[] data)
                                              throws Exception
   {
-    UpdateMessage msg = null;
-    switch (data[0])
-    {
-      case OP_TYPE_MODIFY_REQUEST:
-          msg = (UpdateMessage) new ModifyMsg(data);
-      break;
-      case OP_TYPE_ADD_REQUEST:
-          msg = (UpdateMessage) new AddMsg(data);
-      break;
-      case OP_TYPE_DELETE_REQUEST:
-          msg = (UpdateMessage) new DeleteMsg(data);
-      break;
-      case OP_TYPE_MODIFY_DN_REQUEST:
-          msg = (UpdateMessage) new ModifyDNMsg(data);
-      break;
-    }
-    return msg;
+    return (UpdateMessage) SynchronizationMessage.generateMsg(data);
   }
 }

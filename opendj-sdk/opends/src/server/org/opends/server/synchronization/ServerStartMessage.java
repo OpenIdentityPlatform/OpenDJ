@@ -27,8 +27,10 @@
 package org.opends.server.synchronization;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.zip.DataFormatException;
 
 import org.opends.server.types.DN;
 import org.opends.server.core.DirectoryException;
@@ -43,18 +45,14 @@ public class ServerStartMessage extends SynchronizationMessage implements
 {
   private static final long serialVersionUID = 8649393307038290287L;
 
-  private short ServerId; // Id of the LDAP server that sent this message
+  private short serverId; // Id of the LDAP server that sent this message
+  private String serverURL;
   private String baseDn;
-  private ServerState serverState = null;
   private int maxReceiveQueue;
   private int maxSendQueue;
   private int maxReceiveDelay;
   private int maxSendDelay;
-
-
-  // TODO : should have a RUV here
-
-  private String serverURL;
+  private ServerState serverState = null;
 
   /**
    * Create a new ServerStartMessage.
@@ -72,7 +70,7 @@ public class ServerStartMessage extends SynchronizationMessage implements
                             int maxReceiveQueue, int maxSendDelay,
                             int maxSendQueue, ServerState serverState)
   {
-    this.ServerId = serverId;
+    this.serverId = serverId;
     this.baseDn = baseDn.toString();
     this.maxReceiveDelay = maxReceiveDelay;
     this.maxReceiveQueue = maxReceiveQueue;
@@ -91,12 +89,94 @@ public class ServerStartMessage extends SynchronizationMessage implements
   }
 
   /**
+   * Creates a new ServerStartMessage from its encoded form.
+   *
+   * @param in The byte array containing the encoded form of the
+   *           ServerStartMessage.
+   * @throws DataFormatException If the byte array does not contain a valid
+   *                             encoded form of the ServerStartMessage.
+   */
+  public ServerStartMessage(byte[] in) throws DataFormatException
+  {
+    /* The ServerStartMessage is encoded in the form :
+     * <operation type><baseDn><ServerId><ServerUrl><maxRecvDelay><maxRecvQueue>
+     * <maxSendDelay><maxSendQueue><ServerState>
+     */
+    try
+    {
+      /* first byte is the type */
+      if (in[0] != MSG_TYPE_SERVER_START)
+        throw new DataFormatException("input is not a valid ServerStart msg");
+      int pos = 1;
+
+      /*
+       * read the dn
+       * first calculate the length then construct the string
+       */
+      int length = getNextLength(in, pos);
+      baseDn = new String(in, pos, length, "UTF-8");
+      pos += length +1;
+
+      /*
+       * read the ServerId
+       */
+      length = getNextLength(in, pos);
+      String serverIdString = new String(in, pos, length, "UTF-8");
+      serverId = Short.valueOf(serverIdString);
+      pos += length +1;
+
+      /*
+       * read the ServerURL
+       */
+      length = getNextLength(in, pos);
+      serverURL = new String(in, pos, length, "UTF-8");
+      pos += length +1;
+
+      /*
+       * read the maxReceiveDelay
+       */
+      length = getNextLength(in, pos);
+      maxReceiveDelay = Integer.valueOf(new String(in, pos, length, "UTF-8"));
+      pos += length +1;
+
+      /*
+       * read the maxReceiveQueue
+       */
+      length = getNextLength(in, pos);
+      maxReceiveQueue = Integer.valueOf(new String(in, pos, length, "UTF-8"));
+      pos += length +1;
+
+      /*
+       * read the maxSendDelay
+       */
+      length = getNextLength(in, pos);
+      maxSendDelay = Integer.valueOf(new String(in, pos, length, "UTF-8"));
+      pos += length +1;
+
+      /*
+       * read the maxSendQueue
+       */
+      length = getNextLength(in, pos);
+      maxSendQueue = Integer.valueOf(new String(in, pos, length, "UTF-8"));
+      pos += length +1;
+
+      /*
+      * read the ServerState
+      */
+      serverState = new ServerState(in, pos, in.length-1);
+    } catch (UnsupportedEncodingException e)
+    {
+      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
+  }
+
+  /**
    * Get the ServerID from the message.
    * @return the server ID
    */
   public short getServerId()
   {
-    return ServerId;
+    return serverId;
   }
 
   /**
@@ -180,4 +260,66 @@ public class ServerStartMessage extends SynchronizationMessage implements
     return null;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes()
+  {
+    /*
+     * ServerStartMessage contains.
+     * <baseDn><ServerId><ServerUrl><maxRecvDelay><maxRecvQueue>
+     * <maxSendDelay><maxSendQueue><ServerState>
+     */
+    try {
+      byte[] byteDn = baseDn.getBytes("UTF-8");
+      byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
+      byte[] byteServerUrl = serverURL.getBytes("UTF-8");
+      byte[] byteMaxRecvDelay =
+                     String.valueOf(maxReceiveDelay).getBytes("UTF-8");
+      byte[] byteMaxRecvQueue =
+                     String.valueOf(maxReceiveQueue).getBytes("UTF-8");
+      byte[] byteMaxSendDelay =
+                     String.valueOf(maxSendDelay).getBytes("UTF-8");
+      byte[] byteMaxSendQueue =
+                     String.valueOf(maxSendQueue).getBytes("UTF-8");
+      byte[] byteServerState = serverState.getBytes();
+
+      int length = 1 + byteDn.length + 1 + byteServerId.length + 1 +
+                   byteServerUrl.length + 1 +
+                   byteMaxRecvDelay.length + 1 +
+                   byteMaxRecvQueue.length + 1 +
+                   byteMaxSendDelay.length + 1 +
+                   byteMaxSendQueue.length + 1 +
+                   byteServerState.length + 1;
+
+      byte[] resultByteArray = new byte[length];
+
+      /* put the type of the operation */
+      resultByteArray[0] = MSG_TYPE_SERVER_START;
+      int pos = 1;
+
+      pos = addByteArray(byteDn, resultByteArray, pos);
+
+      pos = addByteArray(byteServerId, resultByteArray, pos);
+
+      pos = addByteArray(byteServerUrl, resultByteArray, pos);
+
+      pos = addByteArray(byteMaxRecvDelay, resultByteArray, pos);
+
+      pos = addByteArray(byteMaxRecvQueue, resultByteArray, pos);
+
+      pos = addByteArray(byteMaxSendDelay, resultByteArray, pos);
+
+      pos = addByteArray(byteMaxSendQueue, resultByteArray, pos);
+
+      pos = addByteArray(byteServerState, resultByteArray, pos);
+
+      return resultByteArray;
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      return null;
+    }
+  }
 }

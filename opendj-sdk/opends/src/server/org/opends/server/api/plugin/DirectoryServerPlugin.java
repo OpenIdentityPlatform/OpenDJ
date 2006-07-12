@@ -398,6 +398,8 @@ public abstract class DirectoryServerPlugin
    * Performs any necessary processing that should be done just before
    * the Directory Server performs the core processing for an add
    * operation.
+   * This method is not called when processing synchronization
+   * operations.
    *
    * @param  addOperation  The add operation to be processed.
    *
@@ -661,6 +663,8 @@ public abstract class DirectoryServerPlugin
    * Performs any necessary processing that should be done just before
    * the Directory Server performs the core processing for a delete
    * operation.
+   * This method is not called when processing synchronization
+   * operations.
    *
    * @param  deleteOperation  The delete operation to be processed.
    *
@@ -840,6 +844,8 @@ public abstract class DirectoryServerPlugin
    * the Directory Server performs the core processing for a modify
    * operation.
    *
+   * This method is not called when processing synchronization
+   * operations.
    * @param  modifyOperation  The modify operation to be processed.
    *
    * @return  Information about the result of the plugin processing.
@@ -927,6 +933,8 @@ public abstract class DirectoryServerPlugin
    * Performs any necessary processing that should be done just before
    * the Directory Server performs the core processing for a modify DN
    * operation.
+   * This method is not called when processing synchronization
+   * operations.
    *
    * @param  modifyDNOperation  The modify DN operation to be
    *                            processed.

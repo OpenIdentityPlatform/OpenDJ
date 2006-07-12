@@ -552,6 +552,7 @@ public class ChangelogDB
            * There is not much more that we can do at this point except trying
            * to continue with the next record.
            * In such case, it is therefore possible that we miss some changes.
+           * TODO. log an error message.
            * TODO. Such problem should be handled by the repair functionality.
            */
         }

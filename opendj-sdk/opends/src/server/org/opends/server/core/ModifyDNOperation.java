@@ -1558,26 +1558,30 @@ modifyDNProcessing:
         int modCount = modifications.size();
 
 
+        // If the operation is not a synchronization operation,
         // Invoke the pre-operation modify DN plugins.
-        PreOperationPluginResult preOpResult =
-             pluginConfigManager.invokePreOperationModifyDNPlugins(this);
-        if (preOpResult.connectionTerminated())
+        if (!isSynchronizationOperation())
         {
-          // There's no point in continuing with anything.  Log the request and
-          // result and return.
-          setResultCode(ResultCode.CANCELED);
+          PreOperationPluginResult preOpResult =
+            pluginConfigManager.invokePreOperationModifyDNPlugins(this);
+          if (preOpResult.connectionTerminated())
+          {
+            // There's no point in continuing with anything.  Log the request
+            // and result and return.
+            setResultCode(ResultCode.CANCELED);
 
-          int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-          appendErrorMessage(getMessage(msgID));
+            int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
+            appendErrorMessage(getMessage(msgID));
 
-          processingStopTime = System.currentTimeMillis();
-          logModifyDNResponse(this);
-          return;
-        }
-        else if (preOpResult.sendResponseImmediately())
-        {
-          skipPostOperation = true;
-          break modifyDNProcessing;
+            processingStopTime = System.currentTimeMillis();
+            logModifyDNResponse(this);
+            return;
+          }
+          else if (preOpResult.sendResponseImmediately())
+          {
+            skipPostOperation = true;
+            break modifyDNProcessing;
+          }
         }
 
 

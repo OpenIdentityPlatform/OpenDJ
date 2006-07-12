@@ -924,26 +924,30 @@ deleteProcessing:
         }
 
 
-        // Invoke the pre-delete plugins.
-        PreOperationPluginResult preOpResult =
-             pluginConfigManager.invokePreOperationDeletePlugins(this);
-        if (preOpResult.connectionTerminated())
+        // If the operation is not a synchronization operation,
+        // invoke the pre-delete plugins.
+        if (!isSynchronizationOperation())
         {
-          // There's no point in continuing with anything.  Log the request and
-          // result and return.
-          setResultCode(ResultCode.CANCELED);
+          PreOperationPluginResult preOpResult =
+            pluginConfigManager.invokePreOperationDeletePlugins(this);
+          if (preOpResult.connectionTerminated())
+          {
+            // There's no point in continuing with anything.  Log the request
+            // and result and return.
+            setResultCode(ResultCode.CANCELED);
 
-          int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-          appendErrorMessage(getMessage(msgID));
+            int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
+            appendErrorMessage(getMessage(msgID));
 
-          processingStopTime = System.currentTimeMillis();
-          logDeleteResponse(this);
-          return;
-        }
-        else if (preOpResult.sendResponseImmediately())
-        {
-          skipPostOperation = true;
-          break deleteProcessing;
+            processingStopTime = System.currentTimeMillis();
+            logDeleteResponse(this);
+            return;
+          }
+          else if (preOpResult.sendResponseImmediately())
+          {
+            skipPostOperation = true;
+            break deleteProcessing;
+          }
         }
 
 

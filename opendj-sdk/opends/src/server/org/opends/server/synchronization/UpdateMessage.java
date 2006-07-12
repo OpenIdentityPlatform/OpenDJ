@@ -27,6 +27,7 @@
 package org.opends.server.synchronization;
 
 import java.io.Serializable;
+import java.util.zip.DataFormatException;
 
 import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -114,21 +115,11 @@ public abstract class UpdateMessage extends SynchronizationMessage
    * @return  the created Operation
    * @throws  LDAPException In case of LDAP decoding exception.
    * @throws  ASN1Exception In case of ASN1 decoding exception.
+   * @throws DataFormatException In case of bad msg format.
    */
   public abstract Operation createOperation(InternalClientConnection conn)
-         throws LDAPException, ASN1Exception;
+         throws LDAPException, ASN1Exception, DataFormatException;
 
-  /**
-   * Return the byte[] representation on this message.
-   * Depending on the message type, the first byte of the byte[] must be.
-   * org.opends.server.com.protocols.ldap.LDAPConstants.OP_TYPE_MODIFY_REQUEST
-   *                                          OP_TYPE_ADD_REQUEST
-   *                                          OP_TYPE_DELETE_REQUEST
-   *                                          OP_TYPE_MODIFY_DN_REQUEST
-   *
-   * @return the byte[] representation of this message.
-   */
-  public abstract byte[] getByte();
 
   /**
    * {@inheritDoc}
@@ -139,6 +130,4 @@ public abstract class UpdateMessage extends SynchronizationMessage
     domain.receiveUpdate(this);
     return this;
   }
-
-
 }

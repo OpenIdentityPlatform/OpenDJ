@@ -26,6 +26,8 @@
  */
 package org.opends.server.synchronization;
 
+import java.util.zip.DataFormatException;
+
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -103,10 +105,12 @@ public class ListenerThread extends DirectoryThread
             int msgID = MSGID_ERROR_REPLAYING_OPERATION;
             String message = getMessage(msgID,
                 op.getResultCode().getResultCodeName(),
+                changeNumber.toString(),
                 op.toString(), op.getErrorMessage());
             logError(ErrorLogCategory.SYNCHRONIZATION,
                 ErrorLogSeverity.SEVERE_ERROR,
                 message, msgID);
+            listener.updateError(changeNumber);
           }
         } catch (Exception e)
         {
@@ -116,12 +120,13 @@ public class ListenerThread extends DirectoryThread
           logError(ErrorLogCategory.SYNCHRONIZATION,
               ErrorLogSeverity.SEVERE_ERROR,
               message, msgID);
+          listener.updateError(changeNumber);
         }
       }
       catch (ASN1Exception e)
       {
         int msgID = MSGID_EXCEPTION_DECODING_OPERATION;
-        String message = getMessage(msgID) + msg +
+        String message = getMessage(msgID, msg) +
                          stackTraceToSingleLineString(e);
         logError(ErrorLogCategory.SYNCHRONIZATION,
             ErrorLogSeverity.SEVERE_ERROR,
@@ -130,7 +135,16 @@ public class ListenerThread extends DirectoryThread
       catch (LDAPException e)
       {
         int msgID = MSGID_EXCEPTION_DECODING_OPERATION;
-        String message = getMessage(msgID) + msg +
+        String message = getMessage(msgID, msg) +
+                         stackTraceToSingleLineString(e);
+        logError(ErrorLogCategory.SYNCHRONIZATION,
+            ErrorLogSeverity.SEVERE_ERROR,
+            message, msgID);
+      }
+      catch (DataFormatException e)
+      {
+        int msgID = MSGID_EXCEPTION_DECODING_OPERATION;
+        String message = getMessage(msgID, msg) +
                          stackTraceToSingleLineString(e);
         logError(ErrorLogCategory.SYNCHRONIZATION,
             ErrorLogSeverity.SEVERE_ERROR,

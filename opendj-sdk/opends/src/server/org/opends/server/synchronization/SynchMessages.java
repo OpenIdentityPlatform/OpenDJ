@@ -277,7 +277,7 @@ public class SynchMessages {
     MessageHandler.registerMessage(MSGID_UNKNOWN_TYPE,
         "Unknown operation type : %s");
     MessageHandler.registerMessage(MSGID_ERROR_REPLAYING_OPERATION,
-        "Error %s when replaying operation %s : %s");
+        "Error %s when replaying operation with changenumber %s %s : %s");
     MessageHandler.registerMessage(MSGID_OPERATION_NOT_FOUND_IN_PENDING,
         "Internal Error : Operation %s change number %s" +
         " was not found in pending list");
@@ -332,7 +332,7 @@ public class SynchMessages {
         " The Changelog service is going to shutdown. ");
     MessageHandler.registerMessage(MSGID_CHANGELOG_CONNECTION_ERROR,
         "Error during Changelog service message processing ." +
-        " Connection %s is rejected. ");
+        " Connection from %s is rejected. ");
     MessageHandler.registerMessage(MSGID_UNKNOWN_MESSAGE,
         "%s has sent an unknown message. Closing the connection. ");
     MessageHandler.registerMessage(MSGID_WRITER_UNEXPECTED_EXCEPTION,

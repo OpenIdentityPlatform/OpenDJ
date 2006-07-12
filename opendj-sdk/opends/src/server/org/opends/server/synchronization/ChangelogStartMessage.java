@@ -27,6 +27,8 @@
 package org.opends.server.synchronization;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.util.zip.DataFormatException;
 
 import org.opends.server.types.DN;
 import org.opends.server.core.DirectoryException;
@@ -39,9 +41,9 @@ public class ChangelogStartMessage extends SynchronizationMessage implements
 {
   private static final long serialVersionUID = -5871385537169856856L;
 
+  private String baseDn = null;
   private short serverId;
   private String serverURL;
-  private String baseDn = null;
   private ServerState serverState;
 
   /**
@@ -62,6 +64,57 @@ public class ChangelogStartMessage extends SynchronizationMessage implements
     else
       this.baseDn = null;
     this.serverState = serverState;
+  }
+
+  /**
+   * Creates a new ChangelogStartMessage by decoding the provided byte array.
+   * @param in A byte array containing the encoded information for the
+   *             ChangelogStartMessage
+   * @throws DataFormatException If the in does not contain a properly
+   *                             encoded ChangelogStartMessage.
+   */
+  public ChangelogStartMessage(byte[] in) throws DataFormatException
+  {
+    /* The ChangelogStartMessage is encoded in the form :
+     * <baseDn><ServerId><ServerUrl><ServerState>
+     */
+    try
+    {
+      /* first byte is the type */
+      if (in[0] != MSG_TYPE_CHANGELOG_START)
+        throw new DataFormatException("input is not a valid ChangelogStartMsg");
+      int pos = 1;
+
+      /* read the dn
+       * first calculate the length then construct the string
+       */
+      int length = getNextLength(in, pos);
+      baseDn = new String(in, pos, length, "UTF-8");
+      pos += length +1;
+
+      /*
+       * read the ServerId
+       */
+      length = getNextLength(in, pos);
+      String serverIdString = new String(in, pos, length, "UTF-8");
+      serverId = Short.valueOf(serverIdString);
+      pos += length +1;
+
+      /*
+       * read the ServerURL
+       */
+      length = getNextLength(in, pos);
+      serverURL = new String(in, pos, length, "UTF-8");
+      pos += length +1;
+
+      /*
+      * read the ServerState
+      */
+      serverState = new ServerState(in, pos, in.length-1);
+    } catch (UnsupportedEncodingException e)
+    {
+      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
   }
 
   /**
@@ -119,5 +172,47 @@ public class ChangelogStartMessage extends SynchronizationMessage implements
     return null;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes()
+  {
+    /* The ChangelogStartMessage is stored in the form :
+     * <operation type><basedn><serverid><serverURL><serverState>
+     */
+    try {
+      byte[] byteDn = baseDn.getBytes("UTF-8");
+      byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
+      byte[] byteServerUrl = serverURL.getBytes("UTF-8");
+      byte[] byteServerState = serverState.getBytes();
 
+      int length = 1 + byteDn.length + 1 + byteServerId.length + 1 +
+      byteServerUrl.length + 1 + byteServerState.length + 1;
+
+      byte[] resultByteArray = new byte[length];
+
+      /* put the type of the operation */
+      resultByteArray[0] = MSG_TYPE_CHANGELOG_START;
+      int pos = 1;
+
+      /* put the baseDN and a terminating 0 */
+      pos = addByteArray(byteDn, resultByteArray, pos);
+
+      /* put the ServerId */
+      pos = addByteArray(byteServerId, resultByteArray, pos);
+
+      /* put the ServerURL */
+      pos = addByteArray(byteServerUrl, resultByteArray, pos);
+
+      /* put the ServerState */
+      pos = addByteArray(byteServerState, resultByteArray, pos);
+
+      return resultByteArray;
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      return null;
+    }
+  }
 }

@@ -73,7 +73,7 @@ public class Historical
    * The last update seen on this entry, allows fast conflict detection.
    */
   private ChangeNumber moreRecentChangenumber =
-                              new ChangeNumber((long)0,0,(short)0);
+                              new ChangeNumber(0,0,(short)0);
 
   /*
    * contains Historical information for each attribute sorted by attribute type
@@ -99,18 +99,14 @@ public class Historical
   /**
    * Process an operation.
    * This method is responsible for detecting and resolving conflict for
-   * modifyOperation. This is done by comparing the historical information
-   * stored
+   * modifyOperation. This is done by using the historical information.
    *
    * @param modifyOperation the operation to be processed
    * @param modifiedEntry the entry that is being modified (before modification)
    */
   public void replayOperation(ModifyOperation modifyOperation,
-                               Entry modifiedEntry)
+                              Entry modifiedEntry)
   {
-    /* TODO : this process should be split in 2 parts called
-     * in the resolveConflict and preOperation phases
-     */
     List<Modification> mods = modifyOperation.getModifications();
     ChangeNumber changeNumber =
       (ChangeNumber) modifyOperation.getAttachment(SYNCHRONIZATION);
@@ -196,6 +192,7 @@ public class Historical
     }
 
     // TODO : now purge old historical information
+
     if (moreRecentChangenumber == null ||
         moreRecentChangenumber.older(changeNumber))
       moreRecentChangenumber = changeNumber;
@@ -205,7 +202,7 @@ public class Historical
    * This method calculate the historical information and update the hist
    * attribute to store the historical information for modify operation that
    * does not conflict with previous operation.
-   * This is the usual path and care should therefore be optimized.
+   * This is the usual path and should therefore be optimized.
    *
    * It does not check if the operation to process is conflicting or not with
    * previous operations. The caller is responsible for this.
@@ -213,7 +210,7 @@ public class Historical
    * @param changeNumber The changeNumber of the operation to process
    * @param mod The modify operation to process.
    */
-  public void processLocalOrNonConflictModification(ChangeNumber changeNumber,
+  private void processLocalOrNonConflictModification(ChangeNumber changeNumber,
       Modification mod)
   {
     /*
@@ -433,7 +430,7 @@ public class Historical
    * @param modAttr the attribute modification
    * @return false if there is nothing to do
    */
-  public boolean conflictDelete(ChangeNumber changeNumber,
+  private boolean conflictDelete(ChangeNumber changeNumber,
                                 AttributeType type, Modification m,
                                 Entry modifiedEntry,
                                 AttrInfo attrInfo, Attribute modAttr )
@@ -564,7 +561,7 @@ public class Historical
    * @param options the options that are added
    * @return false if operation becomes empty and must not be processed
    */
-  public boolean conflictAdd(Iterator modsIterator, ChangeNumber changeNumber,
+  private boolean conflictAdd(Iterator modsIterator, ChangeNumber changeNumber,
                           AttrInfo attrInfo,
                           LinkedHashSet<AttributeValue> addValues,
                           Set<String> options)

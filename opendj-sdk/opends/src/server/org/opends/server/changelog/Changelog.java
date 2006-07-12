@@ -243,7 +243,7 @@ public class Changelog implements Runnable, ConfigurableComponent
       {
         newSocket =  listenSocket.accept();
         ServerHandler handler = new ServerHandler(
-                                     new SerializingProtocolSession(newSocket));
+                                     new SocketSession(newSocket));
         handler.start(null);
       } catch (IOException e)
       {
@@ -318,7 +318,7 @@ public class Changelog implements Runnable, ConfigurableComponent
       socket.connect(ServerAddr, 500);
 
       ServerHandler handler = new ServerHandler(
-                                      new SerializingProtocolSession(socket));
+                                      new SocketSession(socket));
       handler.start(baseDn);
     }
     catch (IOException e)
