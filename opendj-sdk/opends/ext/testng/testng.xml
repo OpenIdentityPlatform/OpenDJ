@@ -4,6 +4,7 @@
         <package name="org.opends.server.protocols.asn1"/>
         <package name="org.opends.server.core"/>
         <package name="org.opends.server.backends.jeb"/>
+        <package name="org.opends.server.synchronization"/>
     </packages>
     
     <test name="precommit">
