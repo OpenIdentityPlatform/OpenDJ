@@ -1,0 +1,8 @@
+dn: cn=Trust Manager Provider,cn=SSL,cn=config
+changetype: modify
+replace: ds-cfg-trust-manager-provider-enabled
+ds-cfg-trust-manager-provider-enabled: true
+-
+add: ds-cfg-trust-store-type
+ds-cfg-trust-store-type: JKS
+

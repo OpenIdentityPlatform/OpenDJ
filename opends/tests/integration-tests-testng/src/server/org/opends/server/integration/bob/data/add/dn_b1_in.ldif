@@ -1,0 +1,17 @@
+dn: uid=foo47, ou=people, o=bob tests,dc=example,dc=com
+cn: foo 47
+sn: 47
+givenname: foo
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foobar
+uid: foo47
+mail: foo47@example.com
+telephonenumber: +1 408 222 1221
+facsimiletelephonenumber:+1 408 222 1221
+roomnumber: 38k
+seeAlso: cn=Directory Manager
+

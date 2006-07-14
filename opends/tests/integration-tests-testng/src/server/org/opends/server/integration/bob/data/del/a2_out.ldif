@@ -1,0 +1,2 @@
+dn: uid=bad, ou=People, o=bob tests,dc=example,dc=com
+changetype: delete

@@ -1,0 +1,9 @@
+dn: ds-task-id=2,cn=Scheduled Tasks,cn=tasks
+objectclass: top
+objectclass: ds-task
+objectclass: ds-task-export
+ds-task-id: 2
+ds-task-class-name: org.opends.server.tasks.ExportTask
+ds-task-export-ldif-file: /tmp/export_task.ldif
+ds-task-export-backend-id: userRoot
+ds-task-export-include-branch: o=backend tests,dc=example,dc=com

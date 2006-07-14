@@ -1,0 +1,13 @@
+dn: cn=Entry Cache 2,cn=config
+cn: Entry Cache 2
+objectclass: top
+objectclass: ds-cfg-fifo-entry-cache
+objectclass: ds-cfg-entry-cache
+ds-cfg-entry-cache-enabled: true
+ds-cfg-entry-cache-class: com.sun.directory.extensions.FIFOEntryCache
+ds-cfg-max-entries: 100000
+ds-cfg-max-memory-percent: 50
+ds-cfg-lock-timeout: 60
+ds-cfg-exclude-filter: telephoneNumber=*
+ds-cfg-include-filter: roomNumber=*
+

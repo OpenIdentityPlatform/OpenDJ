@@ -1,0 +1,4 @@
+dn:uid=prose, ou=people, ou=jks tests, o=SSL Tests, dc=example,dc=com
+changetype: modrdn
+newrdn: uid=thisisaminoradjustment
+deleteoldrdn: 0

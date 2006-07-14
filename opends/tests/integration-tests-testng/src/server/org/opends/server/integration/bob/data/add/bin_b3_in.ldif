@@ -1,0 +1,16 @@
+dn: uid=bscharp, ou=People, o=bob tests,dc=example,dc=com
+cn: Ben Scharp
+sn: Scharp
+givenname: Ben
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: Mountain View
+uid: bscharp
+mail: bscharp@example.com
+telephonenumber: +1 408 555 1212
+facsimiletelephonenumber: +1 408 555 1212
+roomnumber: 007
+jpegPhoto:: 

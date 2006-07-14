@@ -1,0 +1,29 @@
+dn: dc=rfc-2247-tests-2,dc=example,dc=com
+dc: rfc-2247-tests-2
+objectclass: top
+objectclass: domain
+
+dn: ou=People,dc=rfc-2247-tests-2,dc=example,dc=com
+ou: People
+objectclass: top
+objectclass: organizationalunit
+
+dn: uid=nmiller, ou=People,dc=rfc-2247-tests-2,dc=example,dc=com
+cn: Nate Miller
+sn: Miller
+givenname: Nate
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: nmiller
+mail: nmiller@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+
+

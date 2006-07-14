@@ -1,0 +1,84 @@
+dn: uid=foo13, ou=People, o=bob tests,dc=example,dc=com
+cn: foo 13
+sn: 13
+givenname: foo
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foobar 
+uid: foo13
+mail: foo13@example.com
+telephonenumber: +1 408 333 3333
+facsimiletelephonenumber:+1 408 333 3333
+roomnumber: 4b
+labeleduri: This is an ExamPle laBeledURI
+
+dn: uid=foo14, ou=People, o=bob tests,dc=example,dc=com
+cn: foo 14
+sn: 14
+givenname: foo
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foobar
+uid: foo14
+mail: foo14@example.com
+telephonenumber: +1 408 444 4444
+facsimiletelephonenumber: +1 408 444 4444
+roomnumber: 4h
+labeleduri: This is an ExamPle laBeledURI
+
+dn: uid=foo15, ou=People, o=bob tests,dc=example,dc=com
+cn: foo 15
+sn: 15
+givenname: foo
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foobar
+uid: foo15
+mail: foo15@airiys.com
+telephonenumber: +1 408 555 5555
+facsimiletelephonenumber: +1 408 555 5555
+roomnumber: 8f
+labeleduri: This is an ExamPle laBeledURI
+
+dn: uid=foo16, ou=People, o=bob tests,dc=example,dc=com
+cn: foo 16 
+sn: 16
+givenname: foo 
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foobar
+uid: foo16
+mail: foo16@example.com
+telephonenumber: +1 408 666 6666
+facsimiletelephonenumber: +1 408 666 6666
+roomnumber: 12k
+labeleduri: This is an ExamPle laBeledURI
+
+dn: uid=foo17, ou=People, o=bob tests,dc=example,dc=com
+cn: foo 17
+sn: 17
+givenname: foo
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: People
+l: foobar
+uid: foo17
+mail: foo17@example.com
+telephonenumber: +1 408 777 7777
+facsimiletelephonenumber: +1 408 777 7777
+roomnumber: 28m
+labeleduri: This is an ExamPle laBeledURI

@@ -1,0 +1,2 @@
+dn: uid=rhunt, ou=People, ou=jks tests, o=SSL Tests, dc=example,dc=com
+changetype: delete

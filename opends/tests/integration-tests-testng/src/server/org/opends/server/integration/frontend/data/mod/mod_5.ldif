@@ -1,0 +1,4 @@
+dn: uid=abergin, ou=People, o=frontend tests,dc=example,dc=com
+changetype: modify
+replace: mail
+

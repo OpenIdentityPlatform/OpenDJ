@@ -1,0 +1,5 @@
+dn: cn=named object,o=rfc tests,dc=example,dc=com
+objectclass: top
+objectclass: namedObject
+cn: named object
+

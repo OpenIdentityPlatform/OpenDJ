@@ -1,0 +1,4 @@
+dn: uid=scarter, ou=People, o=bob tests,dc=example,dc=com
+changetype: modify
+add: jpegPhoto
+jpegPhoto:: 

@@ -1,0 +1,11 @@
+dn: ou=uddi tests,o=rfc tests,dc=example,dc=com
+ou: uddi tests
+objectclass: top
+objectclass: organizationalunit
+
+dn: uddiBusinessKey=biz,ou=uddi tests,o=rfc tests,dc=example,dc=com
+objectclass: top
+objectclass: uddiBusinessEntity
+uddiBusinessKey: biz
+uddiName: example
+
