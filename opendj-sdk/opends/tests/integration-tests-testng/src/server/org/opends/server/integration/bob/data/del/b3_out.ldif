@@ -1,0 +1,5 @@
+uid=kvaughan, ou=People, o=bob tests,dc=example,dc=com
+uid=abergin, ou=People, o=bob tests,dc=example,dc=com
+uid=dmiller, ou=People, o=bob tests,dc=example,dc=com
+uid=gfarmer, ou=People, o=bob tests,dc=example,dc=com
+uid=kwinters, ou=People, o=bob tests,dc=example,dc=com

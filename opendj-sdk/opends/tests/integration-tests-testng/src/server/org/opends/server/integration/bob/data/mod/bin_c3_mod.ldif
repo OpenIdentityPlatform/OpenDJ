@@ -1,0 +1,4 @@
+dn: uid=kvaughan, ou=people, o=bob tests,dc=example,dc=com
+changetype: modify
+replace: jpegPhoto
+jpegPhoto:

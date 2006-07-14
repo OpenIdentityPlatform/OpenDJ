@@ -1,0 +1,6 @@
+dn: uddiUUID=7001,ou=uddi tests,o=rfc tests,dc=example,dc=com
+objectclass: top
+objectclass: uddiAddress
+uddiAddressLine: 123 Main St. Chicago, IL 60001
+uddiUUID: 7001
+

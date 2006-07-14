@@ -1,0 +1,24 @@
+dn: uid=tmason, ou=People, o=bob tests,dc=example,dc=com
+changetype: modify
+replace: labeleduri
+labeleduri: This is a MoDiFiEd ExamPle laBeledURI
+
+dn: uid=bhall, ou=People, o=bob tests,dc=example,dc=com
+changetype: modify
+replace: labeleduri
+labeleduri: This is a MoDiFiEd ExamPle laBeledURI
+
+dn: uid=btalbot, ou=People, o=bob tests,dc=example,dc=com
+changetype: modify
+replace: labeleduri
+labeleduri: This is a MoDiFiEd ExamPle laBeledURI
+
+dn: uid=mward, ou=People, o=bob tests,dc=example,dc=com
+changetype: modify
+replace: labeleduri
+labeleduri: This is a MoDiFiEd ExamPle laBeledURI
+
+dn: uid=bjablons, ou=People, o=bob tests,dc=example,dc=com
+changetype: modify
+replace: labeleduri
+labeleduri: This is a MoDiFiEd ExamPle laBeledURI

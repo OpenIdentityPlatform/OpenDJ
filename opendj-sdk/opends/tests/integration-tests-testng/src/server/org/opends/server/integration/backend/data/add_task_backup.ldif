@@ -1,0 +1,8 @@
+dn: ds-task-id=3,cn=Scheduled Tasks,cn=tasks
+objectclass: top
+objectclass: ds-task
+objectclass: ds-task-backup
+ds-task-id: 3
+ds-task-class-name: org.opends.server.tasks.BackupTask
+ds-task-backup-backend-id: userRoot
+ds-backup-directory-path: /tmp/backup_task

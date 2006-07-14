@@ -1,0 +1,215 @@
+dn: o=extensible object tests,dc=example,dc=com
+o: extensible object tests
+objectclass: top
+objectclass: organization
+
+dn: ou=People,o=extensible object tests,dc=example,dc=com
+ou: People
+objectclass: top
+objectclass: organizationalunit
+
+dn: o=rfc tests,dc=example,dc=com
+o: extensible object tests
+objectclass: top
+objectclass: organization
+
+dn: ou=People,o=rfc tests,dc=example,dc=com
+ou: People
+objectclass: top
+objectclass: organizationalunit
+
+dn: o=changelog tests,dc=example,dc=com
+o: changelog tests
+objectclass: top
+objectclass: organization
+
+dn: o=schema tests,dc=example,dc=com
+o: extensible object tests
+objectclass: top
+objectclass: organization
+
+dn: ou=People,o=schema tests,dc=example,dc=com
+ou: People
+objectclass: top
+objectclass: organizationalunit
+
+dn: uid=tmorris, ou=People, o=schema tests,dc=example,dc=com
+cn: Ted Morris
+sn: Morris
+givenname: Ted
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Santa Clara
+uid: tmorris
+mail: tmorris@example.com
+telephonenumber: +1 408 555 9187
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 4117
+userpassword: irrefutable
+
+dn: uid=kvaughan, ou=People, o=schema tests,dc=example,dc=com
+cn: Kirsten Vaughan
+sn: Vaughan
+givenname: Kirsten
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Human Resources
+ou: People
+l: Sunnyvale
+uid: kvaughan
+mail: kvaughan@example.com
+telephonenumber: +1 408 555 5625
+facsimiletelephonenumber: +1 408 555 3372
+roomnumber: 2871
+userpassword: bribery
+
+dn: uid=abergin, ou=People, o=schema tests,dc=example,dc=com
+cn: Andy Bergin
+sn: Bergin
+givenname: Andy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+l: Cupertino
+uid: abergin
+mail: abergin@example.com
+telephonenumber: +1 408 555 8585
+facsimiletelephonenumber: +1 408 555 7472
+roomnumber: 3472
+userpassword: inflict
+
+dn: uid=dmiller, ou=People, o=schema tests,dc=example,dc=com
+cn: David Miller
+sn: Miller
+givenname: David
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: dmiller
+mail: dmiller@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+
+dn: uid=gfarmer, ou=People, o=schema tests,dc=example,dc=com
+cn: Gern Farmer
+sn: Farmer
+givenname: Gern
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Cupertino
+uid: gfarmer
+mail: gfarmer@example.com
+telephonenumber: +1 408 555 6201
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 1269
+userpassword: ruling
+
+dn: uid=kwinters, ou=People, o=schema tests,dc=example,dc=com
+cn: Kelly Winters
+sn: Winters
+givenname: Kelly
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: kwinters
+mail: kwinters@example.com
+telephonenumber: +1 408 555 9069
+facsimiletelephonenumber: +1 408 555 1992
+roomnumber: 4178
+userpassword: forsook
+
+dn: uid=trigden, ou=People, o=schema tests,dc=example,dc=com
+cn: Torrey Rigden
+sn: Rigden
+givenname: Torrey
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: trigden
+mail: trigden@example.com
+telephonenumber: +1 408 555 9280
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 3584
+userpassword: sensitive
+
+dn: uid=cschmith, ou=People, o=schema tests,dc=example,dc=com
+cn: Chris Schmith
+sn: Schmith
+givenname: Chris
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Human Resources
+ou: People
+l: Santa Clara
+uid: cschmith
+mail: cschmith@example.com
+telephonenumber: +1 408 555 8011
+facsimiletelephonenumber: +1 408 555 4774
+roomnumber: 0416
+userpassword: hypotenuse
+
+dn: uid=jwallace, ou=People, o=schema tests,dc=example,dc=com
+cn: Judy Wallace
+sn: Wallace
+givenname: Judy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: jwallace
+mail: jwallace@example.com
+telephonenumber: +1 408 555 0319
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 1033
+userpassword: linear
+
+dn: uid=jwalker, ou=People, o=schema tests,dc=example,dc=com
+cn: John Walker
+sn: Walker
+givenname: John
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+l: Cupertino
+uid: jwalker
+mail: jwalker@example.com
+telephonenumber: +1 408 555 1476
+facsimiletelephonenumber: +1 408 555 1992
+roomnumber: 3915
+userpassword: dogleg
+

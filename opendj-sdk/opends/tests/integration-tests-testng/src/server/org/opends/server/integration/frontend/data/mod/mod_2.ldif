@@ -1,0 +1,4 @@
+dn: uid=tmorris, ou=People, o=frontend tests,dc=example,dc=com
+changetype: modify
+delete: mail
+

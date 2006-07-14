@@ -1,0 +1,12 @@
+dn: cn=printer 103,o=rfc tests,dc=example,dc=com
+objectclass: top
+objectclass: ipHost
+objectclass: device
+objectclass: bootabledevice
+cn: printer 103
+ipHostNumber: 103
+bootFile: /config/config.conf
+bootParameter: -b -n -w
+
+
+

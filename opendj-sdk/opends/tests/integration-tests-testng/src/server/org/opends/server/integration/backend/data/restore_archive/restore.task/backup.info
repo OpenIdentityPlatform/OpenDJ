@@ -1,0 +1,11 @@
+backend_dn=ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+
+backup_id=20060714155644Z
+backup_date=20060714155654Z
+incremental=false
+compressed=false
+encrypted=false
+property.last_logfile_name=00000000.jdb
+property.archive_file=backup-userRoot-20060714155644Z.zip
+property.last_logfile_size=473154
+

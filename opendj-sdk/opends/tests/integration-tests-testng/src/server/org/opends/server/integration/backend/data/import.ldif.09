@@ -1,0 +1,49 @@
+dn: uid=trigden9, ou=People, o=test one, o=import tests, dc=example,dc=com
+cn: Torrey Rigden9
+sn: Rigden9
+givenname: Torrey
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: trigden9
+mail: trigden9@example.com
+roomnumber: 1271
+userpassword: sensitive
+
+dn: uid=prigden9, ou=People, o=test one, o=import tests, dc=example,dc=com
+cn: Peter Rigden9
+sn: Rigden9
+givenname: Peter
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Human Resources
+ou: People
+l: Sunnyvale
+uid: prigden9
+mail: prigden9@example.com
+telephonenumber: +1 408 666 6099
+facsimiletelephonenumber: +1 408 666 8476
+userpassword: epiphyseal
+
+dn: uid=brigden9, ou=People, o=test one, o=import tests, dc=example,dc=com
+cn: Bjorn Rigden9
+sn: Rigden9
+givenname: Bjorn
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Human Resources
+ou: People
+l: Sunnyvale
+uid: brigden9
+mail: brigden9@example.com
+roomnumber: 1271
+userpassword: purple
+

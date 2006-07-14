@@ -1,0 +1,4 @@
+dn: cn=config
+changetype: modify
+replace: ds-cfg-size-limit
+ds-cfg-size-limit: 5

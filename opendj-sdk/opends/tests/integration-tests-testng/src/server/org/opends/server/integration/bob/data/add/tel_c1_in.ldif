@@ -1,0 +1,25 @@
+dn: uid=ejohnson, ou=people, o=bob tests,dc=example,dc=com
+changetype: modify
+add: pager
+pager: +1 999 555 1212
+
+dn: uid=prigden, ou=people, o=bob tests,dc=example,dc=com
+changetype: modify
+add: pager
+pager: +1 999 555 1212
+
+dn: uid=bwalker, ou=people, o=bob tests,dc=example,dc=com
+changetype: modify
+add: pager
+pager: +1 999 555 1212
+
+dn: uid=kjensen, ou=people, o=bob tests,dc=example,dc=com
+changetype: modify
+add: pager
+pager: +1 999 555 1212
+
+dn: uid=mlott, ou=people, o=bob tests,dc=example,dc=com
+changetype: modify
+add: pager
+pager: +1 999 555 1212
+

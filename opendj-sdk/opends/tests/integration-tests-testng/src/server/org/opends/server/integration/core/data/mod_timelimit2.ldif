@@ -1,0 +1,4 @@
+dn: cn=config
+changetype: modify
+replace: ds-cfg-time-limit
+ds-cfg-time-limit: 60

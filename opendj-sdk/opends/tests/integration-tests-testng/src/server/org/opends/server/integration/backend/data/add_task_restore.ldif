@@ -1,0 +1,7 @@
+dn: ds-task-id=4,cn=Scheduled Tasks,cn=tasks
+objectclass: top
+objectclass: ds-task
+objectclass: ds-task-restore
+ds-task-id: 4
+ds-task-class-name: org.opends.server.tasks.RestoreTask
+ds-backup-directory-path: /export/dsee7/src/openDS/trunk/opends/tests/integration-tests-testng/src/server/org/opends/server/integration/backend/data/restore.task

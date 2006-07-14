@@ -1,0 +1,4 @@
+dn: cn=Generalized Time,cn=Syntaxes,cn=config
+changetype: modify
+replace: ds-cfg-syntax-enabled
+ds-cfg-syntax-enabled: false

@@ -1,0 +1,4 @@
+dn: uid=btalbo2, ou=People, o=bob tests,dc=example,dc=com
+changetype: modify
+replace: description
+description: This is a sample description that was modified.

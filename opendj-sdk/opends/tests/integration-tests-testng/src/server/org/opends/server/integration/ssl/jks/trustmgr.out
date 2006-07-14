@@ -1,0 +1,8 @@
+dn: cn=Trust Manager Provider,cn=SSL,cn=config
+objectClass: top
+objectClass: ds-cfg-trust-manager-provider
+ds-cfg-trust-manager-provider-enabled: true
+ds-cfg-trust-manager-provider-class: org.opends.server.extensions.BlindTrustManagerProvider
+cn: Trust Manager Provider
+
+
