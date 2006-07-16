@@ -427,8 +427,15 @@ public class JmxConnectionHandler
     sslServerCertNickname = sslServerCertNickNameAtt.activeValue();
 
     //
-    // Get the KeyManager, if specified,
-    jmxKeyManager = getJmxKeyManager(configEntryDN);
+    // Get the KeyManager, if specified.
+    if (useSSL)
+    {
+      jmxKeyManager = getJmxKeyManager(configEntryDN);
+    }
+    else
+    {
+      jmxKeyManager = null;
+    }
 
     // Create the associated RMI Connector
     rmiConnector = new RmiConnector(DirectoryServer.getJMXMBeanServer(), this);
