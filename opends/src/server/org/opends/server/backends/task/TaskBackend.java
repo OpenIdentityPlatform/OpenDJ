@@ -31,6 +31,7 @@ package org.opends.server.backends.task;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.IntegerConfigAttribute;
+import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.CancelledOperationException;
@@ -88,6 +89,15 @@ public class TaskBackend
 
 
 
+  /**
+   * The set of time units that will be used for expressing the task retention
+   * time.
+   */
+  private static final LinkedHashMap<String,Double> timeUnits =
+       new LinkedHashMap<String,Double>();
+
+
+
   // The DN of the configuration entry for this backend.
   private DN configEntryDN;
 
@@ -121,6 +131,17 @@ public class TaskBackend
   // The task scheduler that will be responsible for actually invoking scheduled
   // tasks.
   private TaskScheduler taskScheduler;
+
+
+
+  static
+  {
+    timeUnits.put("seconds", 1.0);
+    timeUnits.put("minutes", 60.0);
+    timeUnits.put("hours", (60.0*60.0));
+    timeUnits.put("days", (24.0*60.0*60.0));
+    timeUnits.put("weeks", (7.0*24.0*60.0*60.0));
+  }
 
 
 
@@ -237,13 +258,14 @@ public class TaskBackend
     // Get the retention time that will be used to determine how long task
     // information stays around once the associated task is completed.
     int msgID = MSGID_TASKBE_DESCRIPTION_RETENTION_TIME;
-    IntegerConfigAttribute retentionStub =
-         new IntegerConfigAttribute(ATTR_TASK_RETENTION_TIME, getMessage(msgID),
-                                    true, false, false, true, 0, false, 0);
+    IntegerWithUnitConfigAttribute retentionStub =
+         new IntegerWithUnitConfigAttribute(ATTR_TASK_RETENTION_TIME,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 0, false, 0);
     try
     {
-      IntegerConfigAttribute retentionAttr =
-           (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute retentionAttr =
+           (IntegerWithUnitConfigAttribute)
            configEntry.getConfigAttribute(retentionStub);
       if (retentionAttr == null)
       {
@@ -251,7 +273,7 @@ public class TaskBackend
       }
       else
       {
-        retentionTime = retentionAttr.activeValue();
+        retentionTime = retentionAttr.activeCalculatedValue();
       }
     }
     catch (Exception e)
@@ -1260,9 +1282,11 @@ public class TaskBackend
                                            taskBackingFile));
 
     description = getMessage(MSGID_TASKBE_DESCRIPTION_RETENTION_TIME);
-    attrList.add(new IntegerConfigAttribute(ATTR_TASK_RETENTION_TIME,
-                                            description, true, false, false,
-                                            true, 0, false, 0, retentionTime));
+    attrList.add(new IntegerWithUnitConfigAttribute(ATTR_TASK_RETENTION_TIME,
+                                                    description, false,
+                                                    timeUnits, true, 0, false,
+                                                    0, retentionTime,
+                                                    "seconds"));
 
     return attrList;
   }
@@ -1363,13 +1387,14 @@ public class TaskBackend
 
 
     description = getMessage(MSGID_TASKBE_DESCRIPTION_RETENTION_TIME);
-    IntegerConfigAttribute retentionStub =
-         new IntegerConfigAttribute(ATTR_TASK_RETENTION_TIME, description,
-                                    true, false, false, true, 0, false, 0);
+    IntegerWithUnitConfigAttribute retentionStub =
+         new IntegerWithUnitConfigAttribute(ATTR_TASK_RETENTION_TIME,
+                                            description, false, timeUnits,
+                                            true, 0, false, 0);
     try
     {
-      IntegerConfigAttribute retentionAttr =
-           (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute retentionAttr =
+           (IntegerWithUnitConfigAttribute)
            configEntry.getConfigAttribute(retentionStub);
       if (retentionAttr == null)
       {
@@ -1494,13 +1519,14 @@ public class TaskBackend
 
     long tmpRetentionTime = retentionTime;
     description = getMessage(MSGID_TASKBE_DESCRIPTION_RETENTION_TIME);
-    IntegerConfigAttribute retentionStub =
-         new IntegerConfigAttribute(ATTR_TASK_RETENTION_TIME, description,
-                                    true, false, false, true, 0, false, 0);
+    IntegerWithUnitConfigAttribute retentionStub =
+         new IntegerWithUnitConfigAttribute(ATTR_TASK_RETENTION_TIME,
+                                            description, false, timeUnits,
+                                            true, 0, false, 0);
     try
     {
-      IntegerConfigAttribute retentionAttr =
-           (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute retentionAttr =
+           (IntegerWithUnitConfigAttribute)
            configEntry.getConfigAttribute(retentionStub);
       if (retentionAttr == null)
       {
@@ -1514,7 +1540,7 @@ public class TaskBackend
       }
       else
       {
-        tmpRetentionTime = retentionTime;
+        tmpRetentionTime = retentionAttr.activeCalculatedValue();
       }
     }
     catch (Exception e)

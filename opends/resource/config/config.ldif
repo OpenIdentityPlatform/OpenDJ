@@ -233,7 +233,7 @@ ds-cfg-backend-id: tasks
 ds-cfg-backend-writability-mode: enabled
 ds-cfg-backend-base-dn: cn=tasks
 ds-cfg-task-backing-file: config/tasks.ldif
-ds-cfg-task-retention-time: 86400
+ds-cfg-task-retention-time: 24 hours
 
 dn: cn=Connection Handlers,cn=config
 objectClass: top
