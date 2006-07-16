@@ -65,6 +65,14 @@ public interface AlertHandler
 
 
   /**
+   * Performs any necessary cleanup that may be necessary when this
+   * alert handler is finalized.
+   */
+  public void finalizeAlertHandler();
+
+
+
+  /**
    * Sends an alert notification based on the provided information.
    *
    * @param  generator     The alert generator that created the alert.

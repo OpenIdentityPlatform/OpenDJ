@@ -6728,6 +6728,13 @@ public class DirectoryServer
     }
 
 
+    // Shut down all of the alert handlers.
+    for (AlertHandler alertHandler : directoryServer.alertHandlers)
+    {
+      alertHandler.finalizeAlertHandler();
+    }
+
+
     // Deregister all of the JMX MBeans.
     Set mBeanSet = directoryServer.mBeanServer.queryMBeans(null, null);
     for (Object o : mBeanSet)
