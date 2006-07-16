@@ -121,9 +121,25 @@ public class LDAPConnectionHandler
 
   /**
    * The unit string that will be used to designate that a value is in
+   * kibibytes.
+   */
+  public static final String UNIT_KIBIBYTES = "KiB";
+
+
+
+  /**
+   * The unit string that will be used to designate that a value is in
    * megabytes.
    */
   public static final String UNIT_MEGABYTES = "MB";
+
+
+
+  /**
+   * The unit string that will be used to designate that a value is in
+   * mebibytes.
+   */
+  public static final String UNIT_MEBIBYTES = "MiB";
 
 
 
@@ -137,8 +153,10 @@ public class LDAPConnectionHandler
   static
   {
     SIZE_UNITS.put(UNIT_BYTES, 1.0);
-    SIZE_UNITS.put(UNIT_KILOBYTES, 1024.0);
-    SIZE_UNITS.put(UNIT_MEGABYTES, 1048576.0);
+    SIZE_UNITS.put(UNIT_KILOBYTES, 1000.0);
+    SIZE_UNITS.put(UNIT_KIBIBYTES, 1024.0);
+    SIZE_UNITS.put(UNIT_MEGABYTES, 1000000.0);
+    SIZE_UNITS.put(UNIT_MEBIBYTES, 1048576.0);
   }
 
 
