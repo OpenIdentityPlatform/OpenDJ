@@ -167,6 +167,19 @@ public class JMXAlertHandler
 
 
   /**
+   * Performs any necessary cleanup that may be necessary when this
+   * alert handler is finalized.
+   */
+  public void finalizeAlertHandler()
+  {
+    assert debugEnter(CLASS_NAME, "finalizeAlertHandler");
+
+    // No action is required.
+  }
+
+
+
+  /**
    * Retrieves the JMX object name for this JMX alert handler.
    *
    * @return  The JMX object name for this JMX alert handler.
