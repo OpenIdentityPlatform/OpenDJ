@@ -84,9 +84,10 @@ fi
 if [ ! -d "${ds_home}/build" ]; then
     # Do you want to build directory server ?
     # maybe the question should be asked interactively, I don't know
-    echo "Could not find the bits, starting a build now"
+    echo "Could not find the openDS bits, starting a build of openDS now"
     cd ${ds_home}
     ./build.sh package
+    cd ${ft_home}
 fi
 
 # generate the testcase from the template
@@ -97,12 +98,14 @@ testcase_file="DirectoryServerAcceptanceTestCase.java"
 template_file="${testcase_file}.template"
 #cat ${template_home}/${template_file}|sed "s|<hostname>|${hostname}|"|sed "s|<integration_home>|$integration_home|" >  ${template_home}/${testcase_file} 
 
+echo "Starting the build for the integration test suites"
 # Execute the ant script and pass it any additional command-line arguments.
 ${ANT_HOME}/bin/ant --noconfig ${*}
 
 if [ $? -eq 0 ]; then
     echo "Successfully built the integration test suite"
-    echo "To run the integration test suite, please install OpenDS."
+    echo "To run the integration test suite, please install OpenDS in the location of your choice."
+    echo "Remember to set the variables in ${ft_home}/ext/testng/testng.xml"
     echo "To start the integration test suite, execute "
     echo "${ft_home}/test.sh [OpenDS home directory]"
     cat > ${ft_home}/test.sh <<EOF
