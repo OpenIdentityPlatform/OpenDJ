@@ -43,17 +43,32 @@ public class QuickstartAddTests extends QuickstartTests
 /**
  *  Setup for quickstartadd tests
 */
-  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
+  @Parameters({ "integration_test_home", "logDir" })
   @Test
-  public void testQuickstartAdd1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
+  public void testQuickstartAdd1(String integration_test_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("QuickstartAdd test 1");
 
+    String exec_cmd = integration_test_home + "/quickstart/checklogdir.sh " + logDir;
+    Runtime rtime = Runtime.getRuntime();
+    Process child = rtime.exec(exec_cmd);
+    child.waitFor();
+
+    compareExitCode(0, 0);
+  }
+
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
+  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.quickstart.QuickstartAddTests.testQuickstartAdd1" })
+  public void testQuickstartAdd2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
+  {
+    System.out.println("*********************************************");
+    System.out.println("QuickstartAdd test 2");
+
     String datafile = integration_test_home + "/quickstart/data/quickstart.ldif";
     String quickstartadd_args[] = {"-a", "-h", hostname, "-p", port, "-D", bindDN, "-w", bindPW, "-f", datafile};
 
-    ds_output.redirectOutput(logDir, "QuickstartAdd1.txt");
+    ds_output.redirectOutput(logDir, "QuickstartAdd2.txt");
     int retCode = LDAPModify.mainModify(quickstartadd_args);
     ds_output.resetOutput();
     int expCode = 0;
