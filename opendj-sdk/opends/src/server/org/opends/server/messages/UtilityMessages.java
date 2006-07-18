@@ -1459,8 +1459,8 @@ public class UtilityMessages
                     "duplicate attribute %s with value %s.  The second " +
                     "occurrence of that attribute value has been skipped.");
     registerMessage(MSGID_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR,
-                    "Entry %s includes multiple values for single-valued " +
-                    "attribute %s.");
+                    "Entry %s starting at line %d includes multiple values " +
+                    "for single-valued attribute %s.");
     registerMessage(MSGID_LDIF_INVALID_ATTR_SYNTAX,
                     "Unable to parse LDIF entry %s starting at line %d " +
                     "because it has an invalid value \"%s\" for attribute " +

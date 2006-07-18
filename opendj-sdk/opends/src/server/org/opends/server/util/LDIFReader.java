@@ -241,12 +241,19 @@ public class LDIFReader
            new HashMap<AttributeType,List<Attribute>>();
       HashMap<AttributeType,List<Attribute>> operationalAttributes =
            new HashMap<AttributeType,List<Attribute>>();
-      for (StringBuilder line : lines)
+      try
       {
-        readAttribute(lines, line, entryDN, objectClasses, userAttributes,
-                      operationalAttributes);
+        for (StringBuilder line : lines)
+        {
+          readAttribute(lines, line, entryDN, objectClasses, userAttributes,
+                        operationalAttributes);
+        }
       }
-
+      catch (LDIFException e)
+      {
+        entriesRejected++;
+        throw e;
+      }
 
       // Create the entry and see if it is one that should be included in the
       // import.
