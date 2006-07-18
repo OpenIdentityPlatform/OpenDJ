@@ -104,7 +104,7 @@ ${ANT_HOME}/bin/ant --noconfig ${*}
 
 if [ $? -eq 0 ]; then
     echo "Successfully built the integration test suite"
-    echo "To run the integration test suite, please install OpenDS in the location of your choice."
+    echo "To run the integration test suite, please install and start OpenDS in the location of your choice."
     echo "Remember to set the variables in ${ft_home}/ext/testng/testng.xml"
     echo "To start the integration test suite, execute "
     echo "${ft_home}/test.sh [OpenDS home directory]"
@@ -119,7 +119,7 @@ fi
 NEW_DIR=\${1}
 cd \${NEW_DIR}
 echo "OpenDS Integration Tests have started........."
-CLASSPATH="/export/dsee7/src/openDS/trunk/opends/tests/integration-tests-testng/ext/testng/lib/testng-4.7-jdk15.jar:/export/dsee7/src/openDS/trunk/opends/tests/integration-tests-testng/built:\${NEW_DIR}/lib/OpenDS.jar:\${NEW_DIR}/lib/je.jar"
+CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar:${ft_home}/built:\${NEW_DIR}/lib/OpenDS.jar:\${NEW_DIR}/lib/je.jar"
 java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener ${ft_home}/ext/testng/testng.xml
 cd ${OLD_DIR}
 EOF
