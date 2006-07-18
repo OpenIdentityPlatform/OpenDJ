@@ -32,6 +32,7 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,7 +44,7 @@ import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.IntegerConfigAttribute;
+import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
@@ -84,6 +85,15 @@ public class SoftReferenceEntryCache
 
 
 
+  /**
+   * The set of time units that will be used for expressing the task retention
+   * time.
+   */
+  private static final LinkedHashMap<String,Double> timeUnits =
+       new LinkedHashMap<String,Double>();
+
+
+
   // The mapping between entry DNs and their corresponding entries.
   private ConcurrentHashMap<DN,SoftReference<CacheEntry>> dnMap;
 
@@ -109,6 +119,14 @@ public class SoftReferenceEntryCache
   // The reference queue that will be used to notify us whenever a soft
   // reference is freed.
   private ReferenceQueue<CacheEntry> referenceQueue;
+
+
+
+  static
+  {
+    timeUnits.put("ms", 1.0);
+    timeUnits.put("s", 1000.0);
+  }
 
 
 
@@ -170,14 +188,14 @@ public class SoftReferenceEntryCache
 
     // Determine the lock timeout to use when interacting with the lock manager.
     int msgID = MSGID_SOFTREFCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerConfigAttribute lockTimeoutStub =
-         new IntegerConfigAttribute(ATTR_SOFTREFCACHE_LOCK_TIMEOUT,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0);
+    IntegerWithUnitConfigAttribute lockTimeoutStub =
+         new IntegerWithUnitConfigAttribute(ATTR_SOFTREFCACHE_LOCK_TIMEOUT,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 0, false, 0);
     try
     {
-      IntegerConfigAttribute lockTimeoutAttr =
-             (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute lockTimeoutAttr =
+             (IntegerWithUnitConfigAttribute)
              configEntry.getConfigAttribute(lockTimeoutStub);
       if (lockTimeoutAttr == null)
       {
@@ -185,7 +203,7 @@ public class SoftReferenceEntryCache
       }
       else
       {
-        lockTimeout = lockTimeoutAttr.activeValue();
+        lockTimeout = lockTimeoutAttr.activeCalculatedValue();
       }
     }
     catch (Exception e)
@@ -1054,10 +1072,11 @@ public class SoftReferenceEntryCache
 
 
     int msgID = MSGID_SOFTREFCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerConfigAttribute lockTimeoutAttr =
-         new IntegerConfigAttribute(ATTR_SOFTREFCACHE_LOCK_TIMEOUT,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0, lockTimeout);
+    IntegerWithUnitConfigAttribute lockTimeoutAttr =
+         new IntegerWithUnitConfigAttribute(ATTR_SOFTREFCACHE_LOCK_TIMEOUT,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 0, false, 0, lockTimeout,
+                                            "ms");
     attrList.add(lockTimeoutAttr);
 
 
@@ -1121,14 +1140,14 @@ public class SoftReferenceEntryCache
 
     // Determine the lock timeout to use when interacting with the lock manager.
     int msgID = MSGID_SOFTREFCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerConfigAttribute lockTimeoutStub =
-         new IntegerConfigAttribute(ATTR_SOFTREFCACHE_LOCK_TIMEOUT,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0);
+    IntegerWithUnitConfigAttribute lockTimeoutStub =
+         new IntegerWithUnitConfigAttribute(ATTR_SOFTREFCACHE_LOCK_TIMEOUT,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 0, false, 0);
     try
     {
-      IntegerConfigAttribute lockTimeoutAttr =
-             (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute lockTimeoutAttr =
+             (IntegerWithUnitConfigAttribute)
              configEntry.getConfigAttribute(lockTimeoutStub);
     }
     catch (Exception e)
@@ -1296,18 +1315,18 @@ public class SoftReferenceEntryCache
     // Determine the lock timeout to use when interacting with the lock manager.
     long newLockTimeout = LockManager.DEFAULT_TIMEOUT;
     int msgID = MSGID_SOFTREFCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerConfigAttribute lockTimeoutStub =
-         new IntegerConfigAttribute(ATTR_SOFTREFCACHE_LOCK_TIMEOUT,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0);
+    IntegerWithUnitConfigAttribute lockTimeoutStub =
+         new IntegerWithUnitConfigAttribute(ATTR_SOFTREFCACHE_LOCK_TIMEOUT,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 0, false, 0);
     try
     {
-      IntegerConfigAttribute lockTimeoutAttr =
-             (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute lockTimeoutAttr =
+             (IntegerWithUnitConfigAttribute)
              configEntry.getConfigAttribute(lockTimeoutStub);
       if (lockTimeoutAttr != null)
       {
-        newLockTimeout = lockTimeoutAttr.pendingValue();
+        newLockTimeout = lockTimeoutAttr.pendingCalculatedValue();
       }
     }
     catch (Exception e)

@@ -47,6 +47,7 @@ import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.IntegerConfigAttribute;
+import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
@@ -107,6 +108,15 @@ public class FIFOEntryCache
 
 
 
+  /**
+   * The set of time units that will be used for expressing the task retention
+   * time.
+   */
+  private static final LinkedHashMap<String,Double> timeUnits =
+       new LinkedHashMap<String,Double>();
+
+
+
   // The DN of the configuration entry for this entry cache.
   private DN configEntryDN;
 
@@ -144,6 +154,14 @@ public class FIFOEntryCache
   // The reference to the Java runtime to use to determine the amount of memory
   // currently in use.
   private Runtime runtime;
+
+
+
+  static
+  {
+    timeUnits.put("ms", 1.0);
+    timeUnits.put("s", 1000.0);
+  }
 
 
 
@@ -263,14 +281,14 @@ public class FIFOEntryCache
     // Determine the lock timeout to use when interacting with the lock manager.
     lockTimeout = DEFAULT_FIFOCACHE_LOCK_TIMEOUT;
     msgID = MSGID_FIFOCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerConfigAttribute lockTimeoutStub =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0);
+    IntegerWithUnitConfigAttribute lockTimeoutStub =
+         new IntegerWithUnitConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 0, false, 0);
     try
     {
-      IntegerConfigAttribute lockTimeoutAttr =
-             (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute lockTimeoutAttr =
+             (IntegerWithUnitConfigAttribute)
              configEntry.getConfigAttribute(lockTimeoutStub);
       if (lockTimeoutAttr == null)
       {
@@ -278,7 +296,7 @@ public class FIFOEntryCache
       }
       else
       {
-        lockTimeout = lockTimeoutAttr.activeValue();
+        lockTimeout = lockTimeoutAttr.activeCalculatedValue();
       }
     }
     catch (Exception e)
@@ -442,9 +460,6 @@ public class FIFOEntryCache
     {
       idMap.clear();
       dnMap.clear();
-
-      // FIXME -- Should we do this?
-      runtime.gc();
     }
     catch (Exception e)
     {
@@ -873,71 +888,66 @@ public class FIFOEntryCache
     // lock before leaving this method, so do that in a finally block.
     try
     {
-      // Add the entry to the cache.  This will replace it if it is already
-      // present and add it if it isn't.
-      dnMap.put(entry.getDN(), cacheEntry);
-
-      HashMap<Long,CacheEntry> map = idMap.get(backend);
-      if (map == null)
+      // See if the current memory usage is within acceptable constraints.  If
+      // so, then add the entry to the cache (or replace it if it is already
+      // present).  If not, then remove an existing entry and don't add the new
+      // entry.
+      long usedMemory = runtime.totalMemory() - runtime.freeMemory();
+      if (usedMemory > maxAllowedMemory)
       {
-        map = new HashMap<Long,CacheEntry>();
-        map.put(entryID, cacheEntry);
-        idMap.put(backend, map);
+        Iterator<CacheEntry> iterator = dnMap.values().iterator();
+        if (iterator.hasNext())
+        {
+          CacheEntry ce = iterator.next();
+          iterator.remove();
+
+          HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
+          if (m != null)
+          {
+            m.remove(ce.getEntryID());
+          }
+        }
       }
       else
       {
-        map.put(entryID, cacheEntry);
-      }
+        // Add the entry to the cache.  This will replace it if it is already
+        // present and add it if it isn't.
+        dnMap.put(entry.getDN(), cacheEntry);
 
-
-      // See if a cap has been placed on the maximum number of entries in the
-      // cache.  If so, then see if we have exceeded it and we need to purge
-      // entries until we're within the limit.
-      int entryCount = dnMap.size();
-      if ((maxEntries > 0) && (entryCount > maxEntries))
-      {
-        Iterator<CacheEntry> iterator = dnMap.values().iterator();
-        while (iterator.hasNext() && (entryCount > maxEntries))
+        HashMap<Long,CacheEntry> map = idMap.get(backend);
+        if (map == null)
         {
-          CacheEntry ce = iterator.next();
-          iterator.remove();
-
-          HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
-          if (m != null)
-          {
-            m.remove(ce.getEntryID());
-          }
-
-          entryCount--;
+          map = new HashMap<Long,CacheEntry>();
+          map.put(entryID, cacheEntry);
+          idMap.put(backend, map);
         }
-      }
-
-
-      // See if we need to free memory to bring the usage limits in line.
-      long usedMemory = runtime.totalMemory() - runtime.freeMemory();
-      while (usedMemory > maxAllowedMemory)
-      {
-        // Dump 1% of the entries and check again.
-        int numEntries = entryCount / 100;
-        Iterator<CacheEntry> iterator = dnMap.values().iterator();
-        while (iterator.hasNext() && (numEntries > 0))
+        else
         {
-          CacheEntry ce = iterator.next();
-          iterator.remove();
-
-          HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
-          if (m != null)
-          {
-            m.remove(ce.getEntryID());
-          }
-
-          numEntries--;
+          map.put(entryID, cacheEntry);
         }
 
-        // FIXME -- Is there a better way to free the memory?
-        runtime.gc();
 
-        usedMemory = runtime.totalMemory() - runtime.freeMemory();
+        // See if a cap has been placed on the maximum number of entries in the
+        // cache.  If so, then see if we have exceeded it and we need to purge
+        // entries until we're within the limit.
+        int entryCount = dnMap.size();
+        if ((maxEntries > 0) && (entryCount > maxEntries))
+        {
+          Iterator<CacheEntry> iterator = dnMap.values().iterator();
+          while (iterator.hasNext() && (entryCount > maxEntries))
+          {
+            CacheEntry ce = iterator.next();
+            iterator.remove();
+
+            HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
+            if (m != null)
+            {
+              m.remove(ce.getEntryID());
+            }
+
+            entryCount--;
+          }
+        }
       }
     }
     catch (Exception e)
@@ -1066,74 +1076,71 @@ public class FIFOEntryCache
         return false;
       }
 
-      // Add the entry to the cache.  This will replace it if it is already
-      // present and add it if it isn't.
-      dnMap.put(entry.getDN(), cacheEntry);
-
-      HashMap<Long,CacheEntry> map = idMap.get(backend);
-      if (map == null)
+      // See if the current memory usage is within acceptable constraints.  If
+      // so, then add the entry to the cache (or replace it if it is already
+      // present).  If not, then remove an existing entry and don't add the new
+      // entry.
+      long usedMemory = runtime.totalMemory() - runtime.freeMemory();
+      if (usedMemory > maxAllowedMemory)
       {
-        map = new HashMap<Long,CacheEntry>();
-        map.put(entryID, cacheEntry);
-        idMap.put(backend, map);
+        Iterator<CacheEntry> iterator = dnMap.values().iterator();
+        if (iterator.hasNext())
+        {
+          CacheEntry ce = iterator.next();
+          iterator.remove();
+
+          HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
+          if (m != null)
+          {
+            m.remove(ce.getEntryID());
+          }
+        }
       }
       else
       {
-        map.put(entryID, cacheEntry);
-      }
+        // Add the entry to the cache.  This will replace it if it is already
+        // present and add it if it isn't.
+        dnMap.put(entry.getDN(), cacheEntry);
 
-
-      // See if a cap has been placed on the maximum number of entries in the
-      // cache.  If so, then see if we have exceeded it and we need to purge
-      // entries until we're within the limit.
-      int entryCount = dnMap.size();
-      if ((maxEntries > 0) && (entryCount > maxEntries))
-      {
-        Iterator<CacheEntry> iterator = dnMap.values().iterator();
-        while (iterator.hasNext() && (entryCount > maxEntries))
+        HashMap<Long,CacheEntry> map = idMap.get(backend);
+        if (map == null)
         {
-          CacheEntry ce = iterator.next();
-          iterator.remove();
+          map = new HashMap<Long,CacheEntry>();
+          map.put(entryID, cacheEntry);
+          idMap.put(backend, map);
+        }
+        else
+        {
+          map.put(entryID, cacheEntry);
+        }
 
-          HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
-          if (m != null)
+
+        // See if a cap has been placed on the maximum number of entries in the
+        // cache.  If so, then see if we have exceeded it and we need to purge
+        // entries until we're within the limit.
+        int entryCount = dnMap.size();
+        if ((maxEntries > 0) && (entryCount > maxEntries))
+        {
+          Iterator<CacheEntry> iterator = dnMap.values().iterator();
+          while (iterator.hasNext() && (entryCount > maxEntries))
           {
-            m.remove(ce.getEntryID());
-          }
+            CacheEntry ce = iterator.next();
+            iterator.remove();
 
-          entryCount--;
+            HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
+            if (m != null)
+            {
+              m.remove(ce.getEntryID());
+            }
+
+            entryCount--;
+          }
         }
       }
 
 
-      // See if we need to free memory to bring the usage limits in line.
-      long usedMemory = runtime.totalMemory() - runtime.freeMemory();
-      while (usedMemory > maxAllowedMemory)
-      {
-        // Dump 1% of the entries and check again.
-        int numEntries = entryCount / 100;
-        Iterator<CacheEntry> iterator = dnMap.values().iterator();
-        while (iterator.hasNext() && (numEntries > 0))
-        {
-          CacheEntry ce = iterator.next();
-          iterator.remove();
-
-          HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
-          if (m != null)
-          {
-            m.remove(ce.getEntryID());
-          }
-
-          numEntries--;
-        }
-
-        // FIXME -- Is there a better way to free the memory?
-        runtime.gc();
-
-        usedMemory = runtime.totalMemory() - runtime.freeMemory();
-      }
-
-
+      // We'll always return true in this case, even if we didn't actually add
+      // the entry due to memory constraints.
       return true;
     }
     catch (Exception e)
@@ -1533,10 +1540,11 @@ public class FIFOEntryCache
 
 
     msgID = MSGID_FIFOCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerConfigAttribute lockTimeoutAttr =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0, lockTimeout);
+    IntegerWithUnitConfigAttribute lockTimeoutAttr =
+         new IntegerWithUnitConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 0, false, 0, lockTimeout,
+                                            "ms");
     attrList.add(lockTimeoutAttr);
 
 
@@ -1649,14 +1657,14 @@ public class FIFOEntryCache
 
     // Determine the lock timeout to use when interacting with the lock manager.
     msgID = MSGID_FIFOCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerConfigAttribute lockTimeoutStub =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0);
+    IntegerWithUnitConfigAttribute lockTimeoutStub =
+         new IntegerWithUnitConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 0, false, 0);
     try
     {
-      IntegerConfigAttribute lockTimeoutAttr =
-             (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute lockTimeoutAttr =
+             (IntegerWithUnitConfigAttribute)
              configEntry.getConfigAttribute(lockTimeoutStub);
     }
     catch (Exception e)
@@ -1890,18 +1898,18 @@ public class FIFOEntryCache
     // Determine the lock timeout to use when interacting with the lock manager.
     long newLockTimeout = DEFAULT_FIFOCACHE_LOCK_TIMEOUT;
     msgID = MSGID_FIFOCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerConfigAttribute lockTimeoutStub =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0);
+    IntegerWithUnitConfigAttribute lockTimeoutStub =
+         new IntegerWithUnitConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 0, false, 0);
     try
     {
-      IntegerConfigAttribute lockTimeoutAttr =
-             (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute lockTimeoutAttr =
+             (IntegerWithUnitConfigAttribute)
              configEntry.getConfigAttribute(lockTimeoutStub);
       if (lockTimeoutAttr != null)
       {
-        newLockTimeout = lockTimeoutAttr.pendingValue();
+        newLockTimeout = lockTimeoutAttr.pendingCalculatedValue();
       }
     }
     catch (Exception e)
