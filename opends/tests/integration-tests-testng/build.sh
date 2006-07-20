@@ -136,7 +136,7 @@ OPENDS_HOME=\${1}
 cd \${OPENDS_HOME}
 echo "OpenDS Integration Tests have started........."
 CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar:${ds_home}/tests/integration-tests-testng/built:\${OPENDS_HOME}/lib/OpenDS.jar:\${OPENDS_HOME}/lib/je.jar"
-java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener /export/dsee7/openDS/trunk/opends/tests/integration-tests-testng/ext/testng/testng.xml
+java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener ${ft_home}/ext/testng/testng.xml
 else
 OPENDS_INSTALL_DIR=\${2}
 OPENDS_HOME=\${OPENDS_INSTALL_DIR}/OpenDS-0.1
@@ -232,7 +232,7 @@ sleep 30
 
 echo "OpenDS Integration Tests have started........."
 CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar:${ds_home}/tests/integration-tests-testng/built:\${OPENDS_HOME}/lib/OpenDS.jar:\${OPENDS_HOME}/lib/je.jar"
-java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener /export/dsee7/openDS/trunk/opends/tests/integration-tests-testng/ext/testng/testng.xml
+java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener ${ft_home}/ext/testng/testng.xml
 
 fi
 cd ${ds_home}/tests/integration-tests-testng
