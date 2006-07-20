@@ -104,24 +104,138 @@ ${ANT_HOME}/bin/ant --noconfig ${*}
 
 if [ $? -eq 0 ]; then
     echo "Successfully built the integration test suite"
-    echo "To run the integration test suite, please install and start OpenDS in the location of your choice."
-    echo "Remember to set the variables in ${ft_home}/ext/testng/testng.xml"
-    echo "To start the integration test suite, execute "
+    echo " "
+    echo "There are two options for running the integration test suites."
+    echo " "
+    echo "Option 1 - You must have OpenDS freshly installed and started."
+    echo "You must also set the variables in ${ft_home}/ext/testng/testng.xml"
+    echo "For option 1, execute"
     echo "${ft_home}/test.sh [OpenDS home directory]"
+    echo " "
+    echo "Option 2 (recommended) - Let the test.sh script install and start OpenDS."
+    echo "The file, ${ft_home}/ext/testng/testng.xml,"
+    echo "will also be automatically generated."
+    echo "For option 2, execute"
+    echo "${ft_home}/test.sh installOpenDS [OpenDS installation directory]"
+    echo " "
     cat > ${ft_home}/test.sh <<EOF
 #!/bin/sh
-if [ \$# != 1 ]
+if [ \$# != 1 -a \$# != 2 ]
 then
-echo "usage: test.sh [OpenDS home]"
+echo "If you already have an OpenDS installed and started,"
+echo "usage: ${ft_home}/test.sh [OpenDS home]"
+echo " "
+echo "If you wish the test.sh script to install OpenDS, start OpenDS, generate a TestNG xml file, and start the integration tests,"
+echo "usage: ${ft_home}/test.sh installOpenDS [OpenDS install directory]" 
 exit
 fi
 [ -z "\${DEBUG}" ] || set -x
-NEW_DIR=\${1}
-cd \${NEW_DIR}
+if [ \$# = 1 ]
+then
+OPENDS_HOME=\${1}
+cd \${OPENDS_HOME}
 echo "OpenDS Integration Tests have started........."
-CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar:${ft_home}/built:\${NEW_DIR}/lib/OpenDS.jar:\${NEW_DIR}/lib/je.jar"
-java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener ${ft_home}/ext/testng/testng.xml
-cd ${OLD_DIR}
+CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar:${ds_home}/tests/integration-tests-testng/built:\${OPENDS_HOME}/lib/OpenDS.jar:\${OPENDS_HOME}/lib/je.jar"
+java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener /export/dsee7/openDS/trunk/opends/tests/integration-tests-testng/ext/testng/testng.xml
+else
+OPENDS_INSTALL_DIR=\${2}
+OPENDS_HOME=\${OPENDS_INSTALL_DIR}/OpenDS-0.1
+HOSTNAME=\`hostname\`
+INTEG_TEST_DIR=`pwd`
+if [ -d \${OPENDS_INSTALL_DIR} ]
+then
+echo "Directory, \${OPENDS_INSTALL_DIR} currently exists"
+else
+echo "Directory, \${OPENDS_INSTALL_DIR} does not exist, creating it......"
+mkdir -p \${OPENDS_HOME}
+fi
+
+cp \${INTEG_TEST_DIR}/ext/testng/testng.xml \${INTEG_TEST_DIR}/ext/testng/testng.xml.save
+
+cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="OpenDS"   verbose="1" >
+    <parameter name="hostname" value="\${HOSTNAME}"/>
+    <parameter name="port" value="389"/>
+    <parameter name="sport" value="636"/>
+    <parameter name="bindDN" value="cn=Directory Manager"/>
+    <parameter name="bindPW" value="password"/>
+    <parameter name="integration_test_home" value="\${INTEG_TEST_DIR}/src/server/org/opends/server/integration"/>
+    <parameter name="logDir" value="/tmp/opends/logs"/>
+    <parameter name="dsee_home" value="\${OPENDS_HOME}"/>
+    <parameter name="backupDir" value="/tmp"/>
+
+    <packages>
+        <package name="org.opends.server.integration.quickstart"/>
+        <package name="org.opends.server.integration.bob"/>
+        <package name="org.opends.server.integration.core"/>
+        <package name="org.opends.server.integration.frontend"/>
+        <package name="org.opends.server.integration.schema"/>
+    </packages>
+    
+    <test name="precommit">
+        <groups>
+            <run>
+                <include name="precommit"/>
+                <exclude name="broken"/>
+            </run>
+        </groups>
+    </test>
+    
+    <test name="integration-tests">
+          <groups>
+	      <define name="all">
+                  <include name="quickstart"/>
+                  <include name="bob"/>
+                  <include name="core"/>
+                  <include name="frontend"/>
+                  <include name="schema"/>
+ 	      </define>
+
+	      <define name="quickstart">
+		  <include name="quickstart"/>
+  	      </define>
+
+	      <define name="bob">
+		  <include name="bob"/>
+  	      </define>
+
+	      <define name="core">
+		  <include name="core"/>
+  	      </define>
+
+	      <define name="frontend">
+		  <include name="frontend"/>
+  	      </define>
+
+	      <define name="schema">
+		  <include name="schema"/>
+	      </define>
+
+	      <run>
+		  <include name="all"/>
+              </run>
+          </groups>
+    </test>
+    
+</suite>
+EOF2
+
+cp ${ds_home}/build/package/OpenDS-0.1.zip \${OPENDS_INSTALL_DIR}
+cd \${OPENDS_INSTALL_DIR}
+unzip OpenDS-0.1.zip
+echo "OpenDS has been installed in \${OPENDS_INSTALL_DIR}"
+
+echo "Starting OpenDS and the OpenDS Integration Tests...."
+\${OPENDS_HOME}/bin/start-ds.sh -nodetach&
+sleep 30
+
+echo "OpenDS Integration Tests have started........."
+CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar:${ds_home}/tests/integration-tests-testng/built:\${OPENDS_HOME}/lib/OpenDS.jar:\${OPENDS_HOME}/lib/je.jar"
+java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener /export/dsee7/openDS/trunk/opends/tests/integration-tests-testng/ext/testng/testng.xml
+
+fi
+cd ${ds_home}/tests/integration-tests-testng
 EOF
     chmod 755 ${ft_home}/test.sh 
 else
