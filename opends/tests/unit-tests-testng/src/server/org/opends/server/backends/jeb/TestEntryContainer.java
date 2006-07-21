@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.Debug.addDebugLogger;
-import static org.opends.server.loggers.Debug.removeAllDebugLoggers;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -36,9 +34,7 @@ import java.io.File;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
-import org.opends.server.InitialDirectoryServerFixture;
 import org.opends.server.SchemaFixture;
-import org.opends.server.loggers.StartupDebugLogger;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.LDIFReader;
