@@ -47,9 +47,6 @@
   <property name="config.dir"    location="${resource.dir}/config"  />
 
   <!-- Properties for use in unit testing.                           -->
-  <property name="unittest.dir"        location="tests/unit-tests"    />
-  <property name="unittest.src.dir"    location="${unittest.dir}/src" />
-
   <property name="unittest.testng.dir" location="tests/unit-tests-testng"/>
   <property name="unittest.testng.src.dir"
     location="${unittest.testng.dir}/src"/>
@@ -572,7 +569,6 @@ public class DynamicConstants
 
 
 
-
   <!-- Prepare to generate a code coverage report. -->
   <target name="coverage" description="Generate a code coverage report.">
 
@@ -590,121 +586,8 @@ public class DynamicConstants
 
 
 
-
-  <!-- Prepare to execute the Directory Server unit tests. -->
-  <target name="testinit" depends="compile"
-       description="Prepare to execute the Directory Server unit tests.">
-
-    <!-- If we are to perform coverage tests, then set that up. -->
-    <path id="emma.lib">
-      <pathelement location="${emma.dir}/emma.jar"     />
-      <pathelement location="${emma.dir}/emma_ant.jar" />
-    </path>
-
-    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
-
-    <emma enabled="${coverage.enabled}">
-      <instr instrpathref="run.classpath" destdir="${coverage.instr.dir}"
-           metadatafile="${coverage.data.dir}/metadata.emma" merge="true" />
-    </emma>
-
-    <!-- Compile the test cases -->
-    <mkdir dir="${unittest.classes.dir}" />
-    <javac srcdir="${unittest.src.dir}" destdir="${unittest.classes.dir}"
-         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
-         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
-         memoryMaximumSize="${MEM}">
-      <compilerarg value="-Xlint:all" />
-
-      <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="*.jar" />
-        </fileset>
-
-        <fileset dir="${ext.dir}">
-          <include name="*.jar" />
-        </fileset>
-
-        <path refid="run.classpath" />
-      </classpath>
-    </javac>
-  </target>
-
-
-
-
-  <!-- Execute the Directory Server unit tests in text mode. -->
-  <target name="test" depends="testinit"
-       description="Execute the Directory Server unit tests in text mode.">
-    <mkdir dir="${unittest.report.dir}" />
-
-    <junit printsummary="withOutAndErr" fork="yes" maxmemory="${MEM}"
-           haltonfailure="on">
-      <classpath>
-        <pathelement location="${coverage.instr.dir}" />
-
-        <path refid="run.classpath" />
-        <path refid="emma.lib"      />
-
-        <fileset dir="${lib.dir}">
-          <include name="*.jar" />
-        </fileset>
-
-        <fileset dir="${ext.dir}">
-          <include name="*.jar" />
-        </fileset>
-
-        <pathelement location="${unittest.classes.dir}" />
-      </classpath>
-
-      <jvmarg
-           value="-Demma.coverage.out.file=${coverage.data.dir}/coverage.emma" />
-      <jvmarg value="-Demma.coverage.out.merge=false" />
-      <formatter type="xml" />
-      <test todir="${unittest.report.dir}" outfile="DirectoryServerTestSuite"
-          name="org.opends.server.DirectoryServerTestSuite">
-        <formatter type="plain" />
-      </test>
-    </junit>
-
-    <!-- Generate a coverage report from these test cases -->
-    <emma enabled="${coverage.enabled}">
-      <report sourcepath="${src.dir}">
-        <fileset dir="${coverage.data.dir}">
-          <include name="*.emma" />
-        </fileset>
-
-        <txt  outfile="${coverage.report.dir}/coverage.txt" />
-        <html outfile="${coverage.report.dir}/index.html"   />
-      </report>
-    </emma>
-  </target>
-
-
-
-  <!-- Execute the Directory Server unit tests using a Swing GUI. -->
-  <target name="testgui" depends="testinit"
-       description="Execute the Directory Server unit tests in GUI mode.">
-    <java classname="junit.swingui.TestRunner" fork="true" maxmemory="${MEM}">
-      <arg value="org.opends.server.DirectoryServerTestSuite" />
-
-      <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="*.jar" />
-        </fileset>
-
-        <fileset dir="${ext.dir}">
-          <include name="*.jar" />
-        </fileset>
-
-        <pathelement location="${classes.dir}"      />
-        <pathelement location="${unittest.classes.dir}" />
-      </classpath>
-    </java>
-  </target>
-
   <!-- Prepare to execute the Directory Server TestNG unit tests. -->
-  <target name="testng-testinit" depends="compile"
+  <target name="testinit" depends="compile"
          description="Prepare to execute the Directory Server TestNG unit tests.">
 
     <!-- If we are to perform coverage tests, then set that up. -->
@@ -742,9 +625,11 @@ public class DynamicConstants
     </javac>
   </target>
 
+
+
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
-  <target name="testng-test"
-            depends="testng-testinit"
+  <target name="test"
+            depends="testinit"
             description="Execute the Directory Server TestNG unit tests in text mode.">
     <mkdir dir="${unittest.report.dir}" />
 
@@ -779,8 +664,10 @@ public class DynamicConstants
     </testng>
   </target>
 
-  <target name="testng-report"
-        depends="testng-test"
+
+
+  <target name="testreport"
+        depends="test"
         description="Takes testng results and convert them into JUnit compatible xml">
     <junitreport todir="${unittest.report.dir}">
       <fileset dir="${unittest.report.dir}">
