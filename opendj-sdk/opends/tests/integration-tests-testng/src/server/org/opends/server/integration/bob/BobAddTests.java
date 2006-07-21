@@ -788,7 +788,7 @@ public class BobAddTests extends BobTests
 
     compareExitCode(retCode, expCode);
   }
-
+/*
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd44" })
   public void testBobAdd45(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -824,9 +824,9 @@ public class BobAddTests extends BobTests
 
     compareExitCode(retCode, expCode);
   }
-
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
-  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd46" })
+  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd44" })
   public void testBobAdd47(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");
