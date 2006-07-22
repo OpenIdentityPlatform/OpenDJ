@@ -3687,6 +3687,61 @@ public class ExtensionsMessages
        CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 348;
 
 
+  /**
+   * The message ID for the message that will be used as the description of the
+   * attribute used to specify the DN of the configuration entry that defines
+   * the identity mapper to use in conjunction with the GSSAPI SASL mechanism.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_SASLGSSAPI_DESCRIPTION_IDENTITY_MAPPER_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 349;
+
+
+
+  /**
+   * The message ID for the message that will be used if the GSSAPI handler
+   * configuration entry does not have an attribute that specifies which
+   * identity mapper should be used.  This takes a single argument, which is the
+   * DN of the SASL GSSAPI configuration entry.
+   */
+  public static final int MSGID_SASLGSSAPI_NO_IDENTITY_MAPPER_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 350;
+
+
+
+  /**
+   * The message ID for the message that will be used if the identity mapper DN
+   * specified in the GSSAPI handler entry does not refer to an active identity
+   * mapper.  This takes two arguments, which are the DN of the specified
+   * identity mapper and the DN of the SASL GSSAPI configuration entry.
+   */
+  public static final int MSGID_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 351;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine which identity mapper to use in conjunction with the
+   * DIGEST-MD5 SASL mechanism.  This takes two arguments, which are the DN of
+   * the configuration entry and a string representation of the exception that
+   * was caught.
+   */
+  public static final int MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 352;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * identity mapper used for GSSAPI authentication has been updated with a new
+   * value.  This takes two arguments, which are the DN of the configuration
+   * entry and the new identity mapper DN.
+   */
+  public static final int MSGID_SASLGSSAPI_UPDATED_IDENTITY_MAPPER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 353;
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -5003,6 +5058,28 @@ public class ExtensionsMessages
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_USER_BASE_DN +
                     " attribute in configuration entry %s:  %s.");
+    registerMessage(MSGID_SASLGSSAPI_DESCRIPTION_IDENTITY_MAPPER_DN,
+                    "Specifies the DN of the configuration entry that holds " +
+                    "the configuration for the identity mapper that should " +
+                    "be used to map the GSSAPI principal to a Directory " +
+                    "Server user entry.  Changes to this configuration " +
+                    "attribute will take effect immediately.");
+    registerMessage(MSGID_SASLGSSAPI_NO_IDENTITY_MAPPER_ATTR,
+                    "Configuration entry %s does not contain attribute " +
+                    ATTR_IDMAPPER_DN + " which specifies the DN of the " +
+                    "identity mapper to use in conjunction with the GSSAPI " +
+                    "SASL mechanism.  This is a required attribute.");
+    registerMessage(MSGID_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER,
+                    "The identity mapper %s specified in attribute " +
+                    ATTR_IDMAPPER_DN + " of configuration entry %s does not " +
+                    "reference a valid identity mapper configuration that is " +
+                    "enabled for use in the Directory Server.");
+    registerMessage(MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER,
+                    "An error occurred while trying to process the value " +
+                    "of the " + ATTR_IDMAPPER_DN + " attribute in " +
+                    "configuration entry %s to determine which identity " +
+                    "mapper should be used in conjunction with the GSSAPI " +
+                    "SASL mechanism:  %s.");
     registerMessage(MSGID_SASLGSSAPI_DESCRIPTION_SERVER_FQDN,
                     "Specifies the fully-qualified domain name that should " +
                     "be used for the server during SASL GSSAPI " +
@@ -5022,6 +5099,11 @@ public class ExtensionsMessages
                     " in configuration entry %s has been updated.  The DN %s " +
                     "will now be used as the search base when looking up " +
                     "user entries based on their username.");
+    registerMessage(MSGID_SASLGSSAPI_UPDATED_IDENTITY_MAPPER,
+                    "Attribute " + ATTR_IDMAPPER_DN +
+                    " in configuration entry %s has been updated.  The value " +
+                    "\"%s\" will now be used as the DN of the identity " +
+                    "mapper configuration entry for GSSAPI authentication.");
     registerMessage(MSGID_SASLGSSAPI_UPDATED_NEW_SERVER_FQDN,
                     "Attribute " + ATTR_SERVER_FQDN +
                     " in configuration entry %s has been updated.  The value " +

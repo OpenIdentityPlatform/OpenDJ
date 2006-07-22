@@ -38,6 +38,7 @@ import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigurableComponent;
+import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
@@ -48,18 +49,11 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Debug.*;
@@ -86,15 +80,15 @@ public class GSSAPISASLMechanismHandler
 
 
 
-  // The attribute type that should be used to resolve user IDs to the
-  // corresponding entries.
-  private AttributeType uidAttributeType;
-
   // The DN of the configuration entry for this SASL mechanism handler.
   private DN configEntryDN;
 
-  // The DN to use as the search base when trying to find matching user entries.
-  private DN userBaseDN;
+  // The DN of the identity mapper configuration entry.
+  private DN identityMapperDN;
+
+  // The identity mapper that will be used to map the Kerberos principal to a
+  // directory user.
+  private IdentityMapper identityMapper;
 
   // The address of the KDC to use for Kerberos authentication.
   private String kdcAddress;
@@ -151,65 +145,43 @@ public class GSSAPISASLMechanismHandler
     this.configEntryDN = configEntry.getDN();
 
 
-    // Determine the name of the attribute that should be used for username
-    // lookups.
-    // FIXME -- We should have some kind of a mapping function instead.
-    String attrTypeName = DEFAULT_USERNAME_ATTRIBUTE;
-    int msgID = MSGID_SASLGSSAPI_DESCRIPTION_USERNAME_ATTRIBUTE;
-    StringConfigAttribute uidAttributeStub =
-         new StringConfigAttribute(ATTR_USERNAME_ATTRIBUTE,
-                                   getMessage(msgID), false, false, false);
+    // Get the identity mapper that should be used to find users.
+    int msgID = MSGID_SASLGSSAPI_DESCRIPTION_IDENTITY_MAPPER_DN;
+    DNConfigAttribute mapperStub =
+         new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID), true, false,
+                               false);
     try
     {
-      StringConfigAttribute uidAttributeAttr =
-           (StringConfigAttribute)
-           configEntry.getConfigAttribute(uidAttributeStub);
-      if (uidAttributeAttr != null)
+      DNConfigAttribute mapperAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(mapperStub);
+      if (mapperAttr == null)
       {
-        attrTypeName = toLowerCase(uidAttributeAttr.activeValue());
+        msgID = MSGID_SASLGSSAPI_NO_IDENTITY_MAPPER_ATTR;
+        String message = getMessage(msgID, String.valueOf(configEntryDN));
+        throw new ConfigException(msgID, message);
       }
+      else
+      {
+        identityMapperDN = mapperAttr.activeValue();
+        identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
+        if (identityMapper == null)
+        {
+          msgID = MSGID_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER;
+          String message = getMessage(msgID, String.valueOf(identityMapperDN),
+                                      String.valueOf(configEntryDN));
+          throw new ConfigException(msgID, message);
+        }
+      }
+    }
+    catch (ConfigException ce)
+    {
+      throw ce;
     }
     catch (Exception e)
     {
       assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
 
-      msgID = MSGID_SASLGSSAPI_CANNOT_GET_USERNAME_ATTR;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
-    }
-
-    uidAttributeType = DirectoryServer.getAttributeType(attrTypeName);
-    if (uidAttributeType == null)
-    {
-      msgID = MSGID_SASLGSSAPI_UNKNOWN_USERNAME_ATTR;
-      String message = getMessage(msgID, String.valueOf(attrTypeName),
-                                  String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
-    }
-
-
-    // Determine the base DN that we should use when searching for users by
-    // username.
-    userBaseDN = new DN();
-    msgID = MSGID_SASLGSSAPI_DESCRIPTION_USER_BASE_DN;
-    DNConfigAttribute userBaseStub =
-         new DNConfigAttribute(ATTR_USER_BASE_DN, getMessage(msgID), false,
-                               false, false);
-    try
-    {
-      DNConfigAttribute userBaseAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(userBaseStub);
-      if (userBaseAttr != null)
-      {
-        userBaseDN = userBaseAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
-
-      msgID = MSGID_SASLGSSAPI_CANNOT_GET_USER_BASE_DN;
+      msgID = MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
                                   stackTraceToSingleLineString(e));
       throw new InitializationException(msgID, message, e);
@@ -522,44 +494,10 @@ public class GSSAPISASLMechanismHandler
   public Entry getUserForAuthzID(BindOperation bindOperation, String authzID)
          throws DirectoryException
   {
-    // FIXME -- This needs to use some kind of identity mapping.
-    LDAPFilter filter =
-         LDAPFilter.createEqualityFilter(uidAttributeType.getNameOrOID(),
-                                         new ASN1OctetString(authzID));
+    assert debugEnter(CLASS_NAME, "getUserForAuthzID",
+                      String.valueOf(bindOperation), String.valueOf(authzID));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation op =
-         conn.processSearch(new ASN1OctetString(userBaseDN.toString()),
-                            SearchScope.WHOLE_SUBTREE, filter);
-
-    ResultCode rc = op.getResultCode();
-    if (rc != ResultCode.SUCCESS)
-    {
-      int    msgID   = MSGID_SASLGSSAPI_CANNOT_PERFORM_INTERNAL_SEARCH;
-      String message = getMessage(msgID, authzID, String.valueOf(rc),
-                                  String.valueOf(op.getErrorMessage()));
-
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID);
-    }
-
-    Entry userEntry = null;
-    LinkedList<SearchResultEntry> searchEntries = op.getSearchEntries();
-    if (! searchEntries.isEmpty())
-    {
-      userEntry = searchEntries.removeFirst();
-      if (! searchEntries.isEmpty())
-      {
-        int    msgID   = MSGID_SASLGSSAPI_MULTIPLE_MATCHING_ENTRIES;
-        String message = getMessage(msgID, authzID);
-
-        throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                     msgID);
-      }
-    }
-
-    return userEntry;
+    return identityMapper.getEntryForID(authzID);
   }
 
 
@@ -595,15 +533,9 @@ public class GSSAPISASLMechanismHandler
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
-    int msgID = MSGID_SASLGSSAPI_DESCRIPTION_USERNAME_ATTRIBUTE;
-    String uidTypeStr = uidAttributeType.getNameOrOID();
-    attrList.add(new StringConfigAttribute(ATTR_USERNAME_ATTRIBUTE,
-                                           getMessage(msgID), false, false,
-                                           false, uidTypeStr));
-
-    msgID = MSGID_SASLGSSAPI_DESCRIPTION_USER_BASE_DN;
-    attrList.add(new DNConfigAttribute(ATTR_USER_BASE_DN, getMessage(msgID),
-                                       false, false, false, userBaseDN));
+    int msgID = MSGID_SASLGSSAPI_DESCRIPTION_IDENTITY_MAPPER_DN;
+    attrList.add(new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID),
+                                       true, false, false, identityMapperDN));
 
     msgID = MSGID_SASLGSSAPI_DESCRIPTION_SERVER_FQDN;
     attrList.add(new StringConfigAttribute(ATTR_SERVER_FQDN, getMessage(msgID),
@@ -643,62 +575,45 @@ public class GSSAPISASLMechanismHandler
                       String.valueOf(configEntry), "java.util.List<String>");
 
 
-    // Look at the username attribute type configuration.
-    String attrTypeName = DEFAULT_USERNAME_ATTRIBUTE;
-    int msgID = MSGID_SASLGSSAPI_DESCRIPTION_USERNAME_ATTRIBUTE;
-    StringConfigAttribute uidAttributeStub =
-         new StringConfigAttribute(ATTR_USERNAME_ATTRIBUTE, getMessage(msgID),
-                                   false, false, false);
+    // Look at the identity mapper configuration
+    int msgID = MSGID_SASLGSSAPI_DESCRIPTION_IDENTITY_MAPPER_DN;
+    DNConfigAttribute mapperStub =
+         new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID), true, false,
+                               false);
     try
     {
-      StringConfigAttribute uidAttributeAttr =
-           (StringConfigAttribute)
-           configEntry.getConfigAttribute(uidAttributeStub);
-      if (uidAttributeAttr != null)
+      DNConfigAttribute mapperAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(mapperStub);
+      if (mapperAttr == null)
       {
-        attrTypeName = toLowerCase(uidAttributeAttr.activeValue());
+        msgID = MSGID_SASLGSSAPI_NO_IDENTITY_MAPPER_ATTR;
+        String message = getMessage(msgID, String.valueOf(configEntryDN));
+        unacceptableReasons.add(message);
+        return false;
+      }
+      else
+      {
+        DN mapperDN = mapperAttr.activeValue();
+        IdentityMapper mapper =
+             DirectoryServer.getIdentityMapper(mapperDN);
+        if (mapper == null)
+        {
+          msgID = MSGID_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER;
+          String message = getMessage(msgID, String.valueOf(mapperDN),
+                                      String.valueOf(configEntryDN));
+          unacceptableReasons.add(message);
+          return false;
+        }
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
 
-      msgID = MSGID_SASLGSSAPI_CANNOT_GET_USERNAME_ATTR;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-    if (DirectoryServer.getAttributeType(attrTypeName) == null)
-    {
-      msgID = MSGID_SASLGSSAPI_UNKNOWN_USERNAME_ATTR;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(attrTypeName),
-                                         String.valueOf(configEntryDN)));
-      return false;
-    }
-
-
-    // Look at the user base DN configuration.
-    msgID = MSGID_SASLGSSAPI_DESCRIPTION_USER_BASE_DN;
-    DNConfigAttribute userBaseStub =
-         new DNConfigAttribute(ATTR_USER_BASE_DN, getMessage(msgID), false,
-                               false, false);
-    try
-    {
-      DNConfigAttribute userBaseAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(userBaseStub);
-      if (userBaseAttr != null)
-      {
-        DN userBaseDN = userBaseAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
-
-      msgID = MSGID_SASLGSSAPI_CANNOT_GET_USER_BASE_DN;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         stackTraceToSingleLineString(e)));
+      msgID = MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      unacceptableReasons.add(message);
       return false;
     }
 
@@ -804,66 +719,50 @@ public class GSSAPISASLMechanismHandler
     ArrayList<String> messages            = new ArrayList<String>();
 
 
-    // Look at the username attribute type configuration.
-    String attrTypeName = DEFAULT_USERNAME_ATTRIBUTE;
-    int msgID = MSGID_SASLGSSAPI_DESCRIPTION_USERNAME_ATTRIBUTE;
-    StringConfigAttribute usernameAttributeStub =
-         new StringConfigAttribute(ATTR_USERNAME_ATTRIBUTE, getMessage(msgID),
-                                   false, false, false);
+    // Look at the identity mapper configuration
+    DN             newIdentityMapperDN = null;
+    IdentityMapper newIdentityMapper   = null;
+    int msgID = MSGID_SASLGSSAPI_DESCRIPTION_IDENTITY_MAPPER_DN;
+    DNConfigAttribute mapperStub =
+         new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID), true, false,
+                               false);
     try
     {
-      StringConfigAttribute usernameAttributeAttr =
-           (StringConfigAttribute)
-           configEntry.getConfigAttribute(usernameAttributeStub);
-      if (usernameAttributeAttr != null)
+      DNConfigAttribute mapperAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(mapperStub);
+      if (mapperAttr == null)
       {
-        attrTypeName = toLowerCase(usernameAttributeAttr.activeValue());
+        msgID = MSGID_SASLGSSAPI_NO_IDENTITY_MAPPER_ATTR;
+        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+
+        if (resultCode == ResultCode.SUCCESS)
+        {
+          resultCode = ResultCode.OBJECTCLASS_VIOLATION;
+        }
+      }
+      else
+      {
+        newIdentityMapperDN = mapperAttr.activeValue();
+        newIdentityMapper =
+             DirectoryServer.getIdentityMapper(newIdentityMapperDN);
+        if (newIdentityMapper == null)
+        {
+          msgID = MSGID_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER;
+          messages.add(getMessage(msgID, String.valueOf(newIdentityMapperDN),
+                                  String.valueOf(configEntryDN)));
+
+          if (resultCode == ResultCode.SUCCESS)
+          {
+            resultCode = ResultCode.CONSTRAINT_VIOLATION;
+          }
+        }
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
 
-      msgID = MSGID_SASLGSSAPI_CANNOT_GET_USERNAME_ATTR;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-    }
-
-    AttributeType newUIDType = DirectoryServer.getAttributeType(attrTypeName);
-    if (newUIDType == null)
-    {
-      msgID = MSGID_SASLGSSAPI_UNKNOWN_USERNAME_ATTR;
-      messages.add(getMessage(msgID, String.valueOf(attrTypeName),
-                              String.valueOf(configEntryDN)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-      }
-    }
-
-
-    // Look at the user base DN configuration.
-    DN newUserBase = new DN();
-    msgID = MSGID_SASLGSSAPI_DESCRIPTION_USER_BASE_DN;
-    DNConfigAttribute userBaseStub =
-         new DNConfigAttribute(ATTR_USER_BASE_DN, getMessage(msgID), false,
-                               false, false);
-    try
-    {
-      DNConfigAttribute userBaseAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(userBaseStub);
-      if (userBaseAttr != null)
-      {
-        newUserBase = userBaseAttr.pendingValue();
-      }
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
-
-      msgID = MSGID_SASLGSSAPI_CANNOT_GET_USER_BASE_DN;
+      msgID = MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
                               stackTraceToSingleLineString(e)));
 
@@ -972,27 +871,16 @@ public class GSSAPISASLMechanismHandler
     // If everything has been successful, then apply any changes that were made.
     if (resultCode == ResultCode.SUCCESS)
     {
-      if (! uidAttributeType.equals(newUIDType))
+      if (! identityMapperDN.equals(newIdentityMapperDN))
       {
-        uidAttributeType = newUIDType;
+        identityMapperDN = newIdentityMapperDN;
+        identityMapper   = newIdentityMapper;
 
         if (detailedResults)
         {
-          msgID = MSGID_SASLGSSAPI_UPDATED_USERNAME_ATTR;
+          msgID = MSGID_SASLGSSAPI_UPDATED_IDENTITY_MAPPER;
           messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                  uidAttributeType.getNameOrOID()));
-        }
-      }
-
-      if (! userBaseDN.equals(newUserBase))
-      {
-        userBaseDN = newUserBase;
-
-        if (detailedResults)
-        {
-          msgID = MSGID_SASLGSSAPI_UPDATED_USER_BASE_DN;
-          messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                  String.valueOf(userBaseDN)));
+                                  String.valueOf(identityMapperDN)));
         }
       }
 
