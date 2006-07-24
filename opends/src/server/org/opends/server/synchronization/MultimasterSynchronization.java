@@ -54,14 +54,18 @@ import static org.opends.server.synchronization.SynchMessages.*;
 /**
  * This class is used to load the Synchronization code inside the JVM
  * and to trigger initialization of the synchronization.
+ *
+ * It also extends the SynchronizationProvider class in order to have some
+ * synchronization code running during the operation process
+ * as pre-op, conflictRsolution, and post-op.
  */
 public class MultimasterSynchronization extends SynchronizationProvider
        implements ConfigAddListener, ConfigDeleteListener, ConfigChangeListener
 {
-  static String CHANGELOG_DN = "cn=Changelog Server, cn=config";
-  static String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
-  static String SERVER_ID_ATTR = "ds-cfg-server-id";
-  static String CHANGELOG_PORT_ATTR = "ds-cfg-changelog-port";
+  static String CHANGELOG_DN = "cn=Changelog Server," +
+    "cn=Multimaster Synchronization, cn=Synchronization Providers, cn=config";
+  static String SYNCHRONIZATION_CLASS =
+    "ds-cfg-synchronization-provider-config";
 
   private Changelog changelog = null;
   private static Map<DN, SynchronizationDomain> domains =
@@ -107,9 +111,12 @@ public class MultimasterSynchronization extends SynchronizationProvider
      */
     for (ConfigEntry domainEntry : configEntry.getChildren().values())
     {
-      SynchronizationDomain domain = new SynchronizationDomain(domainEntry);
-      domains.put(domain.getBaseDN(), domain);
-      domain.start();
+      if (domainEntry.hasObjectClass(SYNCHRONIZATION_CLASS))
+      {
+        SynchronizationDomain domain = new SynchronizationDomain(domainEntry);
+        domains.put(domain.getBaseDN(), domain);
+        domain.start();
+      }
     }
   }
 

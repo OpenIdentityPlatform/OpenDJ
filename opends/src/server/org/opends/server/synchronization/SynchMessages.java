@@ -266,7 +266,7 @@ public class SynchMessages {
     MessageHandler.registerMessage(MSGID_NEED_CHANGELOG_SERVER,
         "At least one changelog server must be declared");
     MessageHandler.registerMessage(MSGID_NEED_SERVER_ID,
-        "The Server id must be defined");
+        "The Server Id must be defined");
     MessageHandler.registerMessage(MSGID_INVALID_CHANGELOG_SERVER,
         "Invalid changelog server configuration");
     MessageHandler.registerMessage(MSGID_UNKNOWN_HOSTNAME,

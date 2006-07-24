@@ -16,22 +16,22 @@ objectClass: ds-cfg-synchronization-provider
 ds-cfg-synchronization-provider-enabled: true
 ds-cfg-synchronization-provider-class: org.opends.server.synchronization.MultimasterSynchronization
 
-dn: cn=com, cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
+dn: cn=example, cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-synchronization-provider-config
-cn: com
-ds-cfg-synchronization-dn: dc=com
+cn: example
+ds-cfg-synchronization-dn: dc=example,dc=com
 ds-cfg-changelog-server: host1:8989
 ds-cfg-changelog-server: host2:8989
-ds-cfg-server-id: 1
+ds-cfg-directory-server-id: 1
 ds-cfg-receive-status: true
 
-dn: cn=Changelog Server, cn=config
+dn: cn=Changelog Server, cn=Multimaster Synchronization, cn=Synchronization Providers, cn=config
 objectClass: top
 objectClass: ds-cfg-synchronization-changelog-server-config
 cn: Changelog Server
 ds-cfg-changelog-port: 8989
 ds-cfg-changelog-server: host1:8989
 ds-cfg-changelog-server: host2:8989
-ds-cfg-server-id: 1
+ds-cfg-changelog-server-id: 1
 

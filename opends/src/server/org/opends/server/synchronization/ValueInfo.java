@@ -29,7 +29,7 @@ package org.opends.server.synchronization;
 import org.opends.server.types.AttributeValue;
 
 /**
- * Object used to store historical information about specific values
+ * Allows to store historical information about specific values
  * for a given attribute.
  */
 public class ValueInfo

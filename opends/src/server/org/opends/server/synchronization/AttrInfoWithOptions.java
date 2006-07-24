@@ -31,6 +31,7 @@ import java.util.Set;
 
 /**
  * Used to store historical information.
+ * Contain a map of AttrInfo for each options of a given attribute type.
  */
 public class AttrInfoWithOptions
 {

@@ -214,10 +214,14 @@ public class Historical
       Modification mod)
   {
     /*
-     * There is no need to check the historical information here
-     * The historical information will be updated in the pre-operation
-     * part of this plugin because this will allow to catch the changes
-     * that have been done by the plugins.
+     * The operation is either a non-conflicting operation or a local
+     * operation so there is no need to check the historical information
+     * for conflicts.
+     * If this is a local operation, the this code is run during
+     * the pre-operation phase (TODO : should make sure that synchronization
+     * is always run after all other plugins)
+     * If this is a non-conflicting replicated operation, this code is run
+     * during the handleConflictResolution().
      */
 
     Attribute modAttr = mod.getAttribute();
@@ -233,6 +237,7 @@ public class Historical
       attrInfo = null;
 
     /*
+     * The following code only works for multi-valued attributes.
      * TODO : See impact of single valued attributes
      */
     if (attrInfo == null)
@@ -287,7 +292,7 @@ public class Historical
     /*
      * If this is a local operation we need first to update the historical
      * information, then update the entry with the historical information
-     * IF this is a replicated operation the historical information has
+     * If this is a replicated operation the historical information has
      * already been set in the resolveConflict phase and we only need
      * to update the entry
      */
@@ -399,9 +404,9 @@ public class Historical
    *        for potential conflict
    * @return true if there is a potential conflict, false otherwise
    */
-  public boolean hasConflict(AttrInfo info, ChangeNumber newChange)
+  private boolean hasConflict(AttrInfo info, ChangeNumber newChange)
   {
-    // if I've already seen a newer change that the one
+    // if I've already seen a change that is more recetn than the one
     // that is currently being processed, then there is
     // a potential conflict
     if (ChangeNumber.compare(newChange, moreRecentChangenumber) <= 0)
@@ -689,7 +694,7 @@ public class Historical
            * This attribute is unknown from the schema
            * Just skip it, the modification will be processed but no
            * historical information is going to be kept.
-           * TODO : recovery tool should dela with this, add some logging.
+           * TODO : recovery tool should deal with this, add some logging.
            */
           continue;
         }
@@ -755,7 +760,6 @@ public class Historical
           attrInfo.delete(cn);
         break;
         }
-
       }
     }
 

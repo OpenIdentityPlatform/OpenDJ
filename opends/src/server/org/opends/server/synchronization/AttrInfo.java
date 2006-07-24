@@ -34,7 +34,11 @@ import org.opends.server.types.AttributeValue;
 
 /**
  * This classes is used to store historical information.
- * TODO : better explanation is needed
+ * One object of this type is created for each attribute that was changed in
+ * the entry.
+ * It allows to record the last time a givene value was added, the last
+ * time a given value was deleted and the last time the whole attribute was
+ * deleted.
  */
 public class AttrInfo
 {

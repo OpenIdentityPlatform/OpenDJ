@@ -61,15 +61,12 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SynchronizationProviderResult;
 
 /**
- *  This class implements the multi-master functionality.
- * - use the preOperation phase to add information necessary for the
- *   synchronization to the entry in the database (unique identifier,
- *   historical information, change number)
- *   TODO : implementation not started yet
- * - use the postOperation plugin phase to forward the changes
- *   to the centralized changelog of the synchronization
- *
- *   STATUS : This is a work in progress feature
+ *  This class implements the bulk part of the.of the Directory Server side
+ *  of the synchronization code.
+ *  It contains the root method for publishing a change,
+ *  processing a change received from the changelog service,
+ *  handle conflict resolution,
+ *  handle protocol messages from the changelog server.
  */
 public class SynchronizationDomain extends DirectoryThread
        implements ConfigurableComponent
@@ -117,11 +114,9 @@ public class SynchronizationDomain extends DirectoryThread
 
   private DN configDn;
 
-  static String CHANGELOG_DN = "cn=Changelog Server, cn=config";
   static String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
   static String BASE_DN_ATTR = "ds-cfg-synchronization-dn";
-  static String SERVER_ID_ATTR = "ds-cfg-server-id";
-  static String CHANGELOG_PORT_ATTR = "ds-cfg-changelog-port";
+  static String SERVER_ID_ATTR = "ds-cfg-directory-server-id";
   static String RECEIVE_STATUS = "ds-cfg-receive-status";
   static String MAX_RECEIVE_QUEUE = "ds-cfg-max-receive-queue";
   static String MAX_RECEIVE_DELAY = "ds-cfg-max-receive-delay";
