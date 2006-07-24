@@ -31,7 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 /**
- * This Class is used to send acks between LDAP and changelog servers.
+ * Used to send acks between LDAP and changelog servers.
  */
 public class AckMessage extends SynchronizationMessage implements Serializable
 {

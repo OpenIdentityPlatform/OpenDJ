@@ -98,7 +98,7 @@ public class Changelog implements Runnable, ConfigurableComponent
           new ArrayList<ConfigAttribute>();
 
   static String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
-  static String SERVER_ID_ATTR = "ds-cfg-server-id";
+  static String SERVER_ID_ATTR = "ds-cfg-changelog-server-id";
   static String CHANGELOG_PORT_ATTR = "ds-cfg-changelog-port";
 
   /**

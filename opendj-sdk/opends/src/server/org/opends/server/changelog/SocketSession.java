@@ -35,6 +35,10 @@ import java.util.zip.DataFormatException;
 import org.opends.server.synchronization.SynchronizationMessage;
 
 /**
+ * This class Implement a protocol session using a basic socket and relying on
+ * the innate encoding/decoding capabilities of the SynchronizationMessage
+ * by using the getBytes() and generateMsg() methods of those classes.
+ *
  * TODO : should have some versioning in the packets so that
  *        the futur versions can evolve while still
  *        being able to understand the older versions.

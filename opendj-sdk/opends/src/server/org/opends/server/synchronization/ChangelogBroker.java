@@ -57,7 +57,7 @@ import org.opends.server.types.SearchScope;
 
 
 /**
- * The broker for synchronization based on a changelog system.
+ * The broker for Multimaster Synchronization.
  */
 public class ChangelogBroker implements InternalSearchListener
 {
