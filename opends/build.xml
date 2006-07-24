@@ -415,6 +415,7 @@ public class DynamicConstants
     <mkdir dir="${pdir}/db"              />
     <mkdir dir="${pdir}/changelogDb"     />
     <mkdir dir="${pdir}/ldif"            />
+    <mkdir dir="${pdir}/legal-notices"   />
     <mkdir dir="${pdir}/lib"             />
     <mkdir dir="${pdir}/locks"           />
     <mkdir dir="${pdir}/logs"            />
@@ -441,6 +442,14 @@ public class DynamicConstants
 
     <copy todir="${pdir}/config/messages">
       <fileset dir="${resource.dir}/messages" />
+    </copy>
+
+    <copy todir="${pdir}/legal-notices">
+      <fileset dir="${resource.dir}/legal-notices" />
+    </copy>
+
+    <copy todir="${pdir}">
+      <fileset file="${resource.dir}/README" />
     </copy>
 
     <chmod file="${pdir}/bin/*.sh" perm="755" />
