@@ -10,13 +10,13 @@
 # The list of changelog servers must be declared using the attribute :
 #  ds-cfg-changelog-server
 
-dn: cn=MultimasterSynchronization,cn=Synchronization Providers,cn=config
+dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-synchronization-provider
 ds-cfg-synchronization-provider-enabled: true
 ds-cfg-synchronization-provider-class: org.opends.server.synchronization.MultimasterSynchronization
 
-dn: cn=com, cn=MultimasterSynchronization,cn=Synchronization Providers,cn=config
+dn: cn=com, cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-synchronization-provider-config
 cn: com
