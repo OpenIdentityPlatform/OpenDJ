@@ -151,6 +151,30 @@ echo "Directory, \${OPENDS_INSTALL_DIR} does not exist, creating it......"
 mkdir -p \${OPENDS_INSTALL_DIR}
 fi
 
+if [ -d \${INTEG_TEST_DIR}/opends/logs ]
+then
+echo "Directory, \${INTEG_TEST_DIR}/opends/logs currently exists"
+else
+echo "Directory, \${INTEG_TEST_DIR}/opends/logs does not exist, creating it......"
+mkdir -p \${INTEG_TEST_DIR}/opends/logs
+fi
+
+if [ -d \${INTEG_TEST_DIR}/opends/backup ]
+then
+echo "Directory, \${INTEG_TEST_DIR}/opends/backup currently exists"
+else
+echo "Directory, \${INTEG_TEST_DIR}/opends/backup does not exist, creating it......"
+mkdir -p \${INTEG_TEST_DIR}/opends/backup
+fi
+
+if [ -d \${INTEG_TEST_DIR}/opends/reports ]
+then
+echo "Directory, \${INTEG_TEST_DIR}/opends/reports currently exists"
+else
+echo "Directory, \${INTEG_TEST_DIR}/opends/reports does not exist, creating it......"
+mkdir -p \${INTEG_TEST_DIR}/opends/reports
+fi
+
 cp \${INTEG_TEST_DIR}/ext/testng/testng.xml \${INTEG_TEST_DIR}/ext/testng/testng.xml.save
 
 cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
@@ -162,9 +186,9 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
     <parameter name="bindDN" value="cn=Directory Manager"/>
     <parameter name="bindPW" value="password"/>
     <parameter name="integration_test_home" value="\${INTEG_TEST_DIR}/src/server/org/opends/server/integration"/>
-    <parameter name="logDir" value="/tmp/opends/logs"/>
+    <parameter name="logDir" value="\${INTEG_TEST_DIR}/opends/logs"/>
     <parameter name="dsee_home" value="\${OPENDS_HOME}"/>
-    <parameter name="backupDir" value="/tmp"/>
+    <parameter name="backupDir" value="\${INTEG_TEST_DIR}/opends/backup"/>
 
     <packages>
         <package name="org.opends.server.integration.quickstart"/>
@@ -238,6 +262,7 @@ echo "OpenDS Integration Tests have started........."
 CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar:${ds_home}/tests/integration-tests-testng/built:\${OPENDS_HOME}/lib/OpenDS.jar:\${OPENDS_HOME}/lib/je.jar"
 java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener ${ft_home}/ext/testng/testng.xml
 
+echo "The output from OpenDS is in \${INTEG_TEST_DIR}/opends/logs"
 fi
 cd ${ds_home}/tests/integration-tests-testng
 EOF
