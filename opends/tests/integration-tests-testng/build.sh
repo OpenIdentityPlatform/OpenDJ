@@ -116,17 +116,17 @@ if [ $? -eq 0 ]; then
     echo "The file, ${ft_home}/ext/testng/testng.xml,"
     echo "will also be automatically generated."
     echo "For option 2, execute"
-    echo "${ft_home}/test.sh installOpenDS [OpenDS installation directory]"
+    echo "${ft_home}/test.sh installOpenDS [OpenDS installation directory] [port number]"
     echo " "
     cat > ${ft_home}/test.sh <<EOF
 #!/bin/sh
-if [ \$# != 1 -a \$# != 2 ]
+if [ \$# != 1 -a \$# != 3 ]
 then
 echo "If you already have an OpenDS installed and started,"
 echo "usage: ${ft_home}/test.sh [OpenDS home]"
 echo " "
 echo "If you wish the test.sh script to install OpenDS, start OpenDS, generate a TestNG xml file, and start the integration tests,"
-echo "usage: ${ft_home}/test.sh installOpenDS [OpenDS install directory]" 
+echo "usage: ${ft_home}/test.sh installOpenDS [OpenDS install directory] [port number]" 
 exit
 fi
 [ -z "\${DEBUG}" ] || set -x
@@ -139,6 +139,7 @@ CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar:${ds_home}/tests/integ
 java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener ${ft_home}/ext/testng/testng.xml
 else
 OPENDS_INSTALL_DIR=\${2}
+OPENDS_PORT=\${3}
 OPENDS_HOME=\${OPENDS_INSTALL_DIR}/OpenDS-0.1
 HOSTNAME=\`hostname\`
 INTEG_TEST_DIR=`pwd`
@@ -147,7 +148,7 @@ then
 echo "Directory, \${OPENDS_INSTALL_DIR} currently exists"
 else
 echo "Directory, \${OPENDS_INSTALL_DIR} does not exist, creating it......"
-mkdir -p \${OPENDS_HOME}
+mkdir -p \${OPENDS_INSTALL_DIR}
 fi
 
 cp \${INTEG_TEST_DIR}/ext/testng/testng.xml \${INTEG_TEST_DIR}/ext/testng/testng.xml.save
@@ -156,7 +157,7 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 <suite name="OpenDS"   verbose="1" >
     <parameter name="hostname" value="\${HOSTNAME}"/>
-    <parameter name="port" value="389"/>
+    <parameter name="port" value="\${OPENDS_PORT}"/>
     <parameter name="sport" value="636"/>
     <parameter name="bindDN" value="cn=Directory Manager"/>
     <parameter name="bindPW" value="password"/>
@@ -225,6 +226,9 @@ cp ${ds_home}/build/package/OpenDS-0.1.zip \${OPENDS_INSTALL_DIR}
 cd \${OPENDS_INSTALL_DIR}
 unzip OpenDS-0.1.zip
 echo "OpenDS has been installed in \${OPENDS_INSTALL_DIR}"
+
+echo "Configuring OpenDS to use port \${OPENDS_PORT}"
+\${OPENDS_HOME}/bin/configure-ds.sh -p \${OPENDS_PORT}
 
 echo "Starting OpenDS and the OpenDS Integration Tests...."
 \${OPENDS_HOME}/bin/start-ds.sh -nodetach&
