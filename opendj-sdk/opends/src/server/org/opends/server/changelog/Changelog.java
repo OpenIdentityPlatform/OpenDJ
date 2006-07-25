@@ -56,6 +56,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -342,7 +343,13 @@ public class Changelog implements Runnable, ConfigurableComponent
   {
     try
     {
-      ChangelogDB.initialize("changelogDb");
+      /*
+       * Initialize the changelog database.
+       * TODO : the changelog db path should be configurable
+       */
+      ChangelogDB.initialize(DirectoryServer.getServerRoot() + File.separator
+          + "changelogDb");
+      
       /*
        * create changelog cache
        */
