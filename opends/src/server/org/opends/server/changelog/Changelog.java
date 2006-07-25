@@ -349,7 +349,7 @@ public class Changelog implements Runnable, ConfigurableComponent
        */
       ChangelogDB.initialize(DirectoryServer.getServerRoot() + File.separator
           + "changelogDb");
-      
+
       /*
        * create changelog cache
        */
