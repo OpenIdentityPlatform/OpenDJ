@@ -1,5 +1,0 @@
-dn: dc=rfc-2247-tests-5,dc=com
-dc: rfc-2247-tests-5
-objectclass: top
-objectclass: dcObject
-

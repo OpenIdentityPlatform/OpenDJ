@@ -1,4 +1,0 @@
-dn: uid=rdaugherty, ou=People, o=bob tests,dc=com
-changetype: modify
-replace: labeleduri
-labeleduri: This is a MoDiFiEd ExamPle laBeledURI

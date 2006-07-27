@@ -1,4 +1,0 @@
-dn: uid=jfalena, ou=people, o=bob tests,dc=com
-changetype: modify
-replace: pager
-pager: +1 999 555 2929

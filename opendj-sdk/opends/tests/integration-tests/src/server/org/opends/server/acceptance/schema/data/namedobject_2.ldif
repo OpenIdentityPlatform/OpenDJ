@@ -1,8 +1,0 @@
-dn: cn=named object 2,o=rfc tests,dc=com
-objectclass: top
-objectclass: namedObject
-objectclass: posixGroup
-cn: named object 2
-gidNumber: 0
-memberUid: root
-

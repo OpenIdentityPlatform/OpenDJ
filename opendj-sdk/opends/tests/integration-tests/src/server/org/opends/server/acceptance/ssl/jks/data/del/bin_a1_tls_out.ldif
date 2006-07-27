@@ -1,2 +1,0 @@
-dn: uid=scarter, ou=People, ou=jks tests, o=SSL Tests, dc=com
-changetype: delete

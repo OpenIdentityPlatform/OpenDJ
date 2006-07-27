@@ -1,6 +1,0 @@
-dn: uddiUUID=4001,uddiBusinessKey=biz,ou=uddi tests,o=rfc tests,dc=com
-objectclass: top
-objectclass: uddiContact
-uddiPersonName: John Doe
-uddiUUID: 4001
-

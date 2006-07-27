@@ -1,4 +1,0 @@
-dn: uid=btalbo2, ou=People, o=bob tests,dc=com
-changetype: modify
-add: description
-description: This is a sample description.

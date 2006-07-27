@@ -1,7 +1,0 @@
-dn: cn=server 102,o=rfc tests,dc=com
-objectclass: top
-objectclass: ipHost
-objectclass: device
-cn: server 102
-
-

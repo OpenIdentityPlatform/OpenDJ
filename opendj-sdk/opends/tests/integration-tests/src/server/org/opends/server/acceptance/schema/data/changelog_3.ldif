@@ -1,8 +1,0 @@
-dn: changenumber=100003,o=changelog tests,dc=com 
-objectclass: top
-objectclass: changeLogEntry
-changenumber: 100003
-targetdn: uid=tmorris, ou=People, o=schema tests,dc=com
-changetype: modify
-changes: delete: telephonenumber\ntelephonenumber: 9187\n-\nadd telephonenumber\ntelephonenumber: +1 408 555 9187\n-
-

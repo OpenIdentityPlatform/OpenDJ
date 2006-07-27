@@ -1,4 +1,0 @@
-dn:uid=drose, ou=people, ou=jks tests, o=SSL Tests, dc=com
-changetype: modrdn
-newrdn: uid=thisthesecondminoradjustment
-deleteoldrdn: 0

@@ -1,4 +1,0 @@
-dn: uid=dmiller, ou=People, o=frontend tests,dc=com
-changetype: modify
-delete: uid
-

@@ -1,2 +1,0 @@
-dn: uid=bad, ou=People, o=bob tests,dc=com
-changetype: delete

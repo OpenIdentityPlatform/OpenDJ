@@ -1,5 +1,0 @@
-dn: cn=ldup subentry 1,o=rfc tests,dc=com
-objectclass: top
-objectclass: ldapSubEntry
-cn: ldup subentry 1
-

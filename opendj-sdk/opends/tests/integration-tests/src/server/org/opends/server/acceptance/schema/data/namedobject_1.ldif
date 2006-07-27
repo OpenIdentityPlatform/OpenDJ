@@ -1,5 +1,0 @@
-dn: cn=named object,o=rfc tests,dc=com
-objectclass: top
-objectclass: namedObject
-cn: named object
-
