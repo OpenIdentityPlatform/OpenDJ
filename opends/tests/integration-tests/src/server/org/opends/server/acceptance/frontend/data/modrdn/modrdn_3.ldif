@@ -1,4 +1,0 @@
-dn: uid=badname, ou=People, o=frontend tests,dc=com
-changetype: modrdn
-newrdn: uid=anotherbadname
-deleteoldrdn: 0

@@ -1,8 +1,0 @@
-dn: cn=ldup subentry 2,o=rfc tests,dc=com
-objectclass: top
-objectclass: ldapSubEntry
-objectclass: posixGroup
-gidNumber: 0
-memberUid: root
-cn: ldup subentry 2
-

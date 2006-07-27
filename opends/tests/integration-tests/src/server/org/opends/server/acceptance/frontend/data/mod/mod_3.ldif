@@ -1,4 +1,0 @@
-dn: uid=kvaughan, ou=People, o=frontend tests,dc=com
-changetype: modify
-replace: l
-l: Grenoble

@@ -1,4 +1,0 @@
-dn: uid=abergin, ou=People, o=frontend tests,dc=com
-changetype: modify
-replace: mail
-

@@ -1,4 +1,0 @@
-dn: uid=scarter, ou=People, o=bob tests,dc=com
-changetype: modify
-add: jpegPhoto
-jpegPhoto:: 

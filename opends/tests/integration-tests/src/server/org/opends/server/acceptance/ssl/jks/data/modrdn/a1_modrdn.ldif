@@ -1,4 +1,0 @@
-dn:uid=prose, ou=people, ou=jks tests, o=SSL Tests, dc=com
-changetype: modrdn
-newrdn: uid=thisisaminoradjustment
-deleteoldrdn: 0

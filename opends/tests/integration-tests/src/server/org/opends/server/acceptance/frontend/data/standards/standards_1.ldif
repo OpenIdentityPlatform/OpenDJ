@@ -1,4 +1,0 @@
-dn: uid=jreuter,ou=People,o=frontend tests,dc=com
-changetype: modify
-add: st
-st: California

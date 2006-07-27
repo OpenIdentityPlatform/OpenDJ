@@ -1,7 +1,0 @@
-dn: cn=ldup subentry 3,o=rfc tests,dc=com
-objectclass: top
-objectclass: ldapSubEntry
-objectclass: inheritedLDAPSubEntry
-cn: ldup subentry 3
-inheritable: true
-

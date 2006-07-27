@@ -1,4 +1,0 @@
-dn: uid=btalbo2, ou=People, o=bob tests,dc=com
-changetype: modify
-replace: description
-description: 

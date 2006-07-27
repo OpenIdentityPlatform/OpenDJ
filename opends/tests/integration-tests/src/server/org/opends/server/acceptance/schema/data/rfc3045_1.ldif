@@ -1,4 +1,0 @@
-dn: 
-changetype: modify
-add: vendorName
-vendorName: Example.Com Company

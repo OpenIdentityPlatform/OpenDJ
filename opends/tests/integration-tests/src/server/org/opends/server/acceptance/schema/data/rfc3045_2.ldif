@@ -1,4 +1,0 @@
-dn: 
-changetype: modify
-add: vendorVersion
-vendorVersion: Example.Com Company

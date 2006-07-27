@@ -1,4 +1,0 @@
-dn: uid=trigden, ou=People, o=frontend tests,dc=com
-changetype: modrdn
-newrdn: uid=jwallace
-deleteoldrdn: 0
