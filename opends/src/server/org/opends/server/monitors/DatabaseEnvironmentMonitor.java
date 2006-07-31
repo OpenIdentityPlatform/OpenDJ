@@ -64,19 +64,29 @@ public class DatabaseEnvironmentMonitor extends MonitorProvider
        "org.opends.server.monitors.DatabaseEnvironmentMonitor";
 
 
+  /**
+   * The name of this monitor instance.
+   */
+  private String name;
+
+  /**
+   * The JE environment handle to be monitored.
+   */
   private Environment environment;
 
   /**
    * Creates a new database environment monitor.
+   * @param name The monitor instance name.
    * @param environment A JE environment handle for the database to be
    * monitored.
    */
-  public DatabaseEnvironmentMonitor(Environment environment)
+  public DatabaseEnvironmentMonitor(String name, Environment environment)
   {
-    super("Database Environment Monitor Provider");
+    super(name + " Monitor Provider");
 
     assert debugConstructor(CLASS_NAME);
 
+    this.name = name;
     this.environment = environment;
   }
 
@@ -109,8 +119,7 @@ public class DatabaseEnvironmentMonitor extends MonitorProvider
    */
   public String getMonitorInstanceName()
   {
-    // FIXME: support multiple environments
-    return "Database Environment";
+    return name;
   }
 
   /**

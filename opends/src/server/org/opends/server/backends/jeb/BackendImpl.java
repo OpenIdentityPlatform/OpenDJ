@@ -409,7 +409,9 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
 
     // Create and register a monitor provider for the environment.
-    MonitorProvider monitorProvider = new DatabaseEnvironmentMonitor(dbEnv);
+    String monitorName = this.getBackendID() + " Database Environment";
+    MonitorProvider monitorProvider =
+         new DatabaseEnvironmentMonitor(monitorName, dbEnv);
     monitorProviders.add(monitorProvider);
     DirectoryServer.registerMonitorProvider(monitorProvider);
 
