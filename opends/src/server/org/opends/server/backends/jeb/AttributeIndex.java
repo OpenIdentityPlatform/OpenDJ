@@ -468,6 +468,42 @@ public class AttributeIndex
   }
 
   /**
+   * Uses an equality index to retrieve the entry IDs that might contain a
+   * given initial substring.
+   * @param bytes A normalized initial substring of an attribute value.
+   * @return The candidate entry IDs.
+   */
+  private EntryIDSet matchInitialSubstring(byte[] bytes)
+  {
+    // Iterate through all the keys that have this value as the prefix.
+
+    // Set the lower bound for a range search.
+    byte[] lower = makeEqualityKey(bytes);
+
+    // Set the upper bound for a range search.
+    // We need a key for the upper bound that is of equal length
+    // but slightly greater than the lower bound.
+    byte[] upper = makeEqualityKey(bytes);
+    for (int i = upper.length-1; i >= 0; i--)
+    {
+      if (upper[i] == 0xFF)
+      {
+        // We have to carry the overflow to the more significant byte.
+        upper[i] = 0;
+      }
+      else
+      {
+        // No overflow, we can stop.
+        upper[i] = (byte) (upper[i] + 1);
+        break;
+      }
+    }
+
+    // Read the range: lower <= keys < upper.
+    return equalityIndex.readRange(lower, upper, true, false);
+  }
+
+  /**
    * Retrieve the entry IDs that might match an equality filter.
    *
    * @param equalityFilter The equality filter.
@@ -603,22 +639,45 @@ public class AttributeIndex
    */
   public EntryIDSet evaluateSubstringFilter(SearchFilter filter)
   {
-    if (!indexConfig.isSubstringIndex())
-    {
-      return new EntryIDSet();
-    }
+    SubstringMatchingRule matchRule =
+         filter.getAttributeType().getSubstringMatchingRule();
 
     try
     {
+      ArrayList<ByteString> elements = new ArrayList<ByteString>();
       EntryIDSet results = new EntryIDSet();
 
-      // We do not distinguish between initial, sub and final elements
-      // in the substring index. Put all the elements into a single list.
-      ArrayList<ByteString> elements = new ArrayList<ByteString>();
       if (filter.getSubInitialElement() != null)
       {
-        elements.add(filter.getSubInitialElement());
+        // Use the equality index for initial substrings if possible.
+        if (indexConfig.isEqualityIndex())
+        {
+          ByteString normValue =
+               matchRule.normalizeSubstring(filter.getSubInitialElement());
+          byte[] normBytes = normValue.value();
+
+          EntryIDSet list = matchInitialSubstring(normBytes);
+          results.retainAll(list);
+
+          if (results.isDefined() &&
+               results.size() <= IndexFilter.FILTER_CANDIDATE_THRESHOLD)
+          {
+            return results;
+          }
+        }
+        else
+        {
+          elements.add(filter.getSubInitialElement());
+        }
       }
+
+      if (!indexConfig.isSubstringIndex())
+      {
+        return results;
+      }
+
+      // We do not distinguish between sub and final elements
+      // in the substring index. Put all the elements into a single list.
       elements.addAll(filter.getSubAnyElements());
       if (filter.getSubFinalElement() != null)
       {
@@ -629,10 +688,7 @@ public class AttributeIndex
       for (ByteString element : elements)
       {
         // Normalize the substring according to the substring matching rule.
-        ByteString normValue;
-        SubstringMatchingRule matchRule =
-             filter.getAttributeType().getSubstringMatchingRule();
-        normValue = matchRule.normalizeSubstring(element);
+        ByteString normValue = matchRule.normalizeSubstring(element);
         byte[] normBytes = normValue.value();
 
         // Get the candidate entry IDs from the index.
@@ -655,7 +711,7 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      assert debugException(CLASS_NAME, "evaluateGreaterOrEqualFilter", e);
+      assert debugException(CLASS_NAME, "evaluateSubstringFilter", e);
       return new EntryIDSet();
     }
   }
