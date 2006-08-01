@@ -1107,6 +1107,13 @@ public class LDAPConnectionHandler
         requestHandler.processServerShutdown(finalizeReason);
       }
     }
+    else
+    {
+      for (LDAPRequestHandler requestHandler : requestHandlers)
+      {
+        requestHandler.registerShutdownListener();
+      }
+    }
   }
 
 

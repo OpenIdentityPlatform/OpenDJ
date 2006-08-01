@@ -688,6 +688,7 @@ public class ConnectionHandlerConfigManager
       try
       {
         connectionHandler.initializeConnectionHandler(configEntry);
+        connectionHandler.start();
       }
       catch (Exception e)
       {
@@ -703,6 +704,7 @@ public class ConnectionHandlerConfigManager
       }
 
       connectionHandlers.put(connectionHandlerDN, connectionHandler);
+      DirectoryServer.registerConnectionHandler(connectionHandler);
     }
 
 
