@@ -39,6 +39,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.api.DirectoryThread;
+import org.opends.server.api.ServerShutdownListener;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
 
 import static org.opends.server.loggers.Debug.*;
@@ -61,6 +63,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LDAPRequestHandler
        extends DirectoryThread
+       implements ServerShutdownListener
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -418,6 +421,35 @@ public class LDAPRequestHandler
     }
 
     return connList;
+  }
+
+
+
+  /**
+   * Retrieves the human-readable name for this shutdown listener.
+   *
+   * @return  The human-readable name for this shutdown listener.
+   */
+  public String getShutdownListenerName()
+  {
+    assert debugEnter(CLASS_NAME, "getShutdownListenerName");
+
+    return handlerName;
+  }
+
+
+
+  /**
+   * Causes this request handler to register itself as a shutdown listener with
+   * the Directory Server.  This must be called if the connection handler is
+   * shut down without closing all associated connections, otherwise the thread
+   * would not be stopped by the server.
+   */
+  public void registerShutdownListener()
+  {
+    assert debugEnter(CLASS_NAME, "registerShutdownListener");
+
+    DirectoryServer.registerShutdownListener(this);
   }
 
 
