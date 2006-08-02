@@ -102,11 +102,14 @@ public class PasswordPolicyState
   // successful.
   private boolean useGraceLogin;
 
+  // Indicates whether the user's account is expired.
+  private ConditionResult isAccountExpired;
+
   // Indicates whether the user's account is disabled.
   private ConditionResult isDisabled;
 
   // Indicates whether the user's password is expired.
-  private ConditionResult isExpired;
+  private ConditionResult isPasswordExpired;
 
   // Indicates whether the warning to send to the client would be the first
   // warning for the user.
@@ -213,7 +216,8 @@ public class PasswordPolicyState
     currentTime            = TimeThread.getTime();
     modifications          = new LinkedList<Modification>();
     isDisabled             = ConditionResult.UNDEFINED;
-    isExpired              = ConditionResult.UNDEFINED;
+    isAccountExpired       = ConditionResult.UNDEFINED;
+    isPasswordExpired      = ConditionResult.UNDEFINED;
     isFirstWarning         = ConditionResult.UNDEFINED;
     isIdleLocked           = ConditionResult.UNDEFINED;
     isResetLocked          = ConditionResult.UNDEFINED;
@@ -1004,7 +1008,7 @@ public class PasswordPolicyState
             debugMessage(DebugLogCategory.PASSWORD_POLICY,
                          DebugLogSeverity.INFO, CLASS_NAME, "isDisabled",
                          "User " + userDNString +
-                         " is not administratively disabled.");
+                         " is administratively disabled.");
           }
 
           isDisabled = ConditionResult.TRUE;
@@ -1017,7 +1021,7 @@ public class PasswordPolicyState
             debugMessage(DebugLogCategory.PASSWORD_POLICY,
                          DebugLogSeverity.INFO, CLASS_NAME, "isDisabled",
                          "User " + userDNString +
-                         " is administratively disabled.");
+                         " is not administratively disabled.");
           }
 
           isDisabled = ConditionResult.FALSE;
@@ -1139,6 +1143,120 @@ public class PasswordPolicyState
         modifications.add(new Modification(ModificationType.DELETE,
                                            new Attribute(type)));
       }
+    }
+  }
+
+
+
+  /**
+   * Indicates whether the user's account is currently expired.
+   *
+   * @return  <CODE>true</CODE> if the user's account is expired, or
+   *          <CODE>false</CODE> if not.
+   */
+  public boolean isAccountExpired()
+  {
+    assert debugEnter(CLASS_NAME, "isAccountExpired");
+
+    if ((isAccountExpired == null) ||
+        (isAccountExpired == ConditionResult.UNDEFINED))
+    {
+      AttributeType type =
+           DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_EXPIRATION_TIME,
+                                            true);
+      try
+      {
+        long expirationTime = getGeneralizedTime(type);
+        if (expirationTime < 0)
+        {
+          // The user doesn't have an expiration time in their entry, so it
+          // can't be expired.
+          if (debug)
+          {
+            debugMessage(DebugLogCategory.PASSWORD_POLICY,
+                         DebugLogSeverity.INFO, CLASS_NAME, "isAccountExpired",
+                         "The account for user " + userDNString +
+                         " is not expired because there is no expiration " +
+                         "time in the user's entry.");
+          }
+
+          isAccountExpired = ConditionResult.FALSE;
+          return false;
+        }
+        else if (expirationTime > currentTime)
+        {
+          // The user does have an expiration time, but it hasn't arrived yet.
+          if (debug)
+          {
+            debugMessage(DebugLogCategory.PASSWORD_POLICY,
+                         DebugLogSeverity.INFO, CLASS_NAME, "isAccountExpired",
+                         "The account for user " + userDNString +
+                         " is not expired because the expiration time has " +
+                         "not yet arrived.");
+          }
+
+          isAccountExpired = ConditionResult.FALSE;
+          return false;
+        }
+        else
+        {
+          // The user does have an expiration time, and it is in the past.
+          if (debug)
+          {
+            debugMessage(DebugLogCategory.PASSWORD_POLICY,
+                         DebugLogSeverity.INFO, CLASS_NAME, "isAccountExpired",
+                         "The account for user " + userDNString +
+                         " is expired because the expiration time in that " +
+                         "account has passed.");
+          }
+
+          isAccountExpired = ConditionResult.TRUE;
+          return true;
+        }
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "isAccountExpired", e);
+
+        if (debug)
+        {
+          debugMessage(DebugLogCategory.PASSWORD_POLICY,
+                       DebugLogSeverity.WARNING, CLASS_NAME, "isAccountExpired",
+                       "User " + userDNString +" is considered to have an " +
+                       "expired account because an error occurred " +
+                       "while attempting to make the determination:  " +
+                       stackTraceToSingleLineString(e) + ".");
+        }
+
+        isAccountExpired = ConditionResult.TRUE;
+        return true;
+      }
+    }
+
+
+    if (isAccountExpired == ConditionResult.FALSE)
+    {
+      if (debug)
+      {
+        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
+                     CLASS_NAME, "isAccountExpired",
+                     "Returning stored result of false for user " +
+                     userDNString);
+      }
+
+      return false;
+    }
+    else
+    {
+      if (debug)
+      {
+        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
+                     CLASS_NAME, "isAccountExpired",
+                     "Returning stored result of true for user " +
+                     userDNString);
+      }
+
+      return true;
     }
   }
 
@@ -2339,11 +2457,11 @@ public class PasswordPolicyState
 
       if (expirationTime == Long.MAX_VALUE)
       {
-        expirationTime   = -1;
-        shouldWarn       = ConditionResult.FALSE;
-        isFirstWarning   = ConditionResult.FALSE;
-        isExpired        = ConditionResult.FALSE;
-        mayUseGraceLogin = ConditionResult.TRUE;
+        expirationTime    = -1;
+        shouldWarn        = ConditionResult.FALSE;
+        isFirstWarning    = ConditionResult.FALSE;
+        isPasswordExpired = ConditionResult.FALSE;
+        mayUseGraceLogin  = ConditionResult.TRUE;
       }
       else if (checkWarning)
       {
@@ -2357,9 +2475,9 @@ public class PasswordPolicyState
           {
             // The warning time is in the future, so we know the password isn't
             // expired.
-            shouldWarn     = ConditionResult.FALSE;
-            isFirstWarning = ConditionResult.FALSE;
-            isExpired      = ConditionResult.FALSE;
+            shouldWarn        = ConditionResult.FALSE;
+            isFirstWarning    = ConditionResult.FALSE;
+            isPasswordExpired = ConditionResult.FALSE;
           }
           else
           {
@@ -2370,8 +2488,8 @@ public class PasswordPolicyState
             if (expirationTime > currentTime)
             {
               // The password is not expired but we should warn the user.
-              shouldWarn = ConditionResult.TRUE;
-              isExpired  = ConditionResult.FALSE;
+              shouldWarn        = ConditionResult.TRUE;
+              isPasswordExpired = ConditionResult.FALSE;
 
               if (warnedTime < 0)
               {
@@ -2399,32 +2517,32 @@ public class PasswordPolicyState
               // expired if the user has not yet seen a warning.
               if (passwordPolicy.expirePasswordsWithoutWarning())
               {
-                shouldWarn     = ConditionResult.FALSE;
-                isFirstWarning = ConditionResult.FALSE;
-                isExpired      = ConditionResult.TRUE;
+                shouldWarn        = ConditionResult.FALSE;
+                isFirstWarning    = ConditionResult.FALSE;
+                isPasswordExpired = ConditionResult.TRUE;
               }
               else if (warnedTime > 0)
               {
                 expirationTime = warnedTime + (warningInterval*1000);
                 if (expirationTime > currentTime)
                 {
-                  shouldWarn     = ConditionResult.TRUE;
-                  isFirstWarning = ConditionResult.FALSE;
-                  isExpired      = ConditionResult.FALSE;
+                  shouldWarn        = ConditionResult.TRUE;
+                  isFirstWarning    = ConditionResult.FALSE;
+                  isPasswordExpired = ConditionResult.FALSE;
                 }
                 else
                 {
-                  shouldWarn     = ConditionResult.FALSE;
-                  isFirstWarning = ConditionResult.FALSE;
-                  isExpired      = ConditionResult.TRUE;
+                  shouldWarn        = ConditionResult.FALSE;
+                  isFirstWarning    = ConditionResult.FALSE;
+                  isPasswordExpired = ConditionResult.TRUE;
                 }
               }
               else
               {
-                shouldWarn     = ConditionResult.TRUE;
-                isFirstWarning = ConditionResult.TRUE;
-                isExpired      = ConditionResult.FALSE;
-                expirationTime = currentTime + (warningInterval*1000);
+                shouldWarn        = ConditionResult.TRUE;
+                isFirstWarning    = ConditionResult.TRUE;
+                isPasswordExpired = ConditionResult.FALSE;
+                expirationTime    = currentTime + (warningInterval*1000);
               }
             }
           }
@@ -2438,11 +2556,11 @@ public class PasswordPolicyState
 
           if (currentTime > expirationTime)
           {
-            isExpired = ConditionResult.TRUE;
+            isPasswordExpired = ConditionResult.TRUE;
           }
           else
           {
-            isExpired = ConditionResult.FALSE;
+            isPasswordExpired = ConditionResult.FALSE;
           }
         }
       }
@@ -2454,11 +2572,11 @@ public class PasswordPolicyState
 
         if (expirationTime < currentTime)
         {
-          isExpired = ConditionResult.TRUE;
+          isPasswordExpired = ConditionResult.TRUE;
         }
         else
         {
-          isExpired = ConditionResult.FALSE;
+          isPasswordExpired = ConditionResult.FALSE;
         }
       }
     }
@@ -2484,16 +2602,17 @@ public class PasswordPolicyState
    * @return  <CODE>true</CODE> if the user's password is currently expired, or
    *          <CODE>false</CODE> if not.
    */
-  public boolean isExpired()
+  public boolean isPasswordExpired()
   {
-    assert debugEnter(CLASS_NAME, "isExpired");
+    assert debugEnter(CLASS_NAME, "isPasswordExpired");
 
-    if ((isExpired == null) || (isExpired == ConditionResult.UNDEFINED))
+    if ((isPasswordExpired == null) ||
+        (isPasswordExpired == ConditionResult.UNDEFINED))
     {
       getPasswordExpirationTime();
     }
 
-    if (isExpired == ConditionResult.TRUE)
+    if (isPasswordExpired == ConditionResult.TRUE)
     {
       return true;
     }

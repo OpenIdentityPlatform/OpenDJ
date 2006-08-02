@@ -5568,6 +5568,16 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if a user tries to
+   * authenticate using an expired account.  This takes a single argument, which
+   * is the DN of the user.
+   */
+  public static final int MSGID_BIND_OPERATION_ACCOUNT_EXPIRED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 531;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -7497,6 +7507,9 @@ public class CoreMessages
     registerMessage(MSGID_BIND_OPERATION_ACCOUNT_DISABLED,
                     "Rejecting a bind request for user %s because the " +
                     "account has been administrative disabled.");
+    registerMessage(MSGID_BIND_OPERATION_ACCOUNT_EXPIRED,
+                    "Rejecting a bind request for user %s because the " +
+                    "account has expired.");
     registerMessage(MSGID_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED,
                     "Rejecting a bind request for user %s because the " +
                     "account has been locked due to too many failed " +

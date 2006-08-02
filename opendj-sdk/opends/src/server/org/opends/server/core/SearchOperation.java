@@ -827,12 +827,13 @@ public class SearchOperation
         PasswordPolicyState pwpState = new PasswordPolicyState(entry, false,
                                                                false);
 
-        boolean isInactive           = pwpState.isDisabled();
+        boolean isInactive           = pwpState.isDisabled() ||
+                                       pwpState.isAccountExpired();
         boolean isLocked             = pwpState.lockedDueToFailures() ||
                                        pwpState.lockedDueToMaximumResetAge() ||
                                        pwpState.lockedDueToIdleInterval();
         boolean isReset              = pwpState.mustChangePassword();
-        boolean isExpired            = pwpState.isExpired();
+        boolean isExpired            = pwpState.isPasswordExpired();
 
         if (isInactive || isLocked || isReset || isExpired)
         {

@@ -319,9 +319,11 @@ public class ProxiedAuthV2Control
           // processing.
           PasswordPolicyState pwpState =
                new PasswordPolicyState(userEntry, false, false);
-          if (pwpState.isDisabled() || pwpState.lockedDueToFailures() ||
+          if (pwpState.isDisabled() || pwpState.isAccountExpired() ||
+              pwpState.lockedDueToFailures() ||
               pwpState.lockedDueToIdleInterval() ||
-              pwpState.lockedDueToMaximumResetAge() || pwpState.isExpired())
+              pwpState.lockedDueToMaximumResetAge() ||
+              pwpState.isPasswordExpired())
           {
             int    msgID   = MSGID_PROXYAUTH2_UNUSABLE_ACCOUNT;
             String message = getMessage(msgID, String.valueOf(authzDN));
@@ -376,9 +378,11 @@ public class ProxiedAuthV2Control
         // processing.
         PasswordPolicyState pwpState =
              new PasswordPolicyState(userEntry, false, false);
-        if (pwpState.isDisabled() || pwpState.lockedDueToFailures() ||
+        if (pwpState.isDisabled() || pwpState.isAccountExpired() ||
+            pwpState.lockedDueToFailures() ||
             pwpState.lockedDueToIdleInterval() ||
-            pwpState.lockedDueToMaximumResetAge() || pwpState.isExpired())
+            pwpState.lockedDueToMaximumResetAge() ||
+            pwpState.isPasswordExpired())
         {
           int    msgID   = MSGID_PROXYAUTH2_UNUSABLE_ACCOUNT;
           String message = getMessage(msgID, String.valueOf(authzDN));

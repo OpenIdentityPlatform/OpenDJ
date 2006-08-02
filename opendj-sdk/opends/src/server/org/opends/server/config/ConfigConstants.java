@@ -2932,6 +2932,16 @@ public class ConfigConstants
 
 
   /**
+   * The name of the operational attribute that may appear in a user's entry to
+   * indicate when that account will expire (and therefore may no longer be used
+   * to authenticate).
+   */
+  public static final String OP_ATTR_ACCOUNT_EXPIRATION_TIME =
+       NAME_PREFIX_PWP + "account-expiration-time";
+
+
+
+  /**
    * The name of the operational attribute that will appear in an entry to
    * indicate when it was created.
    */
