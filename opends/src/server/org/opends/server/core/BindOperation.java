@@ -1165,6 +1165,15 @@ bindProcessing:
               setAuthFailureReason(msgID, message);
               break bindProcessing;
             }
+            else if (pwPolicyState.isAccountExpired())
+            {
+              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_EXPIRED;
+              String message = getMessage(msgID, String.valueOf(bindDN));
+
+              setResultCode(ResultCode.INVALID_CREDENTIALS);
+              setAuthFailureReason(msgID, message);
+              break bindProcessing;
+            }
             else if (pwPolicyState.lockedDueToFailures())
             {
               int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED;
@@ -1211,7 +1220,7 @@ bindProcessing:
 
             // Determine whether the password is expired, or whether the user
             // should be warned about an upcoming expiration.
-            if (pwPolicyState.isExpired())
+            if (pwPolicyState.isPasswordExpired())
             {
               if (pwPolicyErrorType == null)
               {
@@ -1547,6 +1556,14 @@ bindProcessing:
               appendErrorMessage(getMessage(msgID, userDNString));
               break bindProcessing;
             }
+            else if (pwPolicyState.isAccountExpired())
+            {
+              setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+              int msgID = MSGID_BIND_OPERATION_ACCOUNT_EXPIRED;
+              appendErrorMessage(getMessage(msgID, userDNString));
+              break bindProcessing;
+            }
 
             if (pwPolicyState.requireSecureAuthentication() &&
                 (! clientConnection.isSecure()) &&
@@ -1605,7 +1622,7 @@ bindProcessing:
                 break bindProcessing;
               }
 
-              if (pwPolicyState.isExpired())
+              if (pwPolicyState.isPasswordExpired())
               {
                 if (pwPolicyErrorType == null)
                 {
