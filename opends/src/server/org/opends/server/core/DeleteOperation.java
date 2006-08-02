@@ -94,6 +94,9 @@ public class DeleteOperation
   // The DN of the entry for the delete operation.
   private DN entryDN;
 
+  // The entry to be deleted.
+  private Entry entry;
+
   // The set of response controls for this delete operation.
   private List<Control> responseControls;
 
@@ -134,6 +137,7 @@ public class DeleteOperation
 
     this.rawEntryDN = rawEntryDN;
 
+    entry            = null;
     entryDN          = null;
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
@@ -171,6 +175,7 @@ public class DeleteOperation
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
     changeNumber     = -1;
+    entry            = null;
   }
 
 
@@ -239,6 +244,22 @@ public class DeleteOperation
     assert debugEnter(CLASS_NAME, "setEntryDN", String.valueOf(entryDN));
 
     this.entryDN = entryDN;
+  }
+
+
+
+  /**
+   * Retrieves the entry to be deleted.  This will not be available to pre-parse
+   * plugins.
+   *
+   * @return  The entry to be deleted, or <CODE>null</CODE> if the entry is not
+   *          yet available.
+   */
+  public Entry getEntryToDelete()
+  {
+    assert debugEnter(CLASS_NAME, "getEntryToDelete");
+
+    return entry;
   }
 
 
@@ -463,7 +484,6 @@ public class DeleteOperation
     assert debugEnter(CLASS_NAME, "run");
 
     setResultCode(ResultCode.UNDEFINED);
-    Entry entry = null;
 
 
     // Get the plugin config manager that will be used for invoking plugins.

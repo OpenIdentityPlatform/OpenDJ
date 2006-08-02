@@ -106,6 +106,9 @@ public class ModifyOperation
   // The DN of the entry for the modify operation.
   private DN entryDN;
 
+  // The current entry, before any changes are applied.
+  private Entry currentEntry;
+
   // The modified entry that will be stored in the backend.
   private Entry modifiedEntry;
 
@@ -168,6 +171,7 @@ public class ModifyOperation
 
     entryDN          = null;
     modifications    = null;
+    currentEntry     = null;
     modifiedEntry    = null;
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
@@ -218,6 +222,7 @@ public class ModifyOperation
                                     new LDAPAttribute(m.getAttribute())));
     }
 
+    currentEntry     = null;
     modifiedEntry    = null;
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
@@ -363,6 +368,22 @@ public class ModifyOperation
     assert debugEnter(CLASS_NAME, "getModifications");
 
     return modifications;
+  }
+
+
+
+  /**
+   * Retrieves the current entry before any modifications are applied.  This
+   * will not be available to pre-parse plugins.
+   *
+   * @return  The current entry, or <CODE>null</CODE> if it is not yet
+   *          available.
+   */
+  public Entry getCurrentEntry()
+  {
+    assert debugEnter(CLASS_NAME, "getCurrentEntry");
+
+    return currentEntry;
   }
 
 
@@ -605,7 +626,6 @@ public class ModifyOperation
     assert debugEnter(CLASS_NAME, "run");
 
     setResultCode(ResultCode.UNDEFINED);
-    Entry currentEntry = null;
 
 
     // Get the plugin config manager that will be used for invoking plugins.

@@ -95,6 +95,9 @@ public class CompareOperation
   // The DN of the entry for the compare operation.
   private DN entryDN;
 
+  // The entry to be compared.
+  private Entry entry;
+
   // The set of response controls for this compare operation.
   private List<Control> responseControls;
 
@@ -148,6 +151,7 @@ public class CompareOperation
     this.assertionValue   = assertionValue;
 
     responseControls = new ArrayList<Control>();
+    entry            = null;
     entryDN          = null;
     attributeType    = null;
     cancelRequest    = null;
@@ -195,6 +199,7 @@ public class CompareOperation
     rawEntryDN       = new ASN1OctetString(entryDN.toString());
     rawAttributeType = attributeType.getNameOrOID();
     cancelRequest    = null;
+    entry            = null;
   }
 
 
@@ -339,6 +344,22 @@ public class CompareOperation
                       String.valueOf(assertionValue));
 
     this.assertionValue = assertionValue;
+  }
+
+
+
+  /**
+   * Retrieves the entry to target with the compare operation.  It will not be
+   * available to pre-parse plugins.
+   *
+   * @return  The entry to target with the compare operation, or
+   *          <CODE>null</CODE> if the entry is not yet available.
+   */
+  public Entry getEntryToCompare()
+  {
+    assert debugEnter(CLASS_NAME, "getEntryToCompare");
+
+    return entry;
   }
 
 
@@ -697,7 +718,6 @@ compareProcessing:
       try
       {
         // Get the entry.  If it does not exist, then fail.
-        Entry entry = null;
         try
         {
           entry = DirectoryServer.getEntry(entryDN);

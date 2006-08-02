@@ -116,6 +116,9 @@ public class AddOperation
   // The processed DN of the entry to add.
   private DN entryDN;
 
+  // The entry being added to the server.
+  private Entry entry;
+
   // The set of attributes (including the objectclass attribute) in a raw,
   // unprocessed form as provided in the request.  One or more of these
   // attributes may be invalid.
@@ -178,6 +181,7 @@ public class AddOperation
 
     responseControls      = new ArrayList<Control>();
     cancelRequest         = null;
+    entry                 = null;
     entryDN               = null;
     userAttributes        = null;
     operationalAttributes = null;
@@ -225,6 +229,8 @@ public class AddOperation
     this.objectClasses         = objectClasses;
     this.userAttributes        = userAttributes;
     this.operationalAttributes = operationalAttributes;
+
+    entry = null;
 
     rawEntryDN = new ASN1OctetString(entryDN.toString());
 
@@ -440,6 +446,23 @@ public class AddOperation
     assert debugEnter(CLASS_NAME, "getOperationalAttributes");
 
     return operationalAttributes;
+  }
+
+
+
+  /**
+   * Retrieves the entry to be added to the server.  Note that this will not be
+   * available to pre-parse plugins or during the conflict resolution portion of
+   * the synchronization processing.
+   *
+   * @return  The entry to be added to the server, or <CODE>null</CODE> if it is
+   *          not yet available.
+   */
+  public Entry getEntryToAdd()
+  {
+    assert debugEnter(CLASS_NAME, "getEntryToAdd");
+
+    return entry;
   }
 
 
@@ -667,7 +690,6 @@ public class AddOperation
     // Start the processing timer.
     processingStartTime = System.currentTimeMillis();
     setResultCode(ResultCode.UNDEFINED);
-    Entry entry = null;
 
 
     // Check for and handle a request to cancel this operation.

@@ -117,6 +117,12 @@ public class ModifyDNOperation
   // The new parent for the entry.
   private DN newSuperior;
 
+  // The current entry, before it is renamed.
+  private Entry currentEntry;
+
+  // The new entry, as it will appear after it has been renamed.
+  private Entry newEntry;
+
   // The set of response controls for this modify DN operation.
   private List<Control> responseControls;
 
@@ -188,6 +194,8 @@ public class ModifyDNOperation
     cancelRequest    = null;
     modifications    = null;
     changeNumber     = -1;
+    currentEntry     = null;
+    newEntry         = null;
   }
 
 
@@ -249,6 +257,8 @@ public class ModifyDNOperation
     cancelRequest    = null;
     modifications    = null;
     changeNumber     = -1;
+    currentEntry     = null;
+    newEntry         = null;
   }
 
 
@@ -523,6 +533,40 @@ public class ModifyDNOperation
 
 
   /**
+   * Retrieves the current entry, before it is renamed.  This will not be
+   * available to pre-parse plugins or during the conflict resolution portion of
+   * the synchronization processing.
+   *
+   * @return  The current entry, or <CODE>null</CODE> if it is not yet
+   *           available.
+   */
+  public Entry getOriginalEntry()
+  {
+    assert debugEnter(CLASS_NAME, "getOriginalEntry");
+
+    return currentEntry;
+  }
+
+
+
+  /**
+   * Retrieves the new entry, as it will appear after it is renamed.  This will
+   * not be  available to pre-parse plugins or during the conflict resolution
+   * portion of the synchronization processing.
+   *
+   * @return  The updated entry, or <CODE>null</CODE> if it is not yet
+   *           available.
+   */
+  public Entry getUpdatedEntry()
+  {
+    assert debugEnter(CLASS_NAME, "getUpdatedEntry");
+
+    return newEntry;
+  }
+
+
+
+  /**
    * Retrieves the time that processing started for this operation.
    *
    * @return  The time that processing started for this operation.
@@ -755,8 +799,6 @@ public class ModifyDNOperation
     assert debugEnter(CLASS_NAME, "run");
 
     setResultCode(ResultCode.UNDEFINED);
-    Entry currentEntry = null;
-    Entry newEntry     = null;
 
 
     // Get the plugin config manager that will be used for invoking plugins.
