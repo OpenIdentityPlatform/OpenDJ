@@ -656,7 +656,7 @@ public class DynamicConstants
         <pathelement location="${coverage.instr.dir}" />
 
         <path refid="run.classpath" />
-        <!--<path refid="emma.lib" />-->
+        <path refid="emma.lib" />
 
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
@@ -668,9 +668,23 @@ public class DynamicConstants
 
         <pathelement location="${unittest.classes.dir}" />
       </classpath>
-
+      <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/coverage.emma" />
+      <jvmarg value="-Demma.coverage.out.merge=false" />
       <xmlfileset dir="${testng.dir}" includes="testng.xml" />
     </testng>
+  	
+    <emma enabled="${coverage.enabled}" >
+      <report sourcepath="${srcdir}" >
+  	  <!-- <property name="verbosity.level" value="verbose" /> -->
+          <fileset dir="${coverage.data.dir}" >
+           <include name="*.emma" />
+  	  </fileset>
+
+  	  <txt outfile="${coverage.report.dir}/coverage.txt" />
+  	   <html outfile="${coverage.report.dir}/index.html" />
+      </report>
+    </emma>
+  	
   </target>
 
 
