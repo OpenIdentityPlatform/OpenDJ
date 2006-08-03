@@ -123,6 +123,7 @@ public class RandomPasswordGenerator
 
 
     this.configEntryDN = configEntry.getDN();
+    generatorLock = new ReentrantLock();
 
 
     // Get the character sets for use in generating the password.  At least one
