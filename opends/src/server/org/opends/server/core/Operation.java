@@ -121,7 +121,12 @@ public abstract class Operation
   // The result code for this operation.
   private ResultCode resultCode;
 
-  // The error message for this operation.
+  // Additional information that should be included in the log but not sent to
+  // the client.
+  private StringBuilder additionalLogMessage;
+
+  // The error message for this operation that should be included in the log and
+  // in the response to the client.
   private StringBuilder errorMessage;
 
 
@@ -150,6 +155,7 @@ public abstract class Operation
     this.requestControls  = requestControls;
 
     resultCode                 = ResultCode.UNDEFINED;
+    additionalLogMessage       = new StringBuilder();
     errorMessage               = new StringBuilder();
     attachments                = new HashMap<String,Object>();
     matchedDN                  = null;
@@ -342,11 +348,10 @@ public abstract class Operation
 
 
   /**
-   * Retrieves the error message for this operation.  If it is non-null, then
-   * its contents may be altered by the caller.
+   * Retrieves the error message for this operation.  Its contents may be
+   * altered by the caller.
    *
-   * @return  The error message for this operation, or <CODE>null</CODE> if the
-   *          operation has not yet completed or does not have an error message.
+   * @return  The error message for this operation.
    */
   public StringBuilder getErrorMessage()
   {
@@ -367,7 +372,14 @@ public abstract class Operation
     assert debugEnter(CLASS_NAME, "setErrorMessage",
                       String.valueOf(errorMessage));
 
-    this.errorMessage = errorMessage;
+    if (errorMessage == null)
+    {
+      this.errorMessage = new StringBuilder();
+    }
+    else
+    {
+      this.errorMessage = errorMessage;
+    }
   }
 
 
@@ -396,6 +408,70 @@ public abstract class Operation
       }
 
       errorMessage.append(message);
+    }
+  }
+
+
+
+  /**
+   * Retrieves the additional log message for this operation, which should be
+   * written to the log but not included in the response to the client.  The
+   * contents of this buffer may be altered by the caller.
+   *
+   * @return  The additional log message for this operation.
+   */
+  public StringBuilder getAdditionalLogMessage()
+  {
+    assert debugEnter(CLASS_NAME, "getAdditionalLogMessage");
+
+    return additionalLogMessage;
+  }
+
+
+
+  /**
+   * Specifies the additional log message for this operation, which should be
+   * written to the log but not included in the response to the client.
+   *
+   * @param  additionalLogMessage  The additional log message for this
+   *                               operation.
+   */
+  public void setAdditionalLogMessage(StringBuilder additionalLogMessage)
+  {
+    assert debugEnter(CLASS_NAME, "setAdditionalLogMessage",
+                      String.valueOf(additionalLogMessage));
+
+    if (additionalLogMessage == null)
+    {
+      this.additionalLogMessage = new StringBuilder();
+    }
+    else
+    {
+      this.additionalLogMessage = additionalLogMessage;
+    }
+  }
+
+
+
+  /**
+   * Appends the provided message to the additional log information for this
+   * operation.
+   *
+   * @param  message  The message that should be appended to the additional log
+   *                  information for this operation.
+   */
+  public void appendAdditionalLogMessage(String message)
+  {
+    assert debugEnter(CLASS_NAME, "appendAdditionalLogMessage",
+                      String.valueOf(message));
+
+    if (additionalLogMessage == null)
+    {
+      additionalLogMessage = new StringBuilder(message);
+    }
+    else
+    {
+      additionalLogMessage.append(message);
     }
   }
 
