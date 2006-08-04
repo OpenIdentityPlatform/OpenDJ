@@ -34,6 +34,7 @@ import static org.opends.server.messages.ConfigMessages.
      MSGID_CONFIG_BACKEND_NO_DIRECTORY;
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.util.ServerConstants.*;
 
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigConstants;
@@ -203,17 +204,28 @@ public class Config
   static
   {
     memoryUnits = new HashMap<String, Double>();
-    memoryUnits.put("KB", 1000D);
-    memoryUnits.put("MB", 1000000D);
-    memoryUnits.put("GB", 1000000000D);
-    memoryUnits.put("KiB", 1024D);                 // kibibyte
-    memoryUnits.put("MiB", 1024D * 1024D);         // mebibyte
-    memoryUnits.put("GiB", 1024D * 1024D * 1024D); // gibibyte
+    memoryUnits.put(SIZE_UNIT_BYTES_ABBR, 1D);
+    memoryUnits.put(SIZE_UNIT_BYTES_FULL, 1D);
+    memoryUnits.put(SIZE_UNIT_KILOBYTES_ABBR, 1000D);
+    memoryUnits.put(SIZE_UNIT_KILOBYTES_FULL, 1000D);
+    memoryUnits.put(SIZE_UNIT_MEGABYTES_ABBR, 1000000D);
+    memoryUnits.put(SIZE_UNIT_MEGABYTES_FULL, 1000000D);
+    memoryUnits.put(SIZE_UNIT_GIGABYTES_ABBR, 1000000000D);
+    memoryUnits.put(SIZE_UNIT_GIGABYTES_FULL, 1000000000D);
+    memoryUnits.put(SIZE_UNIT_KIBIBYTES_ABBR, 1024D);
+    memoryUnits.put(SIZE_UNIT_KIBIBYTES_FULL, 1024D);
+    memoryUnits.put(SIZE_UNIT_MEBIBYTES_ABBR, (double) (1024 * 1024));
+    memoryUnits.put(SIZE_UNIT_MEBIBYTES_FULL, (double) (1024 * 1024));
+    memoryUnits.put(SIZE_UNIT_GIBIBYTES_ABBR, (double) (1024 * 1024 * 1024));
+    memoryUnits.put(SIZE_UNIT_GIBIBYTES_FULL, (double) (1024 * 1024 * 1024));
 
     timeUnits = new HashMap<String, Double>();
-    timeUnits.put("ms", 1D);
-    timeUnits.put("s",  1000D);
-    timeUnits.put("m",  60*1000D);
+    timeUnits.put(TIME_UNIT_MILLISECONDS_ABBR, 1D);
+    timeUnits.put(TIME_UNIT_MILLISECONDS_FULL, 1D);
+    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1000D);
+    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1000D);
+    timeUnits.put(TIME_UNIT_MINUTES_ABBR, (double) (60 * 1000));
+    timeUnits.put(TIME_UNIT_MINUTES_FULL, (double) (60 * 1000));
   }
 
   /**

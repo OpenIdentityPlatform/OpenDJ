@@ -67,6 +67,7 @@ import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -159,8 +160,10 @@ public class FIFOEntryCache
 
   static
   {
-    timeUnits.put("ms", 1.0);
-    timeUnits.put("s", 1000.0);
+    timeUnits.put(TIME_UNIT_MILLISECONDS_ABBR, 1D);
+    timeUnits.put(TIME_UNIT_MILLISECONDS_FULL, 1D);
+    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1000D);
+    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1000D);
   }
 
 
@@ -1544,7 +1547,7 @@ public class FIFOEntryCache
          new IntegerWithUnitConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
                                             getMessage(msgID), false, timeUnits,
                                             true, 0, false, 0, lockTimeout,
-                                            "ms");
+                                            TIME_UNIT_MILLISECONDS_FULL);
     attrList.add(lockTimeoutAttr);
 
 

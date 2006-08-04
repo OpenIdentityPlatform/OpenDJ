@@ -294,7 +294,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.84
   NAME 'ds-cfg-profiler-state' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE NO-USER-MODIFICATION X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.85
-  NAME 'ds-cfg-profile-sample-interval' SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  NAME 'ds-cfg-profile-sample-interval' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.86 NAME 'ds-cfg-realm'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
@@ -495,7 +495,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.149
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.150 NAME 'ds-cfg-time-limit'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.151 NAME 'ds-rlim-size-limit'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE USAGE directoryOperation
