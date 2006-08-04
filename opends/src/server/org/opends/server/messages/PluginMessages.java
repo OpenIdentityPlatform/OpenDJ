@@ -839,10 +839,10 @@ public class PluginMessages
                     "will not automatically be captured on startup and must " +
                     "be manually enabled.");
     registerMessage(MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL,
-                    "Specifies the sample interval in milliseconds that " +
-                    "should be used when capturing profiling information in " +
-                    "the server.  Changes to this configuration attribute " +
-                    "will take effect the next time the profiler is started.");
+                    "Specifies the sample interval that should be used when " +
+                    "capturing profiling information in the server.  Changes " +
+                    "to this configuration attribute will take effect the " +
+                    "next time the profiler is started.");
     registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_INTERVAL,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_PROFILE_INTERVAL +

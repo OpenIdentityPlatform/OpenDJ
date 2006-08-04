@@ -6459,13 +6459,12 @@ public class ConfigMessages
                     "the size limit to use, or -1 to indicate that no limit " +
                     "should be enforced):  %s.");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_TIME_LIMIT,
-                    "Specifies the default maximum length of time in seconds " +
-                    "that should be allowed when processing a search " +
-                    "operation.  This may be overridden on a per-user basis " +
-                    "by including the " + OP_ATTR_USER_TIME_LIMIT +
-                    " operational attribute in the user's entry.  Changes to " +
-                    "this configuration attribute will take effect " +
-                    "immediately.");
+                    "Specifies the default maximum length of time that " +
+                    "should be allowed when processing a search operation.  " +
+                    "This may be overridden on a per-user basis by including " +
+                    "the " + OP_ATTR_USER_TIME_LIMIT + " operational " +
+                    "attribute in the user's entry.  Changes to this " +
+                    "configuration attribute will take effect immediately.");
     registerMessage(MSGID_CONFIG_CORE_INVALID_TIME_LIMIT,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_TIME_LIMIT +

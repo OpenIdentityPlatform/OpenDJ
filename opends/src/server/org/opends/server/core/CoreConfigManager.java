@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,6 +42,7 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.IntegerConfigAttribute;
+import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.MultiChoiceConfigAttribute;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.ConfigChangeResult;
@@ -76,8 +78,32 @@ public class CoreConfigManager
 
 
 
+  /**
+   * The set of time units that will be used for the appropriate attributes.
+   */
+  private static final LinkedHashMap<String,Double> timeUnits =
+       new LinkedHashMap<String,Double>();
+
+
+
   // The DN of the associated configuration entry.
   private DN configEntryDN;
+
+
+
+  static
+  {
+    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1D);
+    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1D);
+    timeUnits.put(TIME_UNIT_MINUTES_ABBR, 60D);
+    timeUnits.put(TIME_UNIT_MINUTES_FULL, 60D);
+    timeUnits.put(TIME_UNIT_HOURS_ABBR, (double) (60 * 60));
+    timeUnits.put(TIME_UNIT_HOURS_FULL, (double) (60 * 60));
+    timeUnits.put(TIME_UNIT_DAYS_ABBR, (double) (60 * 60 * 24));
+    timeUnits.put(TIME_UNIT_DAYS_FULL, (double) (60 * 60 * 24));
+    timeUnits.put(TIME_UNIT_WEEKS_ABBR, (double) (60 * 60 * 24 * 7));
+    timeUnits.put(TIME_UNIT_WEEKS_FULL, (double) (60 * 60 * 24 * 7));
+  }
 
 
 
@@ -507,7 +533,7 @@ public class CoreConfigManager
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_SIZE_LIMIT;
     IntegerConfigAttribute sizeLimitStub =
          new IntegerConfigAttribute(ATTR_SIZE_LIMIT, getMessage(msgID), true,
-                                    false, false, true, -1, true,
+                                    false, false, true, 0, true,
                                     Integer.MAX_VALUE);
     try
     {
@@ -539,14 +565,14 @@ public class CoreConfigManager
 
     // Determine the default server time limit.
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_TIME_LIMIT;
-    IntegerConfigAttribute timeLimitStub =
-         new IntegerConfigAttribute(ATTR_TIME_LIMIT, getMessage(msgID), true,
-                                    false, false, true, -1, true,
-                                    Integer.MAX_VALUE);
+    IntegerWithUnitConfigAttribute timeLimitStub =
+         new IntegerWithUnitConfigAttribute(ATTR_TIME_LIMIT, getMessage(msgID),
+                                            false, timeUnits, true, 0, true,
+                                            Integer.MAX_VALUE);
     try
     {
-      IntegerConfigAttribute timeLimitAttr =
-           (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute timeLimitAttr =
+           (IntegerWithUnitConfigAttribute)
            configRoot.getConfigAttribute(timeLimitStub);
       if (timeLimitAttr == null)
       {
@@ -554,7 +580,8 @@ public class CoreConfigManager
       }
       else
       {
-        DirectoryServer.setTimeLimit(timeLimitAttr.activeIntValue());
+        DirectoryServer.setTimeLimit(
+             (int) timeLimitAttr.activeCalculatedValue());
       }
     }
     catch (Exception e)
@@ -1045,7 +1072,7 @@ public class CoreConfigManager
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_SIZE_LIMIT;
     IntegerConfigAttribute sizeLimitStub =
          new IntegerConfigAttribute(ATTR_SIZE_LIMIT, getMessage(msgID), false,
-                                    false, false, true, -1, true,
+                                    false, false, true, 0, true,
                                     Integer.MAX_VALUE);
     try
     {
@@ -1073,18 +1100,19 @@ public class CoreConfigManager
 
     // Add the server time limit.
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_TIME_LIMIT;
-    IntegerConfigAttribute timeLimitStub =
-         new IntegerConfigAttribute(ATTR_TIME_LIMIT, getMessage(msgID), false,
-                                    false, false, true, -1, true,
-                                    Integer.MAX_VALUE);
+    IntegerWithUnitConfigAttribute timeLimitStub =
+         new IntegerWithUnitConfigAttribute(ATTR_TIME_LIMIT, getMessage(msgID),
+                                            false, timeUnits, true, 0, true,
+                                            Integer.MAX_VALUE);
     try
     {
-      IntegerConfigAttribute timeLimitAttr =
-           (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute timeLimitAttr =
+           (IntegerWithUnitConfigAttribute)
            configEntry.getConfigAttribute(timeLimitStub);
       if (timeLimitAttr == null)
       {
-        timeLimitStub.setValue(DirectoryServer.getTimeLimit());
+        timeLimitStub.setValue(DirectoryServer.getTimeLimit(),
+                               TIME_UNIT_SECONDS_FULL);
         timeLimitAttr = timeLimitStub;
       }
 
@@ -1479,7 +1507,7 @@ public class CoreConfigManager
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_SIZE_LIMIT;
     IntegerConfigAttribute sizeLimitStub =
          new IntegerConfigAttribute(ATTR_SIZE_LIMIT, getMessage(msgID), false,
-                                    false, false, true, -1, true,
+                                    false, false, true, 0, true,
                                     Integer.MAX_VALUE);
     try
     {
@@ -1502,14 +1530,14 @@ public class CoreConfigManager
     // See if the entry specifies the server time limit.  If so, them make sure
     // it's valid.
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_TIME_LIMIT;
-    IntegerConfigAttribute timeLimitStub =
-         new IntegerConfigAttribute(ATTR_TIME_LIMIT, getMessage(msgID), false,
-                                    false, false, true, -1, true,
-                                    Integer.MAX_VALUE);
+    IntegerWithUnitConfigAttribute timeLimitStub =
+         new IntegerWithUnitConfigAttribute(ATTR_TIME_LIMIT, getMessage(msgID),
+                                            false,timeUnits, true, 0, true,
+                                            Integer.MAX_VALUE);
     try
     {
-      IntegerConfigAttribute timeLimitAttr =
-           (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute timeLimitAttr =
+           (IntegerWithUnitConfigAttribute)
            configEntry.getConfigAttribute(timeLimitStub);
     }
     catch (Exception e)
@@ -2044,7 +2072,7 @@ public class CoreConfigManager
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_SIZE_LIMIT;
     IntegerConfigAttribute sizeLimitStub =
          new IntegerConfigAttribute(ATTR_SIZE_LIMIT, getMessage(msgID), false,
-                                    false, false, true, -1, true,
+                                    false, false, true, 0, true,
                                     Integer.MAX_VALUE);
     try
     {
@@ -2076,18 +2104,18 @@ public class CoreConfigManager
     // Get the server time limit.
     int timeLimit = DEFAULT_TIME_LIMIT;
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_TIME_LIMIT;
-    IntegerConfigAttribute timeLimitStub =
-         new IntegerConfigAttribute(ATTR_TIME_LIMIT, getMessage(msgID), false,
-                                    false, false, true, -1, true,
-                                    Integer.MAX_VALUE);
+    IntegerWithUnitConfigAttribute timeLimitStub =
+         new IntegerWithUnitConfigAttribute(ATTR_TIME_LIMIT, getMessage(msgID),
+                                            false, timeUnits, true, 0, true,
+                                            Integer.MAX_VALUE);
     try
     {
-      IntegerConfigAttribute timeLimitAttr =
-           (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute timeLimitAttr =
+           (IntegerWithUnitConfigAttribute)
            configEntry.getConfigAttribute(timeLimitStub);
       if (timeLimitAttr != null)
       {
-        timeLimit = timeLimitAttr.pendingIntValue();
+        timeLimit = (int) timeLimitAttr.pendingCalculatedValue();
       }
     }
     catch (Exception e)

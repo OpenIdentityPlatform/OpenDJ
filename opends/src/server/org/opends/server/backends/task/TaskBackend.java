@@ -68,6 +68,7 @@ import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -136,11 +137,16 @@ public class TaskBackend
 
   static
   {
-    timeUnits.put("seconds", 1.0);
-    timeUnits.put("minutes", 60.0);
-    timeUnits.put("hours", (60.0*60.0));
-    timeUnits.put("days", (24.0*60.0*60.0));
-    timeUnits.put("weeks", (7.0*24.0*60.0*60.0));
+    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1D);
+    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1D);
+    timeUnits.put(TIME_UNIT_MINUTES_ABBR, 60D);
+    timeUnits.put(TIME_UNIT_MINUTES_FULL, 60D);
+    timeUnits.put(TIME_UNIT_HOURS_ABBR, (double) (60 * 60));
+    timeUnits.put(TIME_UNIT_HOURS_FULL, (double) (60 * 60));
+    timeUnits.put(TIME_UNIT_DAYS_ABBR, (double) (60 * 60 * 24));
+    timeUnits.put(TIME_UNIT_DAYS_FULL, (double) (60 * 60 * 24));
+    timeUnits.put(TIME_UNIT_WEEKS_ABBR, (double) (60 * 60 * 24 * 7));
+    timeUnits.put(TIME_UNIT_WEEKS_FULL, (double) (60 * 60 * 24 * 7));
   }
 
 
@@ -1286,7 +1292,7 @@ public class TaskBackend
                                                     description, false,
                                                     timeUnits, true, 0, false,
                                                     0, retentionTime,
-                                                    "seconds"));
+                                                    TIME_UNIT_SECONDS_FULL));
 
     return attrList;
   }

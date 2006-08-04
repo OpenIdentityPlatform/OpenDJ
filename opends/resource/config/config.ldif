@@ -38,7 +38,7 @@ ds-cfg-single-structural-objectclass-behavior: reject
 ds-cfg-notify-abandoned-operations: false
 ds-cfg-proxied-authorization-identity-mapper-dn: cn=Exact Match,cn=Identity Mappers,cn=config
 ds-cfg-size-limit: 1000
-ds-cfg-time-limit: 60
+ds-cfg-time-limit: 60 seconds
 ds-cfg-writability-mode: enabled
 ds-cfg-bind-with-dn-requires-password: true
 ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,cn=config
@@ -84,9 +84,9 @@ ds-cfg-backend-base-dn: dc=example,dc=com
 ds-cfg-backend-directory: db
 ds-cfg-backend-index-entry-limit: 4000
 ds-cfg-backend-subtree-delete-size-limit: 100000
-ds-cfg-backend-preload-time-limit: 0 s
+ds-cfg-backend-preload-time-limit: 0 seconds
 ds-cfg-backend-import-temp-directory: importTmp
-ds-cfg-backend-import-buffer-size: 256 MB
+ds-cfg-backend-import-buffer-size: 256 megabytes
 ds-cfg-backend-import-queue-size: 100
 ds-cfg-backend-import-pass-size: 0
 ds-cfg-backend-import-thread-count: 8
@@ -170,18 +170,18 @@ objectClass: top
 objectClass: ds-cfg-je-database
 cn: JE Database
 ds-cfg-database-cache-percent: 10
-ds-cfg-database-cache-size: 0 MB
+ds-cfg-database-cache-size: 0 megabytes
 ds-cfg-database-txn-no-sync: false
 ds-cfg-database-txn-write-no-sync: true
 ds-cfg-database-run-cleaner: true
 ds-cfg-database-cleaner-min-utilization: 75
 ds-cfg-database-evictor-lru-only: true
 ds-cfg-database-evictor-nodes-per-scan: 10
-ds-cfg-database-log-file-max: 50 MB
+ds-cfg-database-log-file-max: 50 megabytes
 ds-cfg-database-logging-file-handler-on: true
 ds-cfg-database-logging-level: CONFIG
-ds-cfg-database-checkpointer-bytes-interval: 20 MB
-ds-cfg-database-checkpointer-wakeup-interval: 30 s
+ds-cfg-database-checkpointer-bytes-interval: 20 megabytes
+ds-cfg-database-checkpointer-wakeup-interval: 30 seconds
 ds-cfg-database-lock-num-lock-tables: 19
 
 dn: ds-cfg-backend-id=backup,cn=Backends,cn=config
@@ -256,7 +256,7 @@ ds-cfg-use-tcp-keepalive: true
 ds-cfg-use-tcp-nodelay: true
 ds-cfg-allow-tcp-reuse-address: true
 ds-cfg-send-rejection-notice: true
-ds-cfg-max-request-size: 5 MB
+ds-cfg-max-request-size: 5 megabytes
 ds-cfg-num-request-handlers: 2
 ds-cfg-allow-start-tls: false
 ds-cfg-use-ssl: false
@@ -962,7 +962,7 @@ ds-cfg-plugin-class: org.opends.server.plugins.profiler.ProfilerPlugin
 ds-cfg-plugin-type: startup
 ds-cfg-enable-profiling-on-startup: false
 ds-cfg-profile-directory: logs
-ds-cfg-profile-sample-interval: 10
+ds-cfg-profile-sample-interval: 10 milliseconds
 
 dn: cn=Root DNs,cn=config
 objectClass: top
@@ -980,8 +980,8 @@ givenName: Directory
 sn: Manager
 userPassword: {SSHA}7SvN6HIPUPGr0YFd0NbRkoXWyWzHsOnEfUMyxg==
 ds-cfg-alternate-bind-dn: cn=Directory Manager
-ds-rlim-size-limit: -1
-ds-rlim-time-limit: -1
+ds-rlim-size-limit: 0
+ds-rlim-time-limit: 0
 
 dn: cn=Root DSE,cn=config
 objectClass: top

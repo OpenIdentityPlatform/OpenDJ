@@ -1672,5 +1672,246 @@ public class ServerConstants
    * the schema file from which the schema element was loaded.
    */
   public static final String SCHEMA_PROPERTY_FILENAME = "X-SCHEMA-FILE";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a size specified in bytes.
+   */
+  public static final String SIZE_UNIT_BYTES_ABBR = "b";
+
+
+
+  /**
+   * The full unit that should be used for a size specified in bytes.
+   */
+  public static final String SIZE_UNIT_BYTES_FULL = "bytes";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a size specified in kilobytes.
+   */
+  public static final String SIZE_UNIT_KILOBYTES_ABBR = "kb";
+
+
+
+  /**
+   * The full unit that should be used for a size specified in kilobytes.
+   */
+  public static final String SIZE_UNIT_KILOBYTES_FULL = "kilobytes";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a size specified in kibibytes.
+   */
+  public static final String SIZE_UNIT_KIBIBYTES_ABBR = "kib";
+
+
+
+  /**
+   * The full unit that should be used for a size specified in kibibytes.
+   */
+  public static final String SIZE_UNIT_KIBIBYTES_FULL = "kibibytes";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a size specified in megabytes.
+   */
+  public static final String SIZE_UNIT_MEGABYTES_ABBR = "mb";
+
+
+
+  /**
+   * The full unit that should be used for a size specified in megabytes.
+   */
+  public static final String SIZE_UNIT_MEGABYTES_FULL = "megabytes";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a size specified in mebibytes.
+   */
+  public static final String SIZE_UNIT_MEBIBYTES_ABBR = "mib";
+
+
+
+  /**
+   * The full unit that should be used for a size specified in mebibytes.
+   */
+  public static final String SIZE_UNIT_MEBIBYTES_FULL = "mebibytes";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a size specified in gigabytes.
+   */
+  public static final String SIZE_UNIT_GIGABYTES_ABBR = "gb";
+
+
+
+  /**
+   * The full unit that should be used for a size specified in gigabytes.
+   */
+  public static final String SIZE_UNIT_GIGABYTES_FULL = "gigabytes";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a size specified in gibibytes.
+   */
+  public static final String SIZE_UNIT_GIBIBYTES_ABBR = "gib";
+
+
+
+  /**
+   * The full unit that should be used for a size specified in gibibytes.
+   */
+  public static final String SIZE_UNIT_GIBIBYTES_FULL = "gibibytes";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a size specified in terabytes.
+   */
+  public static final String SIZE_UNIT_TERABYTES_ABBR = "tb";
+
+
+
+  /**
+   * The full unit that should be used for a size specified in terabytes.
+   */
+  public static final String SIZE_UNIT_TERABYTES_FULL = "terabytes";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a size specified in tebibytes.
+   */
+  public static final String SIZE_UNIT_TEBIBYTES_ABBR = "tib";
+
+
+
+  /**
+   * The full unit that should be used for a size specified in tebibytes.
+   */
+  public static final String SIZE_UNIT_TEBIBYTES_FULL = "tebibytes";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a time specified in
+   * nanoseconds.
+   */
+  public static final String TIME_UNIT_NANOSECONDS_ABBR = "ns";
+
+
+
+  /**
+   * The full unit that should be used for a time specified in nanoseconds.
+   */
+  public static final String TIME_UNIT_NANOSECONDS_FULL = "nanoseconds";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a time specified in
+   * microseconds.
+   */
+  public static final String TIME_UNIT_MICROSECONDS_ABBR = "us";
+
+
+
+  /**
+   * The full unit that should be used for a time specified in microseconds.
+   */
+  public static final String TIME_UNIT_MICROSECONDS_FULL = "microseconds";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a time specified in
+   * milliseconds.
+   */
+  public static final String TIME_UNIT_MILLISECONDS_ABBR = "ms";
+
+
+
+  /**
+   * The full unit that should be used for a time specified in milliseconds.
+   */
+  public static final String TIME_UNIT_MILLISECONDS_FULL = "milliseconds";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a time specified in seconds.
+   */
+  public static final String TIME_UNIT_SECONDS_ABBR = "s";
+
+
+
+  /**
+   * The full unit that should be used for a time specified in seconds.
+   */
+  public static final String TIME_UNIT_SECONDS_FULL = "seconds";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a time specified in minutes.
+   */
+  public static final String TIME_UNIT_MINUTES_ABBR = "m";
+
+
+
+  /**
+   * The full unit that should be used for a time specified in minutes.
+   */
+  public static final String TIME_UNIT_MINUTES_FULL = "minutes";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a time specified in hours.
+   */
+  public static final String TIME_UNIT_HOURS_ABBR = "h";
+
+
+
+  /**
+   * The full unit that should be used for a time specified in hours.
+   */
+  public static final String TIME_UNIT_HOURS_FULL = "hours";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a time specified in days.
+   */
+  public static final String TIME_UNIT_DAYS_ABBR = "d";
+
+
+
+  /**
+   * The full unit that should be used for a time specified in days.
+   */
+  public static final String TIME_UNIT_DAYS_FULL = "days";
+
+
+
+  /**
+   * The abbreviated unit that should be used for a time specified in weeks.
+   */
+  public static final String TIME_UNIT_WEEKS_ABBR = "w";
+
+
+
+  /**
+   * The full unit that should be used for a time specified in weeks.
+   */
+  public static final String TIME_UNIT_WEEKS_FULL = "weeks";
 }
 

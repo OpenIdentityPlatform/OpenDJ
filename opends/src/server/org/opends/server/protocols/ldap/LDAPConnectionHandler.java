@@ -105,45 +105,6 @@ public class LDAPConnectionHandler
 
 
   /**
-   * The unit string that will be used to designate that a value is in bytes.
-   */
-  public static final String UNIT_BYTES = "B";
-
-
-
-  /**
-   * The unit string that will be used to designate that a value is in
-   * kilobytes.
-   */
-  public static final String UNIT_KILOBYTES = "KB";
-
-
-
-  /**
-   * The unit string that will be used to designate that a value is in
-   * kibibytes.
-   */
-  public static final String UNIT_KIBIBYTES = "KiB";
-
-
-
-  /**
-   * The unit string that will be used to designate that a value is in
-   * megabytes.
-   */
-  public static final String UNIT_MEGABYTES = "MB";
-
-
-
-  /**
-   * The unit string that will be used to designate that a value is in
-   * mebibytes.
-   */
-  public static final String UNIT_MEBIBYTES = "MiB";
-
-
-
-  /**
    * The hash map that holds the units that may be provided in conjunction with
    * the maximum request size.
    */
@@ -152,11 +113,20 @@ public class LDAPConnectionHandler
 
   static
   {
-    SIZE_UNITS.put(UNIT_BYTES, 1.0);
-    SIZE_UNITS.put(UNIT_KILOBYTES, 1000.0);
-    SIZE_UNITS.put(UNIT_KIBIBYTES, 1024.0);
-    SIZE_UNITS.put(UNIT_MEGABYTES, 1000000.0);
-    SIZE_UNITS.put(UNIT_MEBIBYTES, 1048576.0);
+    SIZE_UNITS.put(SIZE_UNIT_BYTES_ABBR, 1D);
+    SIZE_UNITS.put(SIZE_UNIT_BYTES_FULL, 1D);
+    SIZE_UNITS.put(SIZE_UNIT_KILOBYTES_ABBR, 1000D);
+    SIZE_UNITS.put(SIZE_UNIT_KILOBYTES_FULL, 1000D);
+    SIZE_UNITS.put(SIZE_UNIT_MEGABYTES_ABBR, 1000000D);
+    SIZE_UNITS.put(SIZE_UNIT_MEGABYTES_FULL, 1000000D);
+    SIZE_UNITS.put(SIZE_UNIT_GIGABYTES_ABBR, 1000000000D);
+    SIZE_UNITS.put(SIZE_UNIT_GIGABYTES_FULL, 1000000000D);
+    SIZE_UNITS.put(SIZE_UNIT_KIBIBYTES_ABBR, 1024D);
+    SIZE_UNITS.put(SIZE_UNIT_KIBIBYTES_FULL, 1024D);
+    SIZE_UNITS.put(SIZE_UNIT_MEBIBYTES_ABBR, (double) (1024 * 1024));
+    SIZE_UNITS.put(SIZE_UNIT_MEBIBYTES_FULL, (double) (1024 * 1024));
+    SIZE_UNITS.put(SIZE_UNIT_GIBIBYTES_ABBR, (double) (1024 * 1024 * 1024));
+    SIZE_UNITS.put(SIZE_UNIT_GIBIBYTES_FULL, (double) (1024 * 1024 * 1024));
   }
 
 
@@ -1821,7 +1791,7 @@ public class LDAPConnectionHandler
                                                        true,
                                                        MAX_REQUEST_SIZE_LIMIT,
                                                        maxRequestSize,
-                                                       UNIT_BYTES));
+                                                       SIZE_UNIT_BYTES_FULL));
 
 
     msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_USE_SSL;

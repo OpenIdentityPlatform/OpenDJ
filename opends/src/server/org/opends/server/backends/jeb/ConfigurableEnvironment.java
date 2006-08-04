@@ -52,6 +52,7 @@ import java.util.Map;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class represents a JE environment handle that can be configured by the
@@ -224,19 +225,31 @@ public class ConfigurableEnvironment implements ConfigurableComponent
   static
   {
     HashMap<String, Double> memoryUnits = new HashMap<String, Double>();
-    memoryUnits.put("KB", 1000D);
-    memoryUnits.put("MB", 1000000D);
-    memoryUnits.put("GB", 1000000000D);
-    memoryUnits.put("KiB", 1024D);                 // kibibyte
-    memoryUnits.put("MiB", 1024D * 1024D);         // mebibyte
-    memoryUnits.put("GiB", 1024D * 1024D * 1024D); // gibibyte
+    memoryUnits.put(SIZE_UNIT_BYTES_ABBR, 1D);
+    memoryUnits.put(SIZE_UNIT_BYTES_FULL, 1D);
+    memoryUnits.put(SIZE_UNIT_KILOBYTES_ABBR, 1000D);
+    memoryUnits.put(SIZE_UNIT_KILOBYTES_FULL, 1000D);
+    memoryUnits.put(SIZE_UNIT_MEGABYTES_ABBR, 1000000D);
+    memoryUnits.put(SIZE_UNIT_MEGABYTES_FULL, 1000000D);
+    memoryUnits.put(SIZE_UNIT_GIGABYTES_ABBR, 1000000000D);
+    memoryUnits.put(SIZE_UNIT_GIGABYTES_FULL, 1000000000D);
+    memoryUnits.put(SIZE_UNIT_KIBIBYTES_ABBR, 1024D);
+    memoryUnits.put(SIZE_UNIT_KIBIBYTES_FULL, 1024D);
+    memoryUnits.put(SIZE_UNIT_MEBIBYTES_ABBR, (double) (1024 * 1024));
+    memoryUnits.put(SIZE_UNIT_MEBIBYTES_FULL, (double) (1024 * 1024));
+    memoryUnits.put(SIZE_UNIT_GIBIBYTES_ABBR, (double) (1024 * 1024 * 1024));
+    memoryUnits.put(SIZE_UNIT_GIBIBYTES_FULL, (double) (1024 * 1024 * 1024));
 
     // JE time intervals are expressed in microseconds.
     HashMap<String, Double> timeUnits = new HashMap<String, Double>();
-    timeUnits.put("us", 1D);
-    timeUnits.put("ms", 1000D);
-    timeUnits.put("s",  1000000D);
-    timeUnits.put("m",  60*1000000D);
+    timeUnits.put(TIME_UNIT_MICROSECONDS_ABBR, 1D);
+    timeUnits.put(TIME_UNIT_MICROSECONDS_FULL, 1D);
+    timeUnits.put(TIME_UNIT_MILLISECONDS_ABBR, 1000D);
+    timeUnits.put(TIME_UNIT_MILLISECONDS_FULL, 1000D);
+    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1000000D);
+    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1000000D);
+    timeUnits.put(TIME_UNIT_MINUTES_ABBR, (double) (60 * 1000000));
+    timeUnits.put(TIME_UNIT_MINUTES_FULL, (double) (60 * 1000000));
 
     String msg;
 

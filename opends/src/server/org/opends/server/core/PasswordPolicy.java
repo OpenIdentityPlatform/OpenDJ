@@ -350,11 +350,16 @@ public class PasswordPolicy
     // Create a list of units and values that we can use to represent time
     // periods.
     LinkedHashMap<String,Double> timeUnits = new LinkedHashMap<String,Double>();
-    timeUnits.put("seconds", 1.0);
-    timeUnits.put("minutes", 60.0);
-    timeUnits.put("hours", (60.0*60.0));
-    timeUnits.put("days", (24.0*60.0*60.0));
-    timeUnits.put("weeks", (7.0*24.0*60.0*60.0));
+    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1D);
+    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1D);
+    timeUnits.put(TIME_UNIT_MINUTES_ABBR, 60D);
+    timeUnits.put(TIME_UNIT_MINUTES_FULL, 60D);
+    timeUnits.put(TIME_UNIT_HOURS_ABBR, (double) (60 * 60));
+    timeUnits.put(TIME_UNIT_HOURS_FULL, (double) (60 * 60));
+    timeUnits.put(TIME_UNIT_DAYS_ABBR, (double) (60 * 60 * 24));
+    timeUnits.put(TIME_UNIT_DAYS_FULL, (double) (60 * 60 * 24));
+    timeUnits.put(TIME_UNIT_WEEKS_ABBR, (double) (60 * 60 * 24 * 7));
+    timeUnits.put(TIME_UNIT_WEEKS_FULL, (double) (60 * 60 * 24 * 7));
 
 
     // Get the password attribute.  If specified, it must have either the
@@ -2683,11 +2688,16 @@ public class PasswordPolicy
     // Create a list of units and values that we can use to represent time
     // periods.
     LinkedHashMap<String,Double> timeUnits = new LinkedHashMap<String,Double>();
-    timeUnits.put("seconds", 1.0);
-    timeUnits.put("minutes", 60.0);
-    timeUnits.put("hours", (60.0*60.0));
-    timeUnits.put("days", (24.0*60.0*60.0));
-    timeUnits.put("weeks", (7.0*24.0*60.0*60.0));
+    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1D);
+    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1D);
+    timeUnits.put(TIME_UNIT_MINUTES_ABBR, 60D);
+    timeUnits.put(TIME_UNIT_MINUTES_FULL, 60D);
+    timeUnits.put(TIME_UNIT_HOURS_ABBR, (double) (60 * 60));
+    timeUnits.put(TIME_UNIT_HOURS_FULL, (double) (60 * 60));
+    timeUnits.put(TIME_UNIT_DAYS_ABBR, (double) (60 * 60 * 24));
+    timeUnits.put(TIME_UNIT_DAYS_FULL, (double) (60 * 60 * 24));
+    timeUnits.put(TIME_UNIT_WEEKS_ABBR, (double) (60 * 60 * 24 * 7));
+    timeUnits.put(TIME_UNIT_WEEKS_FULL, (double) (60 * 60 * 24 * 7));
 
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
@@ -2822,14 +2832,16 @@ public class PasswordPolicy
     attrList.add(new IntegerWithUnitConfigAttribute(
                           ATTR_PWPOLICY_MINIMUM_PASSWORD_AGE,
                           getMessage(msgID), false, timeUnits, true, 0, true,
-                          Integer.MAX_VALUE, minimumPasswordAge, "seconds"));
+                          Integer.MAX_VALUE, minimumPasswordAge,
+                          TIME_UNIT_SECONDS_FULL));
 
 
     msgID = MSGID_PWPOLICY_DESCRIPTION_MAX_AGE;
     attrList.add(new IntegerWithUnitConfigAttribute(
                           ATTR_PWPOLICY_MAXIMUM_PASSWORD_AGE,
                           getMessage(msgID), false, timeUnits, true, 0, true,
-                          Integer.MAX_VALUE, maximumPasswordAge, "seconds"));
+                          Integer.MAX_VALUE, maximumPasswordAge,
+                          TIME_UNIT_SECONDS_FULL));
 
 
     msgID = MSGID_PWPOLICY_DESCRIPTION_MAX_RESET_AGE;
@@ -2837,14 +2849,14 @@ public class PasswordPolicy
                           ATTR_PWPOLICY_MAXIMUM_PASSWORD_RESET_AGE,
                           getMessage(msgID), false, timeUnits, true, 0, true,
                           Integer.MAX_VALUE, maximumPasswordResetAge,
-                          "seconds"));
+                          TIME_UNIT_SECONDS_FULL));
 
 
     msgID = MSGID_PWPOLICY_DESCRIPTION_WARNING_INTERVAL;
     attrList.add(new IntegerWithUnitConfigAttribute(
                           ATTR_PWPOLICY_WARNING_INTERVAL, getMessage(msgID),
                           false, timeUnits, true, 0, true, Integer.MAX_VALUE,
-                          warningInterval, "seconds"));
+                          warningInterval, TIME_UNIT_SECONDS_FULL));
 
 
     msgID = MSGID_PWPOLICY_DESCRIPTION_EXPIRE_WITHOUT_WARNING;
@@ -2881,7 +2893,7 @@ public class PasswordPolicy
     attrList.add(new IntegerWithUnitConfigAttribute(
                           ATTR_PWPOLICY_LOCKOUT_DURATION, getMessage(msgID),
                           false, timeUnits, true, 0, true, Integer.MAX_VALUE,
-                          lockoutDuration, "seconds"));
+                          lockoutDuration, TIME_UNIT_SECONDS_FULL));
 
 
     msgID = MSGID_PWPOLICY_DESCRIPTION_FAILURE_EXPIRATION;
@@ -2889,7 +2901,7 @@ public class PasswordPolicy
                           ATTR_PWPOLICY_LOCKOUT_FAILURE_EXPIRATION_INTERVAL,
                           getMessage(msgID), false, timeUnits, true, 0, true,
                           Integer.MAX_VALUE, lockoutFailureExpirationInterval,
-                          "seconds"));
+                          TIME_UNIT_SECONDS_FULL));
 
 
     msgID = MSGID_PWPOLICY_DESCRIPTION_REQUIRE_CHANGE_BY_TIME;
@@ -2942,7 +2954,8 @@ public class PasswordPolicy
     attrList.add(new IntegerWithUnitConfigAttribute(
                           ATTR_PWPOLICY_IDLE_LOCKOUT_INTERVAL,
                           getMessage(msgID), false, timeUnits, true, 0, true,
-                          Integer.MAX_VALUE,  idleLockoutInterval, "seconds"));
+                          Integer.MAX_VALUE,  idleLockoutInterval,
+                          TIME_UNIT_SECONDS_FULL));
 
 
     return attrList;

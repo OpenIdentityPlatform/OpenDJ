@@ -30,6 +30,7 @@ package org.opends.server.plugins.profiler;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,7 +44,7 @@ import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.IntegerConfigAttribute;
+import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.MultiChoiceConfigAttribute;
 import org.opends.server.config.ReadOnlyConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
@@ -61,6 +62,7 @@ import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -117,6 +119,15 @@ public class ProfilerPlugin
 
 
 
+  /**
+   * The set of time units that will be used for expressing the task retention
+   * time.
+   */
+  private static final LinkedHashMap<String,Double> timeUnits =
+       new LinkedHashMap<String,Double>();
+
+
+
   // Indicates whether the profiler should be started automatically when the
   // Directory Server is started.
   private boolean autoStart;
@@ -136,6 +147,16 @@ public class ProfilerPlugin
   // The path to the directory into which the captured information should be
   // written.
   private String profileDirectory;
+
+
+
+  static
+  {
+    timeUnits.put(TIME_UNIT_MILLISECONDS_ABBR, 1D);
+    timeUnits.put(TIME_UNIT_MILLISECONDS_FULL, 1D);
+    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1000D);
+    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1000D);
+  }
 
 
 
@@ -286,17 +307,18 @@ public class ProfilerPlugin
     sampleInterval = DEFAULT_PROFILE_INTERVAL;
 
     msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL;
-    IntegerConfigAttribute intervalStub =
-         new IntegerConfigAttribute(ATTR_PROFILE_INTERVAL, getMessage(msgID),
-                                    true, false, false, true, 1, false, 0);
+    IntegerWithUnitConfigAttribute intervalStub =
+         new IntegerWithUnitConfigAttribute(ATTR_PROFILE_INTERVAL,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 1, false, 0);
     try
     {
-      IntegerConfigAttribute intervalAttr =
-           (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute intervalAttr =
+           (IntegerWithUnitConfigAttribute)
            configEntry.getConfigAttribute(intervalStub);
       if (intervalAttr != null)
       {
-        sampleInterval = intervalAttr.activeValue();
+        sampleInterval = intervalAttr.activeCalculatedValue();
       }
     }
     catch (Exception e)
@@ -417,10 +439,11 @@ public class ProfilerPlugin
 
 
     int msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL;
-    IntegerConfigAttribute intervalAttr =
-         new IntegerConfigAttribute(ATTR_PROFILE_INTERVAL, getMessage(msgID),
-                                    true,false, false, true, 1, false, 0,
-                                    sampleInterval);
+    IntegerWithUnitConfigAttribute intervalAttr =
+         new IntegerWithUnitConfigAttribute(ATTR_PROFILE_INTERVAL,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 1, false, 0, sampleInterval,
+                                            TIME_UNIT_MILLISECONDS_FULL);
     attrList.add(intervalAttr);
 
 
@@ -482,13 +505,14 @@ public class ProfilerPlugin
 
     // See if there is an acceptable value for the sample interval.
     int msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL;
-    IntegerConfigAttribute intervalStub =
-         new IntegerConfigAttribute(ATTR_PROFILE_INTERVAL, getMessage(msgID),
-                                    true, false, false, true, 1, false, 0);
+    IntegerWithUnitConfigAttribute intervalStub =
+         new IntegerWithUnitConfigAttribute(ATTR_PROFILE_INTERVAL,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 1, false, 0);
     try
     {
-      IntegerConfigAttribute intervalAttr =
-           (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute intervalAttr =
+           (IntegerWithUnitConfigAttribute)
            configEntry.getConfigAttribute(intervalStub);
     }
     catch (Exception e)
@@ -620,17 +644,18 @@ public class ProfilerPlugin
     // Check to see if the sample interval needs to change and apply it as
     // necessary.
     int msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL;
-    IntegerConfigAttribute intervalStub =
-         new IntegerConfigAttribute(ATTR_PROFILE_INTERVAL, getMessage(msgID),
-                                    true, false, false, true, 1, false, 0);
+    IntegerWithUnitConfigAttribute intervalStub =
+         new IntegerWithUnitConfigAttribute(ATTR_PROFILE_INTERVAL,
+                                            getMessage(msgID), false, timeUnits,
+                                            true, 1, false, 0);
     try
     {
-      IntegerConfigAttribute intervalAttr =
-           (IntegerConfigAttribute)
+      IntegerWithUnitConfigAttribute intervalAttr =
+           (IntegerWithUnitConfigAttribute)
            configEntry.getConfigAttribute(intervalStub);
       if (intervalAttr != null)
       {
-        long newInterval = intervalAttr.pendingValue();
+        long newInterval = intervalAttr.pendingCalculatedValue();
         if (newInterval != sampleInterval)
         {
           sampleInterval = newInterval;
