@@ -3744,6 +3744,128 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to retrieve the password policy for the user.  This takes two
+   * arguments, which are the user DN and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 354;
+
+
+
+  /**
+   * The message ID for the message that will be used if a user password change
+   * is rejected because the current password was not provided.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_REQUIRE_CURRENT_PW =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 355;
+
+
+
+  /**
+   * The message ID for the message that will be used if a user password change
+   * is rejected because the current password was provided over an insecure
+   * communication channel.  This does not take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_SECURE_AUTH_REQUIRED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 356;
+
+
+
+  /**
+   * The message ID for the message that will be used if a user password change
+   * is rejected because users are not allowed to change their passwords.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 357;
+
+
+
+  /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because the new password was provided over an insecure
+   * communication channel.  This does not take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 358;
+
+
+
+  /**
+   * The message ID for the message that will be used if a user password change
+   * is rejected because the current password is too young.  This does not take
+   * any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_IN_MIN_AGE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 359;
+
+
+
+  /**
+   * The message ID for the message that will be used if a user password change
+   * is rejected because the current password is expired.  This does not take
+   * any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 360;
+
+
+
+  /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because no new password was given and there is no password
+   * generator defined.  This does not take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_NO_PW_GENERATOR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 361;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to use the password generator to create a new password.  This takes
+   * a single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_CANNOT_GENERATE_PW =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 362;
+
+
+
+  /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because the new password provided was pre-encoded.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 363;
+
+
+
+  /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because the new password was rejected by a password validator.
+   * This takes a single argument, which is a message explaining the rejection.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_UNACCEPTABLE_PW =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 364;
+
+
+
+  /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because the new password could not be encoded using the default
+   * schemes.  This takes a single argument, which is a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 365;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -3969,6 +4091,42 @@ public class ExtensionsMessages
                     "The password modify extended operation cannot be " +
                     "processed because the current password provided for the " +
                     "use is invalid.");
+    registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY,
+                    "An error occurred while attempting to get the " +
+                    "password policy for user %s:  %s.");
+    registerMessage(MSGID_EXTOP_PASSMOD_REQUIRE_CURRENT_PW,
+                    "The current password must be provided for self password " +
+                    "changes.");
+    registerMessage(MSGID_EXTOP_PASSMOD_SECURE_AUTH_REQUIRED,
+                    "Password modify operations that supply the user's " +
+                    "current password must be performed over a secure " +
+                    "communication channel.");
+    registerMessage(MSGID_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED,
+                    "End users are not allowed to change their passwords.");
+    registerMessage(MSGID_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED,
+                    "Password changes must be performed over a secure " +
+                    "communication channel.");
+    registerMessage(MSGID_EXTOP_PASSMOD_IN_MIN_AGE,
+                    "The password cannot be changed because the previous " +
+                    "password change was too recent.");
+    registerMessage(MSGID_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED,
+                    "The password cannot be changed because it is expired.");
+    registerMessage(MSGID_EXTOP_PASSMOD_NO_PW_GENERATOR,
+                    "No new password was provided, and no password generator " +
+                    "has been defined that may be used to automatically " +
+                    "create a new password.");
+    registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_GENERATE_PW,
+                    "An error occurred while attempting to create a new " +
+                    "password using the password generator:  %s.");
+    registerMessage(MSGID_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED,
+                    "The password policy does not allow users to supply " +
+                    "pre-encoded passwords.");
+    registerMessage(MSGID_EXTOP_PASSMOD_UNACCEPTABLE_PW,
+                    "The provided new password failed the validation checks " +
+                    "defined in the server:  %s.");
+    registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD,
+                    "Unable to encode the provided password using the " +
+                    "default scheme(s):  %s.");
 
 
     registerMessage(MSGID_NULL_KEYMANAGER_NO_MANAGER,
