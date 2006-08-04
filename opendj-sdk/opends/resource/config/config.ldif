@@ -297,9 +297,11 @@ ds-cfg-extended-operation-handler-enabled: true
 dn: cn=Password Modify,cn=Extended Operations,cn=config
 objectClass: top
 objectClass: ds-cfg-extended-operation-handler
+objectClass: ds-cfg-password-modify-extended-operation-handler
 cn: Password Modify
 ds-cfg-extended-operation-handler-class: org.opends.server.extensions.PasswordModifyExtendedOperation
 ds-cfg-extended-operation-handler-enabled: true
+ds-cfg-identity-mapper-dn: cn=Exact Match,cn=Identity Mappers,cn=config
 
 dn: cn=StartTLS,cn=Extended Operations,cn=config
 objectClass: top

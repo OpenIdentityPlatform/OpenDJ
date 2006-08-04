@@ -1308,4 +1308,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.72 NAME 'ds-cfg-work-queue' SUP top
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.73 NAME 'ds-cfg-traditional-work-queue'
   SUP ds-cfg-work-queue MUST ds-cfg-num-worker-threads
   MAY ds-cfg-max-work-queue-capacity X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.74
+  NAME 'ds-cfg-password-modify-extended-operation-handler'
+  SUP ds-cfg-extended-operation-handler MUST ds-cfg-identity-mapper-dn
+  X-ORIGIN 'OpenDS Directory Server' )
 
