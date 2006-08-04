@@ -2249,6 +2249,19 @@ public class PasswordPolicyState
   {
     assert debugEnter(CLASS_NAME, "mustChangePassword");
 
+    // If the password policy doesn't use force change on add or force change on
+    // reset, or if it forbits the user from changing their password, then this
+    // must return false.
+    if (! passwordPolicy.allowUserPasswordChanges())
+    {
+      return false;
+    }
+    else if (! (passwordPolicy.forceChangeOnAdd() ||
+                passwordPolicy.forceChangeOnReset()))
+    {
+      return false;
+    }
+
     if ((mustChangePassword == null) ||
         (mustChangePassword == ConditionResult.UNDEFINED))
     {
