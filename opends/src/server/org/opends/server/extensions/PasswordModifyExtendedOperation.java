@@ -29,12 +29,14 @@ package org.opends.server.extensions;
 
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
+import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryException;
@@ -43,15 +45,16 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.InitializationException;
 import org.opends.server.core.LockManager;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.schema.AuthPasswordSyntax;
+import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -59,11 +62,13 @@ import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -126,12 +131,6 @@ public class PasswordModifyExtendedOperation
     assert debugEnter(CLASS_NAME, "initializeExtendedOperationHandler",
                       String.valueOf(configEntry));
 
-    // NYI -- parse the config entry for any settings that might be defined
-    // This can include:
-    // - Whether to require the old password
-    // - Whether to allow automatic generation of a new password
-    // - The class name for an algorithm to generate new passwords
-
     DirectoryServer.registerSupportedExtension(OID_PASSWORD_MODIFY_REQUEST,
                                                this);
   }
@@ -163,9 +162,9 @@ public class PasswordModifyExtendedOperation
 
     // Initialize the variables associated with components that may be included
     // in the request.
-    ASN1OctetString userIdentity = null;
-    ASN1OctetString oldPassword  = null;
-    ASN1OctetString newPassword  = null;
+    ByteString userIdentity = null;
+    ByteString oldPassword  = null;
+    ByteString newPassword  = null;
 
 
     // Parse the encoded request, if there is one.
@@ -243,14 +242,6 @@ public class PasswordModifyExtendedOperation
           operation.appendErrorMessage(getMessage(msgID));
 
           return;
-        }
-
-
-        // If the user is connected over an insecure channel, then determine
-        // whether we should attempt to proceed.
-        if (! clientConnection.isSecure())
-        {
-          // NYI
         }
 
 
@@ -343,75 +334,467 @@ public class PasswordModifyExtendedOperation
       }
 
 
-      // At this point, we should have the user entry.  If a current password
-      // was provided, then validate it.  If not, then see if that's OK.
-      AttributeType pwType = DirectoryServer.getAttributeType("userpassword");
-      if (pwType == null)
+      // At this point, we should have the user entry.  Get the associated
+      // password policy.
+      PasswordPolicyState pwPolicyState;
+      try
       {
-        pwType = DirectoryServer.getDefaultAttributeType("userPassword");
+        pwPolicyState = new PasswordPolicyState(userEntry, false, false);
+      }
+      catch (DirectoryException de)
+      {
+        assert debugException(CLASS_NAME, "processExtendedOperation", de);
+
+        operation.setResultCode(DirectoryServer.getServerErrorResultCode());
+
+        int msgID = MSGID_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY;
+        operation.appendErrorMessage(getMessage(msgID, String.valueOf(userDN),
+                                                de.getErrorMessage()));
+        return;
       }
 
+
+      // Determine whether the user is changing his own password or if it's an
+      // administrative reset.
+      boolean selfChange = ((userIdentity == null) ||
+                            userDN.equals(requestorDN));
+
+
+      // If the current password was provided, then we'll need to verify whether
+      // it was correct.  If it wasn't provided but this is a self change, then
+      // make sure that's OK.
       if (oldPassword == null)
       {
-        // NYI -- Confirm that this is allowed.
+        if (selfChange && pwPolicyState.requireCurrentPassword())
+        {
+          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+          int msgID = MSGID_EXTOP_PASSMOD_REQUIRE_CURRENT_PW;
+          operation.appendErrorMessage(getMessage(msgID));
+          return;
+        }
       }
       else
       {
-        // FIXME -- Use a more generic check to determine the correct attribute
-        List<Attribute> pwAttrList = userEntry.getAttribute(pwType);
-        if ((pwAttrList == null) || pwAttrList.isEmpty())
+        if (pwPolicyState.requireSecureAuthentication() &&
+            (! operation.getClientConnection().isSecure()))
         {
-          // There were no existing passwords, so the validation will fail.
           operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int msgID = MSGID_EXTOP_PASSMOD_INVALID_OLD_PASSWORD;
-          operation.appendErrorMessage(getMessage(msgID));
+          int msgID = MSGID_EXTOP_PASSMOD_SECURE_AUTH_REQUIRED;
+          operation.appendAdditionalLogMessage(getMessage(msgID));
           return;
         }
 
-        AttributeValue matchValue = new AttributeValue(pwType, oldPassword);
-
-        boolean matchFound = false;
-        for (Attribute a : pwAttrList)
+        if (! pwPolicyState.passwordMatches(oldPassword))
         {
-          if (a.hasValue(matchValue))
+          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+          int msgID = MSGID_EXTOP_PASSMOD_INVALID_OLD_PASSWORD;
+          operation.appendAdditionalLogMessage(getMessage(msgID));
+          return;
+        }
+      }
+
+
+      // If it is a self password change and we don't allow that, then reject
+      // the request.
+      if (selfChange && (! pwPolicyState.allowUserPasswordChanges()))
+      {
+        if (oldPassword == null)
+        {
+          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+          int msgID = MSGID_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED;
+          operation.appendErrorMessage(getMessage(msgID));
+        }
+        else
+        {
+          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+          int msgID = MSGID_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED;
+          operation.appendAdditionalLogMessage(getMessage(msgID));
+        }
+
+        return;
+      }
+
+
+      // If we require secure password changes and the connection isn't secure,
+      // then reject the request.
+      if (pwPolicyState.requireSecurePasswordChanges() &&
+          (! operation.getClientConnection().isSecure()))
+      {
+        if (oldPassword == null)
+        {
+          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+          int msgID = MSGID_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED;
+          operation.appendErrorMessage(getMessage(msgID));
+        }
+        else
+        {
+          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+          int msgID = MSGID_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED;
+          operation.appendAdditionalLogMessage(getMessage(msgID));
+        }
+
+        return;
+      }
+
+
+      // If it's a self-change request and the user is within the minimum age,
+      // then reject it.
+      if (selfChange && pwPolicyState.isWithinMinimumAge())
+      {
+        if (oldPassword == null)
+        {
+          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+          int msgID = MSGID_EXTOP_PASSMOD_IN_MIN_AGE;
+          operation.appendErrorMessage(getMessage(msgID));
+        }
+        else
+        {
+          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+          int msgID = MSGID_EXTOP_PASSMOD_IN_MIN_AGE;
+          operation.appendAdditionalLogMessage(getMessage(msgID));
+        }
+
+        return;
+      }
+
+
+      // If the user's password is expired and it's a self-change request, then
+      // see if that's OK.
+      if ((selfChange && pwPolicyState.isPasswordExpired() &&
+          (! pwPolicyState.allowExpiredPasswordChanges())))
+      {
+        if (oldPassword == null)
+        {
+          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+          int msgID = MSGID_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED;
+          operation.appendErrorMessage(getMessage(msgID));
+        }
+        else
+        {
+          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+          int msgID = MSGID_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED;
+          operation.appendAdditionalLogMessage(getMessage(msgID));
+        }
+
+        return;
+      }
+
+
+
+      // If the a new password was provided, then peform any appropriate
+      // validation on it.  If not, then see if we can generate one.
+      boolean generatedPassword = false;
+      boolean isPreEncoded      = false;
+      if (newPassword == null)
+      {
+        try
+        {
+          newPassword = pwPolicyState.generatePassword();
+          if (newPassword == null)
           {
-            matchFound = true;
-            break;
+            if (oldPassword == null)
+            {
+              operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+              int msgID = MSGID_EXTOP_PASSMOD_NO_PW_GENERATOR;
+              operation.appendErrorMessage(getMessage(msgID));
+            }
+            else
+            {
+              operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+              int msgID = MSGID_EXTOP_PASSMOD_NO_PW_GENERATOR;
+              operation.appendAdditionalLogMessage(getMessage(msgID));
+            }
+
+            return;
+          }
+          else
+          {
+            generatedPassword = true;
+          }
+        }
+        catch (DirectoryException de)
+        {
+          assert debugException(CLASS_NAME, "processExtendedOperation", de);
+
+          if (oldPassword == null)
+          {
+            operation.setResultCode(de.getResultCode());
+
+            int msgID = MSGID_EXTOP_PASSMOD_CANNOT_GENERATE_PW;
+            operation.appendErrorMessage(getMessage(msgID,
+                                                    de.getErrorMessage()));
+          }
+          else
+          {
+            operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+            int msgID = MSGID_EXTOP_PASSMOD_CANNOT_GENERATE_PW;
+            operation.appendAdditionalLogMessage(getMessage(msgID,
+                                                      de.getErrorMessage()));
+          }
+
+          return;
+        }
+      }
+      else
+      {
+        if (pwPolicyState.passwordIsPreEncoded(newPassword))
+        {
+          // The password modify extended operation isn't intended to be invoked
+          // by an internal operation or during synchronization, so we don't
+          // need to check for those cases.
+          isPreEncoded = true;
+          if (! pwPolicyState.allowPreEncodedPasswords())
+          {
+            if (oldPassword == null)
+            {
+              operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+              int msgID = MSGID_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED;
+              operation.appendErrorMessage(getMessage(msgID));
+            }
+            else
+            {
+              operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+              int msgID = MSGID_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED;
+              operation.appendAdditionalLogMessage(getMessage(msgID));
+            }
+
+            return;
+          }
+        }
+        else
+        {
+          if (selfChange || (! pwPolicyState.skipValidationForAdministrators()))
+          {
+            StringBuilder invalidReason = new StringBuilder();
+            if (! pwPolicyState.passwordIsAcceptable(operation, userEntry,
+                                                     newPassword,
+                                                     invalidReason))
+            {
+              if (oldPassword == null)
+              {
+                operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                int msgID = MSGID_EXTOP_PASSMOD_UNACCEPTABLE_PW;
+                operation.appendErrorMessage(getMessage(msgID,
+                               String.valueOf(invalidReason)));
+              }
+              else
+              {
+                operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+                int msgID = MSGID_EXTOP_PASSMOD_UNACCEPTABLE_PW;
+                operation.appendAdditionalLogMessage(getMessage(msgID,
+                               String.valueOf(invalidReason)));
+              }
+
+              return;
+            }
+          }
+        }
+      }
+
+
+      // Get the encoded forms of the new password.
+      List<ByteString> encodedPasswords;
+      if (isPreEncoded)
+      {
+        encodedPasswords = new ArrayList<ByteString>(1);
+        encodedPasswords.add(newPassword);
+      }
+      else
+      {
+        try
+        {
+          encodedPasswords = pwPolicyState.encodePassword(newPassword);
+        }
+        catch (DirectoryException de)
+        {
+          assert debugException(CLASS_NAME, "processExtendedOperation", de);
+
+          if (oldPassword == null)
+          {
+            operation.setResultCode(de.getResultCode());
+
+            int msgID = MSGID_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD;
+            operation.appendErrorMessage(getMessage(msgID,
+                                                    de.getErrorMessage()));
+          }
+          else
+          {
+            operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+            int msgID = MSGID_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD;
+            operation.appendAdditionalLogMessage(getMessage(msgID,
+                                                      de.getErrorMessage()));
+          }
+
+          return;
+        }
+      }
+
+
+      // If the current password was provided, then remove all matching values
+      // from the user's entry and replace them with the new password.
+      // Otherwise replace all password values.
+      AttributeType attrType = pwPolicyState.getPasswordAttribute();
+      List<Modification> modList = new ArrayList<Modification>();
+      if (oldPassword != null)
+      {
+        // Remove all existing encoded values that match the old password.
+        LinkedHashSet<AttributeValue> existingValues =
+             pwPolicyState.getPasswordValues();
+        LinkedHashSet<AttributeValue> deleteValues =
+             new LinkedHashSet<AttributeValue>(existingValues.size());
+        if (pwPolicyState.usesAuthPasswordSyntax())
+        {
+          for (AttributeValue v : existingValues)
+          {
+            try
+            {
+              StringBuilder[] components =
+                   AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
+              PasswordStorageScheme scheme =
+                   DirectoryServer.getAuthPasswordStorageScheme(
+                        components[0].toString());
+              if (scheme == null)
+              {
+                // The password is encoded using an unknown scheme.  Remove it
+                // from the user's entry.
+                deleteValues.add(v);
+              }
+              else
+              {
+                if (scheme.authPasswordMatches(oldPassword,
+                                               components[1].toString(),
+                                               components[2].toString()))
+                {
+                  deleteValues.add(v);
+                }
+              }
+            }
+            catch (DirectoryException de)
+            {
+              assert debugException(CLASS_NAME, "processExtendedOperation", de);
+
+              // We couldn't decode the provided password value, so remove it
+              // from the user's entry.
+              deleteValues.add(v);
+            }
+          }
+        }
+        else
+        {
+          for (AttributeValue v : existingValues)
+          {
+            try
+            {
+              String[] components =
+                   UserPasswordSyntax.decodeUserPassword(v.getStringValue());
+              PasswordStorageScheme scheme =
+                   DirectoryServer.getPasswordStorageScheme(
+                        toLowerCase(components[0].toString()));
+              if (scheme == null)
+              {
+                // The password is encoded using an unknown scheme.  Remove it
+                // from the user's entry.
+                deleteValues.add(v);
+              }
+              else
+              {
+                if (scheme.passwordMatches(oldPassword,
+                                           new ASN1OctetString(components[1])))
+                {
+                  deleteValues.add(v);
+                }
+              }
+            }
+            catch (DirectoryException de)
+            {
+              assert debugException(CLASS_NAME, "processExtendedOperation", de);
+
+              // We couldn't decode the provided password value, so remove it
+              // from the user's entry.
+              deleteValues.add(v);
+            }
           }
         }
 
-        if (! matchFound)
+        Attribute deleteAttr = new Attribute(attrType, attrType.getNameOrOID(),
+                                             deleteValues);
+        modList.add(new Modification(ModificationType.DELETE, deleteAttr));
+
+
+        // Add the new encoded values.
+        LinkedHashSet<AttributeValue> addValues =
+             new LinkedHashSet<AttributeValue>(encodedPasswords.size());
+        for (ByteString s : encodedPasswords)
         {
-          // None of the password values matched what the user provided.
-          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          int msgID = MSGID_EXTOP_PASSMOD_INVALID_OLD_PASSWORD;
-          operation.appendErrorMessage(getMessage(msgID));
-          return;
+          addValues.add(new AttributeValue(attrType, s));
         }
+
+        Attribute addAttr = new Attribute(attrType, attrType.getNameOrOID(),
+                                          addValues);
+        modList.add(new Modification(ModificationType.ADD, addAttr));
       }
-
-
-      // See if a new password was provided.  If not, then generate one.
-      boolean generatedPassword = false;
-      if (newPassword == null)
+      else
       {
-        // FIXME -- use an extensible algorithm for generating the new password.
-        newPassword = new ASN1OctetString("newpassword");
-        generatedPassword = true;
+        LinkedHashSet<AttributeValue> replaceValues =
+             new LinkedHashSet<AttributeValue>(encodedPasswords.size());
+        for (ByteString s : encodedPasswords)
+        {
+          replaceValues.add(new AttributeValue(attrType, s));
+        }
+
+        Attribute addAttr = new Attribute(attrType, attrType.getNameOrOID(),
+                                          replaceValues);
+        modList.add(new Modification(ModificationType.REPLACE, addAttr));
       }
 
-      ArrayList<ASN1OctetString> newPWValues =
-           new ArrayList<ASN1OctetString>(1);
-      newPWValues.add(newPassword);
+
+      // Update the password changed time for the user entry.
+      pwPolicyState.setPasswordChangedTime();
 
 
+      // If the password was changed by an end user, then clear any reset flag
+      // that might exist.  If the password was changed by an administrator,
+      // then see if we need to set the reset flag.
+      if (selfChange)
+      {
+        pwPolicyState.setMustChangePassword(false);
+      }
+      else
+      {
+        pwPolicyState.setMustChangePassword(pwPolicyState.forceChangeOnReset());
+      }
 
-      // Create the modification to update the user's password.
-      LDAPAttribute pwAttr = new LDAPAttribute("userPassword", newPWValues);
-      ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>(1);
-      mods.add(new LDAPModification(ModificationType.REPLACE, pwAttr));
+
+      // Clear any record of grace logins, auth failures, and expiration
+      // warnings.
+      pwPolicyState.clearAuthFailureTimes();
+      pwPolicyState.clearFailureLockout();
+      pwPolicyState.clearGraceLoginTimes();
+      pwPolicyState.clearWarnedTime();
+
+
+      // Get the list of modifications from the password policy state and add
+      // them to the existing password modifications.
+      modList.addAll(pwPolicyState.getModifications());
 
 
       // Get an internal connection and use it to perform the modification.
@@ -421,8 +804,7 @@ public class PasswordModifyExtendedOperation
            InternalClientConnection(authInfo);
 
       ModifyOperation modifyOperation =
-           internalConnection.processModify(
-                new ASN1OctetString(userDN.toString()), mods);
+           internalConnection.processModify(userDN, modList);
       ResultCode resultCode = modifyOperation.getResultCode();
       if (resultCode != resultCode.SUCCESS)
       {
@@ -441,8 +823,11 @@ public class PasswordModifyExtendedOperation
       if (generatedPassword)
       {
         ArrayList<ASN1Element> valueElements = new ArrayList<ASN1Element>(1);
-        newPassword.setType(TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD);
-        valueElements.add(newPassword);
+
+        ASN1OctetString newPWString =
+             new ASN1OctetString(TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD,
+                                 newPassword.value());
+        valueElements.add(newPWString);
 
         ASN1Sequence valueSequence = new ASN1Sequence(valueElements);
         operation.setResponseValue(new ASN1OctetString(valueSequence.encode()));

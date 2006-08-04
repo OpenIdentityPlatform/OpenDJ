@@ -180,6 +180,9 @@ public class PasswordPolicyState
   // The password policy with which the account is associated.
   private PasswordPolicy passwordPolicy;
 
+  // The string representation of the current time.
+  private String currentGeneralizedTime;
+
   // The string representation of the user's DN.
   private String userDNString;
 
@@ -213,6 +216,7 @@ public class PasswordPolicyState
 
     userDNString           = userEntry.getDN().toString();
     passwordPolicy         = getPasswordPolicyInternal();
+    currentGeneralizedTime = TimeThread.getGeneralizedTime();
     currentTime            = TimeThread.getTime();
     modifications          = new LinkedList<Modification>();
     isDisabled             = ConditionResult.UNDEFINED;
@@ -770,6 +774,27 @@ public class PasswordPolicyState
 
 
   /**
+   * Retrieves the set of values for the password attribute from the user entry.
+   *
+   * @return  The set of values for the password attribute from the user entry.
+   */
+  public LinkedHashSet<AttributeValue> getPasswordValues()
+  {
+    assert debugEnter(CLASS_NAME, "getPasswordValues");
+
+    List<Attribute> attrList =
+         userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
+    for (Attribute a : attrList)
+    {
+      return a.getValues();
+    }
+
+    return new LinkedHashSet<AttributeValue>(0);
+  }
+
+
+
+  /**
    * Indicates whether the associated password policy requires that
    * authentication be performed in a secure manner.
    *
@@ -854,6 +879,23 @@ public class PasswordPolicyState
 
 
   /**
+   * Indicates whether users will be required to provide their current password
+   * when choosing a new one.
+   *
+   * @return  <CODE>true</CODE> if users will be required to provide their
+   *          current password when choosing a new one, or <CODE>false</CODE>
+   *          if not.
+   */
+  public boolean requireCurrentPassword()
+  {
+    assert debugEnter(CLASS_NAME, "requireCurrentPassword");
+
+    return passwordPolicy.requireCurrentPassword();
+  }
+
+
+
+  /**
    * Indicates whether administrative password resets should be allowed to
    * bypass validity checks for the new password.
    *
@@ -932,6 +974,36 @@ public class PasswordPolicyState
     assert debugEnter(CLASS_NAME, "getPasswordChangedTime");
 
     return passwordChangedTime;
+  }
+
+
+
+  /**
+   * Retrieves time that this password policy state object was created.
+   *
+   * @return  The time that this password policy state object was created.
+   */
+  public long getCurrentTime()
+  {
+    assert debugEnter(CLASS_NAME, "getCurrentTime");
+
+    return currentTime;
+  }
+
+
+
+  /**
+   * Retrieves the generalized time representation of the time that this
+   * password policy state object was created.
+   *
+   * @return  The generalized time representation of the time that this
+   *          password policy state object was created.
+   */
+  public String getCurrentGeneralizedTime()
+  {
+    assert debugEnter(CLASS_NAME, "getCurrentGeneralizedTime");
+
+    return currentGeneralizedTime;
   }
 
 
@@ -1140,7 +1212,7 @@ public class PasswordPolicyState
       }
       else
       {
-        modifications.add(new Modification(ModificationType.DELETE,
+        modifications.add(new Modification(ModificationType.REPLACE,
                                            new Attribute(type)));
       }
     }
@@ -1384,7 +1456,7 @@ public class PasswordPolicyState
         }
         else
         {
-          modifications.add(new Modification(ModificationType.DELETE,
+          modifications.add(new Modification(ModificationType.REPLACE,
                                              new Attribute(type)));
         }
       }
@@ -1514,7 +1586,7 @@ public class PasswordPolicyState
     }
     else
     {
-      modifications.add(new Modification(ModificationType.DELETE,
+      modifications.add(new Modification(ModificationType.REPLACE,
                                          new Attribute(type)));
     }
   }
@@ -1664,7 +1736,7 @@ public class PasswordPolicyState
         }
         else
         {
-          modifications.add(new Modification(ModificationType.DELETE,
+          modifications.add(new Modification(ModificationType.REPLACE,
                                              new Attribute(type)));
         }
 
@@ -1800,7 +1872,7 @@ public class PasswordPolicyState
     }
     else
     {
-      modifications.add(new Modification(ModificationType.DELETE,
+      modifications.add(new Modification(ModificationType.REPLACE,
                                          new Attribute(type)));
     }
   }
@@ -2336,7 +2408,7 @@ public class PasswordPolicyState
       }
       else
       {
-        modifications.add(new Modification(ModificationType.DELETE,
+        modifications.add(new Modification(ModificationType.REPLACE,
                                            new Attribute(type)));
       }
     }
@@ -2619,6 +2691,87 @@ public class PasswordPolicyState
     else
     {
       return false;
+    }
+  }
+
+
+
+  /**
+   * Indicates whether users will be allowed to change their passwords if they
+   * are expired.
+   *
+   * @return  <CODE>true</CODE> if users will be allowed to change their
+   *          passwords if they are expired, or <CODE>false</CODE> if not.
+   */
+  public boolean allowExpiredPasswordChanges()
+  {
+    assert debugEnter(CLASS_NAME, "allowExpiredPasswordChanges");
+
+    return passwordPolicy.allowExpiredPasswordChanges();
+  }
+
+
+
+  /**
+   * Indicates whether the user's last password change was within the minimum
+   * password age.
+   *
+   * @return  <CODE>true</CODE> if the password minimum age is nonzero, the
+   *          account is not in force-change mode, and the last password change
+   *          was within the minimum age, or <CODE>false</CODE> otherwise.
+   */
+  public boolean isWithinMinimumAge()
+  {
+    assert debugEnter(CLASS_NAME, "isWithinMinimumAge");
+
+    int minAge = passwordPolicy.getMinimumPasswordAge();
+    if (minAge <= 0)
+    {
+      // There is no minimum age, so the user isn't in it.
+      if (debug)
+      {
+        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
+                     CLASS_NAME, "isWithinMinimumAge",
+                     "Returning false because there is no minimum age.");
+      }
+
+      return false;
+    }
+    else if ((passwordChangedTime + (minAge*1000)) < currentTime)
+    {
+      // It's been long enough since the user changed their password.
+      if (debug)
+      {
+        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
+                     CLASS_NAME, "isWithinMinimumAge",
+                     "Returning false because the minimum age has expired.");
+      }
+
+      return false;
+    }
+    else if (mustChangePassword())
+    {
+      // The user is in a must-change mode, so the minimum age doesn't apply.
+      if (debug)
+      {
+        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
+                     CLASS_NAME, "isWithinMinimumAge",
+                     "Returning false because the account is in a " +
+                     "must-change state.");
+      }
+
+      return false;
+    }
+    else
+    {
+      // The user is within the minimum age.
+      if (debug)
+      {
+        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.WARNING,
+                     CLASS_NAME, "isWithinMinimumAge", "Returning true.");
+      }
+
+      return true;
     }
   }
 
@@ -2949,6 +3102,35 @@ public class PasswordPolicyState
 
 
   /**
+   * Updates the user entry to clear the warned time.
+   */
+  public void clearWarnedTime()
+  {
+    assert debugEnter(CLASS_NAME, "clearWarnedTime");
+
+    AttributeType type =
+         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME, true);
+    if (updateEntry)
+    {
+      userEntry.removeAttribute(type);
+    }
+    else
+    {
+      Attribute a = new Attribute(type);
+      modifications.add(new Modification(ModificationType.REPLACE, a));
+    }
+
+    if (debug)
+    {
+      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
+                   CLASS_NAME, "clearWarnedTime",
+                   "Cleared the warned time for user " + userDNString);
+    }
+  }
+
+
+
+  /**
    * Retrieves the maximum number of grace logins that the user will be allowed
    * according to the associated password policy.
    *
@@ -3011,7 +3193,7 @@ public class PasswordPolicyState
         }
         else
         {
-          modifications.add(new Modification(ModificationType.DELETE,
+          modifications.add(new Modification(ModificationType.REPLACE,
                                              new Attribute(type)));
         }
       }
@@ -3159,7 +3341,7 @@ public class PasswordPolicyState
     }
     else
     {
-      modifications.add(new Modification(ModificationType.DELETE,
+      modifications.add(new Modification(ModificationType.REPLACE,
                                          new Attribute(type)));
     }
   }
@@ -3331,6 +3513,88 @@ public class PasswordPolicyState
     }
 
     return false;
+  }
+
+
+
+  /**
+   * Indicates whether the user's password is stored using the auth password
+   * syntax or the user password syntax.
+   *
+   * @return  <CODE>true</CODE> if the user's password is stored using the auth
+   *          password syntax, or <CODE>false</CODE> if it is stored using the
+   *          user password syntax.
+   */
+  public boolean usesAuthPasswordSyntax()
+  {
+    assert debugEnter(CLASS_NAME, "usesAuthPasswordSyntax");
+
+    return passwordPolicy.usesAuthPasswordSyntax();
+  }
+
+
+
+  /**
+   * Indicates whether the provided password value is pre-encoded.
+   *
+   * @param  passwordValue  The value for which to make the determination.
+   *
+   * @return  <CODE>true</CODE> if the provided password value is pre-encoded,
+   *          or <CODE>false</CODE> if it is not.
+   */
+  public boolean passwordIsPreEncoded(ByteString passwordValue)
+  {
+    assert debugEnter(CLASS_NAME, "isPreEncoded", "ByteString");
+
+    if (passwordPolicy.usesAuthPasswordSyntax())
+    {
+      return AuthPasswordSyntax.isEncoded(passwordValue);
+    }
+    else
+    {
+      return UserPasswordSyntax.isEncoded(passwordValue);
+    }
+  }
+
+
+
+  /**
+   * Encodes the provided password using the default storage schemes (using the
+   * appropriate syntax for the password attribute).
+   *
+   * @param  password  The password to be encoded.
+   *
+   * @return  The password encoded using the default schemes.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to encode
+   *                              the password.
+   */
+  public List<ByteString> encodePassword(ByteString password)
+         throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "encodePassword", "ByteString");
+
+    List<PasswordStorageScheme> schemes =
+         passwordPolicy.getDefaultStorageSchemes();
+    List<ByteString> encodedPasswords =
+         new ArrayList<ByteString>(schemes.size());
+
+    if (passwordPolicy.usesAuthPasswordSyntax())
+    {
+      for (PasswordStorageScheme s : schemes)
+      {
+        encodedPasswords.add(s.encodeAuthPassword(password));
+      }
+    }
+    else
+    {
+      for (PasswordStorageScheme s : schemes)
+      {
+        encodedPasswords.add(s.encodePasswordWithScheme(password));
+      }
+    }
+
+    return encodedPasswords;
   }
 
 
