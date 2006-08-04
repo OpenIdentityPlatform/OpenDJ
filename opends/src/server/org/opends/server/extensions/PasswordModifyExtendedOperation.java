@@ -35,10 +35,14 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.ExtendedOperationHandler;
+import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
@@ -51,8 +55,6 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.Attribute;
@@ -60,13 +62,12 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -85,12 +86,24 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class PasswordModifyExtendedOperation
        extends ExtendedOperationHandler
+       implements ConfigurableComponent
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
    */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.PasswordModifyExtendedOperation";
+
+
+
+  // The DN of the configuration entry.
+  private DN configEntryDN;
+
+  // The DN of the identity mapper.
+  private DN identityMapperDN;
+
+  // The reference to the identity mapper.
+  private IdentityMapper identityMapper;
 
 
 
@@ -131,6 +144,47 @@ public class PasswordModifyExtendedOperation
     assert debugEnter(CLASS_NAME, "initializeExtendedOperationHandler",
                       String.valueOf(configEntry));
 
+    configEntryDN = configEntry.getDN();
+
+    int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
+    DNConfigAttribute mapperStub =
+         new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID), true, false,
+                               false);
+    try
+    {
+      DNConfigAttribute mapperAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(mapperStub);
+      if (mapperAttr == null)
+      {
+        msgID = MSGID_EXTOP_PASSMOD_NO_ID_MAPPER;
+        String message = getMessage(msgID, String.valueOf(configEntryDN));
+        throw new ConfigException(msgID, message);
+      }
+      else
+      {
+        identityMapperDN = mapperAttr.activeValue();
+        identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
+        if (identityMapper == null)
+        {
+          msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
+          String message = getMessage(msgID, String.valueOf(identityMapperDN),
+                                      String.valueOf(configEntryDN));
+          throw new ConfigException(msgID, message);
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeExtendedOperationHandler",
+                            e);
+      msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
+    }
+
+    DirectoryServer.registerConfigurableComponent(this);
+
     DirectoryServer.registerSupportedExtension(OID_PASSWORD_MODIFY_REQUEST,
                                                this);
   }
@@ -144,6 +198,8 @@ public class PasswordModifyExtendedOperation
   public void finalizeExtendedOperationHandler()
   {
     assert debugEnter(CLASS_NAME, "finalizeExtendedOperationHandler");
+
+    DirectoryServer.deregisterConfigurableComponent(this);
 
     DirectoryServer.deregisterSupportedExtension(OID_PASSWORD_MODIFY_REQUEST);
   }
@@ -309,15 +365,55 @@ public class PasswordModifyExtendedOperation
         }
         else if (lowerAuthzIDStr.startsWith("u:"))
         {
-          userDN = getDNByUserID(operation, authzIDStr.substring(2));
-          if (userDN == null)
+          try
           {
-            return;
-          }
+            userEntry = identityMapper.getEntryForID(authzIDStr.substring(2));
+            if (userEntry == null)
+            {
+              if (oldPassword == null)
+              {
+                operation.setResultCode(ResultCode.NO_SUCH_OBJECT);
 
-          userEntry = getEntryByDN(operation, userDN);
-          if (userEntry == null)
+                int msgID = MSGID_EXTOP_PASSMOD_CANNOT_MAP_USER;
+                operation.appendErrorMessage(getMessage(msgID, authzIDStr));
+              }
+              else
+              {
+                operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+                int msgID = MSGID_EXTOP_PASSMOD_CANNOT_MAP_USER;
+                operation.appendAdditionalLogMessage(getMessage(msgID,
+                                                                authzIDStr));
+              }
+
+              return;
+            }
+            else
+            {
+              userDN = userEntry.getDN();
+            }
+          }
+          catch (DirectoryException de)
           {
+            assert debugException(CLASS_NAME, "processExtendedOperation", de);
+
+            if (oldPassword == null)
+            {
+              operation.setResultCode(de.getResultCode());
+
+              int msgID = MSGID_EXTOP_PASSMOD_ERROR_MAPPING_USER;
+              operation.appendErrorMessage(getMessage(msgID, authzIDStr,
+                                                      de.getErrorMessage()));
+            }
+            else
+            {
+              operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+              int msgID = MSGID_EXTOP_PASSMOD_ERROR_MAPPING_USER;
+              operation.appendAdditionalLogMessage(getMessage(msgID, authzIDStr,
+                                                        de.getErrorMessage()));
+            }
+
             return;
           }
         }
@@ -918,65 +1014,192 @@ public class PasswordModifyExtendedOperation
 
 
   /**
-   * Retrieves the DN of the user with the provided user ID.  The DN will be
-   * obtained by performing a subtree search with a base of the null DN (i.e.,
-   * the root DSE) and therefore potentially searching across multiple backends.
-   * If any problem is encountered or the requested entry does not exist, then
-   * the provided operation will be updated with appropriate result information
-   * and this method will return <CODE>null</CODE>.  The caller is not required
-   * to hold any locks.
+   * Retrieves the DN of the configuration entry with which this component is
+   * associated.
    *
-   * @param  operation  The extended operation being processed.
-   * @param  userID     The user ID for which to retrieve the DN.
-   *
-   * @return  The requested DN, or <CODE>null</CODE> if there was no such entry
-   *          or if a problem was encountered.
+   * @return  The DN of the configuration entry with which this component is
+   *          associated.
    */
-  private DN getDNByUserID(ExtendedOperation operation, String userID)
+  public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getDNByUserID", String.valueOf(operation),
-                      String.valueOf(userID));
+    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
-    InternalClientConnection internalConnection =
-         InternalClientConnection.getRootConnection();
+    return configEntryDN;
+  }
 
-    LDAPFilter rawFilter =
-         LDAPFilter.createEqualityFilter("uid", new ASN1OctetString(userID));
 
-    InternalSearchOperation internalSearch =
-         internalConnection.processSearch(new ASN1OctetString(),
-                                          SearchScope.WHOLE_SUBTREE, rawFilter);
 
-    ResultCode resultCode = internalSearch.getResultCode();
-    if (resultCode != ResultCode.SUCCESS)
+  /**
+   * Retrieves the set of configuration attributes that are associated with this
+   * configurable component.
+   *
+   * @return  The set of configuration attributes that are associated with this
+   *          configurable component.
+   */
+  public List<ConfigAttribute> getConfigurationAttributes()
+  {
+    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
+
+    List<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
+
+    int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
+    attrList.add(new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID),
+                                       true, false, false, identityMapperDN));
+
+    return attrList;
+  }
+
+
+
+  /**
+   * Indicates whether the provided configuration entry has an acceptable
+   * configuration for this component.  If it does not, then detailed
+   * information about the problem(s) should be added to the provided list.
+   *
+   * @param  configEntry          The configuration entry for which to make the
+   *                              determination.
+   * @param  unacceptableReasons  A list that can be used to hold messages about
+   *                              why the provided entry does not have an
+   *                              acceptable configuration.
+   *
+   * @return  <CODE>true</CODE> if the provided entry has an acceptable
+   *          configuration for this component, or <CODE>false</CODE> if not.
+   */
+  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
+                      List<String> unacceptableReasons)
+  {
+    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
+                      String.valueOf(configEntry), "List<String>");
+
+
+    // Make sure that the specified identity mapper is OK.
+    int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
+    DNConfigAttribute mapperStub =
+         new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID), true, false,
+                               false);
+    try
     {
-      operation.setResultCode(resultCode);
-      operation.setErrorMessage(internalSearch.getErrorMessage());
-      operation.setMatchedDN(internalSearch.getMatchedDN());
-      return null;
+      DNConfigAttribute mapperAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(mapperStub);
+      if (mapperAttr == null)
+      {
+        msgID = MSGID_EXTOP_PASSMOD_NO_ID_MAPPER;
+        String message = getMessage(msgID, String.valueOf(configEntry.getDN()));
+        unacceptableReasons.add(message);
+        return false;
+      }
+      else
+      {
+        DN mapperDN = mapperAttr.pendingValue();
+        IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
+        if (mapper == null)
+        {
+          msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
+          String message = getMessage(msgID, String.valueOf(mapperDN),
+                                      String.valueOf(configEntry.getDN()));
+          unacceptableReasons.add(message);
+          return false;
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+
+      msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
+      String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
+                                  stackTraceToSingleLineString(e));
+      unacceptableReasons.add(message);
+      return false;
     }
 
-    LinkedList<SearchResultEntry> entryList = internalSearch.getSearchEntries();
-    if ((entryList == null) || entryList.isEmpty())
-    {
-      operation.setResultCode(ResultCode.NO_SUCH_OBJECT);
 
-      int msgID = MSGID_EXTOP_PASSMOD_NO_DN_BY_AUTHZID;
-      operation.appendErrorMessage(getMessage(msgID, String.valueOf(userID)));
-      return null;
+    // If we've gotten here, then everything is OK.
+    return true;
+  }
+
+
+
+  /**
+   * Makes a best-effort attempt to apply the configuration contained in the
+   * provided entry.  Information about the result of this processing should be
+   * added to the provided message list.  Information should always be added to
+   * this list if a configuration change could not be applied.  If detailed
+   * results are requested, then information about the changes applied
+   * successfully (and optionally about parameters that were not changed) should
+   * also be included.
+   *
+   * @param  configEntry      The entry containing the new configuration to
+   *                          apply for this component.
+   * @param  detailedResults  Indicates whether detailed information about the
+   *                          processing should be added to the list.
+   *
+   * @return  Information about the result of the configuration update.
+   */
+  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
+                                                  boolean detailedResults)
+  {
+    ResultCode        resultCode          = ResultCode.SUCCESS;
+    boolean           adminActionRequired = false;
+    ArrayList<String> messages            = new ArrayList<String>();
+
+
+    // Make sure that the specified identity mapper is OK.
+    DN             mapperDN = null;
+    IdentityMapper mapper   = null;
+    int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
+    DNConfigAttribute mapperStub =
+         new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID), true, false,
+                               false);
+    try
+    {
+      DNConfigAttribute mapperAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(mapperStub);
+      if (mapperAttr == null)
+      {
+        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
+
+        msgID = MSGID_EXTOP_PASSMOD_NO_ID_MAPPER;
+        messages.add(getMessage(msgID, String.valueOf(configEntry.getDN())));
+      }
+      else
+      {
+        mapperDN = mapperAttr.pendingValue();
+        mapper   = DirectoryServer.getIdentityMapper(mapperDN);
+        if (mapper == null)
+        {
+          resultCode = ResultCode.CONSTRAINT_VIOLATION;
+
+          msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
+          messages.add(getMessage(msgID, String.valueOf(mapperDN),
+                                  String.valueOf(configEntry.getDN())));
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+
+      resultCode = DirectoryServer.getServerErrorResultCode();
+
+      msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
+      messages.add(getMessage(msgID, String.valueOf(configEntry.getDN()),
+                              stackTraceToSingleLineString(e)));
     }
 
-    if (entryList.size() > 1)
-    {
-      operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-      int msgID = MSGID_EXTOP_PASSMOD_MULTIPLE_ENTRIES_BY_AUTHZID;
-      operation.appendErrorMessage(getMessage(msgID, String.valueOf(userID)));
-      return null;
+    // If all of the changes were acceptable, then apply them.
+    if (resultCode == ResultCode.SUCCESS)
+    {
+      if (! identityMapperDN.equals(mapperDN))
+      {
+        identityMapper   = mapper;
+        identityMapperDN = mapperDN;
+      }
     }
 
 
-    return entryList.get(0).getDN();
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }
 

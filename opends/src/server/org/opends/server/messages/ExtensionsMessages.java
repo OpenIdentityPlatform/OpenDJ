@@ -3750,7 +3750,7 @@ public class ExtensionsMessages
    * occurred.
    */
   public static final int MSGID_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 354;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 354;
 
 
 
@@ -3760,7 +3760,7 @@ public class ExtensionsMessages
    * take any arguments.
    */
   public static final int MSGID_EXTOP_PASSMOD_REQUIRE_CURRENT_PW =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 355;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 355;
 
 
 
@@ -3770,7 +3770,7 @@ public class ExtensionsMessages
    * communication channel.  This does not take any arguments.
    */
   public static final int MSGID_EXTOP_PASSMOD_SECURE_AUTH_REQUIRED =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 356;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 356;
 
 
 
@@ -3780,7 +3780,7 @@ public class ExtensionsMessages
    * does not take any arguments.
    */
   public static final int MSGID_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 357;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 357;
 
 
 
@@ -3790,7 +3790,7 @@ public class ExtensionsMessages
    * communication channel.  This does not take any arguments.
    */
   public static final int MSGID_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 358;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 358;
 
 
 
@@ -3800,7 +3800,7 @@ public class ExtensionsMessages
    * any arguments.
    */
   public static final int MSGID_EXTOP_PASSMOD_IN_MIN_AGE =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 359;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 359;
 
 
 
@@ -3810,7 +3810,7 @@ public class ExtensionsMessages
    * any arguments.
    */
   public static final int MSGID_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 360;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 360;
 
 
 
@@ -3820,7 +3820,7 @@ public class ExtensionsMessages
    * generator defined.  This does not take any arguments.
    */
   public static final int MSGID_EXTOP_PASSMOD_NO_PW_GENERATOR =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 361;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 361;
 
 
 
@@ -3830,7 +3830,7 @@ public class ExtensionsMessages
    * a single argument, which is a message explaining the problem that occurred.
    */
   public static final int MSGID_EXTOP_PASSMOD_CANNOT_GENERATE_PW =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 362;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 362;
 
 
 
@@ -3840,7 +3840,7 @@ public class ExtensionsMessages
    * take any arguments.
    */
   public static final int MSGID_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 363;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 363;
 
 
 
@@ -3850,7 +3850,7 @@ public class ExtensionsMessages
    * This takes a single argument, which is a message explaining the rejection.
    */
   public static final int MSGID_EXTOP_PASSMOD_UNACCEPTABLE_PW =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 364;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 364;
 
 
 
@@ -3861,7 +3861,69 @@ public class ExtensionsMessages
    * problem that occurred.
    */
   public static final int MSGID_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 365;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 365;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * identity mapper DN configuration attribute.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 366;
+
+
+
+  /**
+   * The message ID for the message that will be used if no identity mapper DN
+   * is provided for the password modify extended operation.  This takes a
+   * single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_NO_ID_MAPPER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 367;
+
+
+
+  /**
+   * The message ID for the message that will be used if the specified identity
+   * mapper does not exist or is not enabled.  This takes two arguments, which
+   * are the DN of the identity mapper and the DN of the configuration entry.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 368;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine the identity mapper.  This takes two arguments, which
+   * are the DN of the configuration entry and a string representation of the
+   * exception that was caught.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 369;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to map a
+   * user by an authorization ID string fails.  This takes a single argument,
+   * which is the provided authorization ID string.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_CANNOT_MAP_USER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 370;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to map a user by an authorization ID string.  This takes two
+   * arguments, which are the provided authorization ID string and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_ERROR_MAPPING_USER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 371;
 
 
 
@@ -4050,6 +4112,32 @@ public class ExtensionsMessages
                     "updated.");
 
 
+    registerMessage(MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER,
+                    "Specifies the DN of the configuration entry for the " +
+                    "identity mapper that should be used in conjunction with " +
+                    "the password modify extended operation.  This will be " +
+                    "used to identify a user based on an authorization ID " +
+                    "in the 'u:' form.  Changes to this configuration " +
+                    "attribute will take effect immediately.");
+    registerMessage(MSGID_EXTOP_PASSMOD_NO_ID_MAPPER,
+                    "No identity mapper DN was specified in the " +
+                    ATTR_IDMAPPER_DN + " attribute of the password modify " +
+                    "extended operation configuration entry %s.  This is a " +
+                    "required attribute, and the password modify extended " +
+                    "operation will not be enabled.");
+    registerMessage(MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER,
+                    "The identity mapper with configuration entry DN %s as " +
+                    "specified for use with the password modify extended " +
+                    "operation defined in entry %s either does not exist or " +
+                    "is not enabled.  The identity mapper is a required " +
+                    "component, and the password modify extended operation " +
+                    "will not be enabled.");
+    registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER,
+                    "An error occurred while attempting to determine the " +
+                    "identity mapper to use in conjunction with the password " +
+                    "modify extended operation defined in configuration " +
+                    "entry %s:  %s.  The password modify extended operation " +
+                    "will not be enabled for use in the server.");
     registerMessage(MSGID_EXTOP_PASSMOD_ILLEGAL_REQUEST_ELEMENT_TYPE,
                     "The password modify extended request sequence included " +
                     "an ASN.1 element of an invalid type:  %s.");
@@ -4069,6 +4157,12 @@ public class ExtensionsMessages
                     "processed because the server cannot decode \"%s\" as a " +
                     "valid DN for use in the authorization ID for the " +
                     "operation.");
+    registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_MAP_USER,
+                    "The provided authorization ID string \"%s\" could not " +
+                    "be mapped to any user in the directory.");
+    registerMessage(MSGID_EXTOP_PASSMOD_ERROR_MAPPING_USER,
+                    "An error occurred while attempting to map authorization " +
+                    "ID string \"%s\" to a user entry:  %s.");
     registerMessage(MSGID_EXTOP_PASSMOD_INVALID_AUTHZID_STRING,
                     "The password modify extended request cannot be " +
                     "processed because it contained an invalid authorization " +
