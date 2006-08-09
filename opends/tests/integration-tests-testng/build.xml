@@ -33,11 +33,13 @@
   </description>
 
   <!-- General server-wide properties                                     -->
-  <property name="src.dir"       location="src/server"                     />
-  <property name="built.dir"     location="built"                          />
-  <property name="ds.classes"    location="${basedir}/../../build/classes" />
-  <property name="lib.dir"       location="${basedir}/../../lib"           />
-  <property name="ext.dir"       location="${basedir}/../../ext"           />
+  <property name="opends.dir" location="../.."                          />
+  <property name="src.dir"       location="src/server"                  />
+  <property name="built.dir"     
+            location="${opends.dir}/build/integration-tests"            />
+  <property name="ds.classes"    location="${opends.dir}/build/classes" />
+  <property name="lib.dir"       location="${opends.dir}/lib"           />
+  <property name="ext.dir"       location="${opends.dir}/ext"           />
 
 
   <!-- The build target that should be used to build everything. -->
