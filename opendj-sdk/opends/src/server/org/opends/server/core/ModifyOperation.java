@@ -61,6 +61,7 @@ import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
@@ -1290,9 +1291,9 @@ modifyProcessing:
             pwPolicyState.clearGraceLoginTimes();
             pwPolicyState.clearWarnedTime();
 
-            if ((! selfChange) && pwPolicyState.forceChangeOnReset())
+            if (pwPolicyState.forceChangeOnReset())
             {
-              pwPolicyState.setMustChangePassword(true);
+              pwPolicyState.setMustChangePassword(! selfChange);
             }
 
             if (pwPolicyState.getRequiredChangeTime() > 0)
@@ -2358,6 +2359,23 @@ modifyProcessing:
             }
 
             backend.replaceEntry(modifiedEntry, this);
+
+
+            // If the update was successful and included a self password change,
+            // then clear the "must change" flag in the client connection.
+            if ((getResultCode() == ResultCode.SUCCESS) && passwordChanged &&
+                selfChange)
+            {
+              // We really only want to do this if the authentication DN from
+              // the client connection is equal to the entry that was updated to
+              // avoid clearing the flag for the wrong user.
+              AuthenticationInfo authInfo =
+                   clientConnection.getAuthenticationInfo();
+              if (authInfo.getAuthenticationDN().equals(entryDN))
+              {
+                clientConnection.setMustChangePassword(false);
+              }
+            }
           }
 
           if (preReadRequest != null)
