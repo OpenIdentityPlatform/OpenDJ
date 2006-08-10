@@ -5898,6 +5898,183 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to retrieve the account status notification handler base entry
+   * from the configuration.  This takes a single argument, which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_CANNOT_GET_BASE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 545;
+
+
+
+  /**
+   * The message ID for the message that will be used if the account status
+   * notification handler base entry does not exist in the Directory Server
+   * configuration.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_BASE_DOES_NOT_EXIST =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 546;
+
+
+
+  /**
+   * The message ID for the message that will be used if an account status
+   * notification handler configuration entry does not contain an acceptable
+   * configuration.  This takes two arguments, which are the DN of the
+   * configuration entry and the reason that it is not acceptable.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_ENTRY_UNACCEPTABLE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 547;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create an account status notification handler from a
+   * configuration entry.  This takes two arguments, which are the DN of the
+   * configuration entry and a message that explains the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_CANNOT_CREATE_HANDLER =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 548;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * account status notification handler base does not contain a valid handler
+   * objectclass.  This takes a single argument, which is the DN of the
+   * configuration entry.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_INVALID_OBJECTCLASS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 549;
+
+
+
+  /**
+   * The message ID for the description of the account status notification
+   * handler class name configuration attribute.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_DESCRIPTION_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 550;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * account status notification handler base does not contain a value for the
+   * class name.  This takes a single argument, which is the DN of the
+   * configuration entry.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_NO_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 551;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * account status notification handler base contains an invalid value for the
+   * class name.  This takes two arguments, which are the DN of the
+   * configuration entry and a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_INVALID_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 552;
+
+
+
+  /**
+   * The message ID for the message that will be used if a configuration entry
+   * defines a Directory Server account status notification handler but the
+   * associated class cannot be instantiated as a notification handler.  This
+   * takes three arguments, which are the handler class name, the DN of the
+   * configuration entry, and a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_INVALID_CLASS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 553;
+
+
+
+  /**
+   * The message ID for the description of the account status notification
+   * handler enabled configuration attribute.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_DESCRIPTION_ENABLED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 554;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * account status notification handler base does not contain a value for the
+   * enabled attribute.  This takes a single argument, which is the DN of the
+   * configuration entry.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_NO_ENABLED_ATTR =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 555;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * account status notification handler base has an invalid value for the
+   * enabled attribute.  This takes two arguments, which are the DN of the
+   * configuration entry and a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_INVALID_ENABLED_VALUE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 556;
+
+
+
+  /**
+   * The message ID for the message that will be used if the account status
+   * notification handler class has changed and will require administrative
+   * action to take effect.  This takes three arguments, which are the old class
+   * name, the new class name, and the DN of the associated configuration entry.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_CLASS_ACTION_REQUIRED =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 557;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing a Directory Server account status notification handler.  This
+   * takes three arguments, which are the class name for the handler class, the
+   * DN of the configuration entry, and a string representation of the exception
+   * that was caught.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_INITIALIZATION_FAILED =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 558;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new account status notification handler with a DN that matches the DN
+   * of a handler that already exists.  This takes a single argument, which is
+   * the DN of the notification handler configuration entry.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_EXISTS =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 559;
+
+
+
+  /**
+   * The message ID for the message that will be used if an account status
+   * notification handler entry contains an unacceptable configuration but does
+   * not provide any specific details about the nature of the problem.  This
+   * takes a single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_UNACCEPTABLE_CONFIG =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 560;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8549,6 +8726,88 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_ROOTDN_EXISTS,
                     "Unable to add root DN entry %s because another root " +
                     "user is already registered with that DN.");
+
+
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_CANNOT_GET_BASE,
+                    "An error occurred while attempting to retrieve the " +
+                    "account status notification handler base entry " +
+                    DN_ACCT_NOTIFICATION_HANDLER_CONFIG_BASE +
+                    " from the Directory Server configuration:  %s.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_BASE_DOES_NOT_EXIST,
+                    "The account status notification handler configuration " +
+                    "base " + DN_ACCT_NOTIFICATION_HANDLER_CONFIG_BASE +
+                    " does not exist in the Directory Server configuration.  " +
+                    "This entry must be present for the server to function " +
+                    "properly.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_ENTRY_UNACCEPTABLE,
+                    "Configuration entry %s does not contain a valid " +
+                    "account status notification handler configuration:  " +
+                    "%s.  It will be ignored.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_CANNOT_CREATE_HANDLER,
+                    "An error occurred while attempting to create a " +
+                    "Directory Server account status notification handler " +
+                    "from the information in configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_INVALID_OBJECTCLASS,
+                    "Configuration entry %s does not contain the " +
+                    OC_ACCT_NOTIFICATION_HANDLER + " objectclass, which is " +
+                    "required for account status notification handler " +
+                    "definitions.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_DESCRIPTION_CLASS_NAME,
+                    "The fully-qualified name of the Java class that defines " +
+                    "the Directory Server account status notification " +
+                    "handler.  If this is altered while the associated " +
+                    "notification handler is enabled, then that handler must " +
+                    "be disabled and re-enabled for the change to take " +
+                    "effect.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_NO_CLASS_NAME,
+                    "Configuration entry %s does not contain a valid value " +
+                    "for configuration attribute " +
+                    ATTR_ACCT_NOTIFICATION_HANDLER_CLASS +
+                    " which specifies the fully-qualified class name for " +
+                    "the associated account status notification handler.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_INVALID_CLASS_NAME,
+                    "Configuration entry %s has an invalid value for " +
+                    "attribute " + ATTR_ACCT_NOTIFICATION_HANDLER_CLASS +
+                    ":  %s.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_INVALID_CLASS,
+                    "Class %s specified in configuration entry %s does not " +
+                    "contain a valid account status notification handler " +
+                    "implementation:  %s.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_DESCRIPTION_ENABLED,
+                    "Indicates whether this Directory Server account status " +
+                    "notification handler should be enabled.  Changes to " +
+                    "this attribute will take effect immediately.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_NO_ENABLED_ATTR,
+                    "Configuration entry %s does not contain a valid value " +
+                    "for configuration attribute " +
+                    ATTR_ACCT_NOTIFICATION_HANDLER_ENABLED +
+                    " which indicates whether the account status " +
+                    "notification handler should be enabled for use in the " +
+                    "Directory Server.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_INVALID_ENABLED_VALUE,
+                    "Configuration entry %s has an invalid value for " +
+                    "attribute " + ATTR_ACCT_NOTIFICATION_HANDLER_ENABLED +
+                    ":  %s.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_CLASS_ACTION_REQUIRED,
+                    "The requested change in the account status notification " +
+                    "handler class name from %s to %s in configuration entry " +
+                    "%s cannot be dynamically applied.  This change will not " +
+                    "take effect until the notification handler is disabled " +
+                    "and re-enabled or the Directory Server is restarted.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_INITIALIZATION_FAILED,
+                    "An error occurred while trying to initialize an " +
+                    "instance of class %s as an account status notification " +
+                    "handler as defined in configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_EXISTS,
+                    "Unable to add a new account status notification handler " +
+                    "entry with DN %s because there is already a " +
+                    "notification handler registered with that DN.");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_UNACCEPTABLE_CONFIG,
+                    "The configuration for the account status notification " +
+                    "handler defined in configuration entry %s was not " +
+                    "acceptable according to its internal validation.  " +
+                    "However, no specific information is available regarding " +
+                    "the problem(s) with the entry.");
   }
 }
 

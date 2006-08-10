@@ -106,6 +106,24 @@ public class ConfigConstants
 
 
   /**
+   * The name of the configuration attribute that holds the fully-qualified name
+   * for the account status notification handler class.
+   */
+  public static final String ATTR_ACCT_NOTIFICATION_HANDLER_CLASS =
+       NAME_PREFIX_CFG + "account-status-notification-handler-class";
+
+
+
+  /**
+   * The name of the configuration attribute that indicates whether an account
+   * status notification handler is enabled.
+   */
+  public static final String ATTR_ACCT_NOTIFICATION_HANDLER_ENABLED =
+       NAME_PREFIX_CFG + "account-status-notification-handler-enabled";
+
+
+
+  /**
    * The name of the configuration attribute that indicates whether to
    * automatically add missing RDN attributes or to return an error response to
    * the client.
@@ -2392,6 +2410,15 @@ public class ConfigConstants
 
   /**
    * The DN of the entry that will serve as the base for all Directory Server
+   * account status notification handlers.
+   */
+  public static final String DN_ACCT_NOTIFICATION_HANDLER_CONFIG_BASE =
+       "cn=Account Status Notification Handlers," + DN_CONFIG_ROOT;
+
+
+
+  /**
+   * The DN of the entry that will serve as the base for all Directory Server
    * backends.
    */
   public static final String DN_BACKEND_BASE = "cn=Backends," + DN_CONFIG_ROOT;
@@ -2720,6 +2747,15 @@ public class ConfigConstants
    */
   public static final String OC_ACCESS_LOGGER =
        NAME_PREFIX_CFG + "access-logger";
+
+
+
+  /**
+   * The name of the objectclass that will be used for a Directory Server
+   * account status notification handler.
+   */
+  public static final String OC_ACCT_NOTIFICATION_HANDLER =
+       NAME_PREFIX_CFG + "account-status-notification-handler";
 
 
 

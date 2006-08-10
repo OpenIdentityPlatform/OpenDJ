@@ -182,6 +182,10 @@ public class DirectoryServer
   // The policy to use regarding syntax enforcement.
   private AcceptRejectWarn syntaxEnforcementPolicy;
 
+  // The account status notification handler config manager for the server.
+  private AccountStatusNotificationHandlerConfigManager
+       accountStatusNotificationHandlerConfigManager;
+
   // The default syntax to use for binary attributes.
   private AttributeSyntax defaultBinarySyntax;
 
@@ -2082,6 +2086,13 @@ public class DirectoryServer
     // Initialize all the password generators.
     passwordGeneratorConfigManager = new PasswordGeneratorConfigManager();
     passwordGeneratorConfigManager.initializePasswordGenerators();
+
+
+    // Initialize the account status notification handlers.
+    accountStatusNotificationHandlerConfigManager =
+         new AccountStatusNotificationHandlerConfigManager();
+    accountStatusNotificationHandlerConfigManager.
+         initializeNotificationHandlers();
 
 
     // Initialize all the password policies.
