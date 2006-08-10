@@ -1875,6 +1875,7 @@ bindProcessing:
       clientConnection.setAuthenticationInfo(authInfo);
       clientConnection.setSizeLimit(sizeLimit);
       clientConnection.setTimeLimit(timeLimit);
+      clientConnection.setMustChangePassword(mustChangePassword);
 
       if (returnAuthzID)
       {
