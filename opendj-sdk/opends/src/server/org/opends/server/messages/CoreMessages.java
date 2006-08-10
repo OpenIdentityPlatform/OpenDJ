@@ -5578,6 +5578,144 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if a change to the
+   * password attribute included one or more attribute options.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 532;
+
+
+
+  /**
+   * The message ID for the message that will be used if a user password change
+   * is refused because users cannot change their own passwords.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_MODIFY_NO_USER_PW_CHANGES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 533;
+
+
+
+  /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because it was not attempted over a secure channel.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_MODIFY_REQUIRE_SECURE_CHANGES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 534;
+
+
+
+  /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because the password was within the minimum age.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_MODIFY_WITHIN_MINIMUM_AGE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 535;
+
+
+
+  /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because multiple password values were provided.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_MODIFY_MULTIPLE_VALUES_NOT_ALLOWED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 536;
+
+
+
+  /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because the password was pre-encoded.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_MODIFY_NO_PREENCODED_PASSWORDS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 537;
+
+
+
+  /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because it included an invalid modification type on the password
+   * attribute.  This does not take any arguments.
+   */
+  public static final int MSGID_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 538;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to delete a
+   * user password value is rejected because there are no existing passwords in
+   * the user's entry.  This does not take any arguments.
+   */
+  public static final int MSGID_MODIFY_NO_EXISTING_VALUES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 539;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode a user password.  This takes a single argument, which
+   * is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_MODIFY_CANNOT_DECODE_PW =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 540;
+
+
+
+  /**
+   * The message ID for the message that will be used if a provided password to
+   * delete does not match any passwords in the user's entry.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_MODIFY_INVALID_PASSWORD =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 541;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user did not
+   * provide the current password.  This does not take any arguments.
+   */
+  public static final int MSGID_MODIFY_PW_CHANGE_REQUIRES_CURRENT_PW =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 542;
+
+
+
+  /**
+   * The message ID for the message that will be used if the password change
+   * would result in multiple passwords.  This does not take any arguments.
+   */
+  public static final int MSGID_MODIFY_MULTIPLE_PASSWORDS_NOT_ALLOWED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 543;
+
+
+
+  /**
+   * The message ID for the message that will be used if password validation
+   * fails.  This takes a single argument, which is a message explaining the
+   * rejection.
+   */
+  public static final int MSGID_MODIFY_PW_VALIDATION_FAILED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 544;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user's password
+   * needs to be changed but the modification doesn't update the password.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_MODIFY_MUST_CHANGE_PASSWORD =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 545;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6642,10 +6780,41 @@ public class CoreMessages
                     "contained a critical control with OID %s that is not " +
                     "supported by the Directory Server for this type of " +
                     "operation.");
+    registerMessage(MSGID_MODIFY_MUST_CHANGE_PASSWORD,
+                    "You must change your password before you will be " +
+                    "allowed to perform any other operations.");
     registerMessage(MSGID_MODIFY_ATTR_IS_NO_USER_MOD,
                     "Entry %s cannot be modified because the modification " +
                     "attempted to update attribute %s which is defined as " +
                     "NO-USER-MODIFICATION in the server schema.");
+    registerMessage(MSGID_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS,
+                    "Attributes used to hold user passwords are not allowed " +
+                    "to have any attribute options.");
+    registerMessage(MSGID_MODIFY_NO_USER_PW_CHANGES,
+                    "Users are not allowed to change their own passwords.");
+    registerMessage(MSGID_MODIFY_REQUIRE_SECURE_CHANGES,
+                    "Password changes must be performed over a secure " +
+                    "authentication channel.");
+    registerMessage(MSGID_MODIFY_WITHIN_MINIMUM_AGE,
+                    "The password cannot be changed because it has not been " +
+                    "long enough since the last password change.");
+    registerMessage(MSGID_MODIFY_MULTIPLE_VALUES_NOT_ALLOWED,
+                    "Multiple password values are not allowed in user " +
+                    "entries.");
+    registerMessage(MSGID_MODIFY_NO_PREENCODED_PASSWORDS,
+                    "User passwords may not be provided in pre-encoded form.");
+    registerMessage(MSGID_MODIFY_NO_EXISTING_VALUES,
+                    "The user entry does not have any existing passwords to " +
+                    "remove.");
+    registerMessage(MSGID_MODIFY_CANNOT_DECODE_PW,
+                    "An error occurred while attempting to decode an " +
+                    "existing user password:  %s.");
+    registerMessage(MSGID_MODIFY_INVALID_PASSWORD,
+                    "The provided user password does not match any password " +
+                    "in the user's entry.");
+    registerMessage(MSGID_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD,
+                    "Invalid modification type %s attempted on password " +
+                    "attribute %s.");
     registerMessage(MSGID_MODIFY_ADD_NO_VALUES,
                     "Entry %s cannot be modified because the modification " +
                     "contained an add component for attribute %s but no " +
@@ -6696,6 +6865,15 @@ public class CoreMessages
                     "Entry %s cannot be modified because an attempt was made " +
                     "to increment the value of attribute %s but that " +
                     "attribute did not have any values in the target entry.");
+    registerMessage(MSGID_MODIFY_PW_CHANGE_REQUIRES_CURRENT_PW,
+                    "The password policy requires that user password changes " +
+                    "include the current password in the request.");
+    registerMessage(MSGID_MODIFY_MULTIPLE_PASSWORDS_NOT_ALLOWED,
+                    "The password change would result in multiple password " +
+                    "values in the user entry, which is not allowed.");
+    registerMessage(MSGID_MODIFY_PW_VALIDATION_FAILED,
+                    "The provided password value was rejected by a password " +
+                    "validator:  %s.");
     registerMessage(MSGID_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE,
                     "Entry %s cannot be modified because an attempt was " +
                     "made to increment the value of attribute %s but the " +
