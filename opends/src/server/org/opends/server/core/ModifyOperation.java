@@ -39,6 +39,7 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PostOperationPluginResult;
 import org.opends.server.api.plugin.PreOperationPluginResult;
@@ -54,6 +55,8 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.schema.AuthPasswordSyntax;
+import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -65,6 +68,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -111,6 +115,12 @@ public class ModifyOperation
 
   // The modified entry that will be stored in the backend.
   private Entry modifiedEntry;
+
+  // The set of clear-text current passwords (if any were provided).
+  private List<AttributeValue> currentPasswords;
+
+  // The set of clear-text new passwords (if any were provided).
+  private List<AttributeValue> newPasswords;
 
   // The set of response controls for this modify operation.
   private List<Control> responseControls;
@@ -176,6 +186,9 @@ public class ModifyOperation
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
     changeNumber     = -1;
+
+    currentPasswords = null;
+    newPasswords     = null;
   }
 
 
@@ -227,6 +240,9 @@ public class ModifyOperation
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
     changeNumber     = -1;
+
+    currentPasswords = null;
+    newPasswords     = null;
   }
 
 
@@ -402,6 +418,45 @@ public class ModifyOperation
     assert debugEnter(CLASS_NAME, "getModifiedEntry");
 
     return modifiedEntry;
+  }
+
+
+
+  /**
+   * Retrieves the set of clear-text current passwords for the user, if
+   * available.  This will only be available if the modify operation contains
+   * one or more delete elements that target the password attribute and provide
+   * the values to delete in the clear.  It will not be available to pre-parse
+   * plugins.
+   *
+   * @return  The set of clear-text current password values as provided in the
+   *          modify request, or <CODE>null</CODE> if there were none or this
+   *          information is not yet available.
+   */
+  public List<AttributeValue> getCurrentPasswords()
+  {
+    assert debugEnter(CLASS_NAME, "getCurrentPasswords");
+
+    return currentPasswords;
+  }
+
+
+
+  /**
+   * Retrieves the set of clear-text new passwords for the user, if available.
+   * This will only be available if the modify operation contains one or more
+   * add or replace elements that target the password attribute and provide the
+   * values in the clear.  It will not be available to pre-parse plugins.
+   *
+   * @return  The set of clear-text new passwords as provided in the modify
+   *          request, or <CODE>null</CODE> if there were none or this
+   *          information is not yet available.
+   */
+  public List<AttributeValue> getNewPasswords()
+  {
+    assert debugEnter(CLASS_NAME, "getNewPasswords");
+
+    return newPasswords;
   }
 
 
@@ -1135,6 +1190,27 @@ modifyProcessing:
         }
 
 
+        // Get the password policy state object for the entry that can be used
+        // to perform any appropriate password policy processing.  Also, see if
+        // the entry is being updated by the end user or an administrator.
+        PasswordPolicyState pwPolicyState;
+        boolean selfChange = entryDN.equals(getAuthorizationDN());
+        try
+        {
+          // FIXME -- Need a way to enable debug mode.
+          pwPolicyState = new PasswordPolicyState(currentEntry, false, false);
+        }
+        catch (DirectoryException de)
+        {
+          assert debugException(CLASS_NAME, "run", de);
+
+          setResultCode(de.getResultCode());
+          appendErrorMessage(de.getErrorMessage());
+
+          break modifyProcessing;
+        }
+
+
         // Create a duplicate of the entry and apply the changes to it.
         modifiedEntry = currentEntry.duplicate();
 
@@ -1170,6 +1246,75 @@ modifyProcessing:
           }
         }
 
+
+        // Declare variables used for password policy state processing.
+        boolean passwordChanged = false;
+        boolean currentPasswordProvided = false;
+        int numPasswords;
+        if (currentEntry.hasAttribute(pwPolicyState.getPasswordAttribute()))
+        {
+          // It may actually have more than one, but we can't tell the
+          // difference if the values are encoded, and its enough for our
+          // purposes just to know that there is at least one.
+          numPasswords = 1;
+        }
+        else
+        {
+          numPasswords = 0;
+        }
+
+
+        // If it's not an internal or synchronization operation, then iterate
+        // through the set of modifications to see if a password is included in
+        // the changes.  If so, then add the appropriate state changes to the
+        // set of modifications.
+        if (! (isInternalOperation() || isSynchronizationOperation()))
+        {
+          for (Modification m : modifications)
+          {
+            if (m.getAttribute().getAttributeType().equals(
+                     pwPolicyState.getPasswordAttribute()))
+            {
+              passwordChanged = true;
+              break;
+            }
+          }
+
+          if (passwordChanged)
+          {
+            // Update the password policy state attributes in the user's entry.
+            // If the modification fails, then these changes won't be applied.
+            pwPolicyState.setPasswordChangedTime();
+            pwPolicyState.clearAuthFailureTimes();
+            pwPolicyState.clearFailureLockout();
+            pwPolicyState.clearGraceLoginTimes();
+            pwPolicyState.clearWarnedTime();
+
+            if ((! selfChange) && pwPolicyState.forceChangeOnReset())
+            {
+              pwPolicyState.setMustChangePassword(true);
+            }
+
+            if (pwPolicyState.getRequiredChangeTime() > 0)
+            {
+              pwPolicyState.setRequiredChangeTime();
+            }
+
+            modifications.addAll(pwPolicyState.getModifications());
+          }
+          else if(pwPolicyState.mustChangePassword())
+          {
+            // The user will not be allowed to do anything else before
+            // the password gets changed.
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+            int msgID = MSGID_MODIFY_MUST_CHANGE_PASSWORD;
+            appendErrorMessage(getMessage(msgID));
+            break modifyProcessing;
+          }
+        }
+
+
         for (Modification m : modifications)
         {
           Attribute     a = m.getAttribute();
@@ -1181,13 +1326,334 @@ modifyProcessing:
           // synchronization in some way.
           if (t.isNoUserModification())
           {
-            if (! (isInternalOperation() || isSynchronizationOperation()))
+            if (! (isInternalOperation() || isSynchronizationOperation() ||
+                   m.isInternal()))
             {
               setResultCode(ResultCode.UNWILLING_TO_PERFORM);
               appendErrorMessage(getMessage(MSGID_MODIFY_ATTR_IS_NO_USER_MOD,
                                             String.valueOf(entryDN),
                                             a.getName()));
               break modifyProcessing;
+            }
+          }
+
+
+          // If the modification is updating the password attribute, then
+          // perform any necessary password policy processing.  This processing
+          // should be skipped for internal and synchronization operations.
+          boolean isPassword = a.getAttributeType().equals(
+                                    pwPolicyState.getPasswordAttribute());
+          if (isPassword &&
+              (! (isInternalOperation() || isSynchronizationOperation())))
+          {
+            // If the attribute contains any options, then reject it.  Passwords
+            // will not be allowed to have options.
+            if (a.hasOptions())
+            {
+              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+              int msgID = MSGID_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS;
+              appendErrorMessage(getMessage(msgID));
+              break modifyProcessing;
+            }
+
+
+            // If it's a self change, then see if that's allowed.
+            if (selfChange && (! pwPolicyState.allowUserPasswordChanges()))
+            {
+              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+              int msgID = MSGID_MODIFY_NO_USER_PW_CHANGES;
+              appendErrorMessage(getMessage(msgID));
+              break modifyProcessing;
+            }
+
+
+            // If we require secure password changes, then makes sure it's a
+            // secure communication channel.
+            if (pwPolicyState.requireSecurePasswordChanges() &&
+                (! clientConnection.isSecure()))
+            {
+              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+              int msgID = MSGID_MODIFY_REQUIRE_SECURE_CHANGES;
+              appendErrorMessage(getMessage(msgID));
+              break modifyProcessing;
+            }
+
+
+            // If it's a self change and it's not been long enough since the
+            // previous change, then reject it.
+            if (selfChange && pwPolicyState.isWithinMinimumAge())
+            {
+              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+              int msgID = MSGID_MODIFY_WITHIN_MINIMUM_AGE;
+              appendErrorMessage(getMessage(msgID));
+              break modifyProcessing;
+            }
+
+
+            // Check to see whether this will adding, deleting, or replacing
+            // password values (increment doesn't make any sense for passwords).
+            // Then perform the appropriate type of processing for that kind of
+            // modification.
+            LinkedHashSet<AttributeValue> pwValues = a.getValues();
+            LinkedHashSet<AttributeValue> encodedValues =
+                 new LinkedHashSet<AttributeValue>();
+            switch (m.getModificationType())
+            {
+              case ADD:
+              case REPLACE:
+                int passwordsToAdd = pwValues.size();
+
+                if (m.getModificationType() == ModificationType.ADD)
+                {
+                  numPasswords += passwordsToAdd;
+                }
+                else
+                {
+                  numPasswords = passwordsToAdd;
+                }
+
+                // If there were multiple password values provided, then make
+                // sure that's OK.
+                if ((! pwPolicyState.allowMultiplePasswordValues()) &&
+                    (passwordsToAdd > 1))
+                {
+                  setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                  int msgID = MSGID_MODIFY_MULTIPLE_VALUES_NOT_ALLOWED;
+                  appendErrorMessage(getMessage(msgID));
+                  break modifyProcessing;
+                }
+
+                // Iterate through the password values and see if any of them
+                // are pre-encoded.  If so, then check to see if we'll allow it.
+                // Otherwise, store the clear-text values for later validation
+                // and update the attribute with the encoded values.
+                for (AttributeValue v : pwValues)
+                {
+                  if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
+                  {
+                    if (! pwPolicyState.allowPreEncodedPasswords())
+                    {
+                      setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                      int msgID = MSGID_MODIFY_NO_PREENCODED_PASSWORDS;
+                      appendErrorMessage(getMessage(msgID));
+                      break modifyProcessing;
+                    }
+                    else
+                    {
+                      encodedValues.add(v);
+                    }
+                  }
+                  else
+                  {
+                    if (newPasswords == null)
+                    {
+                      newPasswords = new LinkedList<AttributeValue>();
+                    }
+
+                    newPasswords.add(v);
+
+                    try
+                    {
+                      for (ByteString s :
+                           pwPolicyState.encodePassword(v.getValue()))
+                      {
+                        encodedValues.add(new AttributeValue(
+                                                   a.getAttributeType(), s));
+                      }
+                    }
+                    catch (DirectoryException de)
+                    {
+                      assert debugException(CLASS_NAME, "run", de);
+
+                      setResultCode(de.getResultCode());
+                      appendErrorMessage(de.getErrorMessage());
+                      break modifyProcessing;
+                    }
+                  }
+                }
+
+                a.setValues(encodedValues);
+
+                break;
+
+              case DELETE:
+                // Iterate through the password values and see if any of them
+                // are pre-encoded.  We will never allow pre-encoded passwords
+                // for user password changes, but we will allow them for
+                // administrators.  For each clear-text value, verify that at
+                // least one value in the entry matches and replace the
+                // clear-text value with the appropriate encoded forms.
+                for (AttributeValue v : pwValues)
+                {
+                  if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
+                  {
+                    if (selfChange)
+                    {
+                      setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                      int msgID = MSGID_MODIFY_NO_PREENCODED_PASSWORDS;
+                      appendErrorMessage(getMessage(msgID));
+                      break modifyProcessing;
+                    }
+                    else
+                    {
+                      encodedValues.add(v);
+                    }
+                  }
+                  else
+                  {
+                    List<Attribute> attrList = currentEntry.getAttribute(t);
+                    if ((attrList == null) || (attrList.isEmpty()))
+                    {
+                      setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                      int msgID = MSGID_MODIFY_NO_EXISTING_VALUES;
+                      appendErrorMessage(getMessage(msgID));
+                      break modifyProcessing;
+                    }
+                    else
+                    {
+                      boolean found = false;
+                      for (Attribute attr : attrList)
+                      {
+                        for (AttributeValue av : attr.getValues())
+                        {
+                          if (pwPolicyState.usesAuthPasswordSyntax())
+                          {
+                            if (AuthPasswordSyntax.isEncoded(av.getValue()))
+                            {
+                              try
+                              {
+                                StringBuilder[] compoenents =
+                                     AuthPasswordSyntax.decodeAuthPassword(
+                                          av.getStringValue());
+                                PasswordStorageScheme scheme =
+                                     DirectoryServer.
+                                          getAuthPasswordStorageScheme(
+                                               compoenents[0].toString());
+                                if (scheme != null)
+                                {
+                                  if (scheme.authPasswordMatches(
+                                           v.getValue(),
+                                           compoenents[1].toString(),
+                                           compoenents[2].toString()))
+                                  {
+                                    encodedValues.add(av);
+                                    found = true;
+                                  }
+                                }
+                              }
+                              catch (DirectoryException de)
+                              {
+                                assert debugException(CLASS_NAME, "run", de);
+
+                                setResultCode(de.getResultCode());
+
+                                int msgID = MSGID_MODIFY_CANNOT_DECODE_PW;
+                                appendErrorMessage(getMessage(msgID,
+                                                        de.getErrorMessage()));
+                                break modifyProcessing;
+                              }
+                            }
+                            else
+                            {
+                              if (av.equals(v))
+                              {
+                                encodedValues.add(v);
+                                found = true;
+                              }
+                            }
+                          }
+                          else
+                          {
+                            if (UserPasswordSyntax.isEncoded(av.getValue()))
+                            {
+                              try
+                              {
+                                String[] compoenents =
+                                     UserPasswordSyntax.decodeUserPassword(
+                                          av.getStringValue());
+                                PasswordStorageScheme scheme =
+                                     DirectoryServer.getPasswordStorageScheme(
+                                          toLowerCase(
+                                               compoenents[0].toString()));
+                                if (scheme != null)
+                                {
+                                  if (scheme.passwordMatches(
+                                        v.getValue(),
+                                        new ASN1OctetString(compoenents[1])))
+                                  {
+                                    encodedValues.add(av);
+                                    found = true;
+                                  }
+                                }
+                              }
+                              catch (DirectoryException de)
+                              {
+                                assert debugException(CLASS_NAME, "run", de);
+
+                                setResultCode(de.getResultCode());
+
+                                int msgID = MSGID_MODIFY_CANNOT_DECODE_PW;
+                                appendErrorMessage(getMessage(msgID,
+                                                        de.getErrorMessage()));
+                                break modifyProcessing;
+                              }
+                            }
+                            else
+                            {
+                              if (av.equals(v))
+                              {
+                                encodedValues.add(v);
+                                found = true;
+                              }
+                            }
+                          }
+                        }
+                      }
+
+                      if (found)
+                      {
+                        if (currentPasswords == null)
+                        {
+                          currentPasswords = new LinkedList<AttributeValue>();
+                        }
+                        currentPasswords.add(v);
+
+                        numPasswords--;
+                      }
+                      else
+                      {
+                        setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                        int msgID = MSGID_MODIFY_INVALID_PASSWORD;
+                        appendErrorMessage(getMessage(msgID));
+                        break modifyProcessing;
+                      }
+
+                      currentPasswordProvided = true;
+                    }
+                  }
+                }
+
+                a.setValues(encodedValues);
+
+                break;
+
+              default:
+                setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                int msgID = MSGID_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD;
+                appendErrorMessage(getMessage(msgID,
+                     String.valueOf(m.getModificationType()), a.getName()));
+
+                break modifyProcessing;
             }
           }
 
@@ -1680,6 +2146,61 @@ modifyProcessing:
         }
 
 
+        // If there was a password change, then perform any additional checks
+        // that may be necessary.
+        if (passwordChanged)
+        {
+          // If it was a self change, then see if the current password was
+          // provided and handle accordingly.
+          if (selfChange && pwPolicyState.requireCurrentPassword() &&
+              (! currentPasswordProvided))
+          {
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+            int msgID = MSGID_MODIFY_PW_CHANGE_REQUIRES_CURRENT_PW;
+            appendErrorMessage(getMessage(msgID));
+            break modifyProcessing;
+          }
+
+
+          // If this change would result in multiple password values, then see
+          // if that's OK.
+          if ((numPasswords > 1) &&
+              (! pwPolicyState.allowMultiplePasswordValues()))
+          {
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+            int msgID = MSGID_MODIFY_MULTIPLE_PASSWORDS_NOT_ALLOWED;
+            appendErrorMessage(getMessage(msgID));
+            break modifyProcessing;
+          }
+
+
+          // If any of the password values should be validated, then do so now.
+          if (selfChange || (! pwPolicyState.skipValidationForAdministrators()))
+          {
+            if (newPasswords != null)
+            {
+              for (AttributeValue v : newPasswords)
+              {
+                StringBuilder invalidReason = new StringBuilder();
+                if (! pwPolicyState.passwordIsAcceptable(this, modifiedEntry,
+                                                         v.getValue(),
+                                                         invalidReason))
+                {
+                  setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                  int msgID = MSGID_MODIFY_PW_VALIDATION_FAILED;
+                  appendErrorMessage(getMessage(msgID,
+                                                invalidReason.toString()));
+                  break modifyProcessing;
+                }
+              }
+            }
+          }
+        }
+
+
         // Make sure that the new entry is valid per the server schema.
         if (DirectoryServer.checkSchema())
         {
@@ -1693,13 +2214,6 @@ modifyProcessing:
             break modifyProcessing;
           }
         }
-
-
-        // Check to see if there are any passwords included in the request and
-        // if they are valid in accordance with the password policies associated
-        // with the user.  Also perform any encoding that might be required by
-        // the password storage schemes.
-        // NYI
 
 
         // Check for and handle a request to cancel this operation.

@@ -1050,7 +1050,7 @@ public class PasswordPolicyState
       }
       else
       {
-        modifications.add(new Modification(ModificationType.REPLACE, a));
+        modifications.add(new Modification(ModificationType.REPLACE, a, true));
       }
     }
   }
@@ -1192,7 +1192,7 @@ public class PasswordPolicyState
       }
       else
       {
-        modifications.add(new Modification(ModificationType.REPLACE, a));
+        modifications.add(new Modification(ModificationType.REPLACE, a, true));
       }
     }
     else
@@ -1213,7 +1213,7 @@ public class PasswordPolicyState
       else
       {
         modifications.add(new Modification(ModificationType.REPLACE,
-                                           new Attribute(type)));
+                                           new Attribute(type), true));
       }
     }
   }
@@ -1430,7 +1430,8 @@ public class PasswordPolicyState
 
             if (! updateEntry)
             {
-              modifications.add(new Modification(ModificationType.DELETE, a));
+              modifications.add(new Modification(ModificationType.DELETE, a,
+                                                 true));
             }
           }
         }
@@ -1457,7 +1458,7 @@ public class PasswordPolicyState
         else
         {
           modifications.add(new Modification(ModificationType.REPLACE,
-                                             new Attribute(type)));
+                                             new Attribute(type), true));
         }
       }
     }
@@ -1543,7 +1544,7 @@ public class PasswordPolicyState
     }
     else
     {
-      modifications.add(new Modification(ModificationType.ADD, addAttr));
+      modifications.add(new Modification(ModificationType.ADD, addAttr, true));
     }
   }
 
@@ -1587,7 +1588,7 @@ public class PasswordPolicyState
     else
     {
       modifications.add(new Modification(ModificationType.REPLACE,
-                                         new Attribute(type)));
+                                         new Attribute(type), true));
     }
   }
 
@@ -1737,7 +1738,7 @@ public class PasswordPolicyState
         else
         {
           modifications.add(new Modification(ModificationType.REPLACE,
-                                             new Attribute(type)));
+                                             new Attribute(type), true));
         }
 
         if (debug)
@@ -1832,7 +1833,7 @@ public class PasswordPolicyState
     }
     else
     {
-      modifications.add(new Modification(ModificationType.REPLACE, a));
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
   }
 
@@ -1873,7 +1874,7 @@ public class PasswordPolicyState
     else
     {
       modifications.add(new Modification(ModificationType.REPLACE,
-                                         new Attribute(type)));
+                                         new Attribute(type), true));
     }
   }
 
@@ -2079,7 +2080,7 @@ public class PasswordPolicyState
     }
     else
     {
-      modifications.add(new Modification(ModificationType.REPLACE, a));
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
 
     if (debug)
@@ -2403,7 +2404,7 @@ public class PasswordPolicyState
       }
       else
       {
-        modifications.add(new Modification(ModificationType.REPLACE, a));
+        modifications.add(new Modification(ModificationType.REPLACE, a, true));
       }
     }
     else
@@ -2422,7 +2423,7 @@ public class PasswordPolicyState
       else
       {
         modifications.add(new Modification(ModificationType.REPLACE,
-                                           new Attribute(type)));
+                                           new Attribute(type), true));
       }
     }
   }
@@ -3005,7 +3006,7 @@ public class PasswordPolicyState
       }
       else
       {
-        modifications.add(new Modification(ModificationType.REPLACE, a));
+        modifications.add(new Modification(ModificationType.REPLACE, a, true));
       }
     }
   }
@@ -3101,7 +3102,7 @@ public class PasswordPolicyState
     }
     else
     {
-      modifications.add(new Modification(ModificationType.REPLACE, a));
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
 
     if (debug)
@@ -3130,7 +3131,7 @@ public class PasswordPolicyState
     else
     {
       Attribute a = new Attribute(type);
-      modifications.add(new Modification(ModificationType.REPLACE, a));
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
 
     if (debug)
@@ -3207,7 +3208,7 @@ public class PasswordPolicyState
         else
         {
           modifications.add(new Modification(ModificationType.REPLACE,
-                                             new Attribute(type)));
+                                             new Attribute(type), true));
         }
       }
     }
@@ -3313,7 +3314,7 @@ public class PasswordPolicyState
     }
     else
     {
-      modifications.add(new Modification(ModificationType.ADD, addAttr));
+      modifications.add(new Modification(ModificationType.ADD, addAttr, true));
     }
   }
 
@@ -3355,7 +3356,7 @@ public class PasswordPolicyState
     else
     {
       modifications.add(new Modification(ModificationType.REPLACE,
-                                         new Attribute(type)));
+                                         new Attribute(type), true));
     }
   }
 
@@ -3864,7 +3865,8 @@ public class PasswordPolicyState
           Attribute a = new Attribute(type, type.getNameOrOID(), removedValues);
           if (! updateEntry)
           {
-            modifications.add(new Modification(ModificationType.DELETE, a));
+            modifications.add(new Modification(ModificationType.DELETE, a,
+                                               true));
           }
 
           if (! addedValues.isEmpty())
@@ -3873,7 +3875,8 @@ public class PasswordPolicyState
                                          addedValues);
             if (! updateEntry)
             {
-              modifications.add(new Modification(ModificationType.ADD, a2));
+              modifications.add(new Modification(ModificationType.ADD, a2,
+                                                 true));
             }
           }
 
@@ -4042,7 +4045,8 @@ public class PasswordPolicyState
           Attribute a = new Attribute(type, type.getNameOrOID(), removedValues);
           if (! updateEntry)
           {
-            modifications.add(new Modification(ModificationType.DELETE, a));
+            modifications.add(new Modification(ModificationType.DELETE, a,
+                                               true));
           }
 
           if (! addedValues.isEmpty())
@@ -4051,7 +4055,8 @@ public class PasswordPolicyState
                                          addedValues);
             if (! updateEntry)
             {
-              modifications.add(new Modification(ModificationType.ADD, a2));
+              modifications.add(new Modification(ModificationType.ADD, a2,
+                                                 true));
             }
           }
 
