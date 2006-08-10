@@ -34,6 +34,7 @@ import org.testng.annotations.Configuration;
 import org.testng.annotations.ExpectedExceptions;
 import org.testng.annotations.Test;
 
+import org.opends.server.TestCaseUtils;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
@@ -41,6 +42,7 @@ import com.sleepycat.je.EnvironmentConfig;
  * EnvManager Tester.
  */
 public class TestEnvManager extends JebTestCase {
+  private File tempDir;
   private String homeDirName;
 
   /**
@@ -51,9 +53,8 @@ public class TestEnvManager extends JebTestCase {
    */
   @Configuration(beforeTestClass = true)
   public void setUp() throws Exception {
-    File tempFile = File.createTempFile("jebtest", "");
-    tempFile.delete();
-    homeDirName = tempFile.getAbsolutePath();
+    tempDir = TestCaseUtils.createTemporaryDirectory("jebtest");
+    homeDirName = tempDir.getAbsolutePath();
   }
 
   /**
@@ -64,8 +65,7 @@ public class TestEnvManager extends JebTestCase {
    */
   @Configuration(afterTestClass = true)
   public void tearDown() throws Exception {
-    File homeDir = new File(homeDirName);
-    homeDir.delete();
+    TestCaseUtils.deleteDirectory(tempDir);
   }
 
   /**
