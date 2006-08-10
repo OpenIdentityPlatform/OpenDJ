@@ -35,6 +35,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
 import org.opends.server.SchemaFixture;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.LDIFReader;
@@ -114,6 +115,7 @@ public class TestEntryContainer extends JebTestCase {
       + "cn;lang-en: Rodney Ogasawara\n"
       + "title;lang-en: Sales, Director\n" + "\n" + "";
 
+  private File tempDir;
   private String homeDirName;
 
   private ArrayList<Entry> entryList;
@@ -131,9 +133,8 @@ public class TestEntryContainer extends JebTestCase {
     // This test suite depends on having the schema available.
     SchemaFixture.FACTORY.setUp();
 
-    File tempFile = File.createTempFile("jebtest", "");
-    tempFile.delete();
-    homeDirName = tempFile.getAbsolutePath();
+    tempDir = TestCaseUtils.createTemporaryDirectory("jebtest");
+    homeDirName = tempDir.getAbsolutePath();
 
     // Convert the test LDIF string to a byte array
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -169,8 +170,7 @@ public class TestEntryContainer extends JebTestCase {
   public void tearDown() throws Exception {
     SchemaFixture.FACTORY.tearDown();
 
-    File homeDir = new File(homeDirName);
-    homeDir.delete();
+    TestCaseUtils.deleteDirectory(tempDir);
   }
 
   /**

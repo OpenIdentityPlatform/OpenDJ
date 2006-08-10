@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 
 import org.opends.server.InitialDirectoryServerFixture;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryException;
@@ -46,6 +47,7 @@ import org.testng.annotations.Test;
  * BackendImpl Tester.
  */
 public class TestBackendImpl extends JebTestCase {
+  private File tempDir;
   private String homeDirName;
 
   private static final String ldifString =
@@ -70,9 +72,8 @@ public class TestBackendImpl extends JebTestCase {
   public void setUp() throws Exception {
     InitialDirectoryServerFixture.FACTORY.setUp();
 
-    File tempFile = File.createTempFile("jebtest", "");
-    tempFile.delete();
-    homeDirName = tempFile.getAbsolutePath();
+    tempDir = TestCaseUtils.createTemporaryDirectory("jebtest");
+    homeDirName = tempDir.getAbsolutePath();
 
     final String s = ldifString.replaceAll("ds-cfg-backend-directory: db",
         "ds-cfg-backend-directory:: "
@@ -96,8 +97,7 @@ public class TestBackendImpl extends JebTestCase {
   public void tearDown() throws Exception {
     InitialDirectoryServerFixture.FACTORY.tearDown();
 
-    File homeDir = new File(homeDirName);
-    homeDir.delete();
+    TestCaseUtils.deleteDirectory(tempDir);
   }
 
   /**
