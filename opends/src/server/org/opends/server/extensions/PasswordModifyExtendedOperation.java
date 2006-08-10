@@ -928,6 +928,17 @@ public class PasswordModifyExtendedOperation
         ASN1Sequence valueSequence = new ASN1Sequence(valueElements);
         operation.setResponseValue(new ASN1OctetString(valueSequence.encode()));
       }
+
+
+      // If this was a self password change, and the client is authenticated as
+      // the user whose password was changed, then clear the "must change
+      // password" flag in the client connection.  Note that we're using the
+      // authentication DN rather than the authorization DN in this case to
+      // avoid mistakenly clearing the flag for the wrong user.
+      if (selfChange && (authInfo.getAuthenticationDN().equals(userDN)))
+      {
+        operation.getClientConnection().setMustChangePassword(false);
+      }
     }
     finally
     {
