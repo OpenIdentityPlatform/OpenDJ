@@ -27,11 +27,7 @@
 package org.opends.server.integration.backend;
 
 import static org.testng.Assert.*;
-import org.testng.annotations.Configuration;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.testng.annotations.ExpectedExceptions;
+import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.util.Calendar;
 import java.util.GregorianCalendar;

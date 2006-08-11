@@ -29,10 +29,7 @@ package org.opends.server;
 import static org.testng.Assert.*;
 import org.testng.TestListenerAdapter;
 import org.testng.ITestResult;
-import org.testng.annotations.Configuration;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.testng.annotations.ExpectedExceptions;
+import org.testng.annotations.*;
 import org.opends.server.tools.*;
 
 /**
