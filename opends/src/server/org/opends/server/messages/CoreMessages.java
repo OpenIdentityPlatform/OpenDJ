@@ -5716,6 +5716,15 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the string that will be used for the error log category
+   * for messages related to password policy processing.
+   */
+  public static final int MSGID_ERROR_CATEGORY_PASSWORD_POLICY =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 546;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -5812,6 +5821,8 @@ public class CoreMessages
     registerMessage(MSGID_ERROR_CATEGORY_EXTENDED_OPERATION,
                     ERROR_CATEGORY_EXTENDED_OPERATION);
     registerMessage(MSGID_ERROR_CATEGORY_EXTENSIONS, ERROR_CATEGORY_EXTENSIONS);
+    registerMessage(MSGID_ERROR_CATEGORY_PASSWORD_POLICY,
+                    ERROR_CATEGORY_PASSWORD_POLICY);
     registerMessage(MSGID_ERROR_CATEGORY_PLUGIN, ERROR_CATEGORY_PLUGIN);
     registerMessage(MSGID_ERROR_CATEGORY_REQUEST_HANDLING,
                     ERROR_CATEGORY_REQUEST);
