@@ -90,7 +90,7 @@ public class RestoreTasksTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
     System.out.println("All tests have completed.\nOpenDS has been stopped.");
   }
 

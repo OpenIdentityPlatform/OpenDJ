@@ -47,7 +47,7 @@ public class RestoreTests extends BackendTests
     String datafile = integration_test_home + "/backend/data/restore";
     String restore_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backupDirectory", datafile};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "RestoreTest1.txt");
     int retCode = RestoreDB.mainRestoreDB(restore_args);
@@ -56,7 +56,7 @@ public class RestoreTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home" })
@@ -68,7 +68,7 @@ public class RestoreTests extends BackendTests
     String datafile = integration_test_home + "/backend/data/restore.compressed";
     String restore_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backupDirectory", datafile};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "RestoreTest.compressed.txt");
     int retCode = RestoreDB.mainRestoreDB(restore_args);
@@ -77,7 +77,7 @@ public class RestoreTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
 }

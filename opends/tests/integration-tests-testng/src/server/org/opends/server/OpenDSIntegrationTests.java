@@ -104,9 +104,9 @@ public abstract class OpenDSIntegrationTests {
     return outStr;
   }
 
-  public void startOpenDS(String dsee_home) throws Exception
+  public void startOpenDS(String dsee_home, String port) throws Exception
   {
-    dsAdmin = new OpenDSAdmin(dsee_home);
+    dsAdmin = new OpenDSAdmin(dsee_home, port);
 
     System.out.println("OpenDS is starting.....");
     dsAdmin.start();
@@ -114,11 +114,11 @@ public abstract class OpenDSIntegrationTests {
     System.out.println("OpenDS has started.");
   }
 
-  public void stopOpenDS(String dsee_home) throws Exception
+  public void stopOpenDS(String dsee_home, String port) throws Exception
   {
     if(dsAdmin == null)
     {
-      dsAdmin = new OpenDSAdmin(dsee_home);
+      dsAdmin = new OpenDSAdmin(dsee_home, port);
     }
 
     System.out.println("OpenDS is stopping.....");
