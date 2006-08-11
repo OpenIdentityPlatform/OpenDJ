@@ -28,6 +28,8 @@ package org.opends.server.types;
 
 
 
+import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -43,7 +45,8 @@ public enum AccountStatusNotificationType
    * whenever a user account has been temporarily locked after too
    * many failed attempts.
    */
-  ACCOUNT_TEMPORARILY_LOCKED("account-temporarily-locked"),
+  ACCOUNT_TEMPORARILY_LOCKED(
+       MSGID_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED),
 
 
 
@@ -52,7 +55,8 @@ public enum AccountStatusNotificationType
    * whenever a user account has been permanently locked after too
    * many failed attempts.
    */
-  ACCOUNT_REQUIRES_ADMIN_UNLOCK("account-requires-admin-unlock"),
+  ACCOUNT_PERMANENTLY_LOCKED(
+       MSGID_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED),
 
 
 
@@ -60,7 +64,7 @@ public enum AccountStatusNotificationType
    * Indicates that an account status message should be generated
    * whenever a user account has been unlocked by an administrator.
    */
-  ACCOUNT_UNLOCKED("account-unlocked"),
+  ACCOUNT_UNLOCKED(MSGID_ACCTNOTTYPE_ACCOUNT_UNLOCKED),
 
 
 
@@ -69,7 +73,17 @@ public enum AccountStatusNotificationType
    * whenever a user account has been locked because it was idle for
    * too long.
    */
-  IDLE_ACCOUNT_LOCKED("idle-account-locked"),
+  ACCOUNT_IDLE_LOCKED(MSGID_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED),
+
+
+
+  /**
+   * Indicates that an account status message should be generated
+   * whenever a user account has been locked because it the password
+   * had been reset by an administrator but not changed by the user
+   * within the required interval.
+   */
+  ACCOUNT_RESET_LOCKED(MSGID_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED),
 
 
 
@@ -77,7 +91,7 @@ public enum AccountStatusNotificationType
    * Indicates that an account status message should be generated
    * whenever a user account has been disabled by an administrator.
    */
-  ACCOUNT_DISABLED("account-disabled"),
+  ACCOUNT_DISABLED(MSGID_ACCTNOTTYPE_ACCOUNT_DISABLED),
 
 
 
@@ -85,7 +99,16 @@ public enum AccountStatusNotificationType
    * Indicates that an account status message should be generated
    * whenever a user account has been enabled by an administrator.
    */
-  ACCOUNT_ENABLED("account-enabled"),
+  ACCOUNT_ENABLED(MSGID_ACCTNOTTYPE_ACCOUNT_ENABLED),
+
+
+
+  /**
+   * Indicates that an account status message should be generated
+   * whenever a user authentication has failed because the account
+   * has expired.
+   */
+  ACCOUNT_EXPIRED(MSGID_ACCTNOTTYPE_ACCOUNT_EXPIRED),
 
 
 
@@ -94,7 +117,7 @@ public enum AccountStatusNotificationType
    * generated whenever a user authentication has failed because the
    * password has expired.
    */
-  PASSWORD_EXPIRED("password-expired"),
+  PASSWORD_EXPIRED(MSGID_ACCTNOTTYPE_PASSWORD_EXPIRED),
 
 
 
@@ -104,7 +127,7 @@ public enum AccountStatusNotificationType
    * generated the first time that a password expiration warning is
    * encountered for a user password.
    */
-  PASSWORD_EXPIRING("password-expiring"),
+  PASSWORD_EXPIRING(MSGID_ACCTNOTTYPE_PASSWORD_EXPIRING),
 
 
 
@@ -113,7 +136,7 @@ public enum AccountStatusNotificationType
    * generated whenever a user's password is reset by an
    * administrator.
    */
-  PASSWORD_RESET_BY_ADMINISTRATOR("password-reset-by-administrator"),
+  PASSWORD_RESET(MSGID_ACCTNOTTYPE_PASSWORD_RESET),
 
 
 
@@ -121,98 +144,86 @@ public enum AccountStatusNotificationType
    * Indicates whether an account status notification message should
    * be generated whenever a user changes his/her own password.
    */
-  PASSWORD_CHANGED("password-changed");
+  PASSWORD_CHANGED(MSGID_ACCTNOTTYPE_PASSWORD_CHANGED);
 
 
 
-  // The name for this account status notification type.
-  private String name;
+  // The notification type identifier.
+  private int notificationTypeID;
 
 
 
   /**
    * Creates a new account status notification type with the provided
-   * name.
+   * notification type ID.
    *
-   * @param  name  The name for this account status notification type.
+   * @param  notificationTypeID  The notification type identifier for
+   *                             this account status notification.
    */
-  private AccountStatusNotificationType(String name)
+  private AccountStatusNotificationType(int notificationTypeID)
   {
-    this.name = name;
+    this.notificationTypeID = notificationTypeID;
   }
 
 
 
   /**
    * Retrieves the account status notification type with the specified
-   * name.
+   * notification type identifier.
    *
-   * @param  name  The name of the account status notification type to
-   *               retrieve.
+   * @param  notificationTypeID  The notification type identifier for
+   *                             the notification type to retrieve.
    *
    * @return  The requested account status notification type, or
    *          <CODE>null</CODE> if there is no type for the given
-   *          name.
+   *          notification type identifier.
    */
-  public static AccountStatusNotificationType typeForName(String name)
+  public static AccountStatusNotificationType
+                     typeForID(int notificationTypeID)
   {
-    String lowerName = toLowerCase(name);
-    if (lowerName.equals("account-temporarily-locked"))
+    switch(notificationTypeID)
     {
-      return ACCOUNT_TEMPORARILY_LOCKED;
-    }
-    else if (lowerName.equals("account-requires-admin-unlock"))
-    {
-      return ACCOUNT_REQUIRES_ADMIN_UNLOCK;
-    }
-    else if (lowerName.equals("account-unlocked"))
-    {
-      return ACCOUNT_UNLOCKED;
-    }
-    else if (lowerName.equals("idle-account-locked"))
-    {
-      return IDLE_ACCOUNT_LOCKED;
-    }
-    else if (lowerName.equals("account-disabled"))
-    {
-      return ACCOUNT_DISABLED;
-    }
-    else if (lowerName.equals("account-enabled"))
-    {
-      return ACCOUNT_ENABLED;
-    }
-    else if (lowerName.equals("password-expired"))
-    {
-      return PASSWORD_EXPIRED;
-    }
-    else if (lowerName.equals("password-expiring"))
-    {
-      return PASSWORD_EXPIRING;
-    }
-    else if (lowerName.equals("password-reset-by-administrator"))
-    {
-      return PASSWORD_RESET_BY_ADMINISTRATOR;
-    }
-    else if (lowerName.equals("password-changed"))
-    {
-      return PASSWORD_CHANGED;
-    }
-    else
-    {
-      return null;
+      case MSGID_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED:
+        return ACCOUNT_TEMPORARILY_LOCKED;
+      case MSGID_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED:
+        return ACCOUNT_PERMANENTLY_LOCKED;
+      case MSGID_ACCTNOTTYPE_ACCOUNT_UNLOCKED:
+        return ACCOUNT_UNLOCKED;
+      case MSGID_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED:
+        return ACCOUNT_IDLE_LOCKED;
+      case MSGID_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED:
+        return ACCOUNT_RESET_LOCKED;
+      case MSGID_ACCTNOTTYPE_ACCOUNT_DISABLED:
+        return ACCOUNT_DISABLED;
+      case MSGID_ACCTNOTTYPE_ACCOUNT_ENABLED:
+        return ACCOUNT_ENABLED;
+      case MSGID_ACCTNOTTYPE_ACCOUNT_EXPIRED:
+        return ACCOUNT_EXPIRED;
+      case MSGID_ACCTNOTTYPE_PASSWORD_EXPIRED:
+        return PASSWORD_EXPIRED;
+      case MSGID_ACCTNOTTYPE_PASSWORD_EXPIRING:
+        return PASSWORD_EXPIRING;
+      case MSGID_ACCTNOTTYPE_PASSWORD_RESET:
+        return PASSWORD_RESET;
+      case MSGID_ACCTNOTTYPE_PASSWORD_CHANGED:
+        return PASSWORD_CHANGED;
+      default:
+        return null;
     }
   }
 
 
 
   /**
-   * Retrieves the name for this account-status notification type.
+   * Retrieves the notification type identifier for this account
+   * status notification type.
    *
-   * @return  The name for this account status notification type.
+   * @return  The notification type identifier for this account
+   *          status notification type.
    */
-  public String getName()
+  public int getNotificationTypeID()
   {
-    return name;
+    return notificationTypeID;
   }
 
 
@@ -226,7 +237,7 @@ public enum AccountStatusNotificationType
    */
   public String toString()
   {
-    return name;
+    return getMessage(notificationTypeID);
   }
 }
 
