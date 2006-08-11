@@ -1394,6 +1394,127 @@ public class UtilityMessages
 
 
   /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that the account has been
+   * temporarily locked.
+   */
+  public static final int MSGID_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 129;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that the account has been
+   * permanently locked.
+   */
+  public static final int MSGID_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 130;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that the account has been
+   * unlocked by an administrator.
+   */
+  public static final int MSGID_ACCTNOTTYPE_ACCOUNT_UNLOCKED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 131;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that an authentication
+   * attempt failed because the account had been idle for too long.
+   */
+  public static final int MSGID_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 132;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that an authentication
+   * attempt failed because the password had been administratively reset but not
+   * changed by the user in the necessary window.
+   */
+  public static final int MSGID_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 133;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that the account has been
+   * administratively disabled.
+   */
+  public static final int MSGID_ACCTNOTTYPE_ACCOUNT_DISABLED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 134;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that the account has been
+   * administratively re-enabled.
+   */
+  public static final int MSGID_ACCTNOTTYPE_ACCOUNT_ENABLED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 135;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that an authentication
+   * attempt failed because the account had expired.
+   */
+  public static final int MSGID_ACCTNOTTYPE_ACCOUNT_EXPIRED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 136;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that an authentication
+   * attempt failed because the user's password had expired.
+   */
+  public static final int MSGID_ACCTNOTTYPE_PASSWORD_EXPIRED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 137;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that the user's password will
+   * expire in the near future.
+   */
+  public static final int MSGID_ACCTNOTTYPE_PASSWORD_EXPIRING =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 138;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that the user's password was
+   * reset by an administrator.
+   */
+  public static final int MSGID_ACCTNOTTYPE_PASSWORD_RESET =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 139;
+
+
+
+  /**
+   * The message ID for the message that will be used as the identifier string
+   * for an account status notification indicating that the user's password was
+   * changed by the user.
+   */
+  public static final int MSGID_ACCTNOTTYPE_PASSWORD_CHANGED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 140;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1860,6 +1981,32 @@ public class UtilityMessages
                     "%d hours, %d minutes, %s seconds");
     registerMessage(MSGID_TIME_IN_DAYS_HOURS_MINUTES_SECONDS,
                     "%d days, %d hours, %d minutes, %s seconds");
+
+
+    registerMessage(MSGID_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED,
+                    "account-temporarily-locked");
+    registerMessage(MSGID_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED,
+                    "account-permanently-locked");
+    registerMessage(MSGID_ACCTNOTTYPE_ACCOUNT_UNLOCKED,
+                    "account-unlocked");
+    registerMessage(MSGID_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED,
+                    "account-idle-locked");
+    registerMessage(MSGID_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED,
+                    "account-reset-locked");
+    registerMessage(MSGID_ACCTNOTTYPE_ACCOUNT_DISABLED,
+                    "account-disabled");
+    registerMessage(MSGID_ACCTNOTTYPE_ACCOUNT_ENABLED,
+                    "account-enabled");
+    registerMessage(MSGID_ACCTNOTTYPE_ACCOUNT_EXPIRED,
+                    "account-expired");
+    registerMessage(MSGID_ACCTNOTTYPE_PASSWORD_EXPIRED,
+                    "password-expired");
+    registerMessage(MSGID_ACCTNOTTYPE_PASSWORD_EXPIRING,
+                    "password-expiring");
+    registerMessage(MSGID_ACCTNOTTYPE_PASSWORD_RESET,
+                    "password-reset-by-administrator");
+    registerMessage(MSGID_ACCTNOTTYPE_PASSWORD_CHANGED,
+                    "password-changed");
   }
 }
 
