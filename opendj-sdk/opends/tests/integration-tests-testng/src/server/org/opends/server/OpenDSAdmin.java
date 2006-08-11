@@ -27,17 +27,18 @@
 package org.opends.server;
 
 import java.io.*;
-//import org.opends.server.core.OpenDS;
 import org.opends.server.tools.StopDS;
 
 public class OpenDSAdmin
        extends Thread
 {
   private String dsee_home;
+  private String port;
 
-  public OpenDSAdmin(String in_dsee_home)
+  public OpenDSAdmin(String in_dsee_home, String in_port)
   {
     dsee_home = in_dsee_home;
+    port = in_port;
   }
 
   public void run()
@@ -62,7 +63,7 @@ public class OpenDSAdmin
 
   public void stopDS() throws Exception
   {
-    String exec_cmd = dsee_home + "/bin/stop-ds.sh";
+    String exec_cmd = dsee_home + "/bin/stop-ds.sh -p " + port;
     Runtime rtime = Runtime.getRuntime();
     Process child = rtime.exec(exec_cmd);
     child.waitFor();

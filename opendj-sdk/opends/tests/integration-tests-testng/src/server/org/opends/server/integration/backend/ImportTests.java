@@ -36,16 +36,16 @@ import org.opends.server.tools.*;
 @Test
 public class ImportTests extends BackendTests
 {
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.BackupTasksTests.testBackupTasks1" })
-  public void testImport1(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport1(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 1");
     String datafile = integration_test_home + "/backend/data/import.ldif.01";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest1.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -54,7 +54,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -91,15 +91,15 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport1_check2" })
-  public void testImport2(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport2(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 2");
     String datafile = integration_test_home + "/backend/data/import.ldif.02";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--append"};
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest2.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -108,7 +108,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -145,16 +145,16 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport2_check2" })
-  public void testImport3(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport3(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 3");
     String datafile = integration_test_home + "/backend/data/import.ldif.03";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeAttribute", "sn", "--includeAttribute", "cn", "--includeAttribute", "ou", "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest3.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -163,7 +163,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -200,16 +200,16 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport3_check2" })
-  public void testImport4(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport4(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 4");
     String datafile = integration_test_home + "/backend/data/import.ldif.04";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeAttribute", "telephonenumber", "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest4.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -218,7 +218,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -255,16 +255,16 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport4_check2" })
-  public void testImport5(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport5(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 5");
     String datafile = integration_test_home + "/backend/data/import.ldif.05";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeAttribute", "telephonenumber", "--excludeAttribute", "mail", "--excludeAttribute", "roomnumber", "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest5.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -273,7 +273,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -310,16 +310,16 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport5_check2" })
-  public void testImport6(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport6(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 6");
     String datafile = integration_test_home + "/backend/data/import.ldif.06";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeFilter", "(&(uid=prigden6)(telephonenumber=*))", "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest6.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -328,7 +328,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -365,16 +365,16 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport6_check2" })
-  public void testImport7(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport7(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 7");
     String datafile = integration_test_home + "/backend/data/import.ldif.07";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeFilter", "(&(uid=prigden7)(telephonenumber=*))", "--includeFilter", "(&(uid=prigden7)(l=Sunnyvale))", "--includeFilter", "(&(uid=brigden7)(roomnumber=*))", "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest7.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -383,7 +383,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -420,16 +420,16 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport7_check2" })
-  public void testImport8(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport8(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 8");
     String datafile = integration_test_home + "/backend/data/import.ldif.08";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeFilter", "(&(uid=prigden8)(telephonenumber=*))", "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest8.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -438,7 +438,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -475,16 +475,16 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport8_check2" })
-  public void testImport9(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport9(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 9");
     String datafile = integration_test_home + "/backend/data/import.ldif.09";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeFilter", "(&(uid=prigden9)(telephonenumber=*))", "--excludeFilter", "(&(uid=prigden9)(l=Sunnyvale))", "--excludeFilter", "(&(uid=brigden9)(roomnumber=*))", "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest9.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -493,7 +493,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -547,9 +547,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport9_check3" })
-  public void testImport10(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport10(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 10");
@@ -557,7 +557,7 @@ public class ImportTests extends BackendTests
     String branch = "o=branch test two, o=import tests, dc=example,dc=com";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeBranch", branch, "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest10.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -566,7 +566,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -603,9 +603,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport10_check2" })
-  public void testImport11(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport11(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 11");
@@ -613,7 +613,7 @@ public class ImportTests extends BackendTests
     String branch = "o=branch test four, o=import tests, dc=example,dc=com";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeBranch", branch, "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest11.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -622,7 +622,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -659,9 +659,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport11_check2" })
-  public void testImport12(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport12(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 12");
@@ -669,7 +669,7 @@ public class ImportTests extends BackendTests
     String branch = "o=branch test six, o=import tests, dc=example,dc=com";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeFilter", "(&(uid=prigden)(roomnumber=*))", "--excludeAttribute", "telephonenumber", "--includeBranch", branch, "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest12.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -678,7 +678,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -748,7 +748,7 @@ public class ImportTests extends BackendTests
     datafile = integration_test_home + "/backend/data/import.ldif.13";
     String branch = "o=branch test eight, o=import tests, dc=example,dc=com";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeFilter", "(&(uid=prigden)(roomnumber=*))", "--excludeAttribute", "telephonenumber", "--excludeBranch", branch, "--append"};
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest13.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -757,7 +757,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -811,16 +811,16 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport13_check3" })
-  public void testImport14(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport14(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 14");
     String datafile = integration_test_home + "/backend/data/import.compressed.ldif";
     String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--isCompressed", "--append"};
 
-    stopOpenDS(dsee_home);
+    stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest14.txt");
     int retCode = ImportLDIF.mainImportLDIF(import_args);
@@ -829,7 +829,7 @@ public class ImportTests extends BackendTests
 
     compareExitCode(retCode, expCode);
 
-    startOpenDS(dsee_home);
+    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
