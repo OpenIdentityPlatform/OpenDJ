@@ -817,6 +817,14 @@ public class ServerConstants
 
 
   /**
+   * The English name for the error log category used for password policy
+   * processing.
+   */
+  public static final String ERROR_CATEGORY_PASSWORD_POLICY = "PW_POLICY";
+
+
+
+  /**
    * The English name for the error log category used for plugin processing.
    */
   public static final String ERROR_CATEGORY_PLUGIN = "PLUGIN";

@@ -108,6 +108,14 @@ public enum ErrorLogCategory
 
   /**
    * The error log category that will be used for messages related to
+   * password policy processing.
+   */
+  PASSWORD_POLICY(MSGID_ERROR_CATEGORY_PASSWORD_POLICY),
+
+
+
+  /**
+   * The error log category that will be used for messages related to
    * plugin processing.
    */
   PLUGIN(MSGID_ERROR_CATEGORY_PLUGIN),
@@ -195,6 +203,7 @@ public enum ErrorLogCategory
     nameMap.put(ERROR_CATEGORY_EXTENDED_OPERATION,
                 EXTENDED_OPERATION);
     nameMap.put(ERROR_CATEGORY_EXTENSIONS, EXTENSIONS);
+    nameMap.put(ERROR_CATEGORY_PASSWORD_POLICY, PASSWORD_POLICY);
     nameMap.put(ERROR_CATEGORY_PLUGIN, PLUGIN);
     nameMap.put(ERROR_CATEGORY_REQUEST, REQUEST_HANDLING);
     nameMap.put(ERROR_CATEGORY_SASL_MECHANISM, SASL_MECHANISM);
