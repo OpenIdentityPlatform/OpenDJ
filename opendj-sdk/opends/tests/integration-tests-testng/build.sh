@@ -63,9 +63,9 @@ fi
 
 # Make sure that the TestNG JAR file is in the CLASSPATH so that ant will be
 # able to find it.
-testng_jar=${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar
+testng_jar=${ds_home}/tests/integration-tests-testng/ext/testng/lib/testng-5.0.2-jdk15.jar
 if [ -f "${testng_jar}" ]; then
-    CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar"
+    CLASSPATH="${ds_home}/tests/integration-tests-testng/ext/testng/lib/testng-5.0.2-jdk15.jar"
     export CLASSPATH
 else
     die 11 "Could not find junit library in ${ds_home}/ext/testng/lib"
@@ -135,7 +135,7 @@ then
 OPENDS_HOME=\${1}
 cd \${OPENDS_HOME}
 echo "OpenDS Integration Tests have started........."
-CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar:${ds_home}/build/integration-tests:\${OPENDS_HOME}/lib/OpenDS.jar:\${OPENDS_HOME}/lib/je.jar"
+CLASSPATH="${ds_home}/tests/integration-tests-testng/ext/testng/lib/testng-5.0.2-jdk15.jar:${ds_home}/build/integration-tests:\${OPENDS_HOME}/lib/OpenDS.jar:\${OPENDS_HOME}/lib/je.jar"
 java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener ${ft_home}/ext/testng/testng.xml
 else
 OPENDS_INSTALL_DIR=\${2}
@@ -259,7 +259,7 @@ echo "Starting OpenDS and the OpenDS Integration Tests...."
 sleep 30
 
 echo "OpenDS Integration Tests have started........."
-CLASSPATH="${ds_home}/ext/testng/lib/testng-4.7-jdk15.jar:${ds_home}/build/integration-tests:\${OPENDS_HOME}/lib/OpenDS.jar:\${OPENDS_HOME}/lib/je.jar"
+CLASSPATH="${ds_home}/tests/integration-tests-testng/ext/testng/lib/testng-5.0.2-jdk15.jar:${ds_home}/build/integration-tests:\${OPENDS_HOME}/lib/OpenDS.jar:\${OPENDS_HOME}/lib/je.jar"
 java -ea -cp \${CLASSPATH} org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener ${ft_home}/ext/testng/testng.xml
 
 echo "The output from OpenDS is in \${INTEG_TEST_DIR}/opends/logs"
