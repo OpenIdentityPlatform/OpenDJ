@@ -5725,6 +5725,37 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if the user's password is
+   * about to expire.  This takes a single argument, which is the length of time
+   * until the password expires.
+   */
+  public static final int MSGID_BIND_PASSWORD_EXPIRING =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_WARNING | 547;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user's account
+   * becomes temporarily locked due to too many failed attempts.  This takes a
+   * single argument, which is a string representation of the length of time
+   * until the account is unlocked.
+   */
+  public static final int MSGID_BIND_ACCOUNT_TEMPORARILY_LOCKED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 548;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user's account
+   * becomes permanently locked due to too many failed attempts.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_BIND_ACCOUNT_PERMANENTLY_LOCKED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 549;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6513,9 +6544,19 @@ public class CoreMessages
                     "The user-specific time limit value %s contained in " +
                     "user entry %s could not be parsed as an integer.  The " +
                     "default server time limit will be used.");
+    registerMessage(MSGID_BIND_PASSWORD_EXPIRING,
+                    "The user password is about to expire (time to " +
+                    "expiration:  %s).");
     registerMessage(MSGID_BIND_OPERATION_WRONG_PASSWORD,
                     "The password provided by the user did not match any " +
                     "password(s) stored in the user's entry.");
+    registerMessage(MSGID_BIND_ACCOUNT_TEMPORARILY_LOCKED,
+                    "The account has been locked as a result of too many " +
+                    "failed authentication attempts (time to unlock:  %s).");
+    registerMessage(MSGID_BIND_ACCOUNT_PERMANENTLY_LOCKED,
+                    "The account has been locked as a result of too many " +
+                    "failed authentication attempts.  It may only be " +
+                    "unlocked by an administrator.");
     registerMessage(MSGID_BIND_OPERATION_PASSWORD_VALIDATION_EXCEPTION,
                     "An unexpected error occurred while attempting to " +
                     "validate the provided password:  %s.");

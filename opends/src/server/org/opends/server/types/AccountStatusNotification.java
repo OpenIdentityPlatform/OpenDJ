@@ -49,6 +49,9 @@ public class AccountStatusNotification
   // The notification type for this account status notification.
   private AccountStatusNotificationType notificationType;
 
+  // The DN of the user entry to which this notification applies.
+  private DN userDN;
+
   // The message ID for the account status notification message.
   private int messageID;
 
@@ -64,19 +67,22 @@ public class AccountStatusNotification
    *
    * @param  notificationType  The type for this account status
    *                           notification.
+   * @param  userDN            The DN of the user entry to which
+   *                           this notification applies.
    * @param  messageID         The unique ID for this notification.
    * @param  message           The human-readable message for this
    *                           notification.
    */
   public AccountStatusNotification(
               AccountStatusNotificationType notificationType,
-              int messageID, String message)
+              DN userDN, int messageID, String message)
   {
     assert debugEnter(CLASS_NAME, String.valueOf(notificationType),
                       String.valueOf(messageID),
                       String.valueOf(message));
 
     this.notificationType = notificationType;
+    this.userDN           = userDN;
     this.messageID        = messageID;
     this.message          = message;
   }
@@ -95,6 +101,22 @@ public class AccountStatusNotification
     assert debugEnter(CLASS_NAME, "getNotificationType");
 
     return notificationType;
+  }
+
+
+
+  /**
+   * Retrieves the DN of the user entry to which this notification
+   * applies.
+   *
+   * @return  The DN of the user entry to which this notification
+   *          applies.
+   */
+  public DN getUserDN()
+  {
+    assert debugEnter(CLASS_NAME, "getUserDN");
+
+    return userDN;
   }
 
 
@@ -143,8 +165,8 @@ public class AccountStatusNotification
     assert debugEnter(CLASS_NAME, "toString");
 
     return "AccountStatusNotification(type=" +
-           String.valueOf(notificationType) + ",id=" + messageID +
-           ",message=" + message + ")";
+           notificationType.getNotificationTypeName() + ",dn=" +
+           userDN + ",id=" + messageID + ",message=" + message + ")";
   }
 }
 

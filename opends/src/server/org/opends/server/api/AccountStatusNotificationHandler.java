@@ -33,6 +33,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.InitializationException;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationType;
+import org.opends.server.types.DN;
 
 import static org.opends.server.loggers.Debug.*;
 
@@ -99,6 +100,8 @@ public abstract class AccountStatusNotificationHandler
    *
    * @param  notificationType  The type for this account status
    *                           notification.
+   * @param  userDN            The DN of the user entry to which this
+   *                           notification applies.
    * @param  messageID         The unique ID for this notification.
    * @param  message           The human-readable message for this
    *                           notification.
@@ -106,7 +109,7 @@ public abstract class AccountStatusNotificationHandler
   public abstract void
        handleStatusNotification(
             AccountStatusNotificationType notificationType,
-            int messageID, String message);
+            DN userDN, int messageID, String message);
 
 
 
@@ -124,6 +127,7 @@ public abstract class AccountStatusNotificationHandler
                       String.valueOf(notification));
 
     handleStatusNotification(notification.getNotificationType(),
+                             notification.getUserDN(),
                              notification.getMessageID(),
                              notification.getMessage());
   }

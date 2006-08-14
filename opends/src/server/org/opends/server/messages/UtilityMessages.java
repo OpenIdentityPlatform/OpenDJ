@@ -2004,7 +2004,7 @@ public class UtilityMessages
     registerMessage(MSGID_ACCTNOTTYPE_PASSWORD_EXPIRING,
                     "password-expiring");
     registerMessage(MSGID_ACCTNOTTYPE_PASSWORD_RESET,
-                    "password-reset-by-administrator");
+                    "password-reset");
     registerMessage(MSGID_ACCTNOTTYPE_PASSWORD_CHANGED,
                     "password-changed");
   }

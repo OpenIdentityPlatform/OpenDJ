@@ -46,6 +46,7 @@ import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -128,6 +129,9 @@ public class BindOperation
   // The bind DN used for this bind operation.
   private DN bindDN;
 
+  // The DN of the user entry that is attempting to authenticate.
+  private DN userEntryDN;
+
   // The DN of the user as whom a SASL authentication was attempted (regardless
   // of whether the authentication was successful) for the purpose of updating
   // password policy state information.
@@ -205,6 +209,7 @@ public class BindOperation
     this.saslCredentials = null;
 
     bindDN                   = null;
+    userEntryDN              = null;
     responseControls         = new ArrayList<Control>(0);
     authFailureID            = 0;
     authFailureReason        = null;
@@ -261,6 +266,7 @@ public class BindOperation
     this.simplePassword  = null;
 
     bindDN            = null;
+    userEntryDN       = null;
     responseControls  = new ArrayList<Control>(0);
     authFailureID     = 0;
     authFailureReason = null;
@@ -324,6 +330,7 @@ public class BindOperation
     pwPolicyErrorType        = null;
     pwPolicyWarningType      = null;
     pwPolicyWarningValue     = -1;
+    userEntryDN              = null;
   }
 
 
@@ -379,6 +386,7 @@ public class BindOperation
     authFailureID     = 0;
     authFailureReason = null;
     saslAuthUserEntry = null;
+    userEntryDN       = null;
   }
 
 
@@ -696,6 +704,24 @@ public class BindOperation
     }
 
     authFailureReason = reason;
+  }
+
+
+
+  /**
+   * Retrieves the user entry DN for this bind operation.  It will only be
+   * available if the bind processing has proceeded far enough to identify the
+   * user attempting to authenticate or if the user DN could not be determined.
+   *
+   * @return  The user entry DN for this bind operation, or <CODE>null</CODE> if
+   *          the bind processing has not progressed far enough to identify the
+   *          user or if the user DN could not be determined.
+   */
+  public DN getUserEntryDN()
+  {
+    assert debugEnter(CLASS_NAME, "getUserEntryDN");
+
+    return userEntryDN;
   }
 
 
@@ -1122,6 +1148,10 @@ bindProcessing:
               setAuthFailureReason(msgID, message);
               break bindProcessing;
             }
+            else
+            {
+              userEntryDN = userEntry.getDN();
+            }
 
 
             // Check to see if the user has a password.  If not, then fail.
@@ -1172,6 +1202,11 @@ bindProcessing:
 
               setResultCode(ResultCode.INVALID_CREDENTIALS);
               setAuthFailureReason(msgID, message);
+
+              pwPolicyState.generateAccountStatusNotification(
+                   AccountStatusNotificationType.ACCOUNT_EXPIRED, bindDN, msgID,
+                   message);
+
               break bindProcessing;
             }
             else if (pwPolicyState.lockedDueToFailures())
@@ -1200,6 +1235,11 @@ bindProcessing:
 
               setResultCode(ResultCode.INVALID_CREDENTIALS);
               setAuthFailureReason(msgID, message);
+
+              pwPolicyState.generateAccountStatusNotification(
+                   AccountStatusNotificationType.ACCOUNT_RESET_LOCKED, bindDN,
+                   msgID, message);
+
               break bindProcessing;
             }
             else if (pwPolicyState.lockedDueToIdleInterval())
@@ -1214,6 +1254,11 @@ bindProcessing:
 
               setResultCode(ResultCode.INVALID_CREDENTIALS);
               setAuthFailureReason(msgID, message);
+
+              pwPolicyState.generateAccountStatusNotification(
+                   AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, bindDN,
+                   msgID, message);
+
               break bindProcessing;
             }
 
@@ -1252,6 +1297,11 @@ bindProcessing:
 
                   setResultCode(ResultCode.INVALID_CREDENTIALS);
                   setAuthFailureReason(msgID, message);
+
+                  pwPolicyState.generateAccountStatusNotification(
+                       AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
+                       msgID, message);
+
                   break bindProcessing;
                 }
               }
@@ -1262,17 +1312,28 @@ bindProcessing:
 
                 setResultCode(ResultCode.INVALID_CREDENTIALS);
                 setAuthFailureReason(msgID, message);
+
+                pwPolicyState.generateAccountStatusNotification(
+                     AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
+                     msgID, message);
+
                 break bindProcessing;
               }
             }
             else if (pwPolicyState.shouldWarn())
             {
+              int numSeconds = pwPolicyState.getSecondsUntilExpiration();
+              String timeToExpiration = secondsToTimeString(numSeconds);
+
+              int msgID = MSGID_BIND_PASSWORD_EXPIRING;
+              String message = getMessage(msgID, timeToExpiration);
+              appendErrorMessage(message);
+
               if (pwPolicyWarningType == null)
               {
                 pwPolicyWarningType =
                      PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION;
-                pwPolicyWarningValue =
-                     pwPolicyState.getSecondsUntilExpiration();
+                pwPolicyWarningValue = numSeconds;
               }
 
               isFirstWarning = pwPolicyState.isFirstWarning();
@@ -1418,6 +1479,16 @@ bindProcessing:
               if (isFirstWarning)
               {
                 pwPolicyState.setWarnedTime();
+
+                int numSeconds = pwPolicyState.getSecondsUntilExpiration();
+                String timeToExpiration = secondsToTimeString(numSeconds);
+
+                int msgID = MSGID_BIND_PASSWORD_EXPIRING;
+                String message = getMessage(msgID, timeToExpiration);
+
+                pwPolicyState.generateAccountStatusNotification(
+                     AccountStatusNotificationType.PASSWORD_EXPIRING, bindDN,
+                     msgID, message);
               }
 
               if (isGraceLogin)
@@ -1439,10 +1510,32 @@ bindProcessing:
               if (maxAllowedFailures > 0)
               {
                 pwPolicyState.updateAuthFailureTimes();
-                if (pwPolicyState.getAuthFailureTimes().size() >
+                if (pwPolicyState.getAuthFailureTimes().size() >=
                     maxAllowedFailures)
                 {
                   pwPolicyState.lockDueToFailures();
+
+                  AccountStatusNotificationType notificationType;
+
+                  int lockoutDuration = pwPolicyState.getLockoutDuration();
+                  if (lockoutDuration > 0)
+                  {
+                    notificationType = AccountStatusNotificationType.
+                                            ACCOUNT_TEMPORARILY_LOCKED;
+                    msgID   = MSGID_BIND_ACCOUNT_TEMPORARILY_LOCKED;
+                    message = getMessage(msgID,
+                                         secondsToTimeString(lockoutDuration));
+                  }
+                  else
+                  {
+                    notificationType = AccountStatusNotificationType.
+                                            ACCOUNT_PERMANENTLY_LOCKED;
+                    msgID   = MSGID_BIND_ACCOUNT_PERMANENTLY_LOCKED;
+                    message = getMessage(msgID);
+                  }
+
+                  pwPolicyState.generateAccountStatusNotification(
+                       notificationType, userEntryDN, msgID, message);
                 }
               }
             }
@@ -1532,7 +1625,8 @@ bindProcessing:
               // FIXME -- Need to have a way to enable debugging.
               pwPolicyState = new PasswordPolicyState(saslAuthUserEntry, false,
                                                       false);
-              userDNString = String.valueOf(saslAuthUserEntry.getDN());
+              userEntryDN = saslAuthUserEntry.getDN();
+              userDNString = String.valueOf(userEntryDN);
             }
             catch (DirectoryException de)
             {
@@ -1560,8 +1654,14 @@ bindProcessing:
             {
               setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int msgID = MSGID_BIND_OPERATION_ACCOUNT_EXPIRED;
-              appendErrorMessage(getMessage(msgID, userDNString));
+              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_EXPIRED;
+              String message = getMessage(msgID, userDNString);
+              appendErrorMessage(message);
+
+              pwPolicyState.generateAccountStatusNotification(
+                   AccountStatusNotificationType.ACCOUNT_EXPIRED, bindDN, msgID,
+                   message);
+
               break bindProcessing;
             }
 
@@ -1600,8 +1700,14 @@ bindProcessing:
                 pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
               }
 
-              int msgID = MSGID_BIND_OPERATION_ACCOUNT_IDLE_LOCKED;
-              appendErrorMessage(getMessage(msgID, userDNString));
+              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_IDLE_LOCKED;
+              String message = getMessage(msgID, userDNString);
+              appendErrorMessage(message);
+
+              pwPolicyState.generateAccountStatusNotification(
+                   AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, bindDN,
+                   msgID, message);
+
               break bindProcessing;
             }
 
@@ -1617,8 +1723,14 @@ bindProcessing:
                   pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
                 }
 
-                int msgID = MSGID_BIND_OPERATION_ACCOUNT_RESET_LOCKED;
-                appendErrorMessage(getMessage(msgID, userDNString));
+                int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_RESET_LOCKED;
+                String message = getMessage(msgID, userDNString);
+                appendErrorMessage(message);
+
+                pwPolicyState.generateAccountStatusNotification(
+                     AccountStatusNotificationType.ACCOUNT_RESET_LOCKED, bindDN,
+                     msgID, message);
+
                 break bindProcessing;
               }
 
@@ -1655,6 +1767,11 @@ bindProcessing:
 
                     setResultCode(ResultCode.INVALID_CREDENTIALS);
                     setAuthFailureReason(msgID, message);
+
+                    pwPolicyState.generateAccountStatusNotification(
+                         AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
+                         msgID, message);
+
                     break bindProcessing;
                   }
                 }
@@ -1665,17 +1782,28 @@ bindProcessing:
 
                   setResultCode(ResultCode.INVALID_CREDENTIALS);
                   setAuthFailureReason(msgID, message);
+
+                  pwPolicyState.generateAccountStatusNotification(
+                       AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
+                       msgID, message);
+
                   break bindProcessing;
                 }
               }
               else if (pwPolicyState.shouldWarn())
               {
+                int numSeconds = pwPolicyState.getSecondsUntilExpiration();
+                String timeToExpiration = secondsToTimeString(numSeconds);
+
+                int msgID = MSGID_BIND_PASSWORD_EXPIRING;
+                String message = getMessage(msgID, timeToExpiration);
+                appendErrorMessage(message);
+
                 if (pwPolicyWarningType == null)
                 {
                   pwPolicyWarningType =
                        PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION;
-                  pwPolicyWarningValue =
-                       pwPolicyState.getSecondsUntilExpiration();
+                  pwPolicyWarningValue = numSeconds;
                 }
 
                 isFirstWarning = pwPolicyState.isFirstWarning();
@@ -1701,6 +1829,16 @@ bindProcessing:
               if (isFirstWarning)
               {
                 pwPolicyState.setWarnedTime();
+
+                int numSeconds = pwPolicyState.getSecondsUntilExpiration();
+                String timeToExpiration = secondsToTimeString(numSeconds);
+
+                int msgID = MSGID_BIND_PASSWORD_EXPIRING;
+                String message = getMessage(msgID, timeToExpiration);
+
+                pwPolicyState.generateAccountStatusNotification(
+                     AccountStatusNotificationType.PASSWORD_EXPIRING, bindDN,
+                     msgID, message);
               }
 
               if (isGraceLogin)
@@ -1809,10 +1947,34 @@ bindProcessing:
                 if (maxAllowedFailures > 0)
                 {
                   pwPolicyState.updateAuthFailureTimes();
-                  if (pwPolicyState.getAuthFailureTimes().size() >
+                  if (pwPolicyState.getAuthFailureTimes().size() >=
                       maxAllowedFailures)
                   {
                     pwPolicyState.lockDueToFailures();
+
+                    AccountStatusNotificationType notificationType;
+                    int msgID;
+                    String message;
+
+                    int lockoutDuration = pwPolicyState.getLockoutDuration();
+                    if (lockoutDuration > 0)
+                    {
+                      notificationType = AccountStatusNotificationType.
+                                              ACCOUNT_TEMPORARILY_LOCKED;
+                      msgID   = MSGID_BIND_ACCOUNT_TEMPORARILY_LOCKED;
+                      message = getMessage(msgID,
+                                     secondsToTimeString(lockoutDuration));
+                    }
+                    else
+                    {
+                      notificationType = AccountStatusNotificationType.
+                                              ACCOUNT_PERMANENTLY_LOCKED;
+                      msgID   = MSGID_BIND_ACCOUNT_PERMANENTLY_LOCKED;
+                      message = getMessage(msgID);
+                    }
+
+                    pwPolicyState.generateAccountStatusNotification(
+                         notificationType, userEntryDN, msgID, message);
                   }
                 }
               }

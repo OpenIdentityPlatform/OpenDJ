@@ -55,6 +55,26 @@ objectClass: top
 objectClass: ds-cfg-branch
 cn: Account Status Notification Handlers
 
+dn: cn=Error Log Handler,cn=Account Status Notification Handlers,cn=config
+objectClass: top
+objectClass: ds-cfg-account-status-notification-handler
+objectClass: ds-cfg-error-log-account-status-notification-handler
+cn: Error Log Handler
+ds-cfg-account-status-notification-handler-class: org.opends.server.extensions.ErrorLogAccountStatusNotificationHandler
+ds-cfg-account-status-notification-handler-enabled: true
+ds-cfg-account-status-notification-type: account-temporarily-locked
+ds-cfg-account-status-notification-type: account-permanently-locked
+ds-cfg-account-status-notification-type: account-unlocked
+ds-cfg-account-status-notification-type: account-idle-locked
+ds-cfg-account-status-notification-type: account-reset-locked
+ds-cfg-account-status-notification-type: account-disabled
+ds-cfg-account-status-notification-type: account-enabled
+ds-cfg-account-status-notification-type: account-expired
+ds-cfg-account-status-notification-type: password-expired
+ds-cfg-account-status-notification-type: password-expiring
+ds-cfg-account-status-notification-type: password-reset
+ds-cfg-account-status-notification-type: password-changed
+
 dn: cn=Alert Handlers,cn=config
 objectClass: top
 objectClass: ds-cfg-branch

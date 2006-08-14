@@ -967,6 +967,9 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.282
   NAME 'ds-cfg-account-status-notification-handler-enabled'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.283
+  NAME 'ds-cfg-account-status-notification-type'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1322,7 +1325,13 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.74
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.75
   NAME 'ds-cfg-account-status-notification-handler' SUP top STRUCTURAL
-  MUST ( ds-cfg-account-status-notification-handler-class $
+  MUST ( cn $ ds-cfg-account-status-notification-handler-class $
   ds-cfg-account-status-notification-handler-enabled )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.76
+  NAME 'ds-cfg-error-log-account-status-notification-handler'
+  SUP ds-cfg-account-status-notification-handler STRUCTURAL
+  MUST ds-cfg-account-status-notification-type
+  X-ORIGIN 'OpenDS Directory Server' )
+
 

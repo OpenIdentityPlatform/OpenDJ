@@ -3928,6 +3928,50 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * notification types configuration attribute.  This does not take any
+   * arguments.
+   */
+  public static final int
+       MSGID_ERRORLOG_ACCTNOTHANDLER_DESCRIPTION_NOTIFICATION_TYPES =
+            CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 372;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid notification
+   * type is specified.  This takes two arguments, which are the DN of the
+   * configuration entry and the invalid notification type.
+   */
+  public static final int MSGID_ERRORLOG_ACCTNOTHANDLER_INVALID_TYPE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 373;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to determine the account status notification types.  This takes
+   * two arguments, which are the DN of the configuration entry and a string
+   * representation of the exception that occurred.
+   */
+  public static final int
+       MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES =
+            CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 374;
+
+
+
+  /**
+   * The message ID for the message that will be written to the error log
+   * whenever an account status notification is generated.  This takes four
+   * arguments, which are the name of the account status notification type, the
+   * user DN, the message ID, and the message string.
+   */
+  public static final int MSGID_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_NOTICE | 375;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5729,6 +5773,23 @@ public class ExtensionsMessages
                     "value for configuration attribute " +
                     ATTR_PASSWORD_FORMAT + ", which is used to specify the " +
                     "format for the generated passwords:  %s.");
+
+
+    registerMessage(
+         MSGID_ERRORLOG_ACCTNOTHANDLER_DESCRIPTION_NOTIFICATION_TYPES,
+         "Specifies the status notification types for which log messages " +
+         "should be generated.  It is a multivalued attribute, and changes " +
+         "will take effect immediately.");
+    registerMessage(MSGID_ERRORLOG_ACCTNOTHANDLER_INVALID_TYPE,
+                    "Configuration entry %s contains unrecognized account " +
+                    "status notification type %s.");
+    registerMessage(MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES,
+                    "An error occurred while attempting to determine " +
+                    "the account status notification types from " +
+                    "configuration entry %s:  %s.");
+    registerMessage(MSGID_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION,
+                    "Account-Status-Notification type='%s' userdn='%s' " +
+                    "id=%d msg='%s'");
   }
 }
 
