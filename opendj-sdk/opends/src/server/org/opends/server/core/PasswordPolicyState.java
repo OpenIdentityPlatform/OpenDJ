@@ -1770,6 +1770,23 @@ public class PasswordPolicyState
 
 
   /**
+   * Retrieves the length of time in seconds that a user's account will be
+   * locked due to failed attempts before it will be automatically unlocked.
+   *
+   * @return  The length of time in seconds that a user's account will be
+   *          locked due to failed attempts before it will be automatically
+   *          unlocked, or zero if accounts will not be automatically unlocked.
+   */
+  public int getLockoutDuration()
+  {
+    assert debugEnter(CLASS_NAME, "getLockoutDuration");
+
+    return passwordPolicy.getLockoutDuration();
+  }
+
+
+
+  /**
    * Retrieves the length of time in seconds until the user's account is
    * automatically unlocked.  This should only be called after calling
    * <CODE>lockedDueToFailures</CODE>.
@@ -4122,15 +4139,17 @@ public class PasswordPolicyState
    * Generates an account status notification for this user.
    *
    * @param  notificationType  The type for the account status notification.
+   * @param  userDN            The DN of the user entry to which this
+   *                           notification applies.
    * @param  messageID         The unique ID for the notification.
    * @param  message           The human-readable message for the notification.
    */
   public void generateAccountStatusNotification(
                    AccountStatusNotificationType notificationType,
-                   int messageID, String message)
+                   DN userDN, int messageID, String message)
   {
     assert debugEnter(CLASS_NAME, "generateAccountStatusNotification",
-                      String.valueOf(notificationType),
+                      String.valueOf(notificationType), String.valueOf(userDN),
                       String.valueOf(messageID), String.valueOf(message));
 
 
@@ -4143,7 +4162,8 @@ public class PasswordPolicyState
 
     for (AccountStatusNotificationHandler handler : handlers)
     {
-      handler.handleStatusNotification(notificationType, messageID, message);
+      handler.handleStatusNotification(notificationType, userDN, messageID,
+                                       message);
     }
   }
 

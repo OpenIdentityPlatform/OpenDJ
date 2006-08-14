@@ -124,6 +124,15 @@ public class ConfigConstants
 
 
   /**
+   * The name of the configuration attribute that specifies the set of account
+   * status notification types that should trigger notifications.
+   */
+  public static final String ATTR_ACCT_NOTIFICATION_TYPE =
+       NAME_PREFIX_CFG + "account-status-notification-type";
+
+
+
+  /**
    * The name of the configuration attribute that indicates whether to
    * automatically add missing RDN attributes or to return an error response to
    * the client.

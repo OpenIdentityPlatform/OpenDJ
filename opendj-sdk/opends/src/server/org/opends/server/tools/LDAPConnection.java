@@ -47,7 +47,8 @@ import org.opends.server.types.Control;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.CoreMessages.*;
+import static org.opends.server.messages.CoreMessages.
+                   MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;

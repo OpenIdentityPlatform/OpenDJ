@@ -215,6 +215,89 @@ public enum AccountStatusNotificationType
 
 
   /**
+   * Retrieves the account status notification type with the specified
+   * name.
+   *
+   * @param  name  The name for the account status notification type
+   *               to retrieve.
+   *
+   * @return  The requested account status notification type, or
+   *          <CODE>null</CODE> if there is no type with the given
+   *          name.
+   */
+  public static AccountStatusNotificationType typeForName(String name)
+  {
+    String lowerName = toLowerCase(name);
+
+    if (lowerName.equals(getMessage(
+             MSGID_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED)))
+    {
+      return ACCOUNT_TEMPORARILY_LOCKED;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED)))
+    {
+      return ACCOUNT_PERMANENTLY_LOCKED;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_ACCOUNT_UNLOCKED)))
+    {
+      return ACCOUNT_UNLOCKED;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED)))
+    {
+      return ACCOUNT_IDLE_LOCKED;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED)))
+    {
+      return ACCOUNT_RESET_LOCKED;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_ACCOUNT_DISABLED)))
+    {
+      return ACCOUNT_DISABLED;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_ACCOUNT_ENABLED)))
+    {
+      return ACCOUNT_ENABLED;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_ACCOUNT_EXPIRED)))
+    {
+      return ACCOUNT_EXPIRED;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_PASSWORD_EXPIRED)))
+    {
+      return PASSWORD_EXPIRED;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_PASSWORD_EXPIRING)))
+    {
+      return PASSWORD_EXPIRING;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_PASSWORD_RESET)))
+    {
+      return PASSWORD_RESET;
+    }
+    else if (lowerName.equals(getMessage(
+                  MSGID_ACCTNOTTYPE_PASSWORD_CHANGED)))
+    {
+      return PASSWORD_CHANGED;
+    }
+    else
+    {
+      return null;
+    }
+  }
+
+
+
+  /**
    * Retrieves the notification type identifier for this account
    * status notification type.
    *
@@ -224,6 +307,18 @@ public enum AccountStatusNotificationType
   public int getNotificationTypeID()
   {
     return notificationTypeID;
+  }
+
+
+
+  /**
+   * Retrieves the name for this account status notification type.
+   *
+   * @return  The name for this account status notification type.
+   */
+  public String getNotificationTypeName()
+  {
+    return getMessage(notificationTypeID);
   }
 
 
