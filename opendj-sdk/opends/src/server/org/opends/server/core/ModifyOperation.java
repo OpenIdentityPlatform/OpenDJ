@@ -56,8 +56,10 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.schema.AuthPasswordSyntax;
+import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.AcceptRejectWarn;
+import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -76,6 +78,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SynchronizationProviderResult;
 
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
 import static org.opends.server.loggers.Debug.*;
@@ -1251,6 +1254,9 @@ modifyProcessing:
         // Declare variables used for password policy state processing.
         boolean passwordChanged = false;
         boolean currentPasswordProvided = false;
+        boolean isEnabled = true;
+        boolean enabledStateChanged = false;
+        boolean wasLocked = false;
         int numPasswords;
         if (currentEntry.hasAttribute(pwPolicyState.getPasswordAttribute()))
         {
@@ -1283,6 +1289,11 @@ modifyProcessing:
 
           if (passwordChanged)
           {
+            // See if the account was locked for any reason.
+            wasLocked = pwPolicyState.lockedDueToIdleInterval() ||
+                        pwPolicyState.lockedDueToMaximumResetAge() ||
+                        pwPolicyState.lockedDueToFailures();
+
             // Update the password policy state attributes in the user's entry.
             // If the modification fails, then these changes won't be applied.
             pwPolicyState.setPasswordChangedTime();
@@ -1342,8 +1353,7 @@ modifyProcessing:
           // If the modification is updating the password attribute, then
           // perform any necessary password policy processing.  This processing
           // should be skipped for internal and synchronization operations.
-          boolean isPassword = a.getAttributeType().equals(
-                                    pwPolicyState.getPasswordAttribute());
+          boolean isPassword = t.equals(pwPolicyState.getPasswordAttribute());
           if (isPassword &&
               (! (isInternalOperation() || isSynchronizationOperation())))
           {
@@ -1655,6 +1665,37 @@ modifyProcessing:
                      String.valueOf(m.getModificationType()), a.getName()));
 
                 break modifyProcessing;
+            }
+          }
+          else
+          {
+            // See if it's an attribute used to maintain the account
+            // enabled/disabled state.
+            AttributeType disabledAttr =
+                 DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED,
+                                                  true);
+            if (t.equals(disabledAttr))
+            {
+              enabledStateChanged = true;
+              for (AttributeValue v : a.getValues())
+              {
+                try
+                {
+                  isEnabled = (! BooleanSyntax.decodeBooleanValue(
+                                                    v.getNormalizedValue()));
+                }
+                catch (DirectoryException de)
+                {
+                  setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
+
+                  int msgID = MSGID_MODIFY_INVALID_DISABLED_VALUE;
+                  String message =
+                       getMessage(msgID, OP_ATTR_ACCOUNT_DISABLED,
+                                  String.valueOf(de.getErrorMessage()));
+                  appendErrorMessage(message);
+                  break modifyProcessing;
+                }
+              }
             }
           }
 
@@ -2361,20 +2402,63 @@ modifyProcessing:
             backend.replaceEntry(modifiedEntry, this);
 
 
-            // If the update was successful and included a self password change,
-            // then clear the "must change" flag in the client connection.
-            if ((getResultCode() == ResultCode.SUCCESS) && passwordChanged &&
-                selfChange)
+            // If the modification was successful, then see if there's any other
+            // work that we need to do here before handing off to postop
+            // plugins.
+            if (passwordChanged)
             {
-              // We really only want to do this if the authentication DN from
-              // the client connection is equal to the entry that was updated to
-              // avoid clearing the flag for the wrong user.
-              AuthenticationInfo authInfo =
-                   clientConnection.getAuthenticationInfo();
-              if (authInfo.getAuthenticationDN().equals(entryDN))
+              if (selfChange)
               {
-                clientConnection.setMustChangePassword(false);
+                AuthenticationInfo authInfo =
+                     clientConnection.getAuthenticationInfo();
+                if (authInfo.getAuthenticationDN().equals(entryDN))
+                {
+                  clientConnection.setMustChangePassword(false);
+                }
+
+                int    msgID   = MSGID_MODIFY_PASSWORD_CHANGED;
+                String message = getMessage(msgID);
+                pwPolicyState.generateAccountStatusNotification(
+                     AccountStatusNotificationType.PASSWORD_CHANGED, entryDN,
+                     msgID, message);
               }
+              else
+              {
+                int    msgID   = MSGID_MODIFY_PASSWORD_RESET;
+                String message = getMessage(msgID);
+                pwPolicyState.generateAccountStatusNotification(
+                     AccountStatusNotificationType.PASSWORD_RESET, entryDN,
+                     msgID, message);
+              }
+            }
+
+            if (enabledStateChanged)
+            {
+              if (isEnabled)
+              {
+                int    msgID   = MSGID_MODIFY_ACCOUNT_ENABLED;
+                String message = getMessage(msgID);
+                pwPolicyState.generateAccountStatusNotification(
+                     AccountStatusNotificationType.ACCOUNT_ENABLED, entryDN,
+                     msgID, message);
+              }
+              else
+              {
+                int    msgID   = MSGID_MODIFY_ACCOUNT_DISABLED;
+                String message = getMessage(msgID);
+                pwPolicyState.generateAccountStatusNotification(
+                     AccountStatusNotificationType.ACCOUNT_DISABLED, entryDN,
+                     msgID, message);
+              }
+            }
+
+            if (wasLocked)
+            {
+              int    msgID   = MSGID_MODIFY_ACCOUNT_UNLOCKED;
+              String message = getMessage(msgID);
+              pwPolicyState.generateAccountStatusNotification(
+                   AccountStatusNotificationType.ACCOUNT_UNLOCKED, entryDN,
+                   msgID, message);
             }
           }
 
