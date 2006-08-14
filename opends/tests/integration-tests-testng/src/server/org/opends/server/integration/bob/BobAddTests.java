@@ -117,7 +117,7 @@ public class BobAddTests extends BobTests
     ds_output.redirectOutput(logDir, "BobAddTest5.txt");
     int retCode = LDAPModify.mainModify(bob_args);
     ds_output.resetOutput();
-    int expCode = 0;
+    int expCode = 1;
 
     compareExitCode(retCode, expCode);
   }
