@@ -6645,9 +6645,9 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_CORE_INVALID_TIME_LIMIT,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_TIME_LIMIT +
-                    " (it should be the a positive integer value specifying " +
-                    "the time limit in seconds, or -1 to indicate that no " +
-                    "limit should be enforced):  %s.");
+                    " (it should be an integer value followed by a space " +
+                    "and a time unit of seconds, minutes, hours, days, or " +
+                    "weeks):  %s.");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_WRITABILITY_MODE,
                     "Specifies the writability mode for the Directory " +
                     "Server.  The value may be one of \"enabled\", " +
