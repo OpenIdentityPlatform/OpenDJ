@@ -1182,13 +1182,13 @@ public class AttributeType
 
   /**
    * Indicates whether the provided object is equal to this attribute
-   * value.  The object will be considered equal if it is an attribute
+   * type.  The object will be considered equal if it is an attribute
    * type with the same OID as the current type.
    *
    * @param  o  The object for which to make the determination.
    *
    * @return  <CODE>true</CODE> if the provided object is equal to
-   *          this attribute, or <CODE>false</CODE> if not.
+   *          this attribute type, or <CODE>false</CODE> if not.
    */
   public boolean equals(Object o)
   {

@@ -5756,6 +5756,67 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * modify the account disabled attribute using an invalid value.  This takes
+   * two arguments, which are the name of the attribute and a message explaining
+   * the reason the value was invalid.
+   */
+  public static final int MSGID_MODIFY_INVALID_DISABLED_VALUE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 550;
+
+
+
+  /**
+   * The message ID for the message that will be used in the account status
+   * notification indicating that a user's password has been changed.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_MODIFY_PASSWORD_CHANGED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 551;
+
+
+
+  /**
+   * The message ID for the message that will be used in the account status
+   * notification indicating that a user's password has been reset by an
+   * administrator.  This does not take any arguments.
+   */
+  public static final int MSGID_MODIFY_PASSWORD_RESET =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 552;
+
+
+
+  /**
+   * The message ID for the message that will be used in the account status
+   * notification indicating that a user's account has been enabled.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_MODIFY_ACCOUNT_ENABLED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 553;
+
+
+
+  /**
+   * The message ID for the message that will be used in the account status
+   * notification indicating that a user's account has been disabled.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_MODIFY_ACCOUNT_DISABLED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 554;
+
+
+
+  /**
+   * The message ID for the message that will be used in the account status
+   * notification indicating that a user's account has been unlocked.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_MODIFY_ACCOUNT_UNLOCKED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 555;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6867,6 +6928,9 @@ public class CoreMessages
     registerMessage(MSGID_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD,
                     "Invalid modification type %s attempted on password " +
                     "attribute %s.");
+    registerMessage(MSGID_MODIFY_INVALID_DISABLED_VALUE,
+                    "Invalid value provided for operational attribute %s:  " +
+                    "%s.");
     registerMessage(MSGID_MODIFY_ADD_NO_VALUES,
                     "Entry %s cannot be modified because the modification " +
                     "contained an add component for attribute %s but no " +
@@ -6940,6 +7004,16 @@ public class CoreMessages
                     "The modify operation was not actually performed in the " +
                     "Directory Server backend because the LDAP no-op control " +
                     "was present in the request.");
+    registerMessage(MSGID_MODIFY_PASSWORD_CHANGED,
+                    "The user password has been changed.");
+    registerMessage(MSGID_MODIFY_PASSWORD_RESET,
+                    "The user password has been administratively reset.");
+    registerMessage(MSGID_MODIFY_ACCOUNT_ENABLED,
+                    "The user account has been administratively enabled.");
+    registerMessage(MSGID_MODIFY_ACCOUNT_DISABLED,
+                    "The user account has been administratively disabled.");
+    registerMessage(MSGID_MODIFY_ACCOUNT_UNLOCKED,
+                    "The user account has been administratively unlocked.");
     registerMessage(MSGID_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER,
                     "An unexpected error occurred while notifying a change " +
                     "notification listener of a modify operation:  %s.");
