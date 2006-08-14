@@ -1409,6 +1409,7 @@ modifyProcessing:
             // password values (increment doesn't make any sense for passwords).
             // Then perform the appropriate type of processing for that kind of
             // modification.
+            boolean isAdd = false;
             LinkedHashSet<AttributeValue> pwValues = a.getValues();
             LinkedHashSet<AttributeValue> encodedValues =
                  new LinkedHashSet<AttributeValue>();
@@ -1421,6 +1422,7 @@ modifyProcessing:
                 if (m.getModificationType() == ModificationType.ADD)
                 {
                   numPasswords += passwordsToAdd;
+                  isAdd = true;
                 }
                 else
                 {
@@ -1462,6 +1464,20 @@ modifyProcessing:
                   }
                   else
                   {
+                    if (isAdd)
+                    {
+                      // Make sure that the password value doesn't already
+                      // exist.
+                      if (pwPolicyState.passwordMatches(v.getValue()))
+                      {
+                        setResultCode(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS);
+
+                        int msgID = MSGID_MODIFY_PASSWORD_EXISTS;
+                        appendErrorMessage(getMessage(msgID));
+                        break modifyProcessing;
+                      }
+                    }
+
                     if (newPasswords == null)
                     {
                       newPasswords = new LinkedList<AttributeValue>();

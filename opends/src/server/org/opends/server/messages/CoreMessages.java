@@ -5817,6 +5817,15 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a password that already exists.  This does not take any arguments.
+   */
+  public static final int MSGID_MODIFY_PASSWORD_EXISTS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 556;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6916,6 +6925,9 @@ public class CoreMessages
                     "entries.");
     registerMessage(MSGID_MODIFY_NO_PREENCODED_PASSWORDS,
                     "User passwords may not be provided in pre-encoded form.");
+    registerMessage(MSGID_MODIFY_PASSWORD_EXISTS,
+                    "The specified password value already exists in the " +
+                    "user entry.");
     registerMessage(MSGID_MODIFY_NO_EXISTING_VALUES,
                     "The user entry does not have any existing passwords to " +
                     "remove.");
