@@ -174,6 +174,13 @@ public class ConfigurableEnvironment implements ConfigurableComponent
        ConfigConstants.NAME_PREFIX_CFG + "database-lock-num-lock-tables";
 
 
+  /**
+   * The name of the attribute which configures the number threads
+   * allocated by the cleaner for log file processing.
+   */
+  public static final String ATTR_NUM_CLEANER_THREADS =
+       ConfigConstants.NAME_PREFIX_CFG + "database-cleaner-num-threads";
+
 
   /**
    * A map of JE property names to their associated configuration attribute.
@@ -202,6 +209,7 @@ public class ConfigurableEnvironment implements ConfigurableComponent
   private static final ConfigAttribute CONFIG_ATTR_CHECKPOINTER_BYTES_INTERVAL;
   private static final ConfigAttribute CONFIG_ATTR_CHECKPOINTER_WAKEUP_INTERVAL;
   private static final ConfigAttribute CONFIG_ATTR_NUM_LOCK_TABLES;
+  private static final ConfigAttribute CONFIG_ATTR_NUM_CLEANER_THREADS;
 
 
 
@@ -326,6 +334,11 @@ public class ConfigurableEnvironment implements ConfigurableComponent
          new IntegerConfigAttribute(ATTR_NUM_LOCK_TABLES, msg, false,
                                     false, true, true, 1, true, 32767);
 
+    msg = getMessage(MSGID_CONFIG_DESCRIPTION_NUM_CLEANER_THREADS);
+    CONFIG_ATTR_NUM_CLEANER_THREADS =
+         new IntegerConfigAttribute(ATTR_NUM_CLEANER_THREADS, msg, false,
+                                    false, false, true, 1, false, 0);
+
     // Register the parameters that have JE property names.
     registerPropertyAttribute("je.maxMemoryPercent",
                               CONFIG_ATTR_CACHE_PERCENT);
@@ -351,6 +364,8 @@ public class ConfigurableEnvironment implements ConfigurableComponent
                               CONFIG_ATTR_CHECKPOINTER_WAKEUP_INTERVAL);
     registerPropertyAttribute("je.lock.nLockTables",
                               CONFIG_ATTR_NUM_LOCK_TABLES);
+    registerPropertyAttribute("je.cleaner.threads",
+                              CONFIG_ATTR_NUM_CLEANER_THREADS);
 
     // These parameters do not have JE property names.
     configAttrList.add(CONFIG_ATTR_TXN_NO_SYNC);
