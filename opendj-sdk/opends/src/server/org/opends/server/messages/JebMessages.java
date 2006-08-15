@@ -1213,6 +1213,14 @@ public class JebMessages
 
 
 
+  /**
+   * The message ID used to describe the attribute which configures
+   * the number of threads allocated by the cleaner for log file processing.
+   */
+  public static final int MSGID_CONFIG_DESCRIPTION_NUM_CLEANER_THREADS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 125;
+
+
 
 
   /**
@@ -1696,5 +1704,9 @@ public class JebMessages
                     "number of server worker threads.");
     registerMessage(MSGID_JEB_IMPORT_ENVIRONMENT_CONFIG,
                     "Database environment properties: %s.");
+    registerMessage(MSGID_CONFIG_DESCRIPTION_NUM_CLEANER_THREADS,
+                    "The number of threads allocated by the cleaner for log " +
+                    "file processing. If the cleaner backlog becomes large, " +
+                    "increase this number.");
   }
 }

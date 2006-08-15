@@ -194,6 +194,7 @@ ds-cfg-database-cache-size: 0 megabytes
 ds-cfg-database-txn-no-sync: false
 ds-cfg-database-txn-write-no-sync: true
 ds-cfg-database-run-cleaner: true
+ds-cfg-database-cleaner-num-threads: 1
 ds-cfg-database-cleaner-min-utilization: 75
 ds-cfg-database-evictor-lru-only: true
 ds-cfg-database-evictor-nodes-per-scan: 10
