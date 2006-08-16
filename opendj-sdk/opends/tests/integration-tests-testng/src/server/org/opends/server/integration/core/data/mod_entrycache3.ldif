@@ -26,7 +26,7 @@
 dn: cn=Entry Cache,cn=config
 changetype: modify
 add: ds-cfg-lock-timeout
-ds-cfg-lock-timeout: 60
+ds-cfg-lock-timeout: 60 s
 -
 add: ds-cfg-exclude-filter
 ds-cfg-exclude-filter: telephonenumber=*

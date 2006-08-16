@@ -32,7 +32,7 @@ ds-cfg-entry-cache-enabled: true
 ds-cfg-entry-cache-class: com.sun.directory.extensions.FIFOEntryCache
 ds-cfg-max-entries: 100000
 ds-cfg-max-memory-percent: 50
-ds-cfg-lock-timeout: 60
+ds-cfg-lock-timeout: 60 s
 ds-cfg-exclude-filter: telephoneNumber=*
 ds-cfg-include-filter: roomNumber=*
 
