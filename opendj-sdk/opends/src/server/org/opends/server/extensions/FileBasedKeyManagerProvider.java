@@ -159,7 +159,7 @@ public class FileBasedKeyManagerProvider
         throw new ConfigException(msgID, message);
       }
 
-      File f = new File(keyStoreFile);
+      File f = getFileForPath(keyStoreFile);
       if (! (f.exists() && f.isFile()))
       {
         msgID = MSGID_FILE_KEYMANAGER_NO_SUCH_FILE;
@@ -356,7 +356,7 @@ pinSelection:
         {
           String fileName = pinFileAttr.activeValue();
 
-          File pinFile = new File(fileName);
+          File pinFile = getFileForPath(fileName);
           if (! pinFile.exists())
           {
             msgID = MSGID_FILE_KEYMANAGER_PIN_NO_SUCH_FILE;
@@ -489,7 +489,8 @@ pinSelection:
     {
       keyStore = KeyStore.getInstance(keyStoreType);
 
-      FileInputStream inputStream = new FileInputStream(keyStoreFile);
+      FileInputStream inputStream =
+           new FileInputStream(getFileForPath(keyStoreFile));
       keyStore.load(inputStream, keyStorePIN);
       inputStream.close();
     }
@@ -657,7 +658,7 @@ pinSelection:
         throw new ConfigException(msgID, message);
       }
 
-      File f = new File(newKeyStoreFile);
+      File f = getFileForPath(newKeyStoreFile);
       if (! (f.exists() && f.isFile()))
       {
         msgID = MSGID_FILE_KEYMANAGER_NO_SUCH_FILE;
@@ -824,7 +825,7 @@ pinSelection:
         {
           String fileName = pinFileAttr.activeValue();
 
-          File pinFile = new File(fileName);
+          File pinFile = getFileForPath(fileName);
           if (! pinFile.exists())
           {
             msgID = MSGID_FILE_KEYMANAGER_PIN_NO_SUCH_FILE;
@@ -966,7 +967,7 @@ pinSelection:
         throw new ConfigException(msgID, message);
       }
 
-      File f = new File(newKeyStoreFile);
+      File f = getFileForPath(newKeyStoreFile);
       if (! (f.exists() && f.isFile()))
       {
         msgID = MSGID_FILE_KEYMANAGER_NO_SUCH_FILE;
@@ -1176,7 +1177,7 @@ pinSelection:
         {
           String fileName = pinFileAttr.activeValue();
 
-          File pinFile = new File(fileName);
+          File pinFile = getFileForPath(fileName);
           if (! pinFile.exists())
           {
             msgID = MSGID_FILE_KEYMANAGER_PIN_NO_SUCH_FILE;

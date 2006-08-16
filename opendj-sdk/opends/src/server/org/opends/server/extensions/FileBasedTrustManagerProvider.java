@@ -158,7 +158,7 @@ public class FileBasedTrustManagerProvider
         throw new ConfigException(msgID, message);
       }
 
-      File f = new File(trustStoreFile);
+      File f = getFileForPath(trustStoreFile);
       if (! (f.exists() && f.isFile()))
       {
         msgID = MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE;
@@ -358,7 +358,7 @@ pinSelection:
         {
           String fileName = pinFileAttr.activeValue();
 
-          File pinFile = new File(fileName);
+          File pinFile = getFileForPath(fileName);
           if (! pinFile.exists())
           {
             msgID = MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE;
@@ -483,7 +483,8 @@ pinSelection:
     {
       trustStore = KeyStore.getInstance(trustStoreType);
 
-      FileInputStream inputStream = new FileInputStream(trustStoreFile);
+      FileInputStream inputStream =
+           new FileInputStream(getFileForPath(trustStoreFile));
       trustStore.load(inputStream, trustStorePIN);
       inputStream.close();
     }
@@ -651,7 +652,7 @@ pinSelection:
         throw new ConfigException(msgID, message);
       }
 
-      File f = new File(newTrustStoreFile);
+      File f = getFileForPath(newTrustStoreFile);
       if (! (f.exists() && f.isFile()))
       {
         msgID = MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE;
@@ -818,7 +819,7 @@ pinSelection:
         {
           String fileName = pinFileAttr.activeValue();
 
-          File pinFile = new File(fileName);
+          File pinFile = getFileForPath(fileName);
           if (! pinFile.exists())
           {
             msgID = MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE;
@@ -952,7 +953,7 @@ pinSelection:
         throw new ConfigException(msgID, message);
       }
 
-      File f = new File(newTrustStoreFile);
+      File f = getFileForPath(newTrustStoreFile);
       if (! (f.exists() && f.isFile()))
       {
         msgID = MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE;
@@ -1162,7 +1163,7 @@ pinSelection:
         {
           String fileName = pinFileAttr.activeValue();
 
-          File pinFile = new File(fileName);
+          File pinFile = getFileForPath(fileName);
           if (! pinFile.exists())
           {
             msgID = MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE;

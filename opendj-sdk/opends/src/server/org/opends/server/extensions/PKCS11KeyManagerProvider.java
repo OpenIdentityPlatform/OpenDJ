@@ -257,7 +257,7 @@ pinSelection:
         {
           String fileName = pinFileAttr.activeValue();
 
-          File pinFile = new File(fileName);
+          File pinFile = getFileForPath(fileName);
           if (! pinFile.exists())
           {
             msgID = MSGID_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE;
@@ -612,7 +612,7 @@ pinSelection:
         {
           String fileName = pinFileAttr.activeValue();
 
-          File pinFile = new File(fileName);
+          File pinFile = getFileForPath(fileName);
           if (! pinFile.exists())
           {
             msgID = MSGID_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE;
@@ -858,7 +858,7 @@ pinSelection:
         {
           String fileName = pinFileAttr.activeValue();
 
-          File pinFile = new File(fileName);
+          File pinFile = getFileForPath(fileName);
           if (! pinFile.exists())
           {
             msgID = MSGID_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE;

@@ -1342,11 +1342,7 @@ public class TaskBackend
         String tmpBackingFile = backingAttr.pendingValue();
         if (! taskBackingFile.equals(tmpBackingFile))
         {
-          File f = new File(tmpBackingFile);
-          if (!f.isAbsolute())
-          {
-            f = new File(DirectoryServer.getServerRoot(), tmpBackingFile);
-          }
+          File f = getFileForPath(tmpBackingFile);
           if (f.exists())
           {
             int msgID = MSGID_TASKBE_BACKING_FILE_EXISTS;
@@ -1475,11 +1471,7 @@ public class TaskBackend
         tmpBackingFile = backingAttr.pendingValue();
         if (! taskBackingFile.equals(tmpBackingFile))
         {
-          File f = new File(tmpBackingFile);
-          if (!f.isAbsolute())
-          {
-            f = new File(DirectoryServer.getServerRoot(), tmpBackingFile);
-          }
+          File f = getFileForPath(tmpBackingFile);
           if (f.exists())
           {
             int msgID = MSGID_TASKBE_BACKING_FILE_EXISTS;
@@ -1617,11 +1609,7 @@ public class TaskBackend
   {
     assert debugEnter(CLASS_NAME, "getTaskBackingFile");
 
-    File f = new File(taskBackingFile);
-    if (!f.isAbsolute())
-    {
-      f = new File(DirectoryServer.getServerRoot(), taskBackingFile);
-    }
+    File f = getFileForPath(taskBackingFile);
     return f.getPath();
   }
 

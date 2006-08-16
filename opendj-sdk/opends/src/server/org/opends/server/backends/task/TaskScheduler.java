@@ -932,7 +932,7 @@ public class TaskScheduler
 
     try
     {
-      File backingFile = new File(backingFilePath);
+      File backingFile = getFileForPath(backingFilePath);
       if (! backingFile.exists())
       {
         createNewTaskBackingFile();
@@ -1205,7 +1205,7 @@ public class TaskScheduler
 
 
       // See if there is a ".save" file.  If so, then delete it.
-      File saveFile = new File(backingFilePath + ".save");
+      File saveFile = getFileForPath(backingFilePath + ".save");
       try
       {
         if (saveFile.exists())
@@ -1220,7 +1220,7 @@ public class TaskScheduler
 
 
       // If there is an existing backing file, then rename it to ".save".
-      File backingFile = new File(backingFilePath);
+      File backingFile = getFileForPath(backingFilePath);
       try
       {
         if (backingFile.exists())
@@ -1246,7 +1246,7 @@ public class TaskScheduler
 
 
       // Rename the ".tmp" file into place.
-      File tmpFile = new File(tmpFilePath);
+      File tmpFile = getFileForPath(tmpFilePath);
       try
       {
         tmpFile.renameTo(backingFile);
