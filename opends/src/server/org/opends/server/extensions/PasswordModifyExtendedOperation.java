@@ -894,8 +894,8 @@ public class PasswordModifyExtendedOperation
 
 
       // Get an internal connection and use it to perform the modification.
-      // FIXME -- Make a better determination here.
-      AuthenticationInfo authInfo = new AuthenticationInfo(requestorDN, false);
+      boolean isRoot = DirectoryServer.isRootDN(requestorDN);
+      AuthenticationInfo authInfo = new AuthenticationInfo(requestorDN, isRoot);
       InternalClientConnection internalConnection = new
            InternalClientConnection(authInfo);
 
