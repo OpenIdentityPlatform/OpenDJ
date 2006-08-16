@@ -3180,6 +3180,53 @@ public class StaticUtils
 
 
   /**
+   * Indicates whether the provided path refers to a relative path rather than
+   * an absolute path.
+   *
+   * @param  path  The path string for which to make the determination.
+   *
+   * @return  <CODE>true</CODE> if the provided path is relative, or
+   *          <CODE>false</CODE> if it is absolute.
+   */
+  public static boolean isRelativePath(String path)
+  {
+    assert debugEnter(CLASS_NAME, "isRelativePath", String.valueOf(path));
+
+    File f = new File(path);
+    return (! f.isAbsolute());
+  }
+
+
+
+  /**
+   * Retrieves a <CODE>File</CODE> object corresponding to the specified path.
+   * If the given path is an absolute path, then it will be used.  If the path
+   * is relative, then it will be interpreted as if it were relative to the
+   * Directory Server root.
+   *
+   * @param  path  The path string to be retrieved as a <CODE>File</CODE>
+   *
+   * @return  A <CODE>File</CODE> object that corresponds to the specified path.
+   */
+  public static File getFileForPath(String path)
+  {
+    assert debugEnter(CLASS_NAME, "getFileForPath", String.valueOf(path));
+
+    File f = new File (path);
+
+    if (f.isAbsolute())
+    {
+      return f;
+    }
+    else
+    {
+      return new File(DirectoryServer.getServerRoot() + File.separator + path);
+    }
+  }
+
+
+
+  /**
    * Creates a new, blank entry with the given DN.  It will contain only the
    * attributes contained in the RDN, and it will be based on the untypedObject
    * objectclass.  If the entry contains one or more attributes that are not

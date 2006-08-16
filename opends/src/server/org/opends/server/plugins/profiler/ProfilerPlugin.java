@@ -256,7 +256,8 @@ public class ProfilerPlugin
            configEntry.getConfigAttribute(profileDirStub);
       if (profileDirAttr != null)
       {
-        profileDirectory = profileDirAttr.activeValue();
+        profileDirectory =
+             getFileForPath(profileDirAttr.activeValue()).getAbsolutePath();
       }
     }
     catch (Exception e)
@@ -539,7 +540,7 @@ public class ProfilerPlugin
            configEntry.getConfigAttribute(profileDirStub);
       if (profileDirAttr != null)
       {
-        File dirFile = new File(profileDirAttr.activeValue());
+        File dirFile = getFileForPath(profileDirAttr.activeValue());
         if (! (dirFile.exists() && dirFile.isDirectory()))
         {
           msgID = MSGID_PLUGIN_PROFILER_INVALID_PROFILE_DIR;
@@ -696,7 +697,7 @@ public class ProfilerPlugin
         String dirString = profileDirAttr.pendingValue();
         if (! dirString.equals(profileDirectory))
         {
-          File dirFile = new File(dirString);
+          File dirFile = getFileForPath(dirString);
           if (! (dirFile.exists() && dirFile.isDirectory()))
           {
             msgID = MSGID_PLUGIN_PROFILER_INVALID_PROFILE_DIR;
@@ -707,7 +708,7 @@ public class ProfilerPlugin
           }
           else
           {
-            profileDirectory = dirString;
+            profileDirectory = dirFile.getAbsolutePath();
 
             if (detailedResults)
             {

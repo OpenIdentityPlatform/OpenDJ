@@ -121,7 +121,7 @@ public class LockFileManager
 
       // We don't hold a lock on the file so we need to create it.  First,
       // create the file only if it doesn't already exist.
-      File f = new File(lockFile);
+      File f = getFileForPath(lockFile);
       try
       {
         if (! f.exists())
@@ -240,7 +240,7 @@ public class LockFileManager
 
       // We don't hold a lock on the file so we need to create it.  First,
       // create the file only if it doesn't already exist.
-      File f = new File(lockFile);
+      File f = getFileForPath(lockFile);
       try
       {
         if (! f.exists())

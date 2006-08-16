@@ -217,7 +217,7 @@ public class BackupBackend
         backupDirectories = new LinkedHashSet<File>(values.size());
         for (String s : values)
         {
-          backupDirectories.add(new File(s));
+          backupDirectories.add(getFileForPath(s));
         }
       }
     }
@@ -1447,7 +1447,7 @@ public class BackupBackend
         backupDirectories = new LinkedHashSet<File>(values.size());
         for (String s : values)
         {
-          backupDirectories.add(new File(s));
+          backupDirectories.add(getFileForPath(s));
         }
       }
     }
