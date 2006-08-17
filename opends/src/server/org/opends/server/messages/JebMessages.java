@@ -1222,6 +1222,15 @@ public class JebMessages
 
 
 
+  /**
+   * The message ID of an error indicating the version of DatabaseEntry is
+   * incompatible and can not be decoded.
+   */
+  public static final int MSGID_JEB_INCOMPATIBLE_ENTRY_VERSION =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 126;
+
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -1708,5 +1717,9 @@ public class JebMessages
                     "The number of threads allocated by the cleaner for log " +
                     "file processing. If the cleaner backlog becomes large, " +
                     "increase this number.");
+    registerMessage(MSGID_JEB_INCOMPATIBLE_ENTRY_VERSION,
+                    "Entry record with ID %s is not compatible with this " +
+                    "version of the backend database. " +
+                    "Entry version: %x");
   }
 }

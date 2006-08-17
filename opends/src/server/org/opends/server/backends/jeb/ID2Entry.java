@@ -248,15 +248,32 @@ public class ID2Entry
     {
       return null;
     }
-    try
+
+    byte[] entryBytes = data.getData();
+    byte entryVersion = JebFormat.getEntryVersion(entryBytes);
+
+    //Try to decode the entry based on the version number. On later versions,
+    //a case could be written to upgrade entries if it is not the current
+    //version
+    switch(entryVersion)
     {
-      return JebFormat.entryFromDatabase(data.getData());
-    }
-    catch (Exception e)
-    {
-      int msgID = MSGID_JEB_ENTRY_DATABASE_CORRUPT;
-      String message = getMessage(msgID, id.toString());
-      throw new JebException(msgID, message);
+      case JebFormat.FORMAT_VERSION :
+        try
+        {
+          return JebFormat.entryFromDatabase(entryBytes);
+        }
+        catch (Exception e)
+        {
+          int msgID = MSGID_JEB_ENTRY_DATABASE_CORRUPT;
+          String message = getMessage(msgID, id.toString());
+          throw new JebException(msgID, message);
+        }
+      //case 0x00                     :
+      //  Call upgrade method? Call 0x00 decode method?
+      default   :
+        int msgID = MSGID_JEB_INCOMPATIBLE_ENTRY_VERSION;
+        String message = getMessage(msgID, id.toString(), entryVersion);
+        throw new JebException(msgID, message);
     }
   }
 
