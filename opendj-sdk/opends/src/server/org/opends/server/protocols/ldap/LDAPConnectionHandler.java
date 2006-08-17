@@ -1242,7 +1242,6 @@ public class LDAPConnectionHandler
                   if (clientConnection.getConnectionID() < 0)
                   {
                     // The connection will have already been closed.
-                    key.cancel();
                     iterator.remove();
                     continue;
                   }
@@ -1261,7 +1260,6 @@ public class LDAPConnectionHandler
                          clientConnection.getClientHostPort(),
                          clientConnection.getServerHostPort());
 
-                    key.cancel();
                     iterator.remove();
                     continue;
                   }
@@ -1281,7 +1279,6 @@ public class LDAPConnectionHandler
                          clientConnection.getClientHostPort(),
                          clientConnection.getServerHostPort());
 
-                    key.cancel();
                     iterator.remove();
                     continue;
                   }
@@ -1304,7 +1301,6 @@ public class LDAPConnectionHandler
                     }
                     else
                     {
-                      key.cancel();
                       iterator.remove();
                       continue;
                     }
@@ -1328,7 +1324,6 @@ public class LDAPConnectionHandler
                                                 sendRejectionNotice, message,
                                                 msgID);
 
-                    key.cancel();
                     iterator.remove();
                     continue;
                   }
