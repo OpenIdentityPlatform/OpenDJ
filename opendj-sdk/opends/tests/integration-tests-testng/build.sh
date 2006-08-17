@@ -196,7 +196,7 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
         <package name="org.opends.server.integration.core"/>
         <package name="org.opends.server.integration.frontend"/>
         <package name="org.opends.server.integration.schema"/>
-        <package name="org.opends.server.integration.backend"/>
+        <package name="org.opends.server.integration.security"/>
     </packages>
     
     <test name="precommit">
@@ -216,7 +216,7 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
                   <include name="core"/>
                   <include name="frontend"/>
                   <include name="schema"/>
-                  <include name="backend"/>
+                  <include name="security"/>
  	      </define>
 
 	      <define name="quickstart">
@@ -239,8 +239,8 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
 		  <include name="schema"/>
 	      </define>
 
-	      <define name="backend">
-		  <include name="backend"/>
+	      <define name="security">
+		  <include name="security"/>
 	      </define>
 
 	      <run>
