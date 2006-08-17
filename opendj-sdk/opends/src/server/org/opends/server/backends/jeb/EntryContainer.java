@@ -1265,6 +1265,11 @@ public class EntryContainer
         Container.transactionAbort(txn);
         throw directoryException;
       }
+      catch (JebException jebException)
+      {
+        Container.transactionAbort(txn);
+        throw jebException;
+      }
       catch (Exception e)
       {
         Container.transactionAbort(txn);
@@ -2246,16 +2251,7 @@ public class EntryContainer
                                                         JebException
     {
       // Read id2entry.
-      try
-      {
-        entry = id2entry.get(txn, entryID);
-      }
-      catch (JebException e)
-      {
-        int msgID = MSGID_JEB_ENTRY_DATABASE_CORRUPT;
-        String message = getMessage(msgID, entryID.toString());
-        throw new JebException(msgID, message);
-      }
+      entry = id2entry.get(txn, entryID);
     }
 
     /**

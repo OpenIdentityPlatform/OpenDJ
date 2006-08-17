@@ -64,6 +64,11 @@ public class JebFormat
        "org.opends.server.backends.je.JebFormat";
 
   /**
+   * The format version used by this class to encode and decode a DatabaseEntry.
+   */
+  public static final byte FORMAT_VERSION = 0x01;
+
+  /**
    * The ASN1 tag for the DatabaseEntry type.
    */
   public static final byte TAG_DATABASE_ENTRY = 0x60;
@@ -89,9 +94,13 @@ public class JebFormat
   {
     assert debugEnter(CLASS_NAME, "decodeDatabaseEntry", String.valueOf(bytes));
 
+    // Remove version number from the encoded bytes
+    byte[] encodedBytes = new byte[bytes.length - 1];
+    System.arraycopy(bytes, 1, encodedBytes, 0, encodedBytes.length);
+
     // Decode the sequence.
     List<ASN1Element> elements;
-    elements = ASN1Sequence.decodeAsSequence(bytes).elements();
+    elements = ASN1Sequence.decodeAsSequence(encodedBytes).elements();
 
     // Decode the uncompressed size.
     int uncompressedSize;
@@ -292,8 +301,15 @@ public class JebFormat
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1Integer(uncompressedSize));
     elements.add(new ASN1OctetString(bytes));
+    byte[] asn1Sequence =
+        new ASN1Sequence(TAG_DATABASE_ENTRY, elements).encode();
 
-    return new ASN1Sequence(TAG_DATABASE_ENTRY, elements).encode();
+    // Prefix version number to the encoded bytes
+    byte[] encodedBytes = new byte[asn1Sequence.length + 1];
+    encodedBytes[0] = FORMAT_VERSION;
+    System.arraycopy(asn1Sequence, 0, encodedBytes, 1, asn1Sequence.length);
+
+    return encodedBytes;
   }
 
   /**
@@ -487,6 +503,17 @@ public class JebFormat
     }
 
     return bytes;
+  }
+
+   /**
+   * Get the version number of the DatabaseEntry.
+   *
+   * @param bytes The encoded bytes of a DatabaseEntry.
+   * @return The version number.
+   */
+  public static byte getEntryVersion(byte[] bytes)
+  {
+    return bytes[0];
   }
 
 }
