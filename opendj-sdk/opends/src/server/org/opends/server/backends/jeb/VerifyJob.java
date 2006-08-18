@@ -99,11 +99,6 @@ public class VerifyJob
   private Backend backend;
 
   /**
-   * The database container to be verified within the backend.
-   */
-  private Container container;
-
-  /**
    * The configuration of the JE backend.
    */
   private Config config;
@@ -232,7 +227,7 @@ public class VerifyJob
     // Open a container read-only.
     String containerName =
          BackendImpl.getContainerName(verifyConfig.getBaseDN());
-    container = new Container(env, containerName);
+    Container container = new Container(env, containerName);
     EntryContainer entryContainer =
          new EntryContainer(backend, config, container);
     entryContainer.openReadOnly();
@@ -460,7 +455,7 @@ public class VerifyJob
            status == OperationStatus.SUCCESS;
            status = cursor.getNext(key, data, LockMode.DEFAULT))
       {
-        EntryID entryID = null;
+        EntryID entryID;
         try
         {
           entryID = new EntryID(key);
@@ -483,7 +478,7 @@ public class VerifyJob
         {
           keyCount++;
 
-          Entry entry = null;
+          Entry entry;
           try
           {
             entry = JebFormat.entryFromDatabase(data.getData());
@@ -592,7 +587,7 @@ public class VerifyJob
           continue;
         }
 
-        EntryID entryID = null;
+        EntryID entryID;
         try
         {
           entryID = new EntryID(data);
@@ -607,7 +602,7 @@ public class VerifyJob
           continue;
         }
 
-        Entry entry = null;
+        Entry entry;
         try
         {
           entry = id2entry.get(null, entryID);
@@ -668,7 +663,7 @@ public class VerifyJob
       {
         keyCount++;
 
-        EntryID entryID = null;
+        EntryID entryID;
         try
         {
           entryID = new EntryID(key);
@@ -682,7 +677,7 @@ public class VerifyJob
           continue;
         }
 
-        EntryIDSet entryIDList = null;
+        EntryIDSet entryIDList;
         try
         {
           JebFormat.entryIDListFromDatabase(data.getData());
@@ -693,7 +688,7 @@ public class VerifyJob
           assert debugException(CLASS_NAME, "iterateID2Children", e);
           errorCount++;
           System.err.printf("File id2children has malformed ID list " +
-                            "for ID %d:%n%s%n",
+                            "for ID %s:%n%s%n",
                             entryID,
                             StaticUtils.bytesToHex(data.getData()));
           continue;
@@ -703,7 +698,7 @@ public class VerifyJob
 
         if (entryIDList.isDefined())
         {
-          Entry entry = null;
+          Entry entry;
           try
           {
             entry = id2entry.get(null, entryID);
@@ -726,7 +721,7 @@ public class VerifyJob
 
           for (EntryID id : entryIDList)
           {
-            Entry childEntry = null;
+            Entry childEntry;
             try
             {
               childEntry = id2entry.get(null, id);
@@ -790,7 +785,7 @@ public class VerifyJob
       {
         keyCount++;
 
-        EntryID entryID = null;
+        EntryID entryID;
         try
         {
           entryID = new EntryID(key);
@@ -804,7 +799,7 @@ public class VerifyJob
           continue;
         }
 
-        EntryIDSet entryIDList = null;
+        EntryIDSet entryIDList;
         try
         {
           JebFormat.entryIDListFromDatabase(data.getData());
@@ -815,7 +810,7 @@ public class VerifyJob
           assert debugException(CLASS_NAME, "iterateID2Subtree", e);
           errorCount++;
           System.err.printf("File id2subtree has malformed ID list " +
-                            "for ID %d:%n%s%n",
+                            "for ID %s:%n%s%n",
                             entryID,
                             StaticUtils.bytesToHex(data.getData()));
           continue;
@@ -825,7 +820,7 @@ public class VerifyJob
 
         if (entryIDList.isDefined())
         {
-          Entry entry = null;
+          Entry entry;
           try
           {
             entry = id2entry.get(null, entryID);
@@ -848,7 +843,7 @@ public class VerifyJob
 
           for (EntryID id : entryIDList)
           {
-            Entry subordEntry = null;
+            Entry subordEntry;
             try
             {
               subordEntry = id2entry.get(null, id);
@@ -909,7 +904,7 @@ public class VerifyJob
     Long counter = hashMap.get(octetString);
     if (counter == null)
     {
-      counter = new Long(1);
+      counter = 1L;
     }
     else
     {
@@ -970,7 +965,7 @@ public class VerifyJob
       {
         keyCount++;
 
-        EntryIDSet entryIDList = null;
+        EntryIDSet entryIDList;
         try
         {
           JebFormat.entryIDListFromDatabase(data.getData());
@@ -1039,7 +1034,7 @@ public class VerifyJob
             }
             prevID = id;
 
-            Entry entry = null;
+            Entry entry;
             try
             {
               entry = id2entry.get(null, id);
@@ -1537,6 +1532,12 @@ public class VerifyJob
   class ProgressTask extends TimerTask
   {
     /**
+     * The fully-qualified name of this class for debugging purposes.
+     */
+    private static final String CLASS_NAME =
+         "org.opends.server.backends.jeb.VerifyJob.ProgressTask";
+
+    /**
      * The number of records that had been processed at the time of the
      * previous progress report.
      */
@@ -1613,11 +1614,14 @@ public class VerifyJob
 
         prevEnvStats = envStats;
       }
-      catch (DatabaseException e) {}
+      catch (DatabaseException e)
+      {
+        debugException(CLASS_NAME, "run", e);
+      }
 
 
       previousCount = latestCount;
       previousTime = latestTime;
     }
-  };
+  }
 }
