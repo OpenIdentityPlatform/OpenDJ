@@ -1582,13 +1582,13 @@ public class Entry
 
     if (attribute.hasOptions())
     {
+      HashSet<String> options = attribute.getOptions();
+
       LinkedHashSet<AttributeValue> valueSet = attribute.getValues();
       if ((valueSet == null) || valueSet.isEmpty())
       {
-        return removeAttribute(attribute.getAttributeType());
+        return removeAttribute(attribute.getAttributeType(), options);
       }
-
-      HashSet<String> options = attribute.getOptions();
 
       List<Attribute> attrList =
            getAttribute(attribute.getAttributeType());
@@ -1614,7 +1614,8 @@ public class Entry
 
           if (existingValueSet.isEmpty())
           {
-            return removeAttribute(attribute.getAttributeType());
+            return removeAttribute(attribute.getAttributeType(),
+                                   options);
           }
 
           return true;
