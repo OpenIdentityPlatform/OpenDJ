@@ -35,6 +35,7 @@ import static org.opends.server.messages.ConfigMessages.
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigConstants;
@@ -340,12 +341,7 @@ public class Config
       String message = getMessage(msgID, configEntry.getDN().toString());
       throw new ConfigException(msgID, message);
     }
-    backendDirectory = new File(backendDirectoryAttr.activeValue());
-    if (!backendDirectory.isAbsolute())
-    {
-      backendDirectory = new File(DirectoryServer.getServerRoot(),
-                                  backendDirectoryAttr.activeValue());
-    }
+    backendDirectory = getFileForPath(backendDirectoryAttr.activeValue());
 
     // ds-cfg-backendIndexEntryLimit
     // Optional, single-valued config attribute requiring admin action on change
