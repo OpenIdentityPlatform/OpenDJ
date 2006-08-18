@@ -168,7 +168,7 @@ public class ServerShutdownMonitor
         return;
       }
 
-      stopTime = System.currentTimeMillis() + 20000;
+      stopTime = System.currentTimeMillis() + 30000;
       while (System.currentTimeMillis() < stopTime)
       {
         iterator = threadList.iterator();
