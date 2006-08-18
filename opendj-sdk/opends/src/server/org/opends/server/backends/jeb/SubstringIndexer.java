@@ -247,9 +247,8 @@ public class SubstringIndexer extends Indexer
    */
   private byte[] makeSubstringKey(byte[] bytes, int pos, int len)
   {
-    byte[] keyBytes = new byte[len + 1];
-    keyBytes[0] = '*';
-    System.arraycopy(bytes, pos, keyBytes, 1, len);
+    byte[] keyBytes = new byte[len];
+    System.arraycopy(bytes, pos, keyBytes, 0, len);
     return keyBytes;
   }
 

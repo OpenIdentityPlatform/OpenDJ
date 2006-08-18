@@ -263,10 +263,9 @@ public class OrderingIndexer extends Indexer
     {
       try
       {
-        byte[] normalizedBytes =
+        byte[] keyBytes =
              orderingRule.normalizeValue(value.getValue()).value();
 
-        byte[] keyBytes = makeOrderingKey(normalizedBytes);
         keys.add(new ASN1OctetString(keyBytes));
       }
       catch (DirectoryException e)
@@ -290,27 +289,6 @@ public class OrderingIndexer extends Indexer
     {
       indexValues(attr.getValues(), keys);
     }
-  }
-
-  /**
-   * Makes a byte array representing an ordering index key from
-   * a byte array containing the normalized value.
-   * The key is '=' followed by the normalized value
-   * FIXME: The '=' prefix is no longer necessary since different index
-   * FIXME: types are no longer stored in the same database, but uses of
-   * FIXME: the Index.readRange method would have to be revisited if the
-   * FIXME: prefix is removed.
-   *
-   * @param normalizedBytes The normalized value.
-   * @return A byte array containing the ordering key.
-   */
-  byte[] makeOrderingKey(byte[] normalizedBytes)
-  {
-    byte[] keyBytes = new byte[1 + normalizedBytes.length];
-    keyBytes[0] = '=';
-    System.arraycopy(normalizedBytes, 0, keyBytes, 1,
-                     normalizedBytes.length);
-    return keyBytes;
   }
 
 }

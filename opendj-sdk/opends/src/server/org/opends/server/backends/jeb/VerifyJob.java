@@ -1412,8 +1412,7 @@ public class VerifyJob
           // Equality index.
           if (indexConfig.isEqualityIndex())
           {
-            byte[] keyBytes = attrIndex.makeEqualityKey(normalizedBytes);
-            DatabaseEntry key = new DatabaseEntry(keyBytes);
+            DatabaseEntry key = new DatabaseEntry(normalizedBytes);
             try
             {
               ConditionResult cr;
@@ -1422,12 +1421,12 @@ public class VerifyJob
               {
                 System.err.printf("Missing ID %d%n%s",
                                   entryID.longValue(),
-                                  keyDump(equalityIndex, keyBytes));
+                                  keyDump(equalityIndex, normalizedBytes));
                 errorCount++;
               }
               else if (cr == ConditionResult.UNDEFINED)
               {
-                incrEntryLimitStats(equalityIndex, keyBytes);
+                incrEntryLimitStats(equalityIndex, normalizedBytes);
               }
             }
             catch (DatabaseException e)
@@ -1435,7 +1434,7 @@ public class VerifyJob
               assert debugException(CLASS_NAME, "verifyAttribute", e);
               System.err.printf("Error reading database: %s%n%s",
                                 e.getMessage(),
-                                keyDump(equalityIndex, keyBytes));
+                                keyDump(equalityIndex, normalizedBytes));
               errorCount++;
             }
           }
@@ -1486,8 +1485,7 @@ public class VerifyJob
             normalizedBytes =
                  orderingRule.normalizeValue(value.getValue()).value();
 
-            byte[] keyBytes = attrIndex.makeEqualityKey(normalizedBytes);
-            DatabaseEntry key = new DatabaseEntry(keyBytes);
+            DatabaseEntry key = new DatabaseEntry(normalizedBytes);
             try
             {
               ConditionResult cr;
@@ -1496,12 +1494,12 @@ public class VerifyJob
               {
                 System.err.printf("Missing ID %d%n%s",
                                   entryID.longValue(),
-                                  keyDump(orderingIndex, keyBytes));
+                                  keyDump(orderingIndex, normalizedBytes));
                 errorCount++;
               }
               else if (cr == ConditionResult.UNDEFINED)
               {
-                incrEntryLimitStats(orderingIndex, keyBytes);
+                incrEntryLimitStats(orderingIndex, normalizedBytes);
               }
             }
             catch (DatabaseException e)
@@ -1509,7 +1507,7 @@ public class VerifyJob
               assert debugException(CLASS_NAME, "verifyAttribute", e);
               System.err.printf("Error reading database: %s%n%s",
                                 e.getMessage(),
-                                keyDump(orderingIndex, keyBytes));
+                                keyDump(orderingIndex, normalizedBytes));
               errorCount++;
             }
           }
