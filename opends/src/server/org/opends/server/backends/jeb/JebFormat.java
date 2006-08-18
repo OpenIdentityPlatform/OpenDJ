@@ -94,6 +94,8 @@ public class JebFormat
   {
     assert debugEnter(CLASS_NAME, "decodeDatabaseEntry", String.valueOf(bytes));
 
+    // FIXME: This array copy could be very costly on performance. We need to
+    // FIXME: find a faster way to implement this versioning feature.
     // Remove version number from the encoded bytes
     byte[] encodedBytes = new byte[bytes.length - 1];
     System.arraycopy(bytes, 1, encodedBytes, 0, encodedBytes.length);
@@ -304,6 +306,8 @@ public class JebFormat
     byte[] asn1Sequence =
         new ASN1Sequence(TAG_DATABASE_ENTRY, elements).encode();
 
+    // FIXME: This array copy could be very costly on performance. We need to
+    // FIXME: find a faster way to implement this versioning feature.
     // Prefix version number to the encoded bytes
     byte[] encodedBytes = new byte[asn1Sequence.length + 1];
     encodedBytes[0] = FORMAT_VERSION;
