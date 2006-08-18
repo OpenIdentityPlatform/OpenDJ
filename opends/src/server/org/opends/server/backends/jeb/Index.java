@@ -368,14 +368,22 @@ public class Index
    * Reads a range of keys and collects all their entry IDs into a
    * single set.
    *
-   * @param lower The lower bound of the range.
-   * @param upper The upper bound of the range.
+   * @param lower The lower bound of the range. A 0 length byte array indicates
+   *                      no lower bound and the range will start from the
+   *                      smallest key.
+   * @param upper The upper bound of the range. A 0 length byte array indicates
+   *                      no upper bound and the range will end at the largest
+   *                      key.
    * @param lowerIncluded true if a key exactly matching the lower bound
    *                      is included in the range, false if only keys
    *                      strictly greater than the lower bound are included.
+   *                      This value is ignored if the lower bound is not
+   *                      specified.
    * @param upperIncluded true if a key exactly matching the upper bound
    *                      is included in the range, false if only keys
    *                      strictly less than the upper bound are included.
+   *                      This value is ignored if the upper bound is not
+   *                      specified.
    * @return The set of entry IDs.
    */
   public EntryIDSet readRange(byte[] lower, byte[] upper,
@@ -389,7 +397,7 @@ public class Index
       int totalIDCount = 0;
 
       DatabaseEntry data = new DatabaseEntry();
-      DatabaseEntry key = new DatabaseEntry(lower);
+      DatabaseEntry key;
 
       ArrayList<EntryIDSet> lists = new ArrayList<EntryIDSet>();
 
@@ -400,14 +408,25 @@ public class Index
 
       try
       {
-        // Initialize the cursor to the lower bound.
-        status = cursor.getSearchKeyRange(key, data, lockMode);
-
-        // Advance past the lower bound if necessary.
-        if (status == OperationStatus.SUCCESS && !lowerIncluded &&
-             comparator.compare(key.getData(), lower) == 0)
+        // Set the lower bound if necessary.
+        if(lower.length > 0)
         {
-          // Do not include the lower value.
+          key = new DatabaseEntry(lower);
+
+          // Initialize the cursor to the lower bound.
+          status = cursor.getSearchKeyRange(key, data, lockMode);
+
+          // Advance past the lower bound if necessary.
+          if (status == OperationStatus.SUCCESS && !lowerIncluded &&
+               comparator.compare(key.getData(), lower) == 0)
+          {
+            // Do not include the lower value.
+            status = cursor.getNext(key, data, lockMode);
+          }
+        }
+        else
+        {
+          key = new DatabaseEntry();
           status = cursor.getNext(key, data, lockMode);
         }
 
@@ -417,13 +436,17 @@ public class Index
           return new EntryIDSet(key.getData(), null);
         }
 
-        // Step through the keys until we hit the upper bound.
+        // Step through the keys until we hit the upper bound or the last key.
         while (status == OperationStatus.SUCCESS)
         {
-          int cmp = comparator.compare(key.getData(), upper);
-          if ((cmp > 0) || (cmp == 0 && !upperIncluded))
+          // Check against the upper bound if necessary
+          if(upper.length > 0)
           {
-            break;
+            int cmp = comparator.compare(key.getData(), upper);
+            if ((cmp > 0) || (cmp == 0 && !upperIncluded))
+            {
+              break;
+            }
           }
           EntryIDSet list = new EntryIDSet(key.getData(), data.getData());
           if (!list.isDefined())

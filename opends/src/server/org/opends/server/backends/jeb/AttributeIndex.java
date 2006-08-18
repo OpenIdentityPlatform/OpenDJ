@@ -316,23 +316,6 @@ public class AttributeIndex
   }
 
   /**
-   * Makes a byte array representing an equality index key from
-   * a byte array containing the normalized value.
-   * The key is '=' followed by the normalized value.
-   *
-   * @param normalizedBytes The normalized value.
-   * @return A byte array containing the equality key.
-   */
-  byte[] makeEqualityKey(byte[] normalizedBytes)
-  {
-    byte[] keyBytes = new byte[1 + normalizedBytes.length];
-    keyBytes[0] = '=';
-    System.arraycopy(normalizedBytes, 0, keyBytes, 1,
-                     normalizedBytes.length);
-    return keyBytes;
-  }
-
-  /**
    * Makes a byte array representing a substring index key for
    * one substring of a value.
    *
@@ -343,9 +326,8 @@ public class AttributeIndex
    */
   private byte[] makeSubstringKey(byte[] bytes, int pos, int len)
   {
-    byte[] keyBytes = new byte[len + 1];
-    keyBytes[0] = '*';
-    System.arraycopy(bytes, pos, keyBytes, 1, len);
+    byte[] keyBytes = new byte[len];
+    System.arraycopy(bytes, pos, keyBytes, 0, len);
     return keyBytes;
   }
 
@@ -478,12 +460,12 @@ public class AttributeIndex
     // Iterate through all the keys that have this value as the prefix.
 
     // Set the lower bound for a range search.
-    byte[] lower = makeEqualityKey(bytes);
+    byte[] lower = bytes;
 
     // Set the upper bound for a range search.
     // We need a key for the upper bound that is of equal length
     // but slightly greater than the lower bound.
-    byte[] upper = makeEqualityKey(bytes);
+    byte[] upper = bytes;
     for (int i = upper.length-1; i >= 0; i--)
     {
       if (upper[i] == 0xFF)
@@ -520,9 +502,8 @@ public class AttributeIndex
     try
     {
       // Make a key from the normalized assertion value.
-      byte[] normBytes =
+      byte[] keyBytes =
            equalityFilter.getAssertionValue().getNormalizedValue().value();
-      byte[] keyBytes = makeEqualityKey(normBytes);
       DatabaseEntry key = new DatabaseEntry(keyBytes);
 
       // Read the key.
@@ -573,15 +554,12 @@ public class AttributeIndex
       // Use the ordering matching rule to normalize the value.
       OrderingMatchingRule orderingRule =
            filter.getAttributeType().getOrderingMatchingRule();
-      byte[] normBytes = orderingRule.normalizeValue(
+      byte[] lower = orderingRule.normalizeValue(
            filter.getAssertionValue().getValue()).value();
-      byte[] lower = makeEqualityKey(normBytes);
 
-      // Set the upper bound for a range search.
-      // We need a key for the upper bound that is slightly greater than
-      // the equality key prefix.
-      byte[] upper = makeEqualityKey(new byte[0]);
-      upper[0] = (byte) (upper[0] + 1);
+      // Set the upper bound to 0 to search all keys greater then the lower
+      // bound.
+      byte[] upper = new byte[0];
 
       // Read the range: lower <= keys < upper.
       return orderingIndex.readRange(lower, upper, true, false);
@@ -609,16 +587,16 @@ public class AttributeIndex
 
     try
     {
-      // Set the lower bound for a range search.
-      byte[] lower = makeEqualityKey(new byte[0]);
+      // Set the lower bound to 0 to start the range search from the smallest
+      // key.
+      byte[] lower = new byte[0];
 
       // Set the upper bound for a range search.
       // Use the ordering matching rule to normalize the value.
       OrderingMatchingRule orderingRule =
            filter.getAttributeType().getOrderingMatchingRule();
-      byte[] normBytes = orderingRule.normalizeValue(
+      byte[] upper = orderingRule.normalizeValue(
            filter.getAssertionValue().getValue()).value();
-      byte[] upper = makeEqualityKey(normBytes);
 
       // Read the range: lower < keys <= upper.
       return orderingIndex.readRange(lower, upper, false, true);
@@ -742,12 +720,10 @@ public class AttributeIndex
       byte[] normBytes;
 
       // Set the lower bound for a range search.
-      normBytes = orderingRule.normalizeValue(lowerValue.getValue()).value();
-      byte[] lower = makeEqualityKey(normBytes);
+      byte[] lower = orderingRule.normalizeValue(lowerValue.getValue()).value();
 
       // Set the upper bound for a range search.
-      normBytes = orderingRule.normalizeValue(upperValue.getValue()).value();
-      byte[] upper = makeEqualityKey(normBytes);
+      byte[] upper = orderingRule.normalizeValue(upperValue.getValue()).value();
 
       // Read the range: lower <= keys <= upper.
       return orderingIndex.readRange(lower, upper, true, true);
