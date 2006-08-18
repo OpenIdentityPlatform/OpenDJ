@@ -4756,6 +4756,453 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * testOnly argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_TESTONLY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 485;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * programName argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_PROGNAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 486;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * configFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_CONFIG_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 487;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * configClass argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_CONFIG_CLASS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 488;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * silentInstall argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_SILENT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 489;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * baseDN argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_BASEDN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 490;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * addBaseEntry argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_ADDBASE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 491;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * importLDIF argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_IMPORTLDIF =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 492;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * ldapPort argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_LDAPPORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 493;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * skipPortCheck argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_SKIPPORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 494;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * rootDN argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_ROOTDN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 495;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * rootPassword argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_ROOTPW =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 496;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * rootPasswordFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 497;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * help argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_HELP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 498;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user did not
+   * specify the path to the Directory Server configuration file.  This takes a
+   * single argument, which is the name of the command-line option that should
+   * be used to provide that information.
+   */
+  public static final int MSGID_INSTALLDS_NO_CONFIG_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 499;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the Directory Server JMX subsystem.  This takes two arguments,
+   * which are the path to the Directory Server configuration file and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_INSTALLDS_CANNOT_INITIALIZE_JMX =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 500;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the Directory Server configuration.  This takes two
+   * arguments, which are the path to the Directory Server configuration file
+   * and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_INSTALLDS_CANNOT_INITIALIZE_CONFIG =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 501;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the Directory Server schema.  This takes two arguments, which
+   * are the path to the Directory Server configuration file and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_INSTALLDS_CANNOT_INITIALIZE_SCHEMA =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 502;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to parse a string as a DN.  This takes two arguments, which are the
+   * DN string and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_INSTALLDS_CANNOT_PARSE_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 503;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt to provide
+   * the directory base DN.  It does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_BASEDN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 504;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt to determine
+   * whether to import data from LDIF.  It does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_IMPORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 505;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt to provide
+   * the path to the LDIF file to import.  It does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_IMPORT_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 506;
+
+
+
+  /**
+   * The message ID for the message that will be used if two conflicting
+   * arguments were provided to the program.  This takes two arguments, which
+   * are the long forms of the conflicting arguments.
+   */
+  public static final int MSGID_INSTALLDS_TWO_CONFLICTING_ARGUMENTS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 507;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt to determine
+   * whether to add the base entry.  It does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_ADDBASE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 508;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt to determine
+   * the LDAP port number to use.  It does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_LDAPPORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 509;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to bind to a privileged port.  This takes two arguments, which
+   * are the port number and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 510;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to bind to a non-privileged port.  This takes two arguments,
+   * which are the port number and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_INSTALLDS_CANNOT_BIND_TO_PORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 511;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt to determine
+   * the initial root DN.  It does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_ROOT_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 512;
+
+
+
+  /**
+   * The message ID for the message that will be used if no root password was
+   * provided when performing a silent installation.  This takes two arguments,
+   * which are the long forms of the root password and root password file
+   * arguments.
+   */
+  public static final int MSGID_INSTALLDS_NO_ROOT_PASSWORD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 513;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt to request
+   * the initial root password for the first time.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_ROOT_PASSWORD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 514;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt to confirm
+   * the initial root password.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 515;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * server configuration is being updated.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_STATUS_CONFIGURING_DS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 516;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * base LDIF file is being created.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_STATUS_CREATING_BASE_LDIF =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 517;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * creating the base LDIF file.  This takes a single argument, which is a
+   * message explaining the problem that occurred.
+   */
+  public static final int MSGID_INSTALLDS_CANNOT_CREATE_BASE_ENTRY_LDIF =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 518;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * LDIF data is being imported.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_STATUS_IMPORTING_LDIF =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 519;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the setup
+   * process was successful.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_STATUS_SUCCESS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 520;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt value for
+   * Boolean "true" or "yes" values.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_VALUE_YES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 521;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt value for
+   * Boolean "false" or "no" values.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_VALUE_NO =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 522;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * Boolean value could not be interpreted.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_INVALID_YESNO_RESPONSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 523;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * response value could not be interpreted as an integer.  This does not take
+   * any arguments.
+   */
+  public static final int MSGID_INSTALLDS_INVALID_INTEGER_RESPONSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 524;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * provided integer value was below the lower bound.  This takes a single
+   * argument, which is the lower bound.
+   */
+  public static final int MSGID_INSTALLDS_INTEGER_BELOW_LOWER_BOUND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 525;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * provided integer value was above the upper bound.  This takes a single
+   * argument, which is the upper bound.
+   */
+  public static final int MSGID_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 526;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * response value could not be interpreted as a DN.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_INSTALLDS_INVALID_DN_RESPONSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 527;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * response value was an invalid zero-length string.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_INSTALLDS_INVALID_STRING_RESPONSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 528;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * response value was an invalid zero-length string.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_INSTALLDS_INVALID_PASSWORD_RESPONSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 529;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * provided password values do not match.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_PASSWORDS_DONT_MATCH =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 530;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * reading from standard input.  This takes a single argument, which is a
+   * message explaining the problem that occurred.
+   */
+  public static final int MSGID_INSTALLDS_ERROR_READING_FROM_STDIN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 531;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6336,6 +6783,149 @@ public class ToolMessages
     registerMessage(MSGID_CONFIGDS_WROTE_UPDATED_CONFIG,
                     "Successfully wrote the updated Directory Server " +
                     "configuration.");
+
+
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_TESTONLY,
+                    "Just verify that the JVM can be started properly.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_PROGNAME,
+                    "The setup command used to invoke this program.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_CONFIG_FILE,
+                    "The path to the Directory Server configuration file.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_CONFIG_CLASS,
+                    "The fully-qualified name of the Java class to use as " +
+                    "the Directory Server configuration handler.  If this is " +
+                    "not provided, then a default of " +
+                    ConfigFileHandler.class.getName() + " will be used.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_SILENT,
+                    "Perform a silent installation.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_BASEDN,
+                    "Specifies the base DN for user information in the " +
+                    "Directory Server.  Multiple base DNs may be provided " +
+                    "by using this option multiple times.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_ADDBASE,
+                    "Indicates whether to create the base entry in the " +
+                    "Directory Server database.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_IMPORTLDIF,
+                    "Specifies the path to an LDIF file containing data that " +
+                    "should be added to the Directory Server database.  " +
+                    "Multiple LDIF files may be provided by using this " +
+                    "option multiple times.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_LDAPPORT,
+                    "Specifies the port on which the Directory Server should " +
+                    "listen for LDAP communication.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_SKIPPORT,
+                    "Skip the check to determine whether the specified LDAP " +
+                    "port is usable.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_ROOTDN,
+                    "Specifies the DN for the initial root user for the " +
+                    "Directory Server.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_ROOTPW,
+                    "Specifies the password for the initial root user for " +
+                    "the Directory Server.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE,
+                    "Specifies the path to a file containing the password " +
+                    "for the initial root user for the Directory Server.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_HELP,
+                    "Displays usage information for this program.");
+    registerMessage(MSGID_INSTALLDS_NO_CONFIG_FILE,
+                    "ERROR:  No configuration file path was provided (use " +
+                    "the %s argument).");
+    registerMessage(MSGID_INSTALLDS_CANNOT_INITIALIZE_JMX,
+                    "An error occurred while attempting to initialize the " +
+                    "Directory Server JMX subsystem based on the information " +
+                    "in configuration file %s:  %s.");
+    registerMessage(MSGID_INSTALLDS_CANNOT_INITIALIZE_CONFIG,
+                    "An error occurred while attempting to process the " +
+                    "Directory Server configuration file %s:  %s.");
+    registerMessage(MSGID_INSTALLDS_CANNOT_INITIALIZE_SCHEMA,
+                    "An error occurred while attempting to initialize the " +
+                    "Directory Server schema based on the information in " +
+                    "configuration file %s:  %s.");
+    registerMessage(MSGID_INSTALLDS_CANNOT_PARSE_DN,
+                    "An error occurred while attempting to parse the string " +
+                    "\"%s\" as a valid DN:  %s.");
+    registerMessage(MSGID_INSTALLDS_PROMPT_BASEDN,
+                    "What do you wish to use as the base DN for the " +
+                    "directory data?");
+    registerMessage(MSGID_INSTALLDS_PROMPT_IMPORT,
+                    "Do you wish to populate the directory database with " +
+                    "information from an existing LDIF file?");
+    registerMessage(MSGID_INSTALLDS_PROMPT_IMPORT_FILE,
+                    "Please specify the path to the LDIF file containing " +
+                    "the data to import.");
+    registerMessage(MSGID_INSTALLDS_TWO_CONFLICTING_ARGUMENTS,
+                    "ERROR:  You may not provide both the %s and the %s " +
+                    "arguments at the same time.");
+    registerMessage(MSGID_INSTALLDS_PROMPT_ADDBASE,
+                    "Would you like to have the base %s entry automatically " +
+                    "created in the directory database?");
+    registerMessage(MSGID_INSTALLDS_PROMPT_LDAPPORT,
+                    "On which port would you like the Directory Server to " +
+                    "accept connections from LDAP clients?");
+    registerMessage(MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT,
+                    "ERROR:  Unable to bind to port %d:  %s.  This port may " +
+                    "already be in use, or if you are a nonroot user then " +
+                    "you may not be allowed to use port numbers 1024 or " +
+                    "below.");
+    registerMessage(MSGID_INSTALLDS_CANNOT_BIND_TO_PORT,
+                    "ERROR:  Unable to bind to port %d:  %s.  This port may " +
+                    "already be in use, or you may not have permission to " +
+                    "bind to it.");
+    registerMessage(MSGID_INSTALLDS_PROMPT_ROOT_DN,
+                    "What would you like to use as the initial root user DN " +
+                    "for the Directory Server?");
+    registerMessage(MSGID_INSTALLDS_NO_ROOT_PASSWORD,
+                    "ERROR:  No password was provided for the initial root "+
+                    "user.  When performing a silent installation, this must " +
+                    "be provided using either the %s or the %s argument.");
+    registerMessage(MSGID_INSTALLDS_PROMPT_ROOT_PASSWORD,
+                    "Please provide the password to use for the initial root " +
+                    "user");
+    registerMessage(MSGID_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD,
+                    "Please re-enter the password for confirmation");
+    registerMessage(MSGID_INSTALLDS_STATUS_CONFIGURING_DS,
+                    "Applying the requested configuration to the " +
+                    "Directory Server....");
+    registerMessage(MSGID_INSTALLDS_STATUS_CREATING_BASE_LDIF,
+                    "Creating a temporary LDIF file with the initial base " +
+                    "entry contents....");
+    registerMessage(MSGID_INSTALLDS_CANNOT_CREATE_BASE_ENTRY_LDIF,
+                    "An error occurred while attempting to create the " +
+                    "base LDIF file:  %s.");
+    registerMessage(MSGID_INSTALLDS_STATUS_IMPORTING_LDIF,
+                    "Importing the LDIF data into the Directory Server " +
+                    "database....");
+    registerMessage(MSGID_INSTALLDS_STATUS_SUCCESS,
+                    "The OpenDS Directory Service setup process has " +
+                    "completed successfully.");
+    registerMessage(MSGID_INSTALLDS_PROMPT_VALUE_YES, "yes");
+    registerMessage(MSGID_INSTALLDS_PROMPT_VALUE_NO, "no");
+    registerMessage(MSGID_INSTALLDS_INVALID_YESNO_RESPONSE,
+                    "ERROR:  The provided value could not be interpreted as " +
+                    "a yes or no response.  Please enter a response of " +
+                    "either \"yes\" or \"no\".");
+    registerMessage(MSGID_INSTALLDS_INVALID_INTEGER_RESPONSE,
+                    "ERROR:  The provided response could not be interpreted " +
+                    "as an integer.  Please provide the repsonse as an " +
+                    "integer value.");
+    registerMessage(MSGID_INSTALLDS_INTEGER_BELOW_LOWER_BOUND,
+                    "ERROR:  The provided value is less than the lowest " +
+                    "allowed value of %d.");
+    registerMessage(MSGID_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND,
+                    "ERROR:  The provided value is greater than the largest " +
+                    "allowed value of %d.");
+    registerMessage(MSGID_INSTALLDS_INVALID_DN_RESPONSE,
+                    "ERROR:  The provided response could not be interpreted " +
+                    "as an LDAP DN.");
+    registerMessage(MSGID_INSTALLDS_INVALID_STRING_RESPONSE,
+                    "ERROR:  The response value may not be an empty string.");
+    registerMessage(MSGID_INSTALLDS_INVALID_PASSWORD_RESPONSE,
+                    "ERROR:  The password value may not be an empty string.");
+    registerMessage(MSGID_INSTALLDS_PASSWORDS_DONT_MATCH,
+                    "ERROR:  The provided password values do not match.");
+    registerMessage(MSGID_INSTALLDS_ERROR_READING_FROM_STDIN,
+                    "ERROR:  Unexpected failure while reading from standard " +
+                    "input:  %s.");
   }
 }
 

@@ -452,6 +452,15 @@ public class DynamicConstants
       <fileset file="${resource.dir}/README" />
     </copy>
 
+    <copy todir="${pdir}">
+      <fileset file="${resource.dir}/setup.sh" />
+    </copy>
+
+    <copy todir="${pdir}">
+      <fileset file="${resource.dir}/setup.bat" />
+    </copy>
+
+    <chmod file="${pdir}/*.sh" perm="755" />
     <chmod file="${pdir}/bin/*.sh" perm="755" />
   </target>
 

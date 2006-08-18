@@ -207,7 +207,7 @@ public class PasswordReader
       while (true)
       {
         int charRead = System.in.read();
-        if ((charRead == -1) || (charRead == '\r') || (charRead == '\n'))
+        if ((charRead == -1) || (charRead == '\n'))
         {
           // This is the end of the value.
           if (pos == 0)
@@ -220,6 +220,46 @@ public class PasswordReader
             System.arraycopy(pwBuffer, 0, pwChars, 0, pos);
             Arrays.fill(pwBuffer, '\u0000');
             return pwChars;
+          }
+        }
+        else if (charRead == '\r')
+        {
+          int char2 = System.in.read();
+          if (char2 == '\n')
+          {
+            // This is the end of the value.
+            if (pos == 0)
+            {
+              return null;
+            }
+            else
+            {
+              pwChars = new char[pos];
+              System.arraycopy(pwBuffer, 0, pwChars, 0, pos);
+              Arrays.fill(pwBuffer, '\u0000');
+              return pwChars;
+            }
+          }
+          else
+          {
+            // Append the characters to the buffer and continue.
+            pwBuffer[pos++] = (char) charRead;
+            if (pos >= pwBuffer.length)
+            {
+              char[] newBuffer = new char[pwBuffer.length+100];
+              System.arraycopy(pwBuffer, 0, newBuffer, 0, pwBuffer.length);
+              Arrays.fill(pwBuffer, '\u0000');
+              pwBuffer = newBuffer;
+            }
+
+            pwBuffer[pos++] = (char) char2;
+            if (pos >= pwBuffer.length)
+            {
+              char[] newBuffer = new char[pwBuffer.length+100];
+              System.arraycopy(pwBuffer, 0, newBuffer, 0, pwBuffer.length);
+              Arrays.fill(pwBuffer, '\u0000');
+              pwBuffer = newBuffer;
+            }
           }
         }
         else
