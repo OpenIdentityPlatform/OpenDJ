@@ -3229,10 +3229,22 @@ public class StaticUtils
 
   /**
    * Creates a new, blank entry with the given DN.  It will contain only the
-   * attributes contained in the RDN, and it will be based on the untypedObject
-   * objectclass.  If the entry contains one or more attributes that are not
-   * allowed by the untypedObject class, then the extensibleObject class will
-   * also be added.  Note that this method cannot be used to generate an entry
+   * attribute(s) contained in the RDN.  The choice of objectclasses will be
+   * based on the RDN attribute.  If there is a single RDN attribute, then the
+   * following mapping will be used:
+   * <BR>
+   * <UL>
+   *   <LI>c attribute :: country objectclass</LI>
+   *   <LI>dc attribute :: domain objectclass</LI>
+   *   <LI>o attribute :: organization objectclass</LI>
+   *   <LI>ou attribute :: organizationalUnit objectclass</LI>
+   * </UL>
+   * <BR>
+   * Any other single RDN attribute types, or any case in which there are
+   * multiple RDN attributes, will use the untypedObject objectclass.  If the
+   * RDN includes one or more attributes that are not allowed in the
+   * untypedObject objectclass, then the extensibleObject class will also be
+   * added.  Note that this method cannot be used to generate an entry
    * with an empty or null DN.
    *
    * @param  dn  The DN to use for the entry.
@@ -3252,27 +3264,54 @@ public class StaticUtils
     }
 
 
-    // Get the top and untypedObject classes to include in the entry.
-    LinkedHashMap<ObjectClass,String> objectClasses =
-         new LinkedHashMap<ObjectClass,String>(3);
-
-    objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
-
-    ObjectClass untypedObjectOC =
-         DirectoryServer.getObjectClass(OC_UNTYPED_OBJECT_LC);
-    if (untypedObjectOC == null)
-    {
-      untypedObjectOC =
-           DirectoryServer.getDefaultObjectClass(OC_UNTYPED_OBJECT);
-    }
-    objectClasses.put(untypedObjectOC, OC_UNTYPED_OBJECT);
-
-
     // Get the information about the RDN attributes.
     RDN rdn = dn.getRDN();
     AttributeType[]  rdnTypes  = rdn.getAttributeTypes();
     String[]         rdnNames  = rdn.getAttributeNames();
     AttributeValue[] rdnValues = rdn.getAttributeValues();
+
+
+    // If there is only one RDN attribute, then see which objectclass we should
+    // use.
+    ObjectClass structuralClass;
+    if (rdnTypes.length == 1)
+    {
+      if (rdnTypes[0].hasName(ATTR_C))
+      {
+        structuralClass = DirectoryServer.getObjectClass(OC_COUNTRY, true);
+      }
+      else if (rdnTypes[0].hasName(ATTR_DC))
+      {
+        structuralClass = DirectoryServer.getObjectClass(OC_DOMAIN, true);
+      }
+      else if (rdnTypes[0].hasName(ATTR_O))
+      {
+        structuralClass = DirectoryServer.getObjectClass(OC_ORGANIZATION, true);
+      }
+      else if (rdnTypes[0].hasName(ATTR_OU))
+      {
+        structuralClass =
+             DirectoryServer.getObjectClass(OC_ORGANIZATIONAL_UNIT_LC, true);
+      }
+      else
+      {
+        structuralClass =
+             DirectoryServer.getObjectClass(OC_UNTYPED_OBJECT_LC, true);
+      }
+    }
+    else
+    {
+      structuralClass =
+           DirectoryServer.getObjectClass(OC_UNTYPED_OBJECT_LC, true);
+    }
+
+
+    // Get the top and untypedObject classes to include in the entry.
+    LinkedHashMap<ObjectClass,String> objectClasses =
+         new LinkedHashMap<ObjectClass,String>(3);
+
+    objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    objectClasses.put(structuralClass, structuralClass.getNameOrOID());
 
 
     // Iterate through the RDN attributes and add them to the set of user or
@@ -3287,7 +3326,7 @@ public class StaticUtils
     {
       // First, see if this type is allowed by the untypedObject class.  If not,
       // then we'll need to include the extensibleObject class.
-      if ((! untypedObjectOC.isRequiredOrOptional(rdnTypes[i])) &&
+      if ((! structuralClass.isRequiredOrOptional(rdnTypes[i])) &&
           (! extensibleObjectAdded))
       {
         ObjectClass extensibleObjectOC =

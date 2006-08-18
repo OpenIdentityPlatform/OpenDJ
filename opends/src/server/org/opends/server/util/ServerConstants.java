@@ -112,6 +112,14 @@ public class ServerConstants
 
 
   /**
+   * The name of the standard attribute that is used to hold country names,
+   * formatted in all lowercase.
+   */
+  public static final String ATTR_C = "c";
+
+
+
+  /**
    * The name of the standard attribute that is used to hold common names,
    * formatted in all lowercase.
    */
@@ -152,6 +160,14 @@ public class ServerConstants
 
 
   /**
+   * The name of the standard attribute that is used to hold domain component
+   * names, formatted in all lowercase.
+   */
+  public static final String ATTR_DC = "dc";
+
+
+
+  /**
    * The name of the attribute that is used to specify the maximum number of
    * connections established at any time since startup, formatted in camel case.
    */
@@ -183,6 +199,22 @@ public class ServerConstants
    * lowercase.
    */
   public static final String ATTR_NAMING_CONTEXTS_LC = "namingcontexts";
+
+
+
+  /**
+   * The name of the standard attribute that is used to hold organization names,
+   * formatted in all lowercase.
+   */
+  public static final String ATTR_O = "o";
+
+
+
+  /**
+   * The name of the standard attribute that is used to hold organizational unit
+   * names, formatted in all lowercase.
+   */
+  public static final String ATTR_OU = "ou";
 
 
 
@@ -407,6 +439,22 @@ public class ServerConstants
   public static final String OC_ALIAS = "alias";
 
 
+
+  /**
+   * The name of the standard objectclass, formatted in all lowercase, that is
+   * used to indicate that an entry describes a country.
+   */
+  public static final String OC_COUNTRY = "country";
+
+
+
+  /**
+   * The name of the standard objectclass, formatted in all lowercase, that is
+   * used to indicate that an entry describes a domain.
+   */
+  public static final String OC_DOMAIN = "domain";
+
+
   /**
    * The name of the standard objectclass that is used to allow any attribute
    * type to be present in an entry, formatted in camel case.
@@ -475,6 +523,30 @@ public class ServerConstants
    * in all lowercase.
    */
   public static final String OC_LDAP_SUBENTRY_LC = "ldapsubentry";
+
+
+
+  /**
+   * The name of the standard objectclass, formatted in all lowercase, that is
+   * used to indicate that an entry describes an organization.
+   */
+  public static final String OC_ORGANIZATION = "organization";
+
+
+
+  /**
+   * The name of the standard objectclass that is  used to indicate that an
+   * entry describes an organizational unit.
+   */
+  public static final String OC_ORGANIZATIONAL_UNIT = "organizationalUnit";
+
+
+
+  /**
+   * The name of the organizationalUnit objectclass formatted in all lowercase
+   * characters.
+   */
+  public static final String OC_ORGANIZATIONAL_UNIT_LC = "organizationalunit";
 
 
 
