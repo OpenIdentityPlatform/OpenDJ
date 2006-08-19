@@ -80,4 +80,5 @@ fi
 
 ${JAVA_BIN} ${JAVA_ARGS} org.opends.server.tools.InstallDS \
      --configClass org.opends.server.config.ConfigFileHandler \
-     --configFile ${INSTANCE_ROOT}/config/config.ldif "${@}"
+     --configFile ${INSTANCE_ROOT}/config/config.ldif -P ${0} "${@}"
+

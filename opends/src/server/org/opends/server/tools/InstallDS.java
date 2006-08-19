@@ -78,6 +78,13 @@ public class InstallDS
 
 
   /**
+   * The position at which to wrap long lines.
+   */
+  public static final int MAX_LINE_WIDTH = 79;
+
+
+
+  /**
    * Indicates whether we think we're running on a Windows system.
    */
   private static boolean isWindows = false;
@@ -247,7 +254,7 @@ public class InstallDS
     }
     catch (ArgumentException ae)
     {
-      System.err.println(ae.getMessage());
+      System.err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
       return 1;
     }
@@ -260,7 +267,7 @@ public class InstallDS
     }
     catch (ArgumentException ae)
     {
-      System.err.println(ae.getMessage());
+      System.err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
       return 1;
     }
@@ -284,7 +291,7 @@ public class InstallDS
     {
       int    msgID   = MSGID_INSTALLDS_NO_CONFIG_FILE;
       String message = getMessage(msgID, configFile.getLongIdentifier());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -315,7 +322,7 @@ public class InstallDS
       String message = getMessage(msgID,
                                   String.valueOf(configFile.getValue()),
                                   e.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -330,7 +337,7 @@ public class InstallDS
       String message = getMessage(msgID,
                                   String.valueOf(configFile.getValue()),
                                   e.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -344,7 +351,7 @@ public class InstallDS
       String message = getMessage(msgID,
                                   String.valueOf(configFile.getValue()),
                                   e.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -364,7 +371,7 @@ public class InstallDS
         {
           int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
           String message = getMessage(msgID, s, e.getMessage());
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -381,7 +388,7 @@ public class InstallDS
         int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
         String message = getMessage(msgID, baseDN.getDefaultValue(),
                                     e.getMessage());
-        System.err.println(message);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }
@@ -449,7 +456,7 @@ public class InstallDS
         int msgID = MSGID_INSTALLDS_TWO_CONFLICTING_ARGUMENTS;
         String message = getMessage(msgID, addBaseEntry.getLongIdentifier(),
                                     importLDIF.getLongIdentifier());
-        System.err.println(message);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }
@@ -480,7 +487,7 @@ public class InstallDS
       }
       catch (ArgumentException ae)
       {
-        System.err.println(ae.getMessage());
+        System.err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
         return 1;
       }
     }
@@ -510,15 +517,13 @@ public class InstallDS
             {
               msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
               message = getMessage(msgID, ldapPortNumber, e.getMessage());
-              System.err.println(message);
-              return 1;
+              System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
             else
             {
               msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
               message = getMessage(msgID, ldapPortNumber, e.getMessage());
-              System.err.println(message);
-              return 1;
+              System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
           }
         }
@@ -541,7 +546,7 @@ public class InstallDS
         {
           int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
           String message = getMessage(msgID, s, e.getMessage());
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -558,7 +563,7 @@ public class InstallDS
         int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
         String message = getMessage(msgID, rootDN.getDefaultValue(),
                                     e.getMessage());
-        System.err.println(message);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }
@@ -583,7 +588,7 @@ public class InstallDS
         int msgID = MSGID_INSTALLDS_TWO_CONFLICTING_ARGUMENTS;
         String message = getMessage(msgID, rootPWString.getLongIdentifier(),
                                     rootPWFile.getLongIdentifier());
-        System.err.println(message);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }
@@ -596,7 +601,7 @@ public class InstallDS
       int    msgID   = MSGID_INSTALLDS_NO_ROOT_PASSWORD;
       String message = getMessage(msgID, rootPWString.getLongIdentifier(),
                                   rootPWFile.getLongIdentifier());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     else
@@ -643,7 +648,9 @@ public class InstallDS
     if (! silentInstall.isPresent())
     {
       System.out.println();
-      System.out.println(getMessage(MSGID_INSTALLDS_STATUS_CONFIGURING_DS));
+
+      String message = getMessage(MSGID_INSTALLDS_STATUS_CONFIGURING_DS);
+      System.out.println(wrapText(message, MAX_LINE_WIDTH));
     }
 
     int returnValue = ConfigureDS.configMain(configureDSArguments);
@@ -659,9 +666,8 @@ public class InstallDS
       // Create a temporary LDIF file that will hold the entry to add.
       if (! silentInstall.isPresent())
       {
-        System.out.println();
-        System.out.println(getMessage(
-                                MSGID_INSTALLDS_STATUS_CREATING_BASE_LDIF));
+        String message = getMessage(MSGID_INSTALLDS_STATUS_CREATING_BASE_LDIF);
+        System.out.println(wrapText(message, MAX_LINE_WIDTH));
       }
 
       try
@@ -689,8 +695,10 @@ public class InstallDS
       }
       catch (Exception e)
       {
-        int msgID = MSGID_INSTALLDS_CANNOT_CREATE_BASE_ENTRY_LDIF;
-        System.err.println(getMessage(msgID, String.valueOf(e)));
+        int    msgID   = MSGID_INSTALLDS_CANNOT_CREATE_BASE_ENTRY_LDIF;
+        String message = getMessage(msgID, String.valueOf(e));
+
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }
@@ -699,8 +707,8 @@ public class InstallDS
     {
       if (! silentInstall.isPresent())
       {
-        System.out.println();
-        System.out.println(getMessage(MSGID_INSTALLDS_STATUS_IMPORTING_LDIF));
+        String message = getMessage(MSGID_INSTALLDS_STATUS_IMPORTING_LDIF);
+        System.out.println(wrapText(message, MAX_LINE_WIDTH));
       }
 
       // Use the ImportLDIF tool to perform the import.
@@ -718,6 +726,11 @@ public class InstallDS
         argList.add(s);
       }
 
+      if (addBase)
+      {
+        argList.add("-q");
+      }
+
       String[] importLDIFArguments = new String[argList.size()];
       argList.toArray(importLDIFArguments);
 
@@ -726,14 +739,19 @@ public class InstallDS
       {
         return returnValue;
       }
+      else
+      {
+        String message = getMessage(MSGID_INSTALLDS_IMPORT_SUCCESSFUL);
+        System.out.println(wrapText(message, MAX_LINE_WIDTH));
+      }
     }
 
 
     // If we've gotten here, then everything seems to have gone smoothly.
     if (! silentInstall.isPresent())
     {
-      System.out.println();
-      System.out.println(getMessage(MSGID_INSTALLDS_STATUS_SUCCESS));
+      String message = getMessage(MSGID_INSTALLDS_STATUS_SUCCESS);
+      System.out.println(wrapText(message, MAX_LINE_WIDTH));
     }
 
     return 0;
@@ -757,7 +775,7 @@ public class InstallDS
    */
   private static boolean promptForBoolean(String prompt, Boolean defaultValue)
   {
-    String wrappedPrompt = wrapText(prompt, 79);
+    String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
 
     while (true)
     {
@@ -801,8 +819,8 @@ public class InstallDS
       {
         if (defaultValue == null)
         {
-          System.err.println(getMessage(
-                                  MSGID_INSTALLDS_INVALID_YESNO_RESPONSE));
+          String message = getMessage(MSGID_INSTALLDS_INVALID_YESNO_RESPONSE);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
@@ -811,7 +829,8 @@ public class InstallDS
       }
       else
       {
-        System.err.println(getMessage(MSGID_INSTALLDS_INVALID_YESNO_RESPONSE));
+        String message = getMessage(MSGID_INSTALLDS_INVALID_YESNO_RESPONSE);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
       }
     }
   }
@@ -839,7 +858,7 @@ public class InstallDS
   private static int promptForInteger(String prompt, Integer defaultValue,
                                       Integer lowerBound, Integer upperBound)
   {
-    String wrappedPrompt = wrapText(prompt, 79);
+    String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
 
     while (true)
     {
@@ -864,8 +883,8 @@ public class InstallDS
       {
         if (defaultValue == null)
         {
-          int msgID = MSGID_INSTALLDS_INVALID_INTEGER_RESPONSE;
-          System.err.println(getMessage(msgID));
+          String message = getMessage(MSGID_INSTALLDS_INVALID_INTEGER_RESPONSE);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
@@ -879,13 +898,17 @@ public class InstallDS
           int intValue = Integer.parseInt(response);
           if ((lowerBound != null) && (intValue < lowerBound))
           {
-            int msgID = MSGID_INSTALLDS_INTEGER_BELOW_LOWER_BOUND;
-            System.err.println(getMessage(msgID, lowerBound));
+            String message =
+                        getMessage(MSGID_INSTALLDS_INTEGER_BELOW_LOWER_BOUND,
+                                   lowerBound);
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
           }
           else if ((upperBound != null) && (intValue > upperBound))
           {
-            int msgID = MSGID_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND;
-            System.err.println(getMessage(msgID, upperBound));
+            String message =
+                        getMessage(MSGID_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND,
+                                   upperBound);
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
           }
           else
           {
@@ -894,8 +917,8 @@ public class InstallDS
         }
         catch (NumberFormatException nfe)
         {
-          int msgID = MSGID_INSTALLDS_INVALID_INTEGER_RESPONSE;
-          System.err.println(getMessage(msgID));
+          String message = getMessage(MSGID_INSTALLDS_INVALID_INTEGER_RESPONSE);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
       }
     }
@@ -919,7 +942,7 @@ public class InstallDS
    */
   private static DN promptForDN(String prompt, String defaultValue)
   {
-    String wrappedPrompt = wrapText(prompt, 79);
+    String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
 
     while (true)
     {
@@ -944,8 +967,8 @@ public class InstallDS
       {
         if (defaultValue == null)
         {
-          int msgID = MSGID_INSTALLDS_INVALID_DN_RESPONSE;
-          System.err.println(getMessage(msgID));
+          String message = getMessage(MSGID_INSTALLDS_INVALID_DN_RESPONSE);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
@@ -955,8 +978,8 @@ public class InstallDS
           }
           catch (Exception e)
           {
-            int msgID = MSGID_INSTALLDS_INVALID_DN_RESPONSE;
-            System.err.println(getMessage(msgID));
+            String message = getMessage(MSGID_INSTALLDS_INVALID_DN_RESPONSE);
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
           }
         }
       }
@@ -968,8 +991,8 @@ public class InstallDS
         }
         catch (Exception e)
         {
-          int msgID = MSGID_INSTALLDS_INVALID_DN_RESPONSE;
-          System.err.println(getMessage(msgID));
+          String message = getMessage(MSGID_INSTALLDS_INVALID_DN_RESPONSE);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
       }
     }
@@ -993,7 +1016,7 @@ public class InstallDS
   private static String promptForString(String prompt, String defaultValue)
   {
       System.out.println();
-    String wrappedPrompt = wrapText(prompt, 79);
+    String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
 
     while (true)
     {
@@ -1017,8 +1040,8 @@ public class InstallDS
       {
         if (defaultValue == null)
         {
-          int msgID = MSGID_INSTALLDS_INVALID_STRING_RESPONSE;
-          System.err.println(getMessage(msgID));
+          String message = getMessage(MSGID_INSTALLDS_INVALID_STRING_RESPONSE);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
@@ -1049,8 +1072,8 @@ public class InstallDS
   private static char[] promptForPassword(String initialPrompt,
                                           String reEntryPrompt)
   {
-    String wrappedInitialPrompt = wrapText(initialPrompt, 79);
-    String wrappedReEntryPrompt = wrapText(reEntryPrompt, 79);
+    String wrappedInitialPrompt = wrapText(initialPrompt, MAX_LINE_WIDTH);
+    String wrappedReEntryPrompt = wrapText(reEntryPrompt, MAX_LINE_WIDTH);
 
     while (true)
     {
@@ -1062,8 +1085,8 @@ public class InstallDS
       char[] password = PasswordReader.readPassword();
       if ((password == null) || (password.length == 0))
       {
-        int msgID = MSGID_INSTALLDS_INVALID_PASSWORD_RESPONSE;
-        System.err.println(getMessage(msgID));
+        String message = getMessage(MSGID_INSTALLDS_INVALID_PASSWORD_RESPONSE);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
       }
       else
       {
@@ -1074,8 +1097,8 @@ public class InstallDS
         if ((confirmedPassword == null) ||
             (! Arrays.equals(password, confirmedPassword)))
         {
-          int msgID = MSGID_INSTALLDS_PASSWORDS_DONT_MATCH;
-          System.err.println(getMessage(msgID));
+          String message = getMessage(MSGID_INSTALLDS_PASSWORDS_DONT_MATCH);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
@@ -1130,8 +1153,9 @@ public class InstallDS
     }
     catch (Exception e)
     {
-      int msgID = MSGID_INSTALLDS_ERROR_READING_FROM_STDIN;
-      System.err.println(getMessage(msgID, String.valueOf(e)));
+      String message = getMessage(MSGID_INSTALLDS_ERROR_READING_FROM_STDIN,
+                                  String.valueOf(e));
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
 
       return null;
     }
