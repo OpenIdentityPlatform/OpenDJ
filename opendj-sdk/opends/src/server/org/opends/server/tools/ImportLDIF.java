@@ -113,6 +113,7 @@ public class ImportLDIF
     BooleanArgument isCompressed            = null;
     BooleanArgument isEncrypted             = null;
     BooleanArgument overwriteRejects        = null;
+    BooleanArgument quietMode               = null;
     BooleanArgument replaceExisting         = null;
     BooleanArgument skipSchemaValidation    = null;
     StringArgument  backendID               = null;
@@ -249,6 +250,11 @@ public class ImportLDIF
            new BooleanArgument("isencrypted", 'y', "isEncrypted",
                                MSGID_LDIFIMPORT_DESCRIPTION_IS_ENCRYPTED);
       argParser.addArgument(isEncrypted);
+
+
+      quietMode = new BooleanArgument("quietmode", 'q', "quiet",
+                                      MSGID_LDIFIMPORT_DESCRIPTION_QUIET);
+      argParser.addArgument(quietMode);
 
 
       displayUsage =
@@ -414,11 +420,14 @@ public class ImportLDIF
     }
 
 
-    // FIXME -- Install a custom logger to capture information about the state
-    // of the import.
-    StartupErrorLogger startupLogger = new StartupErrorLogger();
-    startupLogger.initializeErrorLogger(null);
-    addErrorLogger(startupLogger);
+    if (! quietMode.isPresent())
+    {
+      // FIXME -- Install a custom logger to capture information about the state
+      // of the import.
+      StartupErrorLogger startupLogger = new StartupErrorLogger();
+      startupLogger.initializeErrorLogger(null);
+      addErrorLogger(startupLogger);
+    }
 
 
     // Initialize all the password policy information.

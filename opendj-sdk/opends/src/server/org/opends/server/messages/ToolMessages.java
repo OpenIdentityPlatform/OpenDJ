@@ -32,6 +32,7 @@ import org.opends.server.config.ConfigFileHandler;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.DynamicConstants.*;
 
 
 
@@ -5203,6 +5204,24 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description of the
+   * quiet argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFIMPORT_DESCRIPTION_QUIET =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 532;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * LDIF import was successful.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_IMPORT_SUCCESSFUL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 533;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5545,6 +5564,8 @@ public class ToolMessages
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_IS_ENCRYPTED,
                     "Indicates whether the LDIF file containing the data to " +
                     "import is encrypted.");
+    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_QUIET,
+                    "Use quiet mode (no output).");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_USAGE,
                     "Displays this usage information.");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_INITIALIZE_ARGS,
@@ -6895,9 +6916,11 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_STATUS_IMPORTING_LDIF,
                     "Importing the LDIF data into the Directory Server " +
                     "database....");
+    registerMessage(MSGID_INSTALLDS_IMPORT_SUCCESSFUL,
+                    "Import complete.");
     registerMessage(MSGID_INSTALLDS_STATUS_SUCCESS,
-                    "The OpenDS Directory Service setup process has " +
-                    "completed successfully.");
+                    "The " + SHORT_NAME + " setup process has completed " +
+                    "successfully.");
     registerMessage(MSGID_INSTALLDS_PROMPT_VALUE_YES, "yes");
     registerMessage(MSGID_INSTALLDS_PROMPT_VALUE_NO, "no");
     registerMessage(MSGID_INSTALLDS_INVALID_YESNO_RESPONSE,
