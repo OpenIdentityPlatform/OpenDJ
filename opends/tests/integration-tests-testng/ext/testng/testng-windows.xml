@@ -1,0 +1,66 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="OpenDS"   verbose="1" >
+    <parameter name="hostname" value="zena"/>
+    <parameter name="port" value="389"/>
+    <parameter name="sport" value="636"/>
+    <parameter name="bindDN" value="cn=Directory Manager"/>
+    <parameter name="bindPW" value="password"/>
+    <parameter name="integration_test_home" value="c:\dsee7\opends\trunk\opends\tests\integration-tests-testng\src\server\org\opends\server\integration"/>
+    <parameter name="logDir" value="c:\dsee7\opends\trunk\opends\tests\integration-tests-testng\opends\logs"/>
+    <parameter name="dsee_home" value="c:\dsee7_runtime\OpenDS-0.1"/>
+    <parameter name="backupDir" value="c:\dsee7\opends\trunk\opends\tests\integration-tests-testng\opends\backup"/>
+
+    <packages>
+        <package name="org.opends.server.integration.quickstart"/>
+        <package name="org.opends.server.integration.bob"/>
+        <package name="org.opends.server.integration.core"/>
+        <package name="org.opends.server.integration.frontend"/>
+        <package name="org.opends.server.integration.schema"/>
+    </packages>
+    
+    <test name="precommit">
+        <groups>
+            <run>
+                <include name="precommit"/>
+                <exclude name="broken"/>
+            </run>
+        </groups>
+    </test>
+    
+    <test name="integration-tests">
+          <groups>
+	      <define name="all">
+                  <include name="quickstart"/>
+                  <include name="bob"/>
+                  <include name="core"/>
+                  <include name="frontend"/>
+                  <include name="schema"/>
+	      </define>
+
+	      <define name="quickstart">
+		  <include name="quickstart"/>
+  	      </define>
+
+	      <define name="bob">
+		  <include name="bob"/>
+  	      </define>
+
+	      <define name="core">
+		  <include name="core"/>
+  	      </define>
+
+	      <define name="frontend">
+		  <include name="frontend"/>
+  	      </define>
+
+	      <define name="schema">
+		  <include name="schema"/>
+	      </define>
+
+	      <run>
+		  <include name="all"/>
+              </run>
+          </groups>
+    </test>
+    
+</suite>

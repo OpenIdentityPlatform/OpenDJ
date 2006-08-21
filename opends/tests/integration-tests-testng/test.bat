@@ -30,7 +30,7 @@ if "%INTEG_TEST_HOME%" == "" goto usage
 
 rem echo INTEG_TEST_HOME is %INTEG_TEST_HOME%
 echo OpenDS Integration Tests have started.........
-java -ea org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener %INTEG_TEST_HOME%/ext/testng/testng.xml
+java -ea org.testng.TestNG -d /tmp/testng -listener org.opends.server.OpenDSTestListener %INTEG_TEST_HOME%/ext/testng/testng-windows.xml
 goto end
 
 
