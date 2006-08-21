@@ -100,7 +100,7 @@ template_file="${testcase_file}.template"
 
 echo "Starting the build for the integration test suites"
 # Execute the ant script and pass it any additional command-line arguments.
-${ANT_HOME}/bin/ant --noconfig ${*}
+${ANT_HOME}/bin/ant -verbose --noconfig ${*}
 
 if [ $? -eq 0 ]; then
     echo "Successfully built the integration test suite"
