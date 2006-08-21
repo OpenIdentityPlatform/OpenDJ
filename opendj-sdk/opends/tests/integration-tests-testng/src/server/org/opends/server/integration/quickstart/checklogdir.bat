@@ -25,35 +25,7 @@ rem
 rem
 rem      Portions Copyright 2006 Sun Microsystems, Inc.
 
-setlocal
+set LOGDIR=%1
 
-rem These are the variables we need to run the integration tests
-set FT_HOME=%~dP0
-set DIR_HOME=%FT_HOME%\..\..
-set EXTRAS_HOME=%DIR_HOME%\ext
-set ANT_HOME=%EXTRAS_HOME%\ant
-set TESTNG_HOME=%EXTRAS_HOME%\testng
-
-if "%JAVA_HOME%" == "" goto noJavaHome
-goto runAnt
-
-:noJavaHome
-echo Error: JAVA_HOME environment variable is not set.
-echo        Please set it to a valid Java 5 installation.
-goto end
-
-:runAnt
-rem Append the testng jar file to the existing classpath
-rem set SEMICOLON=
-rem if not "%CLASSPATH%" == "" set SEMICOLON=";"
-rem set CLASSPATH=%CLASSPATH%%SEMICOLON%%TESTNG_HOME%\lib\testng-4.7-jdk15.jar
-rem echo a quick summary of what this script did
-echo using the following variables:
-echo   ANT_HOME=%ANT_HOME%
-echo   JAVA_HOME=%JAVA_HOME%
-echo   CLASSPATH=%CLASSPATH%
-echo Now running ant ...
-%ANT_HOME%\bin\ant %*
-
-:end
+IF NOT EXIST %LOGDIR% mkdir %LOGDIR%
 

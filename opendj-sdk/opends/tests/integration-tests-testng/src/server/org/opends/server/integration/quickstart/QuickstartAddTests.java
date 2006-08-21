@@ -46,11 +46,28 @@ public class QuickstartAddTests extends QuickstartTests
     System.out.println("*********************************************");
     System.out.println("QuickstartAdd test 1");
 
-    String exec_cmd = integration_test_home + "/quickstart/checklogdir.sh " + logDir;
-    Runtime rtime = Runtime.getRuntime();
-    Process child = rtime.exec(exec_cmd);
-    child.waitFor();
+    String osName = new String(System.getProperty("os.name"));
+    
+    if (osName.indexOf("Windows") >= 0)  // For Windows
+    {
+      String exec_cmd = "CMD /C " + integration_test_home + "\\quickstart\\checklogdir " + logDir;
+      Runtime rtime = Runtime.getRuntime();
+      Process child = rtime.exec(exec_cmd);
+      child.waitFor();
+    }
+    else  // all other unix systems
+    {
+      String exec_cmd = integration_test_home + "/quickstart/checklogdir.sh " + logDir;
+      Runtime rtime = Runtime.getRuntime();
+      Process child = rtime.exec(exec_cmd);
+      child.waitFor();   
+    }
 
+    ds_output.redirectOutput(logDir, "QuickstartAdd1.txt");
+    System.out.println("Operating system is " + osName.toString());   
+    System.out.println(logDir + " exists and is ready to receive log files.");
+    ds_output.resetOutput();
+    
     compareExitCode(0, 0);
   }
 
