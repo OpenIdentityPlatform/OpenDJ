@@ -40,8 +40,7 @@ public class JKSStartupTests extends JKSTests
  *  Setup for jks tests
 */
   @Parameters({ "integration_test_home", "dsee_home", "logDir" })
-  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.quickstart.QuickstartAddTests.testQuickstartAdd2" })
-  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.schema.SchemaStartupTests.testSchemaStartup1" })
+  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.schema.SchemaStartupTests.testSchemaStartup1" })
   public void testJKSStartup1(String integration_test_home, String dsee_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");
