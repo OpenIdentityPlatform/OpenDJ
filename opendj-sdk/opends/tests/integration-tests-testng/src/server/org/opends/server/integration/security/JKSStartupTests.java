@@ -40,41 +40,61 @@ public class JKSStartupTests extends JKSTests
  *  Setup for jks tests
 */
   @Parameters({ "integration_test_home", "dsee_home", "logDir" })
-  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.schema.SchemaStartupTests.testSchemaStartup1" })
+  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.quickstart.QuickstartAddTests.testQuickstartAdd2" })
+  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.schema.SchemaStartupTests.testSchemaStartup1" })
   public void testJKSStartup1(String integration_test_home, String dsee_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("JKS SSL Startup test 1");
    
-    ds_output.redirectOutput(logDir, "JKSStartup1.txt"); 
+    String osName = new String(System.getProperty("os.name"));
+      
+    if (osName.indexOf("Windows") >= 0)  // For Windows
+    {
+	String exec_cmd = "CMD /C " + integration_test_home + "\\security\\generate_server_cert";
+      Runtime rtime = Runtime.getRuntime();
+      Process child = rtime.exec(exec_cmd);
+      child.waitFor();
 
-    String exec_cmd = "cd " + integration_test_home;
-    Runtime rtime = Runtime.getRuntime();
-    Process child = rtime.exec(exec_cmd);
-    child.waitFor();
+      exec_cmd = "CMD /C copy " + integration_test_home + "\\..\\..\\..\\..\\..\\..\\keystore " + dsee_home + "\\config";
+      rtime = Runtime.getRuntime();
+      child = rtime.exec(exec_cmd);
+      child.waitFor();
 
-    exec_cmd = "chmod +x " + integration_test_home + "/security/generate_server_cert.sh";
-    rtime = Runtime.getRuntime();
-    child = rtime.exec(exec_cmd);
-    child.waitFor();
+      exec_cmd = "CMD /C cd " + dsee_home;
+      rtime = Runtime.getRuntime();
+      child = rtime.exec(exec_cmd);
+      child.waitFor();
 
-    exec_cmd = integration_test_home + "/security/generate_server_cert.sh";
-    rtime = Runtime.getRuntime();
-    child = rtime.exec(exec_cmd);
-    child.waitFor();
+    }
+    else  // all other unix systems
+    {
+      String exec_cmd = "cd " + integration_test_home;
+      Runtime rtime = Runtime.getRuntime();
+      Process child = rtime.exec(exec_cmd);
+      child.waitFor();
 
-    exec_cmd = "cp " + "keystore " + dsee_home + "/config";
-    rtime = Runtime.getRuntime();
-    child = rtime.exec(exec_cmd);
-    child.waitFor();
+      exec_cmd = "chmod +x " + integration_test_home + "/security/generate_server_cert.sh";
+      rtime = Runtime.getRuntime();
+      child = rtime.exec(exec_cmd);
+      child.waitFor();
 
-    exec_cmd = "cd " + dsee_home;
-    rtime = Runtime.getRuntime();
-    child = rtime.exec(exec_cmd);
-    child.waitFor();
+      exec_cmd = integration_test_home + "/security/generate_server_cert.sh";
+      rtime = Runtime.getRuntime();
+      child = rtime.exec(exec_cmd);
+      child.waitFor();
+
+      exec_cmd = "cp " + "keystore " + dsee_home + "/config";
+      rtime = Runtime.getRuntime();
+      child = rtime.exec(exec_cmd);
+      child.waitFor();
+
+      exec_cmd = "cd " + dsee_home;
+      rtime = Runtime.getRuntime();
+      child = rtime.exec(exec_cmd);
+      child.waitFor();
+    }
     
-    ds_output.resetOutput();
-
     compareExitCode(0, 0);
   }
 
@@ -105,7 +125,7 @@ public class JKSStartupTests extends JKSTests
     String jks_mod_args[] = {"-h", hostname, "-p", port, "-D", bindDN, "-w", bindPW, "-f", datafile};
 
     ds_output.redirectOutput(logDir, "JKSStartup3_prep.txt"); 
-    int retCode = LDAPDelete.mainDelete(jks_mod_args);
+    int retCode = LDAPModify.mainModify(jks_mod_args);
     ds_output.resetOutput();
     int expCode = 0;
 
