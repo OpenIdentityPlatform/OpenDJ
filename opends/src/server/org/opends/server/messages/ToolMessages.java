@@ -5222,6 +5222,17 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if the user did not
+   * specify the path to the Directory Server configuration file.  This takes a
+   * single argument, which is the name of the command-line option that should
+   * be used to provide that information.
+   */
+  public static final int MSGID_INSTALLDS_INITIALIZING =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 534;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6851,6 +6862,8 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_NO_CONFIG_FILE,
                     "ERROR:  No configuration file path was provided (use " +
                     "the %s argument).");
+    registerMessage(MSGID_INSTALLDS_INITIALIZING,
+                    "Please wait while the setup program initializes....");
     registerMessage(MSGID_INSTALLDS_CANNOT_INITIALIZE_JMX,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server JMX subsystem based on the information " +
