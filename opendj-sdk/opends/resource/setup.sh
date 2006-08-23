@@ -69,12 +69,29 @@ export CLASSPATH
 
 
 # Determine whether the detected Java environment is acceptable for use.
-${JAVA_BIN} ${JAVA_ARGS} org.opends.server.tools.InstallDS -t
-if test $? -ne 0
+if test -z "${JAVA_ARGS}"
 then
-  echo "ERROR:  The detected Java version could not be used.  Please set "
-  echo "        JAVA_HOME to the root of a Java 5.0 installation."
-  exit 1
+  ${JAVA_BIN} -client org.opends.server.tools.InstallDS -t 2> /dev/null
+  if test $? -eq 0
+  then
+    JAVA_ARGS="-client"
+  else
+    ${JAVA_BIN} org.opends.server.tools.InstallDS -t 2> /dev/null
+    if test $? -ne 0
+    then
+      echo "ERROR:  The detected Java version could not be used.  Please set "
+      echo "        JAVA_HOME to the root of a Java 5.0 installation."
+      exit 1
+    fi
+  fi
+else
+  ${JAVA_BIN} ${JAVA_ARGS} org.opends.server.tools.InstallDS -t 2> /dev/null
+  if test $? -ne 0
+  then
+    echo "ERROR:  The detected Java version could not be used.  Please set "
+    echo "        JAVA_HOME to the root of a Java 5.0 installation."
+    exit 1
+  fi
 fi
 
 

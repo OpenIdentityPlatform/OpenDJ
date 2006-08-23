@@ -304,6 +304,11 @@ public class InstallDS
     if (! silentInstall.isPresent())
     {
       System.out.println(versionString);
+      System.out.println();
+
+      int    msgID   = MSGID_INSTALLDS_INITIALIZING;
+      String message = getMessage(msgID);
+      System.out.println(wrapText(message, MAX_LINE_WIDTH));
     }
 
 
