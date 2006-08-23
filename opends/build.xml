@@ -683,7 +683,7 @@ public class DynamicConstants
     </testng>
   	
     <emma enabled="${coverage.enabled}" >
-      <report sourcepath="${srcdir}" >
+      <report sourcepath="${src.dir}" >
   	  <!-- <property name="verbosity.level" value="verbose" /> -->
           <fileset dir="${coverage.data.dir}" >
            <include name="*.emma" />
