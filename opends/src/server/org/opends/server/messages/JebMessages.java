@@ -1231,6 +1231,16 @@ public class JebMessages
 
 
 
+  /**
+   * The message ID for the string representation of the result code that will
+   * be used for operations that failed because the operation lookthrough
+   *  limit was exceeded.
+   */
+  public static final int MSGID_JEB_LOOKTHROUGH_LIMIT_EXCEEDED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 127;
+
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -1721,5 +1731,8 @@ public class JebMessages
                     "Entry record with ID %s is not compatible with this " +
                     "version of the backend database. " +
                     "Entry version: %x");
+    registerMessage(MSGID_JEB_LOOKTHROUGH_LIMIT_EXCEEDED,
+                    "This search operation has checked the maximum of %d " +
+                    "entries for matches.");
   }
 }

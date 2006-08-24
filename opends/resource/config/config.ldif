@@ -39,6 +39,7 @@ ds-cfg-notify-abandoned-operations: false
 ds-cfg-proxied-authorization-identity-mapper-dn: cn=Exact Match,cn=Identity Mappers,cn=config
 ds-cfg-size-limit: 1000
 ds-cfg-time-limit: 60 seconds
+ds-cfg-lookthrough-limit: 5000
 ds-cfg-writability-mode: enabled
 ds-cfg-bind-with-dn-requires-password: true
 ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,cn=config
@@ -1003,6 +1004,7 @@ userPassword: {SSHA}7SvN6HIPUPGr0YFd0NbRkoXWyWzHsOnEfUMyxg==
 ds-cfg-alternate-bind-dn: cn=Directory Manager
 ds-rlim-size-limit: 0
 ds-rlim-time-limit: 0
+ds-rlim-lookthrough-limit: 0
 
 dn: cn=Root DSE,cn=config
 objectClass: top

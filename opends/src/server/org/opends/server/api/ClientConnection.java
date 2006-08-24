@@ -80,6 +80,9 @@ public abstract class ClientConnection
   // The time limit for use with this client connection.
   private int timeLimit;
 
+  // The lookthrough limit for use with this client connection.
+  private int lookthroughLimit;
+
   // The opaque information used for storing intermediate state
   // information needed across multi-stage SASL binds.
   private Object saslAuthState;
@@ -103,6 +106,7 @@ public abstract class ClientConnection
     persistentSearches = new CopyOnWriteArrayList<PersistentSearch>();
     sizeLimit          = DirectoryServer.getSizeLimit();
     timeLimit          = DirectoryServer.getTimeLimit();
+    lookthroughLimit   = DirectoryServer.getLookthroughLimit();
   }
 
 
@@ -771,6 +775,40 @@ public abstract class ClientConnection
                       String.valueOf(sizeLimit));
 
     this.sizeLimit = sizeLimit;
+  }
+
+
+
+  /**
+   * Retrieves the default maximum number of entries that should
+   * checked for matches during a search.
+   *
+   * @return  The default maximum number of entries that should
+   *          checked for matches during a search.
+   */
+  public final int getLookthroughLimit()
+  {
+    assert debugEnter(CLASS_NAME, "getLookthroughLimit");
+
+    return lookthroughLimit;
+  }
+
+
+
+  /**
+   * Specifies the default maximum number of entries that should
+   * be checked for matches during a search.
+   *
+   * @param  lookthroughLimit  The default maximum number of
+   *                           entries that should be check for
+   *                           matches during a search.
+   */
+  public final void setLookthroughLimit(int lookthroughLimit)
+  {
+    assert debugEnter(CLASS_NAME, "setLookthroughLimit",
+      String.valueOf(lookthroughLimit));
+
+    this.lookthroughLimit = lookthroughLimit;
   }
 
 

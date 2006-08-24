@@ -5824,6 +5824,25 @@ public class CoreMessages
        CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 556;
 
 
+   /**
+   * The message ID for the message that will be used if a user entry contains
+   * multiple values for the user-specific lookthrough limit attribute.
+    * This takes a single argument, which is the DN of the user entry.
+   */
+  public static final int MSGID_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 557;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to parse a user-specific lookthrough value as an integer. This takes
+   * two arguments, which are the provided lookthrough limit value and the DN
+   * of the user entry.
+   */
+  public static final int MSGID_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 558;
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined
@@ -7870,6 +7889,14 @@ public class CoreMessages
                     "An error occured while trying to create an instance " +
                     "of class %s to use as the Directory Server work queue:  " +
                     "%s.");
+    registerMessage(MSGID_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS,
+                    "There are multiple user-specific lookthrough limit " +
+                    "values contained in user entry %s.  The default server " +
+                    "lookthrough limit will be used.");
+    registerMessage(MSGID_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT,
+                    "The user-specific lookthrough limit value %s contained " +
+                    "in user entry %s could not be parsed as an integer.  " +
+                    "The default server lookthrough limit will be used.");
   }
 }
 

@@ -974,6 +974,13 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.284
   Name 'ds-cfg-database-cleaner-num-threads'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.285
+  NAME 'ds-cfg-lookthrough-limit'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.286 NAME 'ds-rlim-lookthrough-limit'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE USAGE directoryOperation
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1151,7 +1158,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.40 NAME 'ds-cfg-root-config'
   ds-cfg-single-structural-objectclass-behavior $
   ds-cfg-notify-abandoned-operations $ ds-cfg-size-limit $ ds-cfg-time-limit $
   ds-cfg-proxied-authorization-identity-mapper-dn $ ds-cfg-writability-mode $
-  ds-cfg-bind-with-dn-requires-password ) X-ORIGIN 'OpenDS Directory Server' )
+  ds-cfg-bind-with-dn-requires-password $ ds-cfg-lookthrough-limit )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.41 NAME 'ds-cfg-root-dn' SUP top
   AUXILIARY MAY ds-cfg-alternate-bind-dn X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.42 NAME 'ds-cfg-root-dse'

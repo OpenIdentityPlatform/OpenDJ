@@ -378,6 +378,10 @@ public class DirectoryServer
   // unless overridden on a per-user basis.
   private int timeLimit;
 
+  // The maxiumum number of candidates that should be check for matches during
+  // a search.
+  private int lookthroughLimit;
+
   // The key manager provider for the Directory Server.
   private KeyManagerProvider keyManagerProvider;
 
@@ -7128,6 +7132,39 @@ public class DirectoryServer
     assert debugEnter(CLASS_NAME, "setSizeLimit", String.valueOf(sizeLimit));
 
     directoryServer.sizeLimit = sizeLimit;
+  }
+
+
+
+  /**
+   * Retrieves the default maximum number of entries that should checked for
+   * matches during a search.
+   *
+   * @return  The default maximum number of entries that should checked for
+   *          matches during a search.
+   */
+  public static int getLookthroughLimit()
+  {
+    assert debugEnter(CLASS_NAME, "getLookthroughLimit");
+
+    return directoryServer.lookthroughLimit;
+  }
+
+
+
+  /**
+   * Specifies the default maximum number of entries that should be checked for
+   * matches during a search.
+   *
+   * @param  lookthroughLimit  The default maximum number of entries that should
+   *                           be check for matches during a search.
+   */
+  public static void setLookthroughLimit(int lookthroughLimit)
+  {
+    assert debugEnter(CLASS_NAME, "setLookthroughLimit",
+      String.valueOf(lookthroughLimit));
+
+    directoryServer.lookthroughLimit = lookthroughLimit;
   }
 
 

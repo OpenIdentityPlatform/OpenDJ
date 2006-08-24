@@ -6073,6 +6073,25 @@ public class ConfigMessages
        CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 560;
 
 
+  /**
+   * The message ID for the description of the server lookthrough limit
+   * configuration attribute.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_CORE_DESCRIPTION_LOOKTHROUGH_LIMIT =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 561;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to process the server lookthrough limit.  This takes two arguments,
+   * which are the DN of the configuration entry and a string representation
+   * of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_CORE_INVALID_LOOKTHROUGH_LIMIT =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 562;
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -6632,9 +6651,9 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_CORE_INVALID_SIZE_LIMIT,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_SIZE_LIMIT +
-                    " (it should be the a positive integer value specifying " +
-                    "the size limit to use, or -1 to indicate that no limit " +
-                    "should be enforced):  %s.");
+                    " (It should be a positive integer value specifying " +
+                    "the size limit to use, or a value of 0 or -1 to " +
+                    "indicate that no limit should be enforced):  %s.");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_TIME_LIMIT,
                     "Specifies the default maximum length of time that " +
                     "should be allowed when processing a search operation.  " +
@@ -8808,6 +8827,20 @@ public class ConfigMessages
                     "acceptable according to its internal validation.  " +
                     "However, no specific information is available regarding " +
                     "the problem(s) with the entry.");
+    registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_LOOKTHROUGH_LIMIT,
+                    "Specifies the default maximum number of candidate " +
+                    "entries checked for matches when processing a search " +
+                    "operation.  This may be overridden on a per-user basis " +
+                    "by including the " + OP_ATTR_USER_LOOKTHROUGH_LIMIT +
+                    " operational attribute in the user's entry.  Changes to " +
+                    "this configuration attribute will take effect " +
+                    "immediately.");
+    registerMessage(MSGID_CONFIG_CORE_INVALID_LOOKTHROUGH_LIMIT,
+                    "Configuration entry %s has an invalid value for " +
+                    "configuration attribute " + ATTR_LOOKTHROUGH_LIMIT +
+                    " (It should be a positive integer value specifying " +
+                    "the lookthrough limit to use, or a value of 0 or -1 to " +
+                    "indicate that no limit should be enforced):  %s.");
   }
 }
 
