@@ -928,9 +928,10 @@ public class BindOperation
     // the result is unknown.
     processingStartTime = System.currentTimeMillis();
     setResultCode(ResultCode.UNDEFINED);
-    boolean returnAuthzID = false;
-    int     sizeLimit     = DirectoryServer.getSizeLimit();
-    int     timeLimit     = DirectoryServer.getTimeLimit();
+    boolean returnAuthzID    = false;
+    int     sizeLimit        = DirectoryServer.getSizeLimit();
+    int     timeLimit        = DirectoryServer.getTimeLimit();
+    int     lookthroughLimit = DirectoryServer.getLookthroughLimit();
 
 
     // Set a flag to indicate that a bind operation is in progress.  This should
@@ -1473,6 +1474,50 @@ bindProcessing:
               }
 
 
+              // See if the user's entry contains a custom lookthrough limit.
+              attrType =
+                   DirectoryServer.getAttributeType(
+                       OP_ATTR_USER_LOOKTHROUGH_LIMIT, true);
+              attrList = userEntry.getAttribute(attrType);
+              if ((attrList != null) && (attrList.size() == 1))
+              {
+                Attribute a = attrList.get(0);
+                LinkedHashSet<AttributeValue>  values = a.getValues();
+                Iterator<AttributeValue> iterator = values.iterator();
+                if (iterator.hasNext())
+                {
+                  AttributeValue v = iterator.next();
+                  if (iterator.hasNext())
+                  {
+                    int msgID = MSGID_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS;
+                    String message =
+                         getMessage(msgID, String.valueOf(userEntry.getDN()));
+                    logError(ErrorLogCategory.CORE_SERVER,
+                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                  }
+                  else
+                  {
+                    try
+                    {
+                      lookthroughLimit = Integer.parseInt(v.getStringValue());
+                    }
+                    catch (Exception e)
+                    {
+                      assert debugException(CLASS_NAME, "run", e);
+
+                      int msgID =
+                          MSGID_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT;
+                      String message =
+                           getMessage(msgID, v.getStringValue(),
+                                      String.valueOf(userEntry.getDN()));
+                      logError(ErrorLogCategory.CORE_SERVER,
+                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    }
+                  }
+                }
+              }
+
+
               pwPolicyState.handleDeprecatedStorageSchemes(simplePassword);
               pwPolicyState.clearAuthFailureTimes();
 
@@ -1930,6 +1975,48 @@ bindProcessing:
                   }
                 }
               }
+
+
+              // See if the user's entry contains a custom lookthrough limit.
+              attrType =
+                   DirectoryServer.getAttributeType(
+                       OP_ATTR_USER_LOOKTHROUGH_LIMIT, true);
+              attrList = saslAuthUserEntry.getAttribute(attrType);
+              if ((attrList != null) && (attrList.size() == 1))
+              {
+                Attribute a = attrList.get(0);
+                LinkedHashSet<AttributeValue>  values = a.getValues();
+                Iterator<AttributeValue> iterator = values.iterator();
+                if (iterator.hasNext())
+                {
+                  AttributeValue v = iterator.next();
+                  if (iterator.hasNext())
+                  {
+                    int msgID = MSGID_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS;
+                    String message = getMessage(msgID, userDNString);
+                    logError(ErrorLogCategory.CORE_SERVER,
+                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                  }
+                  else
+                  {
+                    try
+                    {
+                      lookthroughLimit = Integer.parseInt(v.getStringValue());
+                    }
+                    catch (Exception e)
+                    {
+                      assert debugException(CLASS_NAME, "run", e);
+
+                      int msgID =
+                          MSGID_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT;
+                      String message =
+                           getMessage(msgID, v.getStringValue(), userDNString);
+                      logError(ErrorLogCategory.CORE_SERVER,
+                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    }
+                  }
+                }
+              }
             }
           }
           else if (resultCode == ResultCode.SASL_BIND_IN_PROGRESS)
@@ -2037,6 +2124,7 @@ bindProcessing:
       clientConnection.setAuthenticationInfo(authInfo);
       clientConnection.setSizeLimit(sizeLimit);
       clientConnection.setTimeLimit(timeLimit);
+      clientConnection.setLookthroughLimit(lookthroughLimit);
       clientConnection.setMustChangePassword(mustChangePassword);
 
       if (returnAuthzID)

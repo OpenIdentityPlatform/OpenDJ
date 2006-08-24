@@ -532,8 +532,8 @@ public class CoreConfigManager
     // Determine the default server size limit.
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_SIZE_LIMIT;
     IntegerConfigAttribute sizeLimitStub =
-         new IntegerConfigAttribute(ATTR_SIZE_LIMIT, getMessage(msgID), true,
-                                    false, false, true, 0, true,
+         new IntegerConfigAttribute(ATTR_SIZE_LIMIT, getMessage(msgID), false,
+                                    false, false, true, -1, true,
                                     Integer.MAX_VALUE);
     try
     {
@@ -567,7 +567,7 @@ public class CoreConfigManager
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_TIME_LIMIT;
     IntegerWithUnitConfigAttribute timeLimitStub =
          new IntegerWithUnitConfigAttribute(ATTR_TIME_LIMIT, getMessage(msgID),
-                                            false, timeUnits, true, 0, true,
+                                            false, timeUnits, true, -1, true,
                                             Integer.MAX_VALUE);
     try
     {
@@ -595,6 +595,41 @@ public class CoreConfigManager
                String.valueOf(e));
 
       DirectoryServer.setTimeLimit(DEFAULT_TIME_LIMIT);
+    }
+
+
+    // Determine the default server lookthrough limit.
+    msgID = MSGID_CONFIG_CORE_DESCRIPTION_LOOKTHROUGH_LIMIT;
+    IntegerConfigAttribute lookthroughLimitStub =
+         new IntegerConfigAttribute(ATTR_LOOKTHROUGH_LIMIT, getMessage(msgID),
+                                    false, false, false, true, -1, true,
+                                    Integer.MAX_VALUE);
+    try
+    {
+      IntegerConfigAttribute lookthroughLimitAttr =
+           (IntegerConfigAttribute)
+           configRoot.getConfigAttribute(lookthroughLimitStub);
+      if (lookthroughLimitAttr == null)
+      {
+        DirectoryServer.setLookthroughLimit(DEFAULT_LOOKTHROUGH_LIMIT);
+      }
+      else
+      {
+        DirectoryServer.setLookthroughLimit(
+            lookthroughLimitAttr.activeIntValue());
+      }
+    }
+    catch (Exception e)
+    {
+      // An error occurred, but this should not be considered fatal.  Log an
+      // error message and use the default.
+      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+
+      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+               MSGID_CONFIG_CORE_INVALID_LOOKTHROUGH_LIMIT, configRoot.getDN(),
+               String.valueOf(e));
+
+      DirectoryServer.setLookthroughLimit(DEFAULT_LOOKTHROUGH_LIMIT);
     }
 
 
@@ -2135,6 +2170,40 @@ public class CoreConfigManager
     }
 
 
+    // Get the server lookthrough limit.
+    int lookthroughLimit = DEFAULT_LOOKTHROUGH_LIMIT;
+    msgID = MSGID_CONFIG_CORE_DESCRIPTION_LOOKTHROUGH_LIMIT;
+    IntegerConfigAttribute lookthroughLimitStub =
+         new IntegerConfigAttribute(ATTR_LOOKTHROUGH_LIMIT,
+             getMessage(msgID), false, false, false, true, -1, true,
+             Integer.MAX_VALUE);
+    try
+    {
+      IntegerConfigAttribute lookthroughLimitAttr =
+           (IntegerConfigAttribute)
+           configEntry.getConfigAttribute(lookthroughLimitStub);
+      if (lookthroughLimitAttr != null)
+      {
+        lookthroughLimit = lookthroughLimitAttr.pendingIntValue();
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+
+      // An error occurred, so we will not allow this configuration change to
+      // take place.
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
+      }
+
+      msgID = MSGID_CONFIG_CORE_INVALID_LOOKTHROUGH_LIMIT;
+      resultMessages.add(getMessage(msgID, configEntry.getDN().toString(),
+                                    String.valueOf(e)));
+    }
+
+
     // Get the server writability mode.
     HashSet<String> writabilityModes = new HashSet<String>(3);
     writabilityModes.add(WritabilityMode.ENABLED.toString());
@@ -2373,6 +2442,16 @@ public class CoreConfigManager
         resultMessages.add(getMessage(MSGID_CONFIG_SET_ATTRIBUTE,
                                       ATTR_TIME_LIMIT,
                                       String.valueOf(timeLimit),
+                                      configEntryDN.toString()));
+      }
+
+
+      DirectoryServer.setLookthroughLimit(lookthroughLimit);
+      if (detailedResults)
+      {
+        resultMessages.add(getMessage(MSGID_CONFIG_SET_ATTRIBUTE,
+                                      ATTR_LOOKTHROUGH_LIMIT,
+                                      String.valueOf(lookthroughLimit),
                                       configEntryDN.toString()));
       }
 

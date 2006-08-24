@@ -797,7 +797,7 @@ public class SearchOperation
 
     // See if the time limit has expired.  If so, then don't send the entry and
     // indicate that the search should end.
-    if (TimeThread.getTime() >= timeLimitExpiration)
+    if ((timeLimit > 0) && (TimeThread.getTime() >= timeLimitExpiration))
     {
       setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
       appendErrorMessage(getMessage(MSGID_SEARCH_TIME_LIMIT_EXCEEDED,
@@ -1242,7 +1242,7 @@ public class SearchOperation
 
     // See if the time limit has expired.  If so, then don't send the entry and
     // indicate that the search should end.
-    if (TimeThread.getTime() >= timeLimitExpiration)
+    if ((timeLimit > 0) && (TimeThread.getTime() >= timeLimitExpiration))
     {
       setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
       appendErrorMessage(getMessage(MSGID_SEARCH_TIME_LIMIT_EXCEEDED,

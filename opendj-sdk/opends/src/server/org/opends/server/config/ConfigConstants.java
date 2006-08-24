@@ -1992,6 +1992,21 @@ public class ConfigConstants
    */
   public static final int DEFAULT_SIZE_LIMIT = 1000;
 
+    /**
+   * The name of the configuration attribute that holds the server lookthrough
+   * limit.
+   */
+  public static final String ATTR_LOOKTHROUGH_LIMIT =
+        NAME_PREFIX_CFG + "lookthrough-limit";
+
+
+
+  /**
+   * The default value that will be used for the server lookthrough limit if
+   * no other value is given.
+   */
+  public static final int DEFAULT_LOOKTHROUGH_LIMIT = 5000;
+
 
 
   /**
@@ -3190,6 +3205,15 @@ public class ConfigConstants
    */
   public static final String OP_ATTR_USER_TIME_LIMIT =
        NAME_PREFIX_RLIM + "time-limit";
+
+
+
+  /**
+   * The name of the operational attribute that may be included in user
+   * entries to specify a lookthrough limit for that user.
+   */
+  public static final String OP_ATTR_USER_LOOKTHROUGH_LIMIT =
+      NAME_PREFIX_RLIM + "lookthrough-limit";
 
 
 

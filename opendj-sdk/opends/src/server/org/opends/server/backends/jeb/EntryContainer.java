@@ -838,6 +838,10 @@ public class EntryContainer
     DatabaseEntry key = new DatabaseEntry(begin);
     List<Lock> lockList = new ArrayList<Lock>(1);
 
+    int lookthroughCount = 0;
+    int lookthroughLimit =
+        searchOperation.getClientConnection().getLookthroughLimit();
+
     try
     {
       Cursor cursor = dn2id.openCursor(null, null);
@@ -851,6 +855,15 @@ public class EntryContainer
         // Step forward until we pass the ending value.
         while (status == OperationStatus.SUCCESS)
         {
+          if(lookthroughLimit > 0 && lookthroughCount > lookthroughLimit)
+          {
+            //Lookthrough limit exceeded
+            searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
+            searchOperation.appendErrorMessage(
+              getMessage(MSGID_JEB_LOOKTHROUGH_LIMIT_EXCEEDED,
+              lookthroughLimit));
+            return;
+          }
           int cmp = dn2idComparator.compare(key.getData(), end);
           if (cmp >= 0)
           {
@@ -901,6 +914,8 @@ public class EntryContainer
             // Process the candidate entry.
             if (entry != null)
             {
+              lookthroughCount++;
+
               if (manageDsaIT || entry.getReferralURLs() == null)
               {
                 // Filter the entry.
@@ -1021,6 +1036,18 @@ public class EntryContainer
         // Return any search result references.
         continueSearch = dn2uri.returnSearchReferences(searchOperation);
       }
+    }
+
+    // Make sure the candidate list is smaller than the lookthrough limit
+    int lookthroughLimit =
+        searchOperation.getClientConnection().getLookthroughLimit();
+    if(lookthroughLimit > 0 && entryIDList.size() > lookthroughLimit)
+    {
+      //Lookthrough limit exceeded
+      searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
+      searchOperation.appendErrorMessage(
+          getMessage(MSGID_JEB_LOOKTHROUGH_LIMIT_EXCEEDED, lookthroughLimit));
+      continueSearch = false;
     }
 
     // Iterate through the index candidates.
