@@ -28,6 +28,7 @@ package org.opends.server;
 
 import java.io.*;
 import org.opends.server.OpenDSAdmin;
+import  org.opends.server.tools.StopDS;
 
 /**
  * This class defines a base test case that should be subclassed by all
@@ -106,27 +107,33 @@ public abstract class OpenDSIntegrationTests {
 
   public void startOpenDS(String dsee_home, String port) throws Exception
   {
-    dsAdmin = new OpenDSAdmin(dsee_home, port);
+    String osName = new String(System.getProperty("os.name"));
 
-    System.out.println("OpenDS is starting.....");
-    dsAdmin.start();
-    dsAdmin.sleep(20000);
-    System.out.println("OpenDS has started.");
+    if (osName.indexOf("Windows") >= 0)  // For Windows
+    {
+        String exec_cmd = "CMD /C " + dsee_home + "\\bin\\start-ds";
+        Runtime rtime = Runtime.getRuntime();
+        Process child = rtime.exec(exec_cmd);
+        //child.waitFor();
+    }
+    else
+    {
+      System.out.println("OpenDS is starting.....");
+      String exec_cmd = dsee_home + "/bin/start-ds.sh -nodetach";
+      Runtime rtime = Runtime.getRuntime();
+      Process child = rtime.exec(exec_cmd);
+      //child.waitFor();
+      dsAdmin.sleep(30000);
+      System.out.println("OpenDS has started.");
+    }
   }
 
   public void stopOpenDS(String dsee_home, String port) throws Exception
   {
-    if(dsAdmin == null)
-    {
-      dsAdmin = new OpenDSAdmin(dsee_home, port);
-    }
-
+    String myArgs[] = {"-p", port};
     System.out.println("OpenDS is stopping.....");
-    dsAdmin.stopDS();
-    dsAdmin.sleep(20000);
+    org.opends.server.tools.StopDS.stopDS(myArgs);
     System.out.println("OpenDS has stopped.");
-
-    dsAdmin = null;
   }
 
 }
