@@ -108,24 +108,22 @@ public abstract class OpenDSIntegrationTests {
   public void startOpenDS(String dsee_home, String port) throws Exception
   {
     String osName = new String(System.getProperty("os.name"));
-
+    String exec_cmd = "";
+    System.out.println("OpenDS is starting.....");
+      
     if (osName.indexOf("Windows") >= 0)  // For Windows
     {
-        String exec_cmd = "CMD /C " + dsee_home + "\\bin\\start-ds";
-        Runtime rtime = Runtime.getRuntime();
-        Process child = rtime.exec(exec_cmd);
-        //child.waitFor();
+      exec_cmd = "CMD /C " + dsee_home + "\\bin\\start-ds";
     }
     else
     {
-      System.out.println("OpenDS is starting.....");
-      String exec_cmd = dsee_home + "/bin/start-ds.sh -nodetach";
-      Runtime rtime = Runtime.getRuntime();
-      Process child = rtime.exec(exec_cmd);
-      //child.waitFor();
-      dsAdmin.sleep(30000);
-      System.out.println("OpenDS has started.");
+      exec_cmd = dsee_home + "/bin/start-ds.sh -nodetach";
     }
+
+    Runtime rtime = Runtime.getRuntime();
+    Process child = rtime.exec(exec_cmd);
+    dsAdmin.sleep(30000);
+    System.out.println("OpenDS has started.");
   }
 
   public void stopOpenDS(String dsee_home, String port) throws Exception
