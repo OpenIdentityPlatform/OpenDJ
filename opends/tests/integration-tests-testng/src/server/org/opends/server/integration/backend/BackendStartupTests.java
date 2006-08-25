@@ -40,8 +40,7 @@ public class BackendStartupTests extends BackendTests
  *  Setup for backend tests
 */
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
-  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.schema.SchemaRFCTests.testSchemaRFC35" })
-  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.ssl.jks.JKSStartupTests.testJKSStartup1" })
+  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSTLSTests.testJKSTLSTest7" })
   public void testBackendStartup1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");
