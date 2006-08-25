@@ -100,7 +100,7 @@ template_file="${testcase_file}.template"
 
 echo "Starting the build for the integration test suites"
 # Execute the ant script and pass it any additional command-line arguments.
-${ANT_HOME}/bin/ant -verbose --noconfig ${*}
+${ANT_HOME}/bin/ant --noconfig ${*}
 
 if [ $? -eq 0 ]; then
     echo "Successfully built the integration test suite"
@@ -197,6 +197,7 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
         <package name="org.opends.server.integration.frontend"/>
         <package name="org.opends.server.integration.schema"/>
         <package name="org.opends.server.integration.security"/>
+        <package name="org.opends.server.integration.backend"/>
     </packages>
     
     <test name="precommit">
@@ -217,6 +218,7 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
                   <include name="frontend"/>
                   <include name="schema"/>
                   <include name="security"/>
+                  <include name="backend"/>
  	      </define>
 
 	      <define name="quickstart">
@@ -241,6 +243,10 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
 
 	      <define name="security">
 		  <include name="security"/>
+	      </define>
+
+	      <define name="backend">
+		  <include name="backend"/>
 	      </define>
 
 	      <run>
