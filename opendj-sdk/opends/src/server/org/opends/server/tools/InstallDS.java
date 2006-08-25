@@ -456,7 +456,7 @@ public class InstallDS
     {
       addBase = true;
 
-      if (importLDIF.isPresent())
+      if ((ldifFiles != null) && (! ldifFiles.isEmpty()))
       {
         int msgID = MSGID_INSTALLDS_TWO_CONFLICTING_ARGUMENTS;
         String message = getMessage(msgID, addBaseEntry.getLongIdentifier(),
@@ -465,7 +465,8 @@ public class InstallDS
         return 1;
       }
     }
-    else if (silentInstall.isPresent() || importLDIF.isPresent())
+    else if (silentInstall.isPresent() ||
+             ((ldifFiles != null) && (! ldifFiles.isEmpty())))
     {
       addBase = false;
     }
