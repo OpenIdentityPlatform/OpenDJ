@@ -132,6 +132,7 @@ import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
+import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.WritabilityMode;
@@ -428,6 +429,9 @@ public class DirectoryServer
   // The monitor config manager for the Directory Server.
   private MonitorConfigManager monitorConfigManager;
 
+  // The operating system on which the server is running.
+  private OperatingSystem operatingSystem;
+
   // The configuration handler used to manage the password generators.
   private PasswordGeneratorConfigManager passwordGeneratorConfigManager;
 
@@ -515,6 +519,8 @@ public class DirectoryServer
     isRunning             = false;
     shuttingDown          = false;
     serverErrorResultCode = ResultCode.OTHER;
+
+    operatingSystem = OperatingSystem.forName(System.getProperty("os.name"));
   }
 
 
@@ -2102,6 +2108,20 @@ public class DirectoryServer
     // Initialize all the password policies.
     passwordPolicyConfigManager = new PasswordPolicyConfigManager();
     passwordPolicyConfigManager.initializePasswordPolicies();
+  }
+
+
+
+  /**
+   * Retrieves the operating system on which the Directory Server is running.
+   *
+   * @return  The operating system on which the Directory Server is running.
+   */
+  public static OperatingSystem getOperatingSystem()
+  {
+    assert debugEnter(CLASS_NAME, "getOperatingSystem");
+
+    return directoryServer.operatingSystem;
   }
 
 
