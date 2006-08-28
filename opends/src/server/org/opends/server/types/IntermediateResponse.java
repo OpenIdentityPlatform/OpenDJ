@@ -50,7 +50,7 @@ public class IntermediateResponse
    * The fully-qualified name of this class for debugging purposes.
    */
   private static final String CLASS_NAME =
-       "org.opends.server.core.IntermediateResponse";
+       "org.opends.server.types.IntermediateResponse";
 
 
 
