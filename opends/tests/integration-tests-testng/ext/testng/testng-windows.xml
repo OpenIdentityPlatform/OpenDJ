@@ -17,7 +17,6 @@
         <package name="org.opends.server.integration.frontend"/>
         <package name="org.opends.server.integration.schema"/>
         <package name="org.opends.server.integration.security"/>
-        <package name="org.opends.server.integration.backend"/>
     </packages>
     
     <test name="precommit">
@@ -38,7 +37,6 @@
                   <include name="frontend"/>
                   <include name="schema"/>
                   <include name="security"/>
-                  <include name="backend"/>
 	      </define>
 
 	      <define name="quickstart">
@@ -63,10 +61,6 @@
 
 	      <define name="security">
 		  <include name="security"/>
-	      </define>
-
-	      <define name="backend">
-		  <include name="backend"/>
 	      </define>
 
 	      <run>

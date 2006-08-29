@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract base class for all frontend test cases.
  */
-@Test(groups = { "integration-tests", "frontend" }, alwaysRun=true, dependsOnGroups = { "core" })
+@Test(groups = { "integration-tests", "frontend" }, alwaysRun=true, dependsOnGroups = { "bob" })
 public abstract class FrontendTests extends OpenDSIntegrationTests {
   // No implementation required.
 }

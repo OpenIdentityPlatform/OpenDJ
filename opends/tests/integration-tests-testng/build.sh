@@ -193,9 +193,9 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
     <packages>
         <package name="org.opends.server.integration.quickstart"/>
         <package name="org.opends.server.integration.bob"/>
-        <package name="org.opends.server.integration.core"/>
         <package name="org.opends.server.integration.frontend"/>
         <package name="org.opends.server.integration.schema"/>
+        <package name="org.opends.server.integration.core"/>
         <package name="org.opends.server.integration.security"/>
         <package name="org.opends.server.integration.backend"/>
     </packages>
@@ -214,9 +214,9 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
 	      <define name="all">
                   <include name="quickstart"/>
                   <include name="bob"/>
-                  <include name="core"/>
                   <include name="frontend"/>
                   <include name="schema"/>
+                  <include name="core"/>
                   <include name="security"/>
                   <include name="backend"/>
  	      </define>
@@ -229,10 +229,6 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
 		  <include name="bob"/>
   	      </define>
 
-	      <define name="core">
-		  <include name="core"/>
-  	      </define>
-
 	      <define name="frontend">
 		  <include name="frontend"/>
   	      </define>
@@ -241,13 +237,17 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
 		  <include name="schema"/>
 	      </define>
 
+	      <define name="core">
+		  <include name="core"/>
+  	      </define>
+
 	      <define name="security">
 		  <include name="security"/>
-	      </define>
+  	      </define>
 
 	      <define name="backend">
 		  <include name="backend"/>
-	      </define>
+  	      </define>
 
 	      <run>
 		  <include name="all"/>

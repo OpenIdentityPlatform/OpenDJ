@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract base class for all ssl jks test cases.
  */
-@Test(groups = { "integration-tests", "security" }, alwaysRun=true, dependsOnGroups = { "schema" })
+@Test(groups = { "integration-tests", "security" }, alwaysRun=true, dependsOnGroups = { "core" })
 public abstract class JKSTests extends OpenDSIntegrationTests {
   // No implementation required.
 }

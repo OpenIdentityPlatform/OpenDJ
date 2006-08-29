@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract base class for all backend test cases.
  */
-@Test(groups = { "integration-tests", "backend" }, alwaysRun=true, dependsOnGroups = { "ssl_jks" })
+@Test(groups = { "integration-tests", "backend" }, alwaysRun=true, dependsOnGroups = { "security" })
 public abstract class BackendTests extends OpenDSIntegrationTests {
   // No implementation required.
 }

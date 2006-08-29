@@ -40,7 +40,8 @@ public class FrontendStartupTests extends FrontendTests
  *  Setup for frontend tests
 */
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
-  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreStartupTests.testCoreStartup1" })
+  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobDeleteTests.testBobDelete12" })
+  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreStartupTests.testCoreStartup1" })
   public void testFrontendStartup1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");

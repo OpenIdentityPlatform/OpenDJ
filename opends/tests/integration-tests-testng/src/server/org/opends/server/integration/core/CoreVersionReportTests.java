@@ -38,6 +38,8 @@ import java.io.*;
 public class CoreVersionReportTests extends CoreTests
 {
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
+  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit11" })
+  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreStartupTests.testCoreStartup2" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit11" })
   public void testCoreVersionReport1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
   {
