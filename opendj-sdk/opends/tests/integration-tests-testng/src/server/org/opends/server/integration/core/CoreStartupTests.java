@@ -40,7 +40,8 @@ public class CoreStartupTests extends CoreTests
    *  Setup for core tests
   */
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
-  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobStartupTests.testBobStartup1" })
+  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.schema.SchemaRFCTests.testSchemaRFC35" })
+  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2253_relationships.testFrontendUserRelationship10" })
   public void testCoreStartup1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");

@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract base class for all core test cases.
  */
-@Test(groups = { "integration-tests", "core" }, alwaysRun=true, dependsOnGroups = { "bob" })
+@Test(groups = { "integration-tests", "core" }, alwaysRun=true, dependsOnGroups = { "schema" }) 
 public abstract class CoreTests extends OpenDSIntegrationTests {
   // No implementation required.
 }
