@@ -1515,6 +1515,76 @@ public class UtilityMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * set the permissions of a file that does not exist.  This takes a single
+   * argument, which is the path to the specified file.
+   */
+  public static final int MSGID_FILEPERM_SET_NO_SUCH_FILE =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_MILD_ERROR | 141;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to execute the chmod command.  This takes two arguments, which are
+   * the path to the file and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_FILEPERM_CANNOT_EXEC_CHMOD =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_MILD_ERROR | 142;
+
+
+
+  /**
+   * The message ID for the message that will be used if an exception is thrown
+   * while attempting to update file permissions.  This takes a single argument,
+   * which is the path to the file being updated.
+   */
+  public static final int MSGID_FILEPERM_SET_JAVA_EXCEPTION =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 143;
+
+
+
+  /**
+   * The message ID for the message that will be used if at least one attempt
+   * to update file permissions failed, but at least one attempt was successful.
+   * This takes a single argument, which is the path to the file being updated.
+   */
+  public static final int MSGID_FILEPERM_SET_JAVA_FAILED_ALTERED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 144;
+
+
+
+  /**
+   * The message ID for the message that will be used if all attempts to update
+   * file permissions failed.  This takes a single argument, which is the path
+   * to the file being updated.
+   */
+  public static final int MSGID_FILEPERM_SET_JAVA_FAILED_UNALTERED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 145;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid UNIX mode
+   * string is provided.  This takes a single argument, which is the provided
+   * mode string.
+   */
+  public static final int MSGID_FILEPERM_INVALID_UNIX_MODE_STRING =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_MILD_ERROR | 146;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * use the exec method when the server has been configured to disallow that
+   * capability.
+   */
+  public static final int MSGID_EXEC_DISABLED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_MILD_ERROR | 147;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1537,6 +1607,12 @@ public class UtilityMessages
                     "The value %s cannot be decoded as a hexadecimal string " +
                     "because it contains an illegal character %s that is not " +
                     "a valid hexadecimal digit.");
+
+
+    registerMessage(MSGID_EXEC_DISABLED,
+                    "The %s command will not be allowed because the " +
+                    "Directory Server has been configured to refuse the use " +
+                    "of the exec method.");
 
 
     registerMessage(MSGID_LDIF_INVALID_LEADING_SPACE,
@@ -2007,6 +2083,31 @@ public class UtilityMessages
                     "password-reset");
     registerMessage(MSGID_ACCTNOTTYPE_PASSWORD_CHANGED,
                     "password-changed");
+
+
+    registerMessage(MSGID_FILEPERM_SET_NO_SUCH_FILE,
+                    "Unable to set permissions for file %s because it does " +
+                    "not exist.");
+    registerMessage(MSGID_FILEPERM_CANNOT_EXEC_CHMOD,
+                    "Unable to execute the chmod command to set file " +
+                    "permissions on %s:  %s.");
+    registerMessage(MSGID_FILEPERM_SET_JAVA_EXCEPTION,
+                    "One or more exceptions were thrown in the process of " +
+                    "updating the file permissions for %s.  Some of the " +
+                    "permissions for the file may have been altered.");
+    registerMessage(MSGID_FILEPERM_SET_JAVA_FAILED_ALTERED,
+                    "One or more updates to the file permissions for %s " +
+                    "failed, but at least one update was successful.  Some " +
+                    "of the permissions for the file may have been altered.");
+    registerMessage(MSGID_FILEPERM_SET_JAVA_FAILED_UNALTERED,
+                    "All of the attempts to update the file permissions for " +
+                    "%s failed.  The file should be left with its original " +
+                    "permissions.");
+    registerMessage(MSGID_FILEPERM_INVALID_UNIX_MODE_STRING,
+                    "The provided string %s does not represent a valid UNIX " +
+                    "file mode.  UNIX file modes must be a three-character " +
+                    "string in which each character is a numeric digit " +
+                    "between zero and seven.");
   }
 }
 

@@ -2024,6 +2024,32 @@ public class StaticUtils
 
 
   /**
+   * Indicates whether the use of the exec method will be allowed on this
+   * system.  It will be allowed by default, but that capability will be removed
+   * if the org.opends.server.DisableExec system property is set and has any
+   * value other than "false", "off", "no", or "0".
+   *
+   * @return  <CODE>true</CODE> if the use of the exec method should be allowed,
+   *          or <CODE>false</CODE> if it should not be allowed.
+   */
+  public static boolean mayUseExec()
+  {
+    assert debugEnter(CLASS_NAME, "mayUseExec");
+
+    String s = System.getProperty(PROPERTY_DISABLE_EXEC);
+    if (s == null)
+    {
+      return true;
+    }
+
+    s = toLowerCase(s);
+    return (s.equals("false") || s.equals("off") || s.equals("no") ||
+            s.equals("0"));
+  }
+
+
+
+  /**
    * Executes the specified command on the system and captures its output.  This
    * will not return until the specified process has completed.
    *
@@ -2055,6 +2081,17 @@ public class StaticUtils
   {
     assert debugEnter(CLASS_NAME, "exec", String.valueOf(command),
                       String.valueOf(args));
+
+
+    // See whether we'll allow the use of exec on this system.  If not, then
+    // throw an exception.
+    if (! mayUseExec())
+    {
+      int    msgID   = MSGID_EXEC_DISABLED;
+      String message = getMessage(msgID, String.valueOf(command));
+      throw new SecurityException(message);
+    }
+
 
     ArrayList<String> commandAndArgs = new ArrayList<String>();
     commandAndArgs.add(command);
