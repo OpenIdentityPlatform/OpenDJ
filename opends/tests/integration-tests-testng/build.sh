@@ -189,6 +189,7 @@ cat > \${INTEG_TEST_DIR}/ext/testng/testng.xml <<EOF2
     <parameter name="logDir" value="\${INTEG_TEST_DIR}/opends/logs"/>
     <parameter name="dsee_home" value="\${OPENDS_HOME}"/>
     <parameter name="backupDir" value="\${INTEG_TEST_DIR}/opends/backup"/>
+    <parameter name="exportDir" value="\${INTEG_TEST_DIR}/opends"/>
 
     <packages>
         <package name="org.opends.server.integration.quickstart"/>

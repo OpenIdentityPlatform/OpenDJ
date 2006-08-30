@@ -4,6 +4,6 @@ objectclass: ds-task
 objectclass: ds-task-export
 ds-task-id: 2
 ds-task-class-name: org.opends.server.tasks.ExportTask
-ds-task-export-ldif-file: /tmp/export_task.ldif
+ds-task-export-ldif-file: /export00/dsee7/src/openDS/trunk/opends/tests/integration-tests-testng/opends/export_task.ldif
 ds-task-export-backend-id: userRoot
 ds-task-export-include-branch: o=backend tests,dc=example,dc=com
