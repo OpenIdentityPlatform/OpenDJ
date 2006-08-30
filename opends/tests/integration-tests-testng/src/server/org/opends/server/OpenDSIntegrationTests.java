@@ -27,7 +27,7 @@
 package org.opends.server;
 
 import java.io.*;
-import org.opends.server.OpenDSAdmin;
+//import org.opends.server.OpenDSAdmin;
 import  org.opends.server.tools.StopDS;
 
 /**
@@ -41,7 +41,7 @@ public abstract class OpenDSIntegrationTests {
   // The print stream to use for printing error messages.
   private PrintStream errorStream;
   protected OpenDSTestOutput ds_output = new OpenDSTestOutput();
-  protected OpenDSAdmin dsAdmin = null;
+  //protected OpenDSAdmin dsAdmin = null;
 
   /**
    * Creates a new instance of this test case with the provided name.
@@ -122,7 +122,7 @@ public abstract class OpenDSIntegrationTests {
 
     Runtime rtime = Runtime.getRuntime();
     Process child = rtime.exec(exec_cmd);
-    dsAdmin.sleep(30000);
+    Thread.sleep(30000);
     System.out.println("OpenDS has started.");
   }
 
