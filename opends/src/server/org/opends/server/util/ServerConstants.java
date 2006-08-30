@@ -1993,5 +1993,17 @@ public class ServerConstants
    * The full unit that should be used for a time specified in weeks.
    */
   public static final String TIME_UNIT_WEEKS_FULL = "weeks";
+
+
+
+  /**
+   * The name of the system property that can be used to indicate whether
+   * components should be allowed to use the <CODE>Runtime.exec</CODE> method.
+   * If this property is set and the value is anything other than "false",
+   * "off", "no", or "0", then components should not allow the use of the
+   * <CODE>exec</CODE> method.
+   */
+  public static final String PROPERTY_DISABLE_EXEC =
+       "org.opends.server.DisableExec";
 }
 
