@@ -9,6 +9,7 @@
     <parameter name="logDir" value="c:\dsee7\opends\trunk\opends\tests\integration-tests-testng\opends\logs"/>
     <parameter name="dsee_home" value="c:\dsee7_runtime\OpenDS-0.1"/>
     <parameter name="backupDir" value="c:\dsee7\opends\trunk\opends\tests\integration-tests-testng\opends\backup"/>
+    <parameter name="exportDir" value="c:\dsee7\opends\trunk\opends\tests\integration-tests-testng\opends"/>
 
     <packages>
         <package name="org.opends.server.integration.quickstart"/>

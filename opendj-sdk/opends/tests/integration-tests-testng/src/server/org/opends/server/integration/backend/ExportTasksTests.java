@@ -37,9 +37,9 @@ import java.io.*;
 @Test
 public class ExportTasksTests extends BackendTests
 {
-  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport15" })
-  public void testExportTasks1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home) throws Exception
+  public void testExportTasks1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Export Tasks Test 1");
@@ -53,7 +53,7 @@ public class ExportTasksTests extends BackendTests
       output_str += "objectclass: ds-task-export\n";
       output_str += "ds-task-id: 2\n";
       output_str += "ds-task-class-name: org.opends.server.tasks.ExportTask\n";
-      output_str += "ds-task-export-ldif-file: /tmp/export_task.ldif\n";
+      output_str += "ds-task-export-ldif-file: " + exportDir + "/export_task.ldif\n";
       output_str += "ds-task-export-backend-id: userRoot\n";
       output_str += "ds-task-export-include-branch: o=backend tests,dc=example,dc=com\n";
 
