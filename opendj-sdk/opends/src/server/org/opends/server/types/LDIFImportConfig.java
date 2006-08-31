@@ -46,6 +46,8 @@ import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 import org.opends.server.core.DirectoryException;
+import org.opends.server.tools.makeldif.MakeLDIFInputStream;
+import org.opends.server.tools.makeldif.TemplateFile;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -136,6 +138,10 @@ public class LDIFImportConfig
 
   // The set of attribute types that should be included in the import.
   private Set<AttributeType> includeAttributes;
+
+  // The MakeLDIF template file that should be used to generate
+  // entries (instead of having them read from a file).
+  private TemplateFile templateFile;
 
 
 
@@ -242,6 +248,23 @@ public class LDIFImportConfig
     rejectWriter           = null;
     excludeAttributes      = new HashSet<AttributeType>();
     includeAttributes      = new HashSet<AttributeType>();
+  }
+
+
+
+  /**
+   * Creates a new LDIF import configuration that will generate
+   * entries using the given MakeLDIF template file rather than
+   * reading them from an existing LDIF file.
+   *
+   * @param  templateFile  The template file to use to generate the
+   *                       entries.
+   */
+  public LDIFImportConfig(TemplateFile templateFile)
+  {
+    this(new MakeLDIFInputStream(templateFile));
+
+    assert debugConstructor(CLASS_NAME, String.valueOf(templateFile));
   }
 
 

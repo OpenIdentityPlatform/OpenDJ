@@ -412,6 +412,7 @@ public class DynamicConstants
     <mkdir dir="${pdir}/config"          />
     <mkdir dir="${pdir}/config/schema"   />
     <mkdir dir="${pdir}/config/messages" />
+    <mkdir dir="${pdir}/config/MakeLDIF" />
     <mkdir dir="${pdir}/db"              />
     <mkdir dir="${pdir}/changelogDb"     />
     <mkdir dir="${pdir}/ldif"            />
@@ -442,6 +443,10 @@ public class DynamicConstants
 
     <copy todir="${pdir}/config/messages">
       <fileset dir="${resource.dir}/messages" />
+    </copy>
+
+    <copy todir="${pdir}/config/MakeLDIF">
+      <fileset dir="${resource.dir}/MakeLDIF" />
     </copy>
 
     <copy todir="${pdir}/legal-notices">

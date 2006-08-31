@@ -85,6 +85,9 @@ public class AttributeType
   // "no-user-modification".
   private boolean isNoUserModification;
 
+  // Indicates whether this attribute type is the objectclass type.
+  private boolean isObjectClassType;
+
   // Indicates whether this attribute type is declared "obsolete".
   private boolean isObsolete;
 
@@ -202,6 +205,22 @@ public class AttributeType
     this.extraProperties         =
          new ConcurrentHashMap<String,
                                CopyOnWriteArrayList<String>>(0);
+
+    isObjectClassType = false;
+    if ((oid != null) && oid.equals(OBJECTCLASS_ATTRIBUTE_TYPE_OID))
+    {
+      isObjectClassType = true;
+    }
+    else
+    {
+      for (String lowerName : typeNames.keySet())
+      {
+        if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
+        {
+          isObjectClassType = true;
+        }
+      }
+    }
   }
 
 
@@ -376,6 +395,22 @@ public class AttributeType
     else
     {
       this.substringMatchingRule = substringMatchingRule;
+    }
+
+    isObjectClassType = false;
+    if ((oid != null) && oid.equals(OBJECTCLASS_ATTRIBUTE_TYPE_OID))
+    {
+      isObjectClassType = true;
+    }
+    else
+    {
+      for (String lowerName : typeNames.keySet())
+      {
+        if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
+        {
+          isObjectClassType = true;
+        }
+      }
     }
   }
 
@@ -1130,20 +1165,7 @@ public class AttributeType
   {
     assert debugEnter(CLASS_NAME, "isObjectClassType");
 
-    if ((oid != null) && oid.equals(OBJECTCLASS_ATTRIBUTE_TYPE_OID))
-    {
-      return true;
-    }
-
-    for (String lowerName : typeNames.keySet())
-    {
-      if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
-      {
-        return true;
-      }
-    }
-
-    return false;
+    return isObjectClassType;
   }
 
 

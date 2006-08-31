@@ -28,9 +28,11 @@ package org.opends.server.tools;
 
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.plugin.PluginType;
@@ -45,6 +47,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.loggers.StartupErrorLogger;
+import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
@@ -55,6 +58,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -116,6 +120,7 @@ public class ImportLDIF
     BooleanArgument quietMode               = null;
     BooleanArgument replaceExisting         = null;
     BooleanArgument skipSchemaValidation    = null;
+    IntegerArgument randomSeed              = null;
     StringArgument  backendID               = null;
     StringArgument  configClass             = null;
     StringArgument  configFile              = null;
@@ -127,6 +132,7 @@ public class ImportLDIF
     StringArgument  includeFilterStrings    = null;
     StringArgument  ldifFiles               = null;
     StringArgument  rejectFile              = null;
+    StringArgument  templateFile            = null;
 
 
     // Create the command-line argument parser for use with this program.
@@ -154,10 +160,17 @@ public class ImportLDIF
 
 
       ldifFiles =
-           new StringArgument("ldiffile", 'l', "ldifFile", true, true, true,
+           new StringArgument("ldiffile", 'l', "ldifFile", false, true, true,
                               "{ldifFile}", null, null,
                               MSGID_LDIFIMPORT_DESCRIPTION_LDIF_FILE);
       argParser.addArgument(ldifFiles);
+
+
+      templateFile =
+           new StringArgument("templatefile", 't', "templateFile", false, false,
+                              true, "{templateFile}", null, null,
+                              MSGID_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE);
+      argParser.addArgument(templateFile);
 
 
       append =
@@ -234,6 +247,13 @@ public class ImportLDIF
       argParser.addArgument(overwriteRejects);
 
 
+      randomSeed =
+           new IntegerArgument("randomseed", 'S', "randomSeed", false, false,
+                               true, "{seed}", 0, null, false, 0, false, 0,
+                               MSGID_LDIFIMPORT_DESCRIPTION_RANDOM_SEED);
+      argParser.addArgument(randomSeed);
+
+
       skipSchemaValidation =
            new BooleanArgument("skipschema", 's', "skipSchemaValidation",
                     MSGID_LDIFIMPORT_DESCRIPTION_SKIP_SCHEMA_VALIDATION);
@@ -293,6 +313,29 @@ public class ImportLDIF
     if (displayUsage.isPresent())
     {
       return 0;
+    }
+
+
+    // Make sure that either the "ldifFile" argument or the "templateFile"
+    // argument was provided, but not both.
+    if (ldifFiles.isPresent())
+    {
+      if (templateFile.isPresent())
+      {
+        int    msgID   = MSGID_LDIFIMPORT_CONFLICTING_OPTIONS;
+        String message = getMessage(msgID, ldifFiles.getLongIdentifier(),
+                                    templateFile.getLongIdentifier());
+        System.err.println(message);
+        return 1;
+      }
+    }
+    else if (! templateFile.isPresent())
+    {
+      int    msgID   = MSGID_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT;
+      String message = getMessage(msgID, ldifFiles.getLongIdentifier(),
+                                  templateFile.getLongIdentifier());
+      System.err.println(message);
+      return 1;
     }
 
 
@@ -758,9 +801,57 @@ public class ImportLDIF
     }
 
 
+    // See if the data should be read from LDIF files or generated via MakeLDIF.
+    LDIFImportConfig importConfig;
+    if (ldifFiles.isPresent())
+    {
+      ArrayList<String> fileList = new ArrayList<String>(ldifFiles.getValues());
+      importConfig = new LDIFImportConfig(fileList);
+    }
+    else
+    {
+      Random random;
+      if (randomSeed.isPresent())
+      {
+        try
+        {
+          random = new Random(randomSeed.getIntValue());
+        }
+        catch (Exception e)
+        {
+          random = new Random();
+        }
+      }
+      else
+      {
+        random = new Random();
+      }
+
+      String resourcePath = DirectoryServer.getServerRoot() + File.separator +
+                            PATH_MAKELDIF_RESOURCE_DIR;
+      TemplateFile tf = new TemplateFile(resourcePath, random);
+
+      ArrayList<String> warnings = new ArrayList<String>();
+      try
+      {
+        tf.parse(templateFile.getValue(), warnings);
+      }
+      catch (Exception e)
+      {
+        int msgID = MSGID_LDIFIMPORT_CANNOT_PARSE_TEMPLATE_FILE;
+        String message = getMessage(msgID, templateFile.getValue(),
+                                    e.getMessage());
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+        return 1;
+      }
+
+      importConfig = new LDIFImportConfig(tf);
+    }
+
+
+
     // Create the LDIF import configuration to use when reading the LDIF.
-    ArrayList<String> fileList = new ArrayList<String>(ldifFiles.getValues());
-    LDIFImportConfig importConfig = new LDIFImportConfig(fileList);
     importConfig.setAppendToExistingData(append.isPresent());
     importConfig.setReplaceExistingEntries(replaceExisting.isPresent());
     importConfig.setCompressed(isCompressed.isPresent());

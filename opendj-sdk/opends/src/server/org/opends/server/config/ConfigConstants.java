@@ -3226,6 +3226,15 @@ public class ConfigConstants
 
 
   /**
+   * The path to the directory that should serve as the MakeLDIF resource
+   * directory.  It is relative to the server root.
+   */
+  public static final String PATH_MAKELDIF_RESOURCE_DIR =
+       "config" + File.separator + "MakeLDIF";
+
+
+
+  /**
    * The path to the directory containing the server schema definitions.  It is
    * relative to the server root.
    */
