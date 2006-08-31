@@ -119,7 +119,7 @@ public class MakeLDIFInputStream
 
 
   /**
-   * {@inheritDoc}
+   * Closes this input stream so that no more data may be read from it.
    */
   public void close()
   {
@@ -130,7 +130,13 @@ public class MakeLDIFInputStream
 
 
   /**
-   * {@inheritDoc}
+   * Reads a single byte of data from this input stream.
+   *
+   * @return  The byte read from the input stream, or -1 if the end of the
+   *          stream has been reached.
+   *
+   * @throws  IOException  If a problem has occurred while generating data for
+   *                       use by this input stream.
    */
   public int read()
          throws IOException
@@ -159,7 +165,19 @@ public class MakeLDIFInputStream
 
 
   /**
-   * {@inheritDoc}
+   * Reads data from this input stream.
+   *
+   * @param  b    The array into which the data should be read.
+   * @param  off  The position in the array at which point the data read may be
+   *              placed.
+   * @param  len  The maximum number of bytes that may be read into the
+   *              provided array.
+   *
+   * @return  The number of bytes read from the input stream into the provided
+   *          array, or -1 if the end of the stream has been reached.
+   *
+   * @throws  IOException  If a problem has occurred while generating data for
+   *                       use by this input stream.
    */
   public int read(byte[] b, int off, int len)
          throws IOException
