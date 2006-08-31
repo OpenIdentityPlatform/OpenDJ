@@ -2148,9 +2148,9 @@ public class ToolMessages
 
 
   /**
-   * The message ID for the message that will be used a requested include base
-   * does not exist in the targeted backend.  This takes two arguments, which
-   * are the specified include branch DN and the requested backend ID.
+   * The message ID for the message that will be used if a requested include
+   * base does not exist in the targeted backend.  This takes two arguments,
+   * which are the specified include branch DN and the requested backend ID.
    */
   public static final int MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 219;
@@ -5233,6 +5233,776 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if an invalid number of
+   * arguments were provided for a MakeLDIF tag.  This takes four arguments,
+   * which are the name of the tag, the line number on which it appears, the
+   * expected number of arguments, and the actual number of arguments.
+   */
+  public static final int MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 535;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid number of
+   * arguments were provided for a MakeLDIF tag, when a range of arguments are
+   * allowed.  This takes five arguments, which are the name of the tag, the
+   * line number on which it appears, the minimum number of expected arguments,
+   * the maximum number of expected arguments, and the actual number of
+   * arguments.
+   */
+  public static final int MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 536;
+
+
+
+  /**
+   * The message ID for the message that will be used if an undefined attribute
+   * type is referenced in a template file.  This takes two arguments, which are
+   * the name of the attribute type and the line number on which it appears.
+   */
+  public static final int MSGID_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 537;
+
+
+
+  /**
+   * The message ID for the message that will be used if an integer value is
+   * below the allowed lower bound.  This takes four arguments, which are the
+   * provided integer value, the lower bound, the tag name, and the line number
+   * on which it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 538;
+
+
+
+  /**
+   * The message ID for the message that will be used if value cannot be parsed
+   * as an integer.  This takes three arguments, which are the provided value,
+   * the tag name, and the line number on which it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 539;
+
+
+
+  /**
+   * The message ID for the message that will be used if an integer value is
+   * above the allowed upper bound.  This takes four arguments, which are the
+   * provided integer value, the upper bound, the tag name, and the line number
+   * on which it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_INTEGER_ABOVE_UPPER_BOUND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 540;
+
+
+
+  /**
+   * The message ID for the message that will be used if a tag argument is an
+   * empty string, which is not allowed.  This takes three arguments, which is
+   * the position of the argument, the tag name, and the line number on which
+   * it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_INVALID_EMPTY_STRING_ARGUMENT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 541;
+
+
+
+  /**
+   * The message ID for the message that will be used if a value cannot be
+   * parsed as a Boolean.  This takes three arguments, which are the provided
+   * value, the tag name, and the line number on which it appears in the
+   * template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_CANNOT_PARSE_AS_BOOLEAN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 542;
+
+
+
+  /**
+   * The message ID for the message that will be used if a branch references an
+   * undefined subordinate template.  This takes two arguments, which are the DN
+   * of the branch entry and the name of the undefined template.
+   */
+  public static final int MSGID_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 543;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to load a class for use as a tag.  This takes a single argument,
+   * which is the name of the class.
+   */
+  public static final int MSGID_MAKELDIF_CANNOT_LOAD_TAG_CLASS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 544;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to instantiate a class for use as a tag.  This takes a single
+   * argument, which is the name of the class.
+   */
+  public static final int MSGID_MAKELDIF_CANNOT_INSTANTIATE_TAG =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 545;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * register a new tag with a conflicting name.  This takes two arguments,
+   * which are the name of the class and the name of the tag.
+   */
+  public static final int MSGID_MAKELDIF_CONFLICTING_TAG_NAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 546;
+
+
+
+  /**
+   * The message ID for the message that will be used if a potential undefined
+   * constant is used in the template file.  This takes two arguments, which are
+   * the name of the constant and the line number on which it is used.
+   */
+  public static final int MSGID_MAKELDIF_WARNING_UNDEFINED_CONSTANT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_WARNING | 547;
+
+
+
+  /**
+   * The message ID for the message that will be used if a constant definition
+   * does not include an equal sign.  This takes a single argument, which is the
+   * line number on which it appears.
+   */
+  public static final int MSGID_MAKELDIF_DEFINE_MISSING_EQUALS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 548;
+
+
+
+  /**
+   * The message ID for the message that will be used if a constant definition
+   * does not include a name.  This takes a single argument, which is the line
+   * number on which it appears.
+   */
+  public static final int MSGID_MAKELDIF_DEFINE_NAME_EMPTY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 549;
+
+
+
+  /**
+   * The message ID for the message that will be used if a constant definition
+   * has a name that conflicts with another constant.  This takes two arguments,
+   * which are the name of the constant and the line number on which the
+   * conflict was detected.
+   */
+  public static final int MSGID_MAKELDIF_CONFLICTING_CONSTANT_NAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 550;
+
+
+
+  /**
+   * The message ID for the message that will be used if a constant definition
+   * does not have a value.  This takes two arguments, which are the name of the
+   * constant and the line number on which it is defined.
+   */
+  public static final int MSGID_MAKELDIF_WARNING_DEFINE_VALUE_EMPTY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 551;
+
+
+
+  /**
+   * The message ID for the message that will be used if a branch definition
+   * has a DN that conflicts with another branch.  This takes two arguments,
+   * which are the branch DN and the line number on which the conflict was
+   * detected.
+   */
+  public static final int MSGID_MAKELDIF_CONFLICTING_BRANCH_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 552;
+
+
+
+  /**
+   * The message ID for the message that will be used if a template definition
+   * has a name that conflicts with another template.  This takes two arguments,
+   * which are the template name and the line number on which the conflict was
+   * detected.
+   */
+  public static final int MSGID_MAKELDIF_CONFLICTING_TEMPLATE_NAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 553;
+
+
+
+  /**
+   * The message ID for the message that will be used if an unrecognized line
+   * was found in the template file.  This takes two arguments, which are the
+   * content of the line and the line number on which it was found.
+   */
+  public static final int MSGID_MAKELDIF_UNEXPECTED_TEMPLATE_FILE_LINE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 554;
+
+
+
+  /**
+   * The message ID for the message that will be used if a template references
+   * an undefined subordinate template.  This takes two arguments, which are the
+   * name of the parent template and the name of the undefined subordinate
+   * template.
+   */
+  public static final int MSGID_MAKELDIF_UNDEFINED_TEMPLATE_SUBORDINATE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 555;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to parse the branch DN.  This takes two arguments, which are the DN
+   * string and the line number on which it appears.
+   */
+  public static final int MSGID_MAKELDIF_CANNOT_DECODE_BRANCH_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 556;
+
+
+
+  /**
+   * The message ID for the message that will be used if a subordinate template
+   * definition does not include a colon.  This takes two arguments, which are
+   * the line number and the branch DN.
+   */
+  public static final int MSGID_MAKELDIF_BRANCH_SUBORDINATE_TEMPLATE_NO_COLON =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 557;
+
+
+
+  /**
+   * The message ID for the message that will be used if a subordinate template
+   * specifies an invalid number of entries.  This takes four arguments, which
+   * are the line number, the branch DN, the invalid number of entries, and the
+   * subordinate template name.
+   */
+  public static final int
+       MSGID_MAKELDIF_BRANCH_SUBORDINATE_INVALID_NUM_ENTRIES =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 558;
+
+
+
+  /**
+   * The message ID for the message that will be used if there are zero entries
+   * to be created for a subordinate template.  This takes three arguments,
+   * which are the line number, the branch DN, and the subordinate template
+   * name.
+   */
+  public static final int MSGID_MAKELDIF_BRANCH_SUBORDINATE_ZERO_ENTRIES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_WARNING | 559;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to parse the number of entries for a subordinate template.  This
+   * takes three arguments, which are the template name, the line number, and
+   * the branch DN.
+   */
+  public static final int
+       MSGID_MAKELDIF_BRANCH_SUBORDINATE_CANT_PARSE_NUMENTRIES =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 560;
+
+
+
+  /**
+   * The message ID for the message that will be used if a subordinate template
+   * definition does not include a colon.  This takes two arguments, which are
+   * the line number and the template name.
+   */
+  public static final int
+       MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_TEMPLATE_NO_COLON =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 561;
+
+
+
+  /**
+   * The message ID for the message that will be used if a subordinate template
+   * specifies an invalid number of entries.  This takes four arguments, which
+   * are the line number, the template name, the invalid number of entries, and
+   * the subordinate template name.
+   */
+  public static final int
+       MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_INVALID_NUM_ENTRIES =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 562;
+
+
+
+  /**
+   * The message ID for the message that will be used if there are zero entries
+   * to be created for a subordinate template.  This takes three arguments,
+   * which are the line number, the template name, and the subordinate template
+   * name.
+   */
+  public static final int MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_ZERO_ENTRIES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_WARNING | 563;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to parse the number of entries for a subordinate template.  This
+   * takes three arguments, which are the subordinate template name, the line
+   * number, and the template name.
+   */
+  public static final int
+       MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_CANT_PARSE_NUMENTRIES =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 564;
+
+
+
+  /**
+   * The message ID for the message that will be used if a template references
+   * an undefined RDN attribute.  This takes two arguments, which are the
+   * name of the parent template and the name of the undefined RDN attribute.
+   */
+  public static final int MSGID_MAKELDIF_TEMPLATE_MISSING_RDN_ATTR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 565;
+
+
+
+  /**
+   * The message ID for the message that will be used if a branch definition has
+   * an extra line with no colon to separate the attribute type from the value
+   * pattern.  This takes two arguments, which are the line number in the
+   * template file and the branch DN.
+   */
+  public static final int MSGID_MAKELDIF_NO_COLON_IN_BRANCH_EXTRA_LINE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 566;
+
+
+
+  /**
+   * The message ID for the message that will be used if a branch definition has
+   * an extra line with no attribute type .  This takes two arguments, which are
+   * the line number in the  template file and the branch DN.
+   */
+  public static final int MSGID_MAKELDIF_NO_ATTR_IN_BRANCH_EXTRA_LINE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 567;
+
+
+
+  /**
+   * The message ID for the message that will be used if a branch definition has
+   * an extra line with no value.  This takes two arguments, which are the line
+   * number in the  template file and the branch DN.
+   */
+  public static final int MSGID_MAKELDIF_NO_VALUE_IN_BRANCH_EXTRA_LINE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_WARNING | 568;
+
+
+
+  /**
+   * The message ID for the message that will be used if a template definition
+   * has a line with no colon to separate the attribute type from the value
+   * pattern.  This takes two arguments, which are the line number in the
+   * template file and the template name.
+   */
+  public static final int MSGID_MAKELDIF_NO_COLON_IN_TEMPLATE_LINE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 569;
+
+
+
+  /**
+   * The message ID for the message that will be used if a template definition
+   * has a line with no attribute type .  This takes two arguments, which are
+   * the line number in the  template file and the template name.
+   */
+  public static final int MSGID_MAKELDIF_NO_ATTR_IN_TEMPLATE_LINE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 570;
+
+
+
+  /**
+   * The message ID for the message that will be used if a template definition
+   * has a line with no value.  This takes two arguments, which are the line
+   * number in the  template file and the template name.
+   */
+  public static final int MSGID_MAKELDIF_NO_VALUE_IN_TEMPLATE_LINE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_WARNING | 571;
+
+
+
+  /**
+   * The message ID for the message that will be used if a template definition
+   * references an undefined tag.  This takes two arguments, which are the name
+   * of the tag and the line number on which it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_NO_SUCH_TAG =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 572;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create a new tag instance.  This takes three arguments, which are
+   * the tag name, the line number, and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 573;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * configFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_MAKELDIF_DESCRIPTION_CONFIG_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 574;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * configClass argument.  This does not take any arguments.
+   */
+  public static final int MSGID_MAKELDIF_DESCRIPTION_CONFIG_CLASS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 575;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * templateFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_MAKELDIF_DESCRIPTION_TEMPLATE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 576;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * ldifFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_MAKELDIF_DESCRIPTION_LDIF =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 577;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * randomSeed argument.  This does not take any arguments.
+   */
+  public static final int MSGID_MAKELDIF_DESCRIPTION_SEED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 578;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * help argument.  This does not take any arguments.
+   */
+  public static final int MSGID_MAKELDIF_DESCRIPTION_HELP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 579;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to initialize the command-line argument parser.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_MAKELDIF_CANNOT_INITIALIZE_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 580;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * parsing the provided command-line arguments.  This takes a single argument,
+   * which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_MAKELDIF_ERROR_PARSING_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 581;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the Directory Server JMX subsystem.  This takes two arguments,
+   * which are the path to the Directory Server configuration file and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_MAKELDIF_CANNOT_INITIALIZE_JMX =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 582;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the Directory Server configuration.  This takes two
+   * arguments, which are the path to the Directory Server configuration file
+   * and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_MAKELDIF_CANNOT_INITIALIZE_CONFIG =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 583;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the Directory Server schema.  This takes two arguments, which
+   * are the path to the Directory Server configuration file and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_MAKELDIF_CANNOT_INITIALIZE_SCHEMA =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 584;
+
+
+
+  /**
+   * The message ID for the message that will be used if an I/O exception was
+   * thrown while trying to load the template file.  This takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_MAKELDIF_IOEXCEPTION_DURING_PARSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 585;
+
+
+
+  /**
+   * The message ID for the message that will be used if a non-I/O exception was
+   * thrown while trying to load the template file.  This takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_MAKELDIF_EXCEPTION_DURING_PARSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 586;
+
+
+
+  /**
+   * The message ID for the message that will be used if a value cannot be
+   * parsed as a format string.  This takes three arguments, which are the
+   * provided value, the tag name, and the line number on which it appears in
+   * the  template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_INVALID_FORMAT_STRING =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 587;
+
+
+
+  /**
+   * The message ID for the message that will be used if a random tag does not
+   * specify the random value type.  This takes a single argument, which is the
+   * line number on which it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_NO_RANDOM_TYPE_ARGUMENT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 588;
+
+
+
+  /**
+   * The message ID for the message that will be used if a random tag will
+   * always generate an empty value.  This takes a single argument, which is the
+   * line number on which it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_WARNING_EMPTY_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_WARNING | 589;
+
+
+
+  /**
+   * The message ID for the message that will be used if a random tag has an
+   * unknown random type.  This takes two arguments, which are the line number
+   * on which it appears in the template file and the provided random type.
+   */
+  public static final int MSGID_MAKELDIF_TAG_UNKNOWN_RANDOM_TYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 590;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * resourcePath argument.  This does not take any arguments.
+   */
+  public static final int MSGID_MAKELDIF_DESCRIPTION_RESOURCE_PATH =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 591;
+
+
+
+  /**
+   * The message ID for the message that will be used if the specified temlate
+   * file could not be found.  This takes a single argument, which is the
+   * specified template file.
+   */
+  public static final int MSGID_MAKELDIF_COULD_NOT_FIND_TEMPLATE_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 592;
+
+
+
+  /**
+   * The message ID for the message that will be used if the specified resource
+   * directory does not exist.  This takes a single argument, which is the
+   * specified resource directory.
+   */
+  public static final int MSGID_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 593;
+
+
+
+  /**
+   * The message ID for the message that will be used if the specified resource
+   * directory exists but is not a directory.  This takes a single argument,
+   * which is the specified resource directory.
+   */
+  public static final int MSGID_MAKELDIF_RESOURCE_DIRECTORY_NOT_DIRECTORY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 594;
+
+
+
+  /**
+   * The message ID for the message that will be used if the specified tag
+   * could not be found.  This takes three arguments, which are the file path,
+   * the tag name, and the line number on which it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_CANNOT_FIND_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 595;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid file access
+   * mode was specified.  This takes three arguments, which are the access mode,
+   * the tag name, and the line number on which it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_INVALID_FILE_ACCESS_MODE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 596;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to read the contents of a file.  This takes four arguments, which
+   * are the file path, the tag name, the line number on which it appears in the
+   * template file, and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_MAKELDIF_TAG_CANNOT_READ_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 597;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create the output LDIF file.  This takes two arguments, which are
+   * the path to the LDIF file and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_MAKELDIF_UNABLE_TO_CREATE_LDIF =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 598;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to write to the output LDIF file.  This takes two arguments, which
+   * are the path to the LDIF file and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_MAKELDIF_ERROR_WRITING_LDIF =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 599;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate the number of
+   * entries that have been processed.  This takes a single argument, which is
+   * the number of entries processed.
+   */
+  public static final int MSGID_MAKELDIF_PROCESSED_N_ENTRIES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 600;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to write an entry.  This takes two arguments, which are the DN of
+   * the entry and a message with information about the problem that occurred.
+   */
+  public static final int MSGID_MAKELDIF_CANNOT_WRITE_ENTRY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 601;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that all
+   * processing has been completed.  This takes a single argument, which is the
+   * number of entries processed.
+   */
+  public static final int MSGID_MAKELDIF_PROCESSING_COMPLETE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 602;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * templateFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 603;
+
+
+
+  /**
+   * The message ID for the message that will be used if both the ldifFile and
+   * the templateFile arguments were provided.  This takes two arguments, which
+   * are the long identifiers for the ldifFile and templateFile options.
+   */
+  public static final int MSGID_LDIFIMPORT_CONFLICTING_OPTIONS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 604;
+
+
+
+  /**
+   * The message ID for the message that will be used if neither the ldifFile or
+   * the templateFile arguments was provided.  This takes two arguments, which
+   * are the long identifiers for the ldifFile and templateFile options.
+   */
+  public static final int MSGID_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 605;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to initialize a MakeLDIF template file.  This takes two
+   * arguments, which are the path to the template file and a message explaining
+   * the problem that occurred.
+   */
+  public static final int MSGID_LDIFIMPORT_CANNOT_PARSE_TEMPLATE_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 606;
+
+
+
+  /**
+   * The message ID for the message that will be used if a template line has an
+   * unclosed tag.  This takes a single argument, which is the line number on
+   * which it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_INCOMPLETE_TAG =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 607;
+
+
+
+  /**
+   * The message ID for the message that will be used if a branch definition
+   * includes a tag that is not allowed for use in branches.  This takes two
+   * arguments, which are the name of the tag and the line number on which it
+   * appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_NOT_ALLOWED_IN_BRANCH =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 608;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * randomSeed argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFIMPORT_DESCRIPTION_RANDOM_SEED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 609;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5517,6 +6287,11 @@ public class ToolMessages
                     "once to import from multiple LDIF files (the files " +
                     "will be processed in the order they are provided in " +
                     "the arguments).");
+    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE,
+                    "Specifies the path to the MakeLDIF template file " +
+                    "defining the data to be generated for the import.  This " +
+                    "may not be used in conjunction with the --ldifFile " +
+                    "option.");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_APPEND,
                     "Indicates that the import process should append to the " +
                     "existing database rather than overwriting it.");
@@ -5562,10 +6337,10 @@ public class ToolMessages
                     "Specifies the path to a file into which rejected " +
                     "entries may be written if they are not accepted during " +
                     "the import process.");
-    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_OVERWRITE_REJECTS,
-                    "Indicates whether to overwrite an existing rejects " +
-                    "file when performing an LDIF import rather than " +
-                    "appending to it.");
+    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_RANDOM_SEED,
+                    "Specifies the seed to use for the random number " +
+                    "generator.  This  is only applicable when generating " +
+                    "entries from a template.");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_SKIP_SCHEMA_VALIDATION,
                     "Indicates whether to skip schema validation during the " +
                     "import.");
@@ -5585,6 +6360,13 @@ public class ToolMessages
     registerMessage(MSGID_LDIFIMPORT_ERROR_PARSING_ARGS,
                     "An error occurred while parsing the command-line " +
                     "arguments:  %s.");
+    registerMessage(MSGID_LDIFIMPORT_CONFLICTING_OPTIONS,
+                    "The %s and %s arguments are incompatible and may not be " +
+                    "used together.");
+    registerMessage(MSGID_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT,
+                    "Neither the %s or the %s argument was provided.  One " +
+                    "of these arguments must be given to specify the source " +
+                    "for the LDIF data to be imported.");
     registerMessage(MSGID_LDIFIMPORT_SERVER_BOOTSTRAP_ERROR,
                     "An unexpected error occurred while attempting to " +
                     "bootstrap the Directory Server client-side code:  %s.");
@@ -5633,6 +6415,9 @@ public class ToolMessages
     registerMessage(MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE,
                     "Provided include base DN \"%s\" is not handled by the " +
                     "backend with backend ID %s.");
+    registerMessage(MSGID_LDIFIMPORT_CANNOT_PARSE_TEMPLATE_FILE,
+                    "Unable to parse the specified file %s as a MakeLDIF " +
+                    "template file:  %s.");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE,
                     "An error occurred while trying to open the rejects " +
                     "file %s for writing:  %s.");
@@ -6962,6 +7747,236 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_ERROR_READING_FROM_STDIN,
                     "ERROR:  Unexpected failure while reading from standard " +
                     "input:  %s.");
+
+
+    registerMessage(MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT,
+                    "Invalid number of arguments provided for tag %s on line " +
+                    "number %d of the template file:  expected %d, got %d.");
+    registerMessage(MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT,
+                    "Invalid number of arguments provided for tag %s on line " +
+                    "number %d of the template file:  expected between %d " +
+                    "and %d, got %d.");
+    registerMessage(MSGID_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE,
+                    "Undefined attribute %s referenced on line %d of the " +
+                    "template file.");
+    registerMessage(MSGID_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND,
+                    "Value %d is below the lowest allowed value of %d for " +
+                    "tag %s on line %d of the template file.");
+    registerMessage(MSGID_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER,
+                    "Cannot parse value \"%s\" as an integer for tag %s on " +
+                    "line %d of the template file.");
+    registerMessage(MSGID_MAKELDIF_TAG_INTEGER_ABOVE_UPPER_BOUND,
+                    "Value %d is above the largest allowed value of %d for " +
+                    "tag %s on line %d of the template file.");
+    registerMessage(MSGID_MAKELDIF_TAG_INVALID_EMPTY_STRING_ARGUMENT,
+                    "Argument %d for tag %s on line number %d may not be an " +
+                    "empty string.");
+    registerMessage(MSGID_MAKELDIF_TAG_CANNOT_PARSE_AS_BOOLEAN,
+                    "Cannot parse value \"%s\" as a Boolean value for tag %s " +
+                    "on line %d of the template file.  The value must be " +
+                    "either 'true' or 'false'.");
+    registerMessage(MSGID_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE,
+                    "The branch with entry DN %s references a subordinate " +
+                    "template named %s which is not defined in the template " +
+                    "file.");
+    registerMessage(MSGID_MAKELDIF_CANNOT_LOAD_TAG_CLASS,
+                    "Unable to load class %s for use as a MakeLDIF tag.");
+    registerMessage(MSGID_MAKELDIF_CANNOT_INSTANTIATE_TAG,
+                    "Cannot instantiate class %s as a MakeLDIF tag.");
+    registerMessage(MSGID_MAKELDIF_CONFLICTING_TAG_NAME,
+                    "Cannot register the tag defined in class %s because " +
+                    "the tag name %s conflicts with the name of another " +
+                    "tag that has already been registered.");
+    registerMessage(MSGID_MAKELDIF_WARNING_UNDEFINED_CONSTANT,
+                    "Possible reference to an undefined constant %s on line " +
+                    "%d.");
+    registerMessage(MSGID_MAKELDIF_DEFINE_MISSING_EQUALS,
+                    "The constant definition on line %d is missing an " +
+                    "equal sign to delimit the constant name from the value.");
+    registerMessage(MSGID_MAKELDIF_DEFINE_NAME_EMPTY,
+                    "The constant definition on line %d does not include a " +
+                    "name for the constant.");
+    registerMessage(MSGID_MAKELDIF_CONFLICTING_CONSTANT_NAME,
+                    "The definition for constant %s on line %d conflicts " +
+                    "with an earlier constant definition included in the " +
+                    "template.");
+    registerMessage(MSGID_MAKELDIF_WARNING_DEFINE_VALUE_EMPTY,
+                    "Constant %s defined on line %d has not been assigned a " +
+                    "value.");
+    registerMessage(MSGID_MAKELDIF_CONFLICTING_BRANCH_DN,
+                    "The branch definition %s starting on line %d conflicts " +
+                    "with an earlier branch definition contained in the " +
+                    "template file.");
+    registerMessage(MSGID_MAKELDIF_CONFLICTING_TEMPLATE_NAME,
+                    "The template definition %s starting on line %d " +
+                    "conflicts with an earlier template definition contained " +
+                    "in the template file.");
+    registerMessage(MSGID_MAKELDIF_UNEXPECTED_TEMPLATE_FILE_LINE,
+                    "Unexpected template line \"%s\" encountered on line %d " +
+                    "of the template file.");
+    registerMessage(MSGID_MAKELDIF_UNDEFINED_TEMPLATE_SUBORDINATE,
+                    "The template named %s references a subordinate template " +
+                    "named %s which is not defined in the template file.");
+    registerMessage(MSGID_MAKELDIF_TEMPLATE_MISSING_RDN_ATTR,
+                    "The template named %s includes RDN attribute %s that " +
+                    "is not assigned a value in that template.");
+    registerMessage(MSGID_MAKELDIF_CANNOT_DECODE_BRANCH_DN,
+                    "Unable to decode branch DN \"%s\" on line %d of the " +
+                    "template file.");
+    registerMessage(MSGID_MAKELDIF_BRANCH_SUBORDINATE_TEMPLATE_NO_COLON,
+                    "Subordinate template definition on line %d for branch " +
+                    "%s is missing a colon to separate the template name " +
+                    "from the number of entries.");
+    registerMessage(MSGID_MAKELDIF_BRANCH_SUBORDINATE_INVALID_NUM_ENTRIES,
+                    "Subordinate template definition on line %d for branch " +
+                    "%s specified invalid number of entries %d for template " +
+                    "%s.");
+    registerMessage(MSGID_MAKELDIF_BRANCH_SUBORDINATE_ZERO_ENTRIES,
+                    "Subordinate template definition on line %d for branch " +
+                    "%s specifies that zero entries of type %s should be " +
+                    "generated.");
+    registerMessage(MSGID_MAKELDIF_BRANCH_SUBORDINATE_CANT_PARSE_NUMENTRIES,
+                    "Unable to parse the number of entries for template %s " +
+                    "as an integer for the subordinate template definition " +
+                    "on line %d for branch %s.");
+    registerMessage(MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_TEMPLATE_NO_COLON,
+                    "Subordinate template definition on line %d for template " +
+                    "%s is missing a colon to separate the template name " +
+                    "from the number of entries.");
+    registerMessage(MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_INVALID_NUM_ENTRIES,
+                    "Subordinate template definition on line %d for template " +
+                    "%s specified invalid number of entries %d for " +
+                    "subordinate template %s.");
+    registerMessage(MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_ZERO_ENTRIES,
+                    "Subordinate template definition on line %d for template " +
+                    "%s specifies that zero entries of type %s should be " +
+                    "generated.");
+    registerMessage(MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_CANT_PARSE_NUMENTRIES,
+                    "Unable to parse the number of entries for template %s " +
+                    "as an integer for the subordinate template definition " +
+                    "on line %d for template %s.");
+    registerMessage(MSGID_MAKELDIF_NO_COLON_IN_BRANCH_EXTRA_LINE,
+                    "There is no colon to separate the attribute name from " +
+                    "the value pattern on line %s of the template file in " +
+                    "the definition for branch %s.");
+    registerMessage(MSGID_MAKELDIF_NO_ATTR_IN_BRANCH_EXTRA_LINE,
+                    "There is no attribute name before the colon on line %d " +
+                    "of the template file in the definition for branch %s.");
+    registerMessage(MSGID_MAKELDIF_NO_VALUE_IN_BRANCH_EXTRA_LINE,
+                    "The value pattern for line %s of the template file in " +
+                    "the definition for branch %s is empty.");
+    registerMessage(MSGID_MAKELDIF_INCOMPLETE_TAG,
+                    "Line %d of the template file contains an incomplete " +
+                    "tag that starts with either '<' or '{' but does get " +
+                    "closed.");
+    registerMessage(MSGID_MAKELDIF_NO_COLON_IN_BRANCH_EXTRA_LINE,
+                    "There is no colon to separate the attribute name from " +
+                    "the value pattern on line %s of the template file in " +
+                    "the definition for template %s.");
+    registerMessage(MSGID_MAKELDIF_NO_ATTR_IN_TEMPLATE_LINE,
+                    "There is no attribute name before the colon on line %d " +
+                    "of the template file in the definition for template %s.");
+    registerMessage(MSGID_MAKELDIF_NO_VALUE_IN_TEMPLATE_LINE,
+                    "The value pattern for line %s of the template file in " +
+                    "the definition for template %s is empty.");
+    registerMessage(MSGID_MAKELDIF_NO_SUCH_TAG,
+                    "An undefined tag %s is referenced on line %d of the " +
+                    "template file.");
+    registerMessage(MSGID_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG,
+                    "An unexpected error occurred while trying to create a " +
+                    "new instance of tag %s referenced on line %d of the " +
+                    "template file:  %s.");
+    registerMessage(MSGID_MAKELDIF_TAG_NOT_ALLOWED_IN_BRANCH,
+                    "Tag %s referenced on line %d of the template file is " +
+                    "not allowed for use in branch definitions.");
+    registerMessage(MSGID_MAKELDIF_DESCRIPTION_CONFIG_FILE,
+                    "The path to the Directory Server configuration file.");
+    registerMessage(MSGID_MAKELDIF_DESCRIPTION_CONFIG_CLASS,
+                    "The fully-qualified name of the Java class to use as " +
+                    "the Directory Server configuration handler.  If this is " +
+                    "not provided, then a default of " +
+                    ConfigFileHandler.class.getName() + " will be used.");
+    registerMessage(MSGID_MAKELDIF_DESCRIPTION_RESOURCE_PATH,
+                    "Specifies the path to look for MakeLDIF resources " +
+                    "(e.g., data files) not found in the current working " +
+                    "directory or template directory path.");
+    registerMessage(MSGID_MAKELDIF_DESCRIPTION_TEMPLATE,
+                    "The path to the template file with information about " +
+                    "the LDIF data to generate.");
+    registerMessage(MSGID_MAKELDIF_DESCRIPTION_LDIF,
+                    "The path to the LDIF file to be written.");
+    registerMessage(MSGID_MAKELDIF_DESCRIPTION_SEED,
+                    "The seed to use to initialize the random number " +
+                    "generator.");
+    registerMessage(MSGID_MAKELDIF_DESCRIPTION_HELP,
+                    "Show this usgae information.");
+    registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_ARGS,
+                    "An unexpected error occurred while attempting to " +
+                    "initialize the command-line arguments:  %s.");
+    registerMessage(MSGID_MAKELDIF_ERROR_PARSING_ARGS,
+                    "An error occurred while parsing the command-line " +
+                    "arguments:  %s.");
+    registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_JMX,
+                    "An error occurred while attempting to initialize the " +
+                    "Directory Server JMX subsystem based on the information " +
+                    "in configuration file %s:  %s.");
+    registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_CONFIG,
+                    "An error occurred while attempting to process the " +
+                    "Directory Server configuration file %s:  %s.");
+    registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_SCHEMA,
+                    "An error occurred while attempting to initialize the " +
+                    "Directory Server schema based on the information in " +
+                    "configuration file %s:  %s.");
+    registerMessage(MSGID_MAKELDIF_IOEXCEPTION_DURING_PARSE,
+                    "An error occurred while attempting to read the " +
+                    "template file:  %s.");
+    registerMessage(MSGID_MAKELDIF_EXCEPTION_DURING_PARSE,
+                    "An error occurred while attempting to parse the " +
+                    "template file:  %s.");
+    registerMessage(MSGID_MAKELDIF_TAG_INVALID_FORMAT_STRING,
+                    "Cannot parse value \"%s\" as an valid format string for " +
+                    "tag %s on line %d of the template file.");
+    registerMessage(MSGID_MAKELDIF_TAG_NO_RANDOM_TYPE_ARGUMENT,
+                    "The random tag on line %d of the template file does " +
+                    "not include an argument to specify the type of random " +
+                    "value that should be generated.");
+    registerMessage(MSGID_MAKELDIF_TAG_WARNING_EMPTY_VALUE,
+                    "The value generated from the random tag on line %d of " +
+                    "the template file will always be an empty string.");
+    registerMessage(MSGID_MAKELDIF_TAG_UNKNOWN_RANDOM_TYPE,
+                    "The random tag on line %d of the template file " +
+                    "references an unknown random type of %s.");
+    registerMessage(MSGID_MAKELDIF_COULD_NOT_FIND_TEMPLATE_FILE,
+                    "Could not find template file %s.");
+    registerMessage(MSGID_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY,
+                    "The specified resource directory %s could not be found.");
+    registerMessage(MSGID_MAKELDIF_RESOURCE_DIRECTORY_NOT_DIRECTORY,
+                    "The specified resource directory %s exists but is not a " +
+                    "directory.");
+    registerMessage(MSGID_MAKELDIF_TAG_CANNOT_FIND_FILE,
+                    "Cannot find file %s referenced by tag %s on line %d of " +
+                    "the template file.");
+    registerMessage(MSGID_MAKELDIF_TAG_INVALID_FILE_ACCESS_MODE,
+                    "Invalid file access mode %s for tag %s on line %d of " +
+                    "the template file.  It must be either \"sequential\" or " +
+                    "\"random\".");
+    registerMessage(MSGID_MAKELDIF_TAG_CANNOT_READ_FILE,
+                    "An error occurred while trying to read file %s " +
+                    "referenced by tag %s on line %d of the template file:  " +
+                    "%s.");
+    registerMessage(MSGID_MAKELDIF_UNABLE_TO_CREATE_LDIF,
+                    "An error occurred while attempting to open LDIF file %s " +
+                    "for writing:  %s.");
+    registerMessage(MSGID_MAKELDIF_ERROR_WRITING_LDIF,
+                    "An error occurred while writing data to LDIF file %s:  " +
+                    "%s.");
+    registerMessage(MSGID_MAKELDIF_PROCESSED_N_ENTRIES,
+                    "Processed %d entries.");
+    registerMessage(MSGID_MAKELDIF_CANNOT_WRITE_ENTRY,
+                    "An error occurred while attempting to write entry %s to " +
+                    "LDIF:  %s.");
+    registerMessage(MSGID_MAKELDIF_PROCESSING_COMPLETE,
+                    "LDIF processing complete.  %d entries written.");
   }
 }
 
