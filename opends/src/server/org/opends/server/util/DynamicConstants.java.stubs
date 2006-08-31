@@ -1,0 +1,113 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ */
+package org.opends.server.util;
+
+/**
+ * This file contains a number of constants that are used throughout the
+ * Directory Server source.  It was dynamically generated as part of the
+ * Directory Server build process and should not be edited directly.
+ */
+public class DynamicConstants
+{
+  /**
+   * The official full product name for the Directory Server.
+   */
+  public static final String PRODUCT_NAME = "${PRODUCT_NAME}";
+
+  /**
+   * The short product name for the Directory Server.
+   */
+  public static final String SHORT_NAME = "${SHORT_NAME}";
+
+  /**
+   * The major version number for the Directory Server.
+   */
+  public static final int MAJOR_VERSION = ${MAJOR_VERSION};
+
+  /**
+   * The minor version number for the Directory Server.
+   */
+  public static final int MINOR_VERSION = ${MINOR_VERSION};
+
+  /**
+   * The point version number for the Directory Server.
+   */
+  public static final int POINT_VERSION = ${POINT_VERSION};
+
+  /**
+   * The version qualifier string for the Directory Server.
+   */
+  public static final String VERSION_QUALIFIER = "${VERSION_QUALIFIER}";
+
+  /**
+   * The set of bug IDs for fixes included in this build of the Directory
+   * Server.
+   */
+  public static final String FIX_IDS = "${FIX_IDS}";
+
+  /**
+   * The build ID for the generated build of the Directory Server.
+   */
+  public static final String BUILD_ID = "${timestamp}";
+
+  /**
+   * The username of the user that created this build.
+   */
+  public static final String BUILD_USER = "${user.name}";
+
+  /**
+   * The Java version used to generate this build.
+   */
+  public static final String BUILD_JAVA_VERSION = "${java.version}";
+
+  /**
+   * The vendor for the Java version used to generate this build.
+   */
+  public static final String BUILD_JAVA_VENDOR = "${java.vendor}";
+
+  /**
+   * The JVM version used to generate this build.
+   */
+  public static final String BUILD_JVM_VERSION = "${java.vm.version}";
+
+  /**
+   * The vendor for the JVM used to generate this build.
+   */
+  public static final String BUILD_JVM_VENDOR = "${JVM_VENDOR}";
+
+  /**
+   * The operating system on which this build was generated.
+   */
+  public static final String BUILD_OS = "${os.name} ${os.version} ${os.arch}";
+
+  /**
+   * Indicates whether this is a debug build of the Directory Server that may
+   * include additional debugging facilities not available in standard release
+   * versions.
+   */
+  public static final boolean DEBUG_BUILD = ${DEBUG_BUILD};
+}
