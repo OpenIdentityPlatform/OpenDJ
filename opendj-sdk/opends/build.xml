@@ -84,6 +84,9 @@
   <!-- Properties for Directory Server version information.              -->
   <property name="dynconstants.file"
        location="${src.dir}/org/opends/server/util/DynamicConstants.java" />
+  <property name="dynconstants.stubfile"
+        location="${resource.dir}/DynamicConstants.java.stubs" />
+  
   <property file="PRODUCT"                                                />
 
 
@@ -184,7 +187,7 @@
       If you change the name of any of those properties in this build.xml
       you'll need to relfect the same change in the .stubs file
     -->
-    <copy file="${dynconstants.file}.stubs"
+    <copy file="${dynconstants.stubfile}"
           tofile="${dynconstants.file}"
           overwrite="true"                 >
       <filterchain>
