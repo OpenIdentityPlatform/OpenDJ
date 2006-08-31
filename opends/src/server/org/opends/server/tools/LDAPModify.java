@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
@@ -89,16 +90,20 @@ public class LDAPModify
    */
   private static final String CLASS_NAME = "org.opends.server.tools.LDAPModify";
 
+  // The message ID counter to use for requests.
+  private AtomicInteger nextMessageID;
+
   // The LDIF file name.
   private String fileName = null;
 
   /**
    * Constructor for the LDAPModify object.
    *
-   * @param  fileName  The name of the file containing the LDIF data to use for
-   *                   the modifications.
+   * @param  fileName       The name of the file containing the LDIF data to use
+   *                        for the modifications.
+   * @param  nextMessageID  The message ID counter to use for requests.
    */
-  public LDAPModify(String fileName)
+  public LDAPModify(String fileName, AtomicInteger nextMessageID)
   {
     if(fileName == null)
     {
@@ -107,6 +112,8 @@ public class LDAPModify
     {
       this.fileName = fileName;
     }
+
+    this.nextMessageID = nextMessageID;
   }
 
 
@@ -144,10 +151,8 @@ public class LDAPModify
       throw new IOException(message);
     }
 
-    int messageID = 1;
     while (true)
     {
-      messageID++;
       ChangeRecordEntry entry = null;
 
       try
@@ -286,7 +291,8 @@ public class LDAPModify
         try
         {
           LDAPMessage message =
-               new LDAPMessage(messageID, protocolOp, controls);
+               new LDAPMessage(nextMessageID.getAndIncrement(), protocolOp,
+                               controls);
           // int numBytes =
           connection.getASN1Writer().writeElement(message.encode());
           ASN1Element element = connection.getASN1Reader().readElement();
@@ -882,11 +888,12 @@ public class LDAPModify
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
 
+      AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
                                       connectionOptions);
-      connection.connectToHost(bindDNValue, bindPasswordValue);
+      connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
-      LDAPModify ldapModify = new LDAPModify(fileNameValue);
+      LDAPModify ldapModify = new LDAPModify(fileNameValue, nextMessageID);
       InputStream is = System.in;
       if(fileNameValue != null)
       {

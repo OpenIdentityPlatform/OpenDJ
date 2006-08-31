@@ -30,6 +30,7 @@ package org.opends.server.tools;
 
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
@@ -204,13 +205,15 @@ public class LDAPPasswordModify
 
 
     // Send the LDAP bind request if appropriate.
+    AtomicInteger nextMessageID = new AtomicInteger(1);
     if ((bindDN != null) && (bindDN.length() > 0) && (bindPW != null) &&
         (bindPW.length() > 0))
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(new ASN1OctetString(bindDN), 3,
                                      new ASN1OctetString(bindPW));
-      LDAPMessage requestMessage = new LDAPMessage(1, bindRequest);
+      LDAPMessage requestMessage =
+           new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest);
 
       try
       {
@@ -274,7 +277,8 @@ public class LDAPPasswordModify
 
         try
         {
-          requestMessage = new LDAPMessage(2, new UnbindRequestProtocolOp());
+          requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                           new UnbindRequestProtocolOp());
           writer.writeElement(requestMessage.encode());
         }
         catch (Exception e) {}
@@ -316,7 +320,8 @@ public class LDAPPasswordModify
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_PASSWORD_MODIFY_REQUEST,
                                        requestValue);
-    LDAPMessage requestMessage = new LDAPMessage(2, extendedRequest);
+    LDAPMessage requestMessage =
+         new LDAPMessage(nextMessageID.getAndIncrement(), extendedRequest);
 
 
     // Send the request to the server and read the response.
@@ -331,7 +336,8 @@ public class LDAPPasswordModify
 
       try
       {
-        requestMessage = new LDAPMessage(2, new UnbindRequestProtocolOp());
+        requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                         new UnbindRequestProtocolOp());
         writer.writeElement(requestMessage.encode());
       }
       catch (Exception e2) {}
@@ -360,7 +366,8 @@ public class LDAPPasswordModify
 
       try
       {
-        requestMessage = new LDAPMessage(2, new UnbindRequestProtocolOp());
+        requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                         new UnbindRequestProtocolOp());
         writer.writeElement(requestMessage.encode());
       }
       catch (Exception e2) {}
@@ -398,7 +405,8 @@ public class LDAPPasswordModify
 
       try
       {
-        requestMessage = new LDAPMessage(3, new UnbindRequestProtocolOp());
+        requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                         new UnbindRequestProtocolOp());
         writer.writeElement(requestMessage.encode());
       }
       catch (Exception e) {}
@@ -447,7 +455,8 @@ public class LDAPPasswordModify
 
         try
         {
-          requestMessage = new LDAPMessage(2, new UnbindRequestProtocolOp());
+          requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                           new UnbindRequestProtocolOp());
           writer.writeElement(requestMessage.encode());
         }
         catch (Exception e2) {}
@@ -466,7 +475,8 @@ public class LDAPPasswordModify
     // Unbind from the server and close the connection.
     try
     {
-      requestMessage = new LDAPMessage(3, new UnbindRequestProtocolOp());
+      requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                       new UnbindRequestProtocolOp());
       writer.writeElement(requestMessage.encode());
     }
     catch (Exception e) {}
