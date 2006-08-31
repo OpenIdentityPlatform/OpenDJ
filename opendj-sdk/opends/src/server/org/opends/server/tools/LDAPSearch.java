@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.controls.AccountUsableResponseControl;
 import org.opends.server.controls.EntryChangeNotificationControl;
@@ -87,12 +88,21 @@ public class LDAPSearch
    */
   private static final String CLASS_NAME = "org.opends.server.tools.LDAPSearch";
 
+
+
+  // The message ID counter to use for requests.
+  private AtomicInteger nextMessageID;
+
+
+
   /**
    * Constructor for the LDAPSearch object.
    *
+   * @param  nextMessageID  The message ID counter to use for requests.
    */
-  public LDAPSearch()
+  public LDAPSearch(AtomicInteger nextMessageID)
   {
+    this.nextMessageID = nextMessageID;
   }
 
 
@@ -118,11 +128,8 @@ public class LDAPSearch
                             int wrapColumn )
          throws IOException, LDAPException
   {
-    int messageID = 1;
     for (LDAPFilter filter: filters)
     {
-      messageID++;
-
       ASN1OctetString asn1OctetStr = new ASN1OctetString(baseDN);
 
       SearchRequestProtocolOp protocolOp =
@@ -135,7 +142,8 @@ public class LDAPSearch
       try
       {
         boolean typesOnly = searchOptions.getTypesOnly();
-        LDAPMessage message = new LDAPMessage(messageID, protocolOp,
+        LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                              protocolOp,
                                               searchOptions.getControls());
         int numBytes =
             connection.getASN1Writer().writeElement(message.encode());
@@ -1091,11 +1099,12 @@ public class LDAPSearch
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
 
+      AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
                                       connectionOptions);
-      connection.connectToHost(bindDNValue, bindPasswordValue);
+      connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
-      LDAPSearch ldapSearch = new LDAPSearch();
+      LDAPSearch ldapSearch = new LDAPSearch(nextMessageID);
       ldapSearch.executeSearch(connection, baseDNValue, filters, attributes,
                                searchOptions, wrapColumn);
 

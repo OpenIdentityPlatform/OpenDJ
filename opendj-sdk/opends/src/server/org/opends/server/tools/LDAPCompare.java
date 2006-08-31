@@ -34,6 +34,7 @@ import java.io.Reader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -76,12 +77,19 @@ public class LDAPCompare
       "org.opends.server.tools.LDAPCompare";
 
 
+  // The message ID counter to use for requests.
+  private AtomicInteger nextMessageID;
+
+
+
   /**
    * Constructor for the LDAPCompare object.
    *
+   * @param  nextMessageID  The message ID counter to use for requests.
    */
-  public LDAPCompare()
+  public LDAPCompare(AtomicInteger nextMessageID)
   {
+    this.nextMessageID = nextMessageID;
   }
 
   /**
@@ -103,12 +111,10 @@ public class LDAPCompare
                              LDAPCompareOptions compareOptions)
          throws IOException, LDAPException
   {
-    int messageID = 1;
     for(String line : lines)
     {
       executeCompare(connection, attributeType, attributeVal, line,
-                     messageID, compareOptions);
-      messageID++;
+                     compareOptions);
     }
   }
 
@@ -133,15 +139,13 @@ public class LDAPCompare
                              LDAPCompareOptions compareOptions)
          throws IOException, LDAPException
   {
-    int messageID = 1;
     BufferedReader in = new BufferedReader(reader);
     String line = null;
 
     while ((line = in.readLine()) != null)
     {
       executeCompare(connection, attributeType, attributeVal, line,
-                     messageID, compareOptions);
-      messageID++;
+                     compareOptions);
     }
     in.close();
   }
@@ -154,7 +158,6 @@ public class LDAPCompare
    * @param attributeType   The attribute type to compare.
    * @param attributeVal    The attribute value to compare.
    * @param line            The DN to compare attribute in.
-   * @param messageID       The messageID for the request.
    * @param compareOptions  The constraints for the compare request.
    *
    * @throws  IOException  If a problem occurs while communicating with the
@@ -163,7 +166,7 @@ public class LDAPCompare
    * @throws  LDAPException  If the server returns an error response.
    */
   private void executeCompare(LDAPConnection connection, String attributeType,
-                              byte[] attributeVal, String line, int messageID,
+                              byte[] attributeVal, String line,
                               LDAPCompareOptions compareOptions)
           throws IOException, LDAPException
   {
@@ -183,7 +186,8 @@ public class LDAPCompare
       LDAPMessage responseMessage = null;
       try
       {
-        LDAPMessage message = new LDAPMessage(messageID, protocolOp, controls);
+        LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                              protocolOp, controls);
         int numBytes =
               connection.getASN1Writer().writeElement(message.encode());
         ASN1Element element = connection.getASN1Reader().readElement();
@@ -651,12 +655,13 @@ public class LDAPCompare
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
 
+      AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
                                       connectionOptions);
-      connection.connectToHost(bindDNValue, bindPasswordValue);
+      connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
 
-      LDAPCompare ldapCompare = new LDAPCompare();
+      LDAPCompare ldapCompare = new LDAPCompare(nextMessageID);
       if(fileNameValue == null && dnStrings.isEmpty())
       {
         // Read from stdin.

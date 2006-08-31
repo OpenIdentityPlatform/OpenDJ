@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
@@ -71,12 +72,21 @@ public class LDAPDelete
    */
   private static final String CLASS_NAME = "org.opends.server.tools.LDAPDelete";
 
+
+
+  // The message ID counter to use for requests.
+  private AtomicInteger nextMessageID;
+
+
+
   /**
    * Constructor for the LDAPDelete object.
    *
+   * @param  nextMessageID  The next message ID to use for requests.
    */
-  public LDAPDelete()
+  public LDAPDelete(AtomicInteger nextMessageID)
   {
+    this.nextMessageID = nextMessageID;
   }
 
   /**
@@ -96,11 +106,9 @@ public class LDAPDelete
                              LDAPDeleteOptions deleteOptions)
     throws IOException, LDAPException
   {
-    int messageID = 1;
     for(String line : lines)
     {
-      executeDelete(connection, line, messageID, deleteOptions);
-      messageID++;
+      executeDelete(connection, line, deleteOptions);
     }
   }
 
@@ -121,14 +129,12 @@ public class LDAPDelete
                              LDAPDeleteOptions deleteOptions)
          throws IOException, LDAPException
   {
-    int messageID = 1;
     BufferedReader in = new BufferedReader(reader);
     String line = null;
 
     while ((line = in.readLine()) != null)
     {
-      executeDelete(connection, line, messageID, deleteOptions);
-      messageID++;
+      executeDelete(connection, line, deleteOptions);
     }
     in.close();
   }
@@ -139,7 +145,6 @@ public class LDAPDelete
    *
    * @param connection        The connection to use to execute the request.
    * @param line           The DN to delete.
-   * @param messageID      The messageID for the request.
    * @param deleteOptions  The list of constraints for this request.
    *
    * @throws  IOException  If a problem occurs while attempting to communicate
@@ -148,7 +153,7 @@ public class LDAPDelete
    * @throws  LDAPException  If the Directory Server returns an error response.
    */
   private void executeDelete(LDAPConnection connection, String line,
-                             int messageID, LDAPDeleteOptions deleteOptions)
+                             LDAPDeleteOptions deleteOptions)
           throws IOException, LDAPException
   {
     ArrayList<LDAPControl> controls = deleteOptions.getControls();
@@ -160,7 +165,8 @@ public class LDAPDelete
     System.out.println(getMessage(msgID, "DELETE", asn1OctetStr));
     if(!deleteOptions.showOperations())
     {
-      LDAPMessage message = new LDAPMessage(messageID, protocolOp, controls);
+      LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                            protocolOp, controls);
       LDAPMessage responseMessage = null;
       try
       {
@@ -547,11 +553,12 @@ public class LDAPDelete
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
 
+      AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
                                       connectionOptions);
-      connection.connectToHost(bindDNValue, bindPasswordValue);
+      connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
-      LDAPDelete ldapDelete = new LDAPDelete();
+      LDAPDelete ldapDelete = new LDAPDelete(nextMessageID);
       if(fileNameValue == null && dnStrings.isEmpty())
       {
         // Read from stdin.

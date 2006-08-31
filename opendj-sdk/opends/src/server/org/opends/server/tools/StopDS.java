@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.protocols.asn1.ASN1Element;
@@ -461,12 +462,14 @@ public class StopDS
 
 
     // Attempt to connect and authenticate to the Directory Server.
+    AtomicInteger nextMessageID = new AtomicInteger(1);
     LDAPConnection connection;
     try
     {
       connection = new LDAPConnection(host.getValue(), port.getIntValue(),
                                       connectionOptions);
-      connection.connectToHost(bindDN.getValue(), bindPW.getValue());
+      connection.connectToHost(bindDN.getValue(), bindPW.getValue(),
+                               nextMessageID);
     }
     catch (ArgumentException ae)
     {
@@ -549,7 +552,8 @@ public class StopDS
 
     AddRequestProtocolOp addRequest = new AddRequestProtocolOp(entryDN,
                                                                attributes);
-    LDAPMessage requestMessage = new LDAPMessage(1, addRequest, controls);
+    LDAPMessage requestMessage =
+         new LDAPMessage(nextMessageID.getAndIncrement(), addRequest, controls);
 
 
     // Send the request to the server and read the response.

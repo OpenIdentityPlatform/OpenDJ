@@ -99,19 +99,37 @@ public class LDAPConnection
    * Connects to the directory server instance running on specified hostname
    * and port number.
    *
-   * @param bindDN               The DN to bind with.
-   *
-   * @param bindPassword         The password to bind with.
+   * @param  bindDN        The DN to bind with.
+   * @param  bindPassword  The password to bind with.
    *
    * @throws  LDAPConnectionException  If a problem occurs while attempting to
    *                                   establish the connection to the server.
    */
   public void connectToHost(String bindDN, String bindPassword)
+         throws LDAPConnectionException
+  {
+    connectToHost(bindDN, bindPassword, new AtomicInteger(1));
+  }
+
+  /**
+   * Connects to the directory server instance running on specified hostname
+   * and port number.
+   *
+   * @param  bindDN         The DN to bind with.
+   * @param  bindPassword   The password to bind with.
+   * @param  nextMessageID  The message ID counter that should be used for
+   *                        operations performed while establishing the
+   *                        connection.
+   *
+   * @throws  LDAPConnectionException  If a problem occurs while attempting to
+   *                                   establish the connection to the server.
+   */
+  public void connectToHost(String bindDN, String bindPassword,
+                            AtomicInteger nextMessageID)
                             throws LDAPConnectionException
   {
     Socket socket = null;
     Socket startTLSSocket = null;
-    int messageID = 1;
     int resultCode = -1;
     ArrayList<LDAPControl> requestControls = new ArrayList<LDAPControl> ();
     ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl> ();
@@ -143,11 +161,11 @@ public class LDAPConnection
       ExtendedRequestProtocolOp extendedRequest =
            new ExtendedRequestProtocolOp(OID_START_TLS_REQUEST);
 
-      LDAPMessage msg = new LDAPMessage(messageID, extendedRequest);
+      LDAPMessage msg = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                        extendedRequest);
       try
       {
         asn1Writer.writeElement(msg.encode());
-        messageID++;
 
         // Read the response from the server.
         msg = LDAPMessage.decode(asn1Reader.readElement().decodeAsSequence());
@@ -216,8 +234,7 @@ public class LDAPConnection
     }
 
     LDAPAuthenticationHandler handler = new LDAPAuthenticationHandler(
-            asn1Reader, asn1Writer, hostName,
-            new AtomicInteger(messageID));
+            asn1Reader, asn1Writer, hostName, nextMessageID);
     try
     {
       ASN1OctetString bindPW;
