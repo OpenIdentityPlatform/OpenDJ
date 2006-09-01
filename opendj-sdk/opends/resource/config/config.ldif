@@ -126,7 +126,6 @@ ds-cfg-index-attribute: cn
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
-ds-cfg-index-entry-limit: 4000
 
 dn: ds-cfg-index-attribute=givenName,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
@@ -135,7 +134,6 @@ ds-cfg-index-attribute: givenName
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
-ds-cfg-index-entry-limit: 4000
 
 dn: ds-cfg-index-attribute=mail,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
@@ -144,14 +142,12 @@ ds-cfg-index-attribute: mail
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
-ds-cfg-index-entry-limit: 4000
 
 dn: ds-cfg-index-attribute=member,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: member
 ds-cfg-index-type: equality
-ds-cfg-index-entry-limit: 4000
 
 dn: ds-cfg-index-attribute=sn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
@@ -160,7 +156,6 @@ ds-cfg-index-attribute: sn
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
-ds-cfg-index-entry-limit: 4000
 
 dn: ds-cfg-index-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
@@ -169,22 +164,24 @@ ds-cfg-index-attribute: telephoneNumber
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
-ds-cfg-index-entry-limit: 4000
 
 dn: ds-cfg-index-attribute=uid,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: uid
 ds-cfg-index-type: equality
-ds-cfg-index-entry-limit: 4000
 
 dn: ds-cfg-index-attribute=ds-sync-hist,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-je-index
-objectClass: extensibleObject
 ds-cfg-index-attribute: ds-sync-hist
 ds-cfg-index-type: ordering
-ds-cfg-index-entry-limit: 4000
+
+dn: ds-cfg-index-attribute=entryuuid,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: entryuuid
+ds-cfg-index-type: equality
 
 dn: cn=JE Database,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top

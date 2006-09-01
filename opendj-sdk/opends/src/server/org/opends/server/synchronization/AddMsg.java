@@ -45,7 +45,7 @@ import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 
-import static org.opends.server.synchronization.SynchMessages.*;
+import static org.opends.server.synchronization.OperationContext.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
 /**
@@ -55,8 +55,8 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 public class AddMsg extends UpdateMessage
 {
   private static final long serialVersionUID = -4905520652801395185L;
-  private String dn;
   private byte[] encodedAttributes ;
+  private String parentUniqueId;
 
   /**
    * Creates a new AddMessage.
@@ -64,6 +64,12 @@ public class AddMsg extends UpdateMessage
    */
   public AddMsg(AddOperation op)
   {
+    super((AddContext) op.getAttachment(SYNCHROCONTEXT),
+          op.getRawEntryDN().stringValue());
+
+    AddContext ctx = (AddContext) op.getAttachment(SYNCHROCONTEXT);
+    this.parentUniqueId = ctx.getParentUid();
+
     // Encode the object classes (SET OF LDAPString).
     LinkedHashSet<AttributeValue> ocValues =
       new LinkedHashSet<AttributeValue>(op.getObjectClasses().size());
@@ -99,12 +105,8 @@ public class AddMsg extends UpdateMessage
       }
     }
 
-    dn = op.getRawEntryDN().stringValue();
-
     // Encode the sequence.
     encodedAttributes = ASN1Element.encodeValue(elems);
-
-    changeNumber = (ChangeNumber) op.getAttachment(SYNCHRONIZATION);
   }
 
   /**
@@ -112,18 +114,22 @@ public class AddMsg extends UpdateMessage
    *
    * @param cn ChangeNumber of the add.
    * @param dn DN of the added entry.
+   * @param uniqueId The Unique identifier of the added entry.
+   * @param parentId The unique Id of the parent of the added entry.
    * @param objectClass objectclass of the added entry.
    * @param userAttributes user attributes of the added entry.
    * @param operationalAttributes operational attributes of the added entry.
    */
   public AddMsg(ChangeNumber cn,
                 String dn,
+                String uniqueId,
+                String parentId,
                 Attribute objectClass,
                 Collection<Attribute> userAttributes,
                 Collection<Attribute> operationalAttributes)
   {
-    this.dn = dn;
-    this.changeNumber = cn;
+    super (new AddContext(cn, uniqueId, parentId), dn);
+    this.parentUniqueId = parentId;
 
     ArrayList<ASN1Element> elems = new ArrayList<ASN1Element>();
     elems.add(new LDAPAttribute(objectClass).encode());
@@ -142,40 +148,29 @@ public class AddMsg extends UpdateMessage
    *
    * @param in The byte[] from which the operation must be read.
    * @throws DataFormatException The input byte[] is not a valid AddMsg
+   * @throws UnsupportedEncodingException If UTF8 is not supported by the jvm
    */
-  public AddMsg(byte[] in) throws DataFormatException
+  public AddMsg(byte[] in) throws DataFormatException,
+                                  UnsupportedEncodingException
   {
-    /* first byte is the type */
-    if (in[0] != MSG_TYPE_ADD_REQUEST)
-      throw new DataFormatException("byte[] is not a valid add msg");
-    int pos = 1;
+    super(in);
 
-    /* read the dn
-     * first calculate the length then construct the string
-     */
-    int length = 0;
-    int offset = pos;
-    while (in[pos++] != 0)
+    int  pos = decodeHeader(MSG_TYPE_ADD_REQUEST, in);
+
+    // read the parent unique Id
+    int length = getNextLength(in, pos);
+    if (length != 0)
     {
-      if (pos > in.length)
-        throw new DataFormatException("byte[] is not a valid add msg");
-      length++;
+      parentUniqueId = new String(in, pos, length, "UTF-8");
+      pos += length + 1;
     }
-    try
+    else
     {
-      dn = new String(in, offset, length, "UTF-8");
-
-      /* read the changeNumber
-       * it is always 24 characters long
-       */
-      String changenumberStr = new  String(in, pos, 24, "UTF-8");
-      changeNumber = new ChangeNumber(changenumberStr);
-      pos +=24;
-    } catch (UnsupportedEncodingException e ) {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      parentUniqueId = null;
+      pos += 1;
     }
 
-    /* Read the attributes : all the remaining bytes */
+    // Read the attributes : all the remaining bytes
     encodedAttributes = new byte[in.length-pos];
     int i =0;
     while (pos<in.length)
@@ -185,14 +180,11 @@ public class AddMsg extends UpdateMessage
   }
 
   /**
-   * Create and return an AddOperation from a received ADD message.
-   * @param connection The connection where we received the message.
-   * @return The created operation.
-   * @throws LDAPException In case msg encoding was not valid.
-   * @throws ASN1Exception In case msg encoding was not valid.
+   * {@inheritDoc}
    */
   @Override
-  public AddOperation createOperation(InternalClientConnection connection)
+  public AddOperation createOperation(InternalClientConnection connection,
+                                      String newDn)
                       throws LDAPException, ASN1Exception
   {
     ArrayList<LDAPAttribute> attr = new ArrayList<LDAPAttribute>();
@@ -207,9 +199,10 @@ public class AddMsg extends UpdateMessage
     AddOperation add =  new AddOperation(connection,
                             InternalClientConnection.nextOperationID(),
                             InternalClientConnection.nextMessageID(), null,
-                            new ASN1OctetString(dn), attr);
-
-    add.setAttachment(SYNCHRONIZATION, getChangeNumber());
+                            new ASN1OctetString(newDn), attr);
+    AddContext ctx = new AddContext(getChangeNumber(), getUniqueId(),
+                                    parentUniqueId);
+    add.setAttachment(SYNCHROCONTEXT, ctx);
     return add;
   }
 
@@ -220,35 +213,29 @@ public class AddMsg extends UpdateMessage
   @Override
   public byte[] getBytes()
   {
-    byte[] byteDn;
     try
     {
-      byteDn = dn.getBytes("UTF-8");
-
-      /* The ad message is stored in the form :
-       * <operation type><dn><changenumber><attributes>
-       * the length of result byte array is therefore :
-       *   1 + dn length + 1 + 24 + attribute length
-       */
-      int length = 1 + byteDn.length + 1  + 24 + encodedAttributes.length;
-      byte[] resultByteArray = new byte[length];
-      int pos = 1;
-
-      /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_ADD_REQUEST;
-      /* put the DN and a terminating 0 */
-      for (int i = 0; i< byteDn.length; i++,pos++)
+      int length = encodedAttributes.length;
+      byte[] byteParentId = null;
+      if (parentUniqueId != null)
       {
-        resultByteArray[pos] = byteDn[i];
+        byteParentId = parentUniqueId.getBytes("UTF-8");
+        length += byteParentId.length + 1;
       }
-      resultByteArray[pos++] = 0;
-      /* put the ChangeNumber */
-      byte[] changeNumberByte =
-                      this.getChangeNumber().toString().getBytes("UTF-8");
-      for (int i=0; i<24; i++,pos++)
+      else
       {
-        resultByteArray[pos] = changeNumberByte[i];
+        length += 1;
       }
+
+      /* encode the header in a byte[] large enough to also contain the mods */
+      byte [] resultByteArray = encodeHeader(MSG_TYPE_ADD_REQUEST, length);
+
+      int pos = resultByteArray.length - length;
+
+      if (byteParentId != null)
+        pos = addByteArray(byteParentId, resultByteArray, pos);
+      else
+        resultByteArray[pos++] = 0;
 
       /* put the attributes */
       for (int i=0; i<encodedAttributes.length; i++,pos++)
@@ -271,6 +258,6 @@ public class AddMsg extends UpdateMessage
   @Override
   public String toString()
   {
-    return ("ADD " + dn + " " + getChangeNumber());
+    return ("ADD " + getDn() + " " + getChangeNumber());
   }
 }

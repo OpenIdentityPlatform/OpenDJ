@@ -36,6 +36,8 @@ import java.util.Map;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
+import static org.opends.server.synchronization.OperationContext.*;
+
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -47,13 +49,12 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
-import static org.opends.server.synchronization.SynchMessages.SYNCHRONIZATION;
 
 /*
  * Test the conflict resolution for modify operations
  * This is still a work in progress.
  * currently implemented tests
- *  - check that an replace with a smaller csn is ignored 
+ *  - check that an replace with a smaller csn is ignored
  * should test :
  *  - conflict with multi-valued attributes
  *  - conflict with single-valued attributes
@@ -74,53 +75,53 @@ public class ModifyConflictTest extends SynchronizationTestCase
   @Test()
   public void replaceAndAdd()
          throws Exception
-  { 
+  {
     /*
      * Objectclass and DN do not have any impact on the modifty conflict
      * resolution for the description attribute.
      * Always use the same values for all these tests.
      */
-    DN dn = DN.decode("dc=com");    
+    DN dn = DN.decode("dc=com");
     Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
     ObjectClass org = DirectoryServer.getObjectClass("organization");
     objectClasses.put(org, "organization");
-    
+
     /*
      * start with a new entry with an empty description
      */
     Entry entry = new Entry(dn, objectClasses, null, null);
     Historical hist = Historical.load(entry);
-    
+
     /*
      * simulate a modify-replace done at time t10
      */
     testModify(entry, hist, "description", ModificationType.REPLACE,
                "init value", 10, true);
-    
+
     /*
      * Now simulate an add at an earlier date that the previous replace
      * conflict resolution should remove it.
-     */ 
+     */
     testModify(entry, hist, "description", ModificationType.ADD,
                "older value", 1, false);
-  
+
     /*
      * Now simulate an add at an earlier date that the previous replace
      * conflict resolution should remove it.
      * (a second time to make sure...)
-     */   
+     */
     testModify(entry, hist, "description", ModificationType.ADD,
                "older value", 2, false);
-    
+
     /*
      * Now simulate an add at a later date that the previous replace.
      * conflict resolution should keep it
-     */ 
+     */
     testModify(entry, hist, "description", ModificationType.ADD,
                "new value", 11, true);
-    
+
   }
-  
+
   /**
    * Test that conflict between a modify-delete-attribute and modify-add
    * for multi-valued attributes are handled correctly.
@@ -128,53 +129,53 @@ public class ModifyConflictTest extends SynchronizationTestCase
   @Test()
   public void deleteAndAdd()
          throws Exception
-  { 
+  {
     /*
      * Objectclass and DN do not have any impact on the modifty conflict
      * resolution for the description attribute.
      * Always use the same values for all these tests.
      */
-    DN dn = DN.decode("dc=com");    
+    DN dn = DN.decode("dc=com");
     Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
     ObjectClass org = DirectoryServer.getObjectClass("organization");
     objectClasses.put(org, "organization");
-    
+
     /*
      * start with a new entry with an empty description
      */
     Entry entry = new Entry(dn, objectClasses, null, null);
     Historical hist = Historical.load(entry);
-    
+
     /*
      * simulate a delete of the whole description attribute done at time t10
      */
     testModify(entry, hist, "description", ModificationType.DELETE,
                null, 10, true);
-    
+
     /*
      * Now simulate an add at an earlier date that the previous delete.
      * The conflict resolution should detect that this add must be ignored.
-     */ 
+     */
     testModify(entry, hist, "description",  ModificationType.ADD,
                "older value", 1, false);
-  
+
     /*
      * Now simulate an add at an earlier date that the previous delete.
      * The conflict resolution should detect that this add must be ignored.
      * (a second time to make sure that historical information is kept...)
-     */   
+     */
     testModify(entry, hist, "description", ModificationType.ADD,
                "older value", 2, false);
-    
+
     /*
      * Now simulate an add at a later date that the previous delete.
      * conflict resolution should keep it
-     */ 
+     */
     testModify(entry, hist, "description", ModificationType.ADD,
                "new value", 11, true);
-    
+
   }
-  
+
   /**
   * Test that conflict between a modify-add and modify-add
   * for multi-valued attributes are handled correctly.
@@ -182,67 +183,67 @@ public class ModifyConflictTest extends SynchronizationTestCase
  @Test()
  public void addAndAdd()
         throws Exception
- { 
+ {
    /*
     * Objectclass and DN do not have any impact on the modifty conflict
     * resolution for the description attribute.
     * Always use the same values for all these tests.
     */
-   DN dn = DN.decode("dc=com");    
+   DN dn = DN.decode("dc=com");
    Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
    ObjectClass org = DirectoryServer.getObjectClass("organization");
    objectClasses.put(org, "organization");
-   
+
    /*
     * start with a new entry with an empty description
     */
    Entry entry = new Entry(dn, objectClasses, null, null);
    Historical hist = Historical.load(entry);
-   
+
    /*
     * simulate a add of the description attribute done at time t10
     */
    testModify(entry, hist, "description", ModificationType.ADD,
               "init value", 10, true);
-   
+
    /*
     * Now simulate an add at an earlier date that the previous add.
     * The conflict resolution should detect that this add must be kept.
-    */ 
-   testModify(entry, hist, "description", ModificationType.ADD, 
+    */
+   testModify(entry, hist, "description", ModificationType.ADD,
               "older value", 1, true);
- 
+
    /*
     * Now simulate an add at an earlier date that the previous add.
     * The conflict resolution should detect that this add must be kept.
     * (a second time to make sure that historical information is kept...)
-    */   
+    */
    testModify(entry, hist, "description", ModificationType.ADD,
               "older value", 2, false);
-   
+
    /*
     * Now simulate an add at a later date that the previous add.
     * conflict resolution should keep it
-    */ 
+    */
    testModify(entry, hist, "description", ModificationType.ADD,
-              "new value", 11, true); 
+              "new value", 11, true);
  }
- 
+
   /*
    * helper function.
    */
-  private static void testModify(Entry entry, 
-      Historical hist, String attrName, 
+  private static void testModify(Entry entry,
+      Historical hist, String attrName,
       ModificationType modType, String value,
       int date, boolean keepChangeResult)
   {
     InternalClientConnection connection = new InternalClientConnection();
     ChangeNumber t = new ChangeNumber(date, (short) 0, (short) 0);
-    
+
     /* create AttributeType description that will be usedfor this test */
     AttributeType attrType =
       DirectoryServer.getAttributeType(attrName, true);
-    
+
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
     if (value != null)
       values.add(new AttributeValue(attrType, value));
@@ -250,17 +251,17 @@ public class ModifyConflictTest extends SynchronizationTestCase
     List<Modification> mods = new ArrayList<Modification>();
     Modification mod = new Modification(modType, attr);
     mods.add(mod);
-    
+
     ModifyOperation modOp = new ModifyOperation(connection, 1, 1, null,
                                               entry.getDN(), mods);
-    
-    modOp.setAttachment(SYNCHRONIZATION, t);
-    
+    ModifyContext ctx = new ModifyContext(t, "uniqueId");
+    modOp.setAttachment(SYNCHROCONTEXT, ctx);
+
     hist.replayOperation(modOp, entry);
-    
+
     /*
-     * The last older change should have been detected as conflicting 
-     * and should be removed by the conflict resolution code. 
+     * The last older change should have been detected as conflicting
+     * and should be removed by the conflict resolution code.
      */
     if (keepChangeResult)
     {

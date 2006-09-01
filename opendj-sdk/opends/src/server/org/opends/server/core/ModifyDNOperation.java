@@ -1137,36 +1137,6 @@ modifyDNProcessing:
         }
 
 
-        // Invoke any conflict resolution processing that might be needed by the
-        // synchronization provider.
-        for (SynchronizationProvider provider :
-             DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            SynchronizationProviderResult result =
-                 provider.handleConflictResolution(this);
-            if (! result.continueOperationProcessing())
-            {
-              break modifyDNProcessing;
-            }
-          }
-          catch (DirectoryException de)
-          {
-            assert debugException(CLASS_NAME, "run", de);
-
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     MSGID_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED,
-                     getConnectionID(), getOperationID(),
-                     stackTraceToSingleLineString(de));
-
-            setResponseData(de);
-            break modifyDNProcessing;
-          }
-        }
-
-
         // Get the current entry from the appropriate backend.  If it doesn't
         // exist, then fail.
         try
@@ -1214,6 +1184,37 @@ modifyDNProcessing:
 
           break modifyDNProcessing;
         }
+
+
+        // Invoke any conflict resolution processing that might be needed by the
+        // synchronization provider.
+        for (SynchronizationProvider provider :
+             DirectoryServer.getSynchronizationProviders())
+        {
+          try
+          {
+            SynchronizationProviderResult result =
+                 provider.handleConflictResolution(this);
+            if (! result.continueOperationProcessing())
+            {
+              break modifyDNProcessing;
+            }
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "run", de);
+
+            logError(ErrorLogCategory.SYNCHRONIZATION,
+                     ErrorLogSeverity.SEVERE_ERROR,
+                     MSGID_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED,
+                     getConnectionID(), getOperationID(),
+                     stackTraceToSingleLineString(de));
+
+            setResponseData(de);
+            break modifyDNProcessing;
+          }
+        }
+
 
         // Check to see if the client has permission to perform the
         // modify DN.

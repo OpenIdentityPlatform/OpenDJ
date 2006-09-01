@@ -26,7 +26,7 @@
  */
 package org.opends.server.synchronization;
 
-import static org.opends.server.synchronization.SynchMessages.SYNCHRONIZATION;
+import static org.opends.server.synchronization.OperationContext.*;
 
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
@@ -41,7 +41,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
  */
 public class DeleteMsg extends UpdateMessage
 {
-  private String dn;
   private static final long serialVersionUID = -4905520652801395185L;
 
   /**
@@ -50,8 +49,8 @@ public class DeleteMsg extends UpdateMessage
    */
   public DeleteMsg(DeleteOperation op)
   {
-    dn = op.getRawEntryDN().stringValue();
-    changeNumber = (ChangeNumber) op.getAttachment(SYNCHRONIZATION);
+    super((OperationContext) op.getAttachment(SYNCHROCONTEXT),
+           op.getRawEntryDN().stringValue());
   }
 
   /**
@@ -59,55 +58,29 @@ public class DeleteMsg extends UpdateMessage
    *
    * @param in The byte[] from which the operation must be read.
    * @throws DataFormatException The input byte[] is not a valid AddMsg
+   * @throws UnsupportedEncodingException  If UTF8 is not supported by the jvm
    */
-  public DeleteMsg(byte[] in) throws DataFormatException
+  public DeleteMsg(byte[] in) throws DataFormatException,
+                                     UnsupportedEncodingException
   {
-    /* first byte is the type */
-    if (in[0] != MSG_TYPE_DELETE_REQUEST)
-      throw new DataFormatException("byte[] is not a valid delete msg");
-    int pos = 1;
-
-    /* read the dn
-     * first calculate the length then construct the string
-     */
-    int length = 0;
-    int offset = pos;
-    while (in[pos++] != 0)
-    {
-      if (pos > in.length)
-        throw new DataFormatException("byte[] is not a valid delete msg");
-      length++;
-    }
-    try
-    {
-      dn = new String(in, offset, length, "UTF-8");
-
-      /* read the changeNumber
-       * it is always 24 characters long
-       */
-      String changenumberStr = new String(in, pos, 24, "UTF-8");
-      changeNumber = new ChangeNumber(changenumberStr);
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    }
+    super(in);
+    decodeHeader(MSG_TYPE_DELETE_REQUEST, in);
   }
 
 
   /**
-   * Create an Operation from a delete Message.
-   *
-   * @param connection the connection
-   * @return the Operation from which the message was received
+   * {@inheritDoc}
    */
   @Override
-  public Operation createOperation(InternalClientConnection connection)
+  public Operation createOperation(InternalClientConnection connection,
+      String newDn)
   {
     DeleteOperation del =  new DeleteOperation(connection,
                                InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), null,
-                               new ASN1OctetString(dn));
-    del.setAttachment(SYNCHRONIZATION, getChangeNumber());
+                               new ASN1OctetString(newDn));
+    DeleteContext ctx = new DeleteContext(getChangeNumber(), getUniqueId());
+    del.setAttachment(SYNCHROCONTEXT, ctx);
     return del;
   }
 
@@ -119,44 +92,14 @@ public class DeleteMsg extends UpdateMessage
   @Override
   public byte[] getBytes()
   {
-    byte[] byteDn;
     try
     {
-      byteDn = dn.getBytes("UTF-8");
-
-      /* The Delete message is stored in the form :
-       * <operation type><dn><changenumber>
-       * the length of result byte array is therefore :
-       *   1 + dn length + 1 + 24
-       */
-      int length = 1 + byteDn.length + 1  + 24;
-      byte[] resultByteArray = new byte[length];
-      int pos = 1;
-
-      /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_DELETE_REQUEST;
-
-      /* put the DN and a terminating 0 */
-      for (int i = 0; i< byteDn.length; i++,pos++)
-      {
-        resultByteArray[pos] = byteDn[i];
-      }
-      resultByteArray[pos++] = 0;
-
-      /* put the ChangeNumber */
-      byte[] changeNumberByte =
-                      this.getChangeNumber().toString().getBytes("UTF-8");
-      for (int i=0; i<24; i++,pos++)
-      {
-        resultByteArray[pos] = changeNumberByte[i];
-      }
-
-      return resultByteArray;
+      return encodeHeader(MSG_TYPE_DELETE_REQUEST, 0);
     } catch (UnsupportedEncodingException e)
     {
       // should never happen : TODO : log error properly
+      return null;
     }
-    return null;
   }
 
   /**
@@ -165,6 +108,6 @@ public class DeleteMsg extends UpdateMessage
   @Override
   public String toString()
   {
-    return ("DEL " + dn + " " + getChangeNumber());
+    return ("DEL " + getDn() + " " + getChangeNumber());
   }
 }

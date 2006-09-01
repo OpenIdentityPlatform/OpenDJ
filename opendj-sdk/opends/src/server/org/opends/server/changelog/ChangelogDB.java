@@ -349,7 +349,7 @@ public class ChangelogDB
       catch (DatabaseException dbe)
       {
       }
-      /* database is faulty : TODO : log better message */
+      /* database is faulty */
       int    msgID   = MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR;
       String message = getMessage(msgID) + stackTraceToSingleLineString(e);
       logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -553,7 +553,8 @@ public class ChangelogDB
            * to continue with the next record.
            * In such case, it is therefore possible that we miss some changes.
            * TODO. log an error message.
-           * TODO. Such problem should be handled by the repair functionality.
+           * TODO : REPAIR : Such problem should be handled by the
+           *        repair functionality.
            */
         }
       }

@@ -51,7 +51,7 @@ import org.opends.server.types.ModificationType;
 import org.opends.server.types.RDN;
 import org.opends.server.util.TimeThread;
 
-import static org.opends.server.synchronization.SynchMessages.SYNCHRONIZATION;
+import static org.opends.server.synchronization.OperationContext.*;
 
 /**
  * Test the contructors, encoders and decoders of the synchronization
@@ -130,10 +130,10 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
   {
     DN dn = DN.decode(rawdn);
     InternalClientConnection connection = new InternalClientConnection();
-    ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods);
+    ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");
     ModifyMsg generatedMsg = new ModifyMsg(msg.getBytes());
 
-    assertEquals(msg.changeNumber, generatedMsg.changeNumber);
+    assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
 
     Operation op = msg.createOperation(connection);
     Operation generatedOperation = generatedMsg.createOperation(connection);
@@ -145,6 +145,8 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     ModifyOperation mod2 = (ModifyOperation) generatedOperation;
 
     assertEquals(mod1.getRawEntryDN(), mod2.getRawEntryDN());
+    assertEquals( mod1.getAttachment(SYNCHROCONTEXT),
+                  mod2.getAttachment(SYNCHROCONTEXT));
 
     /*
      * TODO : test that the generated mod equals the original mod.
@@ -178,11 +180,11 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
                                              DN.decode(rawDN));
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
       (short) 123, (short) 45);
-    op.setAttachment(SYNCHRONIZATION, cn);
+    op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
     DeleteMsg msg = new DeleteMsg(op);
     DeleteMsg generatedMsg = new DeleteMsg(msg.getBytes());
 
-    assertEquals(msg.changeNumber, generatedMsg.changeNumber);
+    assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
 
     Operation generatedOperation = generatedMsg.createOperation(connection);
 
@@ -219,13 +221,14 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
 
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
                                       (short) 123, (short) 45);
-    op.setAttachment(SYNCHRONIZATION, cn);
+    op.setAttachment(SYNCHROCONTEXT,
+        new ModifyDnContext(cn, "uniqueid", "newparentId"));
     ModifyDNMsg msg = new ModifyDNMsg(op);
     ModifyDNMsg generatedMsg = new ModifyDNMsg(msg.getBytes());
     Operation generatedOperation = generatedMsg.createOperation(connection);
     ModifyDNOperation mod2 = (ModifyDNOperation) generatedOperation;
 
-    assertEquals(msg.changeNumber, generatedMsg.changeNumber);
+    assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
     assertEquals(op.getRawEntryDN(), mod2.getRawEntryDN());
     assertEquals(op.getRawNewRDN(), mod2.getRawNewRDN());
     assertEquals(op.deleteOldRDN(), mod2.deleteOldRDN());
@@ -238,7 +241,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
         {"dc=test,dc=com"},
         };
   }
-  
+
   @Test(dataProvider = "addEncodeDecode")
   public void addEncodeDecode(String rawDN)
          throws Exception
@@ -269,7 +272,8 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
                                       (short) 123, (short) 45);
 
-    AddMsg msg = new AddMsg(cn, rawDN, objectClass, userAttributes,
+    AddMsg msg = new AddMsg(cn, rawDN, "thisIsaUniqueID", "parentUniqueId",
+                            objectClass, userAttributes,
                             operationalAttributes);
     AddMsg generatedMsg = new AddMsg(msg.getBytes());
     assertEquals(msg.getBytes(), generatedMsg.getBytes());

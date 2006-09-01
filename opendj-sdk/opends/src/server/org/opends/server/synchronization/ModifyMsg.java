@@ -26,7 +26,7 @@
  */
 package org.opends.server.synchronization;
 
-import static org.opends.server.synchronization.SynchMessages.SYNCHRONIZATION;
+import static org.opends.server.synchronization.OperationContext.*;
 
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
@@ -52,7 +52,6 @@ import java.util.zip.DataFormatException;
 public class ModifyMsg extends UpdateMessage
 {
   private static final long serialVersionUID = -4905520652801395185L;
-  private String dn = null;
   private byte[] encodedMods = null;
   private byte[] encodedMsg = null;
 
@@ -63,9 +62,9 @@ public class ModifyMsg extends UpdateMessage
    */
   public ModifyMsg(ModifyOperation op)
   {
-    dn = op.getRawEntryDN().stringValue();
+    super((OperationContext) op.getAttachment(OperationContext.SYNCHROCONTEXT),
+          op.getRawEntryDN().stringValue());
     encodedMods = modsToByte(op.getModifications());
-    changeNumber = (ChangeNumber) op.getAttachment(SYNCHRONIZATION);
   }
 
   /**
@@ -74,12 +73,15 @@ public class ModifyMsg extends UpdateMessage
    * @param changeNumber The ChangeNumber for the operation.
    * @param dn           The baseDN of the operation.
    * @param mods         The mod of the operation.
+   * @param entryuuid    The unique id of the entry on which the modification
+   *                     needs to apply.
    */
-  public ModifyMsg(ChangeNumber changeNumber, DN dn, List<Modification> mods)
+  public ModifyMsg(ChangeNumber changeNumber, DN dn, List<Modification> mods,
+                   String entryuuid)
   {
+    super(new ModifyContext(changeNumber, entryuuid),
+          dn.toNormalizedString());
     this.encodedMods = modsToByte(mods);
-    this.dn = dn.toNormalizedString();
-    this.changeNumber = changeNumber;
   }
 
   /**
@@ -92,19 +94,8 @@ public class ModifyMsg extends UpdateMessage
   public ModifyMsg(byte[] in) throws DataFormatException,
                                      UnsupportedEncodingException
   {
+    super(in);
     encodedMsg = in;
-    decodeChangeNumber(in);
-  }
-
-  private void decodeChangeNumber(byte[] in) throws DataFormatException,
-                                             UnsupportedEncodingException
-  {
-    /* read the changeNumber */
-    int pos = 1;
-    int length = getNextLength(encodedMsg, pos);
-    String changenumberStr = new String(encodedMsg, pos, length, "UTF-8");
-    pos += length +1;
-    changeNumber = new ChangeNumber(changenumberStr);
   }
 
   /**
@@ -129,18 +120,21 @@ public class ModifyMsg extends UpdateMessage
     return encodedMsg;
   }
 
-
   /**
    * {@inheritDoc}
    */
   @Override
-  public Operation createOperation(InternalClientConnection connection)
+  public Operation createOperation(InternalClientConnection connection,
+                   String newDn)
                    throws LDAPException, ASN1Exception, DataFormatException
   {
     if (encodedMods == null)
     {
       decode();
     }
+
+    if (newDn == null)
+      newDn = getDn();
 
     ArrayList<LDAPModification> ldapmods;
 
@@ -155,8 +149,9 @@ public class ModifyMsg extends UpdateMessage
     ModifyOperation mod = new ModifyOperation(connection,
                                InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), null,
-                               new ASN1OctetString(dn), ldapmods);
-    mod.setAttachment(SYNCHRONIZATION, getChangeNumber());
+                               new ASN1OctetString(newDn), ldapmods);
+    ModifyContext ctx = new ModifyContext(getChangeNumber(), getUniqueId());
+    mod.setAttachment(SYNCHROCONTEXT, ctx);
     return mod;
   }
 
@@ -167,30 +162,11 @@ public class ModifyMsg extends UpdateMessage
    */
   private void encode() throws UnsupportedEncodingException
   {
-    byte[] byteDn = dn.getBytes("UTF-8");
-    byte[] changeNumberByte =
-      this.getChangeNumber().toString().getBytes("UTF-8");
+    /* encode the header in a byte[] large enough to also contain the mods */
+    encodedMsg = encodeHeader(MSG_TYPE_MODIFY_REQUEST, encodedMods.length + 1);
+    int pos = encodedMsg.length - (encodedMods.length + 1);
 
-    /* The Modify message is stored in the form :
-     * <operation type>changenumber><dn><<mods>
-     * the length of result byte array is therefore :
-     *   1 + dn length + 1 + 24 + mods length
-     */
-    int length = 1 + changeNumberByte.length + 1 + byteDn.length + 1
-                 + encodedMods.length + 1;
-    encodedMsg = new byte[length];
-
-    /* put the type of the operation */
-    encodedMsg[0] = MSG_TYPE_MODIFY_REQUEST;
-    int pos = 1;
-
-    /* put the ChangeNumber */
-    pos = addByteArray(changeNumberByte, encodedMsg, pos);
-
-    /* put the DN and a terminating 0 */
-    pos = addByteArray(byteDn, encodedMsg, pos);
-
-    /* put the mods */
+    /* add the mods */
     pos = addByteArray(encodedMods, encodedMsg, pos);
   }
 
@@ -201,34 +177,14 @@ public class ModifyMsg extends UpdateMessage
    */
   private void decode() throws DataFormatException
   {
-    /* first byte is the type */
-    if (encodedMsg[0] != MSG_TYPE_MODIFY_REQUEST)
-      throw new DataFormatException("byte[] is not a valid modify msg");
+    int pos = decodeHeader(MSG_TYPE_MODIFY_REQUEST, encodedMsg);
 
-    try
+    /* Read the mods : all the remaining bytes but the terminating 0 */
+    encodedMods = new byte[encodedMsg.length-pos-1];
+    int i =0;
+    while (pos<encodedMsg.length-1)
     {
-      /* read the changeNumber */
-      int pos = 1;
-      int length = getNextLength(encodedMsg, pos);
-      String changenumberStr = new String(encodedMsg, pos, length, "UTF-8");
-      pos += length +1;
-      changeNumber = new ChangeNumber(changenumberStr);
-
-      /* read the dn */
-      length = getNextLength(encodedMsg, pos);
-      dn = new String(encodedMsg, pos, length, "UTF-8");
-      pos += length +1;
-
-      /* Read the mods : all the remaining bytes but the terminating 0 */
-      encodedMods = new byte[encodedMsg.length-pos-1];
-      int i =0;
-      while (pos<encodedMsg.length-1)
-      {
-        encodedMods[i++] = encodedMsg[pos++];
-      }
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      encodedMods[i++] = encodedMsg[pos++];
     }
   }
 
@@ -263,6 +219,6 @@ public class ModifyMsg extends UpdateMessage
   @Override
   public String toString()
   {
-    return("Mod " + dn + " " + getChangeNumber());
+    return("Modify " + getDn() + " " + getChangeNumber());
   }
 }

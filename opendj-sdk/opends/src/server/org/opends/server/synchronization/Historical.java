@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.types.Attribute;
@@ -44,7 +45,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 
-import static org.opends.server.synchronization.SynchMessages.*;
 
 /**
  * This class is used to store historical information that is
@@ -68,6 +68,9 @@ public class Historical
   static final String HISTORICALATTRIBUTENAME = "ds-sync-hist";
   static final AttributeType historicalAttrType =
     DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
+  static final String ENTRYUIDNAME = "entryuuid";
+  static final AttributeType entryuuidAttrType =
+    DirectoryServer.getSchema().getAttributeType(ENTRYUIDNAME);
 
   /*
    * The last update seen on this entry, allows fast conflict detection.
@@ -109,7 +112,7 @@ public class Historical
   {
     List<Modification> mods = modifyOperation.getModifications();
     ChangeNumber changeNumber =
-      (ChangeNumber) modifyOperation.getAttachment(SYNCHRONIZATION);
+      OperationContext.getChangeNumber(modifyOperation);
 
     for (Iterator modsIterator = mods.iterator(); modsIterator.hasNext();)
     {
@@ -288,7 +291,8 @@ public class Historical
     List<Modification> mods = modifyOperation.getModifications();
     Entry modifiedEntry = modifyOperation.getModifiedEntry();
     ChangeNumber changeNumber =
-              (ChangeNumber) modifyOperation.getAttachment(SYNCHRONIZATION);
+      OperationContext.getChangeNumber(modifyOperation);
+
     /*
      * If this is a local operation we need first to update the historical
      * information, then update the entry with the historical information
@@ -802,7 +806,7 @@ public class Historical
             } catch (Exception e)
             {
               /*
-               *  TODO This Exception shows that there are some
+               *  TODO : REPAIR : This Exception shows that there are some
                *  inconsistency in the historical information.
                *  This method can't fix the problem.
                *  This should be logged and somehow the repair
@@ -812,13 +816,70 @@ public class Historical
           }
           else
           {
-            modifyFakeOperation = new ModifyFakeOperation(entry.getDN(),cn);
-            modifyFakeOperation.addModification(mod);
-            operations.put(histVal.getCn(), modifyFakeOperation);
+            String uuidString = getEntryUuid(entry);
+            if (uuidString != null)
+            {
+                modifyFakeOperation = new ModifyFakeOperation(entry.getDN(),
+                      cn, uuidString);
+
+                modifyFakeOperation.addModification(mod);
+                operations.put(histVal.getCn(), modifyFakeOperation);
+            }
           }
         }
       }
     }
     return operations.values();
   }
+
+  /**
+   * Get the entry unique Id in String form.
+   *
+   * @param entry The entry for which the unique id should be returned.
+   *
+   * @return The Unique Id of the entry if it has one. null, otherwise.
+   */
+  public static String getEntryUuid(Entry entry)
+  {
+    String uuidString = null;
+    List<Attribute> uuidAttrs =
+             entry.getOperationalAttribute(entryuuidAttrType);
+    if (uuidAttrs != null)
+    {
+      Attribute uuid = uuidAttrs.get(0);
+      if (uuid.hasValue())
+      {
+        AttributeValue uuidVal = uuid.getValues().iterator().next();
+        uuidString =  uuidVal.getStringValue();
+      }
+    }
+    return uuidString;
+  }
+
+  /**
+   * Get the Entry Unique Id from an add operation.
+   * This must be called after the entry uuid preop plugin (i.e no
+   * sooner than the synchronization provider pre-op)
+   *
+   * @param op The operation
+   * @return The Entry Unique Id String form.
+   */
+  public static String getEntryUuid(AddOperation op)
+  {
+    String uuidString = null;
+    Map<AttributeType, List<Attribute>> attrs = op.getOperationalAttributes();
+    List<Attribute> uuidAttrs = attrs.get(entryuuidAttrType);
+
+    if (uuidAttrs != null)
+    {
+      Attribute uuid = uuidAttrs.get(0);
+      if (uuid.hasValue())
+      {
+        AttributeValue uuidVal = uuid.getValues().iterator().next();
+        uuidString =  uuidVal.getStringValue();
+      }
+    }
+    return uuidString;
+  }
 }
+
