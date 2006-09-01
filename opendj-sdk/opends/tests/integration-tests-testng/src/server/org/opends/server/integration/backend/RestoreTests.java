@@ -54,9 +54,15 @@ public class RestoreTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
-    compareExitCode(retCode, expCode);
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+        retCode = 999;
+      }
+    }
 
-    startOpenDS(dsee_home, port);
+    compareExitCode(retCode, expCode);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home" })
@@ -75,9 +81,15 @@ public class RestoreTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
-    compareExitCode(retCode, expCode);
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+        retCode = 999;
+      }
+    }
 
-    startOpenDS(dsee_home, port);
+    compareExitCode(retCode, expCode);
   }
 
 }
