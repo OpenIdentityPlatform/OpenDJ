@@ -32,6 +32,8 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -70,9 +72,10 @@ public class DirectoryThread
   // The task with which this thread is associated, if any.
   private Task task;
 
-
   // A reference to the thread that was used to create this thread.
   private Thread parentThread;
+
+
 
   /**
    * Creates a new instance of this directory thread with the
@@ -147,7 +150,21 @@ public class DirectoryThread
     {
       task = null;
     }
+
+    String forceDaemonStr =
+         System.getProperty(PROPERTY_FORCE_DAEMON_THREADS);
+    if (forceDaemonStr != null)
+    {
+      String lowerStr = toLowerCase(forceDaemonStr);
+      if (lowerStr.equals("true") || lowerStr.equals("yes") ||
+          lowerStr.equals("on") || lowerStr.equals("1"))
+      {
+        setDaemon(true);
+      }
+    }
   }
+
+
 
   /**
    * Retrieves the stack trace that was captured at the time that this

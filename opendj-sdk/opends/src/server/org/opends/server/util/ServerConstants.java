@@ -2005,5 +2005,24 @@ public class ServerConstants
    */
   public static final String PROPERTY_DISABLE_EXEC =
        "org.opends.server.DisableExec";
+
+
+
+  /**
+   * The name of the system property that can be used to determine whether all
+   * <CODE>DirectoryThread</CODE> instances should be created as daemon threads
+   * regardless of whether they would otherwise be configured that way.
+   */
+  public static final String PROPERTY_FORCE_DAEMON_THREADS =
+       "org.opends.server.ForceDaemonThreads";
+
+
+
+  /**
+   * The name of the system property that can be used to specify the path to the
+   * server root.
+   */
+  public static final String PROPERTY_SERVER_ROOT =
+       "org.opends.server.ServerRoot";
 }
 
