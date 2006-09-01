@@ -27,8 +27,9 @@
 package org.opends.server;
 
 import java.io.*;
-//import org.opends.server.OpenDSAdmin;
-import  org.opends.server.tools.StopDS;
+import org.opends.server.OpenDSMgr;
+import org.opends.server.tools.StopDS;
+import org.opends.server.tools.LDAPSearch;
 
 /**
  * This class defines a base test case that should be subclassed by all
@@ -41,7 +42,7 @@ public abstract class OpenDSIntegrationTests {
   // The print stream to use for printing error messages.
   private PrintStream errorStream;
   protected OpenDSTestOutput ds_output = new OpenDSTestOutput();
-  //protected OpenDSAdmin dsAdmin = null;
+  protected OpenDSMgr dsMgr = null;
 
   /**
    * Creates a new instance of this test case with the provided name.
@@ -89,6 +90,8 @@ public abstract class OpenDSIntegrationTests {
     System.out.println("Return code is " + Integer.toString(retCode) + ", expecting " + Integer.toString(expCode));
     if (retCode != expCode )
     {
+      if (retCode == 999)
+	System.out.println("OpenDS could not restart");
       // throw a fail in the testng framewok
       assert retCode==expCode;
     }
@@ -105,25 +108,41 @@ public abstract class OpenDSIntegrationTests {
     return outStr;
   }
 
-  public void startOpenDS(String dsee_home, String port) throws Exception
+  public int startOpenDS(String dsee_home, String hostname, String port, String bindDN, String bindPW, String logDir) throws Exception
   {
+    int isAliveCounter = 0;
     String osName = new String(System.getProperty("os.name"));
-    String exec_cmd = "";
     System.out.println("OpenDS is starting.....");
-      
+
     if (osName.indexOf("Windows") >= 0)  // For Windows
     {
-      exec_cmd = "CMD /C " + dsee_home + "\\bin\\start-ds";
+      dsMgr = new OpenDSMgr(dsee_home, port);
+      dsMgr.start();
     }
     else
     {
-      exec_cmd = dsee_home + "/bin/start-ds.sh -nodetach";
+      String exec_cmd = dsee_home + "/bin/start-ds.sh -nodetach";
+      Runtime rtime = Runtime.getRuntime();
+      Process child = rtime.exec(exec_cmd);
     }
 
-    Runtime rtime = Runtime.getRuntime();
-    Process child = rtime.exec(exec_cmd);
-    Thread.sleep(30000);
+    ds_output.redirectOutput(logDir, "Redirect.txt");
+    while(isAlive(hostname, port, bindDN, bindPW) != 0)
+    {
+      if(isAliveCounter % 50 == 0)
+      {
+        ds_output.resetOutput();
+        System.out.println("OpenDS has not yet started.....");
+        ds_output.redirectOutput(logDir, "Redirect.txt");
+      }
+
+      if(isAliveCounter++ > 5000)
+        return 1;
+    }
+
+    ds_output.resetOutput();
     System.out.println("OpenDS has started.");
+    return 0;
   }
 
   public void stopOpenDS(String dsee_home, String port) throws Exception
@@ -134,5 +153,11 @@ public abstract class OpenDSIntegrationTests {
     System.out.println("OpenDS has stopped.");
   }
 
-}
+  public int isAlive(String hostname, String port, String bindDN, String bindPW)
+  {
+    String isAlive_args[] = {"-h", hostname, "-p", port, "-D", bindDN, "-w", bindPW, "-b", "", "-s", "base", "(objectclass=*)"};
 
+    return(LDAPSearch.mainSearch(isAlive_args));
+  }
+
+}

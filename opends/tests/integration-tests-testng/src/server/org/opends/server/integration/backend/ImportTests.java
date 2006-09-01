@@ -36,9 +36,9 @@ import org.opends.server.tools.*;
 @Test
 public class ImportTests extends BackendTests
 {
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.BackupTasksTests.testBackupTasks1" })
-  public void testImport1(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 1");
@@ -52,9 +52,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -91,9 +96,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport1_check2" })
-  public void testImport2(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 2");
@@ -106,9 +111,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -145,9 +155,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport2_check2" })
-  public void testImport3(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 3");
@@ -161,9 +171,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -200,9 +215,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport3_check2" })
-  public void testImport4(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 4");
@@ -216,9 +231,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -255,9 +275,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport4_check2" })
-  public void testImport5(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport5(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 5");
@@ -271,9 +291,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -310,9 +335,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport5_check2" })
-  public void testImport6(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport6(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 6");
@@ -326,9 +351,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -365,9 +395,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport6_check2" })
-  public void testImport7(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport7(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 7");
@@ -381,9 +411,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -420,9 +455,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport7_check2" })
-  public void testImport8(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport8(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 8");
@@ -436,9 +471,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -475,9 +515,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport8_check2" })
-  public void testImport9(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport9(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 9");
@@ -491,9 +531,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -547,9 +592,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport9_check3" })
-  public void testImport10(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport10(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 10");
@@ -564,9 +609,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -603,9 +653,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport10_check2" })
-  public void testImport11(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport11(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 11");
@@ -620,9 +670,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -659,9 +714,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport11_check2" })
-  public void testImport12(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport12(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 12");
@@ -676,9 +731,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -755,9 +815,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
@@ -811,9 +876,9 @@ public class ImportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
-  @Parameters({ "integration_test_home", "port", "logDir", "dsee_home", "backupDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport13_check3" })
-  public void testImport14(String integration_test_home, String port, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport14(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 14");
@@ -827,9 +892,14 @@ public class ImportTests extends BackendTests
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
-
-    startOpenDS(dsee_home, port);
   }
 
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
