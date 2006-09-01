@@ -465,7 +465,9 @@ public class AttributeIndex
     // Set the upper bound for a range search.
     // We need a key for the upper bound that is of equal length
     // but slightly greater than the lower bound.
-    byte[] upper = bytes;
+    byte[] upper = new byte[bytes.length];
+    System.arraycopy(bytes,0, upper, 0, bytes.length);
+
     for (int i = upper.length-1; i >= 0; i--)
     {
       if (upper[i] == 0xFF)
@@ -716,8 +718,6 @@ public class AttributeIndex
       // Use the ordering matching rule to normalize the values.
       OrderingMatchingRule orderingRule =
            getAttributeType().getOrderingMatchingRule();
-
-      byte[] normBytes;
 
       // Set the lower bound for a range search.
       byte[] lower = orderingRule.normalizeValue(lowerValue.getValue()).value();
