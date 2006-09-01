@@ -44,17 +44,20 @@ public class ModifyFakeOperation extends FakeOperation
 {
   private ArrayList<Modification> mods = new ArrayList<Modification>();
   private DN dn;
+  private String entryuuid;
 
   /**
    * Creates a new ModifyFakeOperation with the provided information.
    *
    * @param dn The dn on which the Operation was applied.
    * @param changenumber The ChangeNumber of the operation.
+   * @param entryuuid The unique ID of the entry on which the Operation applies.
    */
-  public ModifyFakeOperation(DN dn, ChangeNumber changenumber)
+  public ModifyFakeOperation(DN dn, ChangeNumber changenumber, String entryuuid)
   {
     super(changenumber);
     this.dn = dn;
+    this.entryuuid = entryuuid;
   }
 
   /**
@@ -75,6 +78,6 @@ public class ModifyFakeOperation extends FakeOperation
   @Override
   public SynchronizationMessage generateMessage()
   {
-    return new ModifyMsg(super.getChangeNumber(), dn, mods);
+    return new ModifyMsg(super.getChangeNumber(), dn, mods, entryuuid);
   }
 }

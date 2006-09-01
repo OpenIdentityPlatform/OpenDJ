@@ -265,8 +265,6 @@ public class ChangelogCache
   {
     /*
      * create the balanced tree that will be used to forward changes
-     * TODO initialize it will all the previous changes that this replicaID
-     * has not seen
      */
     synchronized (connectedServers)
     {
@@ -305,8 +303,6 @@ public class ChangelogCache
   {
     /*
      * create the balanced tree that will be used to forward changes
-     * TODO initialize it will all the previous changes that this replicaID
-     * has not seen
      * TODO throw proper exception
      */
     synchronized (changelogServers)
@@ -482,7 +478,6 @@ public class ChangelogCache
   public void sendAck(ChangeNumber changeNumber, boolean isLDAPserver,
                       short serverId)
   {
-    // TODO Auto-generated method stub
     ServerHandler handler;
     if (isLDAPserver)
       handler = connectedServers.get(serverId);

@@ -36,15 +36,10 @@ import static org.opends.server.messages.MessageHandler.*;
 public class SynchMessages {
 
   /**
-   * name of Synchronization.
-   */
-  public static final String SYNCHRONIZATION = "synchronization";
-
-  /**
    * Name used to store attachment of historical information in the
    * operation.
    */
-  public static final String HISTORICAL = "historical";
+  public static final String HISTORICAL = "ds-synch-historical";
 
   /**
    * Invalid DN.
@@ -256,6 +251,12 @@ public class SynchMessages {
     CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 33;
 
   /**
+   * Exception while receiving a message.
+   */
+  public static final int MSGID_EXCEPTION_RECEIVING_SYNCHRONIZATION_MESSAGE =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 34;
+
+  /**
    * Register the messages from this class in the core server.
    *
    */
@@ -288,7 +289,7 @@ public class SynchMessages {
         "Changelog failed to start " +
         "because the database %s could not be read");
     MessageHandler.registerMessage(MSGID_EXCEPTION_REPLAYING_OPERATION,
-         "Caught Exception %s when replaying operation %s : %s");
+         "An Exception was caught while replaying operation %s : %s");
     MessageHandler.registerMessage(MSGID_NEED_CHANGELOG_PORT,
          "The Changelog server port must be defined");
     MessageHandler.registerMessage(MSGID_ERROR_UPDATING_RUV,
@@ -341,5 +342,8 @@ public class SynchMessages {
     MessageHandler.registerMessage(MSGID_CHANGELOG_ERROR_SENDING_ACK,
         "An unexpected error happened sending an ack to %s." +
         "This connection is going to be closed. ");
+    MessageHandler.registerMessage(
+        MSGID_EXCEPTION_RECEIVING_SYNCHRONIZATION_MESSAGE,
+        "An Exception was caught while receiving synchronization message : %s");
   }
 }

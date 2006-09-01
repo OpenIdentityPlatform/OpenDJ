@@ -72,6 +72,21 @@ public class MultimasterSynchronization extends SynchronizationProvider
     new HashMap<DN, SynchronizationDomain>() ;
 
   /**
+   * Get the ServerState associated to the SynchronizationDomain
+   * with a given DN.
+   *
+   * @param baseDn The DN of the Synchronization Domain for which the
+   *               ServerState must be returned.
+   * @return the ServerState associated to the SynchronizationDomain
+   *         with the DN in parameter.
+   */
+  public static ServerState getServerState(DN baseDn)
+  {
+    SynchronizationDomain domain = findDomain(baseDn);
+    return domain.getServerState();
+  }
+
+  /**
    * {@inheritDoc}
    */
   public void initializeSynchronizationProvider(ConfigEntry configEntry)
@@ -245,6 +260,47 @@ public class MultimasterSynchronization extends SynchronizationProvider
     return domain.handleConflictResolution(modifyOperation);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SynchronizationProviderResult handleConflictResolution(
+      AddOperation addOperation) throws DirectoryException
+  {
+    SynchronizationDomain domain = findDomain(addOperation.getEntryDN());
+    if (domain == null)
+      return new SynchronizationProviderResult(true);
+
+    return domain.handleConflictResolution(addOperation);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SynchronizationProviderResult handleConflictResolution(
+      DeleteOperation deleteOperation) throws DirectoryException
+  {
+    SynchronizationDomain domain = findDomain(deleteOperation.getEntryDN());
+    if (domain == null)
+      return new SynchronizationProviderResult(true);
+
+    return domain.handleConflictResolution(deleteOperation);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SynchronizationProviderResult handleConflictResolution(
+      ModifyDNOperation modifyDNOperation) throws DirectoryException
+  {
+    SynchronizationDomain domain = findDomain(modifyDNOperation.getEntryDN());
+    if (domain == null)
+      return new SynchronizationProviderResult(true);
+
+    return domain.handleConflictResolution(modifyDNOperation);
+  }
 
   /**
    * {@inheritDoc}
@@ -275,57 +331,35 @@ public class MultimasterSynchronization extends SynchronizationProvider
    * {@inheritDoc}
    */
   @Override
+  public SynchronizationProviderResult doPreOperation(
+      DeleteOperation deleteOperation) throws DirectoryException
+  {
+    return new SynchronizationProviderResult(true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SynchronizationProviderResult doPreOperation(
+      ModifyDNOperation modifyDNOperation) throws DirectoryException
+  {
+    return new SynchronizationProviderResult(true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public SynchronizationProviderResult doPreOperation(AddOperation addOperation)
   {
     SynchronizationDomain domain = findDomain(addOperation.getEntryDN());
     if (domain == null)
       return new SynchronizationProviderResult(true);
 
-    domain.setChangeNumber(addOperation);
-    return new SynchronizationProviderResult(true);
-  }
+    if (!addOperation.isSynchronizationOperation())
+      domain.doPreOperation(addOperation);
 
-  /**
-   * Pre-operation processing.
-   * Called after operation has been processed by the core server
-   * but before being committed to the backend
-   * Generate the Change number and update the historical information
-   *
-   * @param deleteOperation the current operation
-   * @return code indicating if operation must be processed
-   */
-  @Override
-  public SynchronizationProviderResult
-                  doPreOperation(DeleteOperation deleteOperation)
-  {
-    SynchronizationDomain domain = findDomain(deleteOperation.getEntryDN());
-    if (domain == null)
-      return new SynchronizationProviderResult(true);
-
-    domain.setChangeNumber(deleteOperation);
-
-    return new SynchronizationProviderResult(true);
-  }
-
-  /**
-   * Pre-operation processing.
-   * Called after operation has been processed by the core server
-   * but before being committed to the backend
-   * Generate the Change number and update the historical information
-   *
-   * @param modifyDNOperation the current operation
-   * @return code indicating if operation must be processed
-   */
-  @Override
-  public SynchronizationProviderResult
-                  doPreOperation(ModifyDNOperation modifyDNOperation)
-  {
-
-    SynchronizationDomain domain = findDomain(modifyDNOperation.getEntryDN());
-    if (domain == null)
-      return new SynchronizationProviderResult(true);
-
-    domain.setChangeNumber(modifyDNOperation);
     return new SynchronizationProviderResult(true);
   }
 
@@ -388,21 +422,6 @@ public class MultimasterSynchronization extends SynchronizationProvider
     domain.synchronize(operation);
 
     return;
-  }
-
-  /**
-   * Get the ServerState associated to the SynchronizationDomain
-   * with a given DN.
-   *
-   * @param baseDn The DN of the Synchronization Domain for which the
-   *               ServerState must be returned.
-   * @return the ServerState associated to the SynchronizationDomain
-   *         with the DN in parameter.
-   */
-  public static ServerState getServerState(DN baseDn)
-  {
-    SynchronizationDomain domain = findDomain(baseDn);
-    return domain.getServerState();
   }
 
 }

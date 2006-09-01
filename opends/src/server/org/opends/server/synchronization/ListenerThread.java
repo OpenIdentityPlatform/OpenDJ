@@ -26,21 +26,14 @@
  */
 package org.opends.server.synchronization;
 
-import java.util.zip.DataFormatException;
-
-import org.opends.server.api.DirectoryThread;
-import org.opends.server.core.Operation;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.ResultCode;
-
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.synchronization.SynchMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+
+import org.opends.server.api.DirectoryThread;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
 
 /**
  * Thread that is used to get messages from the Changelog servers
@@ -49,22 +42,17 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 public class ListenerThread extends DirectoryThread
 {
   private SynchronizationDomain listener;
-  private ChangeNumberGenerator CNgen;
   private boolean shutdown = false;
 
   /**
    * Constructor for the ListenerThread.
    *
    * @param listener the Plugin that created this thread
-   * @param gen the Generator to use to get new ChangeNumber
    */
-  public ListenerThread(SynchronizationDomain listener,
-                        ChangeNumberGenerator gen)
+  public ListenerThread(SynchronizationDomain listener)
   {
-     super("Listener thread");
+     super("Synchronization Listener thread");
      this.listener = listener;
-     this.CNgen = gen;
-     setName("Synchronization Listener");
   }
 
   /**
@@ -80,82 +68,24 @@ public class ListenerThread extends DirectoryThread
    */
   public void run()
   {
-    InternalClientConnection conn = new InternalClientConnection();
     UpdateMessage msg;
 
-    while (((msg = listener.receive()) != null) && (shutdown == false))
+    try
     {
-      Operation op;
-
-      try
+      while (((msg = listener.receive()) != null) && (shutdown == false))
       {
-        op = msg.createOperation(conn);
-
-        op.setInternalOperation(true);
-        op.setSynchronizationOperation(true);
-        ChangeNumber changeNumber =
-          (ChangeNumber) op.getAttachment(SYNCHRONIZATION);
-        if (changeNumber != null)
-          CNgen.adjust(changeNumber);
-        try
-        {
-          op.run();
-          if (op.getResultCode() != ResultCode.SUCCESS)
-          {
-            int msgID = MSGID_ERROR_REPLAYING_OPERATION;
-            String message = getMessage(msgID,
-                op.getResultCode().getResultCodeName(),
-                changeNumber.toString(),
-                op.toString(), op.getErrorMessage());
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                ErrorLogSeverity.SEVERE_ERROR,
-                message, msgID);
-            listener.updateError(changeNumber);
-          }
-        } catch (Exception e)
-        {
-          int msgID = MSGID_EXCEPTION_REPLAYING_OPERATION;
-          String message = getMessage(msgID, stackTraceToSingleLineString(e),
-              op.toString());
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-              ErrorLogSeverity.SEVERE_ERROR,
-              message, msgID);
-          listener.updateError(changeNumber);
-        }
+        listener.replay(msg);
       }
-      catch (ASN1Exception e)
-      {
-        int msgID = MSGID_EXCEPTION_DECODING_OPERATION;
-        String message = getMessage(msgID, msg) +
-                         stackTraceToSingleLineString(e);
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.SEVERE_ERROR,
-            message, msgID);
-      }
-      catch (LDAPException e)
-      {
-        int msgID = MSGID_EXCEPTION_DECODING_OPERATION;
-        String message = getMessage(msgID, msg) +
-                         stackTraceToSingleLineString(e);
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.SEVERE_ERROR,
-            message, msgID);
-      }
-      catch (DataFormatException e)
-      {
-        int msgID = MSGID_EXCEPTION_DECODING_OPERATION;
-        String message = getMessage(msgID, msg) +
-                         stackTraceToSingleLineString(e);
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.SEVERE_ERROR,
-            message, msgID);
-      }
-      finally
-      {
-        if (msg.isAssured())
-          listener.ack(msg.getChangeNumber());
-        listener.incProcessedUpdates();
-      }
+    } catch (Exception e)
+    {
+      /*
+       * catch all exceptions happening in listener.receive and listener.replay
+       * so that the thread never dies even in case of problems.
+       */
+      int msgID = MSGID_EXCEPTION_RECEIVING_SYNCHRONIZATION_MESSAGE;
+      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      logError(ErrorLogCategory.SYNCHRONIZATION,
+          ErrorLogSeverity.SEVERE_ERROR, message, msgID);
     }
   }
 }
