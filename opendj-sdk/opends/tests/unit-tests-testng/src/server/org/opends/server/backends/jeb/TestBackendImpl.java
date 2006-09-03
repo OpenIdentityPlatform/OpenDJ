@@ -40,8 +40,9 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.Base64;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
-import org.testng.annotations.Configuration;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterClass;
 
 /**
  * BackendImpl Tester.
@@ -68,7 +69,7 @@ public class TestBackendImpl extends JebTestCase {
    * @throws Exception
    *           If the environment could not be set up.
    */
-  @Configuration(beforeTestClass = true)
+  @BeforeClass
   public void setUp() throws Exception {
     InitialDirectoryServerFixture.FACTORY.setUp();
 
@@ -93,7 +94,7 @@ public class TestBackendImpl extends JebTestCase {
    * @throws Exception
    *           If the environment could not be finalized.
    */
-  @Configuration(afterTestClass = true)
+  @AfterClass
   public void tearDown() throws Exception {
     InitialDirectoryServerFixture.FACTORY.tearDown();
 

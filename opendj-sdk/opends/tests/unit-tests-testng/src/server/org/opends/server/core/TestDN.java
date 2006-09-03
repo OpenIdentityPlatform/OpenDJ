@@ -33,10 +33,10 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
 import org.opends.server.types.AttributeValue;
-import org.testng.annotations.Configuration;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.ExpectedExceptions;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterClass;
 
 import java.util.Arrays;
 
@@ -166,7 +166,7 @@ public class TestDN extends CoreTestCase {
    * @throws Exception
    *           If the environment could not be set up.
    */
-  @Configuration(beforeTestClass = true)
+  @BeforeClass
   public void setUp() throws Exception {
     // This test suite depends on having the schema available.
     SchemaFixture.FACTORY.setUp();
@@ -178,7 +178,7 @@ public class TestDN extends CoreTestCase {
    * @throws Exception
    *           If the environment could not be finalized.
    */
-  @Configuration(afterTestClass = true)
+  @AfterClass
   public void tearDown() throws Exception {
     SchemaFixture.FACTORY.tearDown();
   }
@@ -229,8 +229,8 @@ public class TestDN extends CoreTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(dataProvider = "illegalDNs")
-  @ExpectedExceptions(value = { DirectoryException.class } )
+  @Test(dataProvider = "illegalDNs",
+        expectedExceptions = DirectoryException.class )
   public void testIllegalStringDNs(String dn)
        throws Exception
   {
@@ -259,8 +259,8 @@ public class TestDN extends CoreTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(dataProvider = "illegalDNs")
-  @ExpectedExceptions(value = { DirectoryException.class } )
+  @Test(dataProvider = "illegalDNs",
+        expectedExceptions = DirectoryException.class )
   public void testIllegalOctetStringDNs(String dn)
        throws Exception
   {

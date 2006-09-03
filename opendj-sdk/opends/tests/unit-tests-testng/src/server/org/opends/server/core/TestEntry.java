@@ -41,9 +41,9 @@ import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.schema.RFC3672SubtreeSpecificationSyntax;
 import org.opends.server.types.*;
-import org.testng.annotations.Configuration;
-import org.testng.annotations.ExpectedExceptions;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterClass;
 
 /**
  * This class defines a set of tests for the {@link Entry} class.
@@ -130,7 +130,7 @@ public final class TestEntry extends CoreTestCase {
    * @throws Exception
    *           If the environment could not be set up.
    */
-  @Configuration(beforeTestClass = true)
+  @BeforeClass
   public void setUp() throws Exception {
     // This test suite depends on having the schema available.
     SchemaFixture.FACTORY.setUp();
@@ -142,7 +142,7 @@ public final class TestEntry extends CoreTestCase {
    * @throws Exception
    *           If the environment could not be finalized.
    */
-  @Configuration(afterTestClass = true)
+  @AfterClass
   public void tearDown() throws Exception {
     SchemaFixture.FACTORY.tearDown();
   }
@@ -210,8 +210,7 @@ public final class TestEntry extends CoreTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
-  @ExpectedExceptions(value = DirectoryException.class)
+  @Test(expectedExceptions = DirectoryException.class)
   public void testGetAttributeValueBooleanBad() throws Exception {
     AttributeType type = DirectoryServer.getAttributeType("inheritable");
 
@@ -255,8 +254,7 @@ public final class TestEntry extends CoreTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
-  @ExpectedExceptions(value = DirectoryException.class)
+  @Test(expectedExceptions = DirectoryException.class)
   public void testGetAttributeValueIntegerBad() throws Exception {
     AttributeType type = DirectoryServer
         .getAttributeType("supportedldapversion");

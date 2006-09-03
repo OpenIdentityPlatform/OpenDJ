@@ -39,8 +39,9 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.LDIFReader;
-import org.testng.annotations.Configuration;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterClass;
 
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
@@ -128,7 +129,7 @@ public class TestEntryContainer extends JebTestCase {
    * @throws Exception
    *           If the environment could not be set up.
    */
-  @Configuration(beforeTestClass = true)
+  @BeforeClass
   public void setUp() throws Exception {
     // This test suite depends on having the schema available.
     SchemaFixture.FACTORY.setUp();
@@ -166,7 +167,7 @@ public class TestEntryContainer extends JebTestCase {
    * @throws Exception
    *           If the environment could not be finalized.
    */
-  @Configuration(afterTestClass = true)
+  @AfterClass
   public void tearDown() throws Exception {
     SchemaFixture.FACTORY.tearDown();
 

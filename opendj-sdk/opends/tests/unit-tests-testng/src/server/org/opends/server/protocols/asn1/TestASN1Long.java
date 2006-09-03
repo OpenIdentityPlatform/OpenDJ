@@ -32,8 +32,8 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.testng.annotations.Configuration;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
 
 /**
  * This class defines a set of tests for the
@@ -49,7 +49,7 @@ public class TestASN1Long extends ASN1TestCase {
   /**
    * Performs any necessary initialization for this test case.
    */
-  @Configuration(beforeTestClass = true)
+  @BeforeClass
   public void setUp() {
     testLongs = new ArrayList<Long>();
     testEncodedLongs = new ArrayList<byte[]>();

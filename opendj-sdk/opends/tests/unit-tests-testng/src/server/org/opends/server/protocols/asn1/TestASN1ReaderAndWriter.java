@@ -36,8 +36,9 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.testng.annotations.Configuration;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterClass;
 
 /**
  * This class defines a set of tests for the
@@ -79,7 +80,7 @@ public class TestASN1ReaderAndWriter extends ASN1TestCase {
    * @throws Exception
    *           If a problem occurs during initialization.
    */
-  @Configuration(beforeTestClass = true)
+  @BeforeClass
   public void setUp() throws Exception {
     // Create the temporary file that we will write to and read from.
     dataFile = File.createTempFile("TestASN1ReaderAndWriter-", ".data");
@@ -211,7 +212,7 @@ public class TestASN1ReaderAndWriter extends ASN1TestCase {
    * @throws Exception
    *           If a problem occurs during cleanup.
    */
-  @Configuration(afterTestClass = true)
+  @AfterClass
   public void tearDown() throws Exception {
     // Delete the temporary data file.
     dataFile.delete();
