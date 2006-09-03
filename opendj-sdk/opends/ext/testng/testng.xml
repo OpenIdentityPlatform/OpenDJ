@@ -1,12 +1,14 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 <suite name="OpenDS"   verbose="1" >
-    <packages>
-        <package name="org.opends.server.protocols.asn1"/>
-        <package name="org.opends.server.core"/>
-        <package name="org.opends.server.backends.jeb"/>
-        <package name="org.opends.server.synchronization"/>
-    </packages>
-    
+    <test name="default">
+        <packages>
+            <package name="org.opends.server.protocols.asn1"/>
+            <package name="org.opends.server.core"/>
+            <package name="org.opends.server.backends.jeb"/>
+            <package name="org.opends.server.synchronization"/>
+        </packages>
+    </test>
+  
     <test name="precommit">
         <groups>
             <run>
@@ -15,7 +17,7 @@
             </run>
         </groups>
     </test>
-    
+      
     <test name="functional">
         <groups>
             <run>
