@@ -35,7 +35,8 @@ import org.opends.server.SchemaFixture;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
-import org.testng.annotations.Configuration;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterClass;
 
 /**
  * An abstract base class for all subtree specification tests.
@@ -55,7 +56,7 @@ public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
    * @return The created entry.
    */
   protected final Entry createEntry(DN entryDN,
-      Set<ObjectClass> objectClasses) {
+                                    Set<ObjectClass> objectClasses) {
     HashMap<ObjectClass, String> map = new HashMap<ObjectClass, String>();
 
     for (ObjectClass oc : objectClasses) {
@@ -73,7 +74,7 @@ public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
    * @throws Exception
    *           If the environment could not be set up.
    */
-  @Configuration(beforeTestClass = true)
+  @BeforeClass
   public final void setUp() throws Exception {
     // This test suite depends on having the schema available.
     SchemaFixture.FACTORY.setUp();
@@ -100,7 +101,7 @@ public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
    * @throws Exception
    *           If the environment could not be finalized.
    */
-  @Configuration(afterTestClass = true)
+  @AfterClass
   public final void tearDown() throws Exception {
     SchemaFixture.FACTORY.tearDown();
   }

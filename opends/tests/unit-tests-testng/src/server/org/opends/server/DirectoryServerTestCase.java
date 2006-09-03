@@ -26,6 +26,8 @@
  */
 package org.opends.server;
 
+import org.testng.annotations.Test;
+
 import java.io.PrintStream;
 
 /**

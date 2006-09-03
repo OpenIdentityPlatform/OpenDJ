@@ -30,7 +30,6 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import org.opends.server.api.SubtreeSpecification;
 import org.opends.server.types.DN;
-import org.testng.annotations.ExpectedExceptions;
 import org.testng.annotations.Test;
 
 /**
@@ -51,8 +50,7 @@ public final class TestAbsoluteSubtreeSpecification extends
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
-  @ExpectedExceptions(value = DirectoryException.class)
+  @Test(expectedExceptions = DirectoryException.class)
   public void testValueOf1() throws Exception {
     String input = "{}";
 
@@ -66,8 +64,7 @@ public final class TestAbsoluteSubtreeSpecification extends
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
-  @ExpectedExceptions(value = DirectoryException.class)
+  @Test(expectedExceptions = DirectoryException.class)
   public void testValueOf2() throws Exception {
     String input = "  {   }  ";
 

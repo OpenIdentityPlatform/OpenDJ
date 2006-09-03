@@ -30,9 +30,9 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
-import org.testng.annotations.Configuration;
-import org.testng.annotations.ExpectedExceptions;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterClass;
 
 import org.opends.server.TestCaseUtils;
 import com.sleepycat.je.Environment;
@@ -51,7 +51,7 @@ public class TestEnvManager extends JebTestCase {
    * @throws Exception
    *           If the environment could not be set up.
    */
-  @Configuration(beforeTestClass = true)
+  @BeforeClass
   public void setUp() throws Exception {
     tempDir = TestCaseUtils.createTemporaryDirectory("jebtest");
     homeDirName = tempDir.getAbsolutePath();
@@ -63,7 +63,7 @@ public class TestEnvManager extends JebTestCase {
    * @throws Exception
    *           If the environment could not be finalized.
    */
-  @Configuration(afterTestClass = true)
+  @AfterClass
   public void tearDown() throws Exception {
     TestCaseUtils.deleteDirectory(tempDir);
   }
@@ -98,8 +98,7 @@ public class TestEnvManager extends JebTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @ExpectedExceptions(value = JebException.class)
-  @Test()
+  @Test(expectedExceptions = JebException.class)
   public void testInvalidHomeDir() throws Exception {
     File tempFile = File.createTempFile("jebtest", "");
     tempFile.deleteOnExit();

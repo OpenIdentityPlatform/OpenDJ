@@ -31,8 +31,8 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.ArrayList;
 
-import org.testng.annotations.Configuration;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
 
 /**
  * This class defines a set of tests for the
@@ -51,7 +51,7 @@ public class TestASN1Set extends ASN1TestCase {
   /**
    * Performs any necessary initialization for this test case.
    */
-  @Configuration(beforeTestClass = true)
+  @BeforeClass
   public void setUp() {
     // Initialize the sets of ASN.1 elements that will be used in
     // testing the
