@@ -92,7 +92,7 @@
        location="${src.dir}/org/opends/server/util/DynamicConstants.java" />
   <property name="dynconstants.stubfile"
         location="${resource.dir}/DynamicConstants.java.stubs" />
-  
+
   <property file="PRODUCT"                                                />
 
 
@@ -107,7 +107,7 @@
 
 
   <!-- The build target that should be used before committing code. -->
-  <target name="precommit" depends="checkstyle,dsml,javadoc,test"
+  <target name="precommit" depends="checkstyle,dsml,javadoc,clean,test"
        description="Perform all processing needed before committing code." />
 
 
@@ -145,11 +145,12 @@
   </target>
 
 
+  <!-- Perform common initialization common to several targets after cleaning out the previous build environment. -->
+  <target name="cleaninit" depends="clean,init"/>
 
 
   <!-- Perform common initialization common to several targets. -->
-  <target name="init" depends="clean">
-
+  <target name="init">
     <tstamp>
       <format property="timestamp" pattern="yyyyMMddHHmmss" />
     </tstamp>
@@ -243,9 +244,14 @@
 
 
 
+  <!-- Compile the Directory Server source files. -->
+  <target name="cleancompile" depends="cleaninit,compile"
+       description="Recompile the Directory Server source files.">
+  </target>
 
   <!-- Compile the Directory Server source files. -->
-  <target name="compile" depends="init"
+  <target name="compile"
+       depends="init"
        description="Compile the Directory Server source files.">
 
     <mkdir dir="${classes.dir}" />
@@ -318,7 +324,7 @@
 
 
   <!-- Populate the Directory Server package, but don't zip it up. -->
-  <target name="prepackage" depends="compile"
+  <target name="prepackage" depends="cleancompile"
        description="Prepare the Directory Server package structure.">
 
     <property name="pkgversion"
@@ -513,8 +519,8 @@
 
 
 
-  <!-- Prepare to generate a code coverage report. -->
-  <target name="coverage" description="Generate a code coverage report.">
+  <!-- Internal target to prepare to generate a code coverage report. -->
+  <target name="coverage">
 
     <property name="coverage.enabled" value="true" />
 
@@ -573,8 +579,18 @@
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
-            depends="testinit"
-            description="Execute the Directory Server TestNG unit tests in text mode.">
+          depends="testinit,runtests"
+          description="Execute the Directory Server TestNG unit tests in text mode.">
+  </target>
+
+  <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report. -->
+  <target name="testwithcoverage"
+          depends="coverage,test"
+          description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.">
+  </target>
+
+  <!-- Internal target to execute the Directory Server TestNG unit tests in text mode after everything has been initialized. -->
+  <target name="runtests">
     <mkdir dir="${unittest.report.dir}" />
 
     <taskdef resource="testngtasks">
@@ -607,7 +623,7 @@
       <jvmarg value="-Demma.coverage.out.merge=false" />
       <xmlfileset dir="${testng.dir}" includes="testng.xml" />
     </testng>
-  	
+
     <emma enabled="${coverage.enabled}" >
       <report sourcepath="${src.dir}" >
   	  <!-- <property name="verbosity.level" value="verbose" /> -->
@@ -619,7 +635,7 @@
   	   <html outfile="${coverage.report.dir}/index.html" />
       </report>
     </emma>
-  	
+
   </target>
 
 
@@ -636,8 +652,8 @@
     </junitreport>
   </target>
 
-  
-    <target name="integration-tests" 
+
+    <target name="integration-tests"
         description="Builds the integration tests">
         <ant dir="${functest.testng.dir}" />
     </target>
