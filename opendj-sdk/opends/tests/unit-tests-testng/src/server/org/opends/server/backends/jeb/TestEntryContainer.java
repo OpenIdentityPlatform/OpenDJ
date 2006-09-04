@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
-import org.opends.server.SchemaFixture;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -131,8 +130,9 @@ public class TestEntryContainer extends JebTestCase {
    */
   @BeforeClass
   public void setUp() throws Exception {
-    // This test suite depends on having the schema available.
-    SchemaFixture.FACTORY.setUp();
+    // This test suite depends on having the schema available, so we'll make
+    // sure the server is started.
+    TestCaseUtils.startServer();
 
     tempDir = TestCaseUtils.createTemporaryDirectory("jebtest");
     homeDirName = tempDir.getAbsolutePath();
@@ -169,8 +169,6 @@ public class TestEntryContainer extends JebTestCase {
    */
   @AfterClass
   public void tearDown() throws Exception {
-    SchemaFixture.FACTORY.tearDown();
-
     TestCaseUtils.deleteDirectory(tempDir);
   }
 
