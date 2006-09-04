@@ -33,7 +33,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import org.opends.server.InitialDirectoryServerFixture;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -191,7 +191,8 @@ public class TestJebFormat extends JebTestCase {
    */
   @Test()
   public void testEntryToAndFromDatabase() throws Exception {
-    InitialDirectoryServerFixture.FACTORY.setUp();
+    // Make sure that the server is up and running.
+    TestCaseUtils.startServer();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -254,7 +255,5 @@ public class TestJebFormat extends JebTestCase {
       }
     }
     reader.close();
-
-    InitialDirectoryServerFixture.FACTORY.tearDown();
   }
 }

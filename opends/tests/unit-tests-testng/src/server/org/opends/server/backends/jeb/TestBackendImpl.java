@@ -29,7 +29,6 @@ package org.opends.server.backends.jeb;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 
-import org.opends.server.InitialDirectoryServerFixture;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
@@ -71,7 +70,8 @@ public class TestBackendImpl extends JebTestCase {
    */
   @BeforeClass
   public void setUp() throws Exception {
-    InitialDirectoryServerFixture.FACTORY.setUp();
+    // Make sure that the server is up and running.
+    TestCaseUtils.startServer();
 
     tempDir = TestCaseUtils.createTemporaryDirectory("jebtest");
     homeDirName = tempDir.getAbsolutePath();
@@ -96,8 +96,6 @@ public class TestBackendImpl extends JebTestCase {
    */
   @AfterClass
   public void tearDown() throws Exception {
-    InitialDirectoryServerFixture.FACTORY.tearDown();
-
     TestCaseUtils.deleteDirectory(tempDir);
   }
 

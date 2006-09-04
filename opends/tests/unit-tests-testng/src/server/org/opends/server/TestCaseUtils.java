@@ -33,11 +33,67 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.InitializationException;
+import org.opends.server.loggers.Error;
+import org.opends.server.loggers.Debug;
+
 /**
  * This class defines some utility functions which can be used by test
  * cases.
  */
 public final class TestCaseUtils {
+  /**
+   * The name of the system property that can be used to set the fully-qualified
+   * name of the Java class to use as the config handler.
+   */
+  public static final String PROPERTY_CONFIG_CLASS =
+       "org.opends.server.ConfigClass";
+
+  /**
+   * The name of the system property that can be used to set the path to the
+   * Directory Server configuration file.
+   */
+  public static final String PROPERTY_CONFIG_FILE =
+       "org.opends.server.ConfigFile";
+
+  /**
+   * Indicates whether the server has already been started.
+   */
+  private static boolean serverStarted = false;
+
+  /**
+   * Starts the Directory Server so that it will be available for use while
+   * running the unit tests.  This will only actually start the server once, so
+   * subsequent attempts to start it will be ignored because it will already be
+   * available.
+   *
+   * @throws  InitializationException  If a problem occurs while starting the
+   *                                   server.
+   *
+   * @throws  ConfigException  If there is a problem with the server
+   *                           configuration.
+   */
+  public static void startServer()
+         throws InitializationException, ConfigException
+  {
+    if (serverStarted)
+    {
+      return;
+    }
+
+    String configClass = System.getProperty(PROPERTY_CONFIG_CLASS);
+    String configFile  = System.getProperty(PROPERTY_CONFIG_FILE);
+
+    DirectoryServer directoryServer = DirectoryServer.getInstance();
+    directoryServer.bootstrapServer();
+    directoryServer.initializeConfiguration(configClass, configFile);
+    Error.removeAllErrorLoggers(false);
+    Debug.removeAllDebugLoggers(false);
+    directoryServer.startServer();
+    serverStarted = true;
+  }
 
   /**
    * Create a temporary directory with the specified prefix.

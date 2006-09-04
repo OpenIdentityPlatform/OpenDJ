@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.opends.server.SchemaFixture;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
@@ -76,8 +76,9 @@ public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
    */
   @BeforeClass
   public final void setUp() throws Exception {
-    // This test suite depends on having the schema available.
-    SchemaFixture.FACTORY.setUp();
+    // This test suite depends on having the schema available, so we'll start
+    // the server.
+    TestCaseUtils.startServer();
 
     // Retrieve required object classes.
     objectClasses = new HashSet<ObjectClass>();
@@ -93,17 +94,6 @@ public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
       throw new RuntimeException("Unable to resolve object class person");
     }
     objectClasses.add(oc);
-  }
-
-  /**
-   * Tears down the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be finalized.
-   */
-  @AfterClass
-  public final void tearDown() throws Exception {
-    SchemaFixture.FACTORY.tearDown();
   }
 
   /**

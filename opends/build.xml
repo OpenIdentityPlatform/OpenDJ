@@ -53,6 +53,8 @@
 
   <property name="unittest.classes.dir"
        location="${build.dir}/unit-tests/classes" />
+  <property name="unittest.package.dir"
+       location="${build.dir}/unit-tests/package" />
   <property name="unittest.report.dir"
        location="${build.dir}/unit-tests/report"/>
 
@@ -577,9 +579,54 @@
 
 
 
+  <!-- Create a minimal install suitable for running unit tests. -->
+  <target name="testpackage" depends="testinit">
+    <mkdir dir="${unittest.package.dir}"                 />
+    <mkdir dir="${unittest.package.dir}/bak"             />
+    <mkdir dir="${unittest.package.dir}/classes"         />
+    <mkdir dir="${unittest.package.dir}/config"          />
+    <mkdir dir="${unittest.package.dir}/config/schema"   />
+    <mkdir dir="${unittest.package.dir}/config/messages" />
+    <mkdir dir="${unittest.package.dir}/config/MakeLDIF" />
+    <mkdir dir="${unittest.package.dir}/db"              />
+    <mkdir dir="${unittest.package.dir}/changelogDb"     />
+    <mkdir dir="${unittest.package.dir}/ldif"            />
+    <mkdir dir="${unittest.package.dir}/lib"             />
+    <mkdir dir="${unittest.package.dir}/locks"           />
+    <mkdir dir="${unittest.package.dir}/logs"            />
+
+    <jar jarfile="${unittest.package.dir}/lib/OpenDS.jar"
+         basedir="${classes.dir}" compress="true" index="true" />
+
+    <jar jarfile="${unittest.package.dir}/lib/OpenDS-tests.jar"
+         basedir="${unittest.classes.dir}" compress="true" index="true" />
+
+    <copy todir="${unittest.package.dir}/lib">
+      <fileset file="${lib.dir}/*.jar" />
+    </copy>
+
+    <copy todir="${unittest.package.dir}/config">
+      <fileset file="${config.dir}/*" />
+    </copy>
+
+    <copy todir="${unittest.package.dir}/config/schema">
+      <fileset dir="${resource.dir}/schema" />
+    </copy>
+
+    <copy todir="${unittest.package.dir}/config/messages">
+      <fileset dir="${resource.dir}/messages" />
+    </copy>
+
+    <copy todir="${unittest.package.dir}/config/MakeLDIF">
+      <fileset dir="${resource.dir}/MakeLDIF" />
+    </copy>
+  </target>
+
+
+
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
-          depends="testinit,runtests"
+          depends="testinit,testpackage,runtests"
           description="Execute the Directory Server TestNG unit tests in text mode.">
   </target>
 
@@ -609,18 +656,20 @@
         <path refid="run.classpath" />
         <path refid="emma.lib" />
 
-        <fileset dir="${lib.dir}">
+        <fileset dir="${unittest.package.dir}/lib">
           <include name="*.jar" />
         </fileset>
 
         <fileset dir="${testng.lib.dir}">
           <include name="*.jar" />
         </fileset>
-
-        <pathelement location="${unittest.classes.dir}" />
       </classpath>
       <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/coverage.emma" />
       <jvmarg value="-Demma.coverage.out.merge=false" />
+      <jvmarg value="-Dorg.opends.server.ForceDaemonThreads=true" />
+      <jvmarg value="-Dorg.opends.server.ServerRoot=${unittest.package.dir}" />
+      <jvmarg value="-Dorg.opends.server.ConfigClass=org.opends.server.config.ConfigFileHandler" />
+      <jvmarg value="-Dorg.opends.server.ConfigFile=${unittest.package.dir}/config/config.ldif" />
       <xmlfileset dir="${testng.dir}" includes="testng.xml" />
     </testng>
 

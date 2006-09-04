@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 
-import org.opends.server.SchemaFixture;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SubtreeSpecificationSet;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.AttributeTypeSyntax;
@@ -132,19 +132,9 @@ public final class TestEntry extends CoreTestCase {
    */
   @BeforeClass
   public void setUp() throws Exception {
-    // This test suite depends on having the schema available.
-    SchemaFixture.FACTORY.setUp();
-  }
-
-  /**
-   * Tears down the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be finalized.
-   */
-  @AfterClass
-  public void tearDown() throws Exception {
-    SchemaFixture.FACTORY.tearDown();
+    // This test suite depends on having the schema available, so we'll start
+    // the server.
+    TestCaseUtils.startServer();
   }
 
   /**
