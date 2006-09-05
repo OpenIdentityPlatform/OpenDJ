@@ -33,11 +33,14 @@ import java.util.List;
 import java.util.Map;
 
 
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 import static org.opends.server.synchronization.OperationContext.*;
 
+import org.opends.server.SchemaFixture;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -273,5 +276,28 @@ public class ModifyConflictTest extends SynchronizationTestCase
       assertFalse(mods.contains(mod));
       assertEquals(0, mods.size());
     }
+  }
+  
+  /**
+   * Set up the environment for performing the tests in this suite.
+   *
+   * @throws Exception
+   *           If the environment could not be set up.
+   */
+  @BeforeClass
+  public void setUp() throws Exception {
+    // This test suite depends on having the schema available.
+    SchemaFixture.FACTORY.setUp();
+  }
+
+  /**
+   * Tears down the environment for performing the tests in this suite.
+   *
+   * @throws Exception
+   *           If the environment could not be finalized.
+   */
+  @AfterClass
+  public void tearDown() throws Exception {
+    SchemaFixture.FACTORY.tearDown();
   }
 }
