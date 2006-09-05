@@ -33,6 +33,6 @@ import org.testng.annotations.Test;
  * An abstract class that all types  unit test should extend. 
  */
 
-@Test(groups = { "precommit, ldap" })
+@Test(groups = { "precommit", "ldap" })
 public abstract class LdapTestCase extends DirectoryServerTestCase 
 {}
