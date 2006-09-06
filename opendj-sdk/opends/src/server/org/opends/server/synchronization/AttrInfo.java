@@ -28,7 +28,6 @@ package org.opends.server.synchronization;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.Set;
 import org.opends.server.types.AttributeValue;
 
 
@@ -68,6 +67,8 @@ public class AttrInfo
     */
    public AttrInfo()
    {
+     this.deleteTime = null;
+     this.lastUpdateTime = null;
      this.valuesInfo = new ArrayList<ValueInfo>();
    }
 
@@ -148,11 +149,9 @@ public class AttrInfo
     * Change historical information after a delete of a set of values.
     *
     * @param values values that were deleted
-    * @param options options for the values
-    * @param CN time when the delete was done
+   * @param CN time when the delete was done
     */
-   void delete(LinkedHashSet<AttributeValue> values, Set<String> options,
-               ChangeNumber CN)
+   void delete(LinkedHashSet<AttributeValue> values, ChangeNumber CN)
    {
      for (AttributeValue val : values)
      {

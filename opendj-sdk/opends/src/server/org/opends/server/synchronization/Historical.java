@@ -257,8 +257,7 @@ public class Historical
       if (modAttr.getValues().isEmpty())
         attrInfo.delete(changeNumber);
       else
-        attrInfo.delete(modAttr.getValues(), modAttr.getOptions(),
-            changeNumber);
+        attrInfo.delete(modAttr.getValues(), changeNumber);
       break;
 
     case ADD:
