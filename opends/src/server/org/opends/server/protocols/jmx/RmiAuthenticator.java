@@ -202,13 +202,8 @@ public class RmiAuthenticator implements JMXAuthenticator
 
     //
     // Add the Principal. The current implementation doesn't use it
-    try
-    {
-      s.getPrincipals().add(new OpendsJmxPrincipal(authcID));
-    }
-    catch (Exception e)
-    {
-    }
+
+    s.getPrincipals().add(new OpendsJmxPrincipal(authcID));
 
     // add the connection client object
     // this connection client is used at forwarder level to identify the
