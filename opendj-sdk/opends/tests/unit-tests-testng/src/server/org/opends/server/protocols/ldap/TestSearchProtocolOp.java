@@ -77,6 +77,15 @@ public class TestSearchProtocolOp extends LdapTestCase
   }
 
   @Test ()
+  public void testSearchRequestToString() throws Exception
+  {
+    SearchRequestProtocolOp protocolOp = buildSearchRequestProtocolOp();
+    StringBuilder sb = new StringBuilder();
+    protocolOp.toString(sb);
+    protocolOp.toString(sb, 1);
+  }
+
+  @Test ()
   public void testSearchRequestEncodeDecode() throws Exception
   {
     // Construct a protocol op.
