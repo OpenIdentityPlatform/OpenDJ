@@ -44,8 +44,6 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
   // An empty LDIF reader.
   private LDIFReader emptyReader;
 
-  // An LDIF reader for
-
   /**
    * Once-only initialization.
    * 
