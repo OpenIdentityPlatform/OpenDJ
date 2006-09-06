@@ -36,9 +36,9 @@ import java.io.*;
  */
 public class BackupTasksTests extends BackendTests
 {
-  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.BackupTests.testBackup5" })
-  public void testBackupTasks1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
+  public void testBackupTasks1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String exportDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Backup Tasks Test 1");
@@ -53,7 +53,7 @@ public class BackupTasksTests extends BackendTests
       output_str += "ds-task-id: 3\n";
       output_str += "ds-task-class-name: org.opends.server.tasks.BackupTask\n";
       output_str += "ds-task-backup-backend-id: userRoot\n";
-      output_str += "ds-backup-directory-path: /tmp/backup_task\n";
+      output_str += "ds-backup-directory-path: " + exportDir + "/backup_task\n";
 
       String backup_task_file = integration_test_home + "/backend/data/add_task_backup.ldif";
       output = new BufferedWriter(new FileWriter(backup_task_file));

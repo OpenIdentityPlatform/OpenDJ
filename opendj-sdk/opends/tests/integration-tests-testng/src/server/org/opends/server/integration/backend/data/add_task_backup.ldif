@@ -5,4 +5,4 @@ objectclass: ds-task-backup
 ds-task-id: 3
 ds-task-class-name: org.opends.server.tasks.BackupTask
 ds-task-backup-backend-id: userRoot
-ds-backup-directory-path: /tmp/backup_task
+ds-backup-directory-path: /export00/dsee7/src/openDS/trunk/opends/tests/integration-tests-testng/opends/backup_task
