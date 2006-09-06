@@ -39,20 +39,30 @@ public class BackendStartupTests extends BackendTests
 /**
  *  Setup for backend tests
 */
-  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
-  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSTLSTests.testJKSTLSTest7" })
-  public void testBackendStartup1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
+  @Parameters({ "dsee_home", "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
+  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSBobTests.testJKSBobTest5" })
+  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSTLSTests.testJKSTLSTest7" })
+  public void testBackendStartup1(String dsee_home, String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Backend Startup test 1");
     String datafile = integration_test_home + "/backend/data/backend_start.ldif";
-    String backend_args[] = {"-a", "-h", hostname, "-p", port, "-D", bindDN, "-w", bindPW, "-f", datafile};
- 
+    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile};
+
+    stopOpenDS(dsee_home, port);
+
     ds_output.redirectOutput(logDir, "BackendStartup1.txt");
-    int retCode = LDAPModify.mainModify(backend_args);
+    int retCode = ImportLDIF.mainImportLDIF(import_args);
     ds_output.resetOutput();
     int expCode = 0;
 
+    if(retCode == expCode)
+    {
+      if(startOpenDS(dsee_home, hostname, port, bindDN, bindPW, logDir) != 0)
+      {
+	retCode = 999;
+      }
+    }
     compareExitCode(retCode, expCode);
   }
   

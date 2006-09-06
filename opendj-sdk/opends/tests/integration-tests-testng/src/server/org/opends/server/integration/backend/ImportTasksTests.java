@@ -38,7 +38,7 @@ import java.io.*;
 public class ImportTasksTests extends BackendTests
 {
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home" })
-  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport14_check" })
+  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests14.testImport14_check" })
   public void testImportTasks1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home) throws Exception
   {
     System.out.println("*********************************************");
