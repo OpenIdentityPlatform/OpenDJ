@@ -30,7 +30,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
 
 /**
- * An abstract class that all sycnhronization unit test should extend. 
+ * An abstract class that all synchronization unit test should extend. 
  */
 @Test(groups = { "precommit", "synchronization" })
 public abstract class SynchronizationTestCase extends DirectoryServerTestCase
