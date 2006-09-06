@@ -29,6 +29,7 @@ package org.opends.server.synchronization;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.zip.DataFormatException;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -55,7 +56,7 @@ import static org.opends.server.synchronization.OperationContext.*;
 
 /**
  * Test the contructors, encoders and decoders of the synchronization
- * ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
+ * AckMsg, ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
  */
 public class SynchronizationMsgTest extends SynchronizationTestCase
 {
@@ -278,5 +279,55 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     AddMsg generatedMsg = new AddMsg(msg.getBytes());
     assertEquals(msg.getBytes(), generatedMsg.getBytes());
     // TODO : should test that generated attributes match original attributes.
+  }
+
+  /**
+   * Build some data for the AckMsg test below.
+   * @throws DirectoryException
+   */
+  @DataProvider(name = "ackMsg")
+  public Object[][] createAckData() {
+    ChangeNumber cn1 = new ChangeNumber(1, (short) 0, (short) 1);
+    ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(),
+                                       (short) 123, (short) 45);
+
+    return new Object[][] {
+        {cn1},
+        {cn2}
+        };
+  }
+
+  @Test(dataProvider = "ackMsg")
+  public void ackMsg(ChangeNumber cn)
+         throws Exception
+  {
+    AckMessage msg1, msg2 ;
+
+    // Consctructor test (with ChangeNumber)
+    // Chech that retrieved CN is OK
+    msg1 = new  AckMessage(cn);
+    assertEquals(msg1.getChangeNumber().compareTo(cn), 0);
+
+    // Consctructor test (with byte[])
+    // Check that retrieved CN is OK
+    msg2 = new  AckMessage(msg1.getBytes());
+    assertEquals(msg2.getChangeNumber().compareTo(cn), 0);
+
+    // Check invalid bytes for constructor
+    byte[] b = msg1.getBytes();
+    b[0] = SynchronizationMessage.MSG_TYPE_ADD_REQUEST ;
+    try
+    {
+      // This should generated an exception
+      msg2 = new  AckMessage(b);
+      assertTrue(false);
+    }
+    catch (DataFormatException e)
+    {
+      assertTrue(true);
+    }
+
+    // Check that retrieved CN is OK
+    msg2 = new  AckMessage(msg1.getBytes());
   }
 }
