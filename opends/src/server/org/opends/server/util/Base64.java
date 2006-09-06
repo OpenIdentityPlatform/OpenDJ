@@ -28,12 +28,12 @@ package org.opends.server.util;
 
 
 
+import static org.opends.server.loggers.Debug.debugEnter;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.messages.UtilityMessages.*;
+
 import java.nio.ByteBuffer;
 import java.text.ParseException;
-
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
 
 
 
@@ -43,7 +43,7 @@ import static org.opends.server.messages.UtilityMessages.*;
  * sets of three bytes with eight significant bits each to sets of four bytes
  * with six significant bits each.
  */
-public class Base64
+public final class Base64
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -55,11 +55,16 @@ public class Base64
   /**
    * The set of characters that may be used in base64-encoded values.
    */
-  public static final char[] BASE64_ALPHABET =
+  private static final char[] BASE64_ALPHABET =
        ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
         "0123456789+/").toCharArray();
 
-
+  /**
+   * Prevent instance creation.
+   */
+  private Base64() {
+    // No implementation required.
+  }
 
   /**
    * Encodes the provided raw data using base64.
