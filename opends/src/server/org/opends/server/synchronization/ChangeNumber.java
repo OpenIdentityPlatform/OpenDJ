@@ -153,7 +153,12 @@ public class ChangeNumber implements java.io.Serializable,
   public static int compare(ChangeNumber CN1, ChangeNumber CN2)
   {
     if (CN1 == null)
-      return -1;
+    {
+      if (CN2 == null)
+        return 0;
+      else
+        return -1;
+    }
     else if (CN2 == null)
       return 1;
     else if (CN1.timeStamp < CN2.timeStamp)

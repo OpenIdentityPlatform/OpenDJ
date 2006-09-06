@@ -113,7 +113,6 @@ public class AckMessage extends SynchronizationMessage implements Serializable
       /* put the type of the operation */
       resultByteArray[0] = MSG_TYPE_ACK;
 
-      resultByteArray[pos++] = 0;
       /* put the ChangeNumber */
       byte[] changeNumberByte;
 

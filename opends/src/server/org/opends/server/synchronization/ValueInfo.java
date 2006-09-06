@@ -62,8 +62,15 @@ public class ValueInfo
   @Override
   public boolean equals(Object obj)
   {
-    ValueInfo objVal = (ValueInfo) obj;
-    return (value.equals(objVal.value));
+    if (obj instanceof ValueInfo)
+    {
+      ValueInfo objVal = (ValueInfo) obj;
+      return (value.equals(objVal.getValue()));
+    }
+    else
+    {
+      return false;
+    }
   }
 
   /**
