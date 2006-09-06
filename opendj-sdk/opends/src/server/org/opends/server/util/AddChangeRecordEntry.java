@@ -28,6 +28,9 @@ package org.opends.server.util;
 
 
 
+import static org.opends.server.loggers.Debug.debugConstructor;
+import static org.opends.server.loggers.Debug.debugEnter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -35,12 +38,6 @@ import java.util.LinkedList;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
