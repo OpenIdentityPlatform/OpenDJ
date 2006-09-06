@@ -118,6 +118,12 @@ public class TestSearchProtocolOp extends LdapTestCase
   }
 
   @Test (expectedExceptions = LDAPException.class)
+  public void testInvalidSearchRequestSequence() throws Exception
+  {
+    ProtocolOp.decode(new ASN1Integer(OP_TYPE_SEARCH_REQUEST, 0));
+  }
+
+  @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestTooManyElements() throws Exception
   {
     ASN1Element element = buildSearchRequestProtocolOp().encode();
@@ -150,6 +156,69 @@ public class TestSearchProtocolOp extends LdapTestCase
     ASN1Element element = buildSearchRequestProtocolOp().encode();
     ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
     elements.set(2, new ASN1Integer(9));
+    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+  }
+
+  @Test (expectedExceptions = LDAPException.class)
+  public void testInvalidSearchRequestElement1() throws Exception
+  {
+    ASN1Element element = buildSearchRequestProtocolOp().encode();
+    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+    elements.set(1, new ASN1OctetString());
+    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+  }
+
+  @Test (expectedExceptions = LDAPException.class)
+  public void testInvalidSearchRequestElement2() throws Exception
+  {
+    ASN1Element element = buildSearchRequestProtocolOp().encode();
+    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+    elements.set(2, new ASN1OctetString());
+    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+  }
+
+  @Test (expectedExceptions = LDAPException.class)
+  public void testInvalidSearchRequestElement3() throws Exception
+  {
+    ASN1Element element = buildSearchRequestProtocolOp().encode();
+    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+    elements.set(3, new ASN1OctetString());
+    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+  }
+
+  @Test (expectedExceptions = LDAPException.class)
+  public void testInvalidSearchRequestElement4() throws Exception
+  {
+    ASN1Element element = buildSearchRequestProtocolOp().encode();
+    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+    elements.set(4, new ASN1OctetString());
+    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+  }
+
+  @Test (expectedExceptions = LDAPException.class)
+  public void testInvalidSearchRequestElement5() throws Exception
+  {
+    ASN1Element element = buildSearchRequestProtocolOp().encode();
+    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+    elements.set(5, new ASN1OctetString());
+    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+  }
+
+  @Test (expectedExceptions = LDAPException.class)
+  public void testInvalidSearchRequestElement6() throws Exception
+  {
+    ASN1Element element = buildSearchRequestProtocolOp().encode();
+    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+    elements.set(6, new ASN1OctetString());
+    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+  }
+
+  @Test (expectedExceptions = LDAPException.class)
+  public void testInvalidSearchRequestElement7() throws Exception
+  {
+    ASN1Element element = buildSearchRequestProtocolOp().encode();
+    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+    elements.set(7, new ASN1OctetString("cn"));
     ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
   }
 
