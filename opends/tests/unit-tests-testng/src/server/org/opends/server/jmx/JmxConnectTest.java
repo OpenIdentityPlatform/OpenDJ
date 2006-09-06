@@ -160,6 +160,7 @@ public class JmxConnectTest extends JmxTestCase
     assertNotNull(jmxc);
     // This test can not pass at the moment
     // because disabling JMX through JMX is not possible
+    // see Issue 620
     // disableJmx(jmxc);
     // JMXConnector jmxcDisabled = connect("cn=directory manager", "password");
     // assertNull(jmxcDisabled);
