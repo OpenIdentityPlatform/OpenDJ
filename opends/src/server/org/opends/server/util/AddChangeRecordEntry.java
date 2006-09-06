@@ -46,7 +46,7 @@ import org.opends.server.types.DN;
  * an add operation.  It includes a DN and a set of attributes, as well as
  * methods to decode the entry.
  */
-public class AddChangeRecordEntry extends ChangeRecordEntry
+public final class AddChangeRecordEntry extends ChangeRecordEntry
 {
   /**
    * The fully-qualified name of this class for debugging purposes.

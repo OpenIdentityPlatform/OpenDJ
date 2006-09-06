@@ -28,14 +28,14 @@ package org.opends.server.util;
 
 
 
+import static org.opends.server.loggers.Debug.debugConstructor;
+import static org.opends.server.loggers.Debug.debugEnter;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.messages.UtilityMessages.*;
+
 import java.util.LinkedList;
 
 import org.opends.server.types.DN;
-
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
 
 
 
@@ -45,7 +45,7 @@ import static org.opends.server.messages.UtilityMessages.*;
  * an delete operation.  It includes a DN and a set of attributes, as well as
  * methods to decode the entry.
  */
-public class DeleteChangeRecordEntry extends ChangeRecordEntry
+public final class DeleteChangeRecordEntry extends ChangeRecordEntry
 {
   /**
    * The fully-qualified name of this class for debugging purposes.

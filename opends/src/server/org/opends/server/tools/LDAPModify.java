@@ -265,13 +265,13 @@ public class LDAPModify
           operationType = "MODIFY DN";
           ModifyDNChangeRecordEntry modDNEntry =
             (ModifyDNChangeRecordEntry) entry;
-          if(modDNEntry.getNewSuperiorRDN() != null)
+          if(modDNEntry.getNewSuperiorDN() != null)
           {
             protocolOp = new ModifyDNRequestProtocolOp(asn1OctetStr,
                  new ASN1OctetString(modDNEntry.getNewRDN().toString()),
                  modDNEntry.deleteOldRDN(),
                  new ASN1OctetString(
-                          modDNEntry.getNewSuperiorRDN().toString()));
+                          modDNEntry.getNewSuperiorDN().toString()));
           } else
           {
             protocolOp = new ModifyDNRequestProtocolOp(asn1OctetStr,

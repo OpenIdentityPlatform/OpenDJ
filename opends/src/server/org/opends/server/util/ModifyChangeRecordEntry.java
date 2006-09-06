@@ -28,6 +28,10 @@ package org.opends.server.util;
 
 
 
+import static org.opends.server.loggers.Debug.debugEnter;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.messages.UtilityMessages.*;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -39,10 +43,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.ModificationType;
 
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.UtilityMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
 
 
 /**
@@ -50,7 +50,7 @@ import static org.opends.server.messages.MessageHandler.*;
  * an modify operation.  It includes a DN and a set of attributes, as well as
  * methods to decode the entry.
  */
-public class ModifyChangeRecordEntry extends ChangeRecordEntry
+public final class ModifyChangeRecordEntry extends ChangeRecordEntry
 {
   /**
    * The fully-qualified name of this class for debugging purposes.

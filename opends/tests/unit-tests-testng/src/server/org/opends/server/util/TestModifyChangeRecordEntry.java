@@ -38,13 +38,13 @@ import org.testng.annotations.Test;
 
 /**
  * This class defines a set of tests for the
- * {@link org.opends.server.util.AddChangeRecordEntry} class.
+ * {@link org.opends.server.util.ModifyChangeRecordEntry} class.
  * <p>
  * Note that we test shared behaviour with the abstract
  * {@link org.opends.server.util.ChangeRecordEntry} class in case it has
  * been overridden.
  */
-public final class TestAddChangeRecordEntry extends UtilTestCase {
+public final class TestModifyChangeRecordEntry extends UtilTestCase {
   // An empty LDIF reader.
   private LDIFReader emptyReader;
 
@@ -73,7 +73,8 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorNullDN() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, emptyReader);
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null,
+        emptyReader);
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -86,7 +87,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(new DN(),
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(new DN(),
         emptyReader);
 
     Assert.assertEquals(entry.getDN(), new DN());
@@ -103,7 +104,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
     DN testDN1 = DN.decode("dc=hello, dc=world");
     DN testDN2 = DN.decode("dc=hello, dc=world");
 
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(testDN1,
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(testDN1,
         emptyReader);
 
     Assert.assertEquals(entry.getDN(), testDN2);
@@ -117,26 +118,27 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, emptyReader);
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null,
+        emptyReader);
 
     Assert.assertEquals(entry.getChangeOperationType(),
-        ChangeOperationType.ADD);
+        ChangeOperationType.MODIFY);
   }
 
   /**
    * Tests parse and getAttributes methods.
    * <p>
    * Due to tight coupling between the
-   * {@link AddChangeRecordEntry#parse(java.util.LinkedList, long)}
+   * {@link ModifyChangeRecordEntry#parse(java.util.LinkedList, long)}
    * method and the {@link LDIFReader} class it is not easy to test the
-   * {@link AddChangeRecordEntry#getAttributes()} method. Instead, we'll
-   * test that in the {@link LDIFReader} test suite.
+   * {@link ModifyChangeRecordEntry#getModifications()} method. Instead,
+   * we'll test that in the {@link LDIFReader} test suite.
    * 
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test(enabled = false)
-  public void testGetAttributes() throws Exception {
+  public void testGetModifications() throws Exception {
     // FIXME: fix tight-coupling between parse() and LDIFReader.
     Assert.assertTrue(false);
   }
