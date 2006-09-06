@@ -28,17 +28,14 @@ package org.opends.server.util;
 
 
 
+import static org.opends.server.loggers.Debug.debugConstructor;
+import static org.opends.server.loggers.Debug.debugEnter;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
-
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -66,7 +63,7 @@ public abstract class ChangeRecordEntry
    * @param  dn      The distinguished name for this entry.
    * @param  reader  The LDIF reader.
    */
-  public ChangeRecordEntry(DN dn, LDIFReader reader)
+  protected ChangeRecordEntry(DN dn, LDIFReader reader)
   {
     assert debugConstructor(CLASS_NAME, String.valueOf(dn),
                             String.valueOf(reader));
@@ -89,7 +86,7 @@ public abstract class ChangeRecordEntry
    *
    * @param  dn  The distinguished name for this change record entry.
    */
-  public ChangeRecordEntry(DN dn)
+  protected ChangeRecordEntry(DN dn)
   {
     assert debugConstructor(CLASS_NAME, String.valueOf(dn));
 
@@ -109,7 +106,7 @@ public abstract class ChangeRecordEntry
    *
    * @return  The distinguished name for this entry.
    */
-  public DN getDN()
+  public final DN getDN()
   {
     assert debugEnter(CLASS_NAME, "getDN");
 
@@ -123,7 +120,7 @@ public abstract class ChangeRecordEntry
    *
    * @param  dn  The distinguished name for this entry.
    */
-  public void setDN(DN dn)
+  public final void setDN(DN dn)
   {
     assert debugEnter(CLASS_NAME, "setDN", String.valueOf(dn));
 

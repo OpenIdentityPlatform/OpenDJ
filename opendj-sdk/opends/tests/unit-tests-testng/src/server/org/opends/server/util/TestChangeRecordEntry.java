@@ -26,27 +26,55 @@
  */
 package org.opends.server.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.util.LinkedList;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.DN;
-import org.opends.server.types.LDIFImportConfig;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
- * This class defines a set of tests for the
- * {@link org.opends.server.util.AddChangeRecordEntry} class.
+ * This class defines a set of tests for the abstract
+ * {@link org.opends.server.util.ChangeRecordEntry} class.
  * <p>
- * Note that we test shared behaviour with the abstract
- * {@link org.opends.server.util.ChangeRecordEntry} class in case it has
- * been overridden.
+ * Since the class is abstract and cannot be abstract, this test suite
+ * will run tests against a derived inner class.
  */
-public final class TestAddChangeRecordEntry extends UtilTestCase {
-  // An empty LDIF reader.
-  private LDIFReader emptyReader;
+public final class TestChangeRecordEntry extends UtilTestCase {
+  /**
+   * Perform tests against this inner class.
+   */
+  private static final class MyChangeRecordEntry extends ChangeRecordEntry {
+
+    /**
+     * Create a new test record.
+     * 
+     * @param dn
+     *          The test record's DN.
+     */
+    public MyChangeRecordEntry(DN dn) {
+      super(dn);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ChangeOperationType getChangeOperationType() {
+      // Will not use.
+      return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void parse(LinkedList<StringBuilder> lines, long lineNumber)
+        throws LDIFException {
+      // Will not use.
+    }
+  }
 
   /**
    * Once-only initialization.
@@ -59,12 +87,8 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
     // This test suite depends on having the schema available, so we'll
     // start the server.
     TestCaseUtils.startServer();
-
-    InputStream stream = new ByteArrayInputStream(new byte[0]);
-    LDIFImportConfig config = new LDIFImportConfig(stream);
-    emptyReader = new LDIFReader(config);
   }
-
+  
   /**
    * Tests the constructor with null DN.
    * 
@@ -73,7 +97,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorNullDN() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, emptyReader);
+    MyChangeRecordEntry entry = new MyChangeRecordEntry(null);
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -86,8 +110,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(new DN(),
-        emptyReader);
+    MyChangeRecordEntry entry = new MyChangeRecordEntry(new DN());
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -103,42 +126,27 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
     DN testDN1 = DN.decode("dc=hello, dc=world");
     DN testDN2 = DN.decode("dc=hello, dc=world");
 
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(testDN1,
-        emptyReader);
+    MyChangeRecordEntry entry = new MyChangeRecordEntry(testDN1);
 
     Assert.assertEquals(entry.getDN(), testDN2);
   }
 
   /**
-   * Tests the change operation type is correct.
+   * Tests the set DN method.
    * 
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
-  public void testChangeOperationType() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, emptyReader);
+  @Test(dependsOnMethods = { "testConstructorNonNullDN" })
+  public void testSetDN() throws Exception {
+    DN testDN1 = DN.decode("dc=hello, dc=world");
+    DN testDN2 = DN.decode("dc=goodbye, dc=world");
+    DN testDN3 = DN.decode("dc=goodbye, dc=world");
 
-    Assert.assertEquals(entry.getChangeOperationType(),
-        ChangeOperationType.ADD);
+    MyChangeRecordEntry entry = new MyChangeRecordEntry(testDN1);
+
+    entry.setDN(testDN2);
+
+    Assert.assertEquals(entry.getDN(), testDN3);
   }
-
-  /**
-   * Tests parse and getAttributes methods.
-   * <p>
-   * Due to tight coupling between the
-   * {@link AddChangeRecordEntry#parse(java.util.LinkedList, long)}
-   * method and the {@link LDIFReader} class it is not easy to test the
-   * {@link AddChangeRecordEntry#getAttributes()} method. Instead, we'll
-   * test that in the {@link LDIFReader} test suite.
-   * 
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(enabled = false)
-  public void testGetAttributes() throws Exception {
-    // FIXME: fix tight-coupling between parse() and LDIFReader.
-    Assert.assertTrue(false);
-  }
-
 }

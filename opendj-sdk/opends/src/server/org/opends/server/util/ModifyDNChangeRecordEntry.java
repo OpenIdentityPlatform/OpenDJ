@@ -28,6 +28,12 @@ package org.opends.server.util;
 
 
 
+import static org.opends.server.loggers.Debug.debugConstructor;
+import static org.opends.server.loggers.Debug.debugEnter;
+import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.messages.UtilityMessages.*;
+
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
@@ -37,11 +43,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
 
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.UtilityMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -49,7 +50,7 @@ import static org.opends.server.util.StaticUtils.*;
  * an modifyDN operation.  It includes a DN and a set of attributes, as well as
  * methods to decode the entry.
  */
-public class ModifyDNChangeRecordEntry extends ChangeRecordEntry
+public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -100,14 +101,14 @@ public class ModifyDNChangeRecordEntry extends ChangeRecordEntry
 
 
   /**
-   * Get the new superior RDN for the requested modify DN operation.
+   * Get the new superior DN for the requested modify DN operation.
    *
-   * @return the new superior RDN.
+   * @return the new superior DN.
    *
    */
-  public DN getNewSuperiorRDN()
+  public DN getNewSuperiorDN()
   {
-    assert debugEnter(CLASS_NAME, "getNewSuperiorRDN");
+    assert debugEnter(CLASS_NAME, "getNewSuperiorDN");
     return newSuperiorDN;
   }
 
