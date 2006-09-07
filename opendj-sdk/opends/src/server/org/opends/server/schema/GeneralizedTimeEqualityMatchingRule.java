@@ -497,11 +497,11 @@ public class GeneralizedTimeEqualityMatchingRule
             millisecond = Integer.parseInt(buffer.toString().substring(0, 3));
             switch (buffer.charAt(3))
             {
-              case 5:
-              case 6:
-              case 7:
-              case 8:
-              case 9:
+              case '5':
+              case '6':
+              case '7':
+              case '8':
+              case '9':
                 millisecond++;
                 break;
             }
@@ -734,7 +734,7 @@ public class GeneralizedTimeEqualityMatchingRule
           String hourStr = valueString.substring(endPos+1, endPos+3);
           String minStr  = valueString.substring(endPos+3, endPos+5);
           offset = (Integer.parseInt(hourStr) * 3600000) +
-                   (Integer.parseInt(minStr) * 1000);
+                   (Integer.parseInt(minStr) * 60000);
         }
         catch (Exception e)
         {
