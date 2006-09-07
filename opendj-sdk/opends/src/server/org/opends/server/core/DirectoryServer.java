@@ -874,6 +874,10 @@ public class DirectoryServer
           throw new InitializationException(msgID, message);
         }
       }
+      catch (InitializationException ie)
+      {
+        throw ie;
+      }
       catch (Exception e)
       {
         assert debugException(CLASS_NAME, "startServer", e);
