@@ -37,6 +37,20 @@ import java.io.*;
 @Test
 public class CoreEntryCacheTests extends CoreTests
 {
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a single pipe character ("|") for an existing entry. 
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreTFFiltersTests.testCoreTFFilters4" })
   public void testCoreEntryCache1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -53,6 +67,19 @@ public class CoreEntryCacheTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Enable the default entry cache.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreEntryCacheTests.testCoreEntryCache1" })
   public void testCoreEntryCache2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -70,6 +97,19 @@ public class CoreEntryCacheTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add three attributes to cn=Entry Cache,cn=config.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreEntryCacheTests.testCoreEntryCache2" })
   public void testCoreEntryCache3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -87,6 +127,19 @@ public class CoreEntryCacheTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add one attribute that is not allowed under cn=Entry Cache,cn=config
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreEntryCacheTests.testCoreEntryCache3" })
   public void testCoreEntryCache4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -104,6 +157,19 @@ public class CoreEntryCacheTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add second entry cache which is an object of the ds-cfg-fifo-entry-cache class.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreEntryCacheTests.testCoreEntryCache4" })
   public void testCoreEntryCache5(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -121,6 +187,19 @@ public class CoreEntryCacheTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreEntryCacheTests.testCoreEntryCache5" })
   public void testCoreEntryCache6(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

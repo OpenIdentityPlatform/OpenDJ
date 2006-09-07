@@ -37,6 +37,19 @@ import java.io.*;
 @Test
 public class FrontendRFC2251_deletes extends FrontendTests
 {
+/**
+ *  Check for the existence of the entry which will be deleted in the next test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch11" })
   public void testFrontendUserDelete1_precheck(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -53,6 +66,20 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when a delete request is conducted
+ *  for an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_deletes.testFrontendUserDelete1_precheck" })
   public void testFrontendUserDelete1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -69,6 +96,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check for the existence of the entry which was deleted in the last test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_deletes.testFrontendUserDelete1" })
   public void testFrontendUserDelete1_checkentry(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -85,6 +125,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check for the existence of the entry as a precheck for the next test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_deletes.testFrontendUserDelete1_checkentry" })
   public void testFrontendUserDelete2_precheck(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -101,6 +154,20 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when a delete request is conducted
+ *  for  branch.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_deletes.testFrontendUserDelete2_precheck" })
   public void testFrontendUserDelete2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -117,6 +184,20 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check for the existence of the entry that should still be present
+ *  after the last test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_deletes.testFrontendUserDelete2" })
   public void testFrontendUserDelete2_checkentry(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -133,6 +214,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check for the existence of the entry as a precheck for the next test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_deletes.testFrontendUserDelete2_checkentry" })
   public void testFrontendUserDelete3_precheck(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -149,6 +243,20 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when a delete request is conducted
+ *  on a branck using the "-x" parameter.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_deletes.testFrontendUserDelete3_precheck" })
   public void testFrontendUserDelete3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -165,6 +273,20 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check for the existence of the entry that should have been deleted
+ *  after the last test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_deletes.testFrontendUserDelete3" })
   public void testFrontendUserDelete3_checkentries(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

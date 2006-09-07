@@ -37,6 +37,20 @@ import java.io.*;
 @Test
 public class FrontendRFC2252_standards extends FrontendTests
 {
+/**
+ *  Verify the existence of the attribute, createTimestamp, 
+ *  for an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_deletes.testFrontendUserDelete3_checkentries" })
   public void testFrontendUserStandard1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -53,6 +67,20 @@ public class FrontendRFC2252_standards extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Verify the existence of the attribute, creatorsName, 
+ *  for an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2252_standards.testFrontendUserStandard1" })
   public void testFrontendUserStandard2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -69,6 +97,20 @@ public class FrontendRFC2252_standards extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Verify the existence of the attribute, modifyTimestamp, 
+ *  for an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2252_standards.testFrontendUserStandard2" })
   public void testFrontendUserStandard3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -95,6 +137,20 @@ public class FrontendRFC2252_standards extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Verify the existence of the attribute, modifiersName, 
+ *  for an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2252_standards.testFrontendUserStandard3" })
   public void testFrontendUserStandard4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

@@ -37,6 +37,21 @@ import java.io.*;
 @Test
 public class CoreSearchSizeLimitTests extends CoreTests
 {
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a search size limit defined in the command line and the search
+ *  size is exceeed.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreStartupTests.testCoreStartup2" })
   public void testCoreSearchSizeLimit1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -53,6 +68,21 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a search size limit defined in the command line and the search
+ *  size is not exceeed.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit1" })
   public void testCoreSearchSizeLimit2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -69,7 +99,19 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
-  // Reconfigure the server-wide search size limit
+/**
+ *  Change the server-wide search size limit to 5.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit2" })
   public void testCoreSearchSizeLimit3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -87,6 +129,21 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a search size limit defined by the server-wide parameter,
+ *  ds-cfg-size-limit, and the search size limit is exceeded.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit3" })
   public void testCoreSearchSizeLimit4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -103,7 +160,19 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
-  // Increase the server-wide search size limit to 10000
+/**
+ *  Change the server-wide search size limit to 1000.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit4" })
   public void testCoreSearchSizeLimit5(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -121,6 +190,21 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a search size limit defined by the server-wide parameter,
+ *  ds-cfg-size-limit, and the search size limit is not exceeded.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit5" })
   public void testCoreSearchSizeLimit6(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -137,7 +221,19 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
-  // Reconfigure the user cn=Directory manager search size limit
+/**
+ *  Change the search size limit for cn=Directory Manager to 5.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit6" })
   public void testCoreSearchSizeLimit7(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -155,6 +251,21 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a user search size limit defined by the user-specific parameter,
+ *  ds-rlim-size-limit, and the search size limit is exceeded.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit7" })
   public void testCoreSearchSizeLimit8(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -171,6 +282,21 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a user search size limit defined by the user-specific parameter,
+ *  ds-rlim-size-limit, and the search is conducted as a bind to a different user.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit8" })
   public void testCoreSearchSizeLimit9(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -187,7 +313,19 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
-  // Return the user cn=Directory manager search size limit to the deault, -1
+/**
+ *  Change the search size limit for cn=Directory Manager to -1.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit9" })
   public void testCoreSearchSizeLimit10(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -205,6 +343,21 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a user search size limit defined as "unlimited" by the user-specific 
+ *  parameter, ds-rlim-size-limit, equal to -1 and the search is against 1150 entries. 
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit10" })
   public void testCoreSearchSizeLimit11(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

@@ -37,6 +37,19 @@ import java.io.*;
 @Test
 public class SchemaRFCTests extends SchemaTests
 {
+/**
+ *  Add an entry that is covered by rfc 2079.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.schema.SchemaStartupTests.testSchemaStartup1" })
   public void testSchemaRFC1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -54,6 +67,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 2247.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC1" })
   public void testSchemaRFC2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -71,6 +97,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 2247.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC2" })
   public void testSchemaRFC3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -88,6 +127,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 2247.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC3" })
   public void testSchemaRFC4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -105,6 +157,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 2247.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC4" })
   public void testSchemaRFC5(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -122,6 +187,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 2247.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC5" })
   public void testSchemaRFC6(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -139,6 +217,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 2377.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC6" })
   public void testSchemaRFC7(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -156,6 +247,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 2978.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC7" })
   public void testSchemaRFC8(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -173,6 +277,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Modify an entry that is covered by rfc 3045.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC8" })
   public void testSchemaRFC9(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -190,6 +307,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Modify an entry that is covered by rfc 3045.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC9" })
   public void testSchemaRFC10(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -207,6 +337,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 4403.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC10" })
   public void testSchemaRFC11(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -224,6 +367,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 4403.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC11" })
   public void testSchemaRFC12(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -241,6 +397,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 4403.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC12" })
   public void testSchemaRFC13(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -258,6 +427,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 4403.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC13" })
   public void testSchemaRFC14(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -275,6 +457,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by rfc 4403.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC14" })
   public void testSchemaRFC15(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -292,6 +487,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-howard-rfc2307bis.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC15" })
   public void testSchemaRFC16(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -309,6 +517,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is violates draft-howard-rfc2307bis.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC16" })
   public void testSchemaRFC17(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -326,6 +547,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-howard-rfc2307bis.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC17" })
   public void testSchemaRFC18(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -343,6 +577,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-howard-rfc2307bis.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC18" })
   public void testSchemaRFC19(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -360,6 +607,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-furseth-ldap-untypedobject.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC19" })
   public void testSchemaRFC20(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -377,6 +637,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-good-ldap-changelog.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC20" })
   public void testSchemaRFC21(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -394,6 +667,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-good-ldap-changelog.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC21" })
   public void testSchemaRFC22(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -411,6 +697,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-good-ldap-changelog.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC22" })
   public void testSchemaRFC23(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -428,6 +727,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-howard-namedobject.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC23" })
   public void testSchemaRFC24(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -445,6 +757,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-howard-namedobject.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC24" })
   public void testSchemaRFC25(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -462,6 +787,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-ietf-ldup-subentry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC25" })
   public void testSchemaRFC26(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -479,6 +817,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-ietf-ldup-subentry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC26" })
   public void testSchemaRFC27(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -496,6 +847,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-ietf-ldup-subentry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC27" })
   public void testSchemaRFC28(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -513,6 +877,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Disable schema checking.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC28" })
   public void testSchemaRFC29(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -530,6 +907,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Enable schema checking.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC29" })
   public void testSchemaRFC30(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -547,6 +937,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Disable syntax checking.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC30" })
   public void testSchemaRFC31(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -564,6 +967,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Enable syntax checking.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC31" })
   public void testSchemaRFC32(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -581,6 +997,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC32" })
   public void testSchemaRFC33(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -598,6 +1027,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC33" })
   public void testSchemaRFC34(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -615,6 +1057,19 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "testSchemaRFC34" })
   public void testSchemaRFC35(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

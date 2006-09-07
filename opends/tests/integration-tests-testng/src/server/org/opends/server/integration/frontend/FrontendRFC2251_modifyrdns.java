@@ -37,6 +37,19 @@ import java.io.*;
 @Test
 public class FrontendRFC2251_modifyrdns extends FrontendTests
 {
+/**
+ *  Modify the RDN for an existing entry and retain the old RDN.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_modifies.testFrontendUserModify7_checkentry" })
   public void testFrontendUserModifyRDN1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -54,6 +67,19 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the entry that was modified in the last test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_modifyrdns.testFrontendUserModifyRDN1" })
   public void testFrontendUserModifyRDN1_check(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -70,6 +96,19 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Modify the RDN for an existing entry and delete the old RDN.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_modifyrdns.testFrontendUserModifyRDN1_check" })
   public void testFrontendUserModifyRDN2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -87,6 +126,19 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the entry that was modified in the last test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_modifyrdns.testFrontendUserModifyRDN2" })
   public void testFrontendUserModifyRDN2_check(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -103,6 +155,19 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Modify the RDN for non-existent entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_modifyrdns.testFrontendUserModifyRDN2_check" })
   public void testFrontendUserModifyRDN3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -120,6 +185,19 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+ *  Modify the RDN for an existing entry to the RDN of another existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_modifyrdns.testFrontendUserModifyRDN3" })
   public void testFrontendUserModifyRDN4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

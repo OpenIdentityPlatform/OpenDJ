@@ -37,6 +37,19 @@ import java.io.*;
 @Test
 public class FrontendRFC2251_searches extends FrontendTests
 {
+/**
+ *  Search for one existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_modifyrdns.testFrontendUserModifyRDN4" })
   public void testFrontendUserSearch1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -53,6 +66,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for one existing entry with the scope, "base".
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch1" })
   public void testFrontendUserSearch2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -69,6 +95,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for one existing entry with the scope, "sub".
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch2" })
   public void testFrontendUserSearch3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -85,6 +124,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for one existing entry and request only attribute names be returned.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch3" })
   public void testFrontendUserSearch4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -101,6 +153,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries with a filter that includes an ampersand.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch4" })
   public void testFrontendUserSearch5(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -117,6 +182,20 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries with a filter that includes an ampersand, 
+ *  but the filter is false for all entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch5" })
   public void testFrontendUserSearch6(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -133,6 +212,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries with a filter that includes a pipe character.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch6" })
   public void testFrontendUserSearch7(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -149,6 +241,20 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries with a filter that includes a pipe character,
+ *  but one of the two statements is false for all entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch7" })
   public void testFrontendUserSearch8(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -165,6 +271,20 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries with a filter that includes a pipe character
+ *  an exclamation mark.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch8" })
   public void testFrontendUserSearch9(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -181,6 +301,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries with a filter that contains an asterisk.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch9" })
   public void testFrontendUserSearch10(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -197,6 +330,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries with a filter that contains a less-than character.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_searches.testFrontendUserSearch10" })
   public void testFrontendUserSearch11(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

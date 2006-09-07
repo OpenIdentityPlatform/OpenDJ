@@ -37,9 +37,22 @@ import java.io.*;
 @Test
 public class CoreSearchTimeLimitTests extends CoreTests
 {
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a search time limit defined in the command line and the search time is exceeeded.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreStartupTests.testCoreStartup2" })
-  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchSizeLimitTests.testCoreSearchSizeLimit11" })
   public void testCoreSearchTimeLimit1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");
@@ -54,6 +67,21 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a search time limit defined in the command line and the search time 
+ *  is not exceeeded.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit1" })
   public void testCoreSearchTimeLimit2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -70,7 +98,19 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
-  // Reconfigure the server-wide search time limit
+/**
+ *  Change the server-wide search time limit to 1.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit2" })
   public void testCoreSearchTimeLimit3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -88,6 +128,21 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a search time limit defined by the server-wide parameter,
+ *  ds-config-time-limit, and the search time limit is exceeded.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit3" })
   public void testCoreSearchTimeLimit4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -104,7 +159,19 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
-  // Return the server-wide search time limit to default value, 60
+/**
+ *  Change the server-wide search time limit to 60.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit4" })
   public void testCoreSearchTimeLimit5(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -122,6 +189,21 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a search time limit defined by the server-wide parameter,
+ *  ds-config-time-limit, and the search time limit is not exceeded.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit5" })
   public void testCoreSearchTimeLimit6(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -138,7 +220,19 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
-  // Reconfigure the user cn=Directory manager search time limit
+/**
+ *  Change the user search time limit for cn=Directory Manager to 1.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit6" })
   public void testCoreSearchTimeLimit7(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -156,6 +250,21 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a user search time limit defined by the user-specific parameter,
+ *  ds-rlim-time-limit, and the search time limit is exceeded.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit7" })
   public void testCoreSearchTimeLimit8(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -172,6 +281,21 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a user search time limit defined by the user-specific parameter,
+ *  ds-rlim-time-limit, and the search is conducted as a different user.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit8" })
   public void testCoreSearchTimeLimit9(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -188,7 +312,19 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
-  // Return the user cn=Directory manager search time limit to the deault, -1
+/**
+ *  Change the user search time limit for cn=Directory Manager to 60.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit9" })
   public void testCoreSearchTimeLimit10(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -206,6 +342,21 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Check the response of OpenDS when an ldap search request is conducted
+ *  with a user search time limit defined by the user-specific parameter,
+ *  ds-rlim-time-limit, equal to 60 and the search is conducted against 1150 entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreSearchTimeLimitTests.testCoreSearchTimeLimit10" })
   public void testCoreSearchTimeLimit11(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

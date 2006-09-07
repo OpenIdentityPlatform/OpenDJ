@@ -33,10 +33,23 @@ import java.io.*;
 
 /**
  * This class contains the TestNG tests for the Bob adds.
- */
+*/
 @Test
 public class BobAddTests extends BobTests
 {
+/**
+ *  Add a small jpeg photo to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobStartupTests.testBobStartup1" })
   public void testBobAdd1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -54,6 +67,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a large jpeg photo to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd1" })
   public void testBobAdd2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -71,6 +97,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry as objectclass=inetorgperson that includes a small jpeg photo.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd2" })
   public void testBobAdd3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -88,6 +127,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry as objectclass=inetorgperson that includes a large jpeg photo.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd3" })
   public void testBobAdd4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -105,6 +157,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a small jpeg photo to each of five existing entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd4" })
   public void testBobAdd5(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -122,6 +187,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a large jpeg photo to each of five existing entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd5" })
   public void testBobAdd6(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -139,6 +217,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add five new entries as objectclass=inetorgperson each of which
+ *  includes a small jpeg photo.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd6" })
   public void testBobAdd7(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -156,6 +248,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add five new entries as objectclass=inetorgperson each of which
+ *  includes a large jpeg photo.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd7" })
   public void testBobAdd8(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -173,6 +279,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a short labeleduri to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd8" })
   public void testBobAdd9(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -190,6 +309,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a long labeleduri to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd9" })
   public void testBobAdd10(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -207,6 +339,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry as objectclass=inetorgperson that includes a short labeleduri.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd10" })
   public void testBobAdd11(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -224,6 +369,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry as objectclass=inetorgperson that includes a long labeleduri.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd11" })
   public void testBobAdd12(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -241,6 +399,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a short labeleduri to each of five existing entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd12" })
   public void testBobAdd13(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -258,6 +429,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a long labeleduri to each of five existing entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd13" })
   public void testBobAdd14(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -275,6 +459,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add five new entries as objectclass=inetorgperson each of which
+ *  includes a short labeleduri.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd14" })
   public void testBobAdd15(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -292,6 +490,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add five new entries as objectclass=inetorgperson each of which
+ *  includes a long labeleduri.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd15" })
   public void testBobAdd16(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -309,6 +521,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a short description to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd16" })
   public void testBobAdd17(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -326,6 +551,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a long description to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd17" })
   public void testBobAdd18(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -343,6 +581,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry as objectclass=inetorgperson that includes a short description.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd18" })
   public void testBobAdd19(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -360,6 +611,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry as objectclass=inetorgperson that includes a long description.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd19" })
   public void testBobAdd20(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -377,6 +641,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a short description to each of five existing entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd20" })
   public void testBobAdd21(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -394,6 +671,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a long description to each of five existing entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd21" })
   public void testBobAdd22(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -411,6 +701,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add five new entries as objectclass=inetorgperson each of which
+ *  includes a short description.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd22" })
   public void testBobAdd23(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -428,6 +732,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add five new entries as objectclass=inetorgperson each of which
+ *  includes a long description.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd23" })
   public void testBobAdd24(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -445,6 +763,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a short seeAlso to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd24" })
   public void testBobAdd25(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -462,6 +793,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a long seeAlso to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd25" })
   public void testBobAdd26(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -479,6 +823,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry as objectclass=inetorgperson that includes a short seeAlso.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd26" })
   public void testBobAdd27(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -496,6 +853,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry as objectclass=inetorgperson that includes a long seeAlso.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd27" })
   public void testBobAdd28(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -513,6 +883,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a short seeAlso to each of five existing entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd28" })
   public void testBobAdd29(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -530,6 +913,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a long seeAlso to each of five existing entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd29" })
   public void testBobAdd30(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -547,6 +943,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add five new entries as objectclass=inetorgperson each of which
+ *  includes a short seeAlso.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd30" })
   public void testBobAdd31(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -564,6 +974,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add five new entries as objectclass=inetorgperson each of which
+ *  includes a long seeAlso.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd31" })
   public void testBobAdd32(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -581,6 +1005,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a short pager number to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd32" })
   public void testBobAdd33(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -598,6 +1035,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a long pager number to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd33" })
   public void testBobAdd34(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -615,6 +1065,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry as objectclass=inetorgperson that includes a short pager number.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd34" })
   public void testBobAdd35(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -632,6 +1095,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry as objectclass=inetorgperson that includes a long pager number.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd35" })
   public void testBobAdd36(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -649,6 +1125,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a short pager number to each of five existing entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd36" })
   public void testBobAdd37(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -666,6 +1155,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a long pager number to each of five existing entries.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd37" })
   public void testBobAdd38(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -683,6 +1185,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add five new entries as objectclass=inetorgperson each of which
+ *  includes a short pager number.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd38" })
   public void testBobAdd39(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -700,6 +1216,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add five new entries as objectclass=inetorgperson each of which
+ *  includes a long pager number.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd39" })
   public void testBobAdd40(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -717,6 +1247,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a jpeg photo attribute with no value to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd40" })
   public void testBobAdd41(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -734,6 +1277,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a jpeg photo attribute with an ascii value to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd41" })
   public void testBobAdd42(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -751,6 +1307,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a duplicate entry as objectclass=inetorgperson that includes a jpeg
+ *  photo with no attribute.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd42" })
   public void testBobAdd43(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -768,6 +1338,20 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a duplicate entry as objectclass=inetorgperson that includes a jpeg
+ *  photo with an ascii value.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd43" })
   public void testBobAdd44(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -784,6 +1368,10 @@ public class BobAddTests extends BobTests
 
     compareExitCode(retCode, expCode);
   }
+/*
+  The following two methods result in binary data being echoed to stand error or standard out.
+  This behavior is not a bug, but is also not desired. These tests are commented out for now. 
+*/
 /*
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd44" })
@@ -821,6 +1409,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 */
+/**
+ *  Add a set of entries where the first entry is a duplicate to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd44" })
   public void testBobAdd47(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -838,6 +1439,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a set of entries where the third  entry is a duplicate to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd47" })
   public void testBobAdd48(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -855,6 +1469,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a description with no value to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd48" })
   public void testBobAdd49(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -872,6 +1499,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a description with a binary value to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd49" })
   public void testBobAdd50(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -889,6 +1529,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry with a description that has no value.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd50" })
   public void testBobAdd51(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -906,6 +1559,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a new entry with a description that has a binary value.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd51" })
   public void testBobAdd52(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -923,6 +1589,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a duplicate desciption to an existing entry.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd52" })
   public void testBobAdd53(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -940,6 +1619,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a set of entries where the fourth entry has a binary value for the description.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd53" })
   public void testBobAdd54(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -957,6 +1649,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a set of duplicate entries where the descriptions have no value.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd54" })
   public void testBobAdd55(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -974,6 +1679,19 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a set of duplicate entries where the descriptions have very long values.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobAddTests.testBobAdd55" })
   public void testBobAdd56(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
