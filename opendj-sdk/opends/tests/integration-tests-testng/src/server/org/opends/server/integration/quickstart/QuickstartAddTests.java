@@ -37,7 +37,13 @@ import org.opends.server.tools.*;
 public class QuickstartAddTests extends QuickstartTests
 {
 /**
- *  Setup for quickstartadd tests
+ *  To make the directory for the OpenDS output that will be generated
+ *  during the rest of the Integration Tests.
+ *
+ *  @param  integration_test_home  The home directory for the Integration 
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are 
+ *                                 generated during the Integration Tests.
 */
   @Parameters({ "integration_test_home", "logDir" })
   @Test
@@ -71,6 +77,19 @@ public class QuickstartAddTests extends QuickstartTests
     compareExitCode(0, 0);
   }
 
+/**
+ *  To add "dc=example,dc=com" and several entries under that dn.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration 
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are 
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.quickstart.QuickstartAddTests.testQuickstartAdd1" })
   public void testQuickstartAdd2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

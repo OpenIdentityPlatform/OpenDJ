@@ -37,6 +37,20 @@ import java.io.*;
 @Test
 public class FrontendRFC2252_syntax extends FrontendTests
 {
+/**
+ *  Search for entries with a filter that contains a single quote
+ *  character as the hexadecimal value, 27.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2252_standards.testFrontendUserStandard4" })
   public void testFrontendUserSyntax1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -53,6 +67,19 @@ public class FrontendRFC2252_syntax extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries with a filter that contains a single back slash.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2252_syntax.testFrontendUserSyntax1" })
   public void testFrontendUserSyntax2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -69,6 +96,20 @@ public class FrontendRFC2252_syntax extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries with a filter that contains an oglethorpe
+ *  character as the hexadecimal value, 23.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2252_syntax.testFrontendUserSyntax2" })
   public void testFrontendUserSyntax3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

@@ -36,12 +36,21 @@ import org.opends.server.tools.*;
 @Test
 public class FrontendStartupTests extends FrontendTests
 {
- /**
- *  Setup for frontend tests
+/**
+ *  Add entries that are required for the Frontend Tests.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
 */
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.bob.BobDeleteTests.testBobDelete12" })
-  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreStartupTests.testCoreStartup1" })
   public void testFrontendStartup1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");

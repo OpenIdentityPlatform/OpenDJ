@@ -36,12 +36,21 @@ import org.opends.server.tools.*;
 @Test
 public class CoreStartupTests extends CoreTests
 {
-  /**
-   *  Setup for core tests
-  */
+/**
+ *  Add entries that are required for the Core Tests.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.schema.SchemaRFCTests.testSchemaRFC35" })
-  //@Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2253_relationships.testFrontendUserRelationship10" })
   public void testCoreStartup1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
   {
     System.out.println("*********************************************");
@@ -57,6 +66,19 @@ public class CoreStartupTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  To add 1000 extra entries that are required for some of the Core Tests.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.core.CoreStartupTests.testCoreStartup1" })
   public void testCoreStartup2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
