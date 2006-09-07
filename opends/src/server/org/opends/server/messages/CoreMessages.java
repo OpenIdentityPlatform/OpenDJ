@@ -5845,6 +5845,88 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an attribute with one or more values that conflict with existing
+   * values.  This takes a single argument, which is the name of the attribute.
+   */
+  public static final int MSGID_ENTRY_DUPLICATE_VALUES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 559;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * remove an attribute value that doesn't exist in the entry.  This takes a
+   * single argument, which is the name of the attribute.
+   */
+  public static final int MSGID_ENTRY_NO_SUCH_VALUE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 560;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform an increment on the objectClass attribute.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_ENTRY_OC_INCREMENT_NOT_SUPPORTED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 561;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a modify with an unknown modification type.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_ENTRY_UNKNOWN_MODIFICATION_TYPE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 562;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * increment an attribute that does not exist.  This takes a single argument,
+   * which is the name of the attribute.
+   */
+  public static final int MSGID_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 562;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * increment an attribute that has multiple values.  This takes a single
+   * argument, which is the name of the attribute.
+   */
+  public static final int MSGID_ENTRY_INCREMENT_MULTIPLE_VALUES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 563;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform an increment but there was not exactly one value in the provided
+   * modification. This takes a single argument, which is the name of the
+   * attribute.
+   */
+  public static final int MSGID_ENTRY_INCREMENT_INVALID_VALUE_COUNT =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 564;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform an increment but either the current value or the increment cannot
+   * be parsed as an integer.  This takes a single argument, which is the name
+   * of the attribute.
+   */
+  public static final int MSGID_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 565;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6307,6 +6389,32 @@ public class CoreMessages
     registerMessage(MSGID_ENTRY_ADD_DUPLICATE_OC,
                     "Objectclass %s is already present in entry %s and " +
                     "cannot be added a second time.");
+    registerMessage(MSGID_ENTRY_DUPLICATE_VALUES,
+                    "Unable to add one or more values to attribute %s " +
+                    "because at least one of the values already exists.");
+    registerMessage(MSGID_ENTRY_NO_SUCH_VALUE,
+                    "Unable to remove one or more values from attribute %s " +
+                    "because at least one of the attributes does not exist " +
+                    "in the entry.");
+    registerMessage(MSGID_ENTRY_OC_INCREMENT_NOT_SUPPORTED,
+                    "The increment operation is not supported for the " +
+                    "objectClass attribute.");
+    registerMessage(MSGID_ENTRY_UNKNOWN_MODIFICATION_TYPE,
+                    "Unknown modification type %s requested.");
+    registerMessage(MSGID_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE,
+                    "Unable to increment the value of attribute %s because " +
+                    "that attribute does not exist in the entry.");
+    registerMessage(MSGID_ENTRY_INCREMENT_MULTIPLE_VALUES,
+                    "Unable to increment the value of attribute %s because " +
+                    "there are multiple values for that attribute.");
+    registerMessage(MSGID_ENTRY_INCREMENT_INVALID_VALUE_COUNT,
+                    "Unable to increment the value of attribute %s because " +
+                    "the provided modification did not have exactly one " +
+                    "value to use as the increment.");
+    registerMessage(MSGID_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT,
+                    "Unable to increment the value of attribute %s because " +
+                    "either the current value or the increment could not " +
+                    "be parsed as an integer.");
 
 
     registerMessage(MSGID_SEARCH_FILTER_NULL,

@@ -6003,6 +6003,254 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an entry twice in the same set of changes.  This takes a single
+   * argument, which is the DN of the entry.
+   */
+  public static final int MSGID_LDIFMODIFY_CANNOT_ADD_ENTRY_TWICE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 610;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * delete an entry that had just been added in the same set of changes.  This
+   * takes a single argument, which is the DN of the entry.
+   */
+  public static final int MSGID_LDIFMODIFY_CANNOT_DELETE_AFTER_ADD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 611;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * modify an entry that had just been added or deleted in the same set of
+   * changes.  This takes a single argument, which is the DN of the entry.
+   */
+  public static final int MSGID_LDIFMODIFY_CANNOT_MODIFY_ADDED_OR_DELETED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 612;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a modify DN operation.  This takes a single argument, which is the
+   * DN of the entry.
+   */
+  public static final int MSGID_LDIFMODIFY_MODDN_NOT_SUPPORTED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 613;
+
+
+
+  /**
+   * The message ID for the message that will be used if a change record has an
+   * unknown changetype.  This takes two arguments, which are the DN of the
+   * entry and the specified changetype.
+   */
+  public static final int MSGID_LDIFMODIFY_UNKNOWN_CHANGETYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 614;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry to be added
+   * already exists in the data.  This takes a single argument, which is the DN
+   * of the entry.
+   */
+  public static final int MSGID_LDIFMODIFY_ADD_ALREADY_EXISTS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 615;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry cannot be
+   * deleted because it does not exist in the data set.  This takes a single
+   * argument, which is the DN of the entry.
+   */
+  public static final int MSGID_LDIFMODIFY_DELETE_NO_SUCH_ENTRY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 616;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry cannot be
+   * modified because it does not exist in the data set.  This takes a single
+   * argument, which is the DN of the entry.
+   */
+  public static final int MSGID_LDIFMODIFY_MODIFY_NO_SUCH_ENTRY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 617;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * configFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 618;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * configClass argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_CLASS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 619;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * sourceLDIF argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDIFMODIFY_DESCRIPTION_SOURCE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 620;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * changesLDIF argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDIFMODIFY_DESCRIPTION_CHANGES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 621;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * targetLDIF argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDIFMODIFY_DESCRIPTION_TARGET =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 622;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * help argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDIFMODIFY_DESCRIPTION_HELP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 623;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to initialize the command-line argument parser.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDIFMODIFY_CANNOT_INITIALIZE_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 624;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * parsing the provided command-line arguments.  This takes a single argument,
+   * which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDIFMODIFY_ERROR_PARSING_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 625;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the Directory Server JMX subsystem.  This takes two arguments,
+   * which are the path to the Directory Server configuration file and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_LDIFMODIFY_CANNOT_INITIALIZE_JMX =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 626;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the Directory Server configuration.  This takes two
+   * arguments, which are the path to the Directory Server configuration file
+   * and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 627;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the Directory Server schema.  This takes two arguments, which
+   * are the path to the Directory Server configuration file and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 628;
+
+
+
+  /**
+   * The message ID for the message that will be used if the source LDIF file
+   * does not exist.  This takes a single argument, which is the path to the
+   * source LDIF file.
+   */
+  public static final int MSGID_LDIFMODIFY_SOURCE_DOES_NOT_EXIST =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 629;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to open the source LDIF file.  This takes two arguments, which are
+   * the path to the source LDIF file and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_LDIFMODIFY_CANNOT_OPEN_SOURCE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 630;
+
+
+
+  /**
+   * The message ID for the message that will be used if the changes LDIF file
+   * does not exist.  This takes a single argument, which is the path to the
+   * changes LDIF file.
+   */
+  public static final int MSGID_LDIFMODIFY_CHANGES_DOES_NOT_EXIST =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 631;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to open the changes LDIF file.  This takes two arguments, which are
+   * the path to the changes LDIF file and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_LDIFMODIFY_CANNOT_OPEN_CHANGES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 632;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to open the target LDIF file.  This takes two arguments, which are
+   * the path to the target LDIF file and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_LDIFMODIFY_CANNOT_OPEN_TARGET =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 633;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * processing the changes.  This takes a single argument, which is a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_LDIFMODIFY_ERROR_PROCESSING_LDIF =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 634;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7977,6 +8225,84 @@ public class ToolMessages
                     "LDIF:  %s.");
     registerMessage(MSGID_MAKELDIF_PROCESSING_COMPLETE,
                     "LDIF processing complete.  %d entries written.");
+
+
+    registerMessage(MSGID_LDIFMODIFY_CANNOT_ADD_ENTRY_TWICE,
+                    "Entry %s is added twice in the set of changes to apply, " +
+                    "which is not supported by the LDIF modify tool.");
+    registerMessage(MSGID_LDIFMODIFY_CANNOT_DELETE_AFTER_ADD,
+                    "Entry %s cannot be deleted because it was previously " +
+                    "added in the set of changes.  This is not supported by " +
+                    "the LDIF modify tool.");
+    registerMessage(MSGID_LDIFMODIFY_CANNOT_MODIFY_ADDED_OR_DELETED,
+                    "Cannot modify entry %s because it was previously added " +
+                    "or deleted in the set of changes.  This is not " +
+                    "supported by the LDIF modify tool.");
+    registerMessage(MSGID_LDIFMODIFY_MODDN_NOT_SUPPORTED,
+                    "The modify DN operation targeted at entry %s cannot be " +
+                    "processed because modify DN operations are not " +
+                    "supported by the LDIF modify tool.");
+    registerMessage(MSGID_LDIFMODIFY_UNKNOWN_CHANGETYPE,
+                    "Entry %s has an unknown changetype of %s.");
+    registerMessage(MSGID_LDIFMODIFY_ADD_ALREADY_EXISTS,
+                    "Unable to add entry %s because it already exists in " +
+                    "the data set.");
+    registerMessage(MSGID_LDIFMODIFY_DELETE_NO_SUCH_ENTRY,
+                    "Unable to delete entry %s because it does not exist " +
+                    "in the data set.");
+    registerMessage(MSGID_LDIFMODIFY_MODIFY_NO_SUCH_ENTRY,
+                    "Unable to modify entry %s because it does not exist " +
+                    "in the data set.");
+    registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_FILE,
+                    "The path to the Directory Server configuration file, " +
+                    "which will enable the use of the schema definitions " +
+                    "when processing the updates.  If it is not provided, " +
+                    "then schema processing will not be available.");
+    registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_CLASS,
+                    "The fully-qualified name of the Java class to use as " +
+                    "the Directory Server configuration handler.  If this is " +
+                    "not provided, then a default of " +
+                    ConfigFileHandler.class.getName() + " will be used.");
+    registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_SOURCE,
+                    "Specifies the LDIF file containing the data to be " +
+                    "updated.");
+    registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_CHANGES,
+                    "Specifies he LDIF file containing the changes to apply.");
+    registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_TARGET,
+                    "Specifies he file to which the updated data should be " +
+                    "written.");
+    registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_HELP,
+                    "Displays this usage information.");
+    registerMessage(MSGID_LDIFMODIFY_CANNOT_INITIALIZE_ARGS,
+                    "An unexpected error occurred while attempting to " +
+                    "initialize the command-line arguments:  %s.");
+    registerMessage(MSGID_LDIFMODIFY_ERROR_PARSING_ARGS,
+                    "An error occurred while parsing the command-line " +
+                    "arguments:  %s.");
+    registerMessage(MSGID_LDIFMODIFY_CANNOT_INITIALIZE_JMX,
+                    "An error occurred while attempting to initialize the " +
+                    "Directory Server JMX subsystem based on the information " +
+                    "in configuration file %s:  %s.");
+    registerMessage(MSGID_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG,
+                    "An error occurred while attempting to process the " +
+                    "Directory Server configuration file %s:  %s.");
+    registerMessage(MSGID_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA,
+                    "An error occurred while attempting to initialize the " +
+                    "Directory Server schema based on the information in " +
+                    "configuration file %s:  %s.");
+    registerMessage(MSGID_LDIFMODIFY_SOURCE_DOES_NOT_EXIST,
+                    "The source LDIF file %s does not exist.");
+    registerMessage(MSGID_LDIFMODIFY_CANNOT_OPEN_SOURCE,
+                    "Unable to open the source LDIF file %s:  %s.");
+    registerMessage(MSGID_LDIFMODIFY_CHANGES_DOES_NOT_EXIST,
+                    "The changes LDIF file %s does not exist.");
+    registerMessage(MSGID_LDIFMODIFY_CANNOT_OPEN_CHANGES,
+                    "Unable to open the changes LDIF file %s:  %s.");
+    registerMessage(MSGID_LDIFMODIFY_CANNOT_OPEN_TARGET,
+                    "Unable to open the target LDIF file %s for writing:  %s.");
+    registerMessage(MSGID_LDIFMODIFY_ERROR_PROCESSING_LDIF,
+                    "An error occurred while processing the requested " +
+                    "changes:  %s.");
   }
 }
 

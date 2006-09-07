@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.Arrays;
@@ -69,6 +70,7 @@ import org.opends.server.core.InitializationException;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.tools.LDIFModify;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
@@ -180,10 +182,10 @@ public class ConfigFileHandler
 
     // Make sure that the configuration file exists.
     this.configFile = configFile;
+    File f = new File(configFile);
 
     try
     {
-      File f = new File(configFile);
       if (! f.exists())
       {
         int    msgID   = MSGID_CONFIG_FILE_DOES_NOT_EXIST;
@@ -208,6 +210,27 @@ public class ConfigFileHandler
 
 
     // Fixme -- Should we add a hash or signature check here?
+
+
+    // See if there is a config changes file.  If there is, then try to apply
+    // the changes contained in it.
+    File changesFile = new File(f.getParent(), CONFIG_CHANGES_NAME);
+    try
+    {
+      if (changesFile.exists())
+      {
+        applyChangesFile(f, changesFile);
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+
+      int    msgID   = MSGID_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES;
+      String message = getMessage(msgID, changesFile.getAbsolutePath(),
+                                  String.valueOf(e));
+      throw new InitializationException(msgID, message, e);
+    }
 
 
     // We will use the LDIF reader to read the configuration file.  Create an
@@ -583,6 +606,109 @@ public class ConfigFileHandler
                                   stackTraceToSingleLineString(e));
       throw new InitializationException(msgID, message, e);
     }
+  }
+
+
+
+  /**
+   * Applies the updates in the provided changes file to the content in the
+   * specified source file.  The result will be written to a temporary file, the
+   * current source file will be moved out of place, and then the updated file
+   * will be moved into the place of the original file.  The changes file will
+   * also be renamed so it won't be applied again.
+   * <BR><BR>
+   * If any problems are encountered, then the config initialization process
+   * will be aborted.
+   *
+   * @param  sourceFile   The LDIF file containing the source data.
+   * @param  changesFile  The LDIF file containing the changes to apply.
+   *
+   * @throws  IOException  If a problem occurs while performing disk I/O.
+   *
+   * @throws  LDIFException  If a problem occurs while trying to interpret the
+   *                         data.
+   */
+  private void applyChangesFile(File sourceFile, File changesFile)
+          throws IOException, LDIFException
+  {
+    assert debugEnter(CLASS_NAME, "applyChangesFile",
+                      String.valueOf(sourceFile), String.valueOf(changesFile));
+
+
+    // FIXME -- Do we need to do anything special for configuration archiving?
+
+
+    // Create the appropriate LDIF readers and writer.
+    LDIFImportConfig importConfig =
+         new LDIFImportConfig(sourceFile.getAbsolutePath());
+    importConfig.setValidateSchema(false);
+    LDIFReader sourceReader = new LDIFReader(importConfig);
+
+    importConfig = new LDIFImportConfig(changesFile.getAbsolutePath());
+    importConfig.setValidateSchema(false);
+    LDIFReader changesReader = new LDIFReader(importConfig);
+
+    String tempFile = changesFile.getAbsolutePath() + ".tmp";
+    LDIFExportConfig exportConfig =
+         new LDIFExportConfig(tempFile, ExistingFileBehavior.OVERWRITE);
+    LDIFWriter targetWriter = new LDIFWriter(exportConfig);
+
+
+    // Apply the changes and make sure there were no errors.
+    LinkedList<String> errorList = new LinkedList<String>();
+    boolean successful = LDIFModify.modifyLDIF(sourceReader, changesReader,
+                                               targetWriter, errorList);
+
+    try
+    {
+      sourceReader.close();
+    } catch (Exception e) {}
+
+    try
+    {
+      changesReader.close();
+    } catch (Exception e) {}
+
+    try
+    {
+      targetWriter.close();
+    } catch (Exception e) {}
+
+    if (! successful)
+    {
+      // FIXME -- Log each error message and throw an exception.
+      for (String s : errorList)
+      {
+        int    msgID   = MSGID_CONFIG_ERROR_APPLYING_STARTUP_CHANGE;
+        String message = getMessage(msgID, s);
+        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+                 msgID, message);
+      }
+
+      int    msgID   = MSGID_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE;
+      String message = getMessage(msgID);
+      throw new LDIFException(msgID, message);
+    }
+
+
+    // Move the current config file out of the way and replace it with the
+    // updated version.
+    File oldSource = new File(sourceFile.getAbsolutePath() + ".prechanges");
+    if (oldSource.exists())
+    {
+      oldSource.delete();
+    }
+    sourceFile.renameTo(oldSource);
+    new File(tempFile).renameTo(sourceFile);
+
+
+    // Move the changes file out of the way so it doesn't get applied again.
+    File newChanges = new File(changesFile.getAbsolutePath() + ".applied");
+    if (newChanges.exists())
+    {
+      newChanges.delete();
+    }
+    changesFile.renameTo(newChanges);
   }
 
 
