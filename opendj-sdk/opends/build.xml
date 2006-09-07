@@ -649,7 +649,7 @@
     </taskdef>
 
     <testng outputdir="${unittest.report.dir}" haltonfailure="true"
-            enableAssert="false">
+            enableAssert="true">
       <classpath>
         <pathelement location="${coverage.instr.dir}" />
 
