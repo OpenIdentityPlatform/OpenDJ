@@ -34,10 +34,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.opends.server.config.ConfigException;
+import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
 import org.opends.server.loggers.Error;
 import org.opends.server.loggers.Debug;
+
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class defines some utility functions which can be used by test
@@ -45,18 +48,10 @@ import org.opends.server.loggers.Debug;
  */
 public final class TestCaseUtils {
   /**
-   * The name of the system property that can be used to set the fully-qualified
-   * name of the Java class to use as the config handler.
+   * The name of the system property that specifies the server build root.
    */
-  public static final String PROPERTY_CONFIG_CLASS =
-       "org.opends.server.ConfigClass";
-
-  /**
-   * The name of the system property that can be used to set the path to the
-   * Directory Server configuration file.
-   */
-  public static final String PROPERTY_CONFIG_FILE =
-       "org.opends.server.ConfigFile";
+  public static final String PROPERTY_BUILD_ROOT =
+       "org.opends.server.BuildRoot";
 
   /**
    * Indicates whether the server has already been started.
@@ -69,6 +64,9 @@ public final class TestCaseUtils {
    * subsequent attempts to start it will be ignored because it will already be
    * available.
    *
+   * @throws  IOException  If a problem occurs while interacting with the
+   *                       filesystem to prepare the test package root.
+   *
    * @throws  InitializationException  If a problem occurs while starting the
    *                                   server.
    *
@@ -76,15 +74,54 @@ public final class TestCaseUtils {
    *                           configuration.
    */
   public static void startServer()
-         throws InitializationException, ConfigException
+         throws IOException, InitializationException, ConfigException
   {
     if (serverStarted)
     {
       return;
     }
 
-    String configClass = System.getProperty(PROPERTY_CONFIG_CLASS);
-    String configFile  = System.getProperty(PROPERTY_CONFIG_FILE);
+    // Get the build root and use it to create a test package directory.
+    String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
+    File   testRoot  = new File(buildRoot + File.separator + "build" +
+                                File.separator + "unit-tests" + File.separator +
+                                "package");
+
+    if (testRoot.exists())
+    {
+      deleteDirectory(testRoot);
+    }
+    testRoot.mkdirs();
+
+    String[] subDirectories = { "bak", "changelogDb", "classes", "config", "db",
+                                "ldif", "lib", "locks", "logs" };
+    for (String s : subDirectories)
+    {
+      new File(testRoot, s).mkdir();
+    }
+
+
+    // Copy the configuration, schema, and MakeLDIF resources into the
+    // appropriate place under the test package.
+    File resourceDir   = new File(buildRoot, "resource");
+    File testConfigDir = new File(testRoot, "config");
+
+    copyDirectory(new File(resourceDir, "config"), testConfigDir);
+    copyDirectory(new File(resourceDir, "schema"),
+                  new File(testConfigDir, "schema"));
+    copyDirectory(new File(resourceDir, "MakeLDIF"),
+                  new File(testConfigDir, "MakeLDIF"));
+    // FIXME -- Copy the config-changes.ldif file into place when we have one.
+
+
+    // Actually start the server and set a variable that will prevent us from
+    // needing to do it again.
+    System.setProperty(PROPERTY_SERVER_ROOT, testRoot.getAbsolutePath());
+    System.setProperty(PROPERTY_FORCE_DAEMON_THREADS, "true");
+
+    String configClass = ConfigFileHandler.class.getName();
+    String configFile  = testConfigDir.getAbsolutePath() + File.separator +
+                         "config.ldif";
 
     DirectoryServer directoryServer = DirectoryServer.getInstance();
     directoryServer.bootstrapServer();
@@ -135,7 +172,7 @@ public final class TestCaseUtils {
     if (src.isDirectory()) {
       // Create the destination directory if it does not exist.
       if (!dst.exists()) {
-        dst.mkdir();
+        dst.mkdirs();
       }
 
       // Recursively copy sub-directories and files.
