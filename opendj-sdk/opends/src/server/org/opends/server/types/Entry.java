@@ -1765,6 +1765,247 @@ public class Entry
 
 
   /**
+   * Applies the provided modification to this entry.  No schema
+   * checking will be performed.
+   *
+   * @param  mod  The modification to apply to this entry.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to apply the modification.  Note
+   *                              that even if a problem occurs, then
+   *                              the entry may have been altered in
+   *                              some way.
+   */
+  public void applyModification(Modification mod)
+         throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "applyModification",
+                      String.valueOf(mod));
+
+    Attribute     a = mod.getAttribute();
+    AttributeType t = a.getAttributeType();
+
+    // We'll need to handle changes to the objectclass attribute in a
+    // special way.
+    if (t.isObjectClassType())
+    {
+      LinkedHashMap<ObjectClass,String> ocs = new
+             LinkedHashMap<ObjectClass,String>();
+      for (AttributeValue v : a.getValues())
+      {
+        String ocName    = v.getStringValue();
+        String lowerName = toLowerCase(ocName);
+        ObjectClass oc   =
+             DirectoryServer.getObjectClass(lowerName, true);
+        ocs.put(oc, ocName);
+      }
+
+      switch (mod.getModificationType())
+      {
+        case ADD:
+          for (ObjectClass oc : ocs.keySet())
+          {
+            if (objectClasses.containsKey(oc))
+            {
+              int    msgID   = MSGID_ENTRY_DUPLICATE_VALUES;
+              String message = getMessage(msgID, a.getName());
+              throw new DirectoryException(
+                             ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
+                             message, msgID);
+            }
+            else
+            {
+              objectClasses.put(oc, ocs.get(oc));
+            }
+          }
+          break;
+
+        case DELETE:
+          for (ObjectClass oc : ocs.keySet())
+          {
+            if (objectClasses.remove(oc) == null)
+            {
+              int    msgID   = MSGID_ENTRY_NO_SUCH_VALUE;
+              String message = getMessage(msgID, a.getName());
+              throw new DirectoryException(
+                             ResultCode.NO_SUCH_ATTRIBUTE, message,
+                             msgID);
+            }
+          }
+          break;
+
+        case REPLACE:
+          objectClasses = ocs;
+          break;
+
+        case INCREMENT:
+          int msgID = MSGID_ENTRY_OC_INCREMENT_NOT_SUPPORTED;
+          String message = getMessage(msgID);
+          throw new DirectoryException(
+                         ResultCode.UNWILLING_TO_PERFORM, message,
+                         msgID);
+
+        default:
+          msgID   = MSGID_ENTRY_UNKNOWN_MODIFICATION_TYPE;
+          message = getMessage(msgID,
+                         String.valueOf(mod.getModificationType()));
+          throw new DirectoryException(
+                         ResultCode.UNWILLING_TO_PERFORM, message,
+                         msgID);
+      }
+
+      return;
+    }
+
+    switch (mod.getModificationType())
+    {
+      case ADD:
+        LinkedList<AttributeValue> duplicateValues =
+             new LinkedList<AttributeValue>();
+        addAttribute(a, duplicateValues);
+        if (! duplicateValues.isEmpty())
+        {
+          int    msgID   = MSGID_ENTRY_DUPLICATE_VALUES;
+          String message = getMessage(msgID, a.getName());
+          throw new DirectoryException(
+                         ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
+                         message, msgID);
+        }
+        break;
+
+      case DELETE:
+        LinkedList<AttributeValue> missingValues =
+             new LinkedList<AttributeValue>();
+        removeAttribute(a, missingValues);
+        if (! missingValues.isEmpty())
+        {
+          int    msgID   = MSGID_ENTRY_NO_SUCH_VALUE;
+          String message = getMessage(msgID, a.getName());
+          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
+                                       message, msgID);
+        }
+        break;
+
+      case REPLACE:
+        removeAttribute(t, a.getOptions());
+
+        if (a.hasValue())
+        {
+          // We know that we won't have any duplicate values, so  we
+          // don't kneed to worry about checking for them.
+          duplicateValues = new LinkedList<AttributeValue>();
+          addAttribute(a, duplicateValues);
+        }
+        break;
+
+      case INCREMENT:
+        List<Attribute> attrList = getAttribute(t);
+        if ((attrList == null) || attrList.isEmpty())
+        {
+          int    msgID   = MSGID_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE;
+          String message = getMessage(msgID, a.getName());
+          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
+                                       message, msgID);
+        }
+        else if (attrList.size() != 1)
+        {
+          int    msgID   = MSGID_ENTRY_INCREMENT_MULTIPLE_VALUES;
+          String message = getMessage(msgID, a.getName());
+          throw new DirectoryException(
+                         ResultCode.CONSTRAINT_VIOLATION, message,
+                         msgID);
+        }
+
+        LinkedHashSet<AttributeValue> values =
+             attrList.get(0).getValues();
+        if (values.isEmpty())
+        {
+          int    msgID   = MSGID_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE;
+          String message = getMessage(msgID, a.getName());
+          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
+                                       message, msgID);
+        }
+        else if (values.size() > 1)
+        {
+          int    msgID   = MSGID_ENTRY_INCREMENT_MULTIPLE_VALUES;
+          String message = getMessage(msgID, a.getName());
+          throw new DirectoryException(
+                         ResultCode.CONSTRAINT_VIOLATION, message,
+                         msgID);
+        }
+
+        LinkedHashSet<AttributeValue> newValues = a.getValues();
+        if (newValues.size() != 1)
+        {
+          int msgID = MSGID_ENTRY_INCREMENT_INVALID_VALUE_COUNT;
+          String message = getMessage(msgID);
+          throw new DirectoryException(
+                         ResultCode.CONSTRAINT_VIOLATION, message,
+                         msgID);
+        }
+
+        long newValue;
+        try
+        {
+          String s = values.iterator().next().getStringValue();
+          long currentValue = Long.parseLong(s);
+
+          s = a.getValues().iterator().next().getStringValue();
+          long increment = Long.parseLong(s);
+
+          newValue = currentValue+increment;
+        }
+        catch (NumberFormatException nfe)
+        {
+          int msgID = MSGID_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT;
+          String message = getMessage(msgID);
+          throw new DirectoryException(
+                         ResultCode.CONSTRAINT_VIOLATION, message,
+                         msgID);
+        }
+
+        values.clear();
+        values.add(new AttributeValue(t, String.valueOf(newValue)));
+        break;
+
+      default:
+        int    msgID   = MSGID_ENTRY_UNKNOWN_MODIFICATION_TYPE;
+        String message =
+             getMessage(msgID,
+                        String.valueOf(mod.getModificationType()));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                     message, msgID);
+    }
+  }
+
+
+
+  /**
+   * Applies all of the provided modifications to this entry.
+   *
+   * @param  mods  The modifications to apply to this entry.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to apply the modifications.  Note
+   *                              that even if a problem occurs, then
+   *                              the entry may have been altered in
+   *                              some way.
+   */
+  public void applyModifications(List<Modification> mods)
+         throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "applyModifications",
+                      String.valueOf(mods));
+
+    for (Modification m : mods)
+    {
+      applyModification(m);
+    }
+  }
+
+
+
+  /**
    * Indicates whether this entry conforms to the server's schema
    * requirements.  The checks performed by this method include:
    *

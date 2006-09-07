@@ -2417,6 +2417,15 @@ public class ConfigConstants
 
 
   /**
+   * The base name (with no path information) of the file that may contain
+   * changes in LDIF form to apply to the configuration before the configuration
+   * is loaded and initialized.
+   */
+  public static final String CONFIG_CHANGES_NAME = "config-changes.ldif";
+
+
+
+  /**
    * The name of the directory that will hold the configuration file for the
    * Directory Server.
    */

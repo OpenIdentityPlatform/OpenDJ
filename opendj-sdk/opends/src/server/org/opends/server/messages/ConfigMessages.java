@@ -6094,6 +6094,37 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used an error occurs while
+   * attempting to apply a set of changes on server startup.  This takes two
+   * arguments, which are the path to the changes file and a message explaining
+   * the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 563;
+
+
+
+  /**
+   * The message ID for the message that will be used to report an error that
+   * occurred while processing a startup changes file.  This takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_ERROR_APPLYING_STARTUP_CHANGE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 564;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that a problem
+   * occurred while applying the startup changes.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 565;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6260,6 +6291,10 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE,
                     "An unexpected error occurred while attempting to " +
                     "determine whether configuration file %s exists:  %s.");
+    registerMessage(MSGID_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES,
+                    "An error occurred while attempting to apply the changes " +
+                    "contained in file %s to the server configuration at " +
+                    "startup:  %s.");
     registerMessage(MSGID_CONFIG_FILE_CANNOT_OPEN_FOR_READ,
                     "An error occurred while attempting to open the " +
                     "configuration file %s for reading:  %s.");
@@ -6314,6 +6349,11 @@ public class ConfigMessages
                     "An unexpected error occurred while trying to register " +
                     "the configuration handler base DN \"%s\" as a private " +
                     "suffix with the Directory Server:  %s.");
+    registerMessage(MSGID_CONFIG_ERROR_APPLYING_STARTUP_CHANGE,
+                    "Unable to apply a change at server startup:  %s.");
+    registerMessage(MSGID_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE,
+                    "One or more errors occurred while applying changes on " +
+                    "server startup.");
     registerMessage(MSGID_CONFIG_FILE_ADD_ALREADY_EXISTS,
                     "Entry %s cannot be added to the Directory Server " +
                     "configuration because another configuration entry " +
