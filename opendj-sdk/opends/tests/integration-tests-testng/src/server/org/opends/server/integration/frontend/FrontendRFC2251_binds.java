@@ -140,6 +140,9 @@ public class FrontendRFC2251_binds extends FrontendTests
  *                                 Test Suites.
  *  @param  logDir                 The directory for the log files that are
  *                                 generated during the Integration Tests.
+ *
+ *  @throws  Exception  If a problem occurs.
+ */
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_binds.testFrontendUserBind3" })
   public void testFrontendUserBind4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

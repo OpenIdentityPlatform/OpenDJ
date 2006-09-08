@@ -185,6 +185,7 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
  *  Modify the RDN for an existing entry to the RDN of another existing entry.
  *
  *  @param  hostname               The hostname for the server where OpenDS
