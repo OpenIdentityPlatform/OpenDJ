@@ -399,7 +399,7 @@ public class DoubleMetaphoneApproximateMatchingRule
 
           // Check for a double C but not in values that start with "McC"
           if ((posPlusOne == 'C') &&
-              (! ((pos == 1) || valueString.charAt(0) == 'M')))
+              (! ((pos == 1) && valueString.charAt(0) == 'M')))
           {
             if ((((posPlusTwo = valueString.charAt(pos+2)) == 'I') ||
                  (posPlusTwo == 'E') || (posPlusTwo == 'H')) &&
@@ -434,8 +434,8 @@ public class DoubleMetaphoneApproximateMatchingRule
 
           // Check for CK, CG, or CQ and map to 'K'.  Check for CI, CE, and CY
           // and map to "S".
-          if (((posPlusTwo = valueString.charAt(pos+2)) == 'K') ||
-              (posPlusTwo == 'G') || (posPlusTwo == 'Q'))
+          if (((posPlusOne = valueString.charAt(pos+1)) == 'K') ||
+              (posPlusOne == 'G') || (posPlusOne == 'Q'))
           {
             metaphone.append("K");
             pos += 2;
@@ -444,7 +444,7 @@ public class DoubleMetaphoneApproximateMatchingRule
 
 
           // Check for CI, CE, or CY and map to 'S'.
-          if ((posPlusTwo == 'I') || (posPlusTwo == 'E') || (posPlusTwo == 'Y'))
+          if ((posPlusOne == 'I') || (posPlusOne == 'E') || (posPlusOne == 'Y'))
           {
             metaphone.append("S");
             pos += 2;
