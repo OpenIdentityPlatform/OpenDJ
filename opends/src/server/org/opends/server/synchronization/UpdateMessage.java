@@ -202,9 +202,16 @@ public abstract class UpdateMessage extends SynchronizationMessage
   @Override
   public boolean equals(Object obj)
   {
-    if (obj.getClass() != this.getClass())
+    if (obj != null)
+    {
+      if (obj.getClass() != this.getClass())
+        return false;
+      return changeNumber.equals(((UpdateMessage) obj).changeNumber);
+    }
+    else
+    {
       return false;
-    return changeNumber.equals(((UpdateMessage)obj).changeNumber);
+    }
   }
 
   /**
