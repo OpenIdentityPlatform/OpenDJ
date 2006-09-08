@@ -9,6 +9,7 @@
             <package name="org.opends.server.synchronization"/>
             <package name="org.opends.server.protocols.jmx"/>
             <package name="org.opends.server.util"/>
+            <package name="org.opends.server.schema"/>
         </packages>
     </test>
 
