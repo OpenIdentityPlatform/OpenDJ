@@ -38,6 +38,21 @@ import java.util.GregorianCalendar;
 @Test
 public class RestoreTests extends BackendTests
 {
+/**
+ *  Restore data to OpenDS.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTasksTests.testImportTasks1" })
   public void testRestore1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home) throws Exception
@@ -65,6 +80,21 @@ public class RestoreTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Restore compressed data to OpenDS.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.RestoreTests.testRestore1" })
   public void testRestore2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home) throws Exception
