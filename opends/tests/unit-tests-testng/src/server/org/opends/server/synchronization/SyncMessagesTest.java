@@ -26,45 +26,38 @@
  */
 package org.opends.server.synchronization;
 
-import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.SchemaFixture;
-import org.testng.annotations.Test;
+import java.lang.reflect.Field;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.opends.server.messages.MessageHandler;
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
+
 
 /**
- * An abstract class that all synchronization unit test should extend. 
+ * Test of ValueInfo
  */
-@Test(groups = { "precommit", "synchronization" })
-public abstract class SynchronizationTestCase extends DirectoryServerTestCase
+public class SyncMessagesTest extends SynchronizationTestCase
 {
-  
-
   /**
-   * Tears down the environment for performing the tests in this suite.
-   * 
-   * @throws Exception
-   *         If the environment could not be finalized.
+   * Create a ValueInfo and check the methods
    */
-  @AfterClass
-  public void tearDown() throws Exception
+  @Test()
+  public void synchroMessagesTest()
+         throws Exception
   {
-    SchemaFixture.FACTORY.tearDown();
+    SynchMessages.registerMessages() ;
+    Field fields[] = SynchMessages.class.getFields() ;
+    SynchMessages synMsg = new SynchMessages() ;
+    for (Field f : fields)
+    {
+      if (f.getClass().equals(Integer.class))
+      {
+        // Get the id
+        String msg = MessageHandler.getMessage(f.getInt(synMsg));
+        assertFalse(msg.startsWith("Unknown message for message ID"));
+      }
+    }
   }
-  
 
-  /**
-   * Set up the environment for performing the tests in this suite.
-   * 
-   * @throws Exception
-   *         If the environment could not be set up.
-   */
-  @BeforeClass
-  public void setUp() throws Exception
-  {
-    // This test suite depends on having the schema available.
-    SchemaFixture.FACTORY.setUp();
-  }
 
 }
