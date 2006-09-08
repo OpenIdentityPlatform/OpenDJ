@@ -27,6 +27,7 @@
 package org.opends.server.synchronization;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.zip.DataFormatException;
@@ -35,6 +36,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
+import org.opends.server.api.ClientConnection;
+import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
@@ -49,6 +52,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
 import org.opends.server.util.TimeThread;
 
@@ -132,7 +136,9 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     DN dn = DN.decode(rawdn);
     InternalClientConnection connection = new InternalClientConnection();
     ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");
-    ModifyMsg generatedMsg = new ModifyMsg(msg.getBytes());
+    ModifyMsg generatedMsg = (ModifyMsg) SynchronizationMessage
+        .generateMsg(msg.getBytes());
+    
 
     assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
 
@@ -141,19 +147,66 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
 
     assertEquals(op.getClass(), ModifyOperation.class);
     assertEquals(generatedOperation.getClass(), ModifyOperation.class);
-
+    
     ModifyOperation mod1 = (ModifyOperation) op;
     ModifyOperation mod2 = (ModifyOperation) generatedOperation;
 
     assertEquals(mod1.getRawEntryDN(), mod2.getRawEntryDN());
     assertEquals( mod1.getAttachment(SYNCHROCONTEXT),
                   mod2.getAttachment(SYNCHROCONTEXT));
-
     /*
      * TODO : test that the generated mod equals the original mod.
      */
-  }
 
+    // Check pending change
+    testPendingChange(changeNumber,op,msg);
+  }
+  
+  /**
+   * Create a Update Message from the data provided above.
+   * The call getBytes() to test the encoding of the Msg and
+   * create another ModifyMsg from the encoded byte array.
+   * Finally test that both Msg matches.
+   */
+  @Test(dataProvider = "modifyEncodeDecode")
+  public void updateMsgTest(ChangeNumber changeNumber,
+                               String rawdn, List<Modification> mods)
+         throws Exception
+  {
+    DN dn = DN.decode(rawdn);
+    InternalClientConnection connection = new InternalClientConnection();
+    ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");;
+    
+    // Check uuid
+    assertEquals("fakeuniqueid", msg.getUniqueId());
+    
+    // Check isAssured
+    assertFalse(msg.isAssured());
+    msg.setAssured();
+    assertTrue(msg.isAssured());
+    
+    // Check equals
+    ModifyMsg generatedMsg = (ModifyMsg) SynchronizationMessage
+        .generateMsg(msg.getBytes());
+    assertFalse(msg.equals(null));
+    assertFalse(msg.equals(new Object()));
+    assertTrue(msg.equals(generatedMsg));
+    
+    // Check hashCode
+    assertEquals(msg.hashCode(), generatedMsg.hashCode());
+    
+    // Check compareTo
+    assertEquals(msg.compareTo(generatedMsg), 0);
+    
+    // Check Get / Set DN
+    assertTrue(dn.equals(DN.decode(msg.getDn())));
+    
+    String fakeDN = "cn=fake cn";
+    msg.setDn(fakeDN) ;
+    assertEquals(msg.getDn(), fakeDN) ;
+
+  }
+  
   /**
    * Build some data for the DeleteMsg test below.
    * @throws DirectoryException
@@ -183,7 +236,10 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
       (short) 123, (short) 45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
     DeleteMsg msg = new DeleteMsg(op);
-    DeleteMsg generatedMsg = new DeleteMsg(msg.getBytes());
+    DeleteMsg generatedMsg = (DeleteMsg) SynchronizationMessage
+        .generateMsg(msg.getBytes());
+    
+    assertEquals(msg.toString(), generatedMsg.toString());
 
     assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
 
@@ -194,6 +250,10 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     DeleteOperation mod2 = (DeleteOperation) generatedOperation;
 
     assertEquals(op.getRawEntryDN(), mod2.getRawEntryDN());
+    
+    // Create an update message from this op
+    DeleteMsg updateMsg = (DeleteMsg) UpdateMessage.generateMsg(op, true);
+    assertEquals(msg.getChangeNumber(), updateMsg.getChangeNumber());
   }
 
   @DataProvider(name = "modifyDnEncodeDecode")
@@ -225,7 +285,8 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     op.setAttachment(SYNCHROCONTEXT,
         new ModifyDnContext(cn, "uniqueid", "newparentId"));
     ModifyDNMsg msg = new ModifyDNMsg(op);
-    ModifyDNMsg generatedMsg = new ModifyDNMsg(msg.getBytes());
+    ModifyDNMsg generatedMsg = (ModifyDNMsg) SynchronizationMessage
+        .generateMsg(msg.getBytes());
     Operation generatedOperation = generatedMsg.createOperation(connection);
     ModifyDNOperation mod2 = (ModifyDNOperation) generatedOperation;
 
@@ -234,6 +295,10 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     assertEquals(op.getRawNewRDN(), mod2.getRawNewRDN());
     assertEquals(op.deleteOldRDN(), mod2.deleteOldRDN());
     assertEquals(op.getRawNewSuperior(), mod2.getRawNewSuperior());
+    
+    // Create an update message from this op
+    ModifyDNMsg updateMsg = (ModifyDNMsg) UpdateMessage.generateMsg(op, true);
+    assertEquals(msg.getChangeNumber(), updateMsg.getChangeNumber());
   }
 
   @DataProvider(name = "addEncodeDecode")
@@ -255,6 +320,10 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     Attribute objectClass =
       new Attribute(DirectoryServer.getObjectClassAttributeType(),
         "objectClass", ocValues);
+    HashMap<ObjectClass,String> objectClassList= 
+      new HashMap<ObjectClass,String>();
+    objectClassList.put(DirectoryServer.getObjectClass("organization"),
+        "organization");
 
     AttributeType org = DirectoryServer.getAttributeType("o", true);
     ArrayList<Attribute> userAttributes = new ArrayList<Attribute>(1);
@@ -262,6 +331,10 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     values.add(new AttributeValue(org, "com"));
     Attribute attr = new Attribute(org, "o", values);
     userAttributes.add(attr);
+    HashMap<AttributeType,List<Attribute>> userAttList= 
+      new HashMap<AttributeType,List<Attribute>>();
+    userAttList.put(org,userAttributes);
+
 
     ArrayList<Attribute> operationalAttributes = new ArrayList<Attribute>(1);
     org = DirectoryServer.getAttributeType("creatorsname", true);
@@ -269,6 +342,9 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     values.add(new AttributeValue(org, "dc=creator"));
     attr = new Attribute(org, "creatorsname", values);
     operationalAttributes.add(attr);
+    HashMap<AttributeType,List<Attribute>> opList= 
+      new HashMap<AttributeType,List<Attribute>>();
+    opList.put(org,operationalAttributes);
 
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
                                       (short) 123, (short) 45);
@@ -276,9 +352,42 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     AddMsg msg = new AddMsg(cn, rawDN, "thisIsaUniqueID", "parentUniqueId",
                             objectClass, userAttributes,
                             operationalAttributes);
-    AddMsg generatedMsg = new AddMsg(msg.getBytes());
+    AddMsg generatedMsg = (AddMsg) SynchronizationMessage.generateMsg(msg
+        .getBytes());
     assertEquals(msg.getBytes(), generatedMsg.getBytes());
+    assertEquals(msg.toString(), generatedMsg.toString());
     // TODO : should test that generated attributes match original attributes.
+    
+    // Create an new Add Operation from the current addMsg
+    InternalClientConnection connection = new InternalClientConnection();
+    AddOperation addOp = msg.createOperation(connection, rawDN) ;
+    // TODO : should test that generated attributes match original attributes.
+    // List<LDAPAttribute> rawAtt = addOp.getRawAttributes();
+    
+    
+    assertEquals(msg.getBytes(), generatedMsg.getBytes());
+    assertEquals(msg.toString(), generatedMsg.toString());
+    
+    //Create an Add operation and generate and Add msg from it
+    DN dn = DN.decode(rawDN);
+
+    addOp = new AddOperation((ClientConnection) connection,
+        (long) 1, 1, null, dn, objectClassList, userAttList, opList);
+    OperationContext opCtx = new AddContext(cn, "thisIsaUniqueID",
+        "parentUniqueId");
+    addOp.setAttachment(SYNCHROCONTEXT, opCtx);
+    
+    generatedMsg = new AddMsg(addOp);
+    assertEquals(msg.getBytes(), generatedMsg.getBytes());
+    assertEquals(msg.toString(), generatedMsg.toString());
+    // TODO : should test that generated attributes match original attributes.
+    
+    
+    // Create an update message from this op
+    AddMsg updateMsg = (AddMsg) UpdateMessage.generateMsg(addOp, true);
+    assertEquals(msg.getChangeNumber(), updateMsg.getChangeNumber());
+
+    
   }
 
   /**
@@ -328,6 +437,37 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     }
 
     // Check that retrieved CN is OK
-    msg2 = new  AckMessage(msg1.getBytes());
+    msg2 = (AckMessage) SynchronizationMessage.generateMsg(msg1.getBytes());
   }
+  
+  /**
+   * Test PendingChange
+   */
+  private void testPendingChange(ChangeNumber cn, Operation op, SynchronizationMessage msg)
+  {
+    if (! (msg instanceof UpdateMessage))
+    {
+      return ;
+    }
+    UpdateMessage updateMsg = (UpdateMessage) msg;
+    PendingChange pendingChange = new PendingChange(cn,null,null);
+    
+    pendingChange.setCommitted(false);
+    assertFalse(pendingChange.isCommitted()) ;
+    pendingChange.setCommitted(true);
+    assertTrue(pendingChange.isCommitted()) ;
+    
+
+    assertTrue(cn.compareTo(pendingChange.getChangeNumber()) == 0);
+    
+    assertEquals(pendingChange.getMsg(), null) ;
+    pendingChange.setMsg(updateMsg);
+    assertEquals(updateMsg.getBytes(), pendingChange.getMsg().getBytes());
+    
+    assertEquals(pendingChange.getOp(), null) ;
+    pendingChange.setOp(op);
+    assertEquals(op.getClass(), op.getClass());
+    
+  }
+
 }
