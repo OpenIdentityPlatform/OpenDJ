@@ -36,6 +36,20 @@ import org.opends.server.tools.*;
 @Test
 public class JKSTLSTests extends JKSTests
 {
+/**
+ *  Enable startTLS by modifying the entry, 
+ *  cn=LDAP Connection Handler,cn=Connection Handlers,cn=config.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  sport                  The ssl port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "sport", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSBobTests.testJKSBobTest5" })
   public void testJKSTLSTest1(String hostname, String sport, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -53,6 +67,19 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries through the startTLS port.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The startTLS port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSTLSTests.testJKSTLSTest1" })
   public void testJKSTLSTest2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -69,6 +96,19 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a jpeg photo to an existing entry through a startTLS connection.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The startTLS port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSTLSTests.testJKSTLSTest2" })
   public void testJKSTLSTest3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -86,6 +126,19 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Replace a jpeg photo in an existing entry through a startTLS connection.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The startTLS port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSTLSTests.testJKSTLSTest3" })
   public void testJKSTLSTest4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -103,6 +156,19 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Delete an existing entry through a startTLS connection.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The startTLS port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSTLSTests.testJKSTLSTest4" })
   public void testJKSTLSTest5(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -120,6 +186,20 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Disable startTLS by modifying the entry, 
+ *  cn=LDAP Connection Handler,cn=Connection Handlers,cn=config.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  sport                  The ssl port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "sport", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSTLSTests.testJKSTLSTest5" })
   public void testJKSTLSTest6(String hostname, String sport, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -137,6 +217,19 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Search for entries through the startTLS port which was disabled in the last test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The startTLS port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSTLSTests.testJKSTLSTest6" })
   public void testJKSTLSTest7(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

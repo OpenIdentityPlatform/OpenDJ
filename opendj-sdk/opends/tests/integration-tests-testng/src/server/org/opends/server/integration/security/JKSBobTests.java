@@ -36,6 +36,19 @@ import org.opends.server.tools.*;
 @Test
 public class JKSBobTests extends JKSTests
 {
+/**
+ *  Add the entries by ssl that are needed for all the Security Tests.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  sport                  The ssl port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "sport", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSStartupTests.testJKSStartup5" })
   public void testJKSBobTest1(String hostname, String sport, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -53,6 +66,19 @@ public class JKSBobTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add an RDN to an existing entry through an SSL connection.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  sport                  The ssl port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "sport", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSBobTests.testJKSBobTest1" })
   public void testJKSBobTest2(String hostname, String sport, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -70,6 +96,19 @@ public class JKSBobTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Add a jpeg photo to an existing entry through an SSL connection.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  sport                  The ssl port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "sport", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSBobTests.testJKSBobTest2" })
   public void testJKSBobTest3(String hostname, String sport, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -87,6 +126,19 @@ public class JKSBobTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Replace a jpeg photo in an existing entry through an SSL connection.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  sport                  The ssl port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "sport", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSBobTests.testJKSBobTest3" })
   public void testJKSBobTest4(String hostname, String sport, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -104,6 +156,19 @@ public class JKSBobTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Delete an existing entry through an SSL connection.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  sport                  The ssl port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "sport", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.security.JKSBobTests.testJKSBobTest4" })
   public void testJKSBobTest5(String hostname, String sport, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

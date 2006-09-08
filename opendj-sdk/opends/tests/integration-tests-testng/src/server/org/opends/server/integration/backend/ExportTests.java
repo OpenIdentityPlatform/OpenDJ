@@ -37,6 +37,23 @@ import java.io.*;
 @Test
 public class ExportTests extends BackendTests
 {
+/**
+ *  Export the data in OpenDS.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.BackendStartupTests.testBackendStartup1" })
   public void testExport1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -53,6 +70,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS by appending to an ldif file.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport1" })
   public void testExport2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -69,6 +103,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with one --includeAttribute parameter.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport2" })
   public void testExport3(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -85,6 +136,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with three --includeAttribute parameters.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport3" })
   public void testExport4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -101,6 +169,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with one --excludeAttribute parameter.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport4" })
   public void testExport5(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -117,6 +202,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with three --excludeAttribute parameters.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport5" })
   public void testExport6(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -133,6 +235,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with one --includeFilter parameter.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport6" })
   public void testExport7(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -149,6 +268,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with three --includeFilter parameters.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport7" })
   public void testExport8(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -165,6 +301,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with one --excludeFilter parameter.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport8" })
   public void testExport9(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -181,6 +334,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with three --excludeFilter parameters.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport9" })
   public void testExport10(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -197,6 +367,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with one --includeBranch parameter.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport10" })
   public void testExport11(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -213,6 +400,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with one --excludeBranch parameter.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport11" })
   public void testExport12(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -229,6 +433,24 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with one --includeAttribute, 
+ *  one --excludeFilter, and one --includeBranch parameter.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport12" })
   public void testExport13(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -245,6 +467,24 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS with one --excludeAttribute, 
+ *  one --includeFilter, and one --excludeBranch parameter.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport13" })
   public void testExport14(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception
@@ -261,6 +501,23 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Export the data in OpenDS in compressed format. 
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  exportDir              The directory where the export files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "exportDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTests.testExport14" })
   public void testExport15(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String exportDir) throws Exception

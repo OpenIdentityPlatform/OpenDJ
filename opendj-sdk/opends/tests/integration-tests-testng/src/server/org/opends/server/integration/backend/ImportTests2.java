@@ -36,9 +36,24 @@ import org.opends.server.tools.*;
 @Test
 public class ImportTests2 extends BackendTests
 {
-  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
+/**
+ *  Import data to OpenDS with the --append parameter.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+*/
+  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests1.testImport1_check2" })
-  public void testImport2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
+  public void testImport2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home) throws Exception
   {
     System.out.println("*********************************************");
     System.out.println("Import Test 2");
@@ -61,6 +76,19 @@ public class ImportTests2 extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  First verification search for the entries that were imported in the last test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests2.testImport2" })
   public void testImport2_check(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
@@ -78,6 +106,19 @@ public class ImportTests2 extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Second verification search for the entries that were imported in the last test.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests2.testImport2_check" })
   public void testImport2_check2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception

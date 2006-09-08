@@ -41,6 +41,18 @@ public class BackupTests extends BackendTests
 {
   public String backup_id = null;
 
+/**
+ *  Create a backup of the data in OpenDS.
+ *
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  backupDir              The directory where the backup files will
+ *                                 be placed.
+*/
   @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ExportTasksTests.testExportTasks1" })
   public void testBackup1(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
@@ -58,6 +70,23 @@ public class BackupTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Create an incremental backup of the data in OpenDS.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  backupDir              The directory where the backup files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.BackupTests.testBackup1" })
   public void testBackup2(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
@@ -82,6 +111,18 @@ public class BackupTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Create a backup of the data in OpenDS with a backup id.
+ *
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  backupDir              The directory where the backup files will
+ *                                 be placed.
+*/
   @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.BackupTests.testBackup2" })
   public void testBackup3(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
@@ -101,6 +142,23 @@ public class BackupTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Create an incremental backup of the data in OpenDS with a backup id.
+ *
+ *  @param  hostname               The hostname for the server where OpenDS
+ *                                 is installed.
+ *  @param  port                   The port number for OpenDS.
+ *  @param  bindDN                 The bind DN.
+ *  @param  bindPW                 The password for the bind DN.
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  backupDir              The directory where the backup files will
+ *                                 be placed.
+*/
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.BackupTests.testBackup3" })
   public void testBackup4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception
@@ -127,6 +185,18 @@ public class BackupTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/**
+ *  Create a compressed backup of the data in OpenDS. 
+ *
+ *  @param  integration_test_home  The home directory for the Integration
+ *                                 Test Suites.
+ *  @param  logDir                 The directory for the log files that are
+ *                                 generated during the Integration Tests.
+ *  @param  dsee_home              The home directory for the OpenDS
+ *                                 installation.
+ *  @param  backupDir              The directory where the backup files will
+ *                                 be placed.
+*/
   @Parameters({ "integration_test_home", "logDir", "dsee_home", "backupDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.BackupTests.testBackup4" })
   public void testBackup5(String integration_test_home, String logDir, String dsee_home, String backupDir) throws Exception

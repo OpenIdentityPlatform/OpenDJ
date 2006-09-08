@@ -199,7 +199,6 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
  *                                 generated during the Integration Tests.
 */
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
-  @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2251_modifyrdns.testFrontendUserModifyRDN3" })
   public void testFrontendUserModifyRDN4(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
   {
