@@ -48,6 +48,9 @@ public class SchemaStartupTests extends SchemaTests
  *                                 Test Suites.
  *  @param  logDir                 The directory for the log files that are
  *                                 generated during the Integration Tests.
+ *
+ *  @throws  Exception  If a problem occurs.
+ */
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir" })
   @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.frontend.FrontendRFC2253_relationships.testFrontendUserRelationship10" })
   public void testSchemaStartup1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir) throws Exception
