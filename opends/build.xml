@@ -601,8 +601,14 @@
       </classpath>
     </taskdef>
 
+    <condition property="TESTASSERT" value="false">
+      <not>
+        <isset property="TESTASSERT" />
+      </not>
+    </condition>
+
     <testng outputdir="${unittest.report.dir}" haltonfailure="true"
-            enableAssert="false">
+            enableAssert="${TESTASSERT}">
       <classpath>
         <pathelement location="${coverage.instr.dir}" />
         <pathelement location="${classes.dir}" />
