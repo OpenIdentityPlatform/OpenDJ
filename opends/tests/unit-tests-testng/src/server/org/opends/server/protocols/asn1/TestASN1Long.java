@@ -26,275 +26,734 @@
  */
 package org.opends.server.protocols.asn1;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
+
+import static org.testng.Assert.*;
+
+
 
 /**
  * This class defines a set of tests for the
  * org.opends.server.protocols.asn1.ASN1Long class.
  */
-public class TestASN1Long extends ASN1TestCase {
-  // The set of encoded values for the test longs.
-  private ArrayList<byte[]> testEncodedLongs;
+public class TestASN1Long
+       extends ASN1TestCase
+{
+  /**
+   * Retrieves the set of long values that should be used for testing.
+   *
+   * @return  The set of long values that should be used for testing.
+   */
+  @DataProvider(name = "longValues")
+  public Object[][] getLongValues()
+  {
+    return new Object[][]
+    {
+      new Object[] { 0x0000000000000000L },
+      new Object[] { 0x0000000000000001L },
+      new Object[] { 0x000000000000007FL },
+      new Object[] { 0x0000000000000080L },
+      new Object[] { 0x00000000000000FFL },
+      new Object[] { 0x0000000000000100L },
+      new Object[] { 0x000000000000FFFFL },
+      new Object[] { 0x0000000000010000L },
+      new Object[] { 0x0000000000FFFFFFL },
+      new Object[] { 0x0000000001000000L },
+      new Object[] { 0x00000000FFFFFFFFL },
+      new Object[] { 0x0000000100000000L },
+      new Object[] { 0x000000FFFFFFFFFFL },
+      new Object[] { 0x0000010000000000L },
+      new Object[] { 0x0000FFFFFFFFFFFFL },
+      new Object[] { 0x0001000000000000L },
+      new Object[] { 0x00FFFFFFFFFFFFFFL },
+      new Object[] { 0x0100000000000000L },
+      new Object[] { 0x7FFFFFFFFFFFFFFFL },
+      new Object[] { -0x0000000000000001L },
+      new Object[] { -0x000000000000007FL },
+      new Object[] { -0x0000000000000080L },
+      new Object[] { -0x00000000000000FFL },
+      new Object[] { -0x0000000000000100L },
+      new Object[] { -0x000000000000FFFFL },
+      new Object[] { -0x0000000000010000L },
+      new Object[] { -0x0000000000FFFFFFL },
+      new Object[] { -0x0000000001000000L },
+      new Object[] { -0x00000000FFFFFFFFL },
+      new Object[] { -0x0000000100000000L },
+      new Object[] { -0x000000FFFFFFFFFFL },
+      new Object[] { -0x0000010000000000L },
+      new Object[] { -0x0000FFFFFFFFFFFFL },
+      new Object[] { -0x0001000000000000L },
+      new Object[] { -0x00FFFFFFFFFFFFFFL },
+      new Object[] { -0x0100000000000000L },
+      new Object[] { -0x7FFFFFFFFFFFFFFFL },
+      new Object[] { 0x8000000000000000L }
+    };
+  }
 
-  // The set of long values to use in test cases.
-  private ArrayList<Long> testLongs;
+
 
   /**
-   * Performs any necessary initialization for this test case.
+   * Tests the first constructor, which takes a single long argument.
+   *
+   * @param  l  The long value to use to create the element.
    */
-  @BeforeClass
-  public void setUp() {
-    testLongs = new ArrayList<Long>();
-    testEncodedLongs = new ArrayList<byte[]>();
-
-    // Add all values that can be encoded using a single byte.
-    for (int i = 0; i < 128; i++) {
-      testLongs.add(new Long(i));
-      testEncodedLongs.add(new byte[] { (byte) (i & 0xFF) });
-    }
-
-    testLongs.add(new Long(0x80)); // The smallest 2-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0x80 });
-
-    testLongs.add(new Long(0xFF)); // A boundary case for 2-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0xFF });
-
-    testLongs.add(new Long(0x0100)); // A boundary case for 2-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x01, (byte) 0x00 });
-
-    testLongs.add(new Long(0x7FFF)); // The largest 2-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x7F, (byte) 0xFF });
-
-    testLongs.add(new Long(0x8000)); // The smallest 3-byte encoding.
-    testEncodedLongs
-        .add(new byte[] { (byte) 0x00, (byte) 0x80, (byte) 0x00 });
-
-    testLongs.add(new Long(0xFFFF)); // A boundary case for 3-byte
-    // encoding.
-    testEncodedLongs
-        .add(new byte[] { (byte) 0x00, (byte) 0xFF, (byte) 0xFF });
-
-    testLongs.add(new Long(0x010000)); // A boundary case for 3-byte
-    // encoding.
-    testEncodedLongs
-        .add(new byte[] { (byte) 0x01, (byte) 0x00, (byte) 0x00 });
-
-    testLongs.add(new Long(0x7FFFFF)); // The largest 3-byte encoding.
-    testEncodedLongs
-        .add(new byte[] { (byte) 0x7F, (byte) 0xFF, (byte) 0xFF });
-
-    testLongs.add(new Long(0x800000)); // The smallest 4-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0x80,
-        (byte) 0x00, (byte) 0x00 });
-
-    testLongs.add(new Long(0xFFFFFF)); // A boundary case for 4-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF });
-
-    testLongs.add(new Long(0x01000000)); // A boundary case for 4-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x01, (byte) 0x00,
-        (byte) 0x00, (byte) 0x00 });
-
-    testLongs.add(new Long(0x7FFFFFFF)); // The largest 4-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x7F, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF });
-
-    testLongs.add(0x80000000L); // The smallest 5-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0x80,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00 });
-
-    testLongs.add(0xFFFFFFFFL); // A boundary case for 5-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF, (byte) 0xFF });
-
-    testLongs.add(0x0100000000L); // A boundary case for 5-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x01, (byte) 0x00,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00 });
-
-    testLongs.add(0x07FFFFFFFFL); // The largest 5-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x07, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF, (byte) 0xFF });
-
-    testLongs.add(0x8000000000L); // The smallest 6-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0x80,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 });
-
-    testLongs.add(0xFFFFFFFFFFL); // A boundary case for 6-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF });
-
-    testLongs.add(0x010000000000L); // A boundary case for 6-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x01, (byte) 0x00,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 });
-
-    testLongs.add(0x07FFFFFFFFFFL); // The largest 6-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x07, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF });
-
-    testLongs.add(0x800000000000L); // The smallest 7-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0x80,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 });
-
-    testLongs.add(0xFFFFFFFFFFFFL); // A boundary case for 7-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF });
-
-    testLongs.add(0x01000000000000L); // A boundary case for 7-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x01, (byte) 0x00,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 });
-
-    testLongs.add(0x07FFFFFFFFFFFFL); // The largest 7-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x07, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF });
-
-    testLongs.add(0x80000000000000L); // The smallest 8-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0x80,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-        (byte) 0x00 });
-
-    testLongs.add(0xFFFFFFFFFFFFFFL); // A boundary case for 8-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x00, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
-        (byte) 0xFF });
-
-    testLongs.add(0x0100000000000000L); // A boundary case for 8-byte
-    // encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x01, (byte) 0x00,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-        (byte) 0x00 });
-
-    testLongs.add(0x07FFFFFFFFFFFFFFL); // The largest 8-byte encoding.
-    testEncodedLongs.add(new byte[] { (byte) 0x07, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
-        (byte) 0xFF });
+  @Test(dataProvider = "longValues")
+  public void testConstructor1(long l)
+  {
+    new ASN1Long(l);
   }
+
+
+
+  /**
+   * Tests the second constructor, which takes byte and long arguments.
+   *
+   * @param  l  The long value to use to create the element.
+   */
+  @Test(dataProvider = "longValues")
+  public void testConstructor2(long l)
+  {
+    new ASN1Long((byte) 0x50, l);
+  }
+
+
 
   /**
    * Tests the <CODE>longValue</CODE> method.
+   *
+   * @param  l  The long value to use for the test.
    */
-  @Test()
-  public void testLongValue() {
-    for (long l : testLongs) {
-      ASN1Long element = new ASN1Long(l);
-
-      assertEquals(l, element.longValue());
-    }
+  @Test(dataProvider = "longValues")
+  public void testLongValue(long l)
+  {
+    assertEquals(l, new ASN1Long(l).longValue());
   }
 
+
+
   /**
-   * Tests the <CODE>setValue</CODE> method that takes a long
+   * Tests the <CODE>setValue</CODE> method that takes a long argument.
+   *
+   * @param  l  The long value to use for the test.
+   */
+  @Test(dataProvider = "longValues")
+  public void testSetLongValue(long l)
+  {
+    ASN1Long longElement = new ASN1Long(0);
+    longElement.setValue(l);
+    assertEquals(l, longElement.longValue());
+  }
+
+
+
+  /**
+   * Tests the <CODE>setValue</CODE> method that takes a byte array argument
+   * with a valid array.
+   *
+   * @param  l  The long value to use for the test.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "longValues")
+  public void testSetByteValue(long l)
+         throws Exception
+  {
+    ASN1Long longElement = new ASN1Long(0);
+
+    byte[] encoding;
+    if ((l & 0x7FL) == l)
+    {
+      encoding = new byte[1];
+      encoding[0] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFL) == l)
+    {
+      encoding = new byte[2];
+      encoding[0] = (byte) ((l >> 8) & 0xFF);
+      encoding[1] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFL) == l)
+    {
+      encoding = new byte[3];
+      encoding[0] = (byte) ((l >> 16) & 0xFF);
+      encoding[1] = (byte) ((l >> 8) & 0xFF);
+      encoding[2] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFL) == l)
+    {
+      encoding = new byte[4];
+      encoding[0] = (byte) ((l >> 24) & 0xFF);
+      encoding[1] = (byte) ((l >> 16) & 0xFF);
+      encoding[2] = (byte) ((l >> 8) & 0xFF);
+      encoding[3] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFL) == l)
+    {
+      encoding = new byte[5];
+      encoding[0] = (byte) ((l >> 32) & 0xFF);
+      encoding[1] = (byte) ((l >> 24) & 0xFF);
+      encoding[2] = (byte) ((l >> 16) & 0xFF);
+      encoding[3] = (byte) ((l >> 8) & 0xFF);
+      encoding[4] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFFFL) == l)
+    {
+      encoding = new byte[6];
+      encoding[0] = (byte) ((l >> 40) & 0xFF);
+      encoding[1] = (byte) ((l >> 32) & 0xFF);
+      encoding[2] = (byte) ((l >> 24) & 0xFF);
+      encoding[3] = (byte) ((l >> 16) & 0xFF);
+      encoding[4] = (byte) ((l >> 8) & 0xFF);
+      encoding[5] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFFFFFL) == l)
+    {
+      encoding = new byte[7];
+      encoding[0] = (byte) ((l >> 48) & 0xFF);
+      encoding[1] = (byte) ((l >> 40) & 0xFF);
+      encoding[2] = (byte) ((l >> 32) & 0xFF);
+      encoding[3] = (byte) ((l >> 24) & 0xFF);
+      encoding[4] = (byte) ((l >> 16) & 0xFF);
+      encoding[5] = (byte) ((l >> 8) & 0xFF);
+      encoding[6] = (byte) (l & 0xFF);
+    }
+    else
+    {
+      encoding = new byte[8];
+      encoding[0] = (byte) ((l >> 56) & 0xFF);
+      encoding[1] = (byte) ((l >> 48) & 0xFF);
+      encoding[2] = (byte) ((l >> 40) & 0xFF);
+      encoding[3] = (byte) ((l >> 32) & 0xFF);
+      encoding[4] = (byte) ((l >> 24) & 0xFF);
+      encoding[5] = (byte) ((l >> 16) & 0xFF);
+      encoding[6] = (byte) ((l >> 8) & 0xFF);
+      encoding[7] = (byte) (l & 0xFF);
+    }
+
+    longElement.setValue(encoding);
+    assertEquals(l, longElement.longValue());
+  }
+
+
+
+  /**
+   * Tests the <CODE>setValue</CODE> method that takes a byte array argument
+   * with a null array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testSetByteValueNull()
+         throws Exception
+  {
+    ASN1Long longElement = new ASN1Long(0);
+
+    byte[] b = null;
+    longElement.setValue(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>setValue</CODE> method that takes a byte array argument
+   * with an empty array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testSetByteValueEmptyArray()
+         throws Exception
+  {
+    ASN1Long longElement = new ASN1Long(0);
+
+    byte[] b = new byte[0];
+    longElement.setValue(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>setValue</CODE> method that takes a byte array argument
+   * with a long array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testSetByteValueLongArray()
+         throws Exception
+  {
+    ASN1Long longElement = new ASN1Long(0);
+
+    byte[] b = new byte[9];
+    longElement.setValue(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes an ASN1Element
+   * arguent using a valid value.
+   *
+   * @param  l  The long value to use in the test.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "longValues")
+  public void testDecodeValidElementAsLong(long l)
+         throws Exception
+  {
+    // First, make sure that we can decode a long element as a long.
+    ASN1Element e = new ASN1Long(l);
+    ASN1Long longElement = ASN1Long.decodeAsLong(e);
+    assertEquals(l, longElement.longValue());
+
+    e = new ASN1Long((byte) 0x50, l);
+    longElement = ASN1Long.decodeAsLong(e);
+    assertEquals(l, longElement.longValue());
+
+
+    // Next, make sure that we can decode a generic element as a long.
+    byte[] encoding;
+    if ((l & 0x7FL) == l)
+    {
+      encoding = new byte[1];
+      encoding[0] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFL) == l)
+    {
+      encoding = new byte[2];
+      encoding[0] = (byte) ((l >> 8) & 0xFF);
+      encoding[1] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFL) == l)
+    {
+      encoding = new byte[3];
+      encoding[0] = (byte) ((l >> 16) & 0xFF);
+      encoding[1] = (byte) ((l >> 8) & 0xFF);
+      encoding[2] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFL) == l)
+    {
+      encoding = new byte[4];
+      encoding[0] = (byte) ((l >> 24) & 0xFF);
+      encoding[1] = (byte) ((l >> 16) & 0xFF);
+      encoding[2] = (byte) ((l >> 8) & 0xFF);
+      encoding[3] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFL) == l)
+    {
+      encoding = new byte[5];
+      encoding[0] = (byte) ((l >> 32) & 0xFF);
+      encoding[1] = (byte) ((l >> 24) & 0xFF);
+      encoding[2] = (byte) ((l >> 16) & 0xFF);
+      encoding[3] = (byte) ((l >> 8) & 0xFF);
+      encoding[4] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFFFL) == l)
+    {
+      encoding = new byte[6];
+      encoding[0] = (byte) ((l >> 40) & 0xFF);
+      encoding[1] = (byte) ((l >> 32) & 0xFF);
+      encoding[2] = (byte) ((l >> 24) & 0xFF);
+      encoding[3] = (byte) ((l >> 16) & 0xFF);
+      encoding[4] = (byte) ((l >> 8) & 0xFF);
+      encoding[5] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFFFFFL) == l)
+    {
+      encoding = new byte[7];
+      encoding[0] = (byte) ((l >> 48) & 0xFF);
+      encoding[1] = (byte) ((l >> 40) & 0xFF);
+      encoding[2] = (byte) ((l >> 32) & 0xFF);
+      encoding[3] = (byte) ((l >> 24) & 0xFF);
+      encoding[4] = (byte) ((l >> 16) & 0xFF);
+      encoding[5] = (byte) ((l >> 8) & 0xFF);
+      encoding[6] = (byte) (l & 0xFF);
+    }
+    else
+    {
+      encoding = new byte[8];
+      encoding[0] = (byte) ((l >> 56) & 0xFF);
+      encoding[1] = (byte) ((l >> 48) & 0xFF);
+      encoding[2] = (byte) ((l >> 40) & 0xFF);
+      encoding[3] = (byte) ((l >> 32) & 0xFF);
+      encoding[4] = (byte) ((l >> 24) & 0xFF);
+      encoding[5] = (byte) ((l >> 16) & 0xFF);
+      encoding[6] = (byte) ((l >> 8) & 0xFF);
+      encoding[7] = (byte) (l & 0xFF);
+    }
+
+    e = new ASN1Element(ASN1Constants.UNIVERSAL_INTEGER_TYPE, encoding);
+    longElement = ASN1Long.decodeAsLong(e);
+    assertEquals(l, longElement.longValue());
+
+    e = new ASN1Element((byte) 0x50, encoding);
+    longElement = ASN1Long.decodeAsLong(e);
+    assertEquals(l, longElement.longValue());
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes an ASN1Element
+   * arguent using a valid value.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeNullElementAsLong()
+         throws Exception
+  {
+    ASN1Element e = null;
+    ASN1Long.decodeAsLong(e);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes an ASN1Element
+   * arguent a zero-length element.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeZeroLengthElementAsLong()
+         throws Exception
+  {
+    ASN1Element e = new ASN1Element(ASN1Constants.UNIVERSAL_INTEGER_TYPE);
+    ASN1Long.decodeAsLong(e);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes an ASN1Element
+   * arguent a long value element.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeLongValueElementAsLong()
+         throws Exception
+  {
+    ASN1Element e = new ASN1Element(ASN1Constants.UNIVERSAL_INTEGER_TYPE,
+                                    new byte[9]);
+    ASN1Long.decodeAsLong(e);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes a byte array with
+   * a valid array.
+   *
+   * @param  l  The long value to use in the test.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "longValues")
+  public void testDecodeValidArrayAsLong(long l)
+         throws Exception
+  {
+    byte[] encoding;
+    if ((l & 0x7FL) == l)
+    {
+      encoding = new byte[1];
+      encoding[0] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFL) == l)
+    {
+      encoding = new byte[2];
+      encoding[0] = (byte) ((l >> 8) & 0xFF);
+      encoding[1] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFL) == l)
+    {
+      encoding = new byte[3];
+      encoding[0] = (byte) ((l >> 16) & 0xFF);
+      encoding[1] = (byte) ((l >> 8) & 0xFF);
+      encoding[2] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFL) == l)
+    {
+      encoding = new byte[4];
+      encoding[0] = (byte) ((l >> 24) & 0xFF);
+      encoding[1] = (byte) ((l >> 16) & 0xFF);
+      encoding[2] = (byte) ((l >> 8) & 0xFF);
+      encoding[3] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFL) == l)
+    {
+      encoding = new byte[5];
+      encoding[0] = (byte) ((l >> 32) & 0xFF);
+      encoding[1] = (byte) ((l >> 24) & 0xFF);
+      encoding[2] = (byte) ((l >> 16) & 0xFF);
+      encoding[3] = (byte) ((l >> 8) & 0xFF);
+      encoding[4] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFFFL) == l)
+    {
+      encoding = new byte[6];
+      encoding[0] = (byte) ((l >> 40) & 0xFF);
+      encoding[1] = (byte) ((l >> 32) & 0xFF);
+      encoding[2] = (byte) ((l >> 24) & 0xFF);
+      encoding[3] = (byte) ((l >> 16) & 0xFF);
+      encoding[4] = (byte) ((l >> 8) & 0xFF);
+      encoding[5] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFFFFFL) == l)
+    {
+      encoding = new byte[7];
+      encoding[0] = (byte) ((l >> 48) & 0xFF);
+      encoding[1] = (byte) ((l >> 40) & 0xFF);
+      encoding[2] = (byte) ((l >> 32) & 0xFF);
+      encoding[3] = (byte) ((l >> 24) & 0xFF);
+      encoding[4] = (byte) ((l >> 16) & 0xFF);
+      encoding[5] = (byte) ((l >> 8) & 0xFF);
+      encoding[6] = (byte) (l & 0xFF);
+    }
+    else
+    {
+      encoding = new byte[8];
+      encoding[0] = (byte) ((l >> 56) & 0xFF);
+      encoding[1] = (byte) ((l >> 48) & 0xFF);
+      encoding[2] = (byte) ((l >> 40) & 0xFF);
+      encoding[3] = (byte) ((l >> 32) & 0xFF);
+      encoding[4] = (byte) ((l >> 24) & 0xFF);
+      encoding[5] = (byte) ((l >> 16) & 0xFF);
+      encoding[6] = (byte) ((l >> 8) & 0xFF);
+      encoding[7] = (byte) (l & 0xFF);
+    }
+
+    byte[] encodedElement = new byte[2 + encoding.length];
+    encodedElement[0] = ASN1Constants.UNIVERSAL_INTEGER_TYPE;
+    encodedElement[1] = (byte) encoding.length;
+    System.arraycopy(encoding, 0, encodedElement, 2, encoding.length);
+
+    ASN1Long longElement = ASN1Long.decodeAsLong(encodedElement);
+    assertEquals(l, longElement.longValue());
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes a byte array with
+   * a valid extended length array.
+   *
+   * @param  l  The long value to use in the test.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "longValues")
+  public void testDecodeValidExtendedLengthArrayAsLong(long l)
+         throws Exception
+  {
+    byte[] encoding;
+    if ((l & 0x7FL) == l)
+    {
+      encoding = new byte[1];
+      encoding[0] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFL) == l)
+    {
+      encoding = new byte[2];
+      encoding[0] = (byte) ((l >> 8) & 0xFF);
+      encoding[1] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFL) == l)
+    {
+      encoding = new byte[3];
+      encoding[0] = (byte) ((l >> 16) & 0xFF);
+      encoding[1] = (byte) ((l >> 8) & 0xFF);
+      encoding[2] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFL) == l)
+    {
+      encoding = new byte[4];
+      encoding[0] = (byte) ((l >> 24) & 0xFF);
+      encoding[1] = (byte) ((l >> 16) & 0xFF);
+      encoding[2] = (byte) ((l >> 8) & 0xFF);
+      encoding[3] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFL) == l)
+    {
+      encoding = new byte[5];
+      encoding[0] = (byte) ((l >> 32) & 0xFF);
+      encoding[1] = (byte) ((l >> 24) & 0xFF);
+      encoding[2] = (byte) ((l >> 16) & 0xFF);
+      encoding[3] = (byte) ((l >> 8) & 0xFF);
+      encoding[4] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFFFL) == l)
+    {
+      encoding = new byte[6];
+      encoding[0] = (byte) ((l >> 40) & 0xFF);
+      encoding[1] = (byte) ((l >> 32) & 0xFF);
+      encoding[2] = (byte) ((l >> 24) & 0xFF);
+      encoding[3] = (byte) ((l >> 16) & 0xFF);
+      encoding[4] = (byte) ((l >> 8) & 0xFF);
+      encoding[5] = (byte) (l & 0xFF);
+    }
+    else if ((l & 0x7FFFFFFFFFFFFFL) == l)
+    {
+      encoding = new byte[7];
+      encoding[0] = (byte) ((l >> 48) & 0xFF);
+      encoding[1] = (byte) ((l >> 40) & 0xFF);
+      encoding[2] = (byte) ((l >> 32) & 0xFF);
+      encoding[3] = (byte) ((l >> 24) & 0xFF);
+      encoding[4] = (byte) ((l >> 16) & 0xFF);
+      encoding[5] = (byte) ((l >> 8) & 0xFF);
+      encoding[6] = (byte) (l & 0xFF);
+    }
+    else
+    {
+      encoding = new byte[8];
+      encoding[0] = (byte) ((l >> 56) & 0xFF);
+      encoding[1] = (byte) ((l >> 48) & 0xFF);
+      encoding[2] = (byte) ((l >> 40) & 0xFF);
+      encoding[3] = (byte) ((l >> 32) & 0xFF);
+      encoding[4] = (byte) ((l >> 24) & 0xFF);
+      encoding[5] = (byte) ((l >> 16) & 0xFF);
+      encoding[6] = (byte) ((l >> 8) & 0xFF);
+      encoding[7] = (byte) (l & 0xFF);
+    }
+
+    byte[] encodedElement = new byte[3 + encoding.length];
+    encodedElement[0] = ASN1Constants.UNIVERSAL_INTEGER_TYPE;
+    encodedElement[1] = (byte) 0x81;
+    encodedElement[2] = (byte) encoding.length;
+    System.arraycopy(encoding, 0, encodedElement, 3, encoding.length);
+
+    ASN1Long longElement = ASN1Long.decodeAsLong(encodedElement);
+    assertEquals(l, longElement.longValue());
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes a byte array with
+   * a null array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeNullArrayAsLong()
+         throws Exception
+  {
+    byte[] b = null;
+    ASN1Long.decodeAsLong(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes a byte array with
+   * a short array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeShortArrayAsLong()
+         throws Exception
+  {
+    byte[] b = new byte[0];
+    ASN1Long.decodeAsLong(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes a byte array with
+   * a long length array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeLongLengthArrayAsLong()
+         throws Exception
+  {
+    byte[] b = { 0x02, (byte) 0x85, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00 };
+    ASN1Long.decodeAsLong(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes a byte array with
+   * a truncated length array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeTruncatedLengthArrayAsLong()
+         throws Exception
+  {
+    byte[] b = { 0x02, (byte) 0x82, 0x00 };
+    ASN1Long.decodeAsLong(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes a byte array with
+   * a length mismatch.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeLengthMismatchArrayAsLong()
+         throws Exception
+  {
+    byte[] b = { 0x02, (byte) 0x81, 0x01 };
+    ASN1Long.decodeAsLong(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsLong</CODE> method that takes a byte array with
+   * a value too long for a long.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeLongIntLengthArrayAsLong()
+         throws Exception
+  {
+    byte[] b = { 0x02, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                 0x00 };
+    ASN1Long.decodeAsLong(b);
+  }
+
+
+
+  /**
+   * Tests the first <CODE>toString</CODE> method that takes a string builder
    * argument.
+   *
+   * @param  l  The long value to use in the test.
    */
-  @Test()
-  public void testSetLongValue() {
-    ASN1Long element = new ASN1Long(0);
-
-    int numLongs = testLongs.size();
-    for (int i = 0; i < numLongs; i++) {
-      long longValue = testLongs.get(i);
-      byte[] encodedLongValue = testEncodedLongs.get(i);
-
-      element.setValue(longValue);
-      assertEquals(longValue, element.longValue());
-
-      assertTrue(Arrays.equals(encodedLongValue, element.value()));
-    }
+  @Test(dataProvider = "longValues")
+  public void testToString1(long l)
+  {
+    new ASN1Long(l).toString(new StringBuilder());
   }
 
-  /**
-   * Tests the <CODE>setValue</CODE> method that takes a byte array
-   * argument.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test()
-  public void testSetByteValue() throws Exception {
-    ASN1Long element = new ASN1Long(0);
 
-    int numLongs = testLongs.size();
-    for (int i = 0; i < numLongs; i++) {
-      long longValue = testLongs.get(i);
-      byte[] encodedLongValue = testEncodedLongs.get(i);
-
-      element.setValue(encodedLongValue);
-
-      assertEquals(longValue, element.longValue());
-    }
-  }
 
   /**
-   * Tests the <CODE>decodeAsLong</CODE> method that takes an ASN.1
-   * element argument.
+   * Tests the second <CODE>toString</CODE> method that takes string builder and
+   * integer arguments.
    *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * @param  l  The long value to use in the test.
    */
-  @Test()
-  public void testDecodeElementAsLong() throws Exception {
-    int numLongs = testLongs.size();
-    for (int i = 0; i < numLongs; i++) {
-      long longValue = testLongs.get(i);
-      byte[] encodedLongValue = testEncodedLongs.get(i);
-
-      ASN1Element element = new ASN1Element((byte) 0x00, encodedLongValue);
-
-      assertEquals(longValue, ASN1Long.decodeAsLong(element).longValue());
-
-      element = new ASN1Element((byte) 0x02, encodedLongValue);
-
-      assertEquals(longValue, ASN1Long.decodeAsLong(element).longValue());
-    }
-  }
-
-  /**
-   * Tests the <CODE>decodeAsLong</CODE> method that takes a byte
-   * array argument.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test()
-  public void testDecodeBytesAsLong() throws Exception {
-    int numLongs = testLongs.size();
-    for (int i = 0; i < numLongs; i++) {
-      long longValue = testLongs.get(i);
-      byte[] encodedLongValue = testEncodedLongs.get(i);
-      byte[] encodedLength = ASN1Element
-          .encodeLength(encodedLongValue.length);
-      byte[] encodedElement = new byte[1 + encodedLength.length
-          + encodedLongValue.length];
-
-      encodedElement[0] = (byte) 0x00;
-      System.arraycopy(encodedLength, 0, encodedElement, 1,
-          encodedLength.length);
-      System.arraycopy(encodedLongValue, 0, encodedElement,
-          1 + encodedLength.length, encodedLongValue.length);
-
-      assertEquals(longValue, ASN1Long.decodeAsLong(encodedElement)
-          .longValue());
-
-      encodedElement[0] = (byte) 0x02;
-      assertEquals(longValue, ASN1Long.decodeAsLong(encodedElement)
-          .longValue());
-    }
+  @Test(dataProvider = "longValues")
+  public void testToString2(long l)
+  {
+    new ASN1Long(l).toString(new StringBuilder(), 1);
   }
 }
+
