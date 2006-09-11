@@ -248,7 +248,20 @@ public class ASN1OctetString
       }
       else
       {
-        buffer.append(new String(value, i, (length-i)));
+        String s;
+        try
+        {
+          s = new String(value, i, (length-i), "UTF-8");
+        }
+        catch (Exception e)
+        {
+          assert debugException(CLASS_NAME, "stringValue", e);
+
+          s = new String(value, i, (length-i));
+        }
+
+        buffer.append(s);
+        return;
       }
     }
   }
