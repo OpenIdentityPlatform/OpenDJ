@@ -26,66 +26,286 @@
  */
 package org.opends.server.protocols.asn1;
 
+
+
 import org.testng.annotations.Test;
+
+
 
 /**
  * This class defines a set of tests for the
  * org.opends.server.protocols.asn1.ASN1Null class.
  */
-public class TestASN1Null extends ASN1TestCase {
+public class TestASN1Null
+       extends ASN1TestCase
+{
   /**
-   * Tests the <CODE>setValue</CODE> method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * Tests the first constructor, which doesn't take any arguments.
    */
   @Test()
-  public void testSetValue() throws Exception {
-    ASN1Null element = new ASN1Null();
-
-    // Test with a null array.
-    element.setValue(null);
-
-    // Test with an empty array.
-    element.setValue(new byte[0]);
+  public void testConstructor1()
+  {
+    new ASN1Null();
   }
 
-  /**
-   * Tests the <CODE>decodeAsNull</CODE> method that takes an ASN.1
-   * element argument.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test()
-  public void testDecodeElementAsNull() throws Exception {
-    // Test with a type of 0x00.
-    ASN1Element element = new ASN1Element((byte) 0x00);
 
-    ASN1Null.decodeAsNull(element);
-
-    // Test with a type of 0x05.
-    element = new ASN1Element((byte) 0x05);
-    ASN1Null.decodeAsNull(element);
-  }
 
   /**
-   * Tests the <CODE>decodeAsNull</CODE> method that takes a byte
-   * array argument.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * Tests the second constructor, which takes a single byte argument.
    */
   @Test()
-  public void testDecodeBytesAsNull() throws Exception {
-    byte[] encodedElement = new byte[] { (byte) 0x00, (byte) 0x00 };
-
-    // Test with all possible type representations.
-    for (int i = 0; i < 256; i++) {
-      byte type = (byte) (i & 0xFF);
-      encodedElement[0] = type;
-
-      ASN1Null.decodeAsNull(encodedElement);
+  public void testConstructor2()
+  {
+    for (int i=0; i < 254; i++)
+    {
+      new ASN1Null((byte) (i & 0xFF));
     }
   }
+
+
+
+  /**
+   * Tests the <CODE>setValue</CODE> method with a null argument.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSetNullValue()
+         throws Exception
+  {
+    ASN1Null n = new ASN1Null();
+    n.setValue(null);
+  }
+
+
+
+  /**
+   * Tests the <CODE>setValue</CODE> method with an empty byte array argument.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSetEmptyValue()
+         throws Exception
+  {
+    ASN1Null n = new ASN1Null();
+    n.setValue(new byte[0]);
+  }
+
+
+
+  /**
+   * Tests the <CODE>setValue</CODE> method with a non-empty byte array
+   * argument.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testSetNonEmptyValue()
+         throws Exception
+  {
+    ASN1Null n = new ASN1Null();
+    n.setValue(new byte[1]);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes an ASN1Element
+   * argument with a null argument.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeNullElementAsNull()
+         throws Exception
+  {
+    ASN1Element e = null;
+    ASN1Null.decodeAsNull(e);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes an ASN1Element
+   * argument with an element with a zero-length value.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDecodeZeroLengthElementAsNull()
+         throws Exception
+  {
+    ASN1Element e = new ASN1OctetString(new byte[0]);
+    ASN1Null.decodeAsNull(e);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes an ASN1Element
+   * argument with an element with a nonzero-length value.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeNonZeroLengthElementAsNull()
+         throws Exception
+  {
+    ASN1Element e = new ASN1OctetString(new byte[1]);
+    ASN1Null.decodeAsNull(e);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array argument
+   * with a null array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeNullArrayAsNull()
+         throws Exception
+  {
+    byte[] b = null;
+    ASN1Null.decodeAsNull(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array argument
+   * with a short array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeShortArrayAsNull()
+         throws Exception
+  {
+    byte[] b = new byte[1];
+    ASN1Null.decodeAsNull(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array argument
+   * with an array with a long length.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeLongLengthArrayAsNull()
+         throws Exception
+  {
+    byte[] b = new byte[] { 0x05, (byte) 0x85, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    ASN1Null.decodeAsNull(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array argument
+   * with an array with a truncated length.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeTruncatedLengthArrayAsNull()
+         throws Exception
+  {
+    byte[] b = new byte[] { 0x05, (byte) 0x82, 0x00 };
+    ASN1Null.decodeAsNull(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array argument
+   * with an array with a length mismatch.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeLengthMismatchArrayAsNull()
+         throws Exception
+  {
+    byte[] b = new byte[] { 0x05, 0x00, 0x00 };
+    ASN1Null.decodeAsNull(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array argument
+   * with an arry with a nonzero length.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeNonZeroLengthArrayAsNull()
+         throws Exception
+  {
+    byte[] b = new byte[] { 0x05, 0x01, 0x00 };
+    ASN1Null.decodeAsNull(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array argument
+   * with an arry with a zero length.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDecodeZeroLengthArrayAsNull()
+         throws Exception
+  {
+    byte[] b = new byte[] { 0x05, 0x00 };
+    ASN1Null.decodeAsNull(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array argument
+   * with an arry with a zero length that takes multiple bytes to encode.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDecodeExtendedZeroLengthArrayAsNull()
+         throws Exception
+  {
+    byte[] b = new byte[] { 0x05, (byte) 0x81, 0x00 };
+    ASN1Null.decodeAsNull(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>toString</CODE> method that takes a string builder
+   * argument.
+   */
+  @Test()
+  public void testToString1()
+  {
+    new ASN1Null().toString(new StringBuilder());
+  }
+
+
+
+  /**
+   * Tests the <CODE>toString</CODE> method that takes string builder and
+   * integer arguments.
+   */
+  @Test()
+  public void testToString2()
+  {
+    new ASN1Null().toString(new StringBuilder(), 1);
+  }
 }
+

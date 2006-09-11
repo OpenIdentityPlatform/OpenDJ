@@ -42,7 +42,7 @@ public class TestASN1Exception
        extends ASN1TestCase
 {
   /**
-   * Tests the first construtor, which takes integer and string arguments.
+   * Tests the first constructor, which takes integer and string arguments.
    */
   @Test()
   public void testConstructor1()
@@ -53,7 +53,7 @@ public class TestASN1Exception
 
 
   /**
-   * Tests the first construtor, which takes integer, string, and throwable
+   * Tests the second constructor, which takes integer, string, and throwable
    * arguments.
    */
   @Test()
