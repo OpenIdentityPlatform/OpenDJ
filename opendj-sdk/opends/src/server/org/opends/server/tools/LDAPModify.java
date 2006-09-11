@@ -49,6 +49,7 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
@@ -236,7 +237,7 @@ public class LDAPModify
         case ADD:
           operationType = "ADD";
           AddChangeRecordEntry addEntry = (AddChangeRecordEntry) entry;
-          ArrayList<Attribute> attrs = addEntry.getAttributes();
+          List<Attribute> attrs = addEntry.getAttributes();
           ArrayList<LDAPAttribute> attributes =
               new ArrayList<LDAPAttribute>(attrs.size());
           for(Attribute a : attrs)
@@ -256,8 +257,9 @@ public class LDAPModify
         case MODIFY:
           operationType = "MODIFY";
           ModifyChangeRecordEntry modEntry = (ModifyChangeRecordEntry) entry;
-          protocolOp = new ModifyRequestProtocolOp(asn1OctetStr,
-                                                   modEntry.getModifications());
+          ArrayList<LDAPModification> mods =
+            new ArrayList<LDAPModification>(modEntry.getModifications());
+          protocolOp = new ModifyRequestProtocolOp(asn1OctetStr, mods);
           msgID = MSGID_PROCESSING_OPERATION;
           System.out.println(getMessage(msgID, operationType, asn1OctetStr));
           break;

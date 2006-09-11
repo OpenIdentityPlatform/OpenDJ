@@ -28,20 +28,16 @@ package org.opends.server.util;
 
 
 
+import static org.opends.server.loggers.Debug.debugConstructor;
 import static org.opends.server.loggers.Debug.debugEnter;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.UtilityMessages.*;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
-import org.opends.server.types.ModificationType;
 
 
 
@@ -59,37 +55,46 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
       "org.opends.server.util.ModifyChangeRecordEntry";
 
 
-  private LDIFReader reader;
+  /**
+   * The modifications for this change record.
+   */
+  private final List<LDAPModification> modifications;
 
-  private ArrayList<LDAPModification> modifications =
-      new ArrayList<LDAPModification>();
+
 
   /**
    * Creates a new entry with the provided information.
    *
    * @param  dn      The distinguished name for this entry.
-   * @param  reader  The LDIFReader instance used to read the entries.
+   * @param modifications The modifications for this change record.
    */
-  public ModifyChangeRecordEntry(DN dn, LDIFReader reader)
+  public ModifyChangeRecordEntry(DN dn,
+      Collection<LDAPModification> modifications)
   {
-    super(dn, reader);
+    super(dn);
 
-    this.reader = reader;
+    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
+        String.valueOf(modifications));
+
+    this.modifications = new ArrayList<LDAPModification>(modifications);
   }
 
 
   /**
-   * Get the list of modifications from the attributes.
+   * Get the list of modifications.
+   * <p>
+   * The returned list is read-only.
    *
-   * @return the list of modifications.
+   * @return Returns the unmodifiable list of modifications.
    */
-  public ArrayList<LDAPModification> getModifications()
+  public List<LDAPModification> getModifications()
   {
     assert debugEnter(CLASS_NAME, "getModifications");
 
-    return modifications;
-
+    return Collections.unmodifiableList(modifications);
   }
+
+
 
   /**
    * Retrieves the name of the change operation type.
@@ -102,84 +107,5 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
 
     return ChangeOperationType.MODIFY;
   }
-
-  /**
-   * Parse the lines and populate the internal structures.
-   *
-   * @param lines         The lines to parse.
-   * @param lineNumber    The current line number.
-   *
-   * @exception LDIFException if there is an error during parsing.
-   */
-
-  public void parse(LinkedList<StringBuilder> lines, long lineNumber)
-      throws LDIFException
-  {
-    assert debugEnter(CLASS_NAME, "parse", String.valueOf(lines),
-          String.valueOf(lineNumber));
-
-    while(!lines.isEmpty())
-    {
-      ModificationType modType = null;
-
-      StringBuilder line = lines.remove();
-      Attribute attr =
-           reader.readSingleValueAttribute(lines, line, getDN(), null);
-      String name = attr.getName();
-      LinkedHashSet<AttributeValue> values = attr.getValues();
-      // Only 1 entry should be present
-      if(values.size() != 1)
-      {
-          int msgID = MSGID_LDIF_INVALID_MODIFY_ATTRIBUTE_VAL;
-          String message = getMessage(msgID, name);
-          throw new LDIFException(msgID, message, lineNumber, true);
-      }
-
-      // Get the attribute description
-      String attrDescr = values.iterator().next().getStringValue();
-
-      String lowerName = name.toLowerCase();
-      if(lowerName.equals("add"))
-      {
-        modType = ModificationType.ADD;
-      } else if(lowerName.equals("delete"))
-      {
-        modType = ModificationType.DELETE;
-      } else if(lowerName.equals("replace"))
-      {
-        modType = ModificationType.REPLACE;
-      } else if(lowerName.equals("increment"))
-      {
-        modType = ModificationType.INCREMENT;
-      } else
-      {
-        // Invalid attribute name.
-        int msgID = MSGID_LDIF_INVALID_MODIFY_ATTRIBUTE;
-        String message = getMessage(msgID, name,
-              "add, delete, replace, increment");
-        throw new LDIFException(msgID, message, lineNumber, true);
-      }
-
-      // Now go through the rest of the attributes till the "-" line is reached.
-      Attribute modAttr = LDIFReader.parseAttrDescription(attrDescr);
-      while (! lines.isEmpty())
-      {
-        line = lines.remove();
-        if(line.toString().equals("-"))
-        {
-          break;
-        }
-        Attribute a =
-             reader.readSingleValueAttribute(lines, line, getDN(), attrDescr);
-        modAttr.getValues().addAll(a.getValues());
-      }
-
-      LDAPAttribute ldapAttr = new LDAPAttribute(modAttr);
-      LDAPModification mod = new LDAPModification(modType, ldapAttr);
-      modifications.add(mod);
-    }
-  }
-
-
 }
 

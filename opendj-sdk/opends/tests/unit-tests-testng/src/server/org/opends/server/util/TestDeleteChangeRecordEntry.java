@@ -26,12 +26,8 @@
  */
 package org.opends.server.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.DN;
-import org.opends.server.types.LDIFImportConfig;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -45,9 +41,6 @@ import org.testng.annotations.Test;
  * been overridden.
  */
 public final class TestDeleteChangeRecordEntry extends UtilTestCase {
-  // An empty LDIF reader.
-  private LDIFReader emptyReader;
-
   /**
    * Once-only initialization.
    * 
@@ -59,10 +52,6 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
     // This test suite depends on having the schema available, so we'll
     // start the server.
     TestCaseUtils.startServer();
-
-    InputStream stream = new ByteArrayInputStream(new byte[0]);
-    LDIFImportConfig config = new LDIFImportConfig(stream);
-    emptyReader = new LDIFReader(config);
   }
 
   /**
@@ -73,8 +62,7 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorNullDN() throws Exception {
-    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(null,
-        emptyReader);
+    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(null);
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -87,8 +75,7 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
-    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(new DN(),
-        emptyReader);
+    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(new DN());
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -104,8 +91,7 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
     DN testDN1 = DN.decode("dc=hello, dc=world");
     DN testDN2 = DN.decode("dc=hello, dc=world");
 
-    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(testDN1,
-        emptyReader);
+    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(testDN1);
 
     Assert.assertEquals(entry.getDN(), testDN2);
   }
@@ -118,28 +104,10 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(null,
-        emptyReader);
+    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(null);
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.DELETE);
-  }
-
-  /**
-   * Tests parse method.
-   * <p>
-   * Due to tight coupling between the
-   * {@link DeleteChangeRecordEntry#parse(java.util.LinkedList, long)}
-   * method and the {@link LDIFReader} class we'll test this method in
-   * the {@link LDIFReader} test suite.
-   * 
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(enabled = false)
-  public void testParse() throws Exception {
-    // FIXME: fix tight-coupling between parse() and LDIFReader.
-    Assert.assertTrue(false);
   }
 
 }

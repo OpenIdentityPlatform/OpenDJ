@@ -26,12 +26,16 @@
  */
 package org.opends.server.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
-import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ModificationType;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -45,8 +49,11 @@ import org.testng.annotations.Test;
  * been overridden.
  */
 public final class TestModifyChangeRecordEntry extends UtilTestCase {
-  // An empty LDIF reader.
-  private LDIFReader emptyReader;
+  // Set of changes.
+  private List<LDAPModification> modifications;
+
+  // The attribute being added in the modifications.
+  private Attribute attribute;
 
   /**
    * Once-only initialization.
@@ -60,9 +67,13 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
     // start the server.
     TestCaseUtils.startServer();
 
-    InputStream stream = new ByteArrayInputStream(new byte[0]);
-    LDIFImportConfig config = new LDIFImportConfig(stream);
-    emptyReader = new LDIFReader(config);
+    // Create a simple set of modifications.
+    modifications = new ArrayList<LDAPModification>();
+    attribute = new Attribute("cn", "hello world");
+    LDAPAttribute lattribute = new LDAPAttribute(attribute);
+    LDAPModification modification = new LDAPModification(
+        ModificationType.ADD, lattribute);
+    modifications.add(modification);
   }
 
   /**
@@ -74,7 +85,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
   @Test
   public void testConstructorNullDN() throws Exception {
     ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null,
-        emptyReader);
+        modifications);
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -88,7 +99,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
   @Test
   public void testConstructorEmptyDN() throws Exception {
     ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(new DN(),
-        emptyReader);
+        modifications);
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -105,7 +116,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
     DN testDN2 = DN.decode("dc=hello, dc=world");
 
     ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(testDN1,
-        emptyReader);
+        modifications);
 
     Assert.assertEquals(entry.getDN(), testDN2);
   }
@@ -119,28 +130,43 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
   @Test
   public void testChangeOperationType() throws Exception {
     ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null,
-        emptyReader);
+        modifications);
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.MODIFY);
   }
 
   /**
-   * Tests parse and getAttributes methods.
-   * <p>
-   * Due to tight coupling between the
-   * {@link ModifyChangeRecordEntry#parse(java.util.LinkedList, long)}
-   * method and the {@link LDIFReader} class it is not easy to test the
-   * {@link ModifyChangeRecordEntry#getModifications()} method. Instead,
-   * we'll test that in the {@link LDIFReader} test suite.
+   * Tests getModifications method for empty modifications.
    * 
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(enabled = false)
-  public void testGetModifications() throws Exception {
-    // FIXME: fix tight-coupling between parse() and LDIFReader.
-    Assert.assertTrue(false);
+  @Test
+  public void testGetModificationsEmpty() throws Exception {
+    List<LDAPModification> empty = Collections.emptyList();
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null, empty);
+
+    List<LDAPModification> mods = entry.getModifications();
+    Assert.assertEquals(mods.size(), 0);
   }
 
+  /**
+   * Tests getModifications method for non-empty modifications.
+   * 
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testGetModificationsNonEmpty() throws Exception {
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null,
+        modifications);
+
+    List<LDAPModification> mods = entry.getModifications();
+    Assert.assertEquals(mods.size(), 1);
+
+    LDAPModification first = mods.get(0);
+    Assert.assertEquals(first.getModificationType(), ModificationType.ADD);
+    Assert.assertEquals(first.getAttribute().toAttribute(), attribute);
+  }
 }

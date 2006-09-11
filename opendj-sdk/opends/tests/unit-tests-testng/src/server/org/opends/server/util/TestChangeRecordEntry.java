@@ -26,8 +26,6 @@
  */
 package org.opends.server.util;
 
-import java.util.LinkedList;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.DN;
 import org.testng.Assert;
@@ -65,15 +63,6 @@ public final class TestChangeRecordEntry extends UtilTestCase {
       // Will not use.
       return null;
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void parse(LinkedList<StringBuilder> lines, long lineNumber)
-        throws LDIFException {
-      // Will not use.
-    }
   }
 
   /**
@@ -88,7 +77,7 @@ public final class TestChangeRecordEntry extends UtilTestCase {
     // start the server.
     TestCaseUtils.startServer();
   }
-  
+
   /**
    * Tests the constructor with null DN.
    * 
@@ -129,24 +118,5 @@ public final class TestChangeRecordEntry extends UtilTestCase {
     MyChangeRecordEntry entry = new MyChangeRecordEntry(testDN1);
 
     Assert.assertEquals(entry.getDN(), testDN2);
-  }
-
-  /**
-   * Tests the set DN method.
-   * 
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dependsOnMethods = { "testConstructorNonNullDN" })
-  public void testSetDN() throws Exception {
-    DN testDN1 = DN.decode("dc=hello, dc=world");
-    DN testDN2 = DN.decode("dc=goodbye, dc=world");
-    DN testDN3 = DN.decode("dc=goodbye, dc=world");
-
-    MyChangeRecordEntry entry = new MyChangeRecordEntry(testDN1);
-
-    entry.setDN(testDN2);
-
-    Assert.assertEquals(entry.getDN(), testDN3);
   }
 }

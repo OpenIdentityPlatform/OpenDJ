@@ -28,11 +28,17 @@ package org.opends.server.util;
 
 
 
+import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.server.util.StaticUtils.toLowerCase;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,24 +51,21 @@ import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
-
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -71,7 +74,7 @@ import static org.opends.server.util.StaticUtils.*;
  * provides support for both standard entries and change entries (as would be
  * used with a tool like ldapmodify).
  */
-public class LDIFReader
+public final class LDIFReader
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -310,28 +313,7 @@ public class LDIFReader
           String message = getMessage(msgID, String.valueOf(entryDN),
                                       lastEntryLineNumber,
                                       invalidReason.toString());
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e)
-            {
-              assert debugException(CLASS_NAME, "readEntry", e);
-            }
-          }
-
+          logToRejectWriter(lines, message);
           entriesRejected++;
           throw new LDIFException(msgID, message, lastEntryLineNumber, true);
         }
@@ -391,19 +373,19 @@ public class LDIFReader
       {
         if(changeType.equals("add"))
         {
-          entry = new AddChangeRecordEntry(entryDN, this);
+          entry = parseAddChangeRecordEntry(entryDN, lines);
         } else if (changeType.equals("delete"))
         {
-          entry = new DeleteChangeRecordEntry(entryDN, this);
+          entry = parseDeleteChangeRecordEntry(entryDN, lines);
         } else if (changeType.equals("modify"))
         {
-          entry = new ModifyChangeRecordEntry(entryDN, this);
+          entry = parseModifyChangeRecordEntry(entryDN, lines);
         } else if (changeType.equals("modrdn"))
         {
-          entry = new ModifyDNChangeRecordEntry(entryDN, this);
+          entry = parseModifyDNChangeRecordEntry(entryDN, lines);
         } else if (changeType.equals("moddn"))
         {
-          entry = new ModifyDNChangeRecordEntry(entryDN, this);
+          entry = parseModifyDNChangeRecordEntry(entryDN, lines);
         } else
         {
           int msgID = MSGID_LDIF_INVALID_CHANGETYPE_ATTRIBUTE;
@@ -416,7 +398,7 @@ public class LDIFReader
         // default to "add"?
         if(defaultAdd)
         {
-          entry = new AddChangeRecordEntry(entryDN, this);
+          entry = parseAddChangeRecordEntry(entryDN, lines);
         } else
         {
           int msgID = MSGID_LDIF_INVALID_CHANGETYPE_ATTRIBUTE;
@@ -426,13 +408,9 @@ public class LDIFReader
         }
       }
 
-      // Parse the lines to populate the change record entry data structures.
-      entry.parse(lines, lastEntryLineNumber);
-
       return entry;
     }
   }
-
 
 
 
@@ -512,23 +490,7 @@ public class LDIFReader
         {
           int    msgID   = MSGID_LDIF_INVALID_LEADING_SPACE;
           String message = getMessage(msgID, lineNumber, line);
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            rejectWriter.write("# " + message);
-            rejectWriter.newLine();
-            for (StringBuilder sb : lines)
-            {
-              rejectWriter.write(sb.toString());
-              rejectWriter.newLine();
-            }
-
-            rejectWriter.write(line);
-            rejectWriter.newLine();
-            rejectWriter.newLine();
-          }
-
+          logToRejectWriter(lines, message);
           throw new LDIFException(msgID, message, lineNumber, false);
         }
       }
@@ -584,26 +546,7 @@ public class LDIFReader
       int    msgID   = MSGID_LDIF_NO_ATTR_NAME;
       String message = getMessage(msgID, lastEntryLineNumber, line.toString());
 
-      BufferedWriter rejectWriter = importConfig.getRejectWriter();
-      if (rejectWriter != null)
-      {
-        try
-        {
-          rejectWriter.write("# " + message);
-          rejectWriter.newLine();
-          for (StringBuilder sb : lines)
-          {
-            rejectWriter.write(sb.toString());
-            rejectWriter.newLine();
-          }
-
-          rejectWriter.newLine();
-        }
-        catch (Exception e)
-        {
-          assert debugException(CLASS_NAME, "readDN", e);
-        }
-      }
+      logToRejectWriter(lines, message);
 
       throw new LDIFException(msgID, message, lastEntryLineNumber, true);
     }
@@ -619,26 +562,7 @@ public class LDIFReader
       int    msgID   = MSGID_LDIF_NO_DN;
       String message = getMessage(msgID, lastEntryLineNumber, line.toString());
 
-      BufferedWriter rejectWriter = importConfig.getRejectWriter();
-      if (rejectWriter != null)
-      {
-        try
-        {
-          rejectWriter.write("# " + message);
-          rejectWriter.newLine();
-          for (StringBuilder sb : lines)
-          {
-            rejectWriter.write(sb.toString());
-            rejectWriter.newLine();
-          }
-
-          rejectWriter.newLine();
-        }
-        catch (Exception e)
-        {
-          assert debugException(CLASS_NAME, "readDN", e);
-        }
-      }
+      logToRejectWriter(lines, message);
 
       throw new LDIFException(msgID, message, lastEntryLineNumber, true);
     }
@@ -679,26 +603,7 @@ public class LDIFReader
         String message = getMessage(msgID, lastEntryLineNumber, line,
                                     String.valueOf(e));
 
-        BufferedWriter rejectWriter = importConfig.getRejectWriter();
-        if (rejectWriter != null)
-        {
-          try
-          {
-            rejectWriter.write("# " + message);
-            rejectWriter.newLine();
-            for (StringBuilder sb : lines)
-            {
-              rejectWriter.write(sb.toString());
-              rejectWriter.newLine();
-            }
-
-            rejectWriter.newLine();
-          }
-          catch (Exception e2)
-          {
-            assert debugException(CLASS_NAME, "readDN", e2);
-          }
-        }
+        logToRejectWriter(lines, message);
 
         throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
       }
@@ -715,26 +620,7 @@ public class LDIFReader
         String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
                                     de.getErrorMessage());
 
-        BufferedWriter rejectWriter = importConfig.getRejectWriter();
-        if (rejectWriter != null)
-        {
-          try
-          {
-            rejectWriter.write("# " + message);
-            rejectWriter.newLine();
-            for (StringBuilder sb : lines)
-            {
-              rejectWriter.write(sb.toString());
-              rejectWriter.newLine();
-            }
-
-            rejectWriter.newLine();
-          }
-          catch (Exception e)
-          {
-            assert debugException(CLASS_NAME, "readDN", e);
-          }
-        }
+        logToRejectWriter(lines, message);
 
         throw new LDIFException(msgID, message, lastEntryLineNumber, true, de);
       }
@@ -746,26 +632,7 @@ public class LDIFReader
         String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
                                     String.valueOf(e));
 
-        BufferedWriter rejectWriter = importConfig.getRejectWriter();
-        if (rejectWriter != null)
-        {
-          try
-          {
-            rejectWriter.write("# " + message);
-            rejectWriter.newLine();
-            for (StringBuilder sb : lines)
-            {
-              rejectWriter.write(sb.toString());
-              rejectWriter.newLine();
-            }
-
-            rejectWriter.newLine();
-          }
-          catch (Exception e2)
-          {
-            assert debugException(CLASS_NAME, "readDN", e2);
-          }
-        }
+        logToRejectWriter(lines, message);
 
         throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
       }
@@ -794,26 +661,7 @@ public class LDIFReader
         String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
                                     de.getErrorMessage());
 
-        BufferedWriter rejectWriter = importConfig.getRejectWriter();
-        if (rejectWriter != null)
-        {
-          try
-          {
-            rejectWriter.write("# " + message);
-            rejectWriter.newLine();
-            for (StringBuilder sb : lines)
-            {
-              rejectWriter.write(sb.toString());
-              rejectWriter.newLine();
-            }
-
-            rejectWriter.newLine();
-          }
-          catch (Exception e)
-          {
-            assert debugException(CLASS_NAME, "readDN", e);
-          }
-        }
+        logToRejectWriter(lines, message);
 
         throw new LDIFException(msgID, message, lastEntryLineNumber, true, de);
       }
@@ -825,31 +673,13 @@ public class LDIFReader
         String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
                                     String.valueOf(e));
 
-        BufferedWriter rejectWriter = importConfig.getRejectWriter();
-        if (rejectWriter != null)
-        {
-          try
-          {
-            rejectWriter.write("# " + message);
-            rejectWriter.newLine();
-            for (StringBuilder sb : lines)
-            {
-              rejectWriter.write(sb.toString());
-              rejectWriter.newLine();
-            }
-
-            rejectWriter.newLine();
-          }
-          catch (Exception e2)
-          {
-            assert debugException(CLASS_NAME, "readDN", e2);
-          }
-        }
+        logToRejectWriter(lines, message);
 
         throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
       }
     }
   }
+
 
 
   /**
@@ -882,28 +712,7 @@ public class LDIFReader
     {
       int    msgID   = MSGID_LDIF_NO_ATTR_NAME;
       String message = getMessage(msgID, lastEntryLineNumber, line.toString());
-
-      BufferedWriter rejectWriter = importConfig.getRejectWriter();
-      if (rejectWriter != null)
-      {
-        try
-        {
-          rejectWriter.write("# " + message);
-          rejectWriter.newLine();
-          for (StringBuilder sb : lines)
-          {
-            rejectWriter.write(sb.toString());
-            rejectWriter.newLine();
-          }
-
-          rejectWriter.newLine();
-        }
-        catch (Exception e)
-        {
-          assert debugException(CLASS_NAME, "readChangeType", e);
-        }
-      }
-
+      logToRejectWriter(lines, message);
       throw new LDIFException(msgID, message, lastEntryLineNumber, true);
     }
 
@@ -915,7 +724,7 @@ public class LDIFReader
     } else
     {
       // Remove the line
-      StringBuilder ln = lines.remove();
+      lines.remove();
     }
 
 
@@ -957,28 +766,7 @@ public class LDIFReader
         int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_DN;
         String message = getMessage(msgID, lastEntryLineNumber, line,
                                     String.valueOf(e));
-
-        BufferedWriter rejectWriter = importConfig.getRejectWriter();
-        if (rejectWriter != null)
-        {
-          try
-          {
-            rejectWriter.write("# " + message);
-            rejectWriter.newLine();
-            for (StringBuilder sb : lines)
-            {
-              rejectWriter.write(sb.toString());
-              rejectWriter.newLine();
-            }
-
-            rejectWriter.newLine();
-          }
-          catch (Exception e2)
-          {
-            assert debugException(CLASS_NAME, "readChangeType", e2);
-          }
-        }
-
+        logToRejectWriter(lines, message);
         throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
       }
 
@@ -1027,270 +815,24 @@ public class LDIFReader
        HashMap<AttributeType,List<Attribute>> operationalAttributes)
           throws LDIFException
   {
-    assert debugEnter(CLASS_NAME, "readAttribute", String.valueOf(line),
-                        String.valueOf(entryDN), String.valueOf(objectClasses),
-                        String.valueOf(userAttributes),
-                        String.valueOf(operationalAttributes));
+    assert debugEnter(CLASS_NAME, "readAttribute",
+        String.valueOf(line),
+        String.valueOf(entryDN),
+        String.valueOf(objectClasses),
+        String.valueOf(userAttributes),
+        String.valueOf(operationalAttributes));
 
-
-    int colonPos = line.indexOf(":");
-    if (colonPos <= 0)
-    {
-      int    msgID   = MSGID_LDIF_NO_ATTR_NAME;
-      String message = getMessage(msgID, lastEntryLineNumber, line.toString());
-
-      BufferedWriter rejectWriter = importConfig.getRejectWriter();
-      if (rejectWriter != null)
-      {
-        try
-        {
-          rejectWriter.write("# " + message);
-          rejectWriter.newLine();
-          for (StringBuilder sb : lines)
-          {
-            rejectWriter.write(sb.toString());
-            rejectWriter.newLine();
-          }
-
-          rejectWriter.newLine();
-        }
-        catch (Exception e)
-        {
-          assert debugException(CLASS_NAME, "readAttribute", e);
-        }
-      }
-
-      throw new LDIFException(msgID, message, lastEntryLineNumber, true);
-    }
-
-    LinkedHashSet<String> options;
-    String attrName = line.substring(0, colonPos);
-    int semicolonPos = attrName.indexOf(';');
-    if (semicolonPos > 0)
-    {
-      options = new LinkedHashSet<String>();
-      int nextPos = attrName.indexOf(';', semicolonPos+1);
-      while (nextPos > 0)
-      {
-        String option = attrName.substring(semicolonPos+1, nextPos);
-        if (option.length() > 0)
-        {
-          options.add(option);
-          semicolonPos = nextPos;
-          nextPos = attrName.indexOf(';', semicolonPos+1);
-        }
-      }
-
-      String option = attrName.substring(semicolonPos+1);
-      if (option.length() > 0)
-      {
-        options.add(option);
-      }
-
-      attrName = attrName.substring(0, attrName.indexOf(';'));
-    }
-    else
-    {
-      options   = null;
-    }
+    // Parse the attribute type description.
+    int colonPos = parseColonPosition(lines, line);
+    String attrDescr = line.substring(0, colonPos);
+    Attribute attribute = parseAttrDescription(attrDescr);
+    String attrName = attribute.getName();
     String lowerName = toLowerCase(attrName);
+    LinkedHashSet<String> options = attribute.getOptions();
 
-
-    // Look at the character immediately after the colon.  If there is none,
-    // then assume an attribute with an empty value.  If it is another colon,
-    // then the value must be base64-encoded.  If it is a less-than sign, then
-    // assume that it is a URL.  Otherwise, it is a regular value.
-    int length = line.length();
-    ASN1OctetString value;
-    if (colonPos == (length-1))
-    {
-      value = new ASN1OctetString();
-    }
-    else
-    {
-      char c = line.charAt(colonPos+1);
-      if (c == ':')
-      {
-        // The value is base64-encoded.  Find the first non-blank character,
-        // take the rest of the line, and base64-decode it.
-        int pos = colonPos+2;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
-
-        try
-        {
-          value = new ASN1OctetString(Base64.decode(line.substring(pos)));
-        }
-        catch (Exception e)
-        {
-          // The value did not have a valid base64-encoding.
-          assert debugException(CLASS_NAME, "readAttribute", e);
-
-          int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber, line,
-                                      String.valueOf(e));
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e2)
-            {
-              assert debugException(CLASS_NAME, "readAttribute", e2);
-            }
-          }
-
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-        }
-      }
-      else if (c == '<')
-      {
-        // Find the first non-blank character, decode the rest of the line as a
-        // URL, and read its contents.
-        int pos = colonPos+2;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
-
-        URL contentURL;
-        try
-        {
-          contentURL = new URL(line.substring(pos));
-        }
-        catch (Exception e)
-        {
-          // The URL was malformed or had an invalid protocol.
-          assert debugException(CLASS_NAME, "readAttribute", e);
-
-          int    msgID   = MSGID_LDIF_INVALID_URL;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber,
-                                      String.valueOf(attrName),
-                                      String.valueOf(e));
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e2)
-            {
-              assert debugException(CLASS_NAME, "readAttribute", e2);
-            }
-          }
-
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-        }
-
-
-        InputStream inputStream = null;
-        ByteArrayOutputStream outputStream = null;
-        try
-        {
-          outputStream = new ByteArrayOutputStream();
-          inputStream  = contentURL.openConnection().getInputStream();
-
-          int bytesRead;
-          while ((bytesRead = inputStream.read(buffer)) > 0)
-          {
-            outputStream.write(buffer, 0, bytesRead);
-          }
-
-          value = new ASN1OctetString(outputStream.toByteArray());
-        }
-        catch (Exception e)
-        {
-          // We were unable to read the contents of that URL for some reason.
-          assert debugException(CLASS_NAME, "readAttribute", e);
-
-          int msgID = MSGID_LDIF_URL_IO_ERROR;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber,
-                                      String.valueOf(attrName),
-                                      String.valueOf(contentURL),
-                                      String.valueOf(e));
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e2)
-            {
-              assert debugException(CLASS_NAME, "readAttribute", e2);
-            }
-          }
-
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-        }
-        finally
-        {
-          if (outputStream != null)
-          {
-            try
-            {
-              outputStream.close();
-            } catch (Exception e) {}
-          }
-
-          if (inputStream != null)
-          {
-            try
-            {
-              inputStream.close();
-            } catch (Exception e) {}
-          }
-        }
-      }
-      else
-      {
-        // The rest of the line should be the value.  Skip over any spaces and
-        // take the rest of the line as the value.
-        int pos = colonPos+1;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
-
-        value = new ASN1OctetString(line.substring(pos));
-      }
-    }
-
+    // Now parse the attribute value.
+    ASN1OctetString value = parseSingleValue(lines, line, entryDN,
+        colonPos, attrName);
 
     // See if this is an objectclass or an attribute.  Then get the
     // corresponding definition and add the value to the appropriate hash.
@@ -1348,45 +890,7 @@ public class LDIFReader
       }
 
 
-      AttributeValue attributeValue;
-      try
-      {
-        attributeValue = new AttributeValue(attrType, value);
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "readAttribute", e);
-
-        int    msgID   = MSGID_LDIF_INVALID_ATTR_SYNTAX;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-                                    lastEntryLineNumber, value.stringValue(),
-                                    attrName, String.valueOf(e));
-
-        BufferedWriter rejectWriter = importConfig.getRejectWriter();
-        if (rejectWriter != null)
-        {
-          try
-          {
-            rejectWriter.write("# " + message);
-            rejectWriter.newLine();
-            for (StringBuilder sb : lines)
-            {
-              rejectWriter.write(sb.toString());
-              rejectWriter.newLine();
-            }
-
-            rejectWriter.newLine();
-          }
-          catch (Exception e2)
-          {
-            assert debugException(CLASS_NAME, "readAttribute", e2);
-          }
-        }
-
-        throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-      }
-
-
+      AttributeValue attributeValue = new AttributeValue(attrType, value);
       List<Attribute> attrList;
       if (attrType.isOperational())
       {
@@ -1433,28 +937,7 @@ public class LDIFReader
             String message = getMessage(msgID, String.valueOf(entryDN),
                                         lastEntryLineNumber, attrName,
                                         value.stringValue());
-
-            BufferedWriter rejectWriter = importConfig.getRejectWriter();
-            if (rejectWriter != null)
-            {
-              try
-              {
-                rejectWriter.write("# " + message);
-                rejectWriter.newLine();
-                for (StringBuilder sb : lines)
-                {
-                  rejectWriter.write(sb.toString());
-                  rejectWriter.newLine();
-                }
-
-                rejectWriter.newLine();
-              }
-              catch (Exception e)
-              {
-                assert debugException(CLASS_NAME, "readAttribute", e);
-              }
-            }
-
+            logToRejectWriter(lines, message);
             throw new LDIFException(msgID, message, lastEntryLineNumber, true);
           }
           else if (attrType.isSingleValue() && (! valueSet.isEmpty()))
@@ -1462,28 +945,7 @@ public class LDIFReader
             int    msgID   = MSGID_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR;
             String message = getMessage(msgID, String.valueOf(entryDN),
                                         lastEntryLineNumber, attrName);
-
-            BufferedWriter rejectWriter = importConfig.getRejectWriter();
-            if (rejectWriter != null)
-            {
-              try
-              {
-                rejectWriter.write("# " + message);
-                rejectWriter.newLine();
-                for (StringBuilder sb : lines)
-                {
-                  rejectWriter.write(sb.toString());
-                  rejectWriter.newLine();
-                }
-
-                rejectWriter.newLine();
-              }
-              catch (Exception e)
-              {
-                assert debugException(CLASS_NAME, "readAttribute", e);
-              }
-            }
-
+            logToRejectWriter(lines, message);
             throw new LDIFException(msgID, message, lastEntryLineNumber, true);
           }
           else
@@ -1506,367 +968,6 @@ public class LDIFReader
   }
 
 
-  /**
-   * Decodes the provided line as an LDIF attribute and adds it to the
-   * appropriate hash.
-   *
-   * @param  lines                  The full set of lines that comprise the
-   *                                entry (used for writing reject information).
-   * @param  line                   The line to decode.
-   * @param  entryDN                The DN of the entry being decoded.
-   * @param  entryAttributes        The set of attributes decoded so far
-   *                                for the current entry.
-   *
-   * @throws  LDIFException  If a problem occurs while trying to decode the
-   *                         attribute contained in the provided entry.
-   */
-  public void readAttribute(LinkedList<StringBuilder> lines,
-       StringBuilder line, DN entryDN,
-       HashMap<AttributeType,ArrayList<Attribute>> entryAttributes)
-          throws LDIFException
-  {
-    assert debugEnter(CLASS_NAME, "readAttribute", String.valueOf(line),
-                        String.valueOf(entryDN),
-                        String.valueOf(entryAttributes));
-
-
-    int colonPos = line.indexOf(":");
-    if (colonPos <= 0)
-    {
-      int    msgID   = MSGID_LDIF_NO_ATTR_NAME;
-      String message = getMessage(msgID, lastEntryLineNumber, line.toString());
-
-      BufferedWriter rejectWriter = importConfig.getRejectWriter();
-      if (rejectWriter != null)
-      {
-        try
-        {
-          rejectWriter.write("# " + message);
-          rejectWriter.newLine();
-          for (StringBuilder sb : lines)
-          {
-            rejectWriter.write(sb.toString());
-            rejectWriter.newLine();
-          }
-
-          rejectWriter.newLine();
-        }
-        catch (Exception e)
-        {
-          assert debugException(CLASS_NAME, "readAttribute", e);
-        }
-      }
-
-      throw new LDIFException(msgID, message, lastEntryLineNumber, true);
-    }
-
-    String attrDescr = line.substring(0, colonPos);
-    Attribute attribute = parseAttrDescription(attrDescr);
-    String attrName = attribute.getName();
-    LinkedHashSet<String> options = attribute.getOptions();
-
-    // Look at the character immediately after the colon.  If there is none,
-    // then assume an attribute with an empty value.  If it is another colon,
-    // then the value must be base64-encoded.  If it is a less-than sign, then
-    // assume that it is a URL.  Otherwise, it is a regular value.
-    int length = line.length();
-    ASN1OctetString value;
-    if (colonPos == (length-1))
-    {
-      value = new ASN1OctetString();
-    }
-    else
-    {
-      char c = line.charAt(colonPos+1);
-      if (c == ':')
-      {
-        // The value is base64-encoded.  Find the first non-blank character,
-        // take the rest of the line, and base64-decode it.
-        int pos = colonPos+2;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
-
-        try
-        {
-          value = new ASN1OctetString(Base64.decode(line.substring(pos)));
-        }
-        catch (Exception e)
-        {
-          // The value did not have a valid base64-encoding.
-          assert debugException(CLASS_NAME, "readAttribute", e);
-
-          int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber, line,
-                                      String.valueOf(e));
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e2)
-            {
-              assert debugException(CLASS_NAME, "readAttribute", e2);
-            }
-          }
-
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-        }
-      }
-      else if (c == '<')
-      {
-        // Find the first non-blank character, decode the rest of the line as a
-        // URL, and read its contents.
-        int pos = colonPos+2;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
-
-        URL contentURL;
-        try
-        {
-          contentURL = new URL(line.substring(pos));
-        }
-        catch (Exception e)
-        {
-          // The URL was malformed or had an invalid protocol.
-          assert debugException(CLASS_NAME, "readAttribute", e);
-
-          int    msgID   = MSGID_LDIF_INVALID_URL;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber,
-                                      String.valueOf(attrName),
-                                      String.valueOf(e));
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e2)
-            {
-              assert debugException(CLASS_NAME, "readAttribute", e2);
-            }
-          }
-
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-        }
-
-
-        InputStream inputStream = null;
-        ByteArrayOutputStream outputStream = null;
-        try
-        {
-          outputStream = new ByteArrayOutputStream();
-          inputStream  = contentURL.openConnection().getInputStream();
-
-          int bytesRead;
-          while ((bytesRead = inputStream.read(buffer)) > 0)
-          {
-            outputStream.write(buffer, 0, bytesRead);
-          }
-
-          value = new ASN1OctetString(outputStream.toByteArray());
-        }
-        catch (Exception e)
-        {
-          // We were unable to read the contents of that URL for some reason.
-          assert debugException(CLASS_NAME, "readAttribute", e);
-
-          int msgID = MSGID_LDIF_URL_IO_ERROR;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber,
-                                      String.valueOf(attrName),
-                                      String.valueOf(contentURL),
-                                      String.valueOf(e));
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e2)
-            {
-              assert debugException(CLASS_NAME, "readAttribute", e2);
-            }
-          }
-
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-        }
-        finally
-        {
-          if (outputStream != null)
-          {
-            try
-            {
-              outputStream.close();
-            } catch (Exception e) {}
-          }
-
-          if (inputStream != null)
-          {
-            try
-            {
-              inputStream.close();
-            } catch (Exception e) {}
-          }
-        }
-      }
-      else
-      {
-        // The rest of the line should be the value.  Skip over any spaces and
-        // take the rest of the line as the value.
-        int pos = colonPos+1;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
-
-        value = new ASN1OctetString(line.substring(pos));
-      }
-    }
-
-    AttributeType attrType = attribute.getAttributeType();
-
-
-    AttributeValue attributeValue;
-    try
-    {
-      attributeValue = new AttributeValue(attrType, value);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "readAttribute", e);
-
-      int    msgID   = MSGID_LDIF_INVALID_ATTR_SYNTAX;
-      String message = getMessage(msgID, String.valueOf(entryDN),
-                                  lastEntryLineNumber, value.stringValue(),
-                                  attrName, String.valueOf(e));
-
-      BufferedWriter rejectWriter = importConfig.getRejectWriter();
-      if (rejectWriter != null)
-      {
-        try
-        {
-          rejectWriter.write("# " + message);
-          rejectWriter.newLine();
-          for (StringBuilder sb : lines)
-          {
-            rejectWriter.write(sb.toString());
-            rejectWriter.newLine();
-          }
-
-          rejectWriter.newLine();
-        }
-        catch (Exception e2)
-        {
-          assert debugException(CLASS_NAME, "readAttribute", e2);
-        }
-      }
-
-      throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-    }
-
-
-    ArrayList<Attribute> attrList;
-    attrList = entryAttributes.get(attrType);
-    if (attrList == null)
-    {
-      attribute.getValues().add(attributeValue);
-
-      attrList = new ArrayList<Attribute>();
-      attrList.add(attribute);
-      entryAttributes.put(attrType, attrList);
-      return;
-    }
-
-
-    // Check to see if any of the attributes in the list have the same set of
-    // options.  If so, then try to add a value to that attribute.
-    for (Attribute a : attrList)
-    {
-      if (a.optionsEqual(options))
-      {
-        LinkedHashSet<AttributeValue> valueSet = a.getValues();
-        if (valueSet.contains(attributeValue))
-        {
-          int    msgID   = MSGID_LDIF_DUPLICATE_ATTR;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber, attrName,
-                                      value.stringValue());
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e)
-            {
-              assert debugException(CLASS_NAME, "readAttribute", e);
-            }
-          }
-
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true);
-        }
-        else
-        {
-          valueSet.add(attributeValue);
-          return;
-        }
-      }
-    }
-
-
-    // No set of matching options was found, so create a new one and add it to
-    // the list.
-    attribute.getValues().add(attributeValue);
-    attrList.add(attribute);
-    return;
-  }
 
   /**
    * Decodes the provided line as an LDIF attribute and returns the
@@ -1885,295 +986,36 @@ public class LDIFReader
    *                                entry or if the parsed attribute name does
    *                                not match the specified attribute name.
    */
-  public Attribute readSingleValueAttribute(
+  private Attribute readSingleValueAttribute(
        LinkedList<StringBuilder> lines, StringBuilder line, DN entryDN,
        String attributeName) throws LDIFException
   {
-    assert debugEnter(CLASS_NAME, "readAttribute", String.valueOf(lines),
-      String.valueOf(line),
-                        String.valueOf(entryDN),
-                        String.valueOf(attributeName));
+    assert debugEnter(CLASS_NAME, "readSingleValueAttribute",
+        String.valueOf(lines),
+        String.valueOf(line),
+        String.valueOf(entryDN),
+        String.valueOf(attributeName));
 
-
-    int colonPos = line.indexOf(":");
-    if (colonPos <= 0)
-    {
-      int    msgID   = MSGID_LDIF_NO_ATTR_NAME;
-      String message = getMessage(msgID, lastEntryLineNumber, line.toString());
-
-      BufferedWriter rejectWriter = importConfig.getRejectWriter();
-      if (rejectWriter != null)
-      {
-        try
-        {
-          rejectWriter.write("# " + message);
-          rejectWriter.newLine();
-          for (StringBuilder sb : lines)
-          {
-            rejectWriter.write(sb.toString());
-            rejectWriter.newLine();
-          }
-
-          rejectWriter.newLine();
-        }
-        catch (Exception e)
-        {
-          assert debugException(CLASS_NAME, "readAttribute", e);
-        }
-      }
-
-      throw new LDIFException(msgID, message, lastEntryLineNumber, true);
-    }
-
+    // Parse the attribute type description.
+    int colonPos = parseColonPosition(lines, line);
     String attrDescr = line.substring(0, colonPos);
     Attribute attribute = parseAttrDescription(attrDescr);
     String attrName = attribute.getName();
     String lowerName = toLowerCase(attrName);
 
-    if(attributeName != null && !attributeName.toLowerCase().equals(lowerName))
+    if(attributeName != null && !toLowerCase(attributeName).equals(lowerName))
     {
       int msgID = MSGID_LDIF_INVALID_CHANGERECORD_ATTRIBUTE;
       String message = getMessage(msgID, lowerName, attributeName);
       throw new LDIFException(msgID, message, lastEntryLineNumber, false);
     }
 
-
-    // Look at the character immediately after the colon.  If there is none,
-    // then assume an attribute with an empty value.  If it is another colon,
-    // then the value must be base64-encoded.  If it is a less-than sign, then
-    // assume that it is a URL.  Otherwise, it is a regular value.
-    int length = line.length();
-    ASN1OctetString value;
-    if (colonPos == (length-1))
-    {
-      value = new ASN1OctetString();
-    }
-    else
-    {
-      char c = line.charAt(colonPos+1);
-      if (c == ':')
-      {
-        // The value is base64-encoded.  Find the first non-blank character,
-        // take the rest of the line, and base64-decode it.
-        int pos = colonPos+2;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
-
-        try
-        {
-          value = new ASN1OctetString(Base64.decode(line.substring(pos)));
-        }
-        catch (Exception e)
-        {
-          // The value did not have a valid base64-encoding.
-          assert debugException(CLASS_NAME, "readAttribute", e);
-
-          int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber, line,
-                                      String.valueOf(e));
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e2)
-            {
-              assert debugException(CLASS_NAME, "readAttribute", e2);
-            }
-          }
-
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-        }
-      }
-      else if (c == '<')
-      {
-        // Find the first non-blank character, decode the rest of the line as a
-        // URL, and read its contents.
-        int pos = colonPos+2;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
-
-        URL contentURL;
-        try
-        {
-          contentURL = new URL(line.substring(pos));
-        }
-        catch (Exception e)
-        {
-          // The URL was malformed or had an invalid protocol.
-          assert debugException(CLASS_NAME, "readAttribute", e);
-
-          int    msgID   = MSGID_LDIF_INVALID_URL;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber,
-                                      String.valueOf(attrName),
-                                      String.valueOf(e));
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e2)
-            {
-              assert debugException(CLASS_NAME, "readAttribute", e2);
-            }
-          }
-
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-        }
-
-
-        InputStream inputStream = null;
-        ByteArrayOutputStream outputStream = null;
-        try
-        {
-          outputStream = new ByteArrayOutputStream();
-          inputStream  = contentURL.openConnection().getInputStream();
-
-          int bytesRead;
-          while ((bytesRead = inputStream.read(buffer)) > 0)
-          {
-            outputStream.write(buffer, 0, bytesRead);
-          }
-
-          value = new ASN1OctetString(outputStream.toByteArray());
-        }
-        catch (Exception e)
-        {
-          // We were unable to read the contents of that URL for some reason.
-          assert debugException(CLASS_NAME, "readAttribute", e);
-
-          int msgID = MSGID_LDIF_URL_IO_ERROR;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber,
-                                      String.valueOf(attrName),
-                                      String.valueOf(contentURL),
-                                      String.valueOf(e));
-
-          BufferedWriter rejectWriter = importConfig.getRejectWriter();
-          if (rejectWriter != null)
-          {
-            try
-            {
-              rejectWriter.write("# " + message);
-              rejectWriter.newLine();
-              for (StringBuilder sb : lines)
-              {
-                rejectWriter.write(sb.toString());
-                rejectWriter.newLine();
-              }
-
-              rejectWriter.newLine();
-            }
-            catch (Exception e2)
-            {
-              assert debugException(CLASS_NAME, "readAttribute", e2);
-            }
-          }
-
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-        }
-        finally
-        {
-          if (outputStream != null)
-          {
-            try
-            {
-              outputStream.close();
-            } catch (Exception e) {}
-          }
-
-          if (inputStream != null)
-          {
-            try
-            {
-              inputStream.close();
-            } catch (Exception e) {}
-          }
-        }
-      }
-      else
-      {
-        // The rest of the line should be the value.  Skip over any spaces and
-        // take the rest of the line as the value.
-        int pos = colonPos+1;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
-
-        value = new ASN1OctetString(line.substring(pos));
-      }
-    }
+    //  Now parse the attribute value.
+    ASN1OctetString value = parseSingleValue(lines, line, entryDN,
+        colonPos, attrName);
 
     AttributeType attrType = attribute.getAttributeType();
-
-
-    AttributeValue attributeValue;
-    try
-    {
-      attributeValue = new AttributeValue(attrType, value);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "readAttribute", e);
-
-      int    msgID   = MSGID_LDIF_INVALID_ATTR_SYNTAX;
-      String message = getMessage(msgID, String.valueOf(entryDN),
-                                  lastEntryLineNumber, value.stringValue(),
-                                  attrName, String.valueOf(e));
-
-      BufferedWriter rejectWriter = importConfig.getRejectWriter();
-      if (rejectWriter != null)
-      {
-        try
-        {
-          rejectWriter.write("# " + message);
-          rejectWriter.newLine();
-          for (StringBuilder sb : lines)
-          {
-            rejectWriter.write(sb.toString());
-            rejectWriter.newLine();
-          }
-
-          rejectWriter.newLine();
-        }
-        catch (Exception e2)
-        {
-          assert debugException(CLASS_NAME, "readAttribute", e2);
-        }
-      }
-
-      throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
-    }
-
+    AttributeValue attributeValue = new AttributeValue(attrType, value);
     attribute.getValues().add(attributeValue);
 
     return attribute;
@@ -2216,7 +1058,8 @@ public class LDIFReader
     {
       try
       {
-        rejectWriter.write("# " + message);
+        rejectWriter.write("# ");
+        rejectWriter.write(message);
         rejectWriter.newLine();
 
         for (StringBuilder sb : lastEntryHeaderLines)
@@ -2260,7 +1103,7 @@ public class LDIFReader
    * @return A new attribute with no values, representing the attribute type
    * and its options.
    */
-  public static Attribute parseAttrDescription(String attrDescr)
+  private static Attribute parseAttrDescription(String attrDescr)
   {
     assert debugEnter(CLASS_NAME, "parseAttributeDescription",
                       String.valueOf(attrDescr));
@@ -2353,6 +1196,552 @@ public class LDIFReader
     assert debugEnter(CLASS_NAME, "getEntriesRejected");
 
     return entriesRejected;
+  }
+
+
+
+  /**
+   * Parse a modifyDN change record entry from LDIF.
+   *
+   * @param entryDN
+   *          The name of the entry being modified.
+   * @param lines
+   *          The lines to parse.
+   * @return Returns the parsed modifyDN change record entry.
+   * @throws LDIFException
+   *           If there was an error when parsing the change record.
+   */
+  private ChangeRecordEntry parseModifyDNChangeRecordEntry(DN entryDN,
+      LinkedList<StringBuilder> lines) throws LDIFException {
+    assert debugEnter(CLASS_NAME, "parseModifyDNChangeRecordEntry",
+        String.valueOf(entryDN),
+        String.valueOf(lines),
+        String.valueOf(lineNumber));
+
+    DN newSuperiorDN = null;
+    RDN newRDN = null;
+    boolean deleteOldRDN = false;
+
+    if(lines.isEmpty())
+    {
+      int msgID = MSGID_LDIF_NO_MOD_DN_ATTRIBUTES;
+      String message = getMessage(msgID);
+      throw new LDIFException(msgID, message, lineNumber, true);
+    }
+
+    StringBuilder line = lines.remove();
+    String rdnStr = getModifyDNAttributeValue(lines, line, entryDN, "newrdn");
+
+    try
+    {
+      newRDN = RDN.decode(rdnStr);
+    } catch (DirectoryException de)
+    {
+      assert debugException(CLASS_NAME, "parse", de);
+      int    msgID   = MSGID_LDIF_INVALID_DN;
+      String message = getMessage(msgID, lineNumber, line.toString(),
+          de.getErrorMessage());
+      throw new LDIFException(msgID, message, lineNumber, true);
+    } catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "parse", e);
+      int    msgID   = MSGID_LDIF_INVALID_DN;
+      String message = getMessage(msgID, lineNumber, line.toString(),
+          e.getMessage());
+      throw new LDIFException(msgID, message, lineNumber, true);
+    }
+
+    if(lines.isEmpty())
+    {
+      int msgID = MSGID_LDIF_NO_DELETE_OLDRDN_ATTRIBUTE;
+      String message = getMessage(msgID);
+      throw new LDIFException(msgID, message, lineNumber, true);
+    }
+    lineNumber++;
+
+    line = lines.remove();
+    String delStr = getModifyDNAttributeValue(lines, line,
+        entryDN, "deleteoldrdn");
+
+    if(delStr.equalsIgnoreCase("false") ||
+        delStr.equalsIgnoreCase("no") ||
+        delStr.equalsIgnoreCase("0"))
+    {
+      deleteOldRDN = false;
+    } else if(delStr.equalsIgnoreCase("true") ||
+        delStr.equalsIgnoreCase("yes") ||
+        delStr.equalsIgnoreCase("1"))
+    {
+      deleteOldRDN = true;
+    } else
+    {
+      int msgID = MSGID_LDIF_INVALID_DELETE_OLDRDN_ATTRIBUTE;
+      String message = getMessage(msgID, delStr);
+      throw new LDIFException(msgID, message, lineNumber, true);
+    }
+
+    if(!lines.isEmpty())
+    {
+      lineNumber++;
+
+      line = lines.remove();
+
+      String dnStr = getModifyDNAttributeValue(lines, line,
+          entryDN, "newsuperior");
+      try
+      {
+        newSuperiorDN = DN.decode(dnStr);
+      } catch (DirectoryException de)
+      {
+        assert debugException(CLASS_NAME, "parse", de);
+        int    msgID   = MSGID_LDIF_INVALID_DN;
+        String message = getMessage(msgID, lineNumber, line.toString(),
+            de.getErrorMessage());
+        throw new LDIFException(msgID, message, lineNumber, true);
+      } catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "parse", e);
+        int    msgID   = MSGID_LDIF_INVALID_DN;
+        String message = getMessage(msgID, lineNumber, line.toString(),
+            e.getMessage());
+        throw new LDIFException(msgID, message, lineNumber, true);
+      }
+    }
+
+    return new ModifyDNChangeRecordEntry(entryDN, newSuperiorDN,
+        newRDN, deleteOldRDN);
+  }
+
+
+
+  /**
+   * Return the string value for the specified attribute name which only
+   * has one value.
+   *
+   * @param lines
+   *          The set of lines for this change record entry.
+   * @param line
+   *          The line currently being examined.
+   * @param entryDN
+   *          The name of the entry being modified.
+   * @param attributeName
+   *          The attribute name
+   * @return the string value for the attribute name.
+   * @throws LDIFException
+   *           If a problem occurs while attempting to determine the
+   *           attribute value.
+   */
+
+  private String getModifyDNAttributeValue(LinkedList<StringBuilder> lines,
+                                   StringBuilder line,
+                                   DN entryDN,
+                                   String attributeName) throws LDIFException
+  {
+    assert debugEnter(CLASS_NAME, "getModifyDNAttributeValue",
+        String.valueOf(lines),
+        String.valueOf(line),
+        String.valueOf(entryDN),
+        String.valueOf(attributeName));
+
+    Attribute attr =
+      readSingleValueAttribute(lines, line, entryDN, attributeName);
+    LinkedHashSet<AttributeValue> values = attr.getValues();
+
+    // Get the attribute value
+    Object[] vals = values.toArray();
+    return (((AttributeValue)vals[0]).getStringValue());
+  }
+
+
+
+  /**
+   * Parse a modify change record entry from LDIF.
+   *
+   * @param entryDN
+   *          The name of the entry being modified.
+   * @param lines
+   *          The lines to parse.
+   * @return Returns the parsed modify change record entry.
+   * @throws LDIFException
+   *           If there was an error when parsing the change record.
+   */
+  private ChangeRecordEntry parseModifyChangeRecordEntry(DN entryDN,
+      LinkedList<StringBuilder> lines) throws LDIFException {
+    assert debugEnter(CLASS_NAME, "parseModifyChangeRecordEntry",
+        String.valueOf(entryDN),
+        String.valueOf(lines),
+        String.valueOf(lineNumber));
+
+    List<LDAPModification> modifications = new ArrayList<LDAPModification>();
+    while(!lines.isEmpty())
+    {
+      ModificationType modType = null;
+
+      StringBuilder line = lines.remove();
+      Attribute attr =
+        readSingleValueAttribute(lines, line, entryDN, null);
+      String name = attr.getName();
+      LinkedHashSet<AttributeValue> values = attr.getValues();
+
+      // Get the attribute description
+      String attrDescr = values.iterator().next().getStringValue();
+
+      String lowerName = toLowerCase(name);
+      if(lowerName.equals("add"))
+      {
+        modType = ModificationType.ADD;
+      } else if(lowerName.equals("delete"))
+      {
+        modType = ModificationType.DELETE;
+      } else if(lowerName.equals("replace"))
+      {
+        modType = ModificationType.REPLACE;
+      } else if(lowerName.equals("increment"))
+      {
+        modType = ModificationType.INCREMENT;
+      } else
+      {
+        // Invalid attribute name.
+        int msgID = MSGID_LDIF_INVALID_MODIFY_ATTRIBUTE;
+        String message = getMessage(msgID, name,
+            "add, delete, replace, increment");
+        throw new LDIFException(msgID, message, lineNumber, true);
+      }
+
+      // Now go through the rest of the attributes till the "-" line is
+      // reached.
+      Attribute modAttr = LDIFReader.parseAttrDescription(attrDescr);
+      while (! lines.isEmpty())
+      {
+        line = lines.remove();
+        if(line.toString().equals("-"))
+        {
+          break;
+        }
+        Attribute a =
+          readSingleValueAttribute(lines, line, entryDN, attrDescr);
+        modAttr.getValues().addAll(a.getValues());
+      }
+
+      LDAPAttribute ldapAttr = new LDAPAttribute(modAttr);
+      LDAPModification mod = new LDAPModification(modType, ldapAttr);
+      modifications.add(mod);
+    }
+
+    return new ModifyChangeRecordEntry(entryDN, modifications);
+  }
+
+
+
+  /**
+   * Parse a delete change record entry from LDIF.
+   *
+   * @param entryDN
+   *          The name of the entry being deleted.
+   * @param lines
+   *          The lines to parse.
+   * @return Returns the parsed delete change record entry.
+   * @throws LDIFException
+   *           If there was an error when parsing the change record.
+   */
+  private ChangeRecordEntry parseDeleteChangeRecordEntry(DN entryDN,
+      LinkedList<StringBuilder> lines) throws LDIFException {
+    assert debugEnter(CLASS_NAME, "parseDeleteChangeRecordEntry",
+        String.valueOf(entryDN),
+        String.valueOf(lines),
+        String.valueOf(lineNumber));
+
+    if(!lines.isEmpty())
+    {
+      int msgID = MSGID_LDIF_INVALID_DELETE_ATTRIBUTES;
+      String message = getMessage(msgID);
+
+      throw new LDIFException(msgID, message, lineNumber, true);
+    }
+
+    return new DeleteChangeRecordEntry(entryDN);
+  }
+
+
+
+  /**
+   * Parse an add change record entry from LDIF.
+   *
+   * @param entryDN
+   *          The name of the entry being added.
+   * @param lines
+   *          The lines to parse.
+   * @return Returns the parsed add change record entry.
+   * @throws LDIFException
+   *           If there was an error when parsing the change record.
+   */
+  private ChangeRecordEntry parseAddChangeRecordEntry(DN entryDN,
+      LinkedList<StringBuilder> lines) throws LDIFException {
+    assert debugEnter(CLASS_NAME, "parseAddChangeRecordEntry",
+        String.valueOf(entryDN),
+        String.valueOf(lines),
+        String.valueOf(lineNumber));
+
+    HashMap<ObjectClass,String> objectClasses =
+      new HashMap<ObjectClass,String>();
+    HashMap<AttributeType,List<Attribute>> attributes =
+      new HashMap<AttributeType, List<Attribute>>();
+    for(StringBuilder line : lines)
+    {
+      readAttribute(lines, line, entryDN, objectClasses,
+          attributes, attributes);
+    }
+
+    // Reconstruct the object class attribute.
+    AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
+    LinkedHashSet<AttributeValue> ocValues =
+      new LinkedHashSet<AttributeValue>(objectClasses.size());
+    for (String value : objectClasses.values()) {
+      AttributeValue av = new AttributeValue(ocType, value);
+      ocValues.add(av);
+    }
+    Attribute ocAttr = new Attribute(ocType, "objectClass", ocValues);
+    List<Attribute> ocAttrList = new ArrayList<Attribute>(1);
+    ocAttrList.add(ocAttr);
+    attributes.put(ocType, ocAttrList);
+
+    return new AddChangeRecordEntry(entryDN, attributes);
+  }
+
+
+
+  /**
+   * Parse colon position in an attribute description.
+   *
+   * @param lines
+   *          The current set of lines.
+   * @param line
+   *          The current line.
+   * @return The colon position.
+   * @throws LDIFException
+   *           If the colon was badly placed or not found.
+   */
+  private int parseColonPosition(LinkedList<StringBuilder> lines,
+      StringBuilder line) throws LDIFException {
+    assert debugEnter(CLASS_NAME, "parseColonPosition",
+        String.valueOf(lines),
+        String.valueOf(lineNumber));
+
+    int colonPos = line.indexOf(":");
+    if (colonPos <= 0)
+    {
+      int    msgID   = MSGID_LDIF_NO_ATTR_NAME;
+      String message = getMessage(msgID, lastEntryLineNumber, line.toString());
+      logToRejectWriter(lines, message);
+      throw new LDIFException(msgID, message, lastEntryLineNumber, true);
+    }
+    return colonPos;
+  }
+
+
+
+  /**
+   * Parse a single attribute value from a line of LDIF.
+   *
+   * @param lines
+   *          The current set of lines.
+   * @param line
+   *          The current line.
+   * @param entryDN
+   *          The DN of the entry being parsed.
+   * @param colonPos
+   *          The position of the separator colon in the line.
+   * @param attrName
+   *          The name of the attribute being parsed.
+   * @return The parsed attribute value.
+   * @throws LDIFException
+   *           If an error occurred when parsing the attribute value.
+   */
+  private ASN1OctetString parseSingleValue(
+      LinkedList<StringBuilder> lines,
+      StringBuilder line,
+      DN entryDN,
+      int colonPos,
+      String attrName) throws LDIFException {
+    assert debugEnter(CLASS_NAME, "parseSingleValue",
+        String.valueOf(lines),
+        String.valueOf(line),
+        String.valueOf(entryDN),
+        String.valueOf(colonPos),
+        String.valueOf(attrName));
+
+    // Look at the character immediately after the colon. If there is
+    // none, then assume an attribute with an empty value. If it is another
+    // colon, then the value must be base64-encoded. If it is a less-than
+    // sign, then assume that it is a URL. Otherwise, it is a regular value.
+    int length = line.length();
+    ASN1OctetString value;
+    if (colonPos == (length-1))
+    {
+      value = new ASN1OctetString();
+    }
+    else
+    {
+      char c = line.charAt(colonPos+1);
+      if (c == ':')
+      {
+        // The value is base64-encoded. Find the first non-blank
+        // character, take the rest of the line, and base64-decode it.
+        int pos = colonPos+2;
+        while ((pos < length) && (line.charAt(pos) == ' '))
+        {
+          pos++;
+        }
+
+        try
+        {
+          value = new ASN1OctetString(Base64.decode(line.substring(pos)));
+        }
+        catch (Exception e)
+        {
+          // The value did not have a valid base64-encoding.
+          assert debugException(CLASS_NAME, "readAttribute", e);
+
+          int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
+          String message = getMessage(msgID, String.valueOf(entryDN),
+                                      lastEntryLineNumber, line,
+                                      String.valueOf(e));
+          logToRejectWriter(lines, message);
+          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+        }
+      }
+      else if (c == '<')
+      {
+        // Find the first non-blank character, decode the rest of the
+        // line as a URL, and read its contents.
+        int pos = colonPos+2;
+        while ((pos < length) && (line.charAt(pos) == ' '))
+        {
+          pos++;
+        }
+
+        URL contentURL;
+        try
+        {
+          contentURL = new URL(line.substring(pos));
+        }
+        catch (Exception e)
+        {
+          // The URL was malformed or had an invalid protocol.
+          assert debugException(CLASS_NAME, "readAttribute", e);
+
+          int    msgID   = MSGID_LDIF_INVALID_URL;
+          String message = getMessage(msgID, String.valueOf(entryDN),
+                                      lastEntryLineNumber,
+                                      String.valueOf(attrName),
+                                      String.valueOf(e));
+          logToRejectWriter(lines, message);
+          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+        }
+
+
+        InputStream inputStream = null;
+        ByteArrayOutputStream outputStream = null;
+        try
+        {
+          outputStream = new ByteArrayOutputStream();
+          inputStream  = contentURL.openConnection().getInputStream();
+
+          int bytesRead;
+          while ((bytesRead = inputStream.read(buffer)) > 0)
+          {
+            outputStream.write(buffer, 0, bytesRead);
+          }
+
+          value = new ASN1OctetString(outputStream.toByteArray());
+        }
+        catch (Exception e)
+        {
+          // We were unable to read the contents of that URL for some
+          // reason.
+          assert debugException(CLASS_NAME, "readAttribute", e);
+
+          int msgID = MSGID_LDIF_URL_IO_ERROR;
+          String message = getMessage(msgID, String.valueOf(entryDN),
+                                      lastEntryLineNumber,
+                                      String.valueOf(attrName),
+                                      String.valueOf(contentURL),
+                                      String.valueOf(e));
+          logToRejectWriter(lines, message);
+          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+        }
+        finally
+        {
+          if (outputStream != null)
+          {
+            try
+            {
+              outputStream.close();
+            } catch (Exception e) {}
+          }
+
+          if (inputStream != null)
+          {
+            try
+            {
+              inputStream.close();
+            } catch (Exception e) {}
+          }
+        }
+      }
+      else
+      {
+        // The rest of the line should be the value. Skip over any
+        // spaces and take the rest of the line as the value.
+        int pos = colonPos+1;
+        while ((pos < length) && (line.charAt(pos) == ' '))
+        {
+          pos++;
+        }
+
+        value = new ASN1OctetString(line.substring(pos));
+      }
+    }
+    return value;
+  }
+
+
+
+  /**
+   * Log a message to the reject writer if one is configured.
+   *
+   * @param lines
+   *          The set of rejected lines.
+   * @param message
+   *          The associated error message.
+   */
+  private void logToRejectWriter(LinkedList<StringBuilder> lines,
+      String message) {
+    assert debugEnter(CLASS_NAME, "logToRejectWriter",
+        String.valueOf(lines),
+        String.valueOf(message));
+
+    BufferedWriter rejectWriter = importConfig.getRejectWriter();
+    if (rejectWriter != null)
+    {
+      try
+      {
+        rejectWriter.write("# ");
+        rejectWriter.write(message);
+        rejectWriter.newLine();
+        for (StringBuilder sb : lines)
+        {
+          rejectWriter.write(sb.toString());
+          rejectWriter.newLine();
+        }
+
+        rejectWriter.newLine();
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "logToRejectWriter", e);
+      }
+    }
   }
 }
 

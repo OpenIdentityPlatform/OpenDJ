@@ -32,8 +32,9 @@ import static org.opends.server.loggers.Debug.debugConstructor;
 import static org.opends.server.loggers.Debug.debugEnter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -58,28 +59,35 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
   /**
    * The entry attributes for this operation.
    */
-  private HashMap<AttributeType,ArrayList<Attribute>> entryAttributes;
+  private final List<Attribute> attributes;
 
-  // The LDIF reader instance
-  private LDIFReader reader;
 
 
   /**
    * Creates a new entry with the provided information.
    *
-   * @param  dn      The distinguished name for this entry.
-   * @param  reader  The LDIF reader instance used to read the entries.
+   * @param dn
+   *          The distinguished name for this entry.
+   * @param attributes
+   *          The entry attributes for this operation.
    */
-  public AddChangeRecordEntry(DN dn, LDIFReader reader)
+  public AddChangeRecordEntry(DN dn,
+      Map<AttributeType,List<Attribute>> attributes)
   {
-    super(dn, reader);
+    super(dn);
+
     assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(reader));
+                            String.valueOf(attributes));
 
 
-    this.reader = reader;
-    entryAttributes = new HashMap<AttributeType, ArrayList<Attribute>>();
-
+    this.attributes = new ArrayList<Attribute>(attributes.size());
+    for (List<Attribute> list : attributes.values())
+    {
+      for (Attribute a : list)
+      {
+        this.attributes.add(a);
+      }
+    }
   }
 
 
@@ -97,45 +105,19 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
   }
 
 
+
   /**
    * Retrieves the entire set of attributes for this entry.
-   * The caller must not modify the contents of this list.
+   * <p>
+   * The returned list is read-only.
    *
-   * @return  The entire set of attributes for this entry.
+   * @return The entire unmodifiable list of attributes for this entry.
    */
-  public ArrayList<Attribute> getAttributes()
+  public List<Attribute> getAttributes()
   {
     assert debugEnter(CLASS_NAME, "getAttributes");
 
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-
-    for (ArrayList<Attribute> list : entryAttributes.values())
-    {
-      for (Attribute a : list)
-      {
-        attributes.add(a);
-      }
-    }
-    return attributes;
-  }
-
-  /**
-   * Parse the lines and populate the internal structures.
-   *
-   * @param lines       The lines to parse.
-   * @param lineNumber  The current line number
-   *
-   * @exception LDIFException if there is an error during parsing.
-   */
-  public void parse(LinkedList<StringBuilder> lines, long lineNumber)
-    throws LDIFException
-  {
-    assert debugEnter(CLASS_NAME, "parse", String.valueOf(lines),
-                      String.valueOf(lineNumber));
-    for(StringBuilder line : lines)
-    {
-      reader.readAttribute(lines, line, getDN(), entryAttributes);
-    }
+    return Collections.unmodifiableList(attributes);
   }
 
 }
