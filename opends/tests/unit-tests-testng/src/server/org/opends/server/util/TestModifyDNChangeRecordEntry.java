@@ -26,12 +26,9 @@
  */
 package org.opends.server.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.DN;
-import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.RDN;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -45,8 +42,9 @@ import org.testng.annotations.Test;
  * been overridden.
  */
 public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
-  // An empty LDIF reader.
-  private LDIFReader emptyReader;
+  private DN newSuperiorDN;
+
+  private RDN newRDN;
 
   /**
    * Once-only initialization.
@@ -60,9 +58,8 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
     // start the server.
     TestCaseUtils.startServer();
 
-    InputStream stream = new ByteArrayInputStream(new byte[0]);
-    LDIFImportConfig config = new LDIFImportConfig(stream);
-    emptyReader = new LDIFReader(config);
+    newSuperiorDN = DN.decode("dc=com");
+    newRDN = RDN.decode("dc=foo");
   }
 
   /**
@@ -74,7 +71,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testConstructorNullDN() throws Exception {
     ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
-        emptyReader);
+        newSuperiorDN, newRDN, false);
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -88,7 +85,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testConstructorEmptyDN() throws Exception {
     ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(
-        new DN(), emptyReader);
+        new DN(), newSuperiorDN, newRDN, false);
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -105,7 +102,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
     DN testDN2 = DN.decode("dc=hello, dc=world");
 
     ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(
-        testDN1, emptyReader);
+        testDN1, newSuperiorDN, newRDN, false);
 
     Assert.assertEquals(entry.getDN(), testDN2);
   }
@@ -119,63 +116,66 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testChangeOperationType() throws Exception {
     ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
-        emptyReader);
+        newSuperiorDN, newRDN, false);
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.MODIFY_DN);
   }
 
   /**
-   * Tests parse and getNewRDN methods.
-   * <p>
-   * Due to tight coupling between the
-   * {@link ModifyDNChangeRecordEntry#parse(java.util.LinkedList, long)}
-   * method and the {@link LDIFReader} class it is not easy to test the
-   * {@link ModifyDNChangeRecordEntry#getNewRDN()} method. Instead,
-   * we'll test that in the {@link LDIFReader} test suite.
+   * Tests getNewRDN method.
    * 
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(enabled = false)
+  @Test
   public void testGetNewRDN() throws Exception {
-    // FIXME: fix tight-coupling between parse() and LDIFReader.
-    Assert.assertTrue(false);
+    ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
+        newSuperiorDN, newRDN, false);
+
+    Assert.assertEquals(entry.getNewRDN(), newRDN.duplicate());
   }
 
   /**
-   * Tests parse and getNewSuperiorDN methods.
-   * <p>
-   * Due to tight coupling between the
-   * {@link ModifyDNChangeRecordEntry#parse(java.util.LinkedList, long)}
-   * method and the {@link LDIFReader} class it is not easy to test the
-   * {@link ModifyDNChangeRecordEntry#getNewSuperiorDN()} method.
-   * Instead, we'll test that in the {@link LDIFReader} test suite.
+   * Tests getNewSuperiorDN method.
    * 
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(enabled = false)
+  @Test
   public void testGetNewSuperiorDN() throws Exception {
-    // FIXME: fix tight-coupling between parse() and LDIFReader.
-    Assert.assertTrue(false);
+    ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
+        newSuperiorDN, newRDN, false);
+
+    Assert
+        .assertEquals(entry.getNewSuperiorDN(), newSuperiorDN.duplicate());
   }
 
   /**
-   * Tests parse and deleteOldRDN methods.
-   * <p>
-   * Due to tight coupling between the
-   * {@link ModifyDNChangeRecordEntry#parse(java.util.LinkedList, long)}
-   * method and the {@link LDIFReader} class it is not easy to test the
-   * {@link ModifyDNChangeRecordEntry#deleteOldRDN()} method. Instead,
-   * we'll test that in the {@link LDIFReader} test suite.
+   * Tests deleteOldRDN method when false.
    * 
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(enabled = false)
-  public void testDeleteOldRDN() throws Exception {
-    // FIXME: fix tight-coupling between parse() and LDIFReader.
-    Assert.assertTrue(false);
+  @Test
+  public void testDeleteOldRDNFalse() throws Exception {
+    ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
+        newSuperiorDN, newRDN, false);
+
+    Assert.assertEquals(entry.deleteOldRDN(), false);
+  }
+
+  /**
+   * Tests deleteOldRDN method.
+   * 
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testDeleteOldRDNTrue() throws Exception {
+    ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
+        newSuperiorDN, newRDN, true);
+
+    Assert.assertEquals(entry.deleteOldRDN(), true);
   }
 }

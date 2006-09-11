@@ -30,16 +30,7 @@ package org.opends.server.util;
 
 import static org.opends.server.loggers.Debug.debugConstructor;
 import static org.opends.server.loggers.Debug.debugEnter;
-import static org.opends.server.loggers.Debug.debugException;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.UtilityMessages.*;
 
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-
-import org.opends.server.core.DirectoryException;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
 
@@ -58,32 +49,40 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
   private static final String CLASS_NAME =
       "org.opends.server.util.ModifyDNChangeRecordEntry";
 
-  private LDIFReader reader;
-
   // The new RDN.
-  private RDN newRDN = null;
+  private final RDN newRDN;
 
   // The new superior DN.
-  private DN newSuperiorDN = null;
+  private final DN newSuperiorDN;
 
   // Delete the old RDN?
-  private boolean deleteOldRDN = false;
+  private final boolean deleteOldRDN;
 
 
   /**
    * Creates a new entry with the provided information.
    *
-   * @param  dn      The distinguished name for this entry.
-   * @param  reader  The LDIFReader instance used to read the entries.
+   * @param dn
+   *          The distinguished name for this entry.
+   * @param newSuperiorDN
+   *          The new superior DN.
+   * @param newRDN
+   *          The new RDN.
+   * @param deleteOldRDN
+   *          Delete the old RDN?
    */
-  public ModifyDNChangeRecordEntry(DN dn, LDIFReader reader)
+  public ModifyDNChangeRecordEntry(DN dn, DN newSuperiorDN,
+      RDN newRDN, boolean deleteOldRDN)
   {
-    super(dn, reader);
+    super(dn);
     assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(reader));
+                            String.valueOf(newSuperiorDN),
+                            String.valueOf(newRDN),
+                            String.valueOf(deleteOldRDN));
 
-    this.reader = reader;
-
+    this.newSuperiorDN = newSuperiorDN;
+    this.newRDN = newRDN;
+    this.deleteOldRDN = deleteOldRDN;
   }
 
 
@@ -137,147 +136,5 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
 
     return ChangeOperationType.MODIFY_DN;
   }
-
-  /**
-   * Parse the lines and populate the internal structures.
-   *
-   * @param lines        The lines to parse.
-   * @param lineNumber   The current line number.
-   *
-   * @exception LDIFException if there is an error during parsing.
-   */
-
-  public void parse(LinkedList<StringBuilder> lines, long lineNumber)
-         throws LDIFException
-  {
-    assert debugEnter(CLASS_NAME, "parse", String.valueOf(lines),
-                      String.valueOf(lineNumber));
-
-    if(lines.isEmpty())
-    {
-      int msgID = MSGID_LDIF_NO_MOD_DN_ATTRIBUTES;
-      String message = getMessage(msgID);
-      throw new LDIFException(msgID, message, lineNumber, true);
-    }
-
-    StringBuilder line = lines.remove();
-    String rdnStr = getAttributeValue(lines, line, "newrdn");
-
-    try
-    {
-      newRDN = RDN.decode(rdnStr);
-    } catch (DirectoryException de)
-    {
-      assert debugException(CLASS_NAME, "parse", de);
-      int    msgID   = MSGID_LDIF_INVALID_DN;
-      String message = getMessage(msgID, lineNumber, line.toString(),
-                                  de.getErrorMessage());
-      throw new LDIFException(msgID, message, lineNumber, true);
-    } catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "parse", e);
-      int    msgID   = MSGID_LDIF_INVALID_DN;
-      String message = getMessage(msgID, lineNumber, line.toString(),
-                                  e.getMessage());
-      throw new LDIFException(msgID, message, lineNumber, true);
-    }
-
-    if(lines.isEmpty())
-    {
-      int msgID = MSGID_LDIF_NO_DELETE_OLDRDN_ATTRIBUTE;
-      String message = getMessage(msgID);
-      throw new LDIFException(msgID, message, lineNumber, true);
-    }
-    lineNumber++;
-
-    line = lines.remove();
-    String delStr = getAttributeValue(lines, line, "deleteoldrdn");
-
-    if(delStr.equalsIgnoreCase("false") ||
-    delStr.equalsIgnoreCase("no") ||
-    delStr.equalsIgnoreCase("0"))
-    {
-      deleteOldRDN = false;
-    } else if(delStr.equalsIgnoreCase("true") ||
-        delStr.equalsIgnoreCase("yes") ||
-        delStr.equalsIgnoreCase("1"))
-    {
-      deleteOldRDN = true;
-    } else
-    {
-      int msgID = MSGID_LDIF_INVALID_DELETE_OLDRDN_ATTRIBUTE;
-      String message = getMessage(msgID, delStr);
-      throw new LDIFException(msgID, message, lineNumber, true);
-    }
-
-    if(!lines.isEmpty())
-    {
-      lineNumber++;
-
-      line = lines.remove();
-
-      String dnStr = getAttributeValue(lines, line, "newsuperior");
-      try
-      {
-        newSuperiorDN = DN.decode(dnStr);
-      } catch (DirectoryException de)
-      {
-        assert debugException(CLASS_NAME, "parse", de);
-        int    msgID   = MSGID_LDIF_INVALID_DN;
-        String message = getMessage(msgID, lineNumber, line.toString(),
-                                    de.getErrorMessage());
-        throw new LDIFException(msgID, message, lineNumber, true);
-      } catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "parse", e);
-        int    msgID   = MSGID_LDIF_INVALID_DN;
-        String message = getMessage(msgID, lineNumber, line.toString(),
-                                    e.getMessage());
-        throw new LDIFException(msgID, message, lineNumber, true);
-      }
-
-    }
-
-  }
-
-  /**
-   * Return the string value for the specified attribute name which
-   * only has one value.
-   *
-   * @param  lines          The set of lines for this change record entry.
-   * @param  line           The line currently being examined.
-   * @param  attributeName  The attribute name
-   *
-   * @return the string value for the attribute name.
-   *
-   * @throws  LDIFException  If a problem occurs while attempting to determine
-   *                         the attribute value.
-   */
-
-  private String getAttributeValue(LinkedList<StringBuilder> lines,
-                                   StringBuilder line,
-                                   String attributeName) throws LDIFException
-  {
-    assert debugEnter(CLASS_NAME, "getAttributeValue", String.valueOf(lines),
-                      String.valueOf(line), String.valueOf(attributeName));
-
-    Attribute attr =
-      reader.readSingleValueAttribute(lines, line, getDN(), attributeName);
-    LinkedHashSet<AttributeValue> values = attr.getValues();
-
-    // Only 1 entry should be present
-    if(values.size() != 1)
-    {
-      int msgID = MSGID_LDIF_INVALID_MODIFY_ATTRIBUTE_VAL;
-      String message = getMessage(msgID, attributeName);
-      throw new LDIFException(msgID, message);
-    }
-
-    // Get the attribute value
-
-    Object[] vals = values.toArray();
-    return (((AttributeValue)vals[0]).getStringValue());
-  }
-
 }
 

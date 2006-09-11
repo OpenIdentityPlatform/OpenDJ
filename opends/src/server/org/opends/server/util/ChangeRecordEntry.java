@@ -31,11 +31,7 @@ package org.opends.server.util;
 import static org.opends.server.loggers.Debug.debugConstructor;
 import static org.opends.server.loggers.Debug.debugEnter;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-
 import org.opends.server.types.DN;
-import org.opends.server.types.RDN;
 
 
 
@@ -55,30 +51,6 @@ public abstract class ChangeRecordEntry
 
   // The DN for this entry.
   private DN dn;
-
-
-  /**
-   * Creates a new entry with the provided information.
-   *
-   * @param  dn      The distinguished name for this entry.
-   * @param  reader  The LDIF reader.
-   */
-  protected ChangeRecordEntry(DN dn, LDIFReader reader)
-  {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(reader));
-
-    if (dn == null)
-    {
-      this.dn = new DN(new ArrayList<RDN>(0));
-    }
-    else
-    {
-      this.dn = dn;
-    }
-
-  }
-
 
 
   /**
@@ -116,44 +88,10 @@ public abstract class ChangeRecordEntry
 
 
   /**
-   * Specifies the distinguished name for this entry.
-   *
-   * @param  dn  The distinguished name for this entry.
-   */
-  public final void setDN(DN dn)
-  {
-    assert debugEnter(CLASS_NAME, "setDN", String.valueOf(dn));
-
-    if (dn == null)
-    {
-      this.dn = new DN(new ArrayList<RDN>(0));
-    }
-    else
-    {
-      this.dn = dn;
-    }
-  }
-
-
-
-  /**
    * Retrieves the name of the change operation type.
    *
    * @return  The name of the change operation type.
    */
   public abstract ChangeOperationType getChangeOperationType();
-
-
-
-  /**
-   * Parse and populate internal structures from the specified lines.
-   * @param lines The list of lines to parse from.
-   * @param lineNumber The current line number during the parsing.
-   *
-   * @exception LDIFException If there is a parsing error.
-   */
-  public abstract void parse(LinkedList<StringBuilder> lines, long lineNumber)
-         throws LDIFException;
-
 }
 

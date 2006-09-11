@@ -30,13 +30,8 @@ package org.opends.server.util;
 
 import static org.opends.server.loggers.Debug.debugConstructor;
 import static org.opends.server.loggers.Debug.debugEnter;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.UtilityMessages.*;
-
-import java.util.LinkedList;
 
 import org.opends.server.types.DN;
-
 
 
 
@@ -59,14 +54,12 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
    * Creates a new entry with the provided information.
    *
    * @param  dn      The distinguished name for this entry.
-   * @param  reader  The LDIFReader instance used to read the entries.
    */
-  public DeleteChangeRecordEntry(DN dn, LDIFReader reader)
+  public DeleteChangeRecordEntry(DN dn)
   {
-    super(dn, reader);
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(reader));
+    super(dn);
 
+    assert debugConstructor(CLASS_NAME, String.valueOf(dn));
   }
 
 
@@ -82,33 +75,6 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
 
     return ChangeOperationType.DELETE;
   }
-
-
-  /**
-   * Parse the lines and populate the internal structures.
-   *
-   * @param lines       The lines to parse.
-   * @param lineNumber  The current line number.
-   *
-   * @exception LDIFException if there is an error during parsing.
-   */
-
-  public void parse(LinkedList<StringBuilder> lines, long lineNumber)
-         throws LDIFException
-  {
-    assert debugEnter(CLASS_NAME, "parse", String.valueOf(lines),
-                      String.valueOf(lineNumber));
-
-    if(! lines.isEmpty())
-    {
-      int msgID = MSGID_LDIF_INVALID_DELETE_ATTRIBUTES;
-      String message = getMessage(msgID);
-
-      throw new LDIFException(msgID, message, lineNumber, true);
-
-    }
-  }
-
 
 }
 

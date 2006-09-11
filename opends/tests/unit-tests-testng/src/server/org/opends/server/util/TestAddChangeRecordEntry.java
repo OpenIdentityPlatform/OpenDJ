@@ -26,12 +26,16 @@
  */
 package org.opends.server.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-import org.opends.server.types.LDIFImportConfig;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -45,8 +49,11 @@ import org.testng.annotations.Test;
  * been overridden.
  */
 public final class TestAddChangeRecordEntry extends UtilTestCase {
-  // An empty LDIF reader.
-  private LDIFReader emptyReader;
+  // Set of attributes.
+  private Map<AttributeType, List<Attribute>> attributes;
+
+  // The attribute being added.
+  private Attribute attribute;
 
   /**
    * Once-only initialization.
@@ -60,9 +67,11 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
     // start the server.
     TestCaseUtils.startServer();
 
-    InputStream stream = new ByteArrayInputStream(new byte[0]);
-    LDIFImportConfig config = new LDIFImportConfig(stream);
-    emptyReader = new LDIFReader(config);
+    attributes = new HashMap<AttributeType, List<Attribute>>();
+    attribute = new Attribute("cn", "hello world");
+    ArrayList<Attribute> alist = new ArrayList<Attribute>(1);
+    alist.add(attribute);
+    attributes.put(attribute.getAttributeType(), alist);
   }
 
   /**
@@ -73,7 +82,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorNullDN() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, emptyReader);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, attributes);
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -87,7 +96,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
   @Test
   public void testConstructorEmptyDN() throws Exception {
     AddChangeRecordEntry entry = new AddChangeRecordEntry(new DN(),
-        emptyReader);
+        attributes);
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
@@ -104,7 +113,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
     DN testDN2 = DN.decode("dc=hello, dc=world");
 
     AddChangeRecordEntry entry = new AddChangeRecordEntry(testDN1,
-        emptyReader);
+        attributes);
 
     Assert.assertEquals(entry.getDN(), testDN2);
   }
@@ -117,28 +126,41 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, emptyReader);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, attributes);
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.ADD);
   }
 
   /**
-   * Tests parse and getAttributes methods.
-   * <p>
-   * Due to tight coupling between the
-   * {@link AddChangeRecordEntry#parse(java.util.LinkedList, long)}
-   * method and the {@link LDIFReader} class it is not easy to test the
-   * {@link AddChangeRecordEntry#getAttributes()} method. Instead, we'll
-   * test that in the {@link LDIFReader} test suite.
+   * Tests getAttributes method for empty modifications.
    * 
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(enabled = false)
-  public void testGetAttributes() throws Exception {
-    // FIXME: fix tight-coupling between parse() and LDIFReader.
-    Assert.assertTrue(false);
+  @Test
+  public void testGetAttributesEmpty() throws Exception {
+    Map<AttributeType, List<Attribute>> empty = Collections.emptyMap();
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, empty);
+
+    List<Attribute> attrs = entry.getAttributes();
+    Assert.assertEquals(attrs.size(), 0);
   }
 
+  /**
+   * Tests getAttributes method for non-empty modifications.
+   * 
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testGetAttributesNonEmpty() throws Exception {
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, attributes);
+
+    List<Attribute> attrs = entry.getAttributes();
+    Assert.assertEquals(attrs.size(), 1);
+
+    Attribute first = attrs.get(0);
+    Assert.assertEquals(first, attribute);
+  }
 }
