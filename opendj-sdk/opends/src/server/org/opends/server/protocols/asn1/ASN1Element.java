@@ -969,7 +969,7 @@ public class ASN1Element
           throw new ASN1Exception(msgID, message);
         }
 
-        if ((startPos + numLengthBytes) > encodedElements.length)
+        if (numLengthBytes > encodedElements.length - startPos)
         {
           int    msgID   = MSGID_ASN1_ELEMENT_SET_TRUNCATED_LENGTH;
           String message = getMessage(msgID, numLengthBytes);
@@ -985,11 +985,11 @@ public class ASN1Element
 
 
       // Make sure that there are at least enough bytes to hold the value.
-      if ((startPos + length) > encodedElements.length)
+      if (length > encodedElements.length - startPos)
       {
         int    msgID   = MSGID_ASN1_ELEMENT_SET_TRUNCATED_VALUE;
         String message = getMessage(msgID, length,
-                                    (startPos+length-encodedElements.length));
+                                    (encodedElements.length-startPos));
         throw new ASN1Exception(msgID, message);
       }
 
