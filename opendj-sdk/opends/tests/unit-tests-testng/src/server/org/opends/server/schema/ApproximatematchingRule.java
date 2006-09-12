@@ -132,7 +132,7 @@ public class ApproximatematchingRule extends SchemaTestCase
    * Test the normalization and the approximate comparison.
    */
   @Test(dataProvider= "approximatematchingrules")
-  public void ApproximateMatchingRules(String ruleClassName, String value1,
+  public void approximateMatchingRules(String ruleClassName, String value1,
                              String value2, Boolean result) throws Exception
   {
     // load the mathing rule code
