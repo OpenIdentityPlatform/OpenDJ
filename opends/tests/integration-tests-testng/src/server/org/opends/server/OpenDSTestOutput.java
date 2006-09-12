@@ -29,18 +29,30 @@ package org.opends.server;
 import java.io.*;
 import junit.framework.*;
 
+/**
+ * This class manages the redirection of the output.
+ */
 public class OpenDSTestOutput
 {
   private PrintStream std_out;
   private PrintStream std_err;
   private PrintStream ps;
 
+  /**
+   *  Creates a new OpenDSTestOutput.
+   */
   public OpenDSTestOutput()
   {
     std_out = System.out;
     std_err = System.out;
   }
 
+  /**
+   *  Redirects standard out and standard error to a file.
+   *
+   *  @param  dirname      Directory
+   *  @param  filename     Filename
+   */
   public void redirectOutput(String dirname, String filename) throws Exception
   {
     ps = new PrintStream(new BufferedOutputStream(new FileOutputStream(new File(dirname, filename))));
@@ -48,6 +60,9 @@ public class OpenDSTestOutput
     System.setOut(ps);
   }
 
+  /**
+   *  Resets output streams to standard out and standard error.
+   */
   public void resetOutput()
   {
     if((ps != null) && (std_err != null) && (std_out != null))

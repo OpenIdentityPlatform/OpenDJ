@@ -33,32 +33,51 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 
 /**
- * This class contains the TestNG tests for the Schema startup.
+ * This class contains the listener classes for TestNG.
  */
 @Test
 public class OpenDSTestListener extends TestListenerAdapter
 {
   private int m_counter = 0;
 
+  /**
+   *  Writes the string, "FAIL," to the test output.
+   *
+   *  @param  tr               Object of the class, ITestResult
+   */
   @Override
   public void onTestFailure(ITestResult tr)
   {
     log("FAIL");
   }
 
+  /**
+   *  Writes the string, "SKIPPED," to the test output.
+   *
+   *  @param  tr               Object of the class, ITestResult
+   */
   @Override
   public void onTestSkipped(ITestResult tr)
   {
     log("SKIPPED");
   }
 
+  /**
+   *  Writes the string, "PASS," to the test output.
+   *
+   *  @param  tr               Object of the class, ITestResult
+   */
   @Override
   public void onTestSuccess(ITestResult tr)
   {
     log("PASS");
   }
 
-
+  /**
+   *  Writes the a string to standard out.
+   *
+   *  @param  str               String to send to standard out.
+   */
   private void log(String str)
   {
     System.out.print(str + "\n");
