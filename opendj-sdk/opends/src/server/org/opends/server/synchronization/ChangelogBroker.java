@@ -66,7 +66,7 @@ public class ChangelogBroker implements InternalSearchListener
   private Short identifier;
   private boolean connected = false;
   private SynchronizationDomain domain;
-  private Object lock = new Object();
+  private final Object lock = new Object();
   private String changelogServer = "Not connected";
   private TreeSet<FakeOperation> replayOperations;
   private ProtocolSession session = null;
@@ -316,7 +316,7 @@ public class ChangelogBroker implements InternalSearchListener
   /**
    * Restart the Changelog broker after a failure.
    *
-   * @param failingSocket the socket which failed
+   * @param failingSession the socket which failed
    */
   private void reStart(ProtocolSession failingSession)
   {
