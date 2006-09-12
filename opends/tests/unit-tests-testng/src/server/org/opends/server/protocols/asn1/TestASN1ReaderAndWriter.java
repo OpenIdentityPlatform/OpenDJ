@@ -26,305 +26,342 @@
  */
 package org.opends.server.protocols.asn1;
 
-import static org.opends.server.util.StaticUtils.listsAreEqual;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterClass;
+
+import static org.testng.Assert.*;
+
+
 
 /**
  * This class defines a set of tests for the
  * org.opends.server.protocols.asn1.ASN1Reader and
  * org.opends.server.protocols.asn1.ASN1Writer classes.
  */
-public class TestASN1ReaderAndWriter extends ASN1TestCase {
-  // The set of ASN.1 Boolean elements that will be written and read.
-  private ArrayList<ASN1Boolean> booleanElements;
-
-  // The set of ASN.1 enumerated elements that will be written and read.
-  private ArrayList<ASN1Enumerated> enumeratedElements;
-
-  // The set of generic ASN.1 elements that will be written and read.
-  private ArrayList<ASN1Element> genericElements;
-
-  // The set of ASN.1 integer elements that will be written and read.
-  private ArrayList<ASN1Integer> integerElements;
-
-  // The set of ASN.1 null elements that will be written and read.
-  private ArrayList<ASN1Null> nullElements;
-
-  // The set of ASN.1 octet string elements that will be written and
-  // read.
-  private ArrayList<ASN1OctetString> octetStringElements;
-
-  // The set of ASN.1 sequence elements that will be written and read.
-  private ArrayList<ASN1Sequence> sequenceElements;
-
-  // The set of ASN.1 enumerated elements that will be written and read.
-  private ArrayList<ASN1Set> setElements;
-
-  // The data file to which data will be written and read back.
-  private File dataFile;
-
+public class TestASN1ReaderAndWriter
+       extends ASN1TestCase
+{
   /**
-   * Performs any necessary initialization for this test case.
+   * Create byte arrays with encoded ASN.1 elements to test decoding them as
+   * octet strings.
    *
-   * @throws Exception
-   *           If a problem occurs during initialization.
+   * @return  A list of byte arrays with encoded ASN.1 elements that can be
+   *          decoded as octet strings.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass
-  public void setUp() throws Exception {
-    // Create the temporary file that we will write to and read from.
-    dataFile = File.createTempFile("TestASN1ReaderAndWriter-", ".data");
-
-    // Create the set of generic elements that will be written and read.
-    genericElements = new ArrayList<ASN1Element>();
-    genericElements.add(new ASN1Element((byte) 0x00));
-    genericElements.add(new ASN1Element((byte) 0x00, null));
-    genericElements.add(new ASN1Element((byte) 0x00, new byte[0]));
-    genericElements.add(new ASN1Element((byte) 0x00, new byte[1]));
-    genericElements.add(new ASN1Element((byte) 0x00, new byte[127]));
-    genericElements.add(new ASN1Element((byte) 0x00, new byte[128]));
-    genericElements.add(new ASN1Element((byte) 0x00, new byte[255]));
-    genericElements.add(new ASN1Element((byte) 0x00, new byte[256]));
-    genericElements.add(new ASN1Element((byte) 0x00, new byte[32767]));
-    genericElements.add(new ASN1Element((byte) 0x00, new byte[32768]));
-    genericElements.add(new ASN1Element((byte) 0x00, new byte[65535]));
-    genericElements.add(new ASN1Element((byte) 0x00, new byte[65536]));
-
-    // Create the set of Boolean elements that will be written and read.
-    booleanElements = new ArrayList<ASN1Boolean>();
-    booleanElements.add(new ASN1Boolean(false));
-    booleanElements.add(new ASN1Boolean(true));
-    booleanElements.add(new ASN1Boolean((byte) 0x00, false));
-    booleanElements.add(new ASN1Boolean((byte) 0x00, true));
-
-    // Create the set of enumerated elements that will be written and
-    // read.
-    enumeratedElements = new ArrayList<ASN1Enumerated>();
-    enumeratedElements.add(new ASN1Enumerated(0));
-    enumeratedElements.add(new ASN1Enumerated(1));
-    enumeratedElements.add(new ASN1Enumerated(127));
-    enumeratedElements.add(new ASN1Enumerated(128));
-    enumeratedElements.add(new ASN1Enumerated(255));
-    enumeratedElements.add(new ASN1Enumerated(256));
-    enumeratedElements.add(new ASN1Enumerated(32767));
-    enumeratedElements.add(new ASN1Enumerated(32768));
-    enumeratedElements.add(new ASN1Enumerated(65535));
-    enumeratedElements.add(new ASN1Enumerated(65536));
-
-    // Create the set of integer elements that will be written and read.
-    integerElements = new ArrayList<ASN1Integer>();
-    integerElements.add(new ASN1Integer(0));
-    integerElements.add(new ASN1Integer(1));
-    integerElements.add(new ASN1Integer(127));
-    integerElements.add(new ASN1Integer(128));
-    integerElements.add(new ASN1Integer(255));
-    integerElements.add(new ASN1Integer(256));
-    integerElements.add(new ASN1Integer(32767));
-    integerElements.add(new ASN1Integer(32768));
-    integerElements.add(new ASN1Integer(65535));
-    integerElements.add(new ASN1Integer(65536));
-
-    // Create the set of null elements that will be written and read.
-    nullElements = new ArrayList<ASN1Null>();
-    nullElements.add(new ASN1Null());
-    for (int i = 0; i < 256; i++) {
-      byte type = (byte) (i & 0xFF);
-      nullElements.add(new ASN1Null(type));
-    }
-
-    // Create the set of octet string elements that will be written and
-    // read.
-    octetStringElements = new ArrayList<ASN1OctetString>();
-    octetStringElements.add(new ASN1OctetString());
-    octetStringElements.add(new ASN1OctetString((byte[]) null));
-    octetStringElements.add(new ASN1OctetString((String) null));
-    octetStringElements.add(new ASN1OctetString(new byte[0]));
-    octetStringElements.add(new ASN1OctetString(new byte[1]));
-    octetStringElements.add(new ASN1OctetString(new byte[127]));
-    octetStringElements.add(new ASN1OctetString(new byte[128]));
-    octetStringElements.add(new ASN1OctetString(new byte[255]));
-    octetStringElements.add(new ASN1OctetString(new byte[256]));
-    octetStringElements.add(new ASN1OctetString(new byte[32767]));
-    octetStringElements.add(new ASN1OctetString(new byte[32768]));
-    octetStringElements.add(new ASN1OctetString(new byte[65535]));
-    octetStringElements.add(new ASN1OctetString(new byte[65536]));
-    octetStringElements.add(new ASN1OctetString(""));
-    octetStringElements.add(new ASN1OctetString("a"));
-
-    char[] chars127 = new char[127];
-    Arrays.fill(chars127, 'a');
-    octetStringElements.add(new ASN1OctetString(new String(chars127)));
-
-    char[] chars128 = new char[128];
-    Arrays.fill(chars128, 'a');
-    octetStringElements.add(new ASN1OctetString(new String(chars128)));
-
-    // Create the set of sequence elements that will be written and
-    // read.
-    sequenceElements = new ArrayList<ASN1Sequence>();
-    sequenceElements.add(new ASN1Sequence());
-    sequenceElements.add(new ASN1Sequence(null));
-    sequenceElements.add(new ASN1Sequence(new ArrayList<ASN1Element>(0)));
-    sequenceElements.add(new ASN1Sequence(genericElements));
-    sequenceElements.add(new ASN1Sequence(new ArrayList<ASN1Element>(
-        booleanElements)));
-    sequenceElements.add(new ASN1Sequence(new ArrayList<ASN1Element>(
-        enumeratedElements)));
-    sequenceElements.add(new ASN1Sequence(new ArrayList<ASN1Element>(
-        integerElements)));
-    sequenceElements.add(new ASN1Sequence(new ArrayList<ASN1Element>(
-        nullElements)));
-    sequenceElements.add(new ASN1Sequence(new ArrayList<ASN1Element>(
-        octetStringElements)));
-
-    // Create the set of set elements that will be written and read.
-    setElements = new ArrayList<ASN1Set>();
-    setElements.add(new ASN1Set());
-    setElements.add(new ASN1Set(null));
-    setElements.add(new ASN1Set(new ArrayList<ASN1Element>(0)));
-    setElements.add(new ASN1Set(genericElements));
-    setElements
-        .add(new ASN1Set(new ArrayList<ASN1Element>(booleanElements)));
-    setElements.add(new ASN1Set(new ArrayList<ASN1Element>(
-        enumeratedElements)));
-    setElements
-        .add(new ASN1Set(new ArrayList<ASN1Element>(integerElements)));
-    setElements.add(new ASN1Set(new ArrayList<ASN1Element>(nullElements)));
-    setElements.add(new ASN1Set(new ArrayList<ASN1Element>(
-        octetStringElements)));
-    setElements.add(new ASN1Set(
-        new ArrayList<ASN1Element>(sequenceElements)));
+  @DataProvider(name = "elementArrays")
+  public Object[][] getElementArrays()
+  {
+    return new Object[][]
+    {
+      new Object[] { new byte[] { 0x04, 0x00 } },
+      new Object[] { new byte[] { (byte) 0x50, 0x00 } },
+      new Object[] { new byte[] { 0x04, 0x05, 0x48, 0x65, 0x6C, 0x6C, 0x6F } },
+      new Object[] { new byte[] { 0x01, 0x01, 0x00 } },
+      new Object[] { new byte[] { 0x01, 0x01, (byte) 0xFF } },
+      new Object[] { new byte[] { 0x0A, 0x01, 0x00 } },
+      new Object[] { new byte[] { 0x0A, 0x01, 0x01 } },
+      new Object[] { new byte[] { 0x0A, 0x01, 0x7F } },
+      new Object[] { new byte[] { 0x0A, 0x01, (byte) 0x80 } },
+      new Object[] { new byte[] { 0x0A, 0x01, (byte) 0xFF } },
+      new Object[] { new byte[] { 0x0A, 0x02, 0x01, 0x00 } },
+      new Object[] { new byte[] { 0x02, 0x01, 0x00 } },
+      new Object[] { new byte[] { 0x02, 0x01, 0x01 } },
+      new Object[] { new byte[] { 0x02, 0x01, 0x7F } },
+      new Object[] { new byte[] { 0x02, 0x02, 0x00, (byte) 0x80 } },
+      new Object[] { new byte[] { 0x02, 0x02, 0x00, (byte) 0xFF } },
+      new Object[] { new byte[] { 0x02, 0x02, 0x01, 0x00 } },
+      new Object[] { new byte[] { 0x05, 0x00 } },
+      new Object[] { new byte[] { 0x30, 0x00 } },
+      new Object[] { new byte[] { 0x31, 0x00 } },
+    };
   }
 
+
+
   /**
-   * Performs any necessary cleanup for this test case.
+   * Tests writing elements to an output stream.
    *
-   * @throws Exception
-   *           If a problem occurs during cleanup.
+   * @param  elementBytes  The byte array that makes up an encoded element.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass
-  public void tearDown() throws Exception {
-    // Delete the temporary data file.
-    dataFile.delete();
+  @Test(dataProvider = "elementArrays")
+  public void testWriteToStream(byte[] elementBytes)
+         throws Exception
+  {
+    ASN1Element e = ASN1Element.decode(elementBytes);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ASN1Writer writer = new ASN1Writer(baos);
+    writer.writeElement(e);
+
+    assertEquals(elementBytes, baos.toByteArray());
+    writer.close();
   }
 
+
+
   /**
-   * Tests the <CODE>ASN1Writer.writeElement</CODE> and the
-   * <CODE>ASN1Reader.readElement</CODE> methods.
+   * Tests writing elements to a socket.
    *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * @param  elementBytes  The byte array that makes up an encoded element.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testWriteAndRead() throws Exception {
-    // Create the ASN.1 writer that will be used to write the elements.
-    ASN1Writer asn1Writer;
-    asn1Writer = new ASN1Writer(new FileOutputStream(dataFile, false));
+  @Test(dataProvider = "elementArrays")
+  public void testWriteToSocket(byte[] elementBytes)
+         throws Exception
+  {
+    ASN1Element e = ASN1Element.decode(elementBytes);
 
-    // Write the set of generic elements.
-    for (ASN1Element element : genericElements) {
-      asn1Writer.writeElement(element);
+    SocketReadThread readThread = new SocketReadThread("testWriteToSocket");
+    readThread.start();
+
+    Socket s = new Socket("127.0.0.1", readThread.getListenPort());
+    ASN1Writer writer = new ASN1Writer(s);
+    int bytesWritten = writer.writeElement(e);
+
+    assertEquals(elementBytes, readThread.getDataRead(bytesWritten));
+    writer.close();
+    readThread.close();
+  }
+
+
+
+  /**
+   * Tests reading elements from an input stream.
+   *
+   * @param  elementBytes  The byte array that makes up an encoded element.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "elementArrays")
+  public void testReadFromStream(byte[] elementBytes)
+         throws Exception
+  {
+    ByteArrayInputStream bais = new ByteArrayInputStream(elementBytes);
+    ASN1Reader reader = new ASN1Reader(bais);
+
+    reader.setIOTimeout(30000);
+    assertEquals(-1, reader.getIOTimeout());
+
+    ASN1Element e = reader.readElement();
+    assertEquals(elementBytes, e.encode());
+    assertEquals(e, ASN1Element.decode(elementBytes));
+
+    assertNull(reader.readElement());
+    reader.close();
+  }
+
+
+
+  /**
+   * Tests reading elements from a socket.
+   *
+   * @param  elementBytes  The byte array that makes up an encoded element.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "elementArrays")
+  public void testReadFromSocket(byte[] elementBytes)
+         throws Exception
+  {
+    SocketWriteThread writeThread  = null;
+    Socket            socket       = null;
+    ServerSocket      serverSocket = null;
+
+    try
+    {
+      ASN1Element element = ASN1Element.decode(elementBytes);
+
+      serverSocket = new ServerSocket();
+      serverSocket.setReuseAddress(true);
+      serverSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+
+      writeThread = new SocketWriteThread("testReadFromSocket",
+                                          serverSocket.getLocalPort(),
+                                          elementBytes);
+      writeThread.start();
+
+      socket = serverSocket.accept();
+      ASN1Reader reader = new ASN1Reader(socket);
+      reader.setIOTimeout(30000);
+      assertEquals(30000, reader.getIOTimeout());
+
+      ASN1Element element2 = reader.readElement();
+
+      assertEquals(element, element2);
+      assertEquals(elementBytes, element2.encode());
     }
+    finally
+    {
+      try
+      {
+        writeThread.close();
+      } catch (Exception e) {}
 
-    // Write the set of Boolean elements.
-    for (ASN1Boolean element : booleanElements) {
-      asn1Writer.writeElement(element);
+      try
+      {
+        socket.close();
+      } catch (Exception e) {}
+
+      try
+      {
+        serverSocket.close();
+      } catch (Exception e) {}
     }
+  }
 
-    // Write the set of enumerated elements.
-    for (ASN1Enumerated element : enumeratedElements) {
-      asn1Writer.writeElement(element);
+
+
+  /**
+   * Tests reading elements from an input stream with all elements falling below
+   * the maximum element size.
+   *
+   * @param  elementBytes  The byte array that makes up an encoded element.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "elementArrays")
+  public void testReadSuccessWithMaxElementSize(byte[] elementBytes)
+         throws Exception
+  {
+    ByteArrayInputStream bais = new ByteArrayInputStream(elementBytes);
+    ASN1Reader reader = new ASN1Reader(bais);
+
+    reader.setMaxElementSize(elementBytes.length);
+    assertEquals(elementBytes.length, reader.getMaxElementSize());
+
+    ASN1Element e = reader.readElement();
+    assertEquals(elementBytes, e.encode());
+    assertEquals(e, ASN1Element.decode(elementBytes));
+
+    assertNull(reader.readElement());
+    reader.close();
+  }
+
+
+
+  /**
+   * Tests reading elements from an input stream with all elements falling above
+   * the maximum element size.
+   *
+   * @param  elementBytes  The byte array that makes up an encoded element.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "elementArrays",
+        expectedExceptions = { ASN1Exception.class, IOException.class })
+  public void testReadFailureWithMaxElementSize(byte[] elementBytes)
+         throws Exception
+  {
+    ByteArrayInputStream bais = new ByteArrayInputStream(elementBytes);
+    ASN1Reader reader = new ASN1Reader(bais);
+
+    reader.setMaxElementSize(1);
+    assertEquals(1, reader.getMaxElementSize());
+
+    try
+    {
+      ASN1Element e = reader.readElement();
+      if (e.value().length <= 1)
+      {
+        throw new ASN1Exception(-1, "Too small to trip the max element size");
+      }
     }
-
-    // Write the set of integer elements.
-    for (ASN1Integer element : integerElements) {
-      asn1Writer.writeElement(element);
+    finally
+    {
+      reader.close();
     }
+  }
 
-    // Write the set of null elements.
-    for (ASN1Null element : nullElements) {
-      asn1Writer.writeElement(element);
+
+
+  /**
+   * Tests to ensure that attempting to read an element with a length encoded in
+   * too many bytes will fail.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class, IOException.class })
+  public void testReadFailureLongLength()
+         throws Exception
+  {
+    byte[] elementBytes = { 0x04, (byte) 0x85, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    ByteArrayInputStream bais = new ByteArrayInputStream(elementBytes);
+    ASN1Reader reader = new ASN1Reader(bais);
+
+    try
+    {
+      ASN1Element e = reader.readElement();
     }
-
-    // Write the set of octet string elements.
-    for (ASN1OctetString element : octetStringElements) {
-      asn1Writer.writeElement(element);
+    finally
+    {
+      reader.close();
     }
+  }
 
-    // Write the set of sequence elements.
-    for (ASN1Sequence element : sequenceElements) {
-      asn1Writer.writeElement(element);
+
+
+  /**
+   * Tests to ensure that attempting to read an element with a truncated length
+   * will fail.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class, IOException.class })
+  public void testReadFailureTruncatedLength()
+         throws Exception
+  {
+    byte[] elementBytes = { 0x04, (byte) 0x82, 0x00 };
+    ByteArrayInputStream bais = new ByteArrayInputStream(elementBytes);
+    ASN1Reader reader = new ASN1Reader(bais);
+
+    try
+    {
+      ASN1Element e = reader.readElement();
     }
-
-    // Write the set of set elements.
-    for (ASN1Set element : setElements) {
-      asn1Writer.writeElement(element);
+    finally
+    {
+      reader.close();
     }
+  }
 
-    // Always remember to close the output file.
-    asn1Writer.close();
 
-    // Create the ASN.1 reader that will be used to read the elements
-    // back.
-    ASN1Reader asn1Reader;
-    asn1Reader = new ASN1Reader(new FileInputStream(dataFile));
 
-    // Read back the set of generic elements.
-    for (ASN1Element element : genericElements) {
-      assertEquals(element, asn1Reader.readElement());
+  /**
+   * Tests to ensure that attempting to read an element with a truncated value
+   * will fail.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class, IOException.class })
+  public void testReadFailureTruncatedValue()
+         throws Exception
+  {
+    byte[] elementBytes = { 0x04, 0x02, 0x00 };
+    ByteArrayInputStream bais = new ByteArrayInputStream(elementBytes);
+    ASN1Reader reader = new ASN1Reader(bais);
+
+    try
+    {
+      ASN1Element e = reader.readElement();
     }
-
-    // Read back the set of Boolean elements.
-    for (ASN1Boolean element : booleanElements) {
-      assertEquals(element.booleanValue(), asn1Reader.readElement()
-          .decodeAsBoolean().booleanValue());
+    finally
+    {
+      reader.close();
     }
-
-    // Read back the set of enumerated elements.
-    for (ASN1Enumerated element : enumeratedElements) {
-      assertEquals(element.intValue(), asn1Reader.readElement()
-          .decodeAsEnumerated().intValue());
-    }
-
-    // Read back the set of integer elements.
-    for (ASN1Integer element : integerElements) {
-      assertEquals(element.intValue(), asn1Reader.readElement()
-          .decodeAsInteger().intValue());
-    }
-
-    // Read back the set of null elements.
-    for (ASN1Null element : nullElements) {
-      assertEquals(element, asn1Reader.readElement().decodeAsNull());
-    }
-
-    // Read back the set of octet string elements.
-    for (ASN1OctetString element : octetStringElements) {
-      assertEquals(element, asn1Reader.readElement().decodeAsOctetString());
-    }
-
-    // Read back the set of sequence elements.
-    for (ASN1Sequence element : sequenceElements) {
-      assertTrue(listsAreEqual(element.elements(), asn1Reader.readElement()
-          .decodeAsSequence().elements()));
-    }
-
-    // Read back the set of set elements.
-    for (ASN1Set element : setElements) {
-      assertTrue(listsAreEqual(element.elements(), asn1Reader.readElement()
-          .decodeAsSet().elements()));
-    }
-
-    // Always remember to close the input file.
-    asn1Reader.close();
   }
 }
+
