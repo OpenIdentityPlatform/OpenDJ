@@ -37,7 +37,8 @@ import org.opends.server.tools.*;
 public class ImportTests13 extends BackendTests
 {
 /**
- *  Add a new branch when importing data.
+ *  Import data to OpenDS with one --excludeAttribute, one --includeFilter, and
+ *  one --excludeBranch parameter.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.

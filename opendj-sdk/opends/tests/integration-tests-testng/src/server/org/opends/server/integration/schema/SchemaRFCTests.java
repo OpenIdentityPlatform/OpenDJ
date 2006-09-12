@@ -248,7 +248,7 @@ public class SchemaRFCTests extends SchemaTests
   }
 
 /**
- *  Add an entry that is covered by rfc 2978.
+ *  Add an entry that is covered by rfc 2798.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.

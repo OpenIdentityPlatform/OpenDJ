@@ -37,7 +37,7 @@ import org.opends.server.tools.*;
 public class ImportTests9 extends BackendTests
 {
 /**
- *  Import data to OpenDS with three --excludeAttribute parameters.
+ *  Import data to OpenDS with three --excludeFilters parameters.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.

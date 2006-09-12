@@ -29,18 +29,28 @@ package org.opends.server;
 import java.io.*;
 import org.opends.server.tools.StopDS;
 
+/**
+ * This class manages the starting and stopping OpenDS. 
+ * This class is used for the Integration Tests on Windows platforms.
+ */
 public class OpenDSMgr
        extends Thread
 {
   private String dsee_home;
   private String port;
 
+  /**
+   *  Creates a new OpenDSMgr..
+   */
   public OpenDSMgr(String in_dsee_home, String in_port)
   {
     dsee_home = in_dsee_home;
     port = in_port;
   }
 
+  /**
+   *  Starts a new thread to start OpenDS.
+   */
   public void run()
   {
     try
@@ -53,6 +63,9 @@ public class OpenDSMgr
     }
   }
 
+  /**
+   *  Starts OpenDS in a new thread.
+   */
   public void startDS() throws Exception
   {
     String osName = new String(System.getProperty("os.name"));
@@ -61,7 +74,6 @@ public class OpenDSMgr
     if (osName.indexOf("Windows") >= 0)  // For Windows
     {
       exec_cmd = "CMD /C " + dsee_home + "\\bin\\start-ds";
-      System.out.println(exec_cmd);
     }
     else
     {

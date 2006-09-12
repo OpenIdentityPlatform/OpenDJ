@@ -32,11 +32,8 @@ import org.opends.server.tools.StopDS;
 import org.opends.server.tools.LDAPSearch;
 
 /**
- * This class defines a base test case that should be subclassed by all
- * unit tests used by the Directory Server.
- * <p>
- * This class adds the ability to print error messages and automatically
- * have them include the class name.
+ * This class defines an abstract test case that should be subclassed by all
+ * integration tests used by OpenDS.
  */
 public abstract class OpenDSIntegrationTests {
   // The print stream to use for printing error messages.
@@ -85,6 +82,12 @@ public abstract class OpenDSIntegrationTests {
     this.errorStream = errorStream;
   }
 
+  /**
+   * Compares the return code from an ldap operation with the expected value.
+   *
+   * @param retCode  The return code received from the ldap operation.
+   * @param expCode  The expected value for the return code.
+   */
   public void compareExitCode(int retCode, int expCode)
   {
     System.out.println("Return code is " + Integer.toString(retCode) + ", expecting " + Integer.toString(expCode));
@@ -92,11 +95,16 @@ public abstract class OpenDSIntegrationTests {
     {
       if (retCode == 999)
 	System.out.println("OpenDS could not restart");
-      // throw a fail in the testng framewok
+      // throw a fail in the testng framework
       assert retCode==expCode;
     }
   }
 
+  /**
+   * Converts a string array of ldap paramters to a string.
+   *
+   * @param cmd[]    The string array of ldap parameters
+   */
   public String cmdArrayToString(String cmd[])
   {
     String outStr = cmd[0];
@@ -108,6 +116,20 @@ public abstract class OpenDSIntegrationTests {
     return outStr;
   }
 
+  /**
+   * Starts OpenDS
+   *
+   *  @param  dsee_home              The home directory for the OpenDS
+   *                                 installation.
+   *  @param  hostname               The hostname for the server where OpenDS
+   *                                 is installed.
+   *  @param  port                   The port number for OpenDS.
+   *  @param  bindDN                 The bind DN.
+   *  @param  bindPW                 The password for the bind DN.
+   *  @param  logDir                 The directory for the log files that are
+   *
+   *  @return                        0 if OpenDS started successfully, 1 if not.
+   */
   public int startOpenDS(String dsee_home, String hostname, String port, String bindDN, String bindPW, String logDir) throws Exception
   {
     int isAliveCounter = 0;
@@ -145,6 +167,13 @@ public abstract class OpenDSIntegrationTests {
     return 0;
   }
 
+  /**
+   * Stops OpenDS
+   *
+   *  @param  dsee_home              The home directory for the OpenDS
+   *                                 installation.
+   *  @param  port                   The port number for OpenDS.
+   */
   public void stopOpenDS(String dsee_home, String port) throws Exception
   {
     String myArgs[] = {"-p", port};
@@ -153,6 +182,17 @@ public abstract class OpenDSIntegrationTests {
     System.out.println("OpenDS has stopped.");
   }
 
+  /**
+   * Tests OpenDS to see if it has started.
+   *
+   *  @param  hostname               The hostname for the server where OpenDS
+   *                                 is installed.
+   *  @param  port                   The port number for OpenDS.
+   *  @param  bindDN                 The bind DN.
+   *  @param  bindPW                 The password for the bind DN.
+   *
+   *  @return                        0 if OpenDS has started, 1 if not.
+   */
   public int isAlive(String hostname, String port, String bindDN, String bindPW)
   {
     String isAlive_args[] = {"-h", hostname, "-p", port, "-D", bindDN, "-w", bindPW, "-b", "", "-s", "base", "(objectclass=*)"};
