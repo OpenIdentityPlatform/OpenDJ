@@ -32,6 +32,7 @@ import static org.opends.server.loggers.Error.removeAllErrorLoggers;
 import org.opends.server.core.DirectoryServer;
 
 /**
+ *
  * This fixture makes sure that a minimal directory server instance is
  * available. Only one initialization task is performed: the directory
  * server instance is created and has its
@@ -44,6 +45,7 @@ public final class InitialDirectoryServerFixture {
    * A factory used to obtain the initial directory server fixture
    * instance.
    */
+  @Deprecated
   public static final FixtureFactory<InitialDirectoryServerFixture> FACTORY;
 
   static {
@@ -54,11 +56,13 @@ public final class InitialDirectoryServerFixture {
   /**
    * Internal factory implementation.
    */
+  @Deprecated
   private static final class Factory implements
       FixtureFactory<InitialDirectoryServerFixture> {
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public InitialDirectoryServerFixture setUp() throws Exception {
       // Make sure a new instance is created.
       //
@@ -83,6 +87,7 @@ public final class InitialDirectoryServerFixture {
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public void tearDown() throws Exception {
       // No implementation required - no way to finalize the directory
       // server instance.

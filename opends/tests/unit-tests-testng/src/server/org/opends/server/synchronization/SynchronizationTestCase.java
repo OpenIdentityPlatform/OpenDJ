@@ -27,10 +27,9 @@
 package org.opends.server.synchronization;
 
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.SchemaFixture;
+import org.opends.server.TestCaseUtils;
 import org.testng.annotations.Test;
 
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
 /**
@@ -39,20 +38,6 @@ import org.testng.annotations.BeforeClass;
 @Test(groups = { "precommit", "synchronization" })
 public abstract class SynchronizationTestCase extends DirectoryServerTestCase
 {
-  
-
-  /**
-   * Tears down the environment for performing the tests in this suite.
-   * 
-   * @throws Exception
-   *         If the environment could not be finalized.
-   */
-  @AfterClass
-  public void tearDown() throws Exception
-  {
-    SchemaFixture.FACTORY.tearDown();
-  }
-  
 
   /**
    * Set up the environment for performing the tests in this suite.
@@ -64,7 +49,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
   public void setUp() throws Exception
   {
     // This test suite depends on having the schema available.
-    SchemaFixture.FACTORY.setUp();
+    TestCaseUtils.startServer();
   }
 
 }

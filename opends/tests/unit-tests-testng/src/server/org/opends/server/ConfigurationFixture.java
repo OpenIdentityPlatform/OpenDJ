@@ -37,6 +37,7 @@ import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.core.DirectoryServer;
 
 /**
+ *
  * This fixture makes sure that a directory server instance is available
  * with a configuration environment loaded from the source tree's
  * resource directory.
@@ -49,6 +50,7 @@ public final class ConfigurationFixture {
   /**
    * A factory used to obtain the configuration fixture instance.
    */
+  @Deprecated
   public static final FixtureFactory<ConfigurationFixture> FACTORY;
 
   static {
@@ -62,6 +64,7 @@ public final class ConfigurationFixture {
   /**
    * Internal factory implementation.
    */
+  @Deprecated
   private static final class Factory implements
       FixtureFactory<ConfigurationFixture> {
 
@@ -71,6 +74,7 @@ public final class ConfigurationFixture {
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public ConfigurationFixture setUp() throws Exception {
       // This fixture requires the initial directory server fixture.
       InitialDirectoryServerFixture.FACTORY.setUp();
@@ -100,6 +104,7 @@ public final class ConfigurationFixture {
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public void tearDown() throws Exception {
       // Clean up configuration directories.
       try {
@@ -123,6 +128,7 @@ public final class ConfigurationFixture {
    * @param instanceRoot
    *          The name of the temporary instance root.
    */
+  @Deprecated
   private ConfigurationFixture(File instanceRoot) {
     this.instanceRoot = instanceRoot;
   }
@@ -132,6 +138,7 @@ public final class ConfigurationFixture {
    *
    * @return The temporary instance root.
    */
+  @Deprecated
   public File getInstanceRoot() {
     return instanceRoot;
   }

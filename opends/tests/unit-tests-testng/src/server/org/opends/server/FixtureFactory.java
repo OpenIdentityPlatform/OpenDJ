@@ -28,6 +28,7 @@
 package org.opends.server;
 
 /**
+ *
  * A factory interface for controlling construction and finalization of
  * fixtures.
  *
@@ -43,6 +44,7 @@ public interface FixtureFactory<T> {
    *           If the fixture instance could not be initialized
    *           successfully.
    */
+  @Deprecated
   public T setUp() throws Exception;
 
   /**
@@ -52,5 +54,6 @@ public interface FixtureFactory<T> {
    * @throws Exception
    *           If the fixture instance could not be finalized.
    */
+  @Deprecated
   public void tearDown() throws Exception;
 }

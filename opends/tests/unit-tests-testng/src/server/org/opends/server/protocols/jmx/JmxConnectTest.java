@@ -108,7 +108,7 @@ public class JmxConnectTest extends JmxTestCase
   {
     return new Object[][] {
         {"cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
-            "ds-cfg-listen-port", new Long(1689)},
+            "ds-cfg-listen-port", TestCaseUtils.getServerJmxPort()},
         {"cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
               "objectclass", null},
         {"cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
@@ -178,6 +178,7 @@ public class JmxConnectTest extends JmxTestCase
            throws MalformedURLException, IOException
   {
     HashMap<String, String[]> env = new HashMap<String, String[]>();
+    long jmxPort = TestCaseUtils.getServerJmxPort();
 
     // Provide the credentials required by the server to successfully
     // perform user authentication
@@ -196,7 +197,8 @@ public class JmxConnectTest extends JmxTestCase
     //
 
     JMXServiceURL url = new JMXServiceURL(
-      "service:jmx:rmi:///jndi/rmi://localhost:1689/org.opends.server.protocols.jmx.client-unknown");
+      "service:jmx:rmi:///jndi/rmi://localhost:"+ jmxPort +
+          "/org.opends.server.protocols.jmx.client-unknown");
 
     JMXConnector jmxc = null;
     try
