@@ -26,237 +26,613 @@
  */
 package org.opends.server.protocols.asn1;
 
-import static org.opends.server.util.StaticUtils.listsAreEqual;
-import static org.testng.AssertJUnit.assertTrue;
+
 
 import java.util.ArrayList;
 
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
+
+import static org.testng.Assert.*;
+
+
 
 /**
  * This class defines a set of tests for the
  * org.opends.server.protocols.asn1.ASN1Sequence class.
  */
-public class TestASN1Sequence extends ASN1TestCase {
-  // The sets of pre-encoded ASN.1 elements that will be included in the
-  // test
-  // case.
-  private ArrayList<ArrayList<ASN1Element>> testElementSets;
+public class TestASN1Sequence
+       extends ASN1TestCase
+{
+  // The array of element arrays to use for the testing.  Each element is a
+  // single-element array containing a byte[] with the encoded elements.
+  private Object[][] elementArrays;
 
-  // The set of pre-encoded element sets that will be used in the test
-  // cases.
-  private ArrayList<byte[]> testEncodedElementSets;
+  // The array of elements to use for the testing.  Each element is a
+  // single-element array containing an ArrayList<ASN1Element>.
+  private Object[][] elementLists;
+
+
 
   /**
-   * Performs any necessary initialization for this test case.
+   * Constructs the element lists that will be used to perform the testing.
    */
-  @BeforeMethod
-  public void setUp() {
-    // Initialize the sets of ASN.1 elements that will be used in
-    // testing the
-    // group encode/decode operations.
-    testElementSets = new ArrayList<ArrayList<ASN1Element>>();
-    testEncodedElementSets = new ArrayList<byte[]>();
+  @BeforeClass()
+  public void populateElementLists()
+  {
+    ArrayList<ArrayList<ASN1Element>> lists =
+         new ArrayList<ArrayList<ASN1Element>>();
 
-    testElementSets.add(null); // The null set.
-    testEncodedElementSets.add(new byte[0]);
+    // Add a null element.
+    lists.add(null);
 
-    testElementSets.add(new ArrayList<ASN1Element>(0)); // The empty
-    // set.
-    testEncodedElementSets.add(new byte[0]);
+    // Add an empty list.
+    lists.add(new ArrayList<ASN1Element>());
 
-    // Sets containing from 1 to 10 zero-length elements.
-    for (int i = 1; i <= 10; i++) {
-      ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(i);
+    // Create an array of single elements, and add each of them in their own
+    // lists.
+    ASN1Element[] elementArray =
+    {
+      new ASN1OctetString(),
+      new ASN1OctetString((byte) 0x50),
+      new ASN1OctetString(new byte[50]),
+      new ASN1OctetString("Hello"),
+      new ASN1Element((byte) 0x50),
+      new ASN1Element((byte) 0x50, new byte[50]),
+      new ASN1Boolean(false),
+      new ASN1Boolean(true),
+      new ASN1Enumerated(0),
+      new ASN1Enumerated(1),
+      new ASN1Enumerated(127),
+      new ASN1Enumerated(128),
+      new ASN1Enumerated(255),
+      new ASN1Enumerated(256),
+      new ASN1Integer(0),
+      new ASN1Integer(1),
+      new ASN1Integer(127),
+      new ASN1Integer(128),
+      new ASN1Integer(255),
+      new ASN1Integer(256),
+      new ASN1Long(0),
+      new ASN1Long(1),
+      new ASN1Long(127),
+      new ASN1Long(128),
+      new ASN1Long(255),
+      new ASN1Long(256),
+      new ASN1Null(),
+      new ASN1Sequence(),
+      new ASN1Set()
+    };
 
-      for (int j = 0; j < i; j++) {
-        elements.add(new ASN1Element((byte) 0x00));
-      }
-      testElementSets.add(elements);
-      testEncodedElementSets.add(new byte[i * 2]);
+    // Add lists of single elements.
+    for (ASN1Element e : elementArray)
+    {
+      ArrayList<ASN1Element> list = new ArrayList<ASN1Element>(1);
+      list.add(e);
+      lists.add(list);
     }
 
-    // Sets containing from 1 to 10 1-byte-length elements.
-    for (int i = 1; i <= 10; i++) {
-      ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(i);
 
-      byte[] encodedElements = new byte[i * 3];
-      for (int j = 0; j < i; j++) {
-        elements.add(new ASN1Element((byte) 0x00, new byte[1]));
-        encodedElements[(j * 3) + 1] = (byte) 0x01;
+    // Create multi-element lists based on the single-element lists.
+    for (int i=0; i < elementArray.length; i++)
+    {
+      ArrayList<ASN1Element> list = new ArrayList<ASN1Element>(i+1);
+      for (int j=0; j <=i; j++)
+      {
+        list.add(elementArray[j]);
       }
-
-      testElementSets.add(elements);
-      testEncodedElementSets.add(encodedElements);
+      lists.add(list);
     }
 
-    // Sets containing from 1 to 10 127-byte-length elements.
-    for (int i = 1; i <= 10; i++) {
-      ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(i);
 
-      byte[] encodedElements = new byte[i * 129];
-      for (int j = 0; j < i; j++) {
-        elements.add(new ASN1Element((byte) 0x00, new byte[127]));
-        encodedElements[(j * 129) + 1] = (byte) 0x7F;
-      }
-
-      testElementSets.add(elements);
-      testEncodedElementSets.add(encodedElements);
+    // Convert the lists into object arrays.
+    elementLists = new Object[lists.size()][1];
+    for (int i=0; i < elementLists.length; i++)
+    {
+      elementLists[i] = new Object[] { lists.get(i) };
     }
 
-    // Sets containing from 1 to 10 128-byte-length elements.
-    for (int i = 1; i <= 10; i++) {
-      ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(i);
-
-      byte[] encodedElements = new byte[i * 131];
-      for (int j = 0; j < i; j++) {
-        elements.add(new ASN1Element((byte) 0x00, new byte[128]));
-        encodedElements[(j * 131) + 1] = (byte) 0x81;
-        encodedElements[(j * 131) + 2] = (byte) 0x80;
-      }
-
-      testElementSets.add(elements);
-      testEncodedElementSets.add(encodedElements);
+    lists.remove(null);
+    elementArrays = new Object[lists.size()][1];
+    for (int i=0; i < elementArrays.length; i++)
+    {
+      elementArrays[i] = new Object[] { ASN1Element.encodeValue(lists.get(i)) };
     }
   }
+
+
+
+  /**
+   * Retrieves lists of byte arrays that can be used to construct sequences.
+   *
+   * @return  Lists of byte arrays that can be used to construct sequences.
+   */
+  @DataProvider(name = "elementArrays")
+  public Object[][] getElementArrays()
+  {
+    return elementArrays;
+  }
+
+
+
+  /**
+   * Retrieves lists of ASN.1 elements that can be used to construct sequences.
+   *
+   * @return  Lists of ASN.1 elements that can be used to construct sequences.
+   */
+  @DataProvider(name = "elementLists")
+  public Object[][] getElementLists()
+  {
+    return elementLists;
+  }
+
+
+
+  /**
+   * Tests the first constructor, which doesn't take any arguments.
+   */
+  @Test()
+  public void testConstructor1()
+  {
+    new ASN1Sequence();
+  }
+
+
+
+  /**
+   * Create the values that can be used for testing BER types.
+   *
+   * @return  The values that can be used for testing BER types.
+   */
+  @DataProvider(name = "types")
+  public Object[][] getTypes()
+  {
+    // Create an array with all of the valid single-byte types.  We don't
+    // support multi-byte types, so this should be a comprehensive data set.
+    Object[][] testTypes = new Object[0xFF][1];
+    for (int i=0x00; i < 0xFF; i++)
+    {
+      testTypes[i] = new Object[] { (byte) (i & 0xFF) };
+    }
+
+    return testTypes;
+  }
+
+
+
+  /**
+   * Tests the second constructor, which takes a byte argument.
+   *
+   * @param  b  The BER type to use for the sequence.
+   */
+  @Test(dataProvider = "types")
+  public void testConstructor2(byte b)
+  {
+    new ASN1Sequence(b);
+  }
+
+
+
+  /**
+   * Tests the third constructor, which takes a list of elements.
+   *
+   * @param  elements  The list of elements to use to create the sequence.
+   */
+  @Test(dataProvider = "elementLists")
+  public void testConstructor3(ArrayList<ASN1Element> elements)
+  {
+    new ASN1Sequence(elements);
+  }
+
+
+
+  /**
+   * Tests the third constructor, which takes a byte and a list of elements.
+   *
+   * @param  elements  The list of elements to use to create the sequence.
+   */
+  @Test(dataProvider = "elementLists")
+  public void testConstructor4(ArrayList<ASN1Element> elements)
+  {
+    for (int i=0; i < 255; i++)
+    {
+      new ASN1Sequence((byte) (i & 0xFF), elements);
+    }
+  }
+
+
 
   /**
    * Tests the <CODE>elements</CODE> method.
+   *
+   * @param  elements  The list of elements to use to create the sequence.
    */
-  @Test()
-  public void testElements() {
-    int numElementSets = testElementSets.size();
-    for (int i = 0; i < numElementSets; i++) {
-      ArrayList<ASN1Element> elementSet = testElementSets.get(i);
-
-      ArrayList<ASN1Element> compareList;
-      if (elementSet == null) {
-        compareList = new ArrayList<ASN1Element>(0);
-      } else {
-        compareList = elementSet;
-      }
-
-      ASN1Sequence element = new ASN1Sequence(elementSet);
-
-      assertTrue(listsAreEqual(compareList, element.elements()));
+  @Test(dataProvider = "elementLists")
+  public void testGetElements(ArrayList<ASN1Element> elements)
+  {
+    ASN1Sequence s = new ASN1Sequence(elements);
+    if (elements == null)
+    {
+      assertEquals(new ArrayList<ASN1Element>(), s.elements());
+    }
+    else
+    {
+      assertEquals(elements, s.elements());
     }
   }
+
+
 
   /**
    * Tests the <CODE>setElements</CODE> method.
+   *
+   * @param  elements  The list of elements to use to create the sequence.
    */
-  @Test()
-  public void testSetElements() {
-    ASN1Sequence element = new ASN1Sequence();
-
-    int numElementSets = testElementSets.size();
-    for (int i = 0; i < numElementSets; i++) {
-      ArrayList<ASN1Element> elementSet = testElementSets.get(i);
-
-      ArrayList<ASN1Element> compareList;
-      if (elementSet == null) {
-        compareList = new ArrayList<ASN1Element>(0);
-      } else {
-        compareList = elementSet;
-      }
-
-      element.setElements(elementSet);
-
-      assertTrue(listsAreEqual(compareList, element.elements()));
+  @Test(dataProvider = "elementLists")
+  public void testSetElements(ArrayList<ASN1Element> elements)
+  {
+    ASN1Sequence s = new ASN1Sequence();
+    s.setElements(elements);
+    if (elements == null)
+    {
+      assertEquals(new ArrayList<ASN1Element>(), s.elements());
+    }
+    else
+    {
+      assertEquals(elements, s.elements());
     }
   }
 
+
+
   /**
-   * Tests the <CODE>setValue</CODE> method.
+   * Tests the <CODE>setValue</CODE> method with valid values.
    *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * @param  encodedElements  The byte array containing the encoded elements to
+   *                          use in the value.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSetValue() throws Exception {
-    ASN1Sequence element = new ASN1Sequence();
+  @Test(dataProvider = "elementArrays")
+  public void testSetValueValid(byte[] encodedElements)
+         throws Exception
+  {
+    ASN1Sequence s = new ASN1Sequence();
+    s.setValue(encodedElements);
+  }
 
-    int numElementSets = testElementSets.size();
-    for (int i = 0; i < numElementSets; i++) {
-      ArrayList<ASN1Element> elementSet = testElementSets.get(i);
-      byte[] encodedElementSet = testEncodedElementSets.get(i);
 
-      ArrayList<ASN1Element> compareList;
-      if (elementSet == null) {
-        compareList = new ArrayList<ASN1Element>(0);
-      } else {
-        compareList = elementSet;
-      }
 
-      element.setValue(encodedElementSet);
+  /**
+   * Tests the <CODE>setValue</CODE> method with a null array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testSetValueNull()
+         throws Exception
+  {
+    ASN1Sequence s = new ASN1Sequence();
+    s.setValue(null);
+  }
 
-      assertTrue(listsAreEqual(compareList, element.elements()));
+
+
+  /**
+   * Retrieves a set of byte arrays containing invalid element value encodings.
+   *
+   * @return  A set of byte arrays containing invalid element value encodings.
+   */
+  @DataProvider(name = "invalidElementArrays")
+  public Object[][] getInvalidArrays()
+  {
+    return new Object[][]
+    {
+      new Object[] { new byte[] { 0x05 } },
+      new Object[] { new byte[] { 0x05, 0x01 } },
+      new Object[] { new byte[] { 0x05, (byte) 0x85, 0x00, 0x00, 0x00, 0x00,
+                                  0x00 } },
+      new Object[] { new byte[] { 0x05, (byte) 0x82, 0x00 } },
+      new Object[] { new byte[] { 0x05, 0x00, 0x05 } },
+      new Object[] { new byte[] { 0x05, 0x00, 0x05, 0x01 } },
+    };
+  }
+
+
+
+  /**
+   * Tests the <CODE>setValue</CODE> method with valid values.
+   *
+   * @param  encodedElements  The byte array containing the encoded elements to
+   *                          use in the value.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "invalidElementArrays",
+        expectedExceptions = { ASN1Exception.class })
+  public void testSetValueInvalid(byte[] invalidElements)
+         throws Exception
+  {
+    ASN1Sequence s = new ASN1Sequence();
+    s.setValue(invalidElements);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes an ASN1Element
+   * argument with valid elements.
+   *
+   * @param  encodedElements  Byte arrays that may be used as valid values for
+   *                          encoded elements.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "elementArrays")
+  public void testDecodeValidElementAsSequence(byte[] encodedElements)
+         throws Exception
+  {
+    ASN1Element e = new ASN1Element(ASN1Constants.UNIVERSAL_SEQUENCE_TYPE,
+                                    encodedElements);
+    ASN1Sequence.decodeAsSequence(e);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes an ASN1Element
+   * argument with valid elements.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeNullElementAsSequence()
+         throws Exception
+  {
+    ASN1Element e = null;
+    ASN1Sequence.decodeAsSequence(e);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with valid arrays.
+   *
+   * @param  encodedElements  Byte arrays that may be used as valid values for
+   *                          encoded elements.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "elementArrays")
+  public void testDecodeValidArrayAsSequence(byte[] encodedElements)
+         throws Exception
+  {
+    byte[] encodedLength = ASN1Element.encodeLength(encodedElements.length);
+    byte[] elementBytes  =
+         new byte[1 + encodedLength.length + encodedElements.length];
+    elementBytes[0] = ASN1Constants.UNIVERSAL_SEQUENCE_TYPE;
+    System.arraycopy(encodedLength, 0, elementBytes, 1, encodedLength.length);
+    System.arraycopy(encodedElements, 0, elementBytes, 1+encodedLength.length,
+                     encodedElements.length);
+    ASN1Sequence.decodeAsSequence(elementBytes);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with a null array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeNullArrayAsSequence()
+         throws Exception
+  {
+    byte[] b = null;
+    ASN1Sequence.decodeAsSequence(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with a short array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeShortArrayAsSequence()
+         throws Exception
+  {
+    byte[] b = new byte[1];
+    ASN1Sequence.decodeAsSequence(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with an array that takes too many bytes to encode the length.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeLongLengthArrayAsSequence()
+         throws Exception
+  {
+    byte[] b = { 0x30, (byte) 0x85, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    ASN1Sequence.decodeAsSequence(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with an array that doesn't fully describe the length.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeTruncatedLengthArrayAsSequence()
+         throws Exception
+  {
+    byte[] b = { 0x30, (byte) 0x82, 0x00 };
+    ASN1Sequence.decodeAsSequence(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with an array whose decoded length doesn't match the real length.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeLengthMismatchArrayAsSequence()
+         throws Exception
+  {
+    byte[] b = { 0x30, 0x01 };
+    ASN1Sequence.decodeAsSequence(b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with valid arrays.
+   *
+   * @param  encodedElements  Byte arrays that may be used as valid values for
+   *                          encoded elements.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "elementArrays")
+  public void testDecodeTypeAndValidArrayAsSequence(byte[] encodedElements)
+         throws Exception
+  {
+    for (int i=0; i < 255; i++)
+    {
+      byte[] encodedLength = ASN1Element.encodeLength(encodedElements.length);
+      byte[] elementBytes  =
+           new byte[1 + encodedLength.length + encodedElements.length];
+      elementBytes[0] = ASN1Constants.UNIVERSAL_SEQUENCE_TYPE;
+      System.arraycopy(encodedLength, 0, elementBytes, 1, encodedLength.length);
+      System.arraycopy(encodedElements, 0, elementBytes, 1+encodedLength.length,
+                       encodedElements.length);
+      ASN1Sequence.decodeAsSequence((byte) (i & 0xFF), elementBytes);
     }
   }
 
+
+
   /**
-   * Tests the <CODE>decodeAsSequence</CODE> method that takes an
-   * ASN.1 element argument.
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with a null array.
    *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDecodeElementAsSequence() throws Exception {
-    int numElementSets = testElementSets.size();
-    for (int i = 0; i < numElementSets; i++) {
-      ArrayList<ASN1Element> elementSet = testElementSets.get(i);
-      byte[] encodedElementSet = testEncodedElementSets.get(i);
-
-      ArrayList<ASN1Element> compareList;
-      if (elementSet == null) {
-        compareList = new ArrayList<ASN1Element>(0);
-      } else {
-        compareList = elementSet;
-      }
-
-      ASN1Element element = new ASN1Element((byte) 0x00, encodedElementSet);
-
-      assertTrue(listsAreEqual(compareList, ASN1Sequence.decodeAsSequence(
-          element).elements()));
-    }
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeTypeAndNullArrayAsSequence()
+         throws Exception
+  {
+    byte[] b = null;
+    ASN1Sequence.decodeAsSequence((byte) 0x50, b);
   }
 
+
+
   /**
-   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte
-   * array argument.
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with a short array.
    *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDecodeBytesAsSequence() throws Exception {
-    int numElementSets = testElementSets.size();
-    for (int i = 0; i < numElementSets; i++) {
-      ArrayList<ASN1Element> elementSet = testElementSets.get(i);
-      byte[] encodedElementSet = testEncodedElementSets.get(i);
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeTypeAndShortArrayAsSequence()
+         throws Exception
+  {
+    byte[] b = new byte[1];
+    ASN1Sequence.decodeAsSequence((byte) 0x50, b);
+  }
 
-      ArrayList<ASN1Element> compareList;
-      if (elementSet == null) {
-        compareList = new ArrayList<ASN1Element>(0);
-      } else {
-        compareList = elementSet;
-      }
 
-      byte[] encodedLength = ASN1Element
-          .encodeLength(encodedElementSet.length);
-      byte[] encodedElement = new byte[1 + encodedLength.length
-          + encodedElementSet.length];
 
-      encodedElement[0] = 0x00;
-      System.arraycopy(encodedLength, 0, encodedElement, 1,
-          encodedLength.length);
-      System.arraycopy(encodedElementSet, 0, encodedElement,
-          1 + encodedLength.length, encodedElementSet.length);
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with an array that takes too many bytes to encode the length.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeTypeAndLongLengthArrayAsSequence()
+         throws Exception
+  {
+    byte[] b = { 0x30, (byte) 0x85, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    ASN1Sequence.decodeAsSequence((byte) 0x50, b);
+  }
 
-      assertTrue(listsAreEqual(compareList, ASN1Sequence.decodeAsSequence(
-          encodedElement).elements()));
-    }
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with an array that doesn't fully describe the length.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeTypeAndTruncatedLengthArrayAsSequence()
+         throws Exception
+  {
+    byte[] b = { 0x30, (byte) 0x82, 0x00 };
+    ASN1Sequence.decodeAsSequence((byte) 0x50, b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>decodeAsSequence</CODE> method that takes a byte array
+   * argument with an array whose decoded length doesn't match the real length.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeTypeAndLengthMismatchArrayAsSequence()
+         throws Exception
+  {
+    byte[] b = { 0x30, 0x01 };
+    ASN1Sequence.decodeAsSequence((byte) 0x50, b);
+  }
+
+
+
+  /**
+   * Tests the <CODE>toString</CODE> method that takes a string builder
+   * argument.
+   *
+   * @param  elements  The list of elements to use to create the sequence.
+   */
+  @Test(dataProvider = "elementLists")
+  public void testToString1(ArrayList<ASN1Element> elements)
+  {
+    new ASN1Sequence(elements).toString(new StringBuilder());
+  }
+
+
+
+  /**
+   * Tests the <CODE>toString</CODE> method that takes string builder and
+   * integer arguments.
+   *
+   * @param  elements  The list of elements to use to create the sequence.
+   */
+  @Test(dataProvider = "elementLists")
+  public void testToString2(ArrayList<ASN1Element> elements)
+  {
+    new ASN1Sequence(elements).toString(new StringBuilder(), 1);
   }
 }
+
