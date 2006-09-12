@@ -33,6 +33,7 @@ import java.io.File;
 import org.opends.server.core.DirectoryServer;
 
 /**
+ *
  * This fixture makes sure that a directory server instance is available
  * with the core schema files loaded from the source tree's resource
  * directory.
@@ -45,6 +46,7 @@ public final class SchemaFixture {
   /**
    * A factory used to obtain the schema fixture instance.
    */
+  @Deprecated
   public static final FixtureFactory<SchemaFixture> FACTORY;
 
   static {
@@ -54,12 +56,14 @@ public final class SchemaFixture {
   /**
    * Internal factory implementation.
    */
+  @Deprecated
   private static final class Factory implements
       FixtureFactory<SchemaFixture> {
 
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public SchemaFixture setUp() throws Exception {
       // This fixture requires the configuration fixture.
       ConfigurationFixture fixture = ConfigurationFixture.FACTORY.setUp();
@@ -80,6 +84,7 @@ public final class SchemaFixture {
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public void tearDown() throws Exception {
       // TODO: clean up the schema?
 
@@ -93,6 +98,7 @@ public final class SchemaFixture {
   /**
    * Create a schema fixture.
    */
+  @Deprecated
   private SchemaFixture() {
     // No implementation required.
   }

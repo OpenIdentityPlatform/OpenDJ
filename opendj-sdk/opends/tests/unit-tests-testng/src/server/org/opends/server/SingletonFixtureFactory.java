@@ -28,6 +28,7 @@
 package org.opends.server;
 
 /**
+ *
  * A fixture factory that guarantees that at most only one instance of a
  * fixture is instantiated. The singleton factory uses reference
  * counting to guarantee that the fixture instance is torn down at the
@@ -51,6 +52,7 @@ public final class SingletonFixtureFactory<T> implements FixtureFactory<T> {
    * @param pimpl
    *          The underlying fixture factory.
    */
+  //@Deprecated
   public SingletonFixtureFactory(FixtureFactory<T> pimpl) {
     this.pimpl = pimpl;
     this.instance = null;
@@ -60,6 +62,7 @@ public final class SingletonFixtureFactory<T> implements FixtureFactory<T> {
   /**
    * {@inheritDoc}
    */
+  @Deprecated
   public T setUp() throws Exception {
     if (refCount == 0) {
       instance = pimpl.setUp();
@@ -72,6 +75,7 @@ public final class SingletonFixtureFactory<T> implements FixtureFactory<T> {
   /**
    * {@inheritDoc}
    */
+  @Deprecated
   public void tearDown() throws Exception {
     if (refCount <= 0) {
       throw new IllegalStateException("SingletonFixtureFactory tearDown "

@@ -28,7 +28,7 @@ package org.opends.server.schema;
 
 import static org.testng.Assert.assertEquals;
 
-import org.opends.server.SchemaFixture;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
@@ -166,17 +166,6 @@ public class ApproximatematchingRule extends SchemaTestCase
   @BeforeClass
   public void setUp() throws Exception {
     // This test suite depends on having the schema available.
-    SchemaFixture.FACTORY.setUp();
-  }
-
-  /**
-   * Tears down the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be finalized.
-   */
-  @AfterClass
-  public void tearDown() throws Exception {
-    SchemaFixture.FACTORY.tearDown();
+    TestCaseUtils.startServer();
   }
 }

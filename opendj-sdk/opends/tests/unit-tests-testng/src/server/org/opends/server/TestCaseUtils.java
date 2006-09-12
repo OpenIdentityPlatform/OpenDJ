@@ -86,6 +86,8 @@ public final class TestCaseUtils {
     File   testRoot  = new File(buildRoot + File.separator + "build" +
                                 File.separator + "unit-tests" + File.separator +
                                 "package");
+    File   testSrcRoot = new File(buildRoot + File.separator + "tests" +
+                                  File.separator + "unit-tests-testng");
 
     if (testRoot.exists())
     {
@@ -104,6 +106,7 @@ public final class TestCaseUtils {
     // Copy the configuration, schema, and MakeLDIF resources into the
     // appropriate place under the test package.
     File resourceDir   = new File(buildRoot, "resource");
+    File testResourceDir = new File(testSrcRoot, "resource");
     File testConfigDir = new File(testRoot, "config");
 
     copyDirectory(new File(resourceDir, "config"), testConfigDir);
@@ -111,7 +114,8 @@ public final class TestCaseUtils {
                   new File(testConfigDir, "schema"));
     copyDirectory(new File(resourceDir, "MakeLDIF"),
                   new File(testConfigDir, "MakeLDIF"));
-    // FIXME -- Copy the config-changes.ldif file into place when we have one.
+    copyFile     (new File(testResourceDir, "config-changes.ldif"),
+                  new File(testConfigDir, "config-changes.ldif"));
 
 
     // Actually start the server and set a variable that will prevent us from
@@ -225,6 +229,43 @@ public final class TestCaseUtils {
     }
     in.close();
     out.close();
+  }
+
+  /**
+   * Get the LDAP port the test environment Directory Server instance is
+   * running on.
+   *
+   * @return The port number.
+   */
+  public static long getServerLdapPort()
+  {
+    return 32389;
+  }
+
+  /**
+   * Get the JMX port the test environment Directory Server instance is
+   * running on.
+   *
+   * @return The port number.
+   */
+  public static long getServerJmxPort()
+  {
+    return 33689;
+  }
+
+  /**
+   * Method for getting a file from the test resources directory.
+   *
+   * @return The directory as a File
+   */
+  public static File getTestResource(String filename)
+  {
+    String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
+    File   testResourceDir = new File(buildRoot + File.separator + "tests" +
+                                      File.separator + "unit-tests-testng" +
+                                      File.separator + "resource");
+
+    return new File(testResourceDir, filename);
   }
 
   /**

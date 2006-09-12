@@ -26,7 +26,7 @@
  */
 package org.opends.server.schema;
 
-import org.opends.server.SchemaFixture;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -216,17 +216,7 @@ public class EqualityMatchingRuleTest extends SchemaTestCase
   @BeforeClass
   public void setUp() throws Exception {
     // This test suite depends on having the schema available.
-    SchemaFixture.FACTORY.setUp();
+    TestCaseUtils.startServer();
   }
 
-  /**
-   * Tears down the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be finalized.
-   */
-  @AfterClass
-  public void tearDown() throws Exception {
-    SchemaFixture.FACTORY.tearDown();
-  }
 }
