@@ -10,6 +10,7 @@
             <package name="org.opends.server.protocols.jmx"/>
             <package name="org.opends.server.util"/>
             <package name="org.opends.server.schema"/>
+            <package name="org.opends.server.monitors"/>
         </packages>
     </test>
 
