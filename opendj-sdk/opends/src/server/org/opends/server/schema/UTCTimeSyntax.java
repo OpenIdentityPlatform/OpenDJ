@@ -726,9 +726,9 @@ public class UTCTimeSyntax
 
       case '+':
       case '-':
-        // These are fine only if there are exactly four more digits that
+        // These are fine only if there are four or two more digits that
         // specify a valid offset.
-        if (length == 19)
+        if ((length == 19) || (length == 17))
         {
           return hasValidOffset(valueString, 15, invalidReason);
         }
