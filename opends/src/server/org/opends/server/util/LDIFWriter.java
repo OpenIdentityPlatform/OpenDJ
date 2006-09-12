@@ -31,8 +31,8 @@ package org.opends.server.util;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -52,7 +52,7 @@ import static org.opends.server.util.StaticUtils.*;
  * This class provides a mechanism for writing entries in LDIF form to a file or
  * an output stream.
  */
-public class LDIFWriter
+public final class LDIFWriter
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -70,6 +70,9 @@ public class LDIFWriter
 
   // The configuration to use for the export.
   private LDIFExportConfig exportConfig;
+
+  // Regular expression used for splitting comments on line-breaks.
+  private static final Pattern SPLIT_NEWLINE = Pattern.compile("\\r?\\n");
 
 
 
@@ -124,39 +127,7 @@ public class LDIFWriter
 
     // First, break up the comment into multiple lines to preserve the original
     // spacing that it contained.
-    LinkedList<String> lines = new LinkedList<String>();
-
-    int startPos = 0;
-    int crlfPos  = comment.indexOf("\r\n", startPos);
-    while (crlfPos > 0)
-    {
-      String line = comment.substring(startPos, crlfPos);
-
-      int lineStart = 0;
-      int lfPos     = line.indexOf('\n', lineStart);
-      while (lfPos > 0)
-      {
-        lines.add(line.substring(lineStart, lfPos));
-        lineStart = lfPos + 1;
-      }
-
-      lines.add(line.substring(lineStart));
-
-      startPos = crlfPos + 2;
-    }
-
-    String line = comment.substring(startPos);
-
-    int lineStart = 0;
-    int lfPos     = line.indexOf('\n', lineStart);
-    while (lfPos > 0)
-    {
-      lines.add(line.substring(lineStart, lfPos));
-      lineStart = lfPos + 1;
-    }
-
-    lines.add(line.substring(lineStart));
-
+    String[] lines = SPLIT_NEWLINE.split(comment);
 
     // Now iterate through the lines and write them out, prefixing and wrapping
     // them as necessary.
@@ -180,7 +151,7 @@ public class LDIFWriter
         }
         else
         {
-          startPos = 0;
+          int startPos = 0;
 outerLoop:
           while (startPos < l.length())
           {
