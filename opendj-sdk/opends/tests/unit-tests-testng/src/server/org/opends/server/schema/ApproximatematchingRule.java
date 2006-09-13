@@ -32,7 +32,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
