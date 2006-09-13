@@ -31,7 +31,6 @@ import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
