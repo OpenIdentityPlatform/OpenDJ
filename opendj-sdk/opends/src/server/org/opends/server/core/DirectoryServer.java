@@ -6793,6 +6793,21 @@ public class DirectoryServer
     }
 
 
+    // Finalize all of the SASL mechanism handlers.
+    for (SASLMechanismHandler handler :
+         directoryServer.saslMechanismHandlers.values())
+    {
+      try
+      {
+        handler.finalizeSASLMechanismHandler();
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "shutDown", e);
+      }
+    }
+
+
     // Shut down all the other components that may need special handling.
     // NYI
 
