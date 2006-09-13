@@ -129,7 +129,7 @@ public class TestASN1Integer
   @Test(dataProvider = "intValues")
   public void testIntValue(int i)
   {
-    assertEquals(i, new ASN1Integer(i).intValue());
+    assertEquals(new ASN1Integer(i).intValue(), i);
   }
 
 
@@ -144,7 +144,7 @@ public class TestASN1Integer
   {
     ASN1Integer integerElement = new ASN1Integer(0);
     integerElement.setValue(i);
-    assertEquals(i, integerElement.intValue());
+    assertEquals(integerElement.intValue(), i);
   }
 
 
@@ -192,7 +192,7 @@ public class TestASN1Integer
     }
 
     integerElement.setValue(encoding);
-    assertEquals(i, integerElement.intValue());
+    assertEquals(integerElement.intValue(), i);
   }
 
 
@@ -266,11 +266,11 @@ public class TestASN1Integer
     // First, make sure that we can decode an integer element as an integer.
     ASN1Element e = new ASN1Integer(i);
     ASN1Integer integerElement = ASN1Integer.decodeAsInteger(e);
-    assertEquals(i, integerElement.intValue());
+    assertEquals(integerElement.intValue(), i);
 
     e = new ASN1Integer((byte) 0x50, i);
     integerElement = ASN1Integer.decodeAsInteger(e);
-    assertEquals(i, integerElement.intValue());
+    assertEquals(integerElement.intValue(), i);
 
 
     // Next, make sure that we can decode a generic element as an integer.
@@ -304,11 +304,11 @@ public class TestASN1Integer
 
     e = new ASN1Element(ASN1Constants.UNIVERSAL_INTEGER_TYPE, encoding);
     integerElement = ASN1Integer.decodeAsInteger(e);
-    assertEquals(i, integerElement.intValue());
+    assertEquals(integerElement.intValue(), i);
 
     e = new ASN1Element((byte) 0x50, encoding);
     integerElement = ASN1Integer.decodeAsInteger(e);
-    assertEquals(i, integerElement.intValue());
+    assertEquals(integerElement.intValue(), i);
   }
 
 
@@ -408,7 +408,7 @@ public class TestASN1Integer
     System.arraycopy(encoding, 0, encodedElement, 2, encoding.length);
 
     ASN1Integer integerElement = ASN1Integer.decodeAsInteger(encodedElement);
-    assertEquals(i, integerElement.intValue());
+    assertEquals(integerElement.intValue(), i);
   }
 
 
@@ -460,7 +460,7 @@ public class TestASN1Integer
     System.arraycopy(encoding, 0, encodedElement, 3, encoding.length);
 
     ASN1Integer integerElement = ASN1Integer.decodeAsInteger(encodedElement);
-    assertEquals(i, integerElement.intValue());
+    assertEquals(integerElement.intValue(), i);
   }
 
 

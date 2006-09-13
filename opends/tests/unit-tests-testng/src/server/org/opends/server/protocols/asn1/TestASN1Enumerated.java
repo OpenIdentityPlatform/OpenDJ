@@ -110,7 +110,7 @@ public class TestASN1Enumerated
   @Test(dataProvider = "intValues")
   public void testIntValue(int i)
   {
-    assertEquals(i, new ASN1Enumerated(i).intValue());
+    assertEquals(new ASN1Enumerated(i).intValue(), i);
   }
 
 
@@ -125,7 +125,7 @@ public class TestASN1Enumerated
   {
     ASN1Enumerated enumeratedElement = new ASN1Enumerated(0);
     enumeratedElement.setValue(i);
-    assertEquals(i, enumeratedElement.intValue());
+    assertEquals(enumeratedElement.intValue(), i);
   }
 
 
@@ -173,7 +173,7 @@ public class TestASN1Enumerated
     }
 
     enumeratedElement.setValue(encoding);
-    assertEquals(i, enumeratedElement.intValue());
+    assertEquals(enumeratedElement.intValue(), i);
   }
 
 
@@ -247,11 +247,11 @@ public class TestASN1Enumerated
     // First, make sure that we can decode an integer element as an integer.
     ASN1Element e = new ASN1Enumerated(i);
     ASN1Enumerated enumeratedElement = ASN1Enumerated.decodeAsEnumerated(e);
-    assertEquals(i, enumeratedElement.intValue());
+    assertEquals(enumeratedElement.intValue(), i);
 
     e = new ASN1Enumerated((byte) 0x50, i);
     enumeratedElement = ASN1Enumerated.decodeAsEnumerated(e);
-    assertEquals(i, enumeratedElement.intValue());
+    assertEquals(enumeratedElement.intValue(), i);
 
 
     // Next, make sure that we can decode a generic element as an integer.
@@ -285,11 +285,11 @@ public class TestASN1Enumerated
 
     e = new ASN1Element(ASN1Constants.UNIVERSAL_ENUMERATED_TYPE, encoding);
     enumeratedElement = ASN1Enumerated.decodeAsEnumerated(e);
-    assertEquals(i, enumeratedElement.intValue());
+    assertEquals(enumeratedElement.intValue(), i);
 
     e = new ASN1Element((byte) 0x50, encoding);
     enumeratedElement = ASN1Enumerated.decodeAsEnumerated(e);
-    assertEquals(i, enumeratedElement.intValue());
+    assertEquals(enumeratedElement.intValue(), i);
   }
 
 
@@ -390,7 +390,7 @@ public class TestASN1Enumerated
 
     ASN1Enumerated enumeratedElement =
          ASN1Enumerated.decodeAsEnumerated(encodedElement);
-    assertEquals(i, enumeratedElement.intValue());
+    assertEquals(enumeratedElement.intValue(), i);
   }
 
 
@@ -443,7 +443,7 @@ public class TestASN1Enumerated
 
     ASN1Enumerated enumeratedElement =
          ASN1Enumerated.decodeAsEnumerated(encodedElement);
-    assertEquals(i, enumeratedElement.intValue());
+    assertEquals(enumeratedElement.intValue(),i);
   }
 
 

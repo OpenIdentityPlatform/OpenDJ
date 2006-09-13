@@ -81,7 +81,7 @@ public class TestASN1Element
   {
     ASN1Element e = new ASN1Element((byte) 0x00);
     e.setType(type);
-    assertEquals(type, e.getType());
+    assertEquals(e.getType(), type);
   }
 
 
@@ -95,7 +95,7 @@ public class TestASN1Element
   public void testIsUniversal(byte type)
   {
     boolean isUniversal = (((type & 0xFF) >> 6) == 0x00);
-    assertEquals(isUniversal, new ASN1Element(type).isUniversal());
+    assertEquals(new ASN1Element(type).isUniversal(), isUniversal);
   }
 
 
@@ -109,8 +109,8 @@ public class TestASN1Element
   public void testIsApplicationSpecific(byte type)
   {
     boolean isApplicationSpecific = (((type & 0xFF) >> 6) == 0x01);
-    assertEquals(isApplicationSpecific,
-                 new ASN1Element(type).isApplicationSpecific());
+    assertEquals(new ASN1Element(type).isApplicationSpecific(),
+                 isApplicationSpecific);
   }
 
 
@@ -124,7 +124,7 @@ public class TestASN1Element
   public void testIsContextSpecific(byte type)
   {
     boolean isContextSpecific = (((type & 0xFF) >> 6) == 0x02);
-    assertEquals(isContextSpecific, new ASN1Element(type).isContextSpecific());
+    assertEquals(new ASN1Element(type).isContextSpecific(), isContextSpecific);
   }
 
 
@@ -138,7 +138,7 @@ public class TestASN1Element
   public void testIsPrivate(byte type)
   {
     boolean isPrivate = (((type & 0xFF) >> 6) == 0x03);
-    assertEquals(isPrivate, new ASN1Element(type).isPrivate());
+    assertEquals(new ASN1Element(type).isPrivate(), isPrivate);
   }
 
 
@@ -152,7 +152,7 @@ public class TestASN1Element
   public void testIsPrimitive(byte type)
   {
     boolean isPrimitive = ((type & 0xDF) == (type & 0xFF));
-    assertEquals(isPrimitive, new ASN1Element(type).isPrimitive());
+    assertEquals(new ASN1Element(type).isPrimitive(), isPrimitive);
   }
 
 
@@ -166,7 +166,7 @@ public class TestASN1Element
   public void testIsConstructed(byte type)
   {
     boolean isConstructed = ((type & 0xDF) != (type & 0xFF));
-    assertEquals(isConstructed, new ASN1Element(type).isConstructed());
+    assertEquals(new ASN1Element(type).isConstructed(), isConstructed);
   }
 
 
@@ -212,11 +212,11 @@ public class TestASN1Element
 
     if (value == null)
     {
-      assertEquals(new byte[0], e.value());
+      assertEquals(e.value(), new byte[0]);
     }
     else
     {
-      assertEquals(value, e.value());
+      assertEquals(e.value(), value);
     }
   }
 
@@ -262,7 +262,7 @@ public class TestASN1Element
   @Test(dataProvider = "testLengths")
   public void testEncodeLength(int decodedLength, byte[] encodedLength)
   {
-    assertEquals(encodedLength, ASN1Element.encodeLength(decodedLength));
+    assertEquals(ASN1Element.encodeLength(decodedLength), encodedLength);
   }
 
 
@@ -285,31 +285,31 @@ public class TestASN1Element
       byte[] encodedElement = e.encode();
 
       ASN1Element d = ASN1Element.decode(encodedElement);
-      assertEquals(d, e);
-      assertEquals(type, d.getType());
+      assertEquals(e, d);
+      assertEquals(d.getType(), type);
       assertTrue(e.equalsElement(d));
 
       if (value == null)
       {
-        assertEquals(new byte[0], d.value());
+        assertEquals(d.value(), new byte[0]);
       }
       else
       {
-        assertEquals(value, d.value());
+        assertEquals(d.value(), value);
       }
 
       d = ASN1Element.decode(encodedElement, 0, encodedElement.length);
-      assertEquals(d, e);
-      assertEquals(type, d.getType());
+      assertEquals(e, d);
+      assertEquals(d.getType(), type);
       assertTrue(e.equalsElement(d));
 
       if (value == null)
       {
-        assertEquals(new byte[0], d.value());
+        assertEquals(d.value(), new byte[0]);
       }
       else
       {
-        assertEquals(value, d.value());
+        assertEquals(d.value(), value);
       }
     }
   }
@@ -347,11 +347,11 @@ public class TestASN1Element
     {
       ASN1Element e = new ASN1Boolean(b);
       ASN1Boolean booleanElement = e.decodeAsBoolean();
-      assertEquals(b, booleanElement.booleanValue());
+      assertEquals(booleanElement.booleanValue(), b);
 
       e = new ASN1Boolean((byte) 0x50, b);
       booleanElement = e.decodeAsBoolean();
-      assertEquals(b, booleanElement.booleanValue());
+      assertEquals(booleanElement.booleanValue(), b);
     }
 
 
@@ -362,11 +362,11 @@ public class TestASN1Element
       ASN1Element e = new ASN1Element(ASN1Constants.UNIVERSAL_BOOLEAN_TYPE,
                                       new byte[] { (byte) i });
       ASN1Boolean b = e.decodeAsBoolean();
-      assertEquals((i != 0), b.booleanValue());
+      assertEquals(b.booleanValue(), (i != 0));
 
       e = new ASN1Element((byte) 0x50, new byte[] { (byte) i });
       b = e.decodeAsBoolean();
-      assertEquals((i != 0), b.booleanValue());
+      assertEquals(b.booleanValue(), (i != 0));
     }
   }
 
@@ -411,11 +411,11 @@ public class TestASN1Element
     {
       ASN1Element e = new ASN1Enumerated(i);
       ASN1Enumerated enumeratedElement = e.decodeAsEnumerated();
-      assertEquals(i, enumeratedElement.intValue());
+      assertEquals(enumeratedElement.intValue(), i);
 
       e = new ASN1Enumerated((byte) 0x50, i);
       enumeratedElement = e.decodeAsEnumerated();
-      assertEquals(i, enumeratedElement.intValue());
+      assertEquals(enumeratedElement.intValue(), i);
     }
 
 
@@ -454,11 +454,11 @@ public class TestASN1Element
       ASN1Element e = new ASN1Element(ASN1Constants.UNIVERSAL_ENUMERATED_TYPE,
                                       encoding);
       ASN1Enumerated enumeratedElement = e.decodeAsEnumerated();
-      assertEquals(i, enumeratedElement.intValue());
+      assertEquals(enumeratedElement.intValue(), i);
 
       e = new ASN1Element((byte) 0x50, encoding);
       enumeratedElement = e.decodeAsEnumerated();
-      assertEquals(i, enumeratedElement.intValue());
+      assertEquals(enumeratedElement.intValue(), i);
     }
   }
 
@@ -521,11 +521,11 @@ public class TestASN1Element
     {
       ASN1Element e = new ASN1Integer(i);
       ASN1Integer integerElement = e.decodeAsInteger();
-      assertEquals(i, integerElement.intValue());
+      assertEquals(integerElement.intValue(), i);
 
       e = new ASN1Integer((byte) 0x50, i);
       integerElement = e.decodeAsInteger();
-      assertEquals(i, integerElement.intValue());
+      assertEquals(integerElement.intValue(), i);
     }
 
 
@@ -563,11 +563,11 @@ public class TestASN1Element
       ASN1Element e = new ASN1Element(ASN1Constants.UNIVERSAL_INTEGER_TYPE,
                                       encoding);
       ASN1Integer integerElement = e.decodeAsInteger();
-      assertEquals(i, integerElement.intValue());
+      assertEquals(integerElement.intValue(), i);
 
       e = new ASN1Element((byte) 0x50, encoding);
       integerElement = e.decodeAsInteger();
-      assertEquals(i, integerElement.intValue());
+      assertEquals(integerElement.intValue(), i);
     }
   }
 
@@ -630,11 +630,11 @@ public class TestASN1Element
     {
       ASN1Element e = new ASN1Long(l);
       ASN1Long longElement = e.decodeAsLong();
-      assertEquals(l, longElement.longValue());
+      assertEquals(longElement.longValue(), l);
 
       e = new ASN1Long((byte) 0x50, l);
       longElement = e.decodeAsLong();
-      assertEquals(l, longElement.longValue());
+      assertEquals(longElement.longValue(), l);
     }
 
 
@@ -714,11 +714,11 @@ public class TestASN1Element
       ASN1Element e = new ASN1Element(ASN1Constants.UNIVERSAL_INTEGER_TYPE,
                                       encoding);
       ASN1Long longElement = e.decodeAsLong();
-      assertEquals(l, longElement.longValue());
+      assertEquals(longElement.longValue(), l);
 
       e = new ASN1Element((byte) 0x50, encoding);
       longElement = e.decodeAsLong();
-      assertEquals(l, longElement.longValue());
+      assertEquals(longElement.longValue(), l);
     }
   }
 
@@ -783,22 +783,22 @@ public class TestASN1Element
     ASN1OctetString octetStringElement = e.decodeAsOctetString();
     if (value == null)
     {
-      assertEquals(new byte[0], octetStringElement.value());
+      assertEquals(octetStringElement.value(), new byte[0]);
     }
     else
     {
-      assertEquals(value, octetStringElement.value());
+      assertEquals(octetStringElement.value(), value);
     }
 
     e = new ASN1OctetString((byte) 0x50, value);
     octetStringElement = e.decodeAsOctetString();
     if (value == null)
     {
-      assertEquals(new byte[0], octetStringElement.value());
+      assertEquals(octetStringElement.value(), new byte[0]);
     }
     else
     {
-      assertEquals(value, octetStringElement.value());
+      assertEquals(octetStringElement.value(), value);
     }
 
 
@@ -808,22 +808,22 @@ public class TestASN1Element
     octetStringElement = e.decodeAsOctetString();
     if (value == null)
     {
-      assertEquals(new byte[0], octetStringElement.value());
+      assertEquals(octetStringElement.value(), new byte[0]);
     }
     else
     {
-      assertEquals(value, octetStringElement.value());
+      assertEquals(octetStringElement.value(), value);
     }
 
     e = new ASN1Element((byte) 0x50, value);
     octetStringElement = e.decodeAsOctetString();
     if (value == null)
     {
-      assertEquals(new byte[0], octetStringElement.value());
+      assertEquals(octetStringElement.value(), new byte[0]);
     }
     else
     {
-      assertEquals(value, octetStringElement.value());
+      assertEquals(octetStringElement.value(), value);
     }
   }
 
@@ -910,22 +910,22 @@ public class TestASN1Element
     ASN1Sequence sequenceElement = e.decodeAsSequence();
     if (elements == null)
     {
-      assertEquals(new ArrayList<ASN1Element>(), sequenceElement.elements());
+      assertEquals(sequenceElement.elements(), new ArrayList<ASN1Element>());
     }
     else
     {
-      assertEquals(elementList, sequenceElement.elements());
+      assertEquals(sequenceElement.elements(), elementList);
     }
 
     e = new ASN1Sequence((byte) 0x50, elementList);
     sequenceElement = e.decodeAsSequence();
     if (elements == null)
     {
-      assertEquals(new ArrayList<ASN1Element>(), sequenceElement.elements());
+      assertEquals(sequenceElement.elements(), new ArrayList<ASN1Element>());
     }
     else
     {
-      assertEquals(elementList, sequenceElement.elements());
+      assertEquals(sequenceElement.elements(), elementList);
     }
 
 
@@ -936,22 +936,22 @@ public class TestASN1Element
     sequenceElement = e.decodeAsSequence();
     if (elements == null)
     {
-      assertEquals(new ArrayList<ASN1Element>(), sequenceElement.elements());
+      assertEquals(sequenceElement.elements(), new ArrayList<ASN1Element>());
     }
     else
     {
-      assertEquals(elementList, sequenceElement.elements());
+      assertEquals(sequenceElement.elements(), elementList);
     }
 
     e = new ASN1Element((byte) 0x50, ASN1Element.encodeValue(elementList));
     sequenceElement = e.decodeAsSequence();
     if (elements == null)
     {
-      assertEquals(new ArrayList<ASN1Element>(), sequenceElement.elements());
+      assertEquals(sequenceElement.elements(), new ArrayList<ASN1Element>());
     }
     else
     {
-      assertEquals(elementList, sequenceElement.elements());
+      assertEquals(sequenceElement.elements(), elementList);
     }
   }
 
@@ -988,22 +988,22 @@ public class TestASN1Element
     ASN1Set setElement = e.decodeAsSet();
     if (elements == null)
     {
-      assertEquals(new ArrayList<ASN1Element>(), setElement.elements());
+      assertEquals(setElement.elements(), new ArrayList<ASN1Element>());
     }
     else
     {
-      assertEquals(elementList, setElement.elements());
+      assertEquals(setElement.elements(), elementList);
     }
 
     e = new ASN1Set((byte) 0x50, elementList);
     setElement = e.decodeAsSet();
     if (elements == null)
     {
-      assertEquals(new ArrayList<ASN1Element>(), setElement.elements());
+      assertEquals(setElement.elements(), new ArrayList<ASN1Element>());
     }
     else
     {
-      assertEquals(elementList, setElement.elements());
+      assertEquals(setElement.elements(), elementList);
     }
 
 
@@ -1014,22 +1014,22 @@ public class TestASN1Element
     setElement = e.decodeAsSet();
     if (elements == null)
     {
-      assertEquals(new ArrayList<ASN1Element>(), setElement.elements());
+      assertEquals(setElement.elements(), new ArrayList<ASN1Element>());
     }
     else
     {
-      assertEquals(elementList, setElement.elements());
+      assertEquals(setElement.elements(), elementList);
     }
 
     e = new ASN1Element((byte) 0x50, ASN1Element.encodeValue(elementList));
     setElement = e.decodeAsSet();
     if (elements == null)
     {
-      assertEquals(new ArrayList<ASN1Element>(), setElement.elements());
+      assertEquals(setElement.elements(), new ArrayList<ASN1Element>());
     }
     else
     {
-      assertEquals(elementList, setElement.elements());
+      assertEquals(setElement.elements(), elementList);
     }
   }
 
@@ -1379,7 +1379,7 @@ public class TestASN1Element
       e.toString();
       e.toString(new StringBuilder());
       e.toString(new StringBuilder(), 1);
-      assertEquals("ASN.1", e.getProtocolElementName());
+      assertEquals(e.getProtocolElementName(), "ASN.1");
     }
   }
 }

@@ -93,7 +93,7 @@ public class TestASN1Boolean
   @Test(dataProvider = "booleanValues")
   public void testBooleanValue(boolean b)
   {
-    assertEquals(b, new ASN1Boolean(b).booleanValue());
+    assertEquals(new ASN1Boolean(b).booleanValue(), b);
   }
 
 
@@ -108,7 +108,7 @@ public class TestASN1Boolean
   {
     ASN1Boolean booleanElement = new ASN1Boolean(!b);
     booleanElement.setValue(b);
-    assertEquals(b, booleanElement.booleanValue());
+    assertEquals(booleanElement.booleanValue(), b);
   }
 
 
@@ -146,7 +146,7 @@ public class TestASN1Boolean
   {
     ASN1Boolean booleanElement = new ASN1Boolean(false);
     booleanElement.setValue(b);
-    assertEquals((b[0] != 0x00), booleanElement.booleanValue());
+    assertEquals(booleanElement.booleanValue(), (b[0] != 0x00));
   }
 
 
@@ -218,22 +218,22 @@ public class TestASN1Boolean
     ASN1Element e = new ASN1Boolean(false);
     e.setValue(b);
     ASN1Boolean booleanElement = ASN1Boolean.decodeAsBoolean(e);
-    assertEquals((b[0] != 0x00), booleanElement.booleanValue());
+    assertEquals(booleanElement.booleanValue(), (b[0] != 0x00));
 
     e = new ASN1Boolean((byte) 0x50, false);
     e.setValue(b);
     booleanElement = ASN1Boolean.decodeAsBoolean(e);
-    assertEquals((b[0] != 0x00), booleanElement.booleanValue());
+    assertEquals(booleanElement.booleanValue(), (b[0] != 0x00));
 
 
     // Next, test with a generic ASN.1 element.
     e = new ASN1Element(ASN1Constants.UNIVERSAL_BOOLEAN_TYPE, b);
     booleanElement = ASN1Boolean.decodeAsBoolean(e);
-    assertEquals((b[0] != 0x00), booleanElement.booleanValue());
+    assertEquals(booleanElement.booleanValue(), (b[0] != 0x00));
 
     e = new ASN1Element((byte) 0x50, b);
     booleanElement = ASN1Boolean.decodeAsBoolean(e);
-    assertEquals((b[0] != 0x00), booleanElement.booleanValue());
+    assertEquals(booleanElement.booleanValue(), (b[0] != 0x00));
   }
 
 
@@ -301,13 +301,13 @@ public class TestASN1Boolean
     // First, test with the standard Boolean type.
     byte[] elementArray = new byte[] { 0x01, 0x01, b[0] };
     ASN1Boolean booleanElement = ASN1Boolean.decodeAsBoolean(elementArray);
-    assertEquals((b[0] != 0x00), booleanElement.booleanValue());
+    assertEquals(booleanElement.booleanValue(), (b[0] != 0x00));
 
 
     // Next, test with a nonstandard Boolean type.
     elementArray[0] = (byte) 0x50;
     booleanElement = ASN1Boolean.decodeAsBoolean(elementArray);
-    assertEquals((b[0] != 0x00), booleanElement.booleanValue());
+    assertEquals(booleanElement.booleanValue(), (b[0] != 0x00));
   }
 
 
@@ -327,13 +327,13 @@ public class TestASN1Boolean
     // First, test with the standard Boolean type.
     byte[] elementArray = new byte[] { 0x01, (byte) 0x81, 0x01, b[0] };
     ASN1Boolean booleanElement = ASN1Boolean.decodeAsBoolean(elementArray);
-    assertEquals((b[0] != 0x00), booleanElement.booleanValue());
+    assertEquals(booleanElement.booleanValue(), (b[0] != 0x00));
 
 
     // Next, test with a nonstandard Boolean type.
     elementArray[0] = (byte) 0x50;
     booleanElement = ASN1Boolean.decodeAsBoolean(elementArray);
-    assertEquals((b[0] != 0x00), booleanElement.booleanValue());
+    assertEquals(booleanElement.booleanValue(), (b[0] != 0x00));
   }
 
 

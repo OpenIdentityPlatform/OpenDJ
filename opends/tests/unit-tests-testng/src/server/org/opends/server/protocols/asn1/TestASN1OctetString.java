@@ -83,7 +83,7 @@ public class TestASN1OctetString
   public void testConstructor2(byte type)
   {
     ASN1OctetString os = new ASN1OctetString(type);
-    assertEquals(type, os.getType());
+    assertEquals(os.getType(), type);
   }
 
 
@@ -124,11 +124,11 @@ public class TestASN1OctetString
     ASN1OctetString os = new ASN1OctetString(value);
     if (value == null)
     {
-      assertEquals(new byte[0], os.value());
+      assertEquals(os.value(), new byte[0]);
     }
     else
     {
-      assertEquals(value, os.value());
+      assertEquals(os.value(), value);
     }
   }
 
@@ -179,13 +179,13 @@ public class TestASN1OctetString
     ASN1OctetString os = new ASN1OctetString(value);
     if (value == null)
     {
-      assertEquals("", os.stringValue());
-      assertEquals(new byte[0], os.value());
+      assertEquals(os.stringValue(), "");
+      assertEquals(os.value(), new byte[0]);
     }
     else
     {
-      assertEquals(value, os.stringValue());
-      assertEquals(value.getBytes("UTF-8"), os.value());
+      assertEquals(os.stringValue(), value);
+      assertEquals(os.value(), value.getBytes("UTF-8"));
     }
   }
 
@@ -204,11 +204,11 @@ public class TestASN1OctetString
       ASN1OctetString os = new ASN1OctetString((byte) (i & 0xFF), value);
       if (value == null)
       {
-        assertEquals(new byte[0], os.value());
+        assertEquals(os.value(), new byte[0]);
       }
       else
       {
-        assertEquals(value, os.value());
+        assertEquals(os.value(), value);
       }
     }
   }
@@ -228,11 +228,11 @@ public class TestASN1OctetString
       ASN1OctetString os = new ASN1OctetString((byte) (i & 0xFF), value);
       if (value == null)
       {
-        assertEquals("", os.stringValue());
+        assertEquals(os.stringValue(), "");
       }
       else
       {
-        assertEquals(value, os.stringValue());
+        assertEquals(os.stringValue(), value);
       }
     }
   }
@@ -251,11 +251,11 @@ public class TestASN1OctetString
     ASN1OctetString os = new ASN1OctetString(value);
     if (value == null)
     {
-      assertEquals("", os.stringValue());
+      assertEquals(os.stringValue(), "");
     }
     else
     {
-      assertEquals(value, os.stringValue());
+      assertEquals(os.stringValue(), value);
     }
 
     os = new ASN1OctetString(value);
@@ -263,11 +263,11 @@ public class TestASN1OctetString
     os.stringValue(valueBuffer);
     if (value == null)
     {
-      assertEquals("", valueBuffer.toString());
+      assertEquals(valueBuffer.toString(), "");
     }
     else
     {
-      assertEquals(value, valueBuffer.toString());
+      assertEquals(valueBuffer.toString(), value);
     }
   }
 
@@ -298,11 +298,11 @@ public class TestASN1OctetString
     ASN1OctetString os = new ASN1OctetString(valueBytes);
     if (value == null)
     {
-      assertEquals("", os.stringValue());
+      assertEquals(os.stringValue(), "");
     }
     else
     {
-      assertEquals(value, os.stringValue());
+      assertEquals(os.stringValue(), value);
     }
 
     os = new ASN1OctetString(valueBytes);
@@ -310,11 +310,11 @@ public class TestASN1OctetString
     os.stringValue(valueBuffer);
     if (value == null)
     {
-      assertEquals("", valueBuffer.toString());
+      assertEquals(valueBuffer.toString(), "");
     }
     else
     {
-      assertEquals(value, valueBuffer.toString());
+      assertEquals(valueBuffer.toString(), value);
     }
   }
 
@@ -335,13 +335,13 @@ public class TestASN1OctetString
     os.setValue(value);
     if (value == null)
     {
-      assertEquals("", os.stringValue());
-      assertEquals(new byte[0], os.value());
+      assertEquals(os.stringValue(), "");
+      assertEquals(os.value(), new byte[0]);
     }
     else
     {
-      assertEquals(value, os.stringValue());
-      assertEquals(value.getBytes("UTF-8"), os.value());
+      assertEquals(os.stringValue(), value);
+      assertEquals(os.value(), value.getBytes("UTF-8"));
     }
   }
 
@@ -362,13 +362,13 @@ public class TestASN1OctetString
     os.setValue(value);
     if (value == null)
     {
-      assertEquals("", os.stringValue());
-      assertEquals(new byte[0], os.value());
+      assertEquals(os.stringValue(), "");
+      assertEquals(os.value(), new byte[0]);
     }
     else
     {
-      assertEquals(new String(value, "UTF-8"), os.stringValue());
-      assertEquals(value, os.value());
+      assertEquals(os.stringValue(), new String(value, "UTF-8"));
+      assertEquals(os.value(), value);
     }
   }
 
@@ -665,7 +665,7 @@ public class TestASN1OctetString
   {
     ASN1OctetString os1 = ASN1OctetString.decodeAsOctetString(b);
     ASN1OctetString os2 = os1.toASN1OctetString();
-    assertEquals(os1.value(), os2.value());
+    assertEquals(os2.value(), os1.value());
   }
 }
 

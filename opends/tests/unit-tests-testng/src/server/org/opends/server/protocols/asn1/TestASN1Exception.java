@@ -73,7 +73,7 @@ public class TestASN1Exception
     for (int i=0; i < 100; i++)
     {
       ASN1Exception e = new ASN1Exception(i, "Test");
-      assertEquals(i, e.getMessageID());
+      assertEquals(e.getMessageID(), i);
     }
   }
 }

@@ -195,7 +195,7 @@ public abstract class PasswordStorageSchemeTestCase
 
     if (scheme.isReversible())
     {
-      assertEquals(plaintext, scheme.getPlaintextValue(encodedPassword));
+      assertEquals(scheme.getPlaintextValue(encodedPassword), plaintext);
     }
     else
     {
