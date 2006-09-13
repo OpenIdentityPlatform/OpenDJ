@@ -788,7 +788,7 @@ public class SynchronizationProviderConfigManager
 
 
     // NYI
-    return false;
+    return true;
   }
 
 
@@ -835,7 +835,7 @@ public class SynchronizationProviderConfigManager
 
 
     // NYI
-    return false;
+    return true;
   }
 
 

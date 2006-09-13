@@ -67,6 +67,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
   static String SYNCHRONIZATION_CLASS =
     "ds-cfg-synchronization-provider-config";
 
+  private DN changelogConfigEntryDn = null;
   private Changelog changelog = null;
   private static Map<DN, SynchronizationDomain> domains =
     new HashMap<DN, SynchronizationDomain>() ;
@@ -92,8 +93,6 @@ public class MultimasterSynchronization extends SynchronizationProvider
   public void initializeSynchronizationProvider(ConfigEntry configEntry)
   throws ConfigException
   {
-    DN configEntryDn = null;
-
     SynchMessages.registerMessages();
 
     configEntry.registerAddListener(this);
@@ -104,8 +103,9 @@ public class MultimasterSynchronization extends SynchronizationProvider
      */
     try
     {
-      configEntryDn = DN.decode(CHANGELOG_DN);
-      ConfigEntry config = DirectoryServer.getConfigEntry(configEntryDn);
+      changelogConfigEntryDn = DN.decode(CHANGELOG_DN);
+      ConfigEntry config =
+        DirectoryServer.getConfigEntry(changelogConfigEntryDn);
       /*
        * If there is no such entry, this process must not be a changelog server
        */
@@ -128,9 +128,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
     {
       if (domainEntry.hasObjectClass(SYNCHRONIZATION_CLASS))
       {
-        SynchronizationDomain domain = new SynchronizationDomain(domainEntry);
-        domains.put(domain.getBaseDN(), domain);
-        domain.start();
+        createNewSynchronizationDomain(domainEntry);
       }
     }
   }
@@ -176,7 +174,28 @@ public class MultimasterSynchronization extends SynchronizationProvider
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
       StringBuilder unacceptableReason)
   {
-    // TODO Auto-generated method stub
+    // Check if the added entry is the changelog config entry
+    try
+    {
+      if (configEntry.getDN().equals(DN.decode(CHANGELOG_DN)))
+      {
+        return Changelog.checkConfigEntry(configEntry, unacceptableReason);
+      }
+    } catch (DirectoryException e)
+    {
+      /* never happens */
+       unacceptableReason.append("Invalid Changelog configuration DN");
+       return false;
+    }
+
+    // otherwise it must be a Synchronization domain, check for
+    // presence of the Synchronization configuration object class
+    if (configEntry.hasObjectClass(SYNCHRONIZATION_CLASS))
+    {
+      return SynchronizationDomain.checkConfigEntry(configEntry,
+          unacceptableReason);
+    }
+
     return false;
   }
 
@@ -185,8 +204,56 @@ public class MultimasterSynchronization extends SynchronizationProvider
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-    // TODO Auto-generated method stub
-    return null;
+    // check if the entry is the changelog configuration entry
+    if (configEntry.getDN().equals(changelogConfigEntryDn))
+    {
+      try
+      {
+        changelog = new Changelog(configEntry);
+        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      } catch (ConfigException e)
+      {
+        // we should never get to this point because the configEntry has
+        // already been validated in configAddisAcceptable
+        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      }
+    }
+
+    // otherwise it must be a synchronization domain, check for
+    // presence of the Synchronization configuration object class
+    if (configEntry.hasObjectClass(SYNCHRONIZATION_CLASS))
+    {
+      try
+      {
+        createNewSynchronizationDomain(configEntry);
+        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      } catch (ConfigException e)
+      {
+        // we should never get to this point because the configEntry has
+        // already been validated in configAddisAcceptable
+        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      }
+    }
+
+    // we should never get to this point because the configEntry has
+    // already been validated in configAddisAcceptable
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+  }
+
+  /**
+   * Creates a New Synchronization domain from its configEntry, do the
+   * necessary initialization and starts it so that it is
+   * fully operational when this method returns.
+   * @param configEntry The entry whith the configuration of this domain.
+   * @throws ConfigException When the configuration is not valid.
+   */
+  private void createNewSynchronizationDomain(ConfigEntry configEntry)
+          throws ConfigException
+  {
+    SynchronizationDomain domain;
+    domain = new SynchronizationDomain(configEntry);
+    domains.put(domain.getBaseDN(), domain);
+    domain.start();
   }
 
   /**
@@ -195,6 +262,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
       StringBuilder unacceptableReason)
   {
+
     // TODO Auto-generated method stub
     return false;
   }
