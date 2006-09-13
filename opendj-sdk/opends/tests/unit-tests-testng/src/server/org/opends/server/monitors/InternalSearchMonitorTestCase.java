@@ -81,7 +81,7 @@ public class InternalSearchMonitorTestCase
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.decode("cn=monitor"), SearchScope.WHOLE_SUBTREE,
               SearchFilter.createFilterFromString("(objectClass=*)"));
-    assertEquals(ResultCode.SUCCESS, searchOperation.getResultCode());
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -128,7 +128,7 @@ public class InternalSearchMonitorTestCase
          conn.processSearch(DN.decode("cn=" + monitorName + ",cn=monitor"),
               SearchScope.BASE_OBJECT,
               SearchFilter.createFilterFromString("(objectClass=*)"));
-    assertEquals(ResultCode.SUCCESS, searchOperation.getResultCode());
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
   }
 }
 

@@ -129,7 +129,7 @@ public class TestASN1Long
   @Test(dataProvider = "longValues")
   public void testLongValue(long l)
   {
-    assertEquals(l, new ASN1Long(l).longValue());
+    assertEquals(new ASN1Long(l).longValue(), l);
   }
 
 
@@ -144,7 +144,7 @@ public class TestASN1Long
   {
     ASN1Long longElement = new ASN1Long(0);
     longElement.setValue(l);
-    assertEquals(l, longElement.longValue());
+    assertEquals(longElement.longValue(), l);
   }
 
 
@@ -234,7 +234,7 @@ public class TestASN1Long
     }
 
     longElement.setValue(encoding);
-    assertEquals(l, longElement.longValue());
+    assertEquals(longElement.longValue(), l);
   }
 
 
@@ -308,11 +308,11 @@ public class TestASN1Long
     // First, make sure that we can decode a long element as a long.
     ASN1Element e = new ASN1Long(l);
     ASN1Long longElement = ASN1Long.decodeAsLong(e);
-    assertEquals(l, longElement.longValue());
+    assertEquals(longElement.longValue(), l);
 
     e = new ASN1Long((byte) 0x50, l);
     longElement = ASN1Long.decodeAsLong(e);
-    assertEquals(l, longElement.longValue());
+    assertEquals(longElement.longValue(), l);
 
 
     // Next, make sure that we can decode a generic element as a long.
@@ -388,11 +388,11 @@ public class TestASN1Long
 
     e = new ASN1Element(ASN1Constants.UNIVERSAL_INTEGER_TYPE, encoding);
     longElement = ASN1Long.decodeAsLong(e);
-    assertEquals(l, longElement.longValue());
+    assertEquals(longElement.longValue(), l);
 
     e = new ASN1Element((byte) 0x50, encoding);
     longElement = ASN1Long.decodeAsLong(e);
-    assertEquals(l, longElement.longValue());
+    assertEquals(longElement.longValue(), l);
   }
 
 
@@ -534,7 +534,7 @@ public class TestASN1Long
     System.arraycopy(encoding, 0, encodedElement, 2, encoding.length);
 
     ASN1Long longElement = ASN1Long.decodeAsLong(encodedElement);
-    assertEquals(l, longElement.longValue());
+    assertEquals(longElement.longValue(), l);
   }
 
 
@@ -628,7 +628,7 @@ public class TestASN1Long
     System.arraycopy(encoding, 0, encodedElement, 3, encoding.length);
 
     ASN1Long longElement = ASN1Long.decodeAsLong(encodedElement);
-    assertEquals(l, longElement.longValue());
+    assertEquals(longElement.longValue(), l);
   }
 
 

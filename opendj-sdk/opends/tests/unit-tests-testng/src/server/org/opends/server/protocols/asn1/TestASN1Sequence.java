@@ -254,11 +254,11 @@ public class TestASN1Sequence
     ASN1Sequence s = new ASN1Sequence(elements);
     if (elements == null)
     {
-      assertEquals(new ArrayList<ASN1Element>(), s.elements());
+      assertEquals(s.elements(), new ArrayList<ASN1Element>());
     }
     else
     {
-      assertEquals(elements, s.elements());
+      assertEquals(s.elements(), elements);
     }
   }
 
@@ -276,11 +276,11 @@ public class TestASN1Sequence
     s.setElements(elements);
     if (elements == null)
     {
-      assertEquals(new ArrayList<ASN1Element>(), s.elements());
+      assertEquals(s.elements(), new ArrayList<ASN1Element>());
     }
     else
     {
-      assertEquals(elements, s.elements());
+      assertEquals(s.elements(), elements);
     }
   }
 

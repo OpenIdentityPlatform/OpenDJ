@@ -106,7 +106,7 @@ public class TestASN1ReaderAndWriter
     ASN1Writer writer = new ASN1Writer(baos);
     writer.writeElement(e);
 
-    assertEquals(elementBytes, baos.toByteArray());
+    assertEquals(baos.toByteArray(), elementBytes);
     writer.close();
   }
 
@@ -132,7 +132,7 @@ public class TestASN1ReaderAndWriter
     ASN1Writer writer = new ASN1Writer(s);
     int bytesWritten = writer.writeElement(e);
 
-    assertEquals(elementBytes, readThread.getDataRead(bytesWritten));
+    assertEquals(readThread.getDataRead(bytesWritten), elementBytes);
     writer.close();
     readThread.close();
   }
@@ -154,11 +154,11 @@ public class TestASN1ReaderAndWriter
     ASN1Reader reader = new ASN1Reader(bais);
 
     reader.setIOTimeout(30000);
-    assertEquals(-1, reader.getIOTimeout());
+    assertEquals(reader.getIOTimeout(), -1);
 
     ASN1Element e = reader.readElement();
-    assertEquals(elementBytes, e.encode());
-    assertEquals(e, ASN1Element.decode(elementBytes));
+    assertEquals(e.encode(), elementBytes);
+    assertEquals(ASN1Element.decode(elementBytes), e);
 
     assertNull(reader.readElement());
     reader.close();
@@ -197,12 +197,12 @@ public class TestASN1ReaderAndWriter
       socket = serverSocket.accept();
       ASN1Reader reader = new ASN1Reader(socket);
       reader.setIOTimeout(30000);
-      assertEquals(30000, reader.getIOTimeout());
+      assertEquals(reader.getIOTimeout(), 30000);
 
       ASN1Element element2 = reader.readElement();
 
-      assertEquals(element, element2);
-      assertEquals(elementBytes, element2.encode());
+      assertEquals(element2, element);
+      assertEquals(element2.encode(), elementBytes);
     }
     finally
     {
@@ -241,11 +241,11 @@ public class TestASN1ReaderAndWriter
     ASN1Reader reader = new ASN1Reader(bais);
 
     reader.setMaxElementSize(elementBytes.length);
-    assertEquals(elementBytes.length, reader.getMaxElementSize());
+    assertEquals(reader.getMaxElementSize(), elementBytes.length);
 
     ASN1Element e = reader.readElement();
-    assertEquals(elementBytes, e.encode());
-    assertEquals(e, ASN1Element.decode(elementBytes));
+    assertEquals(e.encode(), elementBytes);
+    assertEquals(ASN1Element.decode(elementBytes), e);
 
     assertNull(reader.readElement());
     reader.close();
@@ -270,7 +270,7 @@ public class TestASN1ReaderAndWriter
     ASN1Reader reader = new ASN1Reader(bais);
 
     reader.setMaxElementSize(1);
-    assertEquals(1, reader.getMaxElementSize());
+    assertEquals(reader.getMaxElementSize(), 1);
 
     try
     {
