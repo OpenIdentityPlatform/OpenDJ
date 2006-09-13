@@ -113,7 +113,6 @@ public class SynchronizationDomain extends DirectoryThread
 
   private BooleanConfigAttribute receiveStatusStub;
   private int listenerThreadNumber = 10;
-  private StringConfigAttribute changelogStub;
   private boolean receiveStatus = true;
 
   private List<String> changelogServers;
@@ -138,6 +137,17 @@ public class SynchronizationDomain extends DirectoryThread
   static String MAX_SEND_QUEUE = "ds-cfg-max-send-queue";
   static String MAX_SEND_DELAY = "ds-cfg-max-send-delay";
 
+  private static final StringConfigAttribute changelogStub =
+    new StringConfigAttribute(CHANGELOG_SERVER_ATTR,
+        "changelog server information", true, true, false);
+
+  private static final IntegerConfigAttribute serverIdStub =
+    new IntegerConfigAttribute(SERVER_ID_ATTR, "server ID", true, false,
+                               false, true, 0, true, 65535);
+
+  private static final DNConfigAttribute baseDnStub =
+    new DNConfigAttribute(BASE_DN_ATTR, "synchronization base DN",
+                          true, false, false);
 
   /**
    * Creates a new SynchronizationDomain using configuration from configEntry.
@@ -153,8 +163,6 @@ public class SynchronizationDomain extends DirectoryThread
      * read the centralized changelog server configuration
      * this is a multivalued attribute
      */
-    changelogStub = new StringConfigAttribute(CHANGELOG_SERVER_ATTR,
-        "changelog server information", true, true, false);
     StringConfigAttribute changelogServer =
       (StringConfigAttribute) configEntry.getConfigAttribute(changelogStub);
 
@@ -171,9 +179,6 @@ public class SynchronizationDomain extends DirectoryThread
      * read the server Id information
      * this is a single valued integer, its value must fit on a short integer
      */
-    IntegerConfigAttribute serverIdStub =
-      new IntegerConfigAttribute(SERVER_ID_ATTR, "server ID", true, false,
-                                 false, true, 0, true, 65535);
     IntegerConfigAttribute serverIdAttr =
       (IntegerConfigAttribute) configEntry.getConfigAttribute(serverIdStub);
     if (serverIdAttr == null)
@@ -188,9 +193,6 @@ public class SynchronizationDomain extends DirectoryThread
     /*
      * read the base DN
      */
-    DNConfigAttribute baseDnStub =
-      new DNConfigAttribute(BASE_DN_ATTR, "synchronization base DN",
-                            true, false, false);
     DNConfigAttribute baseDn =
       (DNConfigAttribute) configEntry.getConfigAttribute(baseDnStub);
     if (baseDn == null)
@@ -1583,4 +1585,48 @@ public class SynchronizationDomain extends DirectoryThread
     }
   }
 
+  /**
+   * Check if a ConfigEntry is valid.
+   * @param configEntry The config entry that needs to be checked.
+   * @param unacceptableReason A description of the reason why the config entry
+   *                           is not acceptable (if return is false).
+   * @return a boolean indicating if the configEntry is valid.
+   */
+  public static boolean checkConfigEntry(ConfigEntry configEntry,
+      StringBuilder unacceptableReason)
+  {
+    try
+    {
+    StringConfigAttribute changelogServer =
+      (StringConfigAttribute) configEntry.getConfigAttribute(changelogStub);
+
+    if (changelogServer == null)
+    {
+      unacceptableReason.append(
+          MessageHandler.getMessage(MSGID_NEED_CHANGELOG_SERVER,
+          configEntry.getDN().toString()) );
+      return false;
+    }
+
+    /*
+     * read the server Id information
+     * this is a single valued integer, its value must fit on a short integer
+     */
+    IntegerConfigAttribute serverIdAttr =
+      (IntegerConfigAttribute) configEntry.getConfigAttribute(serverIdStub);
+    if (serverIdAttr == null)
+    {
+      unacceptableReason.append(
+          MessageHandler.getMessage(MSGID_NEED_SERVER_ID,
+              configEntry.getDN().toString()) );
+      return false;
+    }
+    }
+    catch (ConfigException e)
+    {
+      unacceptableReason.append(e.getMessage());
+      return false;
+    }
+    return true;
+  }
 }

@@ -81,7 +81,7 @@ public class Changelog implements Runnable, ConfigurableComponent
   private static boolean runListen = true;
 
   /* The list of changelog servers configured by the administrator */
-  private List<String> configuredChangelogs;
+  private List<String> changelogServers;
 
   /* This table is used to store the list of dn for which we are currently
    * handling servers.
@@ -92,15 +92,75 @@ public class Changelog implements Runnable, ConfigurableComponent
   private String localhostname = "null";
   private String localURL = "null";
   private static boolean shutdown = false;
-  private List<String> changelogServers = null;
   private short changelogServerId;
   private DN configDn;
   private List<ConfigAttribute> configAttributes =
           new ArrayList<ConfigAttribute>();
 
-  static String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
-  static String SERVER_ID_ATTR = "ds-cfg-changelog-server-id";
-  static String CHANGELOG_PORT_ATTR = "ds-cfg-changelog-port";
+  static final String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
+  static final String SERVER_ID_ATTR = "ds-cfg-changelog-server-id";
+  static final String CHANGELOG_PORT_ATTR = "ds-cfg-changelog-port";
+
+  static final IntegerConfigAttribute changelogPortStub =
+    new IntegerConfigAttribute(CHANGELOG_PORT_ATTR, "changelog port",
+      true, false, false, true, 0,
+      true, 65535);
+
+  static final IntegerConfigAttribute serverIdStub =
+    new IntegerConfigAttribute(SERVER_ID_ATTR, "server ID", true, false,
+        false, true, 0, true, 65535);
+
+  static final StringConfigAttribute changelogStub =
+    new StringConfigAttribute(CHANGELOG_SERVER_ATTR,
+        "changelog server information", true,
+        true, false);
+
+  /**
+   * Check if a ConfigEntry is valid.
+   * @param config The config entry that needs to be checked.
+   * @param unacceptableReason A description of the reason why the config entry
+   *                           is not acceptable (if return is false).
+   * @return a boolean indicating if the configEntry is valid.
+   */
+  public static boolean checkConfigEntry(ConfigEntry config,
+      StringBuilder unacceptableReason)
+  {
+    try
+    {
+      IntegerConfigAttribute changelogPortAttr;
+      changelogPortAttr =
+        (IntegerConfigAttribute) config.getConfigAttribute(changelogPortStub);
+
+      /* The config must provide a changelog port number
+       */
+      if (changelogPortAttr == null)
+      {
+        unacceptableReason.append(
+            MessageHandler.getMessage(MSGID_NEED_CHANGELOG_PORT,
+            config.getDN().toString())  );
+      }
+
+      /*
+       * read the server Id information
+       * this is a single valued integer, its value must fit on a
+       * short integer
+       */
+      IntegerConfigAttribute serverIdAttr =
+        (IntegerConfigAttribute) config.getConfigAttribute(serverIdStub);
+
+      if (serverIdAttr == null)
+      {
+        unacceptableReason.append(
+            MessageHandler.getMessage(MSGID_NEED_SERVER_ID,
+            config.getDN().toString()) );
+      }
+
+      return true;
+    } catch (ConfigException e)
+    {
+      return false;
+    }
+  }
 
   /**
    * Creates a new Changelog using the provided configuration entry.
@@ -110,10 +170,6 @@ public class Changelog implements Runnable, ConfigurableComponent
    */
   public Changelog(ConfigEntry config) throws ConfigException
   {
-    IntegerConfigAttribute changelogPortStub =
-      new IntegerConfigAttribute(CHANGELOG_PORT_ATTR, "changelog port",
-        true, false, false, true, 0,
-        true, 65535);
     IntegerConfigAttribute changelogPortAttr =
       (IntegerConfigAttribute) config.getConfigAttribute(changelogPortStub);
     /* if there is no changelog port configured, this process must not be a
@@ -133,9 +189,6 @@ public class Changelog implements Runnable, ConfigurableComponent
      * this is a single valued integer, its value must fit on a
      * short integer
      */
-    IntegerConfigAttribute serverIdStub =
-      new IntegerConfigAttribute(SERVER_ID_ATTR, "server ID", true, false,
-          false, true, 0, true, 65535);
     IntegerConfigAttribute serverIdAttr =
       (IntegerConfigAttribute) config.getConfigAttribute(serverIdStub);
 
@@ -152,19 +205,16 @@ public class Changelog implements Runnable, ConfigurableComponent
      * read the centralized changelog server configuration
      * this is a multivalued attribute
      */
-    StringConfigAttribute changelogStub =
-      new StringConfigAttribute(CHANGELOG_SERVER_ATTR,
-          "changelog server information", true,
-          true, false);
     StringConfigAttribute changelogServer =
       (StringConfigAttribute) config.getConfigAttribute(changelogStub);
     if (changelogServer == null)
     {
-      throw new ConfigException(MSGID_NEED_CHANGELOG_SERVER,
-          MessageHandler.getMessage(MSGID_NEED_CHANGELOG_SERVER,
-              config.getDN().toString()) );
+      changelogServers = new ArrayList<String>();
     }
-    changelogServers = changelogServer.activeValues();
+    else
+    {
+      changelogServers = changelogServer.activeValues();
+    }
     configAttributes.add(changelogServer);
 
     initialize(changelogServerId, changelogPort, changelogServers);
@@ -275,7 +325,7 @@ public class Changelog implements Runnable, ConfigurableComponent
          * check that all changelog in the config are in the connected Set
          * if not create the connection
          */
-        for (String serverURL : configuredChangelogs)
+        for (String serverURL : changelogServers)
         {
           if ((serverURL.compareTo(localURL) != 0) &&
               (!connectedChangelogs.contains(serverURL)))
@@ -353,7 +403,6 @@ public class Changelog implements Runnable, ConfigurableComponent
       /*
        * create changelog cache
        */
-      configuredChangelogs = changelogServers;
       serverId = changelogId;
 
       /*
