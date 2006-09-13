@@ -8,3 +8,8 @@ changeType: modify
 replace: ds-cfg-listen-port
 ds-cfg-listen-port: 33689
 
+dn: cn=File-Based Access Logger,cn=Loggers,cn=config
+changetype: modify
+replace: ds-cfg-suppress-internal-operations
+ds-cfg-suppress-internal-operations: false
+
