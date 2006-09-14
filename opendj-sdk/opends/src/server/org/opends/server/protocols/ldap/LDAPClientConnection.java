@@ -1674,7 +1674,7 @@ public class LDAPClientConnection
    * Processes the provided LDAP message read from the client and takes
    * whatever action is appropriate.  For most requests, this will include
    * placing the operation in the work queue.  Certain requests (in particular,
-   * abandons and unbinds) will be processed directly.  If the
+   * abandons and unbinds) will be processed directly.
    *
    * @param  message  The LDAP message to process.
    *
