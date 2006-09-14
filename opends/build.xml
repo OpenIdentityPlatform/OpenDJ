@@ -93,6 +93,8 @@
   <property name="dynconstants.stubfile"
         location="${resource.dir}/DynamicConstants.java.stubs" />
 
+
+
   <property file="PRODUCT"                                                />
 
 
@@ -130,7 +132,7 @@
 
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="checkstyle,dsml,javadoc,coverage,test"
+       depends="checkstyle,dsml,javadoc,coverage,testall"
        description="Build using all defined targets." />
 
 
@@ -578,6 +580,19 @@
 
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
+  <target name="enableTestNGAssertions">
+    <property name="TESTASSERT" value="true"/>
+  </target>
+
+
+  <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
+  <target name="testall"
+          depends="enableTestNGAssertions,test"
+          description="Run all of the TestNG tests.">
+  </target>
+
+
+  <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
           depends="testinit,runtests"
           description="Execute the Directory Server TestNG unit tests in text mode.">
@@ -601,12 +616,13 @@
       </classpath>
     </taskdef>
 
+    <!-- This sets TESTASSERT to false if and only if it's not already set. -->
     <condition property="TESTASSERT" value="false">
       <not>
         <isset property="TESTASSERT" />
       </not>
     </condition>
-
+    
     <testng outputdir="${unittest.report.dir}" haltonfailure="true"
             enableAssert="${TESTASSERT}">
       <classpath>
