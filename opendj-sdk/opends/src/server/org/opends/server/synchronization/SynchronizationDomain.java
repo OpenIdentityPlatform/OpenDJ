@@ -92,7 +92,8 @@ public class SynchronizationDomain extends DirectoryThread
   private ChangeNumberGenerator changeNumberGenerator;
   private ChangelogBroker broker;
 
-  private List<ListenerThread> synchroThreads;
+  private List<ListenerThread> synchroThreads =
+    new ArrayList<ListenerThread>();
   private SortedMap<ChangeNumber, PendingChange> pendingChanges =
     new TreeMap<ChangeNumber, PendingChange>();
   private SortedMap<ChangeNumber, UpdateMessage> waitingAckMsgs =
@@ -933,7 +934,6 @@ public class SynchronizationDomain extends DirectoryThread
      * TODO : need to make number of thread configurable
      * TODO : need to handle operation dependencies
      */
-    synchroThreads = new ArrayList<ListenerThread>();
     for (int i=0; i<10; i++)
     {
       ListenerThread myThread = new ListenerThread(this);
