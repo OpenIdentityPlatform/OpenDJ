@@ -12,6 +12,7 @@
             <package name="org.opends.server.schema"/>
             <package name="org.opends.server.monitors"/>
             <package name="org.opends.server.extensions"/>
+            <package name="org.opends.server.tasks"/>
         </packages>
     </test>
 
