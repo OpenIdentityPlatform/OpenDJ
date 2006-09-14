@@ -181,7 +181,7 @@ public class BackupTask extends Task
     // backend ID was given.  They are mutually exclusive.
     if (backUpAll)
     {
-      if (backendIDList != null)
+      if (!backendIDList.isEmpty())
       {
         int    msgID   = MSGID_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID;
         String message = getMessage(msgID, ATTR_TASK_BACKUP_ALL,
@@ -191,7 +191,7 @@ public class BackupTask extends Task
         return TaskState.STOPPED_BY_ERROR;
       }
     }
-    else if (backendIDList == null)
+    else if (backendIDList.isEmpty())
     {
       int    msgID   = MSGID_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID;
       String message = getMessage(msgID, ATTR_TASK_BACKUP_ALL,
@@ -392,7 +392,7 @@ public class BackupTask extends Task
 
       // If the directory doesn't exist, then create it.  If it does exist, then
       // see if it has a backup descriptor file.
-      BackupDirectory backupDir = null;
+      BackupDirectory backupDir;
       backupDirFile = new File(backupDirPath);
       if (backupDirFile.exists())
       {
