@@ -32,9 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
@@ -104,7 +102,6 @@ public class UpdateOperationTest
   /**
    * A "person" entry
    */
-  private String personStringDN;
   private Entry personEntry;
 
   /**
@@ -245,10 +242,11 @@ public class UpdateOperationTest
     // Add the Multimaster synchronization plugin
     DirectoryServer.getConfigHandler().addEntry(synchroPluginEntry, null);
     entryList.add(synchroPluginEntry);
+    assertNotNull(DirectoryServer.getConfigEntry(DN.decode(synchroPluginStringDN)));
+    
+    // WORKAROUND FOR BUG #639 - BEGIN -
     DN dn = DN.decode(synchroPluginStringDN);
     ConfigEntry mmsConfigEntry = DirectoryServer.getConfigEntry(dn);
-    assertTrue(mmsConfigEntry != null);
-    
     MultimasterSynchronization mms = new MultimasterSynchronization();
     try
     {
@@ -259,17 +257,18 @@ public class UpdateOperationTest
       assertTrue(false);
     }
     DirectoryServer.registerSynchronizationProvider(mms);
+    // WORKAROUND FOR BUG #639 - BEGIN -
 
     //
     // Add the changelog server
     DirectoryServer.getConfigHandler().addEntry(changeLogEntry, null);
-    assertTrue(DirectoryServer.getConfigEntry(changeLogEntry.getDN()) != null);
+    assertNotNull(DirectoryServer.getConfigEntry(changeLogEntry.getDN()));
     entryList.add(changeLogEntry);
 
     //
     // We also have a replicated suffix
     DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
-    assertTrue(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()) != null);
+    assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()));
     entryList.add(synchroServerEntry);
 
     //
@@ -304,7 +303,7 @@ public class UpdateOperationTest
             .getOperationalAttributes());
     addOp.run();
     entryList.add(personEntry);
-    assertTrue(DirectoryServer.getEntry(personEntry.getDN()) != null);
+    assertNotNull(DirectoryServer.getEntry(personEntry.getDN()));
     
     // See if the client has receive the msg
     UpdateMessage msg = syncDomain2.receive() ;
@@ -346,8 +345,8 @@ public class UpdateOperationTest
             .decode("uid=new person"), false, DN
             .decode("ou=People,dc=example,dc=com"));
     modDNOp.run();
-    assertTrue(DirectoryServer.getEntry(newDN) != null);
-    assertTrue(DirectoryServer.getEntry(personEntry.getDN()) == null);
+    assertNotNull(DirectoryServer.getEntry(newDN));
+    assertNull(DirectoryServer.getEntry(personEntry.getDN()));
     entryList.add(DirectoryServer.getEntry(newDN));
     
     //  See if the client has receive the msg
@@ -363,7 +362,7 @@ public class UpdateOperationTest
             .nextMessageID(), null, DN
             .decode("uid= new person,ou=People,dc=example,dc=com"));
     delOp.run();
-    assertTrue(DirectoryServer.getEntry(newDN) == null);
+    assertNull(DirectoryServer.getEntry(newDN));
     
     //  See if the client has receive the msg
     msg = syncDomain2.receive() ;
