@@ -38,6 +38,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -250,7 +251,52 @@ public class LDIFImportConfig
     includeAttributes      = new HashSet<AttributeType>();
   }
 
+  /**
+   * Creates a new LDIF import configuration that will read from the
+   * provided reader.
+   *
+   * @param  ldifInputReader  The input stream from which to read the
+   *                          LDIF data.
+   */
+  public LDIFImportConfig(Reader ldifInputReader)
+  {
+    assert debugConstructor(CLASS_NAME,
+                            String.valueOf(ldifInputStream));
 
+    ldifInputStream        = null;
+    bufferSize             = DEFAULT_BUFFER_SIZE;
+    ldifFiles              = null;
+    ldifFileIterator       = null;
+
+    excludeBranches        = new ArrayList<DN>();
+    includeBranches        = new ArrayList<DN>();
+    excludeFilters         = new ArrayList<SearchFilter>();
+    includeFilters         = new ArrayList<SearchFilter>();
+    appendToExistingData   = false;
+    replaceExistingEntries = false;
+    includeObjectClasses   = true;
+    invokeImportPlugins    = false;
+    isCompressed           = false;
+    isEncrypted            = false;
+    reader                 = getBufferedReader(ldifInputReader);
+    rejectWriter           = null;
+    excludeAttributes      = new HashSet<AttributeType>();
+    includeAttributes      = new HashSet<AttributeType>();
+  }
+
+  /**
+   * Wrap reader in a BufferedReader if necessary.
+   *
+   * @param reader the reader to buffer
+   * @return reader as a BufferedReader
+   */
+  private BufferedReader getBufferedReader(Reader reader) {
+    if (reader instanceof BufferedReader) {
+      return (BufferedReader)reader;
+    } else {
+      return new BufferedReader(reader);
+    }
+  }
 
   /**
    * Creates a new LDIF import configuration that will generate

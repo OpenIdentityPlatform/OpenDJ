@@ -26,12 +26,19 @@
  */
 package org.opends.server;
 
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.util.LDIFReader;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigFileHandler;
@@ -273,5 +280,135 @@ public final class TestCaseUtils {
    */
   private TestCaseUtils() {
     // No implementation.
+  }
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Various methods for converting LDIF Strings to Entries
+  //
+  ////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
+
+
+  /**
+   * Returns a modifiable List of entries parsed from the provided LDIF.
+   * It's best to call this after the server has been initialized so
+   * that schema checking happens.
+   * <p>
+   * Also take a look at the makeLdif method below since this makes
+   * expressing LDIF a little bit cleaner.
+   *
+   * @param ldif of the entries to parse.
+   * @return a List of EntryS parsed from the ldif string.
+   * @see #makeLdif
+   */
+  public static List<Entry> entriesFromLdifString(String ldif) throws Exception {
+    LDIFImportConfig ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
+    LDIFReader reader = new LDIFReader(ldifImportConfig);
+
+    List<Entry> entries = new ArrayList<Entry>();
+    Entry entry = null;
+    while ((entry = reader.readEntry()) != null) {
+      entries.add(entry);
+    }
+
+    return entries;
+  }
+
+  /**
+   * This is used as a convenience when and LDIF string only includes a single
+   * entry. It's best to call this after the server has been initialized so
+   * that schema checking happens.
+   * <p>
+   * Also take a look at the makeLdif method below since this makes
+   * expressing LDIF a little bit cleaner.
+   *
+   * @return the first Entry parsed from the ldif String
+   * @see #makeLdif
+   */
+  public static Entry entryFromLdifString(String ldif) throws Exception {
+    return entriesFromLdifString(ldif).get(0);
+  }
+
+  /**
+   * This method provides the minor convenience of not having to specify the
+   * newline character at the end of every line of LDIF in test code.
+   * This is an admittedly small advantage, but it does make things a little
+   * easier and less error prone.  For example, this
+   *
+     <code>
+       private static final String JOHN_SMITH_LDIF = TestCaseUtils.makeLdif(
+          "dn: cn=John Smith,dc=example,dc=com",
+          "objectclass: inetorgperson",
+          "cn: John Smith",
+          "sn: Smith",
+          "givenname: John");
+
+     </code>
+
+   is a <bold>little</bold> easier to work with than
+
+     <code>
+       private static final String JOHN_SMITH_LDIF =
+          "dn: cn=John Smith,dc=example,dc=com\n" +
+          "objectclass: inetorgperson\n" +
+          "cn: John Smith\n" +
+          "sn: Smith\n" +
+          "givenname: John\n";
+
+     </code>
+   *
+   * @return the concatenation of each line followed by a newline character
+   */
+  public static String makeLdif(String... lines) {
+    StringBuilder buffer = new StringBuilder();
+    for (int i = 0; i < lines.length; i++) {
+      buffer.append(lines[i]).append("\n");
+    }
+    return buffer.toString();
+  }
+
+  /**
+   * This is a convience method that constructs an Entry from the specified
+   * lines of LDIF.  Here's a sample usage
+   *
+   <code>
+   Entry john = TestCaseUtils.makeEntry(
+      "dn: cn=John Smith,dc=example,dc=com",
+      "objectclass: inetorgperson",
+      "cn: John Smith",
+      "sn: Smith",
+      "givenname: John");
+   </code>
+   * @see #makeLdif
+   */
+  public static Entry makeEntry(String... lines) throws Exception {
+     return entryFromLdifString(makeLdif(lines));
+  }
+
+  /**
+   * This is a convience method that constructs an List of EntryS from the
+   * specified lines of LDIF.  Here's a sample usage
+   *
+   <code>
+   List<Entry> smiths = TestCaseUtils.makeEntries(
+      "dn: cn=John Smith,dc=example,dc=com",
+      "objectclass: inetorgperson",
+      "cn: John Smith",
+      "sn: Smith",
+      "givenname: John",
+      "",
+      "dn: cn=Jane Smith,dc=example,dc=com",
+      "objectclass: inetorgperson",
+      "cn: Jane Smith",
+      "sn: Smith",
+      "givenname: Jane");
+   </code>
+   * @see #makeLdif
+   */
+  public static List<Entry> makeEntries(String... lines) throws Exception {
+     return entriesFromLdifString(makeLdif(lines));
   }
 }
