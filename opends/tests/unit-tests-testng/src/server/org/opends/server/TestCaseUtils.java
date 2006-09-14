@@ -338,7 +338,7 @@ public final class TestCaseUtils {
    * This is an admittedly small advantage, but it does make things a little
    * easier and less error prone.  For example, this
    *
-     <code>
+     <pre>
        private static final String JOHN_SMITH_LDIF = TestCaseUtils.makeLdif(
           "dn: cn=John Smith,dc=example,dc=com",
           "objectclass: inetorgperson",
@@ -346,11 +346,11 @@ public final class TestCaseUtils {
           "sn: Smith",
           "givenname: John");
 
-     </code>
+     </pre>
 
    is a <bold>little</bold> easier to work with than
 
-     <code>
+     <pre>
        private static final String JOHN_SMITH_LDIF =
           "dn: cn=John Smith,dc=example,dc=com\n" +
           "objectclass: inetorgperson\n" +
@@ -358,7 +358,7 @@ public final class TestCaseUtils {
           "sn: Smith\n" +
           "givenname: John\n";
 
-     </code>
+     </pre>
    *
    * @return the concatenation of each line followed by a newline character
    */
@@ -374,14 +374,14 @@ public final class TestCaseUtils {
    * This is a convience method that constructs an Entry from the specified
    * lines of LDIF.  Here's a sample usage
    *
-   <code>
+   <pre>
    Entry john = TestCaseUtils.makeEntry(
       "dn: cn=John Smith,dc=example,dc=com",
       "objectclass: inetorgperson",
       "cn: John Smith",
       "sn: Smith",
       "givenname: John");
-   </code>
+   </pre>
    * @see #makeLdif
    */
   public static Entry makeEntry(String... lines) throws Exception {
@@ -392,7 +392,7 @@ public final class TestCaseUtils {
    * This is a convience method that constructs an List of EntryS from the
    * specified lines of LDIF.  Here's a sample usage
    *
-   <code>
+   <pre>
    List<Entry> smiths = TestCaseUtils.makeEntries(
       "dn: cn=John Smith,dc=example,dc=com",
       "objectclass: inetorgperson",
@@ -405,7 +405,7 @@ public final class TestCaseUtils {
       "cn: Jane Smith",
       "sn: Smith",
       "givenname: Jane");
-   </code>
+   </pre>
    * @see #makeLdif
    */
   public static List<Entry> makeEntries(String... lines) throws Exception {
