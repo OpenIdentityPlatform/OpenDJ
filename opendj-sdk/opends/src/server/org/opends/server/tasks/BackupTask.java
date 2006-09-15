@@ -244,6 +244,13 @@ public class BackupTask extends Task
 
     // Make sure that the backup directory exists.  If not, then create it.
     File backupDirFile = new File(backupDirectory);
+    if (! backupDirFile.isAbsolute())
+    {
+      backupDirectory = DirectoryServer.getServerRoot() + File.separator +
+                        backupDirectory;
+      backupDirFile = new File(backupDirectory);
+    }
+
     if (! backupDirFile.exists())
     {
       try
