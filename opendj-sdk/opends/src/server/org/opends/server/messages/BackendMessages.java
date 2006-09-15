@@ -2049,6 +2049,137 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * initialize a memory backend with zero or multiple base DNs.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_MEMORYBACKEND_REQUIRE_EXACTLY_ONE_BASE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 192;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an entry that already exists.  This takes a single argument, which is
+   * the DN of the target entry.
+   */
+  public static final int MSGID_MEMORYBACKEND_ENTRY_ALREADY_EXISTS =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 193;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an entry that doesn't belong in the backend.  This takes a single
+   * argument, which is the DN of the target entry.
+   */
+  public static final int MSGID_MEMORYBACKEND_ENTRY_DOESNT_BELONG =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 194;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry cannot be
+   * added because the parent does not exist.  This takes two arguments, which
+   * are the entry DN and the parent DN.
+   */
+  public static final int MSGID_MEMORYBACKEND_PARENT_DOESNT_EXIST =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 195;
+
+
+
+  /**
+   * The message ID for the message that will be used if an operation targets an
+   * entry that doesn't exist.  This takes a single argument, which is the DN of
+   * the entry.
+   */
+  public static final int MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 196;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * delete an entry that has one or more children.  This takes a single
+   * argument, which is the DN of the entry.
+   */
+  public static final int
+       MSGID_MEMORYBACKEND_CANNOT_DELETE_ENTRY_WITH_CHILDREN =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 197;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform an unsupported modify DN operation.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_MEMORYBACKEND_MODDN_NOT_SUPPORTED =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 198;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * creating an LDIF writer.  This takes a single argument, which is a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_MEMORYBACKEND_CANNOT_CREATE_LDIF_WRITER =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 199;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * writing an entry to LDIF.  This takes two arguments, which are the entry DN
+   * and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_MEMORYBACKEND_CANNOT_WRITE_ENTRY_TO_LDIF =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 200;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * creating an LDIF reader.  This takes a single argument, which is a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 201;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * reading an entry from LDIF.  This takes a single argument, which is a
+   * message explaining the problem that occurred.
+   */
+  public static final int MSGID_MEMORYBACKEND_ERROR_READING_LDIF =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 202;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs during
+   * an LDIF import.  This takes a single argument, which is a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_MEMORYBACKEND_ERROR_DURING_IMPORT =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 203;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that backup
+   * and restore operations are not supported in the memory-based backend.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 204;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -2811,6 +2942,41 @@ public class BackendMessages
     registerMessage(MSGID_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED,
                     "Backup and restore operations are not supported in " +
                     "the backup backend.");
+
+
+    registerMessage(MSGID_MEMORYBACKEND_REQUIRE_EXACTLY_ONE_BASE,
+                    "Exactly one base DN must be provided for use with the " +
+                    "memory-based backend.");
+    registerMessage(MSGID_MEMORYBACKEND_ENTRY_ALREADY_EXISTS,
+                    "Entry %s already exists in the memory-based backend.");
+    registerMessage(MSGID_MEMORYBACKEND_ENTRY_DOESNT_BELONG,
+                    "Entry %s does not belong in the memory-based backend.");
+    registerMessage(MSGID_MEMORYBACKEND_PARENT_DOESNT_EXIST,
+                    "Unable to add entry %s because its parent entry %s does " +
+                    "not exist in the memory-based backend.");
+    registerMessage(MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST,
+                    "Entry %s does not exist in the memory-based backend.");
+    registerMessage(MSGID_MEMORYBACKEND_CANNOT_DELETE_ENTRY_WITH_CHILDREN,
+                    "Cannot delete entry %s because it has one or more " +
+                    "subordinate entries.");
+    registerMessage(MSGID_MEMORYBACKEND_MODDN_NOT_SUPPORTED,
+                    "Modify DN operations are not supported in the " +
+                    "memory-based backend.");
+    registerMessage(MSGID_MEMORYBACKEND_CANNOT_CREATE_LDIF_WRITER,
+                    "Unable to create an LDIF writer:  %s.");
+    registerMessage(MSGID_MEMORYBACKEND_CANNOT_WRITE_ENTRY_TO_LDIF,
+                    "Cannot write entry %s to LDIF:  %s.");
+    registerMessage(MSGID_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER,
+                    "Unable to create an LDIF reader:  %s.");
+    registerMessage(MSGID_MEMORYBACKEND_ERROR_READING_LDIF,
+                    "An unrecoverable error occurred while reading from " +
+                    "LDIF:  %s.");
+    registerMessage(MSGID_MEMORYBACKEND_ERROR_DURING_IMPORT,
+                    "An unexpected error occurred while processing the " +
+                    "import:  %s.");
+    registerMessage(MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED,
+                    "The memory-based backend does not support backup or " +
+                    "restore operations.");
   }
 }
 

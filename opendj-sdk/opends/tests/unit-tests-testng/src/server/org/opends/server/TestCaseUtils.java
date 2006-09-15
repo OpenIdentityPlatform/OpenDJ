@@ -40,14 +40,18 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.opends.server.backends.MemoryBackend;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
 import org.opends.server.loggers.Error;
 import org.opends.server.loggers.Debug;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines some utility functions which can be used by test
@@ -61,9 +65,23 @@ public final class TestCaseUtils {
        "org.opends.server.BuildRoot";
 
   /**
-   * Indicates whether the server has already been started.
+   * The string representation of the DN that will be used as the base entry for
+   * the test backend.  This must not be changed, as there are a number of test
+   * cases that depend on this specific value of "o=test".
    */
-  private static boolean serverStarted = false;
+  public static final String TEST_ROOT_DN_STRING = "o=test";
+
+  /**
+   * Indicates whether the server has already been started.  The value of this
+   * constant must not be altered by anything outside the
+   * <CODE>startServer</CODE> method.
+   */
+  public static boolean SERVER_STARTED = false;
+
+  /**
+   * The memory-based backend configured for use in the server.
+   */
+  private static MemoryBackend memoryBackend = null;
 
   /**
    * Starts the Directory Server so that it will be available for use while
@@ -83,7 +101,7 @@ public final class TestCaseUtils {
   public static void startServer()
          throws IOException, InitializationException, ConfigException
   {
-    if (serverStarted)
+    if (SERVER_STARTED)
     {
       return;
     }
@@ -140,7 +158,43 @@ public final class TestCaseUtils {
     Error.removeAllErrorLoggers(false);
     Debug.removeAllDebugLoggers(false);
     directoryServer.startServer();
-    serverStarted = true;
+    SERVER_STARTED = true;
+  }
+
+  /**
+   * Initializes a memory-based backend that may be used to perform operations
+   * while testing the server.  This will ensure that the memory backend is
+   * created in the server if it does not yet exist, and that it is empty.  Note
+   * that the base DN for the test backend will always be "o=test", and it must
+   * not be changed.  It is acceptable for test cases using this backend to
+   * hard-code their sample data to use this base DN, although they may still
+   * reference the <CODE>TEST_ROOT_DN_STRING</CODE> constant if they wish.
+   *
+   * @param  createBaseEntry  Indicate whether to automatically create the base
+   *                          entry and add it to the backend.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static void initializeTestBackend(boolean createBaseEntry)
+         throws Exception
+  {
+    startServer();
+
+    DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    if (memoryBackend == null)
+    {
+      memoryBackend = new MemoryBackend();
+      memoryBackend.initializeBackend(null, new DN[] { baseDN });
+      DirectoryServer.registerBackend(memoryBackend);
+    }
+
+    memoryBackend.clearMemoryBackend();
+
+    if (createBaseEntry)
+    {
+      Entry e = createEntry(baseDN);
+      memoryBackend.addEntry(e, null);
+    }
   }
 
   /**
