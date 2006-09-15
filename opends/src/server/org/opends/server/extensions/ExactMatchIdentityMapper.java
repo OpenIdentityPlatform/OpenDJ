@@ -247,7 +247,7 @@ public class ExactMatchIdentityMapper
   /**
    * Performs any finalization that may be necessary for this identity mapper.
    */
-  public void finalizeIdentityManager()
+  public void finalizeIdentityMapper()
   {
     assert debugEnter(CLASS_NAME, "finalizeIdentityMapper");
 
