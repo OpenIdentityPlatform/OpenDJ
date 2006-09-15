@@ -28,8 +28,7 @@ package org.opends.server.extensions;
 
 
 
-import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -41,8 +40,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
 import org.opends.server.types.DN;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.util.LDIFReader;
+import org.opends.server.types.Entry;
 
 import static org.testng.Assert.*;
 
@@ -101,88 +99,88 @@ public class RandomPasswordGeneratorTestCase
   public Object[][] getInvalidConfigEntries()
          throws Exception
   {
-    String[] entryStrings =
+    List<Entry> entries = TestCaseUtils.makeEntries(
+      "dn: cn=Random Password Generator,cn=Password Generators,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-password-generator",
+      "cn: Random Password Generator",
+      "ds-cfg-password-generator-class: " +
+           "org.opends.server.extensions.RandomPasswordGenerator",
+      "ds-cfg-password-generator-enabled: true",
+      "",
+      "dn: cn=Random Password Generator,cn=Password Generators,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-password-generator",
+      "objectClass: ds-cfg-random-password-generator",
+      "cn: Random Password Generator",
+      "ds-cfg-password-generator-class: " +
+           "org.opends.server.extensions.RandomPasswordGenerator",
+      "ds-cfg-password-generator-enabled: true",
+      "ds-cfg-password-character-set:",
+      "",
+      "dn: cn=Random Password Generator,cn=Password Generators,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-password-generator",
+      "objectClass: ds-cfg-random-password-generator",
+      "cn: Random Password Generator",
+      "ds-cfg-password-generator-class: " +
+           "org.opends.server.extensions.RandomPasswordGenerator",
+      "ds-cfg-password-generator-enabled: true",
+      "ds-cfg-password-character-set: foo:",
+      "ds-cfg-password-format: foo:8",
+      "",
+      "dn: cn=Random Password Generator,cn=Password Generators,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-password-generator",
+      "objectClass: ds-cfg-random-password-generator",
+      "cn: Random Password Generator",
+      "ds-cfg-password-generator-class: " +
+           "org.opends.server.extensions.RandomPasswordGenerator",
+      "ds-cfg-password-generator-enabled: true",
+      "ds-cfg-password-character-set: foo:abcd",
+      "ds-cfg-password-character-set: foo:efgh",
+      "ds-cfg-password-format: foo:8",
+      "",
+      "dn: cn=Random Password Generator,cn=Password Generators,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-password-generator",
+      "objectClass: ds-cfg-random-password-generator",
+      "cn: Random Password Generator",
+      "ds-cfg-password-generator-class: " +
+           "org.opends.server.extensions.RandomPasswordGenerator",
+      "ds-cfg-password-generator-enabled: true",
+      "ds-cfg-password-character-set: foo:abcd",
+      "",
+      "dn: cn=Random Password Generator,cn=Password Generators,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-password-generator",
+      "objectClass: ds-cfg-random-password-generator",
+      "cn: Random Password Generator",
+      "ds-cfg-password-generator-class: " +
+           "org.opends.server.extensions.RandomPasswordGenerator",
+      "ds-cfg-password-generator-enabled: true",
+      "ds-cfg-password-character-set: foo:abcd",
+      "ds-cfg-password-format: bar:8",
+      "",
+      "dn: cn=Random Password Generator,cn=Password Generators,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-password-generator",
+      "objectClass: ds-cfg-random-password-generator",
+      "cn: Random Password Generator",
+      "ds-cfg-password-generator-class: " +
+           "org.opends.server.extensions.RandomPasswordGenerator",
+      "ds-cfg-password-generator-enabled: true",
+      "ds-cfg-password-character-set: foo:abcd",
+      "ds-cfg-password-format: foo:abcd"
+    );
+
+
+    Object[][] entryObjects = new Object[entries.size()][1];
+    for (int i=0; i < entryObjects.length; i++)
     {
-      "dn: cn=Random Password Generator,cn=Password Generators,cn=config\n" +
-      "objectClass: top\n" +
-      "objectClass: ds-cfg-password-generator\n" +
-      "cn: Random Password Generator\n" +
-      "ds-cfg-password-generator-class: " +
-           "org.opends.server.extensions.RandomPasswordGenerator\n" +
-      "ds-cfg-password-generator-enabled: true\n",
-
-      "dn: cn=Random Password Generator,cn=Password Generators,cn=config\n" +
-      "objectClass: top\n" +
-      "objectClass: ds-cfg-password-generator\n" +
-      "objectClass: ds-cfg-random-password-generator\n" +
-      "cn: Random Password Generator\n" +
-      "ds-cfg-password-generator-class: " +
-           "org.opends.server.extensions.RandomPasswordGenerator\n" +
-      "ds-cfg-password-generator-enabled: true\n" +
-      "ds-cfg-password-character-set:\n",
-
-      "dn: cn=Random Password Generator,cn=Password Generators,cn=config\n" +
-      "objectClass: top\n" +
-      "objectClass: ds-cfg-password-generator\n" +
-      "objectClass: ds-cfg-random-password-generator\n" +
-      "cn: Random Password Generator\n" +
-      "ds-cfg-password-generator-class: " +
-           "org.opends.server.extensions.RandomPasswordGenerator\n" +
-      "ds-cfg-password-generator-enabled: true\n" +
-      "ds-cfg-password-character-set: foo:\n" +
-      "ds-cfg-password-format: foo:8\n",
-
-      "dn: cn=Random Password Generator,cn=Password Generators,cn=config\n" +
-      "objectClass: top\n" +
-      "objectClass: ds-cfg-password-generator\n" +
-      "objectClass: ds-cfg-random-password-generator\n" +
-      "cn: Random Password Generator\n" +
-      "ds-cfg-password-generator-class: " +
-           "org.opends.server.extensions.RandomPasswordGenerator\n" +
-      "ds-cfg-password-generator-enabled: true\n" +
-      "ds-cfg-password-character-set: foo:abcd\n" +
-      "ds-cfg-password-character-set: foo:efgh\n" +
-      "ds-cfg-password-format: foo:8\n",
-
-      "dn: cn=Random Password Generator,cn=Password Generators,cn=config\n" +
-      "objectClass: top\n" +
-      "objectClass: ds-cfg-password-generator\n" +
-      "objectClass: ds-cfg-random-password-generator\n" +
-      "cn: Random Password Generator\n" +
-      "ds-cfg-password-generator-class: " +
-           "org.opends.server.extensions.RandomPasswordGenerator\n" +
-      "ds-cfg-password-generator-enabled: true\n" +
-      "ds-cfg-password-character-set: foo:abcd\n",
-
-      "dn: cn=Random Password Generator,cn=Password Generators,cn=config\n" +
-      "objectClass: top\n" +
-      "objectClass: ds-cfg-password-generator\n" +
-      "objectClass: ds-cfg-random-password-generator\n" +
-      "cn: Random Password Generator\n" +
-      "ds-cfg-password-generator-class: " +
-           "org.opends.server.extensions.RandomPasswordGenerator\n" +
-      "ds-cfg-password-generator-enabled: true\n" +
-      "ds-cfg-password-character-set: foo:abcd\n" +
-      "ds-cfg-password-format: bar:8\n",
-
-      "dn: cn=Random Password Generator,cn=Password Generators,cn=config\n" +
-      "objectClass: top\n" +
-      "objectClass: ds-cfg-password-generator\n" +
-      "objectClass: ds-cfg-random-password-generator\n" +
-      "cn: Random Password Generator\n" +
-      "ds-cfg-password-generator-class: " +
-           "org.opends.server.extensions.RandomPasswordGenerator\n" +
-      "ds-cfg-password-generator-enabled: true\n" +
-      "ds-cfg-password-character-set: foo:abcd\n" +
-      "ds-cfg-password-format: foo:abcd\n",
-    };
-
-
-    Object[][] entryObjects = new Object[entryStrings.length][1];
-    for (int i=0; i < entryStrings.length; i++)
-    {
-      entryObjects[i] = new Object[] { entryStrings[i] };
+      entryObjects[i] = new Object[] { entries.get(i) };
     }
+
     return entryObjects;
   }
 
@@ -191,26 +189,20 @@ public class RandomPasswordGeneratorTestCase
   /**
    * Tests with an invalid configuration entry.
    *
-   * @param  ldifString  The LDIF representation of the configuration entry.
+   * @param  entry  The invalid configuration entry to use for testing.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "invalidConfigEntries",
         expectedExceptions = { ConfigException.class,
                                InitializationException.class })
-  public void testInvalidConfigurations(String ldifString)
+  public void testInvalidConfigurations(Entry entry)
          throws Exception
   {
-    ByteArrayInputStream bais =
-         new ByteArrayInputStream(ldifString.getBytes("UTF-8"));
-    LDIFImportConfig importConfig = new LDIFImportConfig(bais);
-    importConfig.setValidateSchema(false);
-    LDIFReader reader = new LDIFReader(new LDIFImportConfig(bais));
-
     String parentDNStr = "cn=Password Generators,cn=config";
     ConfigEntry parentEntry =
          DirectoryServer.getConfigEntry(DN.decode(parentDNStr));
-    ConfigEntry configEntry = new ConfigEntry(reader.readEntry(), parentEntry);
+    ConfigEntry configEntry = new ConfigEntry(entry, parentEntry);
 
     RandomPasswordGenerator generator = new RandomPasswordGenerator();
     generator.initializePasswordGenerator(configEntry);
