@@ -41,6 +41,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
@@ -408,6 +409,34 @@ public class PlainSASLMechanismHandlerTestCase
          anonymousConn.processSASLBind(new ASN1OctetString(), "PLAIN",
                                     rootCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Ensures that SASL PLAIN authentication works over LDAP as well as via the
+   * internal protocol.  The authentication will be performed as the root user.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSASLPlainOverLDAP()
+         throws Exception
+  {
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=PLAIN",
+      "-o", "authid=dn:cn=Directory Manager",
+      "-w", "password",
+      "-b", "",
+      "-s", "base",
+      "(objectClass=*)",
+      "1.1"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
   }
 
 

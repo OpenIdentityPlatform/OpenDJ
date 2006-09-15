@@ -29,6 +29,8 @@ package org.opends.server.tools;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -65,6 +67,7 @@ import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultReferenceProtocolOp;
 import org.opends.server.types.DN;
+import org.opends.server.types.NullOutputStream;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -93,16 +96,27 @@ public class LDAPSearch
   // The message ID counter to use for requests.
   private AtomicInteger nextMessageID;
 
+  // The print stream to use for standard error.
+  private PrintStream err;
+
+  // The print stream to use for standard output.
+  private PrintStream out;
+
 
 
   /**
    * Constructor for the LDAPSearch object.
    *
    * @param  nextMessageID  The message ID counter to use for requests.
+   * @param  out            The print stream to use for standard output.
+   * @param  err            The print stream to use for standard error.
    */
-  public LDAPSearch(AtomicInteger nextMessageID)
+  public LDAPSearch(AtomicInteger nextMessageID, PrintStream out,
+                    PrintStream err)
   {
     this.nextMessageID = nextMessageID;
+    this.out           = out;
+    this.err           = err;
   }
 
 
@@ -172,13 +186,13 @@ public class LDAPSearch
                     EntryChangeNotificationControl ecn =
                          EntryChangeNotificationControl.decodeControl(
                               c.getControl());
-                    System.out.println("# Persistent Search Change Type:  " +
-                                       ecn.getChangeType().toString());
+                    out.println("# Persistent Search Change Type:  " +
+                                ecn.getChangeType().toString());
                     DN previousDN = ecn.getPreviousDN();
                     if (previousDN != null)
                     {
-                      System.out.println("# Persistent Search Previous DN:  " +
-                                         previousDN.toString());
+                      out.println("# Persistent Search Previous DN:  " +
+                                  previousDN.toString());
                     }
                   } catch (Exception e) {}
                 }
@@ -189,49 +203,49 @@ public class LDAPSearch
                     AccountUsableResponseControl acrc =
                          AccountUsableResponseControl.decodeControl(
                               c.getControl());
-                    System.out.println("# Account Usable Response Control");
+                    out.println("# Account Usable Response Control");
                     if (acrc.isUsable())
                     {
-                      System.out.println("#   Account is usable");
+                      out.println("#   Account is usable");
                       if (acrc.getSecondsBeforeExpiration() > 0)
                       {
                         int    timeToExp    = acrc.getSecondsBeforeExpiration();
                         String timeToExpStr = secondsToTimeString(timeToExp);
-                        System.out.println("#   Time until expiration:  " +
-                                           timeToExpStr);
+                        out.println("#   Time until expiration:  " +
+                                    timeToExpStr);
                       }
                     }
                     else
                     {
-                      System.out.println("#   Account is not usable");
+                      out.println("#   Account is not usable");
                       if (acrc.isInactive())
                       {
-                        System.out.println("#   Account is inactive");
+                        out.println("#   Account is inactive");
                       }
                       if (acrc.isReset())
                       {
-                        System.out.println("#   Password has been reset");
+                        out.println("#   Password has been reset");
                       }
                       if (acrc.isExpired())
                       {
-                        System.out.println("#   Password is expired");
+                        out.println("#   Password is expired");
 
                         if (acrc.getRemainingGraceLogins() > 0)
                         {
-                          System.out.println("#   Grace logins remaining:  " +
-                                             acrc.getRemainingGraceLogins());
+                          out.println("#   Grace logins remaining:  " +
+                                      acrc.getRemainingGraceLogins());
                         }
                       }
                       if (acrc.isLocked())
                       {
-                        System.out.println("#   Account is locked");
+                        out.println("#   Account is locked");
                         if (acrc.getSecondsBeforeUnlock() > 0)
                         {
                           int timeToUnlock = acrc.getSecondsBeforeUnlock();
                           String timeToUnlockStr =
                                       secondsToTimeString(timeToUnlock);
-                          System.out.println("#   Time until automatic " +
-                                             "unlock:  " + timeToUnlockStr);
+                          out.println("#   Time until automatic unlock:  " +
+                                      timeToUnlockStr);
                         }
                       }
                     }
@@ -243,13 +257,13 @@ public class LDAPSearch
                    responseMessage.getSearchResultEntryProtocolOp();
               StringBuilder sb = new StringBuilder();
               toLDIF(searchEntryOp, sb, wrapColumn, typesOnly);
-              System.out.println(sb.toString());
+              out.println(sb.toString());
               break;
 
             case OP_TYPE_SEARCH_RESULT_REFERENCE:
               SearchResultReferenceProtocolOp searchRefOp =
                    responseMessage.getSearchResultReferenceProtocolOp();
-              System.out.println(searchRefOp.toString());
+              out.println(searchRefOp.toString());
               break;
 
             case OP_TYPE_SEARCH_RESULT_DONE:
@@ -262,7 +276,7 @@ public class LDAPSearch
               // FIXME - throw exception?
               int msgID = MSGID_SEARCH_OPERATION_INVALID_PROTOCOL;
               String msg = getMessage(msgID, opType);
-              System.err.println(msg);
+              err.println(msg);
               break;
           }
 
@@ -277,8 +291,8 @@ public class LDAPSearch
           }
           else if (errorMessage != null)
           {
-            System.out.println();
-            System.out.println(errorMessage);
+            out.println();
+            out.println(errorMessage);
           }
 
         } while(opType != OP_TYPE_SEARCH_RESULT_DONE);
@@ -430,7 +444,7 @@ public class LDAPSearch
 
   public static void main(String[] args)
   {
-    int retCode = mainSearch(args);
+    int retCode = mainSearch(args, true, System.out, System.err);
 
     if(retCode != 0)
     {
@@ -449,6 +463,49 @@ public class LDAPSearch
 
   public static int mainSearch(String[] args)
   {
+    return mainSearch(args, true, System.out, System.err);
+  }
+
+  /**
+   * Parses the provided command-line arguments and uses that information to
+   * run the ldapsearch tool.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param  initializeServer  Indicates whether to initialize the server.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           <CODE>null</CODE> if standard output is not
+   *                           needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           <CODE>null</CODE> if standard error is not
+   *                           needed.
+   *
+   * @return The error code.
+   */
+
+  public static int mainSearch(String[] args, boolean initializeServer,
+                               OutputStream outStream, OutputStream errStream)
+  {
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
     LDAPConnectionOptions connectionOptions = new LDAPConnectionOptions();
     LDAPSearchOptions searchOptions = new LDAPSearchOptions();
     LDAPConnection connection = null;
@@ -572,7 +629,7 @@ public class LDAPSearch
       showUsage = new BooleanArgument("showUsage", 'H', "help",
                                     MSGID_DESCRIPTION_SHOWUSAGE);
       argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
+      argParser.setUsageArgument(showUsage, out);
       controlStr = new StringArgument("controls", 'J', "controls", false,
                 false, true,
                 "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
@@ -647,7 +704,7 @@ public class LDAPSearch
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -661,8 +718,8 @@ public class LDAPSearch
       int    msgID   = MSGID_ENCPW_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
-      System.err.println(argParser.getUsage());
+      err.println(message);
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -683,7 +740,7 @@ public class LDAPSearch
       } catch(LDAPException le)
       {
         assert debugException(CLASS_NAME, "main", le);
-        System.err.println(le.getMessage());
+        err.println(le.getMessage());
         return 1;
       }
       // The rest are attributes
@@ -696,8 +753,8 @@ public class LDAPSearch
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      System.err.println("ERROR: Both -w and -j flags specified. " +
-                          "Please specify one.");
+      err.println("ERROR: Both -w and -j flags specified. " +
+                  "Please specify one.");
       return 1;
     }
 
@@ -709,7 +766,7 @@ public class LDAPSearch
     } catch(ArgumentException ae)
     {
       assert debugException(CLASS_NAME, "main", ae);
-      System.err.println(ae.getMessage());
+      err.println(ae.getMessage());
       return 1;
     }
 
@@ -720,14 +777,14 @@ public class LDAPSearch
       if(versionNumber != 2 && versionNumber != 3)
       {
         int msgID = MSGID_DESCRIPTION_INVALID_VERSION;
-        System.err.println(getMessage(msgID, versionNumber));
+        err.println(getMessage(msgID, versionNumber));
         return 1;
       }
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
       assert debugException(CLASS_NAME, "main", ae);
-      System.err.println(ae.getMessage());
+      err.println(ae.getMessage());
       return 1;
     }
 
@@ -748,14 +805,13 @@ public class LDAPSearch
       // read the password from the stdin.
       try
       {
-        System.out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT,
-                                    bindDNValue));
+        out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, bindDNValue));
         char[] pwChars = PasswordReader.readPassword();
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
         assert debugException(CLASS_NAME, "main", ex);
-        System.err.println(ex.getMessage());
+        err.println(ex.getMessage());
         return 1;
       }
     } else if(bindPasswordValue == null)
@@ -780,7 +836,7 @@ public class LDAPSearch
       searchOptions.setSizeLimit(sizeLimit.getIntValue());
     } catch(ArgumentException ex1)
     {
-      System.err.println(ex1.getMessage());
+      err.println(ex1.getMessage());
       return 1;
     }
     boolean val = searchOptions.setSearchScope(searchScope.getValue());
@@ -800,8 +856,8 @@ public class LDAPSearch
       LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString);
       if(ctrl == null)
       {
-        System.err.println("Invalid control specified:" + ctrlString);
-        System.out.println(argParser.getUsage());
+        err.println("Invalid control specified:" + ctrlString);
+        err.println(argParser.getUsage());
         return 1;
       }
       searchOptions.getControls().add(ctrl);
@@ -831,7 +887,7 @@ public class LDAPSearch
       {
         int    msgID   = MSGID_PSEARCH_MISSING_DESCRIPTOR;
         String message = getMessage(msgID);
-        System.err.println(message);
+        err.println(message);
         return 1;
       }
       else
@@ -841,7 +897,7 @@ public class LDAPSearch
         {
           int    msgID   = MSGID_PSEARCH_DOESNT_START_WITH_PS;
           String message = getMessage(msgID, String.valueOf(infoString));
-          System.err.println(message);
+          err.println(message);
           return 1;
         }
       }
@@ -880,7 +936,7 @@ public class LDAPSearch
           {
             int    msgID   = MSGID_PSEARCH_INVALID_CHANGE_TYPE;
             String message = getMessage(msgID, String.valueOf(token));
-            System.err.println(message);
+            err.println(message);
             return 1;
           }
         }
@@ -910,7 +966,7 @@ public class LDAPSearch
         {
           int    msgID   = MSGID_PSEARCH_INVALID_CHANGESONLY;
           String message = getMessage(msgID, String.valueOf(token));
-          System.err.println(message);
+          err.println(message);
           return 1;
         }
       }
@@ -931,7 +987,7 @@ public class LDAPSearch
         {
           int    msgID   = MSGID_PSEARCH_INVALID_RETURN_ECS;
           String message = getMessage(msgID, String.valueOf(token));
-          System.err.println(message);
+          err.println(message);
           return 1;
         }
       }
@@ -958,8 +1014,8 @@ public class LDAPSearch
       }
       catch (LDAPException le)
       {
-        System.err.println(getMessage(MSGID_LDAP_ASSERTION_INVALID_FILTER,
-                                      le.getMessage()));
+        err.println(getMessage(MSGID_LDAP_ASSERTION_INVALID_FILTER,
+                               le.getMessage()));
         return 1;
       }
     }
@@ -978,8 +1034,8 @@ public class LDAPSearch
         }
         catch (LDAPException le)
         {
-          System.err.println(getMessage(MSGID_LDAP_MATCHEDVALUES_INVALID_FILTER,
-                                        le.getMessage()));
+          err.println(getMessage(MSGID_LDAP_MATCHEDVALUES_INVALID_FILTER,
+                                 le.getMessage()));
           return 1;
         }
       }
@@ -1019,14 +1075,14 @@ public class LDAPSearch
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        System.err.println("SASL External requires either SSL or StartTLS " +
-                           "options to be requested.");
+        err.println("SASL External requires either SSL or StartTLS " +
+                    "options to be requested.");
         return 1;
       }
       if(keyStorePathValue == null)
       {
-        System.err.println("SASL External requires a path to the SSL " +
-                           "client certificate keystore.");
+        err.println("SASL External requires a path to the SSL " +
+                    "client certificate keystore.");
         return 1;
       }
     }
@@ -1053,7 +1109,7 @@ public class LDAPSearch
       } catch(Exception e)
       {
         assert debugException(CLASS_NAME, "main", e);
-        System.err.println(e.getMessage());
+        err.println(e.getMessage());
         return 1;
       }
       finally
@@ -1072,8 +1128,8 @@ public class LDAPSearch
     if(filters.isEmpty())
     {
       int msgid = MSGID_SEARCH_NO_FILTERS;
-      System.err.println(getMessage(msgid));
-      System.err.println(argParser.getUsage());
+      err.println(getMessage(msgid));
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -1085,8 +1141,11 @@ public class LDAPSearch
 
     try
     {
-      // Bootstrap and initialize directory data structures.
-      DirectoryServer.bootstrapClient();
+      if (initializeServer)
+      {
+        // Bootstrap and initialize directory data structures.
+        DirectoryServer.bootstrapClient();
+      }
 
       // Connect to the specified host with the supplied userDN and password.
       SSLConnectionFactory sslConnectionFactory = null;
@@ -1101,29 +1160,29 @@ public class LDAPSearch
 
       AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
-                                      connectionOptions);
+                                      connectionOptions, out, err);
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
-      LDAPSearch ldapSearch = new LDAPSearch(nextMessageID);
+      LDAPSearch ldapSearch = new LDAPSearch(nextMessageID, out, err);
       ldapSearch.executeSearch(connection, baseDNValue, filters, attributes,
                                searchOptions, wrapColumn);
 
     } catch(LDAPException le)
     {
       assert debugException(CLASS_NAME, "main", le);
-      System.err.println(le.getMessage());
+      err.println(le.getMessage());
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
     {
         assert debugException(CLASS_NAME, "main", lce);
-        System.err.println(lce.getMessage());
+        err.println(lce.getMessage());
         int code = lce.getErrorCode();
         return code;
     } catch(Exception e)
     {
       assert debugException(CLASS_NAME, "main", e);
-      System.err.println(e.getMessage());
+      err.println(e.getMessage());
       return 1;
     } finally
     {

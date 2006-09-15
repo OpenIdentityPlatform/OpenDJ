@@ -29,6 +29,8 @@ package org.opends.server.tools;
 
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,6 +56,7 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tasks.ShutdownTask;
 import org.opends.server.types.Control;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -90,7 +93,7 @@ public class StopDS
    */
   public static void main(String[] args)
   {
-    int result = stopDS(args);
+    int result = stopDS(args, System.out, System.err);
 
     if (result != LDAPResultCode.SUCCESS)
     {
@@ -112,6 +115,49 @@ public class StopDS
    */
   public static int stopDS(String[] args)
   {
+    return stopDS(args, System.out, System.err);
+  }
+
+
+
+  /**
+   * Parses the provided set of command-line arguments and attempts to contact
+   * the Directory Server in order to send it the shutdown request.
+   *
+   * @param  args       The command-line arguments provided to this program.
+   * @param  outStream  The output stream to use for standard output, or
+   *                    <CODE>null</CODE> if standard output is not needed.
+   * @param  errStream  The output stream to use for standard error, or
+   *                    <CODE>null</CODE> if standard error is not needed.
+   *
+   * @return  An integer value that indicates whether the shutdown request was
+   *          accepted by the Directory Server.  A nonzero value should be
+   *          interpreted as a failure of some kind.
+   */
+  public static int stopDS(String[] args, OutputStream outStream,
+                           OutputStream errStream)
+  {
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
+
     // Define all the arguments that may be used with this program.
     ArgumentParser    argParser = new ArgumentParser(CLASS_NAME, false);
     BooleanArgument   restart;
@@ -240,14 +286,14 @@ public class StopDS
       showUsage = new BooleanArgument("showusage", 'H', "help",
                                       MSGID_STOPDS_DESCRIPTION_SHOWUSAGE);
       argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
+      argParser.setUsageArgument(showUsage, out);
     }
     catch (ArgumentException ae)
     {
       int    msgID   = MSGID_STOPDS_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -262,8 +308,8 @@ public class StopDS
       int    msgID   = MSGID_STOPDS_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
-      System.err.println(argParser.getUsage());
+      err.println(message);
+      err.println(argParser.getUsage());
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -283,7 +329,7 @@ public class StopDS
       int    msgID   = MSGID_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS;
       String message = getMessage(msgID, bindPW.getLongIdentifier(),
                                   bindPWFile.getLongIdentifier());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -295,7 +341,7 @@ public class StopDS
       int    msgID   = MSGID_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS;
       String message = getMessage(msgID, keyStorePW.getLongIdentifier(),
                                   keyStorePWFile.getLongIdentifier());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -307,7 +353,7 @@ public class StopDS
       int    msgID   = MSGID_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS;
       String message = getMessage(msgID, trustStorePW.getLongIdentifier(),
                                   trustStorePWFile.getLongIdentifier());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -332,7 +378,7 @@ public class StopDS
         {
           int    msgID   = MSGID_STOPDS_CANNOT_DECODE_STOP_TIME;
           String message = getMessage(msgID);
-          System.err.println(message);
+          err.println(message);
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
       }
@@ -350,7 +396,7 @@ public class StopDS
         {
           int    msgID   = MSGID_STOPDS_CANNOT_DECODE_STOP_TIME;
           String message = getMessage(msgID);
-          System.err.println(message);
+          err.println(message);
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
       }
@@ -373,7 +419,7 @@ public class StopDS
         int    msgID   = MSGID_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS;
         String message = getMessage(msgID, useSSL.getLongIdentifier(),
                                     useStartTLS.getLongIdentifier());
-        System.err.println(message);
+        err.println(message);
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
       else
@@ -405,7 +451,7 @@ public class StopDS
       {
         int    msgID   = MSGID_STOPDS_CANNOT_INITIALIZE_SSL;
         String message = getMessage(msgID, sce.getMessage());
-        System.err.println(message);
+        err.println(message);
         return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
       }
     }
@@ -425,7 +471,7 @@ public class StopDS
         {
           int    msgID   = MSGID_STOPDS_CANNOT_PARSE_SASL_OPTION;
           String message = getMessage(msgID, s);
-          System.err.println(message);
+          err.println(message);
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
         else
@@ -448,7 +494,7 @@ public class StopDS
       {
         int    msgID   = MSGID_STOPDS_NO_SASL_MECHANISM;
         String message = getMessage(msgID);
-        System.err.println(message);
+        err.println(message);
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
 
@@ -467,7 +513,7 @@ public class StopDS
     try
     {
       connection = new LDAPConnection(host.getValue(), port.getIntValue(),
-                                      connectionOptions);
+                                      connectionOptions, out, err);
       connection.connectToHost(bindDN.getValue(), bindPW.getValue(),
                                nextMessageID);
     }
@@ -476,14 +522,14 @@ public class StopDS
       int    msgID   = MSGID_STOPDS_CANNOT_DETERMINE_PORT;
       String message = getMessage(msgID, port.getLongIdentifier(),
                                   ae.getMessage());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
     catch (LDAPConnectionException lce)
     {
       int    msgID   = MSGID_STOPDS_CANNOT_CONNECT;
       String message = getMessage(msgID, lce.getMessage());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
     }
 
@@ -567,7 +613,7 @@ public class StopDS
       {
         int    msgID   = MSGID_STOPDS_UNEXPECTED_CONNECTION_CLOSURE;
         String message = getMessage(msgID);
-        System.err.println(message);
+        err.println(message);
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
       }
 
@@ -577,21 +623,21 @@ public class StopDS
     {
       int    msgID   = MSGID_STOPDS_IO_ERROR;
       String message = getMessage(msgID, String.valueOf(ioe));
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
     }
     catch (ASN1Exception ae)
     {
       int    msgID   = MSGID_STOPDS_DECODE_ERROR;
       String message = getMessage(msgID, ae.getMessage());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
     }
     catch (LDAPException le)
     {
       int    msgID   = MSGID_STOPDS_DECODE_ERROR;
       String message = getMessage(msgID, le.getMessage());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
     }
 
@@ -613,7 +659,7 @@ public class StopDS
           String message = extendedResponse.getErrorMessage();
           if (message != null)
           {
-            System.err.println(message);
+            err.println(message);
           }
 
           return extendedResponse.getResultCode();
@@ -623,7 +669,7 @@ public class StopDS
 
       int    msgID   = MSGID_STOPDS_INVALID_RESPONSE_TYPE;
       String message = getMessage(msgID, responseMessage.getProtocolOpName());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
 
@@ -633,7 +679,7 @@ public class StopDS
     String errorMessage = addResponse.getErrorMessage();
     if (errorMessage != null)
     {
-      System.err.println(errorMessage);
+      err.println(errorMessage);
     }
 
     return addResponse.getResultCode();
