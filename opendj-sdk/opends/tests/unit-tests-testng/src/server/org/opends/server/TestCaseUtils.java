@@ -48,7 +48,6 @@ import org.opends.server.core.InitializationException;
 import org.opends.server.loggers.Error;
 import org.opends.server.loggers.Debug;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -159,6 +158,19 @@ public final class TestCaseUtils {
     Debug.removeAllDebugLoggers(false);
     directoryServer.startServer();
     SERVER_STARTED = true;
+  }
+
+  /**
+   * Shut down the server, if it has been started.
+   * @param reason The reason for the shutdown.
+   */
+  public static void shutdownServer(String reason)
+  {
+    if (SERVER_STARTED)
+    {
+      DirectoryServer.shutDown("org.opends.server.TestCaseUtils", reason);
+      SERVER_STARTED = false;
+    }
   }
 
   /**

@@ -26,7 +26,7 @@
  */
 package org.opends.server;
 
-import org.testng.annotations.Test;
+import org.testng.annotations.AfterSuite;
 
 import java.io.PrintStream;
 
@@ -40,6 +40,11 @@ import java.io.PrintStream;
 public abstract class DirectoryServerTestCase {
   // The print stream to use for printing error messages.
   private PrintStream errorStream;
+
+  @AfterSuite
+  public final void shutdownServer() {
+    TestCaseUtils.shutdownServer("The current test suite has finished.");
+  }
 
   /**
    * Creates a new instance of this test case with the provided name.
