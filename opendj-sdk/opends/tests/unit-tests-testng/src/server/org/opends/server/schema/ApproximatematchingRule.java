@@ -26,18 +26,19 @@
  */
 package org.opends.server.schema;
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class ApproximatematchingRule extends SchemaTestCase
 {
+  /**
+   * Build the data for the approximateMatchingRules test.
+   */
   @DataProvider(name="approximatematchingrules")
   public Object[][] createapproximateMatchingRuleTest()
   {
@@ -136,6 +137,7 @@ public class ApproximatematchingRule extends SchemaTestCase
   {
     // load the mathing rule code
     Class rule = Class.forName("org.opends.server.schema."+ruleClassName);
+    assertNotNull(rule);
 
     // Make sure that the specified class can be instantiated as a task.
     ApproximateMatchingRule ruleInstance =
@@ -145,26 +147,15 @@ public class ApproximatematchingRule extends SchemaTestCase
     // moment.
     // ruleInstance.initializeMatchingRule(configEntry);
 
-    // normalize the 2 provided values and check that they are equals
+    // normalize the 2 provided values
     ByteString normalizedValue1 =
       ruleInstance.normalizeValue(new ASN1OctetString(value1));
     ByteString normalizedValue2 =
       ruleInstance.normalizeValue(new ASN1OctetString(value2));
 
+    // check that the approximatelyMatch return the expected result.
     Boolean liveResult = ruleInstance.approximatelyMatch(normalizedValue1,
         normalizedValue2);
     assertEquals(result, liveResult);
-  }
-
-  /**
-   * Set up the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
-  @BeforeClass
-  public void setUp() throws Exception {
-    // This test suite depends on having the schema available.
-    TestCaseUtils.startServer();
   }
 }

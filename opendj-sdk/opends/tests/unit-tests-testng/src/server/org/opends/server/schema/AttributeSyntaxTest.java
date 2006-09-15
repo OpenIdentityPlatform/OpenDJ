@@ -29,11 +29,9 @@ package org.opends.server.schema;
 import static org.testng.Assert.assertEquals;
 import static org.opends.server.schema.SchemaConstants.*;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -74,6 +72,7 @@ public class AttributeSyntaxTest extends SchemaTestCase
         */
 
         // generalized time.
+        {SYNTAX_GENERALIZED_TIME_OID,"2006090613Z", true},
         {SYNTAX_GENERALIZED_TIME_OID,"20060906135030+01", true},
         {SYNTAX_GENERALIZED_TIME_OID,"200609061350Z", true},
         {SYNTAX_GENERALIZED_TIME_OID,"20060906135030Z", true},
@@ -84,6 +83,15 @@ public class AttributeSyntaxTest extends SchemaTestCase
         {SYNTAX_GENERALIZED_TIME_OID,"20060906135030+2359", true},
         {SYNTAX_GENERALIZED_TIME_OID,"20060906135030+3359", false},
         {SYNTAX_GENERALIZED_TIME_OID,"20060906135030+2389", false},
+        {SYNTAX_GENERALIZED_TIME_OID,"20060906135030+2361", false},
+        {SYNTAX_GENERALIZED_TIME_OID,"20060906135030+", false},
+        {SYNTAX_GENERALIZED_TIME_OID,"20060906135030+0", false},
+        {SYNTAX_GENERALIZED_TIME_OID,"20060906135030+010", false},
+        {SYNTAX_GENERALIZED_TIME_OID,"20061200235959Z", false},
+        {SYNTAX_GENERALIZED_TIME_OID,"2006121a235959Z", false},
+        {SYNTAX_GENERALIZED_TIME_OID,"2006122a235959Z", false},
+        {SYNTAX_GENERALIZED_TIME_OID,"20060031235959Z", false},
+        {SYNTAX_GENERALIZED_TIME_OID,"20061331235959Z", false},
         {SYNTAX_GENERALIZED_TIME_OID,"20062231235959Z", false},
         {SYNTAX_GENERALIZED_TIME_OID,"20061232235959Z", false},
         {SYNTAX_GENERALIZED_TIME_OID,"2006123123595aZ", false},
@@ -216,8 +224,29 @@ public class AttributeSyntaxTest extends SchemaTestCase
          {SYNTAX_GUIDE_OID, "sn$EQ|(sn$EQ)|sn$EQ", true},
          {SYNTAX_GUIDE_OID, "sn$EQ|(cn$APPROX&?false)", true},
          {SYNTAX_GUIDE_OID, "sn$EQ|(cn$APPROX&|?false)", false},
-        
-      
+         
+         {SYNTAX_ATTRIBUTE_TYPE_OID,
+           "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP 1.2" +
+           " EQUALITY 2.3 ORDERING 5.6 SUBSTR 7.8 SYNTAX 9.1 SINGLE-VALUE" +
+           " COLLECTIVE NO-USER-MODIFICATION USAGE directoryOperations )",
+           true},
+           
+         {SYNTAX_ATTRIBUTE_TYPE_OID,
+               "(1.2.8.5 NAME 'testtype' DESC 'full type')",
+               true},
+         {SYNTAX_ATTRIBUTE_TYPE_OID,
+               "(1.2.8.5 USAGE directoryOperations )",
+               true},
+        /* {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
+         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
+         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
+         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
+         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
+         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
+         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
+         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
+         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},*/
+         
     };
   }
 
@@ -245,18 +274,5 @@ public class AttributeSyntaxTest extends SchemaTestCase
     rule.getSubstringMatchingRule();
     rule.getSyntaxName();
     rule.toString();
-  }
-
-  /**
-   * Set up the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
-  @BeforeClass
-  public void setUp() throws Exception {
-    // This test suite depends on having the schema available, so we'll start
-    // the server.
-    TestCaseUtils.startServer();
   }
 }
