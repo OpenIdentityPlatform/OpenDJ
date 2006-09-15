@@ -3288,6 +3288,15 @@ public class ConfigConstants
 
 
   /**
+   * The name of the attribute which configures the file permission mode
+   * for the database direction.
+   */
+  public static final String ATTR_BACKEND_MODE =
+      ConfigConstants.NAME_PREFIX_CFG + "backend-mode";
+
+
+
+  /**
    * The name of the file (with no path information) that will be used as the
    * backing file for holding the tasks defined in the Directory Server.
    */

@@ -29,7 +29,14 @@ package org.opends.server.backends.jeb;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ConfigMessages.
      MSGID_CONFIG_DESCRIPTION_BACKEND_DIRECTORY;
+import static org.opends.server.messages.ConfigMessages.
+     MSGID_CONFIG_DESCRIPTION_BACKEND_MODE;
+import static org.opends.server.messages.ConfigMessages.
+    MSGID_CONFIG_BACKEND_MODE_INVALID;
+import static org.opends.server.messages.ConfigMessages.
+    MSGID_CONFIG_BACKEND_INSANE_MODE;
 import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_DIRECTORY;
+import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_MODE;
 import static org.opends.server.messages.ConfigMessages.
      MSGID_CONFIG_BACKEND_NO_DIRECTORY;
 import static org.opends.server.messages.JebMessages.*;
@@ -52,6 +59,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.RDN;
+import org.opends.server.types.FilePermission;
 import com.sleepycat.je.EnvironmentConfig;
 
 import java.util.HashMap;
@@ -240,6 +248,12 @@ public class Config
   private File backendDirectory = null;
 
   /**
+   * The backend directory permission mode. By default, owner has read, write
+   * and execute permissions on the database directory.
+   */
+  private FilePermission backendPermission = new FilePermission(0700);
+
+  /**
    * Number of times we should retry database transactions that get aborted
    * due to deadlock.
    */
@@ -342,6 +356,44 @@ public class Config
       throw new ConfigException(msgID, message);
     }
     backendDirectory = getFileForPath(backendDirectoryAttr.activeValue());
+
+    // ds-cfg-backend-mode
+    // Optional, single-valued config attribute requiring admin action on change
+    msg = getMessage(MSGID_CONFIG_DESCRIPTION_BACKEND_MODE);
+    stub =
+        new StringConfigAttribute(ATTR_BACKEND_MODE, msg, false,false, true);
+    StringConfigAttribute backendModeAttr = (StringConfigAttribute)
+         configEntry.getConfigAttribute(stub);
+    if (backendModeAttr != null)
+    {
+      FilePermission newBackendPermission;
+      try
+      {
+        newBackendPermission = FilePermission.decodeUNIXMode(
+            backendModeAttr.activeValue());
+      }
+      catch(Exception e)
+      {
+        int msgID = MSGID_CONFIG_BACKEND_MODE_INVALID;
+        String message = getMessage(msgID, configEntry.getDN().toString());
+        throw new ConfigException(msgID, message);
+      }
+
+      //Make sure the mode will allow the server itself access to
+      //the database
+      if(!newBackendPermission.isOwnerWritable() ||
+           !newBackendPermission.isOwnerReadable() ||
+           !newBackendPermission.isOwnerExecutable())
+      {
+        int msgID = MSGID_CONFIG_BACKEND_INSANE_MODE;
+        String message = getMessage(msgID);
+        throw new ConfigException(msgID, message);
+      }
+      else
+      {
+        backendPermission = newBackendPermission;
+      }
+    }
 
     // ds-cfg-backendIndexEntryLimit
     // Optional, single-valued config attribute requiring admin action on change
@@ -720,6 +772,16 @@ public class Config
   public File getBackendDirectory()
   {
     return backendDirectory;
+  }
+
+  /**
+   * Get the backend directory file permission mode.
+   *
+   * @return An FilePermission representing the directory permissions
+   */
+  public FilePermission getBackendPermission()
+  {
+     return backendPermission;
   }
 
   /**

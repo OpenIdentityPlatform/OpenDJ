@@ -6125,6 +6125,34 @@ public class ConfigMessages
 
 
   /**
+   * The message ID used to describe the attribute which configure the
+   * file permissions mode for the database directory.
+   */
+  public static final int MSGID_CONFIG_DESCRIPTION_BACKEND_MODE =
+      CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 566;
+
+
+
+  /**
+   * The message ID for the message that will be used if the backend directory
+   * file permission mode atrribute is not a valid UNIX mode.
+   */
+  public static final int MSGID_CONFIG_BACKEND_MODE_INVALID =
+      CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 567;
+
+
+
+  /**
+   * The message ID of an error indicating that the file permissions for the
+   * database directory will result in an inaccessable database. The orginal or
+   * default value will be used instead
+   */
+  public static final int MSGID_CONFIG_BACKEND_INSANE_MODE =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 568;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8881,6 +8909,18 @@ public class ConfigMessages
                     " (It should be a positive integer value specifying " +
                     "the lookthrough limit to use, or a value of 0 or -1 to " +
                     "indicate that no limit should be enforced):  %s.");
+    registerMessage(MSGID_CONFIG_DESCRIPTION_BACKEND_MODE,
+                    "The permissions used for the directory containing the " +
+                    "backend database files");
+    registerMessage(MSGID_CONFIG_BACKEND_MODE_INVALID,
+                   "Configuration entry %s does not contain a valid value " +
+                   "for configuration attribute " + ATTR_BACKEND_MODE +
+                   " (It should be an UNIX permission mode in three-digit " +
+                   "octal notation.)");
+    registerMessage(MSGID_CONFIG_BACKEND_INSANE_MODE,
+                   "Unable to set the requested file permissions to the " +
+                   "backend database directory. The requested permissions " +
+                   "will result in an inaccessable database.");
   }
 }
 

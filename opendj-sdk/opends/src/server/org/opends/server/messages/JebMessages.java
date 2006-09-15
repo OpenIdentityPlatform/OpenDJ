@@ -1241,6 +1241,12 @@ public class JebMessages
 
 
 
+  /**
+   * The message ID of an error indicating that the file permissions for the
+   * database directory was not set.
+   */
+  public static final int MSGID_JEB_SET_PERMISSIONS_FAILED =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 128;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -1734,5 +1740,8 @@ public class JebMessages
     registerMessage(MSGID_JEB_LOOKTHROUGH_LIMIT_EXCEEDED,
                     "This search operation has checked the maximum of %d " +
                     "entries for matches.");
+    registerMessage(MSGID_JEB_SET_PERMISSIONS_FAILED,
+                    "Unable to set file permissions for the backend database " +
+                    "directory %s.");
   }
 }
