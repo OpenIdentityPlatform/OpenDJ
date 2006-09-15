@@ -84,7 +84,7 @@ public abstract class IdentityMapper
    * Performs any finalization that may be necessary for this identity
    * mapper.  By default, no finalization is performed.
    */
-  public void finalizeIdentityManager()
+  public void finalizeIdentityMapper()
   {
     assert debugEnter(CLASS_NAME, "finalizeIdentityMapper");
 

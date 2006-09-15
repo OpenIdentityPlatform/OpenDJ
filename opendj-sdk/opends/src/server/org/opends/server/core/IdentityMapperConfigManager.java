@@ -447,7 +447,7 @@ public class IdentityMapperConfigManager
           // The identity mapper is active, so it needs to be disabled.  Do this
           // and return that we were successful.
           identityMappers.remove(configEntryDN);
-          mapper.finalizeIdentityManager();
+          mapper.finalizeIdentityMapper();
           DirectoryServer.deregisterIdentityMapper(configEntryDN);
           return new ConfigChangeResult(resultCode, adminActionRequired,
                                         messages);
@@ -950,7 +950,7 @@ public class IdentityMapperConfigManager
     IdentityMapper identityMapper = identityMappers.remove(configEntryDN);
     if (identityMapper != null)
     {
-      identityMapper.finalizeIdentityManager();
+      identityMapper.finalizeIdentityMapper();
     }
 
 
