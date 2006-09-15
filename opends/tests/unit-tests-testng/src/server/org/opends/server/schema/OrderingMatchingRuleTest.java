@@ -28,13 +28,10 @@ package org.opends.server.schema;
 
 import static org.testng.Assert.assertTrue;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -159,28 +156,5 @@ public class OrderingMatchingRuleTest extends SchemaTestCase
     // matching rule did not raised the Exception.
 
     assertTrue(success);
-  }
-
-  /**
-   * Set up the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
-  @BeforeClass
-  public void setUp() throws Exception {
-    // This test suite depends on having the schema available.
-    TestCaseUtils.startServer();
-  }
-
-  /**
-   * Tears down the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be finalized.
-   */
-  @AfterClass
-  public void tearDown() throws Exception {
-    TestCaseUtils.startServer();
   }
 }

@@ -27,6 +27,8 @@
 package org.opends.server.schema;
 
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
@@ -34,4 +36,17 @@ import org.testng.annotations.Test;
 */
 @Test(groups = { "precommit", "schema" })
 public abstract class SchemaTestCase extends DirectoryServerTestCase
-{}
+{
+  /**
+   * Set up the environment for performing the tests in this suite.
+   *
+   * @throws Exception
+   *           If the environment could not be set up.
+   */
+  @BeforeClass
+  public void setUp() throws Exception {
+    // This test suite depends on having the schema available, so we'll start
+    // the server.
+    TestCaseUtils.startServer();
+  }
+}
