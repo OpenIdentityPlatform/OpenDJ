@@ -981,6 +981,9 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.285
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.286 NAME 'ds-rlim-lookthrough-limit'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE USAGE directoryOperation
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.287 NAME 'ds-cfg-backend-mode'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1007,7 +1010,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6 NAME 'ds-cfg-je-backend'
   ds-cfg-backend-import-temp-directory $ ds-cfg-backend-import-buffer-size $
   ds-cfg-backend-import-queue-size $ ds-cfg-backend-import-thread-count $
   ds-cfg-backend-entries-compressed $ ds-cfg-backend-deadlock-retry-limit $
-  ds-cfg-backend-import-pass-size ) X-ORIGIN 'OpenDS Directory Server' )
+  ds-cfg-backend-import-pass-size $ ds-cfg-backend-mode )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.7 NAME 'ds-cfg-je-database'
   SUP top STRUCTURAL MAY ( cn $ ds-cfg-database-cache-percent $
   ds-cfg-database-cache-size $ ds-cfg-database-txn-no-sync $

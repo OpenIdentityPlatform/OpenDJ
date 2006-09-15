@@ -79,6 +79,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.FilePermission;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.util.LDIFException;
 import org.opends.server.loggers.Debug;
@@ -119,6 +120,12 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    * The directory containing persistent storage for the backend.
    */
   private File backendDirectory;
+
+  /**
+   * The permissions mode for the directory containing persistent storage for
+   * the backend.
+   */
+  private FilePermission backendPermission;
 
   /**
    * The base DNs contained in this backend.
@@ -372,6 +379,24 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                                   backendDirectory.getPath());
       throw new InitializationException(MSGID_JEB_DIRECTORY_INVALID,
                                         message);
+    }
+
+    // Get the backend database directory permissions and apply
+    try
+    {
+      backendPermission = config.getBackendPermission();
+      if(!FilePermission.setPermissions(backendDirectory, backendPermission))
+      {
+        throw new Exception();
+      }
+    }
+    catch(Exception e)
+    {
+      // Log an warning that the permissions were not set.
+      int msgID = MSGID_JEB_SET_PERMISSIONS_FAILED;
+      String message = getMessage(msgID, backendDirectory.getPath());
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
+               message, msgID);
     }
 
     // FIXME: Currently assuming every base DN is also a suffix.
@@ -1574,6 +1599,31 @@ public class BackendImpl extends Backend implements ConfigurableComponent
           ec.open();
           this.baseDNs.put(baseDN, ec);
           DirectoryServer.registerSuffix(baseDN, this);
+        }
+      }
+
+      // Check for changes to the database directory permissions
+      FilePermission oldPermission = config.getBackendPermission();
+      FilePermission newPermission = newConfig.getBackendPermission();
+
+      if(!FilePermission.toUNIXMode(oldPermission).equals(
+          FilePermission.toUNIXMode(newPermission)))
+      {
+        try
+        {
+          if(!FilePermission.setPermissions(newConfig.getBackendDirectory(),
+              newPermission))
+          {
+            throw new Exception();
+          }
+        }
+        catch(Exception e)
+        {
+          // Log an warning that the permissions were not set.
+          int msgID = MSGID_JEB_SET_PERMISSIONS_FAILED;
+          String message = getMessage(msgID, backendDirectory.getPath());
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
+                   message, msgID);
         }
       }
 

@@ -103,6 +103,7 @@ ds-cfg-backend-id: userRoot
 ds-cfg-backend-writability-mode: enabled
 ds-cfg-backend-base-dn: dc=example,dc=com
 ds-cfg-backend-directory: db
+ds-cfg-backend-mode: 700
 ds-cfg-backend-index-entry-limit: 4000
 ds-cfg-backend-subtree-delete-size-limit: 100000
 ds-cfg-backend-preload-time-limit: 0 seconds
