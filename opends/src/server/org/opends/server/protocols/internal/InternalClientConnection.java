@@ -43,6 +43,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.BindOperation;
 import org.opends.server.core.CancelRequest;
 import org.opends.server.core.CancelResult;
 import org.opends.server.core.CompareOperation;
@@ -116,6 +117,9 @@ public class InternalClientConnection
   // The static connection for root-based connections.
   private static InternalClientConnection rootConnection;
 
+  // The authentication info for this connection.
+  private AuthenticationInfo authenticationInfo;
+
   // The empty operation list for this connection.
   private LinkedList<Operation> operationList;
 
@@ -152,8 +156,8 @@ public class InternalClientConnection
     {
       DN internalUserDN = DN.decode(dnString);
 
-      setAuthenticationInfo(new AuthenticationInfo(internalUserDN,
-                                                   true));
+      this.authenticationInfo =
+           new AuthenticationInfo(internalUserDN, true);
     }
     catch (DirectoryException de)
     {
@@ -194,7 +198,7 @@ public class InternalClientConnection
 
     assert debugConstructor(CLASS_NAME, String.valueOf(authInfo));
 
-    setAuthenticationInfo(authInfo);
+    this.authenticationInfo = authInfo;
 
     connectionID  = nextConnectionID.getAndDecrement();
     operationList = new LinkedList<Operation>();
@@ -535,6 +539,57 @@ public class InternalClientConnection
 
 
   /**
+   * Retrieves information about the authentication that has been
+   * performed for this connection.
+   *
+   * @return  Information about the user that is currently
+   *          authenticated on this connection.
+   */
+  public AuthenticationInfo getAuthenticationInfo()
+  {
+    assert debugEnter(CLASS_NAME, "getAuthenticationInfo");
+
+    return authenticationInfo;
+  }
+
+
+
+  /**
+   * This method has no effect, as the authentication info for
+   * internal client connections is set when the connection is created
+   * and cannot be changed after the fact.
+   *
+   * @param  authenticationInfo  Information about the authentication
+   *                             that has been performed for this
+   *                             connection.  It should not be
+   *                             <CODE>null</CODE>.
+   */
+  public void setAuthenticationInfo(AuthenticationInfo
+                                         authenticationInfo)
+  {
+    assert debugEnter(CLASS_NAME, "setAuthenticationInfo",
+                      String.valueOf(authenticationInfo));
+
+    // No implementation required.
+  }
+
+
+
+  /**
+   * This method has no effect, as the authentication info for
+   * internal client connections is set when the connection is created
+   * and cannot be changed after the fact.
+   */
+  public void setUnauthenticated()
+  {
+    assert debugEnter(CLASS_NAME, "setUnauthenticated");
+
+    // No implementation required.
+  }
+
+
+
+  /**
    * Processes an internal add operation with the provided
    * information.
    *
@@ -602,6 +657,132 @@ public class InternalClientConnection
 
     addOperation.run();
     return addOperation;
+  }
+
+
+
+  /**
+   * Processes an internal bind operation with the provided
+   * information.  Note that regardless of whether the bind is
+   * successful, the authentication state for this internal connection
+   * will not be altered in any way.
+   *
+   * @param  rawBindDN  The bind DN for the operation.
+   * @param  password   The bind password for the operation.
+   *
+   * @return  A reference to the bind operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public BindOperation processSimpleBind(ByteString rawBindDN,
+                                         ByteString password)
+  {
+    assert debugEnter(CLASS_NAME, "processSimpleBind",
+                      String.valueOf(rawBindDN), "ByteString");
+
+    BindOperation bindOperation =
+         new BindOperation(this, nextOperationID(), nextMessageID(),
+                           new ArrayList<Control>(0), rawBindDN,
+                           password);
+    bindOperation.setInternalOperation(true);
+
+    bindOperation.run();
+    return bindOperation;
+  }
+
+
+
+  /**
+   * Processes an internal bind operation with the provided
+   * information.  Note that regardless of whether the bind is
+   * successful, the authentication state for this internal connection
+   * will not be altered in any way.
+   *
+   * @param  bindDN    The bind DN for the operation.
+   * @param  password  The bind password for the operation.
+   *
+   * @return  A reference to the bind operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public BindOperation processSimpleBind(DN bindDN,
+                                         ByteString password)
+  {
+    assert debugEnter(CLASS_NAME, "processSimpleBind",
+                      String.valueOf(bindDN), "ByteString");
+
+    BindOperation bindOperation =
+         new BindOperation(this, nextOperationID(), nextMessageID(),
+                           new ArrayList<Control>(0), bindDN,
+                           password);
+    bindOperation.setInternalOperation(true);
+
+    bindOperation.run();
+    return bindOperation;
+  }
+
+
+
+  /**
+   * Processes an internal bind operation with the provided
+   * information.  Note that regardless of whether the bind is
+   * successful, the authentication state for this internal connection
+   * will not be altered in any way.
+   *
+   * @param  rawBindDN        The bind DN for the operation.
+   * @param  saslMechanism    The SASL mechanism for the operation.
+   * @param  saslCredentials  The SASL credentials for the operation.
+   *
+   * @return  A reference to the bind operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public BindOperation processSASLBind(ByteString rawBindDN,
+                            String saslMechanism,
+                            ASN1OctetString saslCredentials)
+  {
+    assert debugEnter(CLASS_NAME, "processSASLBind",
+                      String.valueOf(rawBindDN),
+                      String.valueOf(saslMechanism),
+                      "ASN1OctetString");
+
+    BindOperation bindOperation =
+         new BindOperation(this, nextOperationID(), nextMessageID(),
+                           new ArrayList<Control>(0), rawBindDN,
+                           saslMechanism, saslCredentials);
+    bindOperation.setInternalOperation(true);
+
+    bindOperation.run();
+    return bindOperation;
+  }
+
+
+
+  /**
+   * Processes an internal bind operation with the provided
+   * information.  Note that regardless of whether the bind is
+   * successful, the authentication state for this internal connection
+   * will not be altered in any way.
+   *
+   * @param  bindDN           The bind DN for the operation.
+   * @param  saslMechanism    The SASL mechanism for the operation.
+   * @param  saslCredentials  The SASL credentials for the operation.
+   *
+   * @return  A reference to the bind operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public BindOperation processSASLBind(DN bindDN,
+                            String saslMechanism,
+                            ASN1OctetString saslCredentials)
+  {
+    assert debugEnter(CLASS_NAME, "processSASLBind",
+                      String.valueOf(bindDN), "ByteString");
+
+    BindOperation bindOperation =
+         new BindOperation(this, nextOperationID(), nextMessageID(),
+                           new ArrayList<Control>(0), bindDN,
+                           saslMechanism, saslCredentials);
+    bindOperation.setInternalOperation(true);
+
+    bindOperation.run();
+    return bindOperation;
   }
 
 
