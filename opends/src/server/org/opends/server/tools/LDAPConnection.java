@@ -26,6 +26,7 @@
  */
 package org.opends.server.tools;
 
+import java.io.PrintStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -79,6 +80,9 @@ public class LDAPConnection
   private ASN1Reader asn1Reader;
   private int versionNumber = 3;
 
+  private PrintStream out;
+  private PrintStream err;
+
   /**
    * Constructor for the LDAPConnection object.
    *
@@ -89,10 +93,28 @@ public class LDAPConnection
    */
   public LDAPConnection(String host, int port, LDAPConnectionOptions options)
   {
+    this(host, port, options, System.out, System.err);
+  }
+
+  /**
+   * Constructor for the LDAPConnection object.
+   *
+   * @param   host    The hostname to send the request to.
+   * @param   port    The port number on which the directory server is accepting
+   *                  requests.
+   * @param  options  The set of options for this connection.
+   * @param  out      The print stream to use for standard output.
+   * @param  err      The print stream to use for standard error.
+   */
+  public LDAPConnection(String host, int port, LDAPConnectionOptions options,
+                        PrintStream out, PrintStream err)
+  {
     this.hostName = host;
     this.portNumber = port;
     this.connectionOptions = options;
     this.versionNumber = options.getVersionNumber();
+    this.out = out;
+    this.err = err;
   }
 
   /**
@@ -263,7 +285,7 @@ public class LDAPConnection
       }
       if(result != null)
       {
-        System.out.println(result);
+        out.println(result);
       }
 
       for (LDAPControl c : responseControls)
@@ -275,14 +297,14 @@ public class LDAPConnection
           {
             int    msgID   = MSGID_BIND_AUTHZID_RETURNED;
             String message = getMessage(msgID, controlValue.stringValue());
-            System.out.println(message);
+            out.println(message);
           }
         }
         else if (c.getOID().equals(OID_NS_PASSWORD_EXPIRED))
         {
           int    msgID   = MSGID_BIND_PASSWORD_EXPIRED;
           String message = getMessage(msgID);
-          System.out.println(message);
+          out.println(message);
         }
         else if (c.getOID().equals(OID_NS_PASSWORD_EXPIRING))
         {
@@ -295,7 +317,7 @@ public class LDAPConnection
 
           int    msgID   = MSGID_BIND_PASSWORD_EXPIRING;
           String message = getMessage(msgID, timeString);
-          System.out.println(message);
+          out.println(message);
         }
         else if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
         {
@@ -311,17 +333,17 @@ public class LDAPConnection
               case PASSWORD_EXPIRED:
                 int    msgID   = MSGID_BIND_PASSWORD_EXPIRED;
                 String message = getMessage(msgID);
-                System.out.println(message);
+                out.println(message);
                 break;
               case ACCOUNT_LOCKED:
                 msgID   = MSGID_BIND_ACCOUNT_LOCKED;
                 message = getMessage(msgID);
-                System.out.println(message);
+                out.println(message);
                 break;
               case CHANGE_AFTER_RESET:
                 msgID   = MSGID_BIND_MUST_CHANGE_PASSWORD;
                 message = getMessage(msgID);
-                System.out.println(message);
+                out.println(message);
                 break;
             }
           }
@@ -338,12 +360,12 @@ public class LDAPConnection
 
                 int    msgID   = MSGID_BIND_PASSWORD_EXPIRING;
                 String message = getMessage(msgID, timeString);
-                System.out.println(message);
+                out.println(message);
                 break;
               case GRACE_LOGINS_REMAINING:
                 msgID   = MSGID_BIND_GRACE_LOGINS_REMAINING;
                 message = getMessage(msgID, pwPolicyControl.getWarningValue());
-                System.out.println(message);
+                out.println(message);
                 break;
             }
           }

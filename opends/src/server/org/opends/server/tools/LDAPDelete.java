@@ -30,6 +30,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -46,6 +48,7 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -77,16 +80,27 @@ public class LDAPDelete
   // The message ID counter to use for requests.
   private AtomicInteger nextMessageID;
 
+  // The print stream to use for standard error.
+  private PrintStream err;
+
+  // The print stream to use for standard output.
+  private PrintStream out;
+
 
 
   /**
    * Constructor for the LDAPDelete object.
    *
    * @param  nextMessageID  The next message ID to use for requests.
+   * @param  out            The print stream to use for standard output.
+   * @param  err            The print stream to use for standard error.
    */
-  public LDAPDelete(AtomicInteger nextMessageID)
+  public LDAPDelete(AtomicInteger nextMessageID, PrintStream out,
+                    PrintStream err)
   {
     this.nextMessageID = nextMessageID;
+    this.out           = out;
+    this.err           = err;
   }
 
   /**
@@ -162,7 +176,7 @@ public class LDAPDelete
 
     protocolOp = new DeleteRequestProtocolOp(asn1OctetStr);
     int msgID = MSGID_PROCESSING_OPERATION;
-    System.out.println(getMessage(msgID, "DELETE", asn1OctetStr));
+    out.println(getMessage(msgID, "DELETE", asn1OctetStr));
     if(!deleteOptions.showOperations())
     {
       LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
@@ -185,7 +199,7 @@ public class LDAPDelete
         {
           msgID = MSGID_OPERATION_FAILED;
           String msg = getMessage(msgID, "DELETE", line, ae.getMessage());
-          System.err.println(msg);
+          err.println(msg);
           return;
         }
       }
@@ -206,12 +220,12 @@ public class LDAPDelete
         {
           msgID = MSGID_OPERATION_FAILED;
           String msg = getMessage(msgID, "DELETE", line, errorMessage);
-          System.err.println(msg);
+          err.println(msg);
         } else
         {
           msgID = MSGID_OPERATION_SUCCESSFUL;
           String msg = getMessage(msgID, "DELETE", line);
-          System.out.println(msg);
+          out.println(msg);
         }
       }
     }
@@ -225,7 +239,7 @@ public class LDAPDelete
 
   public static void main(String[] args)
   {
-    int retCode = mainDelete(args);
+    int retCode = mainDelete(args, true, System.out, System.err);
 
     if(retCode != 0)
     {
@@ -244,6 +258,50 @@ public class LDAPDelete
 
   public static int mainDelete(String[] args)
   {
+    return mainDelete(args, true, System.out, System.err);
+  }
+
+  /**
+   * Parses the provided command-line arguments and uses that information to
+   * run the ldapdelete tool.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param  initializeServer  Indicates whether to initialize the server.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           <CODE>null</CODE> if standard output is not
+   *                           needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           <CODE>null</CODE> if standard error is not
+   *                           needed.
+   *
+   * @return The error code.
+   */
+
+  public static int mainDelete(String[] args, boolean initializeServer,
+                               OutputStream outStream, OutputStream errStream)
+  {
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
+
     LDAPConnectionOptions connectionOptions = new LDAPConnectionOptions();
     LDAPDeleteOptions deleteOptions = new LDAPDeleteOptions();
     LDAPConnection connection = null;
@@ -335,7 +393,7 @@ public class LDAPDelete
       showUsage = new BooleanArgument("showUsage", 'H', "help",
                                       MSGID_DESCRIPTION_SHOWUSAGE);
       argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
+      argParser.setUsageArgument(showUsage, out);
       controlStr = new StringArgument("controls", 'J', "controls", false, false,
            true, "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
            null, null, MSGID_DESCRIPTION_CONTROLS);
@@ -372,7 +430,7 @@ public class LDAPDelete
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -386,22 +444,22 @@ public class LDAPDelete
       int    msgID   = MSGID_ENCPW_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
-      System.err.println(argParser.getUsage());
+      err.println(message);
+      err.println(argParser.getUsage());
       return 1;
     }
 
     // If we should just display usage information, then print it and exit.
     if (showUsage.isPresent())
     {
-      System.out.println(argParser.getUsage());
+      out.println(argParser.getUsage());
       return 0;
     }
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      System.err.println("ERROR: Both -w and -j flags specified. " +
-                         "Please specify one.");
+      err.println("ERROR: Both -w and -j flags specified. " +
+                  "Please specify one.");
       return 1;
     }
 
@@ -413,7 +471,7 @@ public class LDAPDelete
     } catch(ArgumentException ae)
     {
       assert debugException(CLASS_NAME, "main", ae);
-      System.err.println(ae.getMessage());
+      err.println(ae.getMessage());
       return 1;
     }
 
@@ -423,14 +481,14 @@ public class LDAPDelete
       if(versionNumber != 2 && versionNumber != 3)
       {
         int msgID = MSGID_DESCRIPTION_INVALID_VERSION;
-        System.err.println(getMessage(msgID, versionNumber));
+        err.println(getMessage(msgID, versionNumber));
         return 1;
       }
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
       assert debugException(CLASS_NAME, "main", ae);
-      System.err.println(ae.getMessage());
+      err.println(ae.getMessage());
       return 1;
     }
 
@@ -442,14 +500,13 @@ public class LDAPDelete
       // read the password from the stdin.
       try
       {
-        System.out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT,
-                                    bindDNValue));
+        out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, bindDNValue));
         char[] pwChars = PasswordReader.readPassword();
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
         assert debugException(CLASS_NAME, "main", ex);
-        System.err.println(ex.getMessage());
+        err.println(ex.getMessage());
         return 1;
       }
     } else if(bindPasswordValue == null)
@@ -474,8 +531,8 @@ public class LDAPDelete
       LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString);
       if(ctrl == null)
       {
-        System.err.println("Invalid control specified:" + ctrlString);
-        System.out.println(argParser.getUsage());
+        err.println("Invalid control specified:" + ctrlString);
+        err.println(argParser.getUsage());
         return 1;
       }
       deleteOptions.getControls().add(ctrl);
@@ -524,23 +581,25 @@ public class LDAPDelete
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        System.err.println("SASL External requires either SSL or StartTLS " +
-                           "options to be requested.");
+        err.println("SASL External requires either SSL or StartTLS " +
+                    "options to be requested.");
         return 1;
       }
       if(keyStorePathValue == null)
       {
-        System.err.println("SASL External requires a path to the SSL " +
-                           "client certificate keystore.");
+        err.println("SASL External requires a path to the SSL " +
+                    "client certificate keystore.");
         return 1;
       }
     }
 
     try
     {
-
-      // Bootstrap and initialize directory data structures.
-      DirectoryServer.bootstrapClient();
+      if (initializeServer)
+      {
+        // Bootstrap and initialize directory data structures.
+        DirectoryServer.bootstrapClient();
+      }
 
       // Connect to the specified host with the supplied userDN and password.
       SSLConnectionFactory sslConnectionFactory = null;
@@ -555,10 +614,10 @@ public class LDAPDelete
 
       AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
-                                      connectionOptions);
+                                      connectionOptions, out, err);
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
-      LDAPDelete ldapDelete = new LDAPDelete(nextMessageID);
+      LDAPDelete ldapDelete = new LDAPDelete(nextMessageID, out, err);
       if(fileNameValue == null && dnStrings.isEmpty())
       {
         // Read from stdin.
@@ -578,19 +637,19 @@ public class LDAPDelete
     } catch(LDAPException le)
     {
       assert debugException(CLASS_NAME, "main", le);
-      System.err.println(le.getMessage());
+      err.println(le.getMessage());
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
     {
       assert debugException(CLASS_NAME, "main", lce);
-      System.err.println(lce.getMessage());
+      err.println(lce.getMessage());
       int code = lce.getErrorCode();
       return code;
     } catch(Exception e)
     {
       assert debugException(CLASS_NAME, "main", e);
-      System.err.println(e.getMessage());
+      err.println(e.getMessage());
       return 1;
     } finally
     {

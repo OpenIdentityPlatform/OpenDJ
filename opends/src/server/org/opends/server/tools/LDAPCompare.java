@@ -30,6 +30,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -48,6 +50,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.Base64;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
@@ -80,16 +83,27 @@ public class LDAPCompare
   // The message ID counter to use for requests.
   private AtomicInteger nextMessageID;
 
+  // The print stream to use for standard error.
+  private PrintStream err;
+
+  // The print stream to use for standard output.
+  private PrintStream out;
+
 
 
   /**
    * Constructor for the LDAPCompare object.
    *
    * @param  nextMessageID  The message ID counter to use for requests.
+   * @param  out            The print stream to use for standard output.
+   * @param  err            The print stream to use for standard error.
    */
-  public LDAPCompare(AtomicInteger nextMessageID)
+  public LDAPCompare(AtomicInteger nextMessageID, PrintStream out,
+                     PrintStream err)
   {
     this.nextMessageID = nextMessageID;
+    this.out           = out;
+    this.err           = err;
   }
 
   /**
@@ -178,8 +192,7 @@ public class LDAPCompare
                                      attributeType, attrValOctetStr);
 
     int msgID = MSGID_PROCESSING_COMPARE_OPERATION;
-    System.out.println(getMessage(msgID, attributeType, attrValOctetStr,
-                                  dnOctetStr));
+    out.println(getMessage(msgID, attributeType, attrValOctetStr, dnOctetStr));
 
     if(!compareOptions.showOperations())
     {
@@ -203,7 +216,7 @@ public class LDAPCompare
         {
           msgID = MSGID_OPERATION_FAILED;
           String msg = getMessage(msgID, "COMPARE", line, ae.getMessage());
-          System.err.println(msg);
+          err.println(msg);
           return;
         }
       }
@@ -224,16 +237,16 @@ public class LDAPCompare
         if(resultCode == COMPARE_FALSE)
         {
           msgID = MSGID_COMPARE_OPERATION_RESULT_FALSE;
-          System.out.println(getMessage(msgID, line));
+          out.println(getMessage(msgID, line));
         } else if(resultCode == COMPARE_TRUE)
         {
           msgID = MSGID_COMPARE_OPERATION_RESULT_TRUE;
-          System.out.println(getMessage(msgID, line));
+          out.println(getMessage(msgID, line));
         } else
         {
           msgID = MSGID_OPERATION_FAILED;
           String msg = getMessage(msgID, "COMPARE", line, errorMessage);
-          System.err.println(msg);
+          err.println(msg);
         }
       }
     }
@@ -247,7 +260,7 @@ public class LDAPCompare
 
   public static void main(String[] args)
   {
-    int retCode = mainCompare(args);
+    int retCode = mainCompare(args, true, System.out, System.err);
 
     if(retCode != 0)
     {
@@ -266,6 +279,50 @@ public class LDAPCompare
 
   public static int mainCompare(String[] args)
   {
+    return mainCompare(args, true, System.out, System.err);
+  }
+
+  /**
+   * Parses the provided command-line arguments and uses that information to
+   * run the ldapcompare tool.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param  initializeServer  Indicates whether to initialize the server.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           <CODE>null</CODE> if standard output is not
+   *                           needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           <CODE>null</CODE> if standard error is not
+   *                           needed.
+   *
+   * @return The error code.
+   */
+
+  public static int mainCompare(String[] args, boolean initializeServer,
+                                OutputStream outStream, OutputStream errStream)
+  {
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
+
     LDAPConnectionOptions connectionOptions = new LDAPConnectionOptions();
     LDAPCompareOptions compareOptions = new LDAPCompareOptions();
     LDAPConnection connection = null;
@@ -363,7 +420,7 @@ public class LDAPCompare
       showUsage = new BooleanArgument("showUsage", 'H', "help",
                                     MSGID_DESCRIPTION_SHOWUSAGE);
       argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
+      argParser.setUsageArgument(showUsage, out);
       controlStr = new StringArgument("controls", 'J', "controls", false,
                 false, true,
                 "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
@@ -406,7 +463,7 @@ public class LDAPCompare
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -420,8 +477,8 @@ public class LDAPCompare
       int    msgID   = MSGID_ENCPW_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
-      System.err.println(argParser.getUsage());
+      err.println(message);
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -433,8 +490,8 @@ public class LDAPCompare
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      System.err.println("ERROR: Both -w and -j flags specified. " +
-                          "Please specify one.");
+      err.println("ERROR: Both -w and -j flags specified. " +
+                  "Please specify one.");
       return 1;
     }
 
@@ -442,7 +499,7 @@ public class LDAPCompare
 
     if(attrAndDNStrings.isEmpty())
     {
-      System.err.println("No Attributes specified for comparison");
+      err.println("No Attributes specified for comparison");
       return 1;
     }
 
@@ -459,8 +516,8 @@ public class LDAPCompare
     int idx = attributeString.indexOf(":");
     if(idx == -1)
     {
-      System.err.println("Invalid attribute string:" + attributeString);
-      System.err.println("Attribute string must be in one of the " +
+      err.println("Invalid attribute string:" + attributeString);
+      err.println("Attribute string must be in one of the " +
       "following forms: attribute:value, attribute::base64value, " +
       "attribute:<fileURL" );
       return 1;
@@ -505,7 +562,7 @@ public class LDAPCompare
     } catch (ArgumentException ae)
     {
       assert debugException(CLASS_NAME, "main", ae);
-      System.err.println(ae.getMessage());
+      err.println(ae.getMessage());
       return 1;
     }
 
@@ -515,14 +572,14 @@ public class LDAPCompare
       if(versionNumber != 2 && versionNumber != 3)
       {
         int msgID = MSGID_DESCRIPTION_INVALID_VERSION;
-        System.err.println(getMessage(msgID, versionNumber));
+        err.println(getMessage(msgID, versionNumber));
         return 1;
       }
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
       assert debugException(CLASS_NAME, "main", ae);
-      System.err.println(ae.getMessage());
+      err.println(ae.getMessage());
       return 1;
     }
 
@@ -535,14 +592,13 @@ public class LDAPCompare
       // read the password from the stdin.
       try
       {
-        System.out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT,
-                                    bindDNValue));
+        out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, bindDNValue));
         char[] pwChars = PasswordReader.readPassword();
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
         assert debugException(CLASS_NAME, "main", ex);
-        System.err.println(ex.getMessage());
+        err.println(ex.getMessage());
         return 1;
       }
     } else if(bindPasswordValue == null)
@@ -566,8 +622,8 @@ public class LDAPCompare
       LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString);
       if(ctrl == null)
       {
-        System.err.println("Invalid control specified:" + ctrlString);
-        System.out.println(argParser.getUsage());
+        err.println("Invalid control specified:" + ctrlString);
+        err.println(argParser.getUsage());
         return 1;
       }
       compareOptions.getControls().add(ctrl);
@@ -588,8 +644,8 @@ public class LDAPCompare
       }
       catch (LDAPException le)
       {
-        System.err.println(getMessage(MSGID_LDAP_ASSERTION_INVALID_FILTER,
-                                      le.getMessage()));
+        err.println(getMessage(MSGID_LDAP_ASSERTION_INVALID_FILTER,
+                               le.getMessage()));
         return 1;
       }
     }
@@ -626,23 +682,25 @@ public class LDAPCompare
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        System.err.println("SASL External requires either SSL or StartTLS " +
-                           "options to be requested.");
+        err.println("SASL External requires either SSL or StartTLS " +
+                    "options to be requested.");
         return 1;
       }
       if(keyStorePathValue == null)
       {
-        System.err.println("SASL External requires a path to the SSL " +
-                           "client certificate keystore.");
+        err.println("SASL External requires a path to the SSL " +
+                    "client certificate keystore.");
         return 1;
       }
     }
 
     try
     {
-
-      // Bootstrap and initialize directory data structures.
-      DirectoryServer.bootstrapClient();
+      if (initializeServer)
+      {
+        // Bootstrap and initialize directory data structures.
+        DirectoryServer.bootstrapClient();
+      }
 
       // Connect to the specified host with the supplied userDN and password.
       SSLConnectionFactory sslConnectionFactory = null;
@@ -657,11 +715,11 @@ public class LDAPCompare
 
       AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
-                                      connectionOptions);
+                                      connectionOptions, out, err);
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
 
-      LDAPCompare ldapCompare = new LDAPCompare(nextMessageID);
+      LDAPCompare ldapCompare = new LDAPCompare(nextMessageID, out, err);
       if(fileNameValue == null && dnStrings.isEmpty())
       {
         // Read from stdin.
@@ -682,19 +740,19 @@ public class LDAPCompare
     } catch(LDAPException le)
     {
       assert debugException(CLASS_NAME, "main", le);
-      System.err.println(le.getMessage());
+      err.println(le.getMessage());
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
     {
         assert debugException(CLASS_NAME, "main", lce);
-        System.err.println(lce.getMessage());
+        err.println(lce.getMessage());
         int code = lce.getErrorCode();
         return code;
     } catch(Exception e)
     {
       assert debugException(CLASS_NAME, "main", e);
-      System.err.println(e.getMessage());
+      err.println(e.getMessage());
       return 1;
     } finally
     {
