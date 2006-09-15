@@ -210,7 +210,7 @@ public class JmxConnectTest extends JmxTestCase
    * Test changing JMX port through LDAP
    * @throws Exception
    */
-  @Test()
+  @Test(enabled = false)
   public void changePort() throws Exception
   {
     // Connect to the JMX service and get the current port
