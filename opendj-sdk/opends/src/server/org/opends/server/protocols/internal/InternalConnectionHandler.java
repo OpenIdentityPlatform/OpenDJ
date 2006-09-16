@@ -78,9 +78,9 @@ public class InternalConnectionHandler
 
     assert debugConstructor(CLASS_NAME);
 
-    // Since we can't guarantee that the initializeConnectionHandler method will
-    // always be called for this method, we'll do the necessary "initialization"
-    // here.
+    // Since we can't guarantee that the initializeConnectionHandler
+    // method will always be called for this method, we'll do the
+    // necessary "initialization" here.
     connectionList = new LinkedList<ClientConnection>();
   }
 

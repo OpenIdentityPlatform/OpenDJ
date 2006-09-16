@@ -28,22 +28,13 @@ package org.opends.server.extensions;
 
 
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionSecurityProvider;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryException;
-import org.opends.server.core.InitializationException;
-import org.opends.server.types.DisconnectReason;
 
 import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -67,7 +58,7 @@ public class InternalConnectionSecurityProvider
 
 
   /**
-   * {@inheritDoc}
+   * Creates a new instance of this internal connection security provider.
    */
   public InternalConnectionSecurityProvider()
   {
@@ -79,7 +70,13 @@ public class InternalConnectionSecurityProvider
 
 
   /**
-   * {@inheritDoc}
+   * Creates a new instance of this internal connection security provider with
+   * the provided information.
+   *
+   * @param  clientConnection  The client connection for this security provider
+   *                           instance.
+   * @param  socketChannel     The socket channel for this security provider
+   *                           instance.
    */
   protected InternalConnectionSecurityProvider(
                  ClientConnection clientConnection, SocketChannel socketChannel)
