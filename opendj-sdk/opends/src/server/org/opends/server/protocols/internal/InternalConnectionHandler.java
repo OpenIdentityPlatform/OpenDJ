@@ -77,6 +77,11 @@ public class InternalConnectionHandler
     super("Internal Connection Handler Thread");
 
     assert debugConstructor(CLASS_NAME);
+
+    // Since we can't guarantee that the initializeConnectionHandler method will
+    // always be called for this method, we'll do the necessary "initialization"
+    // here.
+    connectionList = new LinkedList<ClientConnection>();
   }
 
 
@@ -117,11 +122,6 @@ public class InternalConnectionHandler
   {
     assert debugEnter(CLASS_NAME, "initializeConnectionHandler",
                       String.valueOf(configEntry));
-
-
-    // Create an empty connection list that will be returned by the
-    // getClientConnections method.
-    connectionList = new LinkedList<ClientConnection>();
   }
 
 
