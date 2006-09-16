@@ -54,7 +54,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.Operation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.extensions.NullConnectionSecurityProvider;
+import org.opends.server.extensions.InternalConnectionSecurityProvider;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -174,7 +174,7 @@ public class InternalClientConnection
 
     try
     {
-      securityProvider = new NullConnectionSecurityProvider();
+      securityProvider = new InternalConnectionSecurityProvider();
       securityProvider.initializeConnectionSecurityProvider(null);
     }
     catch (Exception e)
@@ -205,7 +205,7 @@ public class InternalClientConnection
 
     try
     {
-      securityProvider = new NullConnectionSecurityProvider();
+      securityProvider = new InternalConnectionSecurityProvider();
       securityProvider.initializeConnectionSecurityProvider(null);
     }
     catch (Exception e)

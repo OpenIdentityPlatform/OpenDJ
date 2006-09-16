@@ -107,8 +107,8 @@ public class NullConnectionSecurityProvider
    * @param  socketChannel     The socket channel that may be used to
    *                           communicate with the client.
    */
-  private NullConnectionSecurityProvider(ClientConnection clientConnection,
-                                         SocketChannel socketChannel)
+  protected NullConnectionSecurityProvider(ClientConnection clientConnection,
+                                           SocketChannel socketChannel)
   {
     super();
 
