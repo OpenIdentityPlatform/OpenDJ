@@ -54,7 +54,8 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.Operation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.extensions.InternalConnectionSecurityProvider;
+import org.opends.server.extensions.
+            InternalConnectionSecurityProvider;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
