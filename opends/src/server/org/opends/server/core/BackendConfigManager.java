@@ -313,7 +313,7 @@ public class BackendConfigManager
         MultiChoiceConfigAttribute writabilityAttr =
              (MultiChoiceConfigAttribute)
              backendEntry.getConfigAttribute(writabilityStub);
-        if (writabilityStub == null)
+        if (writabilityAttr == null)
         {
           msgID = MSGID_CONFIG_BACKEND_NO_WRITABILITY_MODE;
           String message = getMessage(msgID, String.valueOf(backendDN));
@@ -1731,7 +1731,7 @@ public class BackendConfigManager
       MultiChoiceConfigAttribute writabilityAttr =
            (MultiChoiceConfigAttribute)
            configEntry.getConfigAttribute(writabilityStub);
-      if (writabilityStub == null)
+      if (writabilityAttr == null)
       {
         msgID = MSGID_CONFIG_BACKEND_NO_WRITABILITY_MODE;
         messages.add(getMessage(msgID, String.valueOf(backendDN)));
