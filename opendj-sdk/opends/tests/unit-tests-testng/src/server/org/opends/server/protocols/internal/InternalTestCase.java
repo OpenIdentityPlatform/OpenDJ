@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 
 
 /**
- * An abstract base class for all ASN1 test cases.
+ * An abstract base class for all internal test cases.
  */
 @Test(groups = { "precommit", "internal" })
 public abstract class InternalTestCase
