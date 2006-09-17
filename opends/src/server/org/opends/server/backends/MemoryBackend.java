@@ -635,6 +635,10 @@ public class MemoryBackend
         try
         {
           e = reader.readEntry();
+          if (e == null)
+          {
+            break;
+          }
         }
         catch (LDIFException le)
         {
