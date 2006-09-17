@@ -800,6 +800,13 @@ public class ObjectClassSyntax
     }
 
 
+    // This should only happen for the "top" objectclass.
+    if (superiorClass.getOID().equals(oid))
+    {
+      superiorClass = null;
+    }
+
+
     return new ObjectClass(primaryName, names, oid, description, superiorClass,
                            requiredAttributes, optionalAttributes,
                            objectClassType, isObsolete, extraProperties);
