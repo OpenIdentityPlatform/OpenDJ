@@ -6808,6 +6808,21 @@ public class DirectoryServer
     }
 
 
+    // Finalize all of the extended operation handlers.
+    for (ExtendedOperationHandler handler :
+         directoryServer.extendedOperationHandlers.values())
+    {
+      try
+      {
+        handler.finalizeExtendedOperationHandler();
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "shutDown", e);
+      }
+    }
+
+
     // Shut down all the other components that may need special handling.
     // NYI
 
