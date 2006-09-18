@@ -111,6 +111,19 @@ public class AnonymousSASLMechanismHandler
 
 
 
+  /**
+   * Performs any finalization that may be necessary for this SASL mechanism
+   * handler.
+   */
+  public void finalizeSASLMechanismHandler()
+  {
+    assert debugEnter(CLASS_NAME, "finalizeSASLMechanismHandler");
+
+    DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_ANONYMOUS);
+  }
+
+
+
 
   /**
    * Processes the provided SASL bind operation.  Note that if the SASL
