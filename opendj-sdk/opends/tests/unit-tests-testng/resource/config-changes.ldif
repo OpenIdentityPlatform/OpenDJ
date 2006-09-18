@@ -13,3 +13,90 @@ changetype: modify
 replace: ds-cfg-suppress-internal-operations
 ds-cfg-suppress-internal-operations: false
 
+dn: cn=SSHA512 UserPassword Policy,cn=Password Policies,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-password-policy
+cn: SSHA512 UserPassword Policy
+ds-cfg-password-attribute: userPassword
+ds-cfg-default-password-storage-scheme: SSHA512
+ds-cfg-allow-expired-password-changes: false
+ds-cfg-allow-multiple-password-values: false
+ds-cfg-allow-pre-encoded-passwords: false
+ds-cfg-allow-user-password-changes: true
+ds-cfg-expire-passwords-without-warning: false
+ds-cfg-force-change-on-add: false
+ds-cfg-force-change-on-reset: false
+ds-cfg-grace-login-count: 0
+ds-cfg-idle-lockout-interval: 0 seconds
+ds-cfg-lockout-failure-count: 0
+ds-cfg-lockout-duration: 0 seconds
+ds-cfg-lockout-failure-expiration-interval: 0 seconds
+ds-cfg-minimum-password-age: 0 seconds
+ds-cfg-maximum-password-age: 0 seconds
+ds-cfg-maximum-password-reset-age: 0 seconds
+ds-cfg-password-expiration-warning-interval: 5 days
+ds-cfg-password-generator-dn: cn=Random Password Generator,cn=Password Generators,cn=config
+ds-cfg-password-change-requires-current-password: false
+ds-cfg-require-secure-authentication: false
+ds-cfg-require-secure-password-changes: false
+ds-cfg-skip-validation-for-administrators: false
+
+dn: cn=SHA1 AuthPassword Policy,cn=Password Policies,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-password-policy
+cn: SHA1 AuthPassword Policy
+ds-cfg-password-attribute: authPassword
+ds-cfg-default-password-storage-scheme: SHA1
+ds-cfg-allow-expired-password-changes: false
+ds-cfg-allow-multiple-password-values: false
+ds-cfg-allow-pre-encoded-passwords: false
+ds-cfg-allow-user-password-changes: true
+ds-cfg-expire-passwords-without-warning: false
+ds-cfg-force-change-on-add: false
+ds-cfg-force-change-on-reset: false
+ds-cfg-grace-login-count: 0
+ds-cfg-idle-lockout-interval: 0 seconds
+ds-cfg-lockout-failure-count: 0
+ds-cfg-lockout-duration: 0 seconds
+ds-cfg-lockout-failure-expiration-interval: 0 seconds
+ds-cfg-minimum-password-age: 0 seconds
+ds-cfg-maximum-password-age: 0 seconds
+ds-cfg-maximum-password-reset-age: 0 seconds
+ds-cfg-password-expiration-warning-interval: 5 days
+ds-cfg-password-generator-dn: cn=Random Password Generator,cn=Password Generators,cn=config
+ds-cfg-password-change-requires-current-password: false
+ds-cfg-require-secure-authentication: false
+ds-cfg-require-secure-password-changes: false
+ds-cfg-skip-validation-for-administrators: false
+
+dn: cn=Clear UserPassword Policy,cn=Password Policies,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-password-policy
+cn: Test AuthPassword Policy
+ds-cfg-password-attribute: userPassword
+ds-cfg-default-password-storage-scheme: CLEAR
+ds-cfg-allow-expired-password-changes: false
+ds-cfg-allow-multiple-password-values: false
+ds-cfg-allow-pre-encoded-passwords: false
+ds-cfg-allow-user-password-changes: true
+ds-cfg-expire-passwords-without-warning: false
+ds-cfg-force-change-on-add: false
+ds-cfg-force-change-on-reset: false
+ds-cfg-grace-login-count: 0
+ds-cfg-idle-lockout-interval: 0 seconds
+ds-cfg-lockout-failure-count: 0
+ds-cfg-lockout-duration: 0 seconds
+ds-cfg-lockout-failure-expiration-interval: 0 seconds
+ds-cfg-minimum-password-age: 0 seconds
+ds-cfg-maximum-password-age: 0 seconds
+ds-cfg-maximum-password-reset-age: 0 seconds
+ds-cfg-password-expiration-warning-interval: 5 days
+ds-cfg-password-generator-dn: cn=Random Password Generator,cn=Password Generators,cn=config
+ds-cfg-password-change-requires-current-password: false
+ds-cfg-require-secure-authentication: false
+ds-cfg-require-secure-password-changes: false
+ds-cfg-skip-validation-for-administrators: false
+

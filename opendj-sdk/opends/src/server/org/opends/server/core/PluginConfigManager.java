@@ -554,6 +554,40 @@ parsePluginEntry:
 
 
 
+  /**
+   * Retrieves the set of plugins that have been registered with the Directory
+   * Server.
+   *
+   * @return  The set of plugins that have been registered with the Directory
+   *          Server.
+   */
+  public ConcurrentHashMap<DN,DirectoryServerPlugin> getRegisteredPlugins()
+  {
+    assert debugEnter(CLASS_NAME, "getRegisteredPlugins");
+
+    return registeredPlugins;
+  }
+
+
+
+  /**
+   * Retrieves the plugin with the specified configuration entry DN.
+   *
+   * @param  pluginDN  The DN of the configuration entry for the plugin to
+   *                   retrieve.
+   *
+   * @return  The requested plugin, or <CODE>null</CODE> if there is no such
+   *          plugin.
+   */
+  public DirectoryServerPlugin getRegisteredPlugin(DN pluginDN)
+  {
+    assert debugEnter(CLASS_NAME, "getRegisteredPlugin",
+                      String.valueOf(pluginDN));
+
+    return registeredPlugins.get(pluginDN);
+  }
+
+
 
   /**
    * Indicates whether the configuration entry that will result from a proposed
