@@ -30,15 +30,11 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.LDIFReader;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.StringReader;
+import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.net.ServerSocket;
+import java.net.InetSocketAddress;
 
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.config.ConfigException;
@@ -81,6 +77,21 @@ public final class TestCaseUtils {
    * The memory-based backend configured for use in the server.
    */
   private static MemoryBackend memoryBackend = null;
+
+  /**
+   * The LDAP port the server is bound to on start.
+   */
+  private static int serverLdapPort;
+
+  /**
+   * The JMX port the server is bound to on start.
+   */
+  private static int serverJmxPort;
+
+  /**
+   * The LDAPS port the server is bound to on start.
+   */
+  private static int serverLdapsPort;
 
   /**
    * Starts the Directory Server so that it will be available for use while
@@ -138,9 +149,54 @@ public final class TestCaseUtils {
                   new File(testConfigDir, "schema"));
     copyDirectory(new File(resourceDir, "MakeLDIF"),
                   new File(testConfigDir, "MakeLDIF"));
-    copyFile     (new File(testResourceDir, "config-changes.ldif"),
-                  new File(testConfigDir, "config-changes.ldif"));
 
+    // Find some free ports for the listeners and write them to the
+    // config-chamges.ldif file.
+    ServerSocket serverLdapSocket  = null;
+    ServerSocket serverJmxSocket   = null;
+    ServerSocket serverLdapsSocket = null;
+
+    serverLdapSocket = new ServerSocket();
+    serverLdapSocket.setReuseAddress(true);
+    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+    serverLdapPort = serverLdapSocket.getLocalPort();
+
+    serverJmxSocket = new ServerSocket();
+    serverJmxSocket.setReuseAddress(true);
+    serverJmxSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+    serverJmxPort = serverJmxSocket.getLocalPort();
+
+    serverLdapsSocket = new ServerSocket();
+    serverLdapsSocket.setReuseAddress(true);
+    serverLdapsSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+    serverLdapsPort = serverLdapsSocket.getLocalPort();
+
+    BufferedReader reader = new BufferedReader(new FileReader(
+                                               new File(testResourceDir,
+                                                        "config-changes.ldif")
+                                              ));
+    FileOutputStream outFile = new FileOutputStream(
+        new File(testConfigDir, "config-changes.ldif"));
+    PrintStream writer = new PrintStream(outFile);
+
+    String line = reader.readLine();
+
+    while(line != null)
+    {
+      line = line.replaceAll("#ldapport#", String.valueOf(serverLdapPort));
+      line = line.replaceAll("#jmxport#", String.valueOf(serverJmxPort));
+      line = line.replaceAll("#ldapsport#", String.valueOf(serverLdapsPort));
+
+      writer.println(line);
+      line = reader.readLine();
+    }
+
+    writer.close();
+    outFile.close();
+
+    serverLdapSocket.close();
+    serverJmxSocket.close();
+    serverLdapsSocket.close();
 
     // Actually start the server and set a variable that will prevent us from
     // needing to do it again.
@@ -312,7 +368,7 @@ public final class TestCaseUtils {
    */
   public static long getServerLdapPort()
   {
-    return 32389;
+    return serverLdapPort;
   }
 
   /**
@@ -323,7 +379,18 @@ public final class TestCaseUtils {
    */
   public static long getServerJmxPort()
   {
-    return 33689;
+    return serverJmxPort;
+  }
+
+  /**
+   * Get teh LDAPS port the test environment Directory Server instance is
+   * running on
+   *
+   * @return The port number.
+   */
+  public static long getServerLdapsPort()
+  {
+    return serverLdapsPort;
   }
 
   /**

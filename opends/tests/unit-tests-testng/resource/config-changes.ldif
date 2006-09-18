@@ -1,12 +1,12 @@
 dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config
 changeType: modify
 replace: ds-cfg-listen-port
-ds-cfg-listen-port: 32389
+ds-cfg-listen-port: #ldapport#
 
 dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config
 changeType: modify
 replace: ds-cfg-listen-port
-ds-cfg-listen-port: 33689
+ds-cfg-listen-port: #jmxport#
 
 dn: cn=File-Based Access Logger,cn=Loggers,cn=config
 changetype: modify
