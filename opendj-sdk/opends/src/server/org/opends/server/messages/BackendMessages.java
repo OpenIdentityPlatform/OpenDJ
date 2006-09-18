@@ -2180,6 +2180,36 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used to indicate that an entry
+   * cannot be renamed if it has children.  This takes a single argument, which
+   * is the DN of the target entry.
+   */
+  public static final int MSGID_MEMORYBACKEND_CANNOT_RENAME_ENRY_WITH_CHILDREN =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 205;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that an entry
+   * cannot be renamed if it would move to another backend.  This takes a single
+   * argument, which is the DN of the target entry.
+   */
+  public static final int MSGID_MEMORYBACKEND_CANNOT_RENAME_TO_ANOTHER_BACKEND =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 206;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that an entry
+   * cannot be renamed because the new parent doesn't exist.  This takes two
+   * arguments, which are the current DN and the new parent DN.
+   */
+  public static final int MSGID_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 207;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -2977,6 +3007,15 @@ public class BackendMessages
     registerMessage(MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED,
                     "The memory-based backend does not support backup or " +
                     "restore operations.");
+    registerMessage(MSGID_MEMORYBACKEND_CANNOT_RENAME_ENRY_WITH_CHILDREN,
+                    "Cannot rename entry %s because it has one or more " +
+                    "subordinate entries.");
+    registerMessage(MSGID_MEMORYBACKEND_CANNOT_RENAME_TO_ANOTHER_BACKEND,
+                    "Cannot rename entry %s because the target entry is in a " +
+                    "different backend.");
+    registerMessage(MSGID_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST,
+                    "Cannot rename entry %s because the new parent entry %s " +
+                    "doesn't exist.");
   }
 }
 
