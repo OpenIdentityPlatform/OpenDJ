@@ -167,7 +167,7 @@ public class JmxConnectTest extends JmxTestCase
         TestCaseUtils.getServerJmxPort());
     assertNotNull(jmxc);
     
-    Set<ObjectName> names = jmxc.queryNames(null, null);
+    Set<ObjectName> names = (Set<ObjectName>) jmxc.queryNames(null, null);
     names.clear();
     
     final String dn = "cn=config";
@@ -210,7 +210,7 @@ public class JmxConnectTest extends JmxTestCase
    * Test changing JMX port through LDAP
    * @throws Exception
    */
-  @Test(enabled = false)
+  @Test()
   public void changePort() throws Exception
   {
     // Connect to the JMX service and get the current port
