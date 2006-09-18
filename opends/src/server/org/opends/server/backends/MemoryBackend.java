@@ -409,11 +409,77 @@ public class MemoryBackend
                       String.valueOf(entry), String.valueOf(modifyDNOperation));
 
 
-    // FIXME -- Consider adding support for this in the future.
-    int    msgID   = MSGID_MEMORYBACKEND_MODDN_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    // Make sure that the target entry exists.
+    if (! entryMap.containsKey(currentDN))
+    {
+      int    msgID   = MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST;
+      String message = getMessage(msgID, String.valueOf(currentDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+    }
+
+
+    // Make sure that the target entry doesn't have any children.
+    HashSet<DN> children  = childDNs.get(currentDN);
+    if (children != null)
+    {
+      if (children.isEmpty())
+      {
+        childDNs.remove(currentDN);
+      }
+      else
+      {
+        int    msgID   = MSGID_MEMORYBACKEND_CANNOT_RENAME_ENRY_WITH_CHILDREN;
+        String message = getMessage(msgID, String.valueOf(currentDN));
+        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF, message,
+                                     msgID);
+      }
+    }
+
+
+    // Make sure that no entry exists with the new DN.
+    if (entryMap.containsKey(entry.getDN()))
+    {
+      int    msgID   = MSGID_MEMORYBACKEND_ENTRY_ALREADY_EXISTS;
+      String message = getMessage(msgID, String.valueOf(entry.getDN()));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+    }
+
+
+    // Make sure that the new DN is in this backend.
+    boolean matchFound = false;
+    for (DN dn : baseDNs)
+    {
+      if (dn.isAncestorOf(entry.getDN()))
+      {
+        matchFound = true;
+        break;
+      }
+    }
+
+    if (! matchFound)
+    {
+      int    msgID   = MSGID_MEMORYBACKEND_CANNOT_RENAME_TO_ANOTHER_BACKEND;
+      String message = getMessage(msgID, String.valueOf(currentDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // Make sure that the parent of the new entry exists.
+    DN parentDN = entry.getDN().getParent();
+    if ((parentDN == null) || (! entryMap.containsKey(parentDN)))
+    {
+      int    msgID   = MSGID_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST;
+      String message = getMessage(msgID, String.valueOf(currentDN),
+                                  String.valueOf(parentDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // Delete the current entry and add the new one.
+    deleteEntry(currentDN, null);
+    addEntry(entry, null);
   }
 
 

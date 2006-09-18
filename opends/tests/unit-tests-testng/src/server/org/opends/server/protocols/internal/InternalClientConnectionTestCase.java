@@ -707,8 +707,7 @@ public class InternalClientConnectionTestCase
     ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(new ASN1OctetString("cn=test,o=test"),
                               new ASN1OctetString("cn=test2"), true);
-    assertEquals(modifyDNOperation.getResultCode(),
-                 ResultCode.UNWILLING_TO_PERFORM);
+    assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -776,8 +775,7 @@ public class InternalClientConnectionTestCase
     ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(DN.decode("cn=test,o=test"),
                               RDN.decode("cn=test2"), true);
-    assertEquals(modifyDNOperation.getResultCode(),
-                 ResultCode.UNWILLING_TO_PERFORM);
+    assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
