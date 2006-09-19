@@ -219,18 +219,17 @@ public class JmxConnectionHandler
     // - Only child "key manager" is registered
     // - We should have no more than one child under the JMX connection
     // handler ...
-    DN configEntryDN = configEntry.getDN();
     DN JmxKeymanagerDN = null;
     try
     {
-      JmxKeymanagerDN = DN.decode(KeyManagerRDN + ", " + configEntryDN);
+      JmxKeymanagerDN = DN.decode(KeyManagerRDN + ", " + this.configEntryDN);
     }
     catch (Exception e)
     {
       return false;
     }
 
-    if (!(JmxKeymanagerDN.equals(configEntryDN)))
+    if (!(JmxKeymanagerDN.equals(configEntry.getDN())))
     {
       return false;
     }
@@ -253,7 +252,7 @@ public class JmxConnectionHandler
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
     assert debugEnter(CLASS_NAME, "applyConfigurationAdd");
-    jmxKeyManager = getJmxKeyManager(this.getComponentEntryDN());
+    jmxKeyManager = getJmxKeyManager(configEntry);
 
     //
     // Ok, we have a key manager and if we have to use SSL, just do it.
@@ -374,7 +373,7 @@ public class JmxConnectionHandler
 
     //
     // Only child "key manager" are registered
-    jmxKeyManager = getJmxKeyManager(this.getComponentEntryDN());
+    jmxKeyManager = getJmxKeyManager(configEntry);
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
@@ -427,10 +426,38 @@ public class JmxConnectionHandler
     sslServerCertNickname = sslServerCertNickNameAtt.activeValue();
 
     //
+    // At this point, we have a configuration entry. Register a change
+    // listener with it so we can be notified of changes to it over
+    // time.
+    // We will also want to register a delete and add listeners with
+    // its parent.
+    configEntry.registerDeleteListener(this);
+    configEntry.registerChangeListener(this);
+    configEntry.registerAddListener(this);
+
+    //
     // Get the KeyManager, if specified.
     if (useSSL)
     {
-      jmxKeyManager = getJmxKeyManager(configEntryDN);
+      ConfigEntry keyManagerConfigEntry;
+      try
+      {
+        DN KeyManagerDN = DN.decode(KeyManagerRDN + ", " + configEntryDN);
+        keyManagerConfigEntry = DirectoryServer.getConfigEntry(KeyManagerDN);
+        jmxKeyManager = getJmxKeyManager(keyManagerConfigEntry);
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "initializeKeyManagerProvider", e);
+
+        logError(
+            ErrorLogCategory.CONFIGURATION,
+            ErrorLogSeverity.SEVERE_ERROR,
+            MSGID_CONFIG_KEYMANAGER_CANNOT_GET_CONFIG_ENTRY,
+            stackTraceToSingleLineString(e));
+        configEntry.registerAddListener(this);
+        jmxKeyManager = null;
+      }
     }
     else
     {
@@ -1025,65 +1052,21 @@ public class JmxConnectionHandler
    * @return the configured key manager if set or the server
    * key manager
    */
-  private KeyManagerProvider getJmxKeyManager(DN jmxConnectorDN)
+  private KeyManagerProvider getJmxKeyManager(
+      ConfigEntry keyManagerConfigEntry)
   {
     //
     // Get the key manager provider configuration entry. If it is not
     // present, then register an add listener.
-    DN configEntryDN;
-    ConfigEntry configEntry;
-    ConfigEntry jmxConfigEntry = null;
     boolean shouldReturnNull = false;
-    try
-    {
-      configEntryDN = DN.decode(KeyManagerRDN + ", " + jmxConnectorDN);
-      configEntry = DirectoryServer.getConfigEntry(configEntryDN);
-      jmxConfigEntry = DirectoryServer.getConfigEntry(jmxConnectorDN);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeKeyManagerProvider", e);
 
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          MSGID_CONFIG_KEYMANAGER_CANNOT_GET_CONFIG_ENTRY,
-          stackTraceToSingleLineString(e));
-      jmxConfigEntry.registerAddListener(this);
-      return null;
-    }
-
-    if (configEntry == null)
+    if (keyManagerConfigEntry == null)
     {
       logError(
           ErrorLogCategory.CONFIGURATION,
           ErrorLogSeverity.SEVERE_WARNING,
           MSGID_CONFIG_KEYMANAGER_NO_CONFIG_ENTRY);
-      jmxConfigEntry.registerAddListener(this);
       return null;
-    }
-
-    //
-    // At this point, we have a configuration entry. Register a change
-    // listener with it so we can be notified of changes to it over
-    // time.
-    // We will also want to register a delete and add listeners with
-    // its parent.
-    try
-    {
-      jmxConfigEntry.registerDeleteListener(this);
-      jmxConfigEntry.registerChangeListener(this);
-      jmxConfigEntry.registerAddListener(this);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeKeyManagerProvider", e);
-
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_WARNING,
-          MSGID_CONFIG_KEYMANAGER_CANNOT_REGISTER_DELETE_LISTENER,
-          stackTraceToSingleLineString(e));
     }
 
     //
@@ -1094,8 +1077,8 @@ public class JmxConnectionHandler
         ATTR_KEYMANAGER_ENABLED, getMessage(msgID), false);
     try
     {
-      BooleanConfigAttribute enabledAttr = (BooleanConfigAttribute) configEntry
-          .getConfigAttribute(enabledStub);
+      BooleanConfigAttribute enabledAttr = (BooleanConfigAttribute)
+         keyManagerConfigEntry.getConfigAttribute(enabledStub);
       if (enabledAttr == null)
       {
         //
@@ -1144,8 +1127,8 @@ public class JmxConnectionHandler
         ATTR_KEYMANAGER_CLASS, getMessage(msgID), true, false, false);
     try
     {
-      StringConfigAttribute classAttr = (StringConfigAttribute) configEntry
-          .getConfigAttribute(classStub);
+      StringConfigAttribute classAttr = (StringConfigAttribute)
+            keyManagerConfigEntry.getConfigAttribute(classStub);
       if (classAttr == null)
       {
         // FIXME -- Message shouldn't be the same than the server one
@@ -1221,7 +1204,7 @@ public class JmxConnectionHandler
     // the configuration entry.
     try
     {
-      keyManagerProvider.initializeKeyManagerProvider(configEntry);
+      keyManagerProvider.initializeKeyManagerProvider(keyManagerConfigEntry);
     }
     catch (Exception e)
     {
