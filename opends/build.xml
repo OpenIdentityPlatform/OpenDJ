@@ -34,17 +34,22 @@
 
 
 
-  <!-- General server-wide properties                              -->
-  <property name="src.dir"       location="src/server"              />
-  <property name="build.dir"     location="build"                   />
-  <property name="classes.dir"   location="${build.dir}/classes"    />
-  <property name="lib.dir"       location="lib"                     />
-  <property name="ext.dir"       location="ext"                     />
-  <property name="package.dir"   location="${build.dir}/package"    />
-  <property name="javadoc.dir"   location="${build.dir}/javadoc"    />
-  <property name="resource.dir"  location="resource"                />
-  <property name="scripts.dir"   location="${resource.dir}/bin"     />
-  <property name="config.dir"    location="${resource.dir}/config"  />
+  <!-- General server-wide properties                               -->
+  <property name="src.dir"        location="src/server"              />
+  <property name="build.dir"      location="build"                   />
+  <property name="classes.dir"    location="${build.dir}/classes"    />
+  <property name="lib.dir"        location="lib"                     />
+  <property name="ext.dir"        location="ext"                     />
+  <property name="package.dir"    location="${build.dir}/package"    />
+  <property name="javadoc.dir"    location="${build.dir}/javadoc"    />
+  <property name="resource.dir"   location="resource"                />
+  <property name="scripts.dir"    location="${resource.dir}/bin"     />
+  <property name="config.dir"     location="${resource.dir}/config"  />
+
+  <!-- Properties for build tools                                   -->  
+  <property name="buildtools.dir" location="build-tools"              />
+  <property name="buildtools.src.dir" location="${buildtools.dir}/src" />
+  <property name="buildtools.classes.dir" location="${buildtools.dir}/classes" />
 
   <!-- Properties for use in unit testing.                           -->
   <property name="unittest.testng.dir" location="tests/unit-tests-testng"/>
@@ -55,6 +60,8 @@
        location="${build.dir}/unit-tests/classes" />
   <property name="unittest.report.dir"
        location="${build.dir}/unit-tests/report"/>
+  <property name="unittest.resource.dir"
+       location="${build.dir}/unit-tests/resource"/>
 
   <!-- Properties for use in functional/integration testing.  -->
   <property name="functest.testng.dir"
@@ -83,6 +90,10 @@
   <!-- Properties for the TestNG unit testing  tool.               -->
   <property name="testng.dir" location="${ext.dir}/testng"          />
   <property name="testng.lib.dir" location="${testng.dir}/lib"      />
+
+  <!-- Properties for the ANT build tool.                          -->
+  <property name="ant.dir" location="${ext.dir}/ant"                />
+  <property name="ant.lib.dir" location="${ant.dir}/lib"            />
 
   <!-- Properties for the checkstyle tool.                         -->
   <property name="checkstyle.dir"  location="${ext.dir}/checkstyle" />
@@ -143,7 +154,9 @@
        description="Clean up any files generated during the build process">
 
     <delete dir="${build.dir}"           />
-    <delete file="${dynconstants.file}"  />
+    <delete file="${dynconstants.file}"  />                           <fileset dir="${lib.dir}">
+                <include name="*.jar" />
+              </fileset>
   </target>
 
 
@@ -575,6 +588,18 @@
         <path refid="run.classpath" />
       </classpath>
     </javac>
+ 
+    <!-- Prep the TestNG XML file -->
+    <mkdir dir="${unittest.resource.dir}" />
+    <typedef name="preptestng" classname="org.opends.build.tools.PrepTestNG"
+        classpath="${ext.dir}/build-tools.jar" />
+
+
+    <preptestng file="${testng.dir}/testng.xml"
+                tofile="${unittest.resource.dir}/testng.xml"
+                grouplist="${test.groups}" />
+
+
   </target>
 
 
@@ -587,20 +612,26 @@
 
   <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
   <target name="testall"
-          depends="enableTestNGAssertions,test"
+          depends="enableTestNGAssertions,testinit,runtests"
           description="Run all of the TestNG tests.">
   </target>
 
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
-          depends="testinit,runtests"
+          depends="prepdefaulttest,testinit,runtests"
           description="Execute the Directory Server TestNG unit tests in text mode.">
   </target>
 
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report. -->
   <target name="testwithcoverage"
           depends="coverage,test"
+          description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.">
+  </target>
+
+  <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report and slow tests. -->
+  <target name="testallwithcoverage"
+          depends="coverage,testall"
           description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.">
   </target>
 
@@ -644,7 +675,7 @@
       <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/coverage.emma" />
       <jvmarg value="-Demma.coverage.out.merge=false" />
       <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}" />
-      <xmlfileset dir="${testng.dir}" includes="testng.xml" />
+      <xmlfileset dir="${unittest.resource.dir}" includes="testng.xml" />
     </testng>
 
     <emma enabled="${coverage.enabled}" >
@@ -661,7 +692,10 @@
 
   </target>
 
-
+  <!-- Internal target used to set the group list property for the preptestng task -->
+  <target name="prepdefaulttest">
+    <property name="test.groups" value="exclude=slow" />
+  </target>
 
   <target name="testreport"
         depends="test"
@@ -680,6 +714,36 @@
         description="Builds the integration tests">
         <ant dir="${functest.testng.dir}" />
     </target>
+
+  <target name="buildtools"
+        description="Builds the build tools">
+
+    <!-- Set the amount of memory to use for the build -->
+    <condition property="MEM" value="128M">
+      <not>
+        <isset property="MEM" />
+      </not>
+    </condition>
+
+    <mkdir dir="${buildtools.classes.dir}" />
+
+    <javac srcdir="${buildtools.src.dir}" destdir="${buildtools.classes.dir}"
+           optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+           target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+           memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+
+      <classpath>
+        <fileset dir="${ant.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <path refid="run.classpath" />
+      </classpath>
+    </javac>
+
+    <jar jarfile="${ext.dir}/build-tools.jar"
+         basedir="${buildtools.classes.dir}" compress="true" index="true" />
+  </target>
         
 </project>
 

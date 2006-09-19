@@ -1,6 +1,7 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 <suite name="OpenDS"   verbose="1" >
     <test name="default">
+        <!-- THIS WILL BE REPLACED WITH GROUP INFO BY ANT -->
         <packages>
             <package name="org.opends.server.protocols.asn1"/>
             <package name="org.opends.server.protocols.internal"/>
