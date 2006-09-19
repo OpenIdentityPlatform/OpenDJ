@@ -1224,12 +1224,44 @@ public class LDAPConnectionHandler
                   ServerSocketChannel serverChannel =
                        (ServerSocketChannel) key.channel();
                   SocketChannel clientChannel = serverChannel.accept();
-                  clientChannel.socket().setKeepAlive(useKeepAlive);
-                  clientChannel.socket().setTcpNoDelay(useTCPNoDelay);
-
                   LDAPClientConnection clientConnection =
                        new LDAPClientConnection(this, clientChannel);
+                  InetAddress clientAddr=clientConnection.getRemoteAddress();
+                  // Check to see if the client is on the denied list.  If so,
+                  // then reject it immediately.
+                  if((deniedClients != null) && (deniedClients.length > 0) &&
+                          AddressMask.maskListContains(clientAddr.getAddress(),
+                                  clientAddr.getHostName(), deniedClients))
+                  {
+                      clientConnection.disconnect(
+                              DisconnectReason.CONNECTION_REJECTED,
+                              sendRejectionNotice,
+                              MSGID_LDAP_CONNHANDLER_DENIED_CLIENT,
+                              clientConnection.getClientHostPort(),
+                              clientConnection.getServerHostPort());
 
+                      iterator.remove();
+                      continue;
+                  }
+                  // Check to see if there is an allowed list and if there is
+                  // whether the client is on that list.  If not, then reject
+                  // the connection.
+                  if((allowedClients != null) && (allowedClients.length > 0) &&
+                        (!AddressMask.maskListContains(clientAddr.getAddress(),
+                                  clientAddr.getHostName(), allowedClients)))
+                  {
+                      clientConnection.disconnect(
+                              DisconnectReason.CONNECTION_REJECTED,
+                              sendRejectionNotice,
+                              MSGID_LDAP_CONNHANDLER_DISALLOWED_CLIENT,
+                              clientConnection.getClientHostPort(),
+                              clientConnection.getServerHostPort());
+
+                      iterator.remove();
+                      continue;
+                  }
+                  clientChannel.socket().setKeepAlive(useKeepAlive);
+                  clientChannel.socket().setTcpNoDelay(useTCPNoDelay);
                   ConnectionSecurityProvider connectionSecurityProvider =
                        securityProvider.newInstance(clientConnection,
                                                     clientChannel);
@@ -1245,44 +1277,6 @@ public class LDAPConnectionHandler
                     iterator.remove();
                     continue;
                   }
-
-
-                  // Check to see if the client is on the denied list.  If so,
-                  // then reject it immediately.
-                  if ((deniedClients != null) &&
-                      AddressMask.maskListContains(clientConnection,
-                                                   deniedClients))
-                  {
-                    clientConnection.disconnect(
-                         DisconnectReason.CONNECTION_REJECTED,
-                         sendRejectionNotice,
-                         MSGID_LDAP_CONNHANDLER_DENIED_CLIENT,
-                         clientConnection.getClientHostPort(),
-                         clientConnection.getServerHostPort());
-
-                    iterator.remove();
-                    continue;
-                  }
-
-
-                  // Check to see if there is an allowed list and if there is
-                  // whether the client is on that list.  If not, then reject
-                  // the connection.
-                  if ((allowedClients != null) && (allowedClients.length > 0) &&
-                      (! AddressMask.maskListContains(clientConnection,
-                                                      allowedClients)))
-                  {
-                    clientConnection.disconnect(
-                         DisconnectReason.CONNECTION_REJECTED,
-                         sendRejectionNotice,
-                         MSGID_LDAP_CONNHANDLER_DISALLOWED_CLIENT,
-                         clientConnection.getClientHostPort(),
-                         clientConnection.getServerHostPort());
-
-                    iterator.remove();
-                    continue;
-                  }
-
 
                   // If we've gotten here, then we'll take the connection so
                   // choose a request handler and register the client with it.
