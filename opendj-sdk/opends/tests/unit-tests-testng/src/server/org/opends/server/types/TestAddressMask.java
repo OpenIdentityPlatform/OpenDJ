@@ -52,7 +52,7 @@ public class TestAddressMask extends TypesTestCase {
             {"foo"}
         };
     }
-    
+
  @DataProvider(name = "invalidRules")
   public Object[][] invalidData() {
     return new Object[][] {
@@ -76,7 +76,7 @@ public class TestAddressMask extends TypesTestCase {
          {"129.34.45.45/4/3/"}
     };
   }
-    
+
  @DataProvider(name = "toStringRule")
  public Object[][] toStringData() {
      return new Object[][] {
@@ -98,7 +98,6 @@ public class TestAddressMask extends TypesTestCase {
      } catch (ConfigException e) {
          throw e;
      } catch (Exception e) {
-         //MPD FIX this
          System.out.println(
                  "Invalid mask  <" + mask + "> threw wrong exception type.");
          throw e;
@@ -184,7 +183,7 @@ public class TestAddressMask extends TypesTestCase {
                   }
          };
      }
- 
+
  @DataProvider(name = "matchWCRules")
  public Object[][] ruleMatchWCData() {
      return new Object[][] {
@@ -213,14 +212,16 @@ public class TestAddressMask extends TypesTestCase {
  }
 
  @Test(dataProvider = "matchWCRules")
- public void testWildCardMatch(String[] rules, String[] addrs, String[]hostNames) {
+ public void testWildCardMatch(String[] rules, String[] addrs,
+         String[]hostNames) {
      boolean ret=true;
      ret=match(rules,addrs,hostNames);
      assertTrue(ret);
  }
 
  @Test(dataProvider = "noMatchRules")
- public void testNoMatch(String[] rules, String[] addrs, String[] hostNames) {
+ public void testNoMatch(String[] rules, String[] addrs,
+         String[] hostNames) {
      boolean ret=false;
      ret=match(rules,addrs,hostNames);
      assertFalse(ret);
@@ -233,10 +234,11 @@ public class TestAddressMask extends TypesTestCase {
          assertEquals(rule, m.toString());
      } catch (ConfigException ce) {
          throw new RuntimeException(
-                 "Invalid mask <" + rule + "> data should be all valid for this test");
+                 "Invalid mask <" + rule + 
+                 "> all data should be valid for this test");
      }
  }
- 
+
  private byte[] getAddress(String remote) {
      byte[] addr=new byte[AddressMask.IN4ADDRSZ];
      String[] s = remote.split("\\.", -1);
@@ -250,11 +252,12 @@ public class TestAddressMask extends TypesTestCase {
      }
      return addr;
  }
- 
- private boolean match(String[] rules, String[] addrs, String[]hostNames) {
+
+ private boolean match(String[] rules, String[] addrs,
+         String[]hostNames) {
      boolean ret=true;
      int i=0;
-     
+
      AddressMask[] m = new AddressMask[rules.length];
      try {
          for (i = 0; i < rules.length; i++) {
@@ -262,10 +265,12 @@ public class TestAddressMask extends TypesTestCase {
          }
      } catch (ConfigException ce) {
          throw new RuntimeException(
-                 "Invalid mask <" + rules[i] + "> all data must be valid for this test");
+                 "Invalid mask <" + rules[i] + 
+                 "> all data must be valid for this test");
      }
      for(int j =0; j < addrs.length; j++) {
-         if(!AddressMask.maskListContains(getAddress(addrs[j]),hostNames[j],m)) {
+         if(!AddressMask.maskListContains(getAddress(addrs[j]),
+                 hostNames[j],m)) {
              ret=false;
              break;
          }
