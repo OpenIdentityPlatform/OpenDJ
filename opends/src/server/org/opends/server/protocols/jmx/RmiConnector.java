@@ -26,9 +26,13 @@
  */
 package org.opends.server.protocols.jmx;
 
+import java.io.IOException;
+import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.RMISocketFactory;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 
 import javax.net.ssl.SSLSocketFactory;
@@ -115,6 +119,16 @@ public class RmiConnector
    * The reference to authenticator.
    */
   private RmiAuthenticator rmiAuthenticator;
+
+  /**
+   * The reference to the created RMI registry.
+   */
+  private Registry registry = null;
+
+  /**
+   * The Underlying Socket factory.
+   */
+  OpendsRmiServerSocketFactory rmiSsf;
 
   // ===================================================================
   // CONSTRUCTOR
@@ -210,8 +224,12 @@ public class RmiConnector
     {
       //
       // TODO Not yet implemented: If the host has several interfaces
-      LocateRegistry.createRegistry(registryPort);
-
+      if (registry == null)
+      {
+        rmiSsf = new OpendsRmiServerSocketFactory();
+        registry = LocateRegistry.createRegistry(registryPort,
+            RMISocketFactory.getDefaultSocketFactory(), rmiSsf);
+      }
     }
     catch (RemoteException re)
     {
@@ -232,6 +250,7 @@ public class RmiConnector
         //
         // 'ping' the registry
         reg.list();
+        registry = reg;
       }
       catch (Exception e)
       {
@@ -455,7 +474,34 @@ public class RmiConnector
     }
     catch (Exception e)
     {
+      // TODO Log an error message
       assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
     }
+
+    //
+    // Stop the RMI registry
+    try
+    {
+      UnicastRemoteObject.unexportObject(registry, true);
+    }
+    catch (NoSuchObjectException e)
+    {
+      // TODO Log an error message
+      assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
+    }
+    registry = null;
+
+    //
+    // Close the socket
+    try
+    {
+      rmiSsf.close();
+    }
+    catch (IOException e)
+    {
+      // TODO Log an error message
+      assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
+    }
+
   }
 }
