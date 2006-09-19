@@ -357,6 +357,14 @@ public class PasswordModifyExtendedOperation
             return;
           }
 
+          // If the provided DN is an alternate DN for a root user, then replace
+          // it with the actual root DN.
+          DN actualRootDN = DirectoryServer.getActualRootBindDN(userDN);
+          if (actualRootDN != null)
+          {
+            userDN = actualRootDN;
+          }
+
           userEntry = getEntryByDN(operation, userDN);
           if (userEntry == null)
           {
