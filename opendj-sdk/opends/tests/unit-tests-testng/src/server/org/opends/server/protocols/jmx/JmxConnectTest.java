@@ -26,8 +26,11 @@
  */
 package org.opends.server.protocols.jmx;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +42,8 @@ import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
@@ -114,6 +119,58 @@ public class JmxConnectTest extends JmxTestCase
   }
 
   /**
+   * Check that simple (no SSL) connections to the JMX service are
+   * accepted when the given
+   * credentials are OK and refused when the credentials are invalid.
+   *
+   */
+  @Test(enabled=false)
+  public void sslConnect() throws Exception
+  {
+    // configure the JMX ssl key manager
+    ConfigEntry config = new ConfigEntry(TestCaseUtils.makeEntry(
+        "dn: cn=Key Manager Provider,cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-key-manager-provider",
+        "objectClass: ds-cfg-file-based-key-manager-provider",
+        "ds-cfg-key-manager-provider-class: org.opends.server.extensions.FileBasedKeyManagerProvider",
+        "ds-cfg-key-manager-provider-enabled: true",
+        "ds-cfg-key-store-file: " + getJmxKeystorePath(),
+        "ds-cfg-key-store-type: JKS",
+        "ds-cfg-key-store-pin: password"
+         ), null);
+    
+    JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler();
+    assertNotNull(jmxConnectionHandler);
+    StringBuilder reason = new StringBuilder();
+    assertTrue(jmxConnectionHandler.configAddIsAcceptable(config, reason));  
+    ConfigChangeResult result =
+      jmxConnectionHandler.applyConfigurationAdd(config);
+    assertEquals(ResultCode.SUCCESS, result.getResultCode());
+    
+    // Enable SSL by setting ds-cfg-use-ssl boolean and the
+    // certificate alias using ds-cfg-ssl-cert-nickname attribute.
+    config = new ConfigEntry(TestCaseUtils.makeEntry(
+        "dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-connection-handler",
+        "objectClass: ds-cfg-jmx-connection-handler",
+        "ds-cfg-ssl-cert-nickname: jmx-cert",
+        "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
+        "ds-cfg-connection-handler-enabled: true",
+        "ds-cfg-use-ssl: true",
+        "ds-cfg-listen-port: " + TestCaseUtils.getServerJmxPort(),
+        "cn: JMX Connection Handler"
+         ), null);
+    
+    configureJmx(config);
+    
+    MBeanServerConnection jmxc = sslConnect("cn=directory manager", "password",
+                                            TestCaseUtils.getServerJmxPort());
+    assertNotNull(jmxc);
+  }
+  
+  /**
    * Build some data for the simpleGet test.
    */
   @DataProvider(name="simpleGet")
@@ -167,7 +224,7 @@ public class JmxConnectTest extends JmxTestCase
         TestCaseUtils.getServerJmxPort());
     assertNotNull(jmxc);
     
-    Set<ObjectName> names = (Set<ObjectName>) jmxc.queryNames(null, null);
+    Set names = jmxc.queryNames(null, null);
     names.clear();
     
     final String dn = "cn=config";
@@ -221,22 +278,10 @@ public class JmxConnectTest extends JmxTestCase
     MBeanServerConnection jmxc = connect("cn=directory manager", "password",
       TestCaseUtils.getServerJmxPort());
     assertNotNull(jmxc);
+    
+    // use JMX to get the current value of the JMX port number
     Long initJmxPort = (Long) jmxGet(dn, attribute, jmxc);
     assertNotNull(initJmxPort);
-    
-    // Get the Jmx connection handler from the core server
-    List<ConnectionHandler> handlers = DirectoryServer.getConnectionHandlers();
-    assertNotNull(handlers);
-    JmxConnectionHandler jmxConnectionHandler = null;
-    for (ConnectionHandler handler : handlers)
-    {
-      if (handler instanceof JmxConnectionHandler)
-      {
-         jmxConnectionHandler = (JmxConnectionHandler) handler;
-        break;
-      }
-    }
-    assertNotNull(jmxConnectionHandler);
     
     // change the configuration of the connection handler to use 
     // the current port + 1 as the new port number
@@ -252,12 +297,7 @@ public class JmxConnectTest extends JmxTestCase
         "ds-cfg-listen-port: " + (initJmxPort+1),
         "cn: JMX Connection Handler"
          ), null);
-    ArrayList<String> reasons = new ArrayList<String>();
-    assertTrue(
-        jmxConnectionHandler.hasAcceptableConfiguration(config, reasons));
-    ConfigChangeResult configResult =
-      jmxConnectionHandler.applyNewConfiguration(config, false);
-    assertEquals(configResult.getResultCode(), ResultCode.SUCCESS);
+    configureJmx(config);
     
     // connect the the JMX service using the new port
     jmxc = connect("cn=directory manager", "password", initJmxPort+1);
@@ -278,11 +318,44 @@ public class JmxConnectTest extends JmxTestCase
         "ds-cfg-listen-port: " + initJmxPort,
         "cn: JMX Connection Handler"
          ), null);
-    assertTrue(
-        jmxConnectionHandler.hasAcceptableConfiguration(config, reasons));
-    configResult =
+    
+    configureJmx(config);
+  }
+
+  /**
+   * @param config
+   */
+  private void configureJmx(ConfigEntry config)
+  {
+    ArrayList<String> reasons = new ArrayList<String>();
+    
+    // Get the Jmx connection handler from the core server
+    JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler();
+    assertNotNull(jmxConnectionHandler);
+    if (!jmxConnectionHandler.hasAcceptableConfiguration(config, reasons) )
+      fail("unacceptable JMX configuration" + reasons);
+    ConfigChangeResult configResult =
       jmxConnectionHandler.applyNewConfiguration(config, false);
     assertEquals(configResult.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  /**
+   * Get a reference to the JMX connection handler. 
+   */
+  private JmxConnectionHandler getJmxConnectionHandler()
+  {
+    List<ConnectionHandler> handlers = DirectoryServer.getConnectionHandlers();
+    assertNotNull(handlers);
+    JmxConnectionHandler jmxConnectionHandler = null;
+    for (ConnectionHandler handler : handlers)
+    {
+      if (handler instanceof JmxConnectionHandler)
+      {
+         jmxConnectionHandler = (JmxConnectionHandler) handler;
+        break;
+      }
+    }
+    return jmxConnectionHandler;
   }
   
   
@@ -294,7 +367,7 @@ public class JmxConnectTest extends JmxTestCase
       throws MalformedURLException, IOException
   {
     HashMap<String, String[]> env = new HashMap<String, String[]>();
-
+  
     // Provide the credentials required by the server to successfully
     // perform user authentication
     //
@@ -306,11 +379,60 @@ public class JmxConnectTest extends JmxTestCase
     else
       credentials = new String[] { user , password };
     env.put("jmx.remote.credentials", credentials);
-
+  
     // Create an RMI connector client and
     // connect it to the RMI connector server
     //
+  
+    JMXServiceURL url = new JMXServiceURL(
+      "service:jmx:rmi:///jndi/rmi://localhost:"+ jmxPort +
+          "/org.opends.server.protocols.jmx.client-unknown");
+  
+    JMXConnector jmxc = null;
+    try
+    {
+      jmxc = JMXConnectorFactory.connect(url, env);
+      return jmxc.getMBeanServerConnection();
+    } catch (SecurityException e)
+    {
+      return null;
+    }
+  }
 
+  /**
+   * Connect to the JMX service using SSL.
+   */
+  private MBeanServerConnection
+      sslConnect(String user, String password, long jmxPort)
+      throws Exception
+  {
+    HashMap<String, Object> env = new HashMap<String, Object>();
+
+    // Provide the credentials required by the server to successfully
+    // perform user authentication
+    String[] credentials;
+    if ((user == null) && (password == null))
+    {
+      credentials = null;
+    }
+    else
+      credentials = new String[] { user , password };
+    env.put("jmx.remote.credentials", credentials);
+    
+    // Provide the Trust manager.
+    KeyStore ks = null ;
+    ks = KeyStore.getInstance("JKS");
+    FileInputStream keyStoreFile = new FileInputStream(getJmxKeystorePath());
+    ks.load(keyStoreFile, "password".toCharArray());
+
+    TrustManagerFactory tmf =
+      TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    tmf.init(ks);
+    TrustManager tms[] = tmf.getTrustManagers();
+    env.put(JmxConnectionHandler.TRUST_MANAGER_ARRAY_KEY, tms);
+
+    // Create an RMI connector client and
+    // connect it to the RMI connector server
     JMXServiceURL url = new JMXServiceURL(
       "service:jmx:rmi:///jndi/rmi://localhost:"+ jmxPort +
           "/org.opends.server.protocols.jmx.client-unknown");
@@ -325,6 +447,15 @@ public class JmxConnectTest extends JmxTestCase
       return null;
     }
    
+  }
+
+  /**
+   * @return
+   */
+  private String getJmxKeystorePath()
+  {
+    return DirectoryServer.getServerRoot() + File.separator
+                        + "jmxkeystore";
   }
 
   /**
@@ -353,7 +484,7 @@ public class JmxConnectTest extends JmxTestCase
   */
 
   /**
-   * Get an attrbiue value through JMX.
+   * Get an attribute value through JMX.
    */
   private Object jmxGet(String dn, String attributeName,
                         MBeanServerConnection mbsc)
@@ -369,7 +500,7 @@ public class JmxConnectTest extends JmxTestCase
   }
 
   /**
-   * Set an attrbiue value through JMX.
+   * Set an attribute value through JMX.
    */
   private void jmxSet(String dn, String attributeName,
                       Object value, MBeanServerConnection mbsc)

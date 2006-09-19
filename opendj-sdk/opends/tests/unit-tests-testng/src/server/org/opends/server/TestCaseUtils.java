@@ -149,6 +149,8 @@ public final class TestCaseUtils {
                   new File(testConfigDir, "schema"));
     copyDirectory(new File(resourceDir, "MakeLDIF"),
                   new File(testConfigDir, "MakeLDIF"));
+    copyFile(new File(testResourceDir, "jmxkeystore"),
+             new File(testRoot, "jmxkeystore"));
 
     // Find some free ports for the listeners and write them to the
     // config-chamges.ldif file.
