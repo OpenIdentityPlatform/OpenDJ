@@ -29,10 +29,52 @@ package org.opends.server.protocols.ldap ;
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
 
+import java.util.LinkedList;
+import java.util.ListIterator;
+
 /**
- * An abstract class that all types  unit test should extend. 
+ * An abstract class that all types  unit test should extend.
  */
 
 @Test(groups = { "precommit", "ldap" })
-public abstract class LdapTestCase extends DirectoryServerTestCase 
-{}
+public abstract class LdapTestCase extends DirectoryServerTestCase
+{
+  /**
+   * Determine whether one LDAPAttribute is equal to another.
+   * The values of the attribute must be identical and in the same order.
+   * @param a1 The first LDAPAttribute.
+   * @param a2 The second LDAPAttribute.
+   * @return true if the first LDAPAttribute is equal to the second.
+   */
+  static boolean testEqual(LDAPAttribute a1, LDAPAttribute a2)
+  {
+    if (!a1.getAttributeType().equals(a2.getAttributeType()))
+    {
+      return false;
+    }
+    return a1.getValues().equals(a2.getValues());
+  }
+
+  /**
+   * Determine whether one list of LDAPAttribute is equal to another.
+   * @param list1 The first list of LDAPAttribute.
+   * @param list2 The second list of LDAPAttribute.
+   * @return true if the first list of LDAPAttribute is equal to the second.
+   */
+  static boolean testEqual(LinkedList<LDAPAttribute> list1,
+                           LinkedList<LDAPAttribute> list2)
+  {
+    ListIterator<LDAPAttribute> e1 = list1.listIterator();
+    ListIterator<LDAPAttribute> e2 = list2.listIterator();
+    while(e1.hasNext() && e2.hasNext()) {
+      LDAPAttribute o1 = e1.next();
+      LDAPAttribute o2 = e2.next();
+      if (!(o1==null ? o2==null : testEqual(o1, o2)))
+        return false;
+    }
+    return !(e1.hasNext() || e2.hasNext());
+  }
+
+
+
+}

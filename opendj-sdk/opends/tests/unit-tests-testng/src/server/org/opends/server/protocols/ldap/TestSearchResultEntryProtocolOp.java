@@ -31,12 +31,15 @@ package org.opends.server.protocols.ldap;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.TestCaseUtils;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.
+     OP_TYPE_SEARCH_RESULT_ENTRY;
+import static org.testng.Assert.*;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 
+import java.util.ArrayList;
 
 public class TestSearchResultEntryProtocolOp extends LdapTestCase
 {
@@ -52,7 +55,10 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
     return new Object[][] {
          {
               TestCaseUtils.makeEntry(
-                   "dn:: dWlkPXJvZ2FzYXdhcmEsb3U95Za25qWt6YOoLG89QWlyaXVz",
+                   "dn: cn=This is an extremely long relative distinguished " +
+                        "name that does not fit in two line of eighty " +
+                        "columns each.  It is intended to exercise the LDIF " +
+                        "line wrapping code.,o=airius",
                    "userpassword: {SHA}O3HSv1MusyL4kTjP+HKI5uxuNoM=",
                    "objectclass: top",
                    "objectclass: person",
@@ -109,7 +115,6 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
   }
 
 
-
   /**
    * Test that going from SearchResultEntry to SearchResultEntryProtocolOp
    * and back again preserves the entry contents.
@@ -120,9 +125,8 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
   @Test(dataProvider = "entries")
   public void testEntryTransformation(Entry from) throws Exception
   {
-    SearchResultEntry searchResultEntry = new SearchResultEntry(from);
     SearchResultEntryProtocolOp protocolOp =
-         new SearchResultEntryProtocolOp(searchResultEntry);
+         new SearchResultEntryProtocolOp(new SearchResultEntry(from));
     Entry to = protocolOp.toSearchResultEntry();
 
     // FIXME Issue 660: Need to provide Entry.equals(Object)
@@ -142,9 +146,8 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
   public void testToLdif(Entry from) throws Exception
   {
     int wrapColumn = 80;
-    SearchResultEntry searchResultEntry = new SearchResultEntry(from);
     SearchResultEntryProtocolOp protocolOp =
-         new SearchResultEntryProtocolOp(searchResultEntry);
+         new SearchResultEntryProtocolOp(new SearchResultEntry(from));
     StringBuilder builder = new StringBuilder();
     protocolOp.toLDIF(builder, wrapColumn);
     Entry to = TestCaseUtils.entryFromLdifString(builder.toString());
@@ -157,9 +160,8 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
   public void testToLdifWrapping(Entry from) throws Exception
   {
     int wrapColumn = 78;
-    SearchResultEntry searchResultEntry = new SearchResultEntry(from);
     SearchResultEntryProtocolOp protocolOp =
-         new SearchResultEntryProtocolOp(searchResultEntry);
+         new SearchResultEntryProtocolOp(new SearchResultEntry(from));
     StringBuilder builder = new StringBuilder();
     protocolOp.toLDIF(builder, wrapColumn);
 
@@ -179,4 +181,72 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
     // FIXME Issue 660: Need to provide Entry.equals(Object)
 //    assertEquals(to, from);
   }
+
+  @Test(dataProvider = "entries")
+  public void testToString(Entry entry) throws Exception
+  {
+    SearchResultEntryProtocolOp protocolOp =
+         new SearchResultEntryProtocolOp(new SearchResultEntry(entry));
+    StringBuilder sb = new StringBuilder();
+    protocolOp.toString();
+    protocolOp.toString(sb, 1);
+  }
+
+  @Test(dataProvider = "entries")
+  public void testEncodeDecode(Entry entry) throws Exception
+  {
+    SearchResultEntryProtocolOp protocolOp =
+         new SearchResultEntryProtocolOp(new SearchResultEntry(entry));
+
+    // Encode to ASN1.
+    ASN1Element element = protocolOp.encode();
+
+    // Decode to a new protocol op.
+    SearchResultEntryProtocolOp decodedProtocolOp =
+         (SearchResultEntryProtocolOp)ProtocolOp.decode(element);
+
+    assertEquals(decodedProtocolOp.getDN(), protocolOp.getDN());
+    assertTrue(testEqual(decodedProtocolOp.getAttributes(),
+                         protocolOp.getAttributes()));
+  }
+
+  @Test (expectedExceptions = LDAPException.class)
+  public void testInvalidSequence() throws Exception
+  {
+    ProtocolOp.decode(new ASN1Integer(OP_TYPE_SEARCH_RESULT_ENTRY, 0));
+  }
+
+  @Test (dataProvider = "entries", expectedExceptions = LDAPException.class)
+  public void testTooManyElements(Entry entry) throws Exception
+  {
+    SearchResultEntryProtocolOp protocolOp =
+         new SearchResultEntryProtocolOp(new SearchResultEntry(entry));
+    ASN1Element element = protocolOp.encode();
+    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+    elements.add(new ASN1Boolean(true));
+    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_RESULT_ENTRY, elements));
+  }
+
+  @Test (dataProvider = "entries", expectedExceptions = LDAPException.class)
+  public void testTooFewElements(Entry entry) throws Exception
+  {
+    SearchResultEntryProtocolOp protocolOp =
+         new SearchResultEntryProtocolOp(new SearchResultEntry(entry));
+    ASN1Element element = protocolOp.encode();
+    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+    elements.remove(0);
+    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_RESULT_ENTRY, elements));
+  }
+
+  @Test (dataProvider = "entries", expectedExceptions = LDAPException.class)
+  public void testInvalidElement1(Entry entry) throws Exception
+  {
+    SearchResultEntryProtocolOp protocolOp =
+         new SearchResultEntryProtocolOp(new SearchResultEntry(entry));
+    ASN1Element element = protocolOp.encode();
+    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+    elements.set(1, new ASN1OctetString("cn"));
+    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_RESULT_ENTRY, elements));
+  }
+
 }
