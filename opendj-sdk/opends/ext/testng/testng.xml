@@ -15,6 +15,7 @@
             <package name="org.opends.server.extensions"/>
             <package name="org.opends.server.tasks"/>
             <package name="org.opends.server.plugins"/>
+            <package name="org.opends.server.types"/>
         </packages>
     </test>
 
