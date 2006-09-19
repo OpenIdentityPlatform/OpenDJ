@@ -1041,7 +1041,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.12
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.13
   NAME 'ds-cfg-connection-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-connection-handler-class $
-  ds-cfg-connection-handler-enabled ) X-ORIGIN 'OpenDS Directory Server' )
+  ds-cfg-connection-handler-enabled ) MAY ( ds-cfg-allowed-client $ 
+  ds-cfg-denied-client ) X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.14
   NAME 'ds-cfg-ldap-connection-handler' SUP ds-cfg-connection-handler
   STRUCTURAL MUST ds-cfg-listen-port MAY ( ds-cfg-listen-address $

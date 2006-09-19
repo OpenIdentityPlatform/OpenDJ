@@ -4132,7 +4132,28 @@ public class ProtocolMessages
   public static final int MSGID_ACCTUSABLERES_DECODE_ERROR =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 379;
 
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode an invalid AddressMask rule prefix.
+   */
+  public static final int MSGID_ADDRESSMASK_PREFIX_DECODE_ERROR =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 380;
 
+    /**
+   * The message ID for the message that will be used if an error occurs
+   * because a address mask prefix was specified with an wild card
+   * character "*".
+   */
+  public static final int MSGID_ADDRESSMASK_WILDCARD_DECODE_ERROR =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 381;
+
+  /**
+   * The message ID for the message that will be used if an error occurs
+   * because a address mask format was invalid.
+   *
+   */
+  public static final int MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 382;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -5893,8 +5914,18 @@ public class ProtocolMessages
                     "The account availability response control had an " +
                     "unknown ACCOUNT_USABLE_RESPONSE element type of %s.");
     registerMessage(MSGID_ACCTUSABLERES_DECODE_ERROR,
-                    "Cannot decode the provided account availability " +
-                    "response control:  %s.");
+            "Cannot decode the provided account availability " +
+            "response control:  %s.");
+    registerMessage(MSGID_ADDRESSMASK_PREFIX_DECODE_ERROR,
+            "Cannot decode the provided address mask prefix because an" +
+            "invalid value was specified. The permitted values for IPv4" +
+            "are 0 to32 and for IPv6 0 to128");
+    registerMessage(MSGID_ADDRESSMASK_WILDCARD_DECODE_ERROR,
+            "Cannot decode the provided address mask because an prefix mask"+
+            "was specified with an wild card \"*\" match character.");
+    registerMessage(MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR,
+            "Cannot decode the provided address mask because the it has an" +
+            "invalid format.");
   }
 }
 
