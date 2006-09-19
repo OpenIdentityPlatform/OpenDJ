@@ -335,7 +335,7 @@ public class LockFileManager
   public static boolean releaseLock(String lockFile,
                                     StringBuilder failureReason)
   {
-    assert debugEnter(CLASS_NAME, "acquireExclusiveLock",
+    assert debugEnter(CLASS_NAME, "releaseLock",
                       String.valueOf(lockFile));
 
     mapLock.lock();
