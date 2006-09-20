@@ -156,6 +156,8 @@ public abstract class PasswordStorageSchemeTestCase
     ByteString encodedPassword = scheme.encodePassword(plaintext);
     assertNotNull(encodedPassword);
     assertTrue(scheme.passwordMatches(plaintext, encodedPassword));
+    assertFalse(scheme.passwordMatches(plaintext,
+                                       new ASN1OctetString("garbage")));
 
     ByteString schemeEncodedPassword =
          scheme.encodePasswordWithScheme(plaintext);
@@ -174,6 +176,8 @@ public abstract class PasswordStorageSchemeTestCase
       assertTrue(scheme.authPasswordMatches(plaintext,
                                             authPWComponents[1].toString(),
                                             authPWComponents[2].toString()));
+      assertFalse(scheme.authPasswordMatches(plaintext, ",", "foo"));
+      assertFalse(scheme.authPasswordMatches(plaintext, "foo", ","));
     }
     else
     {
