@@ -615,5 +615,57 @@ public class SaltedSHA512PasswordStorageScheme
     // SHA-2 should be considered secure.
     return true;
   }
+
+
+
+  /**
+   * Generates an encoded password string from the given clear-text password.
+   * This method is primarily intended for use when it is necessary to generate
+   * a password with the server offline (e.g., when setting the initial root
+   * user password).
+   *
+   * @param  passwordBytes  The bytes that make up the clear-text password.
+   *
+   * @return  The encoded password string, including the scheme name in curly
+   *          braces.
+   *
+   * @throws  DirectoryException  If a problem occurs during processing.
+   */
+  public static String encodeOffline(byte[] passwordBytes)
+         throws DirectoryException
+  {
+    byte[] saltBytes = new byte[NUM_SALT_BYTES];
+    new SecureRandom().nextBytes(saltBytes);
+
+    byte[] passwordPlusSalt = new byte[passwordBytes.length + NUM_SALT_BYTES];
+    System.arraycopy(passwordBytes, 0, passwordPlusSalt, 0,
+                     passwordBytes.length);
+    System.arraycopy(saltBytes, 0, passwordPlusSalt, passwordBytes.length,
+                     NUM_SALT_BYTES);
+
+    MessageDigest messageDigest;
+    try
+    {
+      messageDigest =
+           MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_512);
+    }
+    catch (Exception e)
+    {
+      int msgID = MSGID_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST;
+      String message = getMessage(msgID, MESSAGE_DIGEST_ALGORITHM_SHA_512,
+                                  String.valueOf(e));
+      throw new DirectoryException(ResultCode.OTHER, message, msgID, e);
+    }
+
+
+    byte[] digestBytes    = messageDigest.digest(passwordPlusSalt);
+    byte[] digestPlusSalt = new byte[digestBytes.length + NUM_SALT_BYTES];
+    System.arraycopy(digestBytes, 0, digestPlusSalt, 0, digestBytes.length);
+    System.arraycopy(saltBytes, 0, digestPlusSalt, digestBytes.length,
+                     NUM_SALT_BYTES);
+
+    return "{" + STORAGE_SCHEME_NAME_SALTED_SHA_512 + "}" +
+           Base64.encode(digestPlusSalt);
+  }
 }
 

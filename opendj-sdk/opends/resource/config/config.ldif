@@ -824,7 +824,7 @@ cn: Password Policies
 dn: cn=Default Password Policy,cn=Password Policies,cn=config
 objectClass: top
 objectClass: ds-cfg-password-policy
-cn: Default PasswordPolicy
+cn: Default Password Policy
 ds-cfg-password-attribute: userPassword
 ds-cfg-default-password-storage-scheme: SSHA
 ds-cfg-allow-expired-password-changes: false
@@ -845,6 +845,33 @@ ds-cfg-maximum-password-reset-age: 0 seconds
 ds-cfg-password-expiration-warning-interval: 5 days
 ds-cfg-password-generator-dn: cn=Random Password Generator,cn=Password Generators,cn=config
 ds-cfg-password-change-requires-current-password: false
+ds-cfg-require-secure-authentication: false
+ds-cfg-require-secure-password-changes: false
+ds-cfg-skip-validation-for-administrators: false
+
+dn: cn=Root Password Policy,cn=Password Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-password-policy
+cn: Root Password Policy
+ds-cfg-password-attribute: userPassword
+ds-cfg-default-password-storage-scheme: SSHA512
+ds-cfg-allow-expired-password-changes: false
+ds-cfg-allow-multiple-password-values: false
+ds-cfg-allow-pre-encoded-passwords: false
+ds-cfg-allow-user-password-changes: true
+ds-cfg-expire-passwords-without-warning: false
+ds-cfg-force-change-on-add: false
+ds-cfg-force-change-on-reset: false
+ds-cfg-grace-login-count: 0
+ds-cfg-idle-lockout-interval: 0 seconds
+ds-cfg-lockout-failure-count: 0
+ds-cfg-lockout-duration: 0 seconds
+ds-cfg-lockout-failure-expiration-interval: 0 seconds
+ds-cfg-minimum-password-age: 0 seconds
+ds-cfg-maximum-password-age: 0 seconds
+ds-cfg-maximum-password-reset-age: 0 seconds
+ds-cfg-password-expiration-warning-interval: 5 days
+ds-cfg-password-change-requires-current-password: true
 ds-cfg-require-secure-authentication: false
 ds-cfg-require-secure-password-changes: false
 ds-cfg-skip-validation-for-administrators: false
@@ -998,11 +1025,12 @@ objectClass: ds-cfg-root-dn
 cn: Directory Manager
 givenName: Directory
 sn: Manager
-userPassword: {SSHA}7SvN6HIPUPGr0YFd0NbRkoXWyWzHsOnEfUMyxg==
+userPassword: {SSHA512}l1t43vVl7Uh03PpQ2vCsT0B7Q0HTi+tKJmH7tZTmSGaKrMHWHO1czfwEsjMgfbeQoiYQDGDuxolipR0H6ajMu1YHlTjPNG9Z
 ds-cfg-alternate-bind-dn: cn=Directory Manager
 ds-rlim-size-limit: 0
 ds-rlim-time-limit: 0
 ds-rlim-lookthrough-limit: 0
+pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config
 
 dn: cn=Root DSE,cn=config
 objectClass: top
