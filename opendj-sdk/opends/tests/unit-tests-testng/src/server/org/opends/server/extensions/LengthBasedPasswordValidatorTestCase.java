@@ -363,7 +363,7 @@ public class LengthBasedPasswordValidatorTestCase
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
-                                new Attribute("userPassword",
+                                new Attribute("userpassword",
                                               buffer.toString())));
 
       InternalClientConnection conn =
@@ -435,7 +435,7 @@ public class LengthBasedPasswordValidatorTestCase
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
-                                new Attribute("userPassword",
+                                new Attribute("userpassword",
                                               buffer.toString())));
 
       InternalClientConnection conn =
@@ -508,7 +508,7 @@ public class LengthBasedPasswordValidatorTestCase
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
-                                new Attribute("userPassword",
+                                new Attribute("userpassword",
                                               buffer.toString())));
 
       InternalClientConnection conn =
@@ -581,7 +581,7 @@ public class LengthBasedPasswordValidatorTestCase
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
-                                new Attribute("userPassword",
+                                new Attribute("userpassword",
                                               buffer.toString())));
 
       InternalClientConnection conn =
