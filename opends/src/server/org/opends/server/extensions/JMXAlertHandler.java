@@ -380,7 +380,7 @@ public class JMXAlertHandler
 
     int    msgID   = MSGID_CONFIG_JMX_NO_METHOD;
     String message = getMessage(msgID, buffer.toString(),
-                                configEntryDN.toString());
+                                String.valueOf(configEntryDN));
     throw new MBeanException(new ConfigException(msgID, message));
   }
 
