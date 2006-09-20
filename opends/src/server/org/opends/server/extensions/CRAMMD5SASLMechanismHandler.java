@@ -632,7 +632,7 @@ public class CRAMMD5SASLMechanismHandler
       else
       {
         int    msgID   = MSGID_SASLCRAMMD5_NO_REVERSIBLE_PASSWORDS;
-        String message = getMessage(msgID);
+        String message = getMessage(msgID, String.valueOf(userEntry.getDN()));
         bindOperation.setAuthFailureReason(msgID, message);
         return;
       }
