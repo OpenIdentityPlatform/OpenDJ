@@ -31,6 +31,16 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Server Version Reporting
+    #@TestSuitePurpose          To check that the server version reporting is correct
+    #@TestSuiteID               Server Version Reporting
+    #@TestSuiteGroup            Core
+    #@TestGroup                 Core/VersionReport
+    #@TestScript                CoreVersionReportTests.java
+    #@TestHTMLLink              blahblah
+*/
 /**
  * This class contains the TestNG tests for the Core version reporting tests. 
  */

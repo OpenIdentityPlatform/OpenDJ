@@ -31,12 +31,35 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Core Entry Cache
+    #@TestSuitePurpose          To check that the entry cache is managed correctly.
+    #@TestSuiteID               Entry Cache
+    #@TestSuiteGroup            Core
+    #@TestGroup                 Core/EntryCache
+    #@TestScript                CoreEntryCacheTests.java
+    #@TestHTMLLink              blahblah
+*/
 /**
  * This class contains the TestNG tests for the Core version reporting tests. 
  */
 @Test
 public class CoreEntryCacheTests extends CoreTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core Entry Cache
+    #@TestName                  Entry Cache 1
+    #@TestID                    CoreEntryCache1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch() 
+                                for entry, cn=version,cn=monitor, with the single
+				pipe filter, |.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a single pipe character ("|") for an existing entry. 

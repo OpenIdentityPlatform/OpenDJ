@@ -31,6 +31,16 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Search Time Limit
+    #@TestSuitePurpose          To check that the search time limit is enforced.
+    #@TestSuiteID               Search Time Limit
+    #@TestSuiteGroup            Core
+    #@TestGroup                 Core/SearchTimeLimit
+    #@TestScript                CoreSearchTimeLimitTests.java
+    #@TestHTMLLink              blahblah
+*/
 /**
  * This class contains the TestNG tests for the Core functional tests for search size limits.
  */

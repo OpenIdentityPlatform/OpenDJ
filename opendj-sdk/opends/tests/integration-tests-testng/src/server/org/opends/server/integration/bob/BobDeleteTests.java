@@ -31,6 +31,16 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Bob Delete Tests
+    #@TestSuitePurpose          Test the delete functionality for OpenDS
+    #@TestSuiteID               Delete Tests
+    #@TestSuiteGroup            Bob
+    #@TestGroup                 Bob/BobDeleteTests
+    #@TestScript                BobDeleteTests.java
+    #@TestHTMLLink              blahblah
+*/
 /**
  * This class contains the TestNG tests for the Bob deletes.
  */
