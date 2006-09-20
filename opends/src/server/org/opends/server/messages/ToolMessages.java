@@ -6251,6 +6251,358 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * host argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_HOST =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 635;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * port argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_PORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 636;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * bindDN argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_BIND_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 637;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * bindPW argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 638;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * bindPWFile argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 639;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * authzID argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_AUTHZID =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 640;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * provideDNForAuthzID argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_PROVIDE_DN_FOR_AUTHZID =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 641;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * newPW argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_NEWPW =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 642;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * newPWFile argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_NEWPWFILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 643;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * currentPW argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_CURRENTPW =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 644;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * currentPWFile argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 645;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * useSSL argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_USE_SSL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 646;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * useStartTLS argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_USE_STARTTLS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 647;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * blindTrust argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_BLIND_TRUST =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 648;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * sslKeyStore argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 649;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * sslKeyStorePINFile argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 650;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * sslTrustStore argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 651;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * sslTrustStorePINFile argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 652;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * help argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_USAGE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 653;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the command-line arguments.  This takes a single argument,
+   * which is an explanation of the problem that occurred.
+   */
+  public static final int MSGID_LDAPPWMOD_CANNOT_INITIALIZE_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 654;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * parsing the command-line arguments.  This takes a single argument, which is
+   * an explanation of the problem that occurred.
+   */
+  public static final int MSGID_LDAPPWMOD_ERROR_PARSING_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 655;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that two
+   * arguments must not be used together.  This takes two arguments, which are
+   * the long identifiers for the conflicting arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_CONFLICTING_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 656;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * bind DN and password must be provided together.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 657;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that an
+   * anonymous modification requires the authorization ID and the current
+   * password.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 658;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that if a
+   * particular argument is present, then another argument is also required.
+   * This takes two arguments, which are the long identifier of the first
+   * argument, and the long identifier of the argument that it requires.
+   */
+  public static final int MSGID_LDAPPWMOD_DEPENDENT_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 659;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that an error
+   * occurred while initializing the SSL/TLS subsystem.  It takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDAPPWMOD_ERROR_INITIALIZING_SSL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 660;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that an error
+   * occurred while connecting to the server.  This takes a single argument,
+   * which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDAPPWMOD_CANNOT_CONNECT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 661;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that an error
+   * occurred while trying to send the password modify request.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDAPPWMOD_CANNOT_SEND_PWMOD_REQUEST =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 662;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that an error
+   * occurred while trying to read the password modify response.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDAPPWMOD_CANNOT_READ_PWMOD_RESPONSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 663;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * password modify operation failed.  This takes a single argument, which is
+   * the LDAP result code.
+   */
+  public static final int MSGID_LDAPPWMOD_FAILED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 664;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide the error
+   * message from the password modify response.  This takes a single argument,
+   * which is the error message string.
+   */
+  public static final int MSGID_LDAPPWMOD_FAILURE_ERROR_MESSAGE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 665;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide the matched DN
+   * from the password modify response.  This takes a single argument, which is
+   * the matched DN.
+   */
+  public static final int MSGID_LDAPPWMOD_FAILURE_MATCHED_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 666;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * password modify operation was successful.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_SUCCESSFUL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 667;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide additional
+   * information from the successful password modify response.  This takes a
+   * single argument, which is the additional information string.
+   */
+  public static final int MSGID_LDAPPWMOD_ADDITIONAL_INFO =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 668;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide the generated
+   * password from the password modify response.  This takes a single argument,
+   * which is the generated password.
+   */
+  public static final int MSGID_LDAPPWMOD_GENERATED_PASSWORD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 669;
+
+
+
+  /**
+   * The message ID for the message that will be used if the password modify
+   * response contained an element with an unrecognized BER type.  This takes
+   * a single argument, which is a hex representation of the BER type.
+   */
+  public static final int MSGID_LDAPPWMOD_UNRECOGNIZED_VALUE_TYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 670;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurred while
+   * attempting to decode the password modify response value.  It takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 671;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8303,6 +8655,105 @@ public class ToolMessages
     registerMessage(MSGID_LDIFMODIFY_ERROR_PROCESSING_LDIF,
                     "An error occurred while processing the requested " +
                     "changes:  %s.");
+
+
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_HOST,
+                    "Specifies the address of the Directory Server system.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_PORT,
+                    "Specifies the port in which the Directory Server is " +
+                    "listening for LDAP client connections.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_BIND_DN,
+                    "Specifies the DN to use to bind to the server.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW,
+                    "Specifies the password to use to bind to the server.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW_FILE,
+                    "Specifies the path to a file containing the password to "+
+                    "use to bind to the server.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_AUTHZID,
+                    "Specifies the authorization ID for the user entry whose " +
+                    "password should be changed.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_PROVIDE_DN_FOR_AUTHZID,
+                    "Indicates that the bind DN should be used as the " +
+                    "authorization ID for the password modify operation.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_NEWPW,
+                    "Specifies the new password to provide for the target " +
+                    "user.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_NEWPWFILE,
+                    "Specifies the path to a file containing the new " +
+                    "password to provide for the target user.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_CURRENTPW,
+                    "Specifies the current password for the target user.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE,
+                    "Specifies the path to a file containing the current " +
+                    "password for the target user.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_USE_SSL,
+                    "Use SSL to secure the communication with the Directory " +
+                    "Server.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_USE_STARTTLS,
+                    "Use StartTLS to secure the communication with the " +
+                    "Directory Server.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_BLIND_TRUST,
+                    "Blindly trust any SSL certificate presented by the " +
+                    "server.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE,
+                    "The path to the keystore to use when establishing " +
+                    "SSL/TLS communication with the server.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE,
+                    "Specifies the path to a file containing the PIN needed " +
+                    "to access the contents of the keystore.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE,
+                    "The path to the truststore to use when establishing " +
+                    "SSL/TLS communication with the server.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE,
+                    "Specifies the path to a file containing the PIN needed " +
+                    "to access the contents of the truststore.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_USAGE,
+                    "Show this usage information.");
+    registerMessage(MSGID_LDAPPWMOD_CANNOT_INITIALIZE_ARGS,
+                    "An unexpected error occurred while attempting to " +
+                    "initialize the command-line arguments:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_ERROR_PARSING_ARGS,
+                    "An error occurred while parsing the command-line " +
+                    "arguments:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_CONFLICTING_ARGS,
+                    "The %s and %s arguments may not be provided together.");
+    registerMessage(MSGID_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER,
+                    "If either a bind DN or bind password is provided, then " +
+                    "the other must be given as well.");
+    registerMessage(MSGID_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW,
+                    "If a bind DN and password are not provided, then an " +
+                    "authorization ID and current password must be given.");
+    registerMessage(MSGID_LDAPPWMOD_DEPENDENT_ARGS,
+                    "If the %s argument is provided, then the  %s argument " +
+                    "must also be given.");
+    registerMessage(MSGID_LDAPPWMOD_ERROR_INITIALIZING_SSL,
+                    "Unable to initialize SSL/TLS support:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_CANNOT_CONNECT,
+                    "An error occurred while attempting to connect to the" +
+                    "Directory Server:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_CANNOT_SEND_PWMOD_REQUEST,
+                    "Unable to send the LDAP password modify request:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_CANNOT_READ_PWMOD_RESPONSE,
+                    "Unable to read the LDAP password modify response:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_FAILED,
+                    "The LDAP password modify operation failed with result " +
+                    "code %d.");
+    registerMessage(MSGID_LDAPPWMOD_FAILURE_ERROR_MESSAGE,
+                    "Error Message:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_FAILURE_MATCHED_DN,
+                    "Matched DN:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_SUCCESSFUL,
+                    "The LDAP password modify operation was successful.");
+    registerMessage(MSGID_LDAPPWMOD_ADDITIONAL_INFO,
+                    "Additional Info:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_GENERATED_PASSWORD,
+                    "Generated Password:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_UNRECOGNIZED_VALUE_TYPE,
+                    "Unable to decode the password modify response value " +
+                    "because it contained an invalid element type of %s.");
+    registerMessage(MSGID_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE,
+                    "Unable to decode the password modify response value:  " +
+                    "%s.");
   }
 }
 
