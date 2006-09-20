@@ -31,12 +31,34 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Bob Setup
+    #@TestSuitePurpose          Setup methods for the Bob test suites
+    #@TestSuiteID               Setup 
+    #@TestSuiteGroup            Bob
+    #@TestGroup                 Bob/Setup
+    #@TestScript                BobStartup.java
+    #@TestHTMLLink              blahblah
+*/
 /**
  * This class contains the TestNG tests for the Bob startup.
  */
 @Test
 public class BobStartupTests extends BobTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Setup
+    #@TestName                  Bob Setup
+    #@TestID                    BobStartup1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add entries that are required for the Bob Tests.
  *

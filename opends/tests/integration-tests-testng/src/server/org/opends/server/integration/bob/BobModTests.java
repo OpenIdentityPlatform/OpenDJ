@@ -31,12 +31,34 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Bob Modify Tests
+    #@TestSuitePurpose          Test the modify functionality for OpenDS
+    #@TestSuiteID               Modify Tests
+    #@TestSuiteGroup            Bob
+    #@TestGroup                 Bob/BobModifyTests
+    #@TestScript                BobModTests.java
+    #@TestHTMLLink              blahblah
+*/
 /**
  * This class contains the TestNG tests for the Bob modifies.
  */
 @Test
 public class BobModTests extends BobTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Modify Tests
+    #@TestName                  Bob Modify 1
+    #@TestID                    BobModify1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Replace a small jpeg photo in an existing entry.
  *
@@ -67,6 +89,18 @@ public class BobModTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Modify Tests
+    #@TestName                  Bob Modify 2
+    #@TestID                    BobModify2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Replace a large jpeg photo in an existing entry.
  *

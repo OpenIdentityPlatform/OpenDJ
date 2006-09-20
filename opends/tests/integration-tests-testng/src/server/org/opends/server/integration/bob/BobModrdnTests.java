@@ -31,6 +31,16 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Bob Modify RDN Tests
+    #@TestSuitePurpose          Test the modify rdn functionality for OpenDS
+    #@TestSuiteID               Modify RDN Tests
+    #@TestSuiteGroup            Bob
+    #@TestGroup                 Bob/BobModifyRDNTests
+    #@TestScript                BobModrdnTests.java
+    #@TestHTMLLink              blahblah
+*/
 /**
  * This class contains the TestNG tests for the Bob modify rdns.
  */

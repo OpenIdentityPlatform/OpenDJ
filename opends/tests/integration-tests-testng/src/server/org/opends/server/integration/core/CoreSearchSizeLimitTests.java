@@ -31,12 +31,35 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Search Size Limit
+    #@TestSuitePurpose          To check that the search size limit is enforced.
+    #@TestSuiteID               Search Size Limit
+    #@TestSuiteGroup            Core
+    #@TestGroup                 Core/SearchSizeLimit
+    #@TestScript                CoreSearchSizeLimitTests.java
+    #@TestHTMLLink              blahblah
+*/
 /**
  * This class contains the TestNG tests for the Core functional tests for search size limits.
  */
 @Test
 public class CoreSearchSizeLimitTests extends CoreTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 1
+    #@TestID                    CoreSearchSizeLimit1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with a search size limit defined in the command
+				line and the search size is exceeded.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 4
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a search size limit defined in the command line and the search

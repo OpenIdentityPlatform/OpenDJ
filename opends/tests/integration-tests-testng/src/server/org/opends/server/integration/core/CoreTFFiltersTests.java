@@ -31,6 +31,16 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Core True/False Filters
+    #@TestSuitePurpose          To check that true/false filters are correctly handled
+    #@TestSuiteID               True/False Filters
+    #@TestSuiteGroup            Core
+    #@TestGroup                 Core/TFFFilters
+    #@TestScript                CoreTFFFiltersTests.java
+    #@TestHTMLLink              blahblah
+*/
 /**
  * This class contains the TestNG tests for the Core true/false filter tests. 
  */

@@ -30,12 +30,34 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.tools.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Core Setup 
+    #@TestSuitePurpose          Setup methods for core server test suites
+    #@TestSuiteID               Setup
+    #@TestSuiteGroup            Core
+    #@TestGroup                 Core/Setup
+    #@TestScript                CoreStartupTests.java
+    #@TestHTMLLink              blahblah
+*/
 /**
  * This class contains the TestNG tests for the Core startup.
  */
 @Test
 public class CoreStartupTests extends CoreTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core Setup
+    #@TestName                  Core Setup 1
+    #@TestID                    CoreStartup1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add entries that are required for the Core Tests.
  *
@@ -66,6 +88,18 @@ public class CoreStartupTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core Setup
+    #@TestName                  Core Setup 2
+    #@TestID                    CoreStartup2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  To add 1000 extra entries that are required for some of the Core Tests.
  *
