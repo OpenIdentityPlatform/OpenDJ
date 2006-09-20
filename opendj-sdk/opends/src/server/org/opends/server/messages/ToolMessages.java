@@ -8157,7 +8157,7 @@ public class ToolMessages
                     "The seed to use to initialize the random number " +
                     "generator.");
     registerMessage(MSGID_MAKELDIF_DESCRIPTION_HELP,
-                    "Show this usgae information.");
+                    "Show this usage information.");
     registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
