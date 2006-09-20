@@ -119,58 +119,6 @@ public class JmxConnectTest extends JmxTestCase
   }
 
   /**
-   * Check that simple (no SSL) connections to the JMX service are
-   * accepted when the given
-   * credentials are OK and refused when the credentials are invalid.
-   *
-   */
-  @Test(enabled=false)
-  public void sslConnect() throws Exception
-  {
-    // configure the JMX ssl key manager
-    ConfigEntry config = new ConfigEntry(TestCaseUtils.makeEntry(
-        "dn: cn=Key Manager Provider,cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-key-manager-provider",
-        "objectClass: ds-cfg-file-based-key-manager-provider",
-        "ds-cfg-key-manager-provider-class: org.opends.server.extensions.FileBasedKeyManagerProvider",
-        "ds-cfg-key-manager-provider-enabled: true",
-        "ds-cfg-key-store-file: " + getJmxKeystorePath(),
-        "ds-cfg-key-store-type: JKS",
-        "ds-cfg-key-store-pin: password"
-         ), null);
-    
-    JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler();
-    assertNotNull(jmxConnectionHandler);
-    StringBuilder reason = new StringBuilder();
-    assertTrue(jmxConnectionHandler.configAddIsAcceptable(config, reason));  
-    ConfigChangeResult result =
-      jmxConnectionHandler.applyConfigurationAdd(config);
-    assertEquals(ResultCode.SUCCESS, result.getResultCode());
-    
-    // Enable SSL by setting ds-cfg-use-ssl boolean and the
-    // certificate alias using ds-cfg-ssl-cert-nickname attribute.
-    config = new ConfigEntry(TestCaseUtils.makeEntry(
-        "dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-connection-handler",
-        "objectClass: ds-cfg-jmx-connection-handler",
-        "ds-cfg-ssl-cert-nickname: jmx-cert",
-        "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
-        "ds-cfg-connection-handler-enabled: true",
-        "ds-cfg-use-ssl: true",
-        "ds-cfg-listen-port: " + TestCaseUtils.getServerJmxPort(),
-        "cn: JMX Connection Handler"
-         ), null);
-    
-    configureJmx(config);
-    
-    MBeanServerConnection jmxc = sslConnect("cn=directory manager", "password",
-                                            TestCaseUtils.getServerJmxPort());
-    assertNotNull(jmxc);
-  }
-  
-  /**
    * Build some data for the simpleGet test.
    */
   @DataProvider(name="simpleGet")
@@ -267,7 +215,7 @@ public class JmxConnectTest extends JmxTestCase
    * Test changing JMX port through LDAP
    * @throws Exception
    */
-  @Test()
+  @Test(enabled=false)
   public void changePort() throws Exception
   {
     // Connect to the JMX service and get the current port
@@ -320,6 +268,58 @@ public class JmxConnectTest extends JmxTestCase
          ), null);
     
     configureJmx(config);
+  }
+
+  /**
+   * Check that simple (no SSL) connections to the JMX service are
+   * accepted when the given
+   * credentials are OK and refused when the credentials are invalid.
+   *
+   */
+  @Test(enabled=false)
+  public void sslConnect() throws Exception
+  {
+    // configure the JMX ssl key manager
+    ConfigEntry config = new ConfigEntry(TestCaseUtils.makeEntry(
+        "dn: cn=Key Manager Provider,cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-key-manager-provider",
+        "objectClass: ds-cfg-file-based-key-manager-provider",
+        "ds-cfg-key-manager-provider-class: org.opends.server.extensions.FileBasedKeyManagerProvider",
+        "ds-cfg-key-manager-provider-enabled: true",
+        "ds-cfg-key-store-file: " + getJmxKeystorePath(),
+        "ds-cfg-key-store-type: JKS",
+        "ds-cfg-key-store-pin: password"
+         ), null);
+    
+    JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler();
+    assertNotNull(jmxConnectionHandler);
+    StringBuilder reason = new StringBuilder();
+    assertTrue(jmxConnectionHandler.configAddIsAcceptable(config, reason));  
+    ConfigChangeResult result =
+      jmxConnectionHandler.applyConfigurationAdd(config);
+    assertEquals(ResultCode.SUCCESS, result.getResultCode());
+    
+    // Enable SSL by setting ds-cfg-use-ssl boolean and the
+    // certificate alias using ds-cfg-ssl-cert-nickname attribute.
+    config = new ConfigEntry(TestCaseUtils.makeEntry(
+        "dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-connection-handler",
+        "objectClass: ds-cfg-jmx-connection-handler",
+        "ds-cfg-ssl-cert-nickname: jmx-cert",
+        "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
+        "ds-cfg-connection-handler-enabled: true",
+        "ds-cfg-use-ssl: true",
+        "ds-cfg-listen-port: " + TestCaseUtils.getServerJmxPort(),
+        "cn: JMX Connection Handler"
+         ), null);
+    
+    configureJmx(config);
+    
+    MBeanServerConnection jmxc = sslConnect("cn=directory manager", "password",
+                                            TestCaseUtils.getServerJmxPort());
+    assertNotNull(jmxc);
   }
 
   /**
