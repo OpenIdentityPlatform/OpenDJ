@@ -28,8 +28,6 @@ package org.opends.server.protocols.ldap;
 
 
 
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
@@ -176,36 +174,6 @@ public class DeleteRequestProtocolOp
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
-  }
-
-
-
-  /**
-   * Converts the provided LDAP message containing a delete request protocol op
-   * to a <CODE>DeleteOperation</CODE> object that may be processed by the core
-   * server.
-   *
-   * @param  requestMessage    The LDAP message containing the delete request
-   *                           protocol op.
-   * @param  clientConnection  The client connection from which the request was
-   *                           read.
-   *
-   * @return  The delete operation created from the provided request message.
-   *
-   * @throws  DirectoryException  If the provided LDAP message cannot be decoded
-   *                              as a delete operation.
-   */
-  public static DeleteOperation messageToDeleteOperation(
-                                     LDAPMessage requestMessage,
-                                     LDAPClientConnection clientConnection)
-         throws DirectoryException
-  {
-    assert debugEnter(CLASS_NAME, "messageToDeleteOperation",
-                      String.valueOf(requestMessage),
-                      String.valueOf(clientConnection));
-
-    // NYI
-    return null;
   }
 
 

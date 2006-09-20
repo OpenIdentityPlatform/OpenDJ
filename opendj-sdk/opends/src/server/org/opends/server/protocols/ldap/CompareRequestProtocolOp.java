@@ -30,8 +30,6 @@ package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
 
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
@@ -341,36 +339,6 @@ public class CompareRequestProtocolOp
 
 
     return new CompareRequestProtocolOp(dn, attributeType, assertionValue);
-  }
-
-
-
-  /**
-   * Converts the provided LDAP message containing a compare request protocol
-   * op to a <CODE>CompareOperation</CODE> object that may be processed by the
-   * core server.
-   *
-   * @param  requestMessage    The LDAP message containing the compare request
-   *                           protocol op.
-   * @param  clientConnection  The client connection from which the request was
-   *                           read.
-   *
-   * @return  The compare operation created from the provided request message.
-   *
-   * @throws  DirectoryException  If the provided LDAP message cannot be decoded
-   *                              as a compare operation.
-   */
-  public static CompareOperation messageToCompareOperation(
-                                      LDAPMessage requestMessage,
-                                      LDAPClientConnection clientConnection)
-         throws DirectoryException
-  {
-    assert debugEnter(CLASS_NAME, "messageToCompareOperation",
-                      String.valueOf(requestMessage),
-                      String.valueOf(clientConnection));
-
-    // NYI
-    return null;
   }
 
 
