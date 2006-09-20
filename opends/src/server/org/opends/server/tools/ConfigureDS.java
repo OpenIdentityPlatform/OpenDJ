@@ -39,7 +39,7 @@ import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.extensions.SaltedSHA1PasswordStorageScheme;
+import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DN;
 import org.opends.server.util.args.ArgumentException;
@@ -441,7 +441,7 @@ public class ConfigureDS
 
           byte[] rootPWBytes = getBytes(rootPW);
           String encodedPassword =
-               SaltedSHA1PasswordStorageScheme.encodeOffline(rootPWBytes);
+               SaltedSHA512PasswordStorageScheme.encodeOffline(rootPWBytes);
           StringConfigAttribute bindPWAttr =
                new StringConfigAttribute(ATTR_USER_PASSWORD, "", false, false,
                                          false, encodedPassword);
