@@ -301,7 +301,7 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          bindPassword = new ASN1OctetString(charsToBytes(pwChars));
+          bindPassword = new ASN1OctetString(getBytes(pwChars));
           Arrays.fill(pwChars, '\u0000');
         }
       }
@@ -888,7 +888,7 @@ public class LDAPAuthenticationHandler
       }
       else
       {
-        bindPassword = new ASN1OctetString(charsToBytes(pwChars));
+        bindPassword = new ASN1OctetString(getBytes(pwChars));
         Arrays.fill(pwChars, '\u0000');
       }
     }
@@ -1493,7 +1493,7 @@ public class LDAPAuthenticationHandler
       }
       else
       {
-        bindPassword = new ASN1OctetString(charsToBytes(pwChars));
+        bindPassword = new ASN1OctetString(getBytes(pwChars));
         Arrays.fill(pwChars, '\u0000');
       }
     }
@@ -3085,7 +3085,7 @@ public class LDAPAuthenticationHandler
       }
       else
       {
-        bindPassword = new ASN1OctetString(charsToBytes(pwChars));
+        bindPassword = new ASN1OctetString(getBytes(pwChars));
         Arrays.fill(pwChars, '\u0000');
       }
     }

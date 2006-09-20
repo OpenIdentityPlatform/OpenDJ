@@ -41,7 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.RandomAccess;
 import java.util.StringTokenizer;
 
 import org.opends.server.core.DirectoryServer;
@@ -67,7 +67,7 @@ import static org.opends.server.util.ServerConstants.*;
  * to prevent the log from filling up with unimportant calls and to reduce the
  * impact that debugging may have on performance.
  */
-public class StaticUtils
+public final class StaticUtils
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -77,14 +77,23 @@ public class StaticUtils
 
 
   /**
-   * Retrieves a byte array containing the binary representation of the provided
-   * string.  This is significantly faster than calling
-   * <CODE>String.getBytes</CODE> for ASCII strings.
+   * Private constructor to prevent instantiation.
+   */
+  private StaticUtils() {
+    // No implementation required.
+  }
+
+
+
+  /**
+   * Construct a byte array containing the UTF-8 encoding of the
+   * provided string. This is significantly faster
+   * than calling {@link String#getBytes(String)} for ASCII strings.
    *
-   * @param  s  The string for which to retrieve the binary representation.
-   *
-   * @return  A byte array containing the binary representation of the provided
-   *          string.
+   * @param s
+   *          The string to convert to a UTF-8 byte array.
+   * @return Returns a byte array containing the UTF-8 encoding of the
+   *         provided string.
    */
   public static byte[] getBytes(String s)
   {
@@ -126,6 +135,22 @@ public class StaticUtils
         return s.getBytes();
       }
     }
+  }
+
+
+
+  /**
+   * Construct a byte array containing the UTF-8 encoding of the
+   * provided <code>char</code> array.
+   *
+   * @param chars
+   *          The character array to convert to a UTF-8 byte array.
+   * @return Returns a byte array containing the UTF-8 encoding of the
+   *         provided <code>char</code> array.
+   */
+  public static byte[] getBytes(char[] chars)
+  {
+    return getBytes(new String(chars));
   }
 
 
@@ -751,6 +776,12 @@ public class StaticUtils
     int position = b.position();
     int limit    = b.limit();
     int length   = limit - position;
+
+    if (length == 0)
+    {
+      return "";
+    }
+
     StringBuilder buffer = new StringBuilder((length - 1) * 3 + 2);
     buffer.append(byteToHex(b.get()));
 
@@ -1252,7 +1283,7 @@ public class StaticUtils
    * @return  <CODE>true</CODE> if the two array lists are equal, or
    *          <CODE>false</CODE> if they are not.
    */
-  public static boolean listsAreEqual(ArrayList list1, ArrayList list2)
+  public static boolean listsAreEqual(List list1, List list2)
   {
     if (list1 == null)
     {
@@ -1269,6 +1300,16 @@ public class StaticUtils
       return false;
     }
 
+    // If either of the lists doesn't support random access, then fall back
+    // on their equals methods and go ahead and create some garbage with the
+    // iterators.
+    if (!(list1 instanceof RandomAccess) ||
+        !(list2 instanceof RandomAccess))
+    {
+      return list1.equals(list2);
+    }
+
+    // Otherwise we can just retrieve the elements efficiently via their index.
     for (int i=0; i < numElements; i++)
     {
       Object o1 = list1.get(i);
@@ -1288,40 +1329,6 @@ public class StaticUtils
     }
 
     return true;
-  }
-
-
-
-  /**
-   * Indicates whether the contents of the provided sets differ in some way.
-   * This checks to ensure that each set has the same number of elements and
-   * that all elements in the first are also in the second.
-   *
-   * @param  set1  The first set for which to make the determination.
-   * @param  set2  The second set for which to make the determination.
-   *
-   * @return  <CODE>true</CODE> if the sets contain different elements, or
-   *          <CODE>false</CODE> if they contain the same elements.
-   */
-  public static boolean setsDiffer(Set set1, Set set2)
-  {
-    assert debugEnter(CLASS_NAME, "setsDiffer", String.valueOf(set1),
-                      String.valueOf(set2));
-
-    if (set1.size() != set2.size())
-    {
-      return true;
-    }
-
-    for (Object o : set1)
-    {
-      if (! set2.contains(o))
-      {
-        return true;
-      }
-    }
-
-    return false;
   }
 
 
@@ -3061,57 +3068,6 @@ public class StaticUtils
     }
 
     return stringList;
-  }
-
-
-
-  /**
-   * Converts the contents of the provided character array to a byte array.
-   *
-   * @param  chars  The character array to convert to a byte array.
-   *
-   * @return  The byte array converted from the provided character array.
-   */
-  public static byte[] charsToBytes(char[] chars)
-  {
-    if (chars == null)
-    {
-      return null;
-    }
-
-    // Count the number of bytes that will be required for the array.
-    int numBytes = 0;
-    for (char c : chars)
-    {
-      if ((c & 0xFF) == c)
-      {
-        numBytes++;
-      }
-      else
-      {
-        numBytes += 2;
-      }
-    }
-
-
-    // Iterate through the character array and convert the characters to bytes.
-    byte[] bytes = new byte[numBytes];
-    int pos = 0;
-    for (char c : chars)
-    {
-      byte b = (byte) (c & 0xFF);
-      if (c == b)
-      {
-        bytes[pos++] = b;
-      }
-      else
-      {
-        bytes[pos++] = (byte) ((c >> 8) & 0xFF);
-        bytes[pos++] = b;
-      }
-    }
-
-    return bytes;
   }
 
 
