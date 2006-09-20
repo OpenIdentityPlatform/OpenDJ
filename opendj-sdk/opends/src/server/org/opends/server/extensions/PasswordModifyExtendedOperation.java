@@ -460,7 +460,7 @@ public class PasswordModifyExtendedOperation
 
       // Determine whether the user is changing his own password or if it's an
       // administrative reset.
-      boolean selfChange = ((userIdentity == null) ||
+      boolean selfChange = ((userIdentity == null) || (requestorDN == null) ||
                             userDN.equals(requestorDN));
 
 
@@ -943,7 +943,8 @@ public class PasswordModifyExtendedOperation
       // password" flag in the client connection.  Note that we're using the
       // authentication DN rather than the authorization DN in this case to
       // avoid mistakenly clearing the flag for the wrong user.
-      if (selfChange && (authInfo.getAuthenticationDN().equals(userDN)))
+      if (selfChange && (authInfo.getAuthenticationDN() != null) &&
+          (authInfo.getAuthenticationDN().equals(userDN)))
       {
         operation.getClientConnection().setMustChangePassword(false);
       }
