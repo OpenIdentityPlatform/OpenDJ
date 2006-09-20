@@ -1495,7 +1495,7 @@ public class SoftReferenceEntryCache
         }
       }
 
-      if (setsDiffer(includeFilters, newIncludeFilters))
+      if (!includeFilters.equals(newIncludeFilters))
       {
         includeFilters = newIncludeFilters;
 
@@ -1505,7 +1505,7 @@ public class SoftReferenceEntryCache
         }
       }
 
-      if (setsDiffer(excludeFilters, newExcludeFilters))
+      if (!excludeFilters.equals(newExcludeFilters))
       {
         excludeFilters = newExcludeFilters;
 

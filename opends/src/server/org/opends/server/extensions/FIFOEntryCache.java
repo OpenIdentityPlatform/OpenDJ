@@ -2101,7 +2101,7 @@ public class FIFOEntryCache
         }
       }
 
-      if (setsDiffer(includeFilters, newIncludeFilters))
+      if (!includeFilters.equals(newIncludeFilters))
       {
         includeFilters = newIncludeFilters;
 
@@ -2111,7 +2111,7 @@ public class FIFOEntryCache
         }
       }
 
-      if (setsDiffer(excludeFilters, newExcludeFilters))
+      if (!excludeFilters.equals(newExcludeFilters))
       {
         excludeFilters = newExcludeFilters;
 
