@@ -1784,8 +1784,9 @@ public class LDAPAuthenticationHandler
 
     if (realm != null)
     {
-      credBuffer.append(",realm=");
+      credBuffer.append(",realm=\"");
       credBuffer.append(realm);
+      credBuffer.append("\"");
     }
 
     credBuffer.append(",nonce=\"");
