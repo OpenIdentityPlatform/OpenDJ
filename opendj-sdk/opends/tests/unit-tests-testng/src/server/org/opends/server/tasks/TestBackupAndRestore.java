@@ -36,11 +36,12 @@ import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
 
 import java.util.UUID;
+import java.io.File;
 
 /**
- * Tests various valid and invalid combinations of arguments to the backup task.
+ * Tests the backup and restore tasks.
  */
-public class TestBackupTaskArguments extends TasksTestCase
+public class TestBackupAndRestore extends TasksTestCase
 {
   @BeforeClass
   public final void setUp() throws Exception {
@@ -49,7 +50,7 @@ public class TestBackupTaskArguments extends TasksTestCase
 
 
   /**
-   * Backup tasks test data provider.
+   * Backup and restore tasks test data provider.
    *
    * @return The array of tasks test data.  The first column is a task entry
    *  and the second column is the expected completed task state.
@@ -158,13 +159,69 @@ public class TestBackupTaskArguments extends TasksTestCase
                    "ds-task-backup-backend-id: monitor"),
               TaskState.STOPPED_BY_ERROR
          },
+         {
+              // A valid restore task.
+              TestCaseUtils.makeEntry(
+                   "dn: ds-task-id=" + UUID.randomUUID() +
+                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "objectclass: top",
+                   "objectclass: ds-task",
+                   "objectclass: ds-task-restore",
+                   "ds-task-class-name: org.opends.server.tasks.RestoreTask",
+                   "ds-backup-directory-path: bak" + File.separator +
+                        "userRoot"
+              ),
+              TaskState.COMPLETED_SUCCESSFULLY
+         },
+         {
+              // Non-existent restore directory-path.
+              TestCaseUtils.makeEntry(
+                   "dn: ds-task-id=" + UUID.randomUUID() +
+                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "objectclass: top",
+                   "objectclass: ds-task",
+                   "objectclass: ds-task-restore",
+                   "ds-task-class-name: org.opends.server.tasks.RestoreTask",
+                   "ds-backup-directory-path: missing"
+              ),
+              TaskState.STOPPED_BY_ERROR
+         },
+         {
+              // Invalid restore directory-path.
+              TestCaseUtils.makeEntry(
+                   "dn: ds-task-id=" + UUID.randomUUID() +
+                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "objectclass: top",
+                   "objectclass: ds-task",
+                   "objectclass: ds-task-restore",
+                   "ds-task-class-name: org.opends.server.tasks.RestoreTask",
+                   "ds-backup-directory-path: bak"
+              ),
+              TaskState.STOPPED_BY_ERROR
+         },
+         {
+              // Invalid restore backup-id.
+              TestCaseUtils.makeEntry(
+                   "dn: ds-task-id=" + UUID.randomUUID() +
+                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "objectclass: top",
+                   "objectclass: ds-task",
+                   "objectclass: ds-task-restore",
+                   "ds-task-class-name: org.opends.server.tasks.RestoreTask",
+                   "ds-backup-directory-path: bak" + File.separator +
+                        "userRoot",
+                   "ds-backup-id: monday"
+              ),
+              TaskState.STOPPED_BY_ERROR
+         },
     };
   }
 
 
 
   /**
-   * Test that various backup task definitions complete with the expected state.
+   * Test that various backup and restore task definitions complete with the
+   * expected state.
    * @param taskEntry The task entry.
    * @param expectedState The expected completion state of the task.
    */

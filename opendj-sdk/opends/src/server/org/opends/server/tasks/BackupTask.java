@@ -76,6 +76,7 @@ public class BackupTask extends Task
 
 
 
+  // The task arguments.
   private boolean backUpAll;
   private boolean compress;
   private boolean encrypt;
@@ -84,9 +85,16 @@ public class BackupTask extends Task
   private boolean signHash;
   private List<String>  backendIDList;
   private String  backupID;
-  private String  backupDirectory;
+  private File    backupDirectory;
   private String  incrementalBase;
 
+  /**
+   * All the backend configuration entries defined in the server mapped
+   * by their backend ID.
+   */
+  private Map<String,ConfigEntry> configEntries;
+
+  private ArrayList<Backend> backendsToArchive;
 
   /**
    * {@inheritDoc}
@@ -162,21 +170,28 @@ public class BackupTask extends Task
     backupID = TaskUtils.getSingleValueString(attrList);
 
     attrList = taskEntry.getAttribute(typeBackupDirectory);
-    backupDirectory = TaskUtils.getSingleValueString(attrList);
+    String backupDirectoryPath = TaskUtils.getSingleValueString(attrList);
+    backupDirectory = new File(backupDirectoryPath);
+    if (! backupDirectory.isAbsolute())
+    {
+      backupDirectory =
+           new File(DirectoryServer.getServerRoot(), backupDirectoryPath);
+    }
 
     attrList = taskEntry.getAttribute(typeIncrementalBaseID);
     incrementalBase = TaskUtils.getSingleValueString(attrList);
 
+    configEntries = TaskUtils.getBackendConfigEntries();
   }
 
 
   /**
-   * {@inheritDoc}
+   * Validate the task arguments and construct the list of backends to be
+   * archived.
+   * @return  true if the task arguments are valid.
    */
-  protected TaskState runTask()
+  private boolean argumentsAreValid()
   {
-    assert debugEnter(CLASS_NAME, "runTask");
-
     // Make sure that either the backUpAll argument was provided or at least one
     // backend ID was given.  They are mutually exclusive.
     if (backUpAll)
@@ -188,7 +203,7 @@ public class BackupTask extends Task
                                     ATTR_TASK_BACKUP_BACKEND_ID);
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        return TaskState.STOPPED_BY_ERROR;
+        return false;
       }
     }
     else if (backendIDList.isEmpty())
@@ -198,7 +213,7 @@ public class BackupTask extends Task
                                   ATTR_TASK_BACKUP_BACKEND_ID);
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
-      return TaskState.STOPPED_BY_ERROR;
+      return false;
     }
 
 
@@ -223,7 +238,7 @@ public class BackupTask extends Task
                                     ATTR_TASK_BACKUP_INCREMENTAL);
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        return TaskState.STOPPED_BY_ERROR;
+        return false;
       }
     }
 
@@ -238,42 +253,31 @@ public class BackupTask extends Task
                                   ATTR_TASK_BACKUP_HASH);
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
-      return TaskState.STOPPED_BY_ERROR;
+      return false;
     }
 
 
     // Make sure that the backup directory exists.  If not, then create it.
-    File backupDirFile = new File(backupDirectory);
-    if (! backupDirFile.isAbsolute())
-    {
-      backupDirectory = DirectoryServer.getServerRoot() + File.separator +
-                        backupDirectory;
-      backupDirFile = new File(backupDirectory);
-    }
-
-    if (! backupDirFile.exists())
+    if (! backupDirectory.exists())
     {
       try
       {
-        backupDirFile.mkdirs();
+        backupDirectory.mkdirs();
       }
       catch (Exception e)
       {
         int    msgID   = MSGID_BACKUPDB_CANNOT_CREATE_BACKUP_DIR;
-        String message = getMessage(msgID, backupDirectory,
+        String message = getMessage(msgID, backupDirectory.getPath(),
                                     stackTraceToSingleLineString(e));
         System.err.println(message);
-        return TaskState.STOPPED_BY_ERROR;
+        return false;
       }
     }
 
-    Map<String,ConfigEntry> configEntries =
-         TaskUtils.getBackendConfigEntries();
     int numBackends = configEntries.size();
 
 
-    boolean multiple;
-    ArrayList<Backend> backendsToArchive = new ArrayList<Backend>(numBackends);
+    backendsToArchive = new ArrayList<Backend>(numBackends);
 
     if (backUpAll)
     {
@@ -285,10 +289,6 @@ public class BackupTask extends Task
           backendsToArchive.add(b);
         }
       }
-
-      // We'll proceed as if we're backing up multiple backends in this case
-      // even if there's just one.
-      multiple = true;
     }
     else
     {
@@ -320,11 +320,8 @@ public class BackupTask extends Task
       // It is an error if any of the requested backends could not be used.
       if (backendsToArchive.size() != backendIDList.size())
       {
-        return TaskState.STOPPED_BY_ERROR;
+        return false;
       }
-
-      // See if there are multiple backends to archive.
-      multiple = (backendsToArchive.size() > 1);
     }
 
 
@@ -335,7 +332,216 @@ public class BackupTask extends Task
       String message = getMessage(msgID);
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
+      return false;
+    }
+
+
+    return true;
+  }
+
+
+  /**
+   * Archive a single backend, where the backend is known to support backups.
+   * @param b The backend to be archived.
+   * @param backupLocation The backup directory.
+   * @return true if the backend was successfully archived.
+   */
+  private boolean backupBackend(Backend b, File backupLocation)
+  {
+    // Get the config entry for this backend.
+    ConfigEntry configEntry = configEntries.get(b.getBackendID());
+
+
+    // If the directory doesn't exist, then create it.  If it does exist, then
+    // see if it has a backup descriptor file.
+    BackupDirectory backupDir;
+    if (backupLocation.exists())
+    {
+      String descriptorPath = backupLocation.getPath() + File.separator +
+                              BACKUP_DIRECTORY_DESCRIPTOR_FILE;
+      File descriptorFile = new File(descriptorPath);
+      if (descriptorFile.exists())
+      {
+        try
+        {
+          backupDir = BackupDirectory.readBackupDirectoryDescriptor(
+               backupLocation.getPath());
+        }
+        catch (ConfigException ce)
+        {
+          int msgID   = MSGID_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR;
+          String message = getMessage(msgID, descriptorPath, ce.getMessage());
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+          return false;
+        }
+        catch (Exception e)
+        {
+          int msgID   = MSGID_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR;
+          String message = getMessage(msgID, descriptorPath,
+                                      stackTraceToSingleLineString(e));
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+          return false;
+        }
+      }
+      else
+      {
+        backupDir = new BackupDirectory(backupLocation.getPath(),
+                                        configEntry.getDN());
+      }
+    }
+    else
+    {
+      try
+      {
+        backupLocation.mkdirs();
+      }
+      catch (Exception e)
+      {
+        int msgID   = MSGID_BACKUPDB_CANNOT_CREATE_BACKUP_DIR;
+        String message = getMessage(msgID, backupLocation.getPath(),
+                                    stackTraceToSingleLineString(e));
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+        return false;
+      }
+
+      backupDir = new BackupDirectory(backupLocation.getPath(),
+                                      configEntry.getDN());
+    }
+
+
+    // Create a backup configuration.  All the backends are known
+    // to support backups so there is
+    BackupConfig backupConfig = new BackupConfig(backupDir, backupID,
+                                                 incremental);
+    backupConfig.setCompressData(compress);
+    backupConfig.setEncryptData(encrypt);
+    backupConfig.setHashData(hash);
+    backupConfig.setSignHash(signHash);
+    backupConfig.setIncrementalBaseID(incrementalBase);
+
+
+    // Perform the backup.
+    try
+    {
+      b.createBackup(configEntry, backupConfig);
+    }
+    catch (DirectoryException de)
+    {
+      int msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
+      String message = getMessage(msgID, b.getBackendID(),
+                                  de.getErrorMessage());
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+               message, msgID);
+      return false;
+    }
+    catch (Exception e)
+    {
+      int msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
+      String message = getMessage(msgID, b.getBackendID(),
+                                  stackTraceToSingleLineString(e));
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+               message, msgID);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Acquire a shared lock on a backend.
+   * @param b The backend on which the lock is to be acquired.
+   * @return true if the lock was successfully acquired.
+   */
+  private boolean lockBackend(Backend b)
+  {
+    try
+    {
+      String        lockFile      = LockFileManager.getBackendLockFileName(b);
+      StringBuilder failureReason = new StringBuilder();
+      if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_LOCK_BACKEND;
+        String message = getMessage(msgID, b.getBackendID(),
+                                    String.valueOf(failureReason));
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+        return false;
+      }
+    }
+    catch (Exception e)
+    {
+      int    msgID   = MSGID_BACKUPDB_CANNOT_LOCK_BACKEND;
+      String message = getMessage(msgID, b.getBackendID(),
+                                  stackTraceToSingleLineString(e));
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+               message, msgID);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Release a lock on a backend.
+   * @param b The backend on which the lock is held.
+   * @return true if the lock was successfully released.
+   */
+  private boolean unlockBackend(Backend b)
+  {
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(b);
+      StringBuilder failureReason = new StringBuilder();
+      if (! LockFileManager.releaseLock(lockFile, failureReason))
+      {
+        int msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
+        String message = getMessage(msgID, b.getBackendID(),
+                             String.valueOf(failureReason));
+        logError(ErrorLogCategory.BACKEND,
+                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        return false;
+      }
+    }
+    catch (Exception e)
+    {
+      int msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
+      String message = getMessage(msgID, b.getBackendID(),
+                                  stackTraceToSingleLineString(e));
+      logError(ErrorLogCategory.BACKEND,
+               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+      return false;
+    }
+
+    return true;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  protected TaskState runTask()
+  {
+    assert debugEnter(CLASS_NAME, "runTask");
+
+    if (!argumentsAreValid())
+    {
       return TaskState.STOPPED_BY_ERROR;
+    }
+
+    boolean multiple;
+    if (backUpAll)
+    {
+      // We'll proceed as if we're backing up multiple backends in this case
+      // even if there's just one.
+      multiple = true;
+    }
+    else
+    {
+      // See if there are multiple backends to archive.
+      multiple = (backendsToArchive.size() > 1);
     }
 
 
@@ -344,332 +550,49 @@ public class BackupTask extends Task
     for (Backend b : backendsToArchive)
     {
       // Acquire a shared lock for this backend.
-      try
+      if (!lockBackend(b))
       {
-        String        lockFile      = LockFileManager.getBackendLockFileName(b);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
-        {
-          int    msgID   = MSGID_BACKUPDB_CANNOT_LOCK_BACKEND;
-          String message = getMessage(msgID, b.getBackendID(),
-                                      String.valueOf(failureReason));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-          errorsEncountered = true;
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_LOCK_BACKEND;
-        String message = getMessage(msgID, b.getBackendID(),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
         errorsEncountered = true;
         continue;
       }
 
 
-      int    msgID = MSGID_BACKUPDB_STARTING_BACKUP;
-      String message = getMessage(msgID, b.getBackendID());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-               msgID);
-
-
-      // Get the config entry for this backend.
-      ConfigEntry configEntry = configEntries.get(b.getBackendID());
-
-
-      // Get the path to the directory to use for this backup.  If we will be
-      // backing up multiple backends (or if we are backing up all backends,
-      // even if there's only one of them), then create a subdirectory for each
-      // backend.
-      String backupDirPath;
-      if (multiple)
+      try
       {
-        backupDirPath = backupDirectory + File.separator +
-                        b.getBackendID();
-      }
-      else
-      {
-        backupDirPath = backupDirectory;
-      }
+        int    msgID = MSGID_BACKUPDB_STARTING_BACKUP;
+        String message = getMessage(msgID, b.getBackendID());
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
+                 msgID);
 
 
-      // If the directory doesn't exist, then create it.  If it does exist, then
-      // see if it has a backup descriptor file.
-      BackupDirectory backupDir;
-      backupDirFile = new File(backupDirPath);
-      if (backupDirFile.exists())
-      {
-        String descriptorPath = backupDirPath + File.separator +
-                                BACKUP_DIRECTORY_DESCRIPTOR_FILE;
-        File descriptorFile = new File(descriptorPath);
-        if (descriptorFile.exists())
+        // Get the path to the directory to use for this backup.  If we will be
+        // backing up multiple backends (or if we are backing up all backends,
+        // even if there's only one of them), then create a subdirectory for
+        // each
+        // backend.
+        File backupLocation;
+        if (multiple)
         {
-          try
-          {
-            backupDir =
-                 BackupDirectory.readBackupDirectoryDescriptor(backupDirPath);
-          }
-          catch (ConfigException ce)
-          {
-            msgID   = MSGID_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR;
-            message = getMessage(msgID, descriptorPath, ce.getMessage());
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
-            errorsEncountered = true;
-
-            try
-            {
-              String lockFile = LockFileManager.getBackendLockFileName(b);
-              StringBuilder failureReason = new StringBuilder();
-              if (! LockFileManager.releaseLock(lockFile, failureReason))
-              {
-                msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-                message = getMessage(msgID, b.getBackendID(),
-                                     String.valueOf(failureReason));
-                logError(ErrorLogCategory.BACKEND,
-                         ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-              }
-            }
-            catch (Exception e)
-            {
-              msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-              message = getMessage(msgID, b.getBackendID(),
-                                   stackTraceToSingleLineString(e));
-              logError(ErrorLogCategory.BACKEND,
-                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-            }
-
-            continue;
-          }
-          catch (Exception e)
-          {
-            msgID   = MSGID_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR;
-            message = getMessage(msgID, descriptorPath,
-                                 stackTraceToSingleLineString(e));
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
-            errorsEncountered = true;
-
-            try
-            {
-              String lockFile = LockFileManager.getBackendLockFileName(b);
-              StringBuilder failureReason = new StringBuilder();
-              if (! LockFileManager.releaseLock(lockFile, failureReason))
-              {
-                msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-                message = getMessage(msgID, b.getBackendID(),
-                                     String.valueOf(failureReason));
-                logError(ErrorLogCategory.BACKEND,
-                         ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-              }
-            }
-            catch (Exception e2)
-            {
-              msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-              message = getMessage(msgID, b.getBackendID(),
-                                   stackTraceToSingleLineString(e2));
-              logError(ErrorLogCategory.BACKEND,
-                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-            }
-
-            continue;
-          }
+          backupLocation = new File(backupDirectory, b.getBackendID());
         }
         else
         {
-          backupDir = new BackupDirectory(backupDirPath, configEntry.getDN());
-        }
-      }
-      else
-      {
-        try
-        {
-          backupDirFile.mkdirs();
-        }
-        catch (Exception e)
-        {
-          msgID   = MSGID_BACKUPDB_CANNOT_CREATE_BACKUP_DIR;
-          message = getMessage(msgID, backupDirPath,
-                               stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-          errorsEncountered = true;
-
-          try
-          {
-            String lockFile = LockFileManager.getBackendLockFileName(b);
-            StringBuilder failureReason = new StringBuilder();
-            if (! LockFileManager.releaseLock(lockFile, failureReason))
-            {
-              msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-              message = getMessage(msgID, b.getBackendID(),
-                                   String.valueOf(failureReason));
-              logError(ErrorLogCategory.BACKEND,
-                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-            }
-          }
-          catch (Exception e2)
-          {
-            msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-            message = getMessage(msgID, b.getBackendID(),
-                                 stackTraceToSingleLineString(e2));
-            logError(ErrorLogCategory.BACKEND,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          }
-
-          continue;
+          backupLocation = backupDirectory;
         }
 
-        backupDir = new BackupDirectory(backupDirPath, configEntry.getDN());
-      }
 
-
-      // Create a backup configuration and determine whether the requested
-      // backup can be performed using the selected backend.
-      BackupConfig backupConfig = new BackupConfig(backupDir, backupID,
-                                                   incremental);
-      backupConfig.setCompressData(compress);
-      backupConfig.setEncryptData(encrypt);
-      backupConfig.setHashData(hash);
-      backupConfig.setSignHash(signHash);
-      backupConfig.setIncrementalBaseID(incrementalBase);
-
-      StringBuilder unsupportedReason = new StringBuilder();
-      if (! b.supportsBackup(backupConfig, unsupportedReason))
-      {
-        msgID   = MSGID_BACKUPDB_CANNOT_BACKUP;
-        message = getMessage(msgID, b.getBackendID(),
-                             unsupportedReason.toString());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        errorsEncountered = true;
-
-        try
+        if (!backupBackend(b, backupLocation))
         {
-          String lockFile = LockFileManager.getBackendLockFileName(b);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
-          {
-            msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-            message = getMessage(msgID, b.getBackendID(),
-                                 String.valueOf(failureReason));
-            logError(ErrorLogCategory.BACKEND,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          }
-        }
-        catch (Exception e2)
-        {
-          msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-          message = getMessage(msgID, b.getBackendID(),
-                               stackTraceToSingleLineString(e2));
-          logError(ErrorLogCategory.BACKEND,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-        }
-
-        continue;
-      }
-
-
-      // Perform the backup.
-      try
-      {
-        b.createBackup(configEntry, backupConfig);
-      }
-      catch (DirectoryException de)
-      {
-        msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
-        message = getMessage(msgID, b.getBackendID(),
-                                    de.getErrorMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        errorsEncountered = true;
-
-        try
-        {
-          String lockFile = LockFileManager.getBackendLockFileName(b);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
-          {
-            msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-            message = getMessage(msgID, b.getBackendID(),
-                                 String.valueOf(failureReason));
-            logError(ErrorLogCategory.BACKEND,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          }
-        }
-        catch (Exception e)
-        {
-          msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-          message = getMessage(msgID, b.getBackendID(),
-                               stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-        }
-
-        continue;
-      }
-      catch (Exception e)
-      {
-        msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
-        message = getMessage(msgID, b.getBackendID(),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        errorsEncountered = true;
-
-        try
-        {
-          String lockFile = LockFileManager.getBackendLockFileName(b);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
-          {
-            msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-            message = getMessage(msgID, b.getBackendID(),
-                                 String.valueOf(failureReason));
-            logError(ErrorLogCategory.BACKEND,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          }
-        }
-        catch (Exception e2)
-        {
-          msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-          message = getMessage(msgID, b.getBackendID(),
-                               stackTraceToSingleLineString(e2));
-          logError(ErrorLogCategory.BACKEND,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-        }
-
-        continue;
-      }
-
-
-      // Release the shared lock for the backend.
-      try
-      {
-        String lockFile = LockFileManager.getBackendLockFileName(b);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.releaseLock(lockFile, failureReason))
-        {
-          msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-          message = getMessage(msgID, b.getBackendID(),
-                               String.valueOf(failureReason));
-          logError(ErrorLogCategory.BACKEND,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
           errorsEncountered = true;
         }
       }
-      catch (Exception e)
+      finally
       {
-        msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-        message = getMessage(msgID, b.getBackendID(),
-                             stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-        errorsEncountered = true;
+        // Release the shared lock for the backend.
+        if (!unlockBackend(b))
+        {
+          errorsEncountered = true;
+        }
       }
     }
 
