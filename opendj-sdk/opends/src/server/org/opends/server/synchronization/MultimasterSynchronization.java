@@ -264,7 +264,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
   {
 
     // TODO Auto-generated method stub
-    return false;
+    return true;
   }
 
   /**
