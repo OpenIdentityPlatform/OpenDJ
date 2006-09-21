@@ -32,8 +32,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
-import org.opends.server.core.DirectoryException;
-import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.asn1.ASN1Boolean;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Enumerated;
@@ -114,17 +112,15 @@ public class SearchRequestProtocolOp
                                  LinkedHashSet<String> attributes)
   {
     assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(baseDN),
-                              String.valueOf(scope),
-                              String.valueOf(dereferencePolicy),
-                              String.valueOf(sizeLimit),
-                              String.valueOf(timeLimit),
-                              String.valueOf(typesOnly),
-                              String.valueOf(filter),
-                              String.valueOf(attributes)
-                            });
+                            String.valueOf(baseDN),
+                            String.valueOf(scope),
+                            String.valueOf(dereferencePolicy),
+                            String.valueOf(sizeLimit),
+                            String.valueOf(timeLimit),
+                            String.valueOf(typesOnly),
+                            String.valueOf(filter),
+                            String.valueOf(attributes)
+    );
 
 
     this.baseDN            = baseDN;
@@ -658,36 +654,6 @@ public class SearchRequestProtocolOp
     return new SearchRequestProtocolOp(baseDN, scope, dereferencePolicy,
                                        sizeLimit, timeLimit, typesOnly, filter,
                                        attributes);
-  }
-
-
-
-  /**
-   * Converts the provided LDAP message containing a search request protocol op
-   * to a <CODE>SearchOperation</CODE> object that may be processed by the core
-   * server.
-   *
-   * @param  requestMessage    The LDAP message containing the search request
-   *                           protocol op.
-   * @param  clientConnection  The client connection from which the request was
-   *                           read.
-   *
-   * @return  The search operation created from the provided request message.
-   *
-   * @throws  DirectoryException  If the provided LDAP message cannot be decoded
-   *                              as a search operation.
-   */
-  public static SearchOperation messageToSearchOperation(
-                                     LDAPMessage requestMessage,
-                                     LDAPClientConnection clientConnection)
-         throws DirectoryException
-  {
-    assert debugEnter(CLASS_NAME, "messageToSearchOperation",
-                      String.valueOf(requestMessage),
-                      String.valueOf(clientConnection));
-
-    // NYI
-    return null;
   }
 
 
