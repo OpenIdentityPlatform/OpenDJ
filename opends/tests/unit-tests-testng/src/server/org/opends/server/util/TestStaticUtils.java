@@ -77,7 +77,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Once-only initialization.
-   * 
+   *
    * @throws Exception
    *           If an unexpected error occurred.
    */
@@ -87,7 +87,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Create test strings for the {@link StaticUtils#getBytes(String)}.
-   * 
+   *
    * @return Returns an array of test strings.
    */
   @DataProvider(name = "getBytesTestData")
@@ -134,7 +134,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#getBytes(String)} method.
-   * 
+   *
    * @param inputString
    *          The input string.
    * @throws Exception
@@ -148,7 +148,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#getBytes(char[])} method.
-   * 
+   *
    * @param inputString
    *          The input string.
    * @throws Exception
@@ -162,7 +162,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Create test strings for the {@link StaticUtils#byteToHex(byte)}.
-   * 
+   *
    * @return Returns an array of test strings.
    */
   @DataProvider(name = "byteToHexTestData")
@@ -178,7 +178,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#byteToHex(byte)} method.
-   * 
+   *
    * @param b
    *          The input byte.
    * @throws Exception
@@ -196,7 +196,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#byteToLowerHex(byte)} method.
-   * 
+   *
    * @param b
    *          The input byte.
    * @throws Exception
@@ -214,7 +214,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#byteToASCII(byte)} method.
-   * 
+   *
    * @param b
    *          The input byte.
    * @throws Exception
@@ -231,7 +231,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Create test strings for the {@link StaticUtils#bytesToHex(byte[])}.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "bytesToHexTestData")
@@ -246,7 +246,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#bytesToHex(byte[])} method.
-   * 
+   *
    * @param bytes
    *          The input byte array.
    * @param expected
@@ -263,7 +263,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Tests the {@link StaticUtils#bytesToHex(java.nio.ByteBuffer)}
    * method.
-   * 
+   *
    * @param bytes
    *          The input byte array.
    * @param expected
@@ -281,7 +281,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#byteToBinary(byte)} method.
-   * 
+   *
    * @param b
    *          The input byte.
    * @throws Exception
@@ -294,7 +294,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Create test strings for the {@link StaticUtils#isDigit(char)}.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "isDigitTestData")
@@ -315,7 +315,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#isDigit(char)} method.
-   * 
+   *
    * @param c
    *          The test char.
    * @param result
@@ -330,7 +330,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Create test strings for the {@link StaticUtils#isAlpha(char)}.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "isAlphaTestData")
@@ -361,7 +361,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#isAlpha(char)} method.
-   * 
+   *
    * @param c
    *          The test char.
    * @param result
@@ -376,7 +376,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Create test strings for the {@link StaticUtils#isHexDigit(char)}.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "isHexDigitTestData")
@@ -409,7 +409,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#isHexDigit(char)} method.
-   * 
+   *
    * @param c
    *          The test char.
    * @param result
@@ -425,7 +425,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Create invalid test strings for the
    * {@link StaticUtils#hexStringToByteArray(String)}.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "hexStringToByteArrayInvalidTestData")
@@ -436,7 +436,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#hexStringToByteArray(String)} method.
-   * 
+   *
    * @param hexString
    *          The test string.
    * @throws Exception
@@ -451,7 +451,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Create test strings for the
    * {@link StaticUtils#hexStringToByteArray(String)}.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "hexStringToByteArrayTestData")
@@ -462,7 +462,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#hexStringToByteArray(String)} method.
-   * 
+   *
    * @param hexString
    *          The test string.
    * @param bytes
@@ -479,7 +479,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Create test strings for the
    * {@link StaticUtils#needsBase64Encoding(String)}.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "needsBase64EncodingTestData")
@@ -541,7 +541,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#needsBase64Encoding(String)} method.
-   * 
+   *
    * @param s
    *          The test string.
    * @param result
@@ -557,7 +557,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#needsBase64Encoding(byte[])} method.
-   * 
+   *
    * @param s
    *          The test string.
    * @param result
@@ -575,20 +575,24 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Create test strings for the
    * {@link StaticUtils#isRelativePath(String)}.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "isRelativePathTestData")
   public Object[][] createIsRelativePathTestData() {
-    return new Object[][] { { "", true }, { "/", false },
-        { "/foo", false }, { "foo", true }, { "foo/bar", true },
-        { "/foo/bar", false }, { ".", true }, { "..", true },
-        { "/foo/.", false }, { "/foo/..", false } };
+    String root = File.listRoots()[0].getPath();
+    return new Object[][] { { "", true }, { root, false },
+         { root + "foo", false }, { "foo", true },
+         { "foo" + File.separator + "bar", true },
+         { root + "foo" + File.separator + "bar", false },
+         { ".", true }, { "..", true },
+         { root + "foo" + File.separator + ".", false },
+         { root + "foo" + File.separator + "..", false } };
   }
 
   /**
    * Tests the {@link StaticUtils#isRelativePath(String)} method.
-   * 
+   *
    * @param path
    *          The test string.
    * @param result
@@ -604,7 +608,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Create test lists for the {@link StaticUtils#listToArray(List)}.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "listToArrayTestData")
@@ -616,7 +620,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#listToArray(List)} method.
-   * 
+   *
    * @param strings
    *          The test string list.
    * @throws Exception
@@ -638,7 +642,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Tests the {@link StaticUtils#moveFile(java.io.File, java.io.File)}
    * method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -662,7 +666,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Tests the {@link StaticUtils#moveFile(java.io.File, java.io.File)}
    * method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -686,7 +690,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Tests the {@link StaticUtils#moveFile(java.io.File, java.io.File)}
    * method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -708,7 +712,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Tests the {@link StaticUtils#moveFile(java.io.File, java.io.File)}
    * method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -729,7 +733,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Create test content for {@link StaticUtils#moveFile(File, File)}.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "moveFileTestData")
@@ -743,7 +747,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Tests the {@link StaticUtils#moveFile(java.io.File, java.io.File)}
    * method.
-   * 
+   *
    * @param lines
    *          The test file contents.
    * @throws Exception
@@ -788,7 +792,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#recursiveDelete(File)} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -802,7 +806,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#recursiveDelete(File)} method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -850,7 +854,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Create test strings for the {@link StaticUtils#toLowerCase(String)}
    * related methods.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "stringCaseConversionTestData")
@@ -871,7 +875,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#toLowerCase(String)} method.
-   * 
+   *
    * @param input
    *          The test string.
    * @param lower
@@ -891,7 +895,7 @@ public final class TestStaticUtils extends UtilTestCase {
    * Tests the
    * {@link StaticUtils#toLowerCase(byte[], StringBuilder, boolean)}
    * method.
-   * 
+   *
    * @param input
    *          The test string.
    * @param lower
@@ -912,7 +916,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#toUpperCase(String)} method.
-   * 
+   *
    * @param input
    *          The test string.
    * @param lower
@@ -932,7 +936,7 @@ public final class TestStaticUtils extends UtilTestCase {
    * Tests the
    * {@link StaticUtils#toUpperCase(byte[], StringBuilder, boolean)}
    * method.
-   * 
+   *
    * @param input
    *          The test string.
    * @param lower
@@ -955,7 +959,7 @@ public final class TestStaticUtils extends UtilTestCase {
    * Create test strings for the
    * {@link StaticUtils#toRFC3641StringValue(StringBuilder, String)}
    * method.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "toRFC3641StringValueTestData")
@@ -970,7 +974,7 @@ public final class TestStaticUtils extends UtilTestCase {
    * Tests the
    * {@link StaticUtils#toRFC3641StringValue(StringBuilder, String)}
    * method.
-   * 
+   *
    * @param input
    *          The test string.
    * @param expected
@@ -989,7 +993,7 @@ public final class TestStaticUtils extends UtilTestCase {
   /**
    * Create test lists for the
    * {@link StaticUtils#listsAreEqual(List, List)} method.
-   * 
+   *
    * @return Returns an array of test data.
    */
   @DataProvider(name = "listsAreEqualTestData")
@@ -1029,7 +1033,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the {@link StaticUtils#listsAreEqual(List, List)} method.
-   * 
+   *
    * @param list1
    *          The first list.
    * @param list2
