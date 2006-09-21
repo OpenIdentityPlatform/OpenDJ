@@ -41,7 +41,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.IdentityMapper;
-import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
@@ -52,17 +51,13 @@ import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
 import org.opends.server.core.LockManager;
+import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -511,109 +506,44 @@ public class CRAMMD5SASLMechanismHandler
     }
 
 
-    // Get the password attribute from the user entry and iterate through the
-    // available values.  We can only look at reversible values, so all
-    // non-reversible values will be ignored.  For each reversible value, see
-    // if we can use it in conjunction with the challenge to construct the
-    // provided digest.
-    // FIXME -- Determine the attribute based on the user's password policy.
-    AttributeType pwType = DirectoryServer.getAttributeType(ATTR_USER_PASSWORD);
-    if (pwType == null)
+    // Get the clear-text passwords from the user entry, if there are any.
+    List<ByteString> clearPasswords;
+    try
     {
-      pwType = DirectoryServer.getDefaultAttributeType(ATTR_USER_PASSWORD);
-    }
+      PasswordPolicyState pwPolicyState =
+           new PasswordPolicyState(userEntry, false, false);
+      clearPasswords = pwPolicyState.getClearPasswords();
+      if ((clearPasswords == null) || clearPasswords.isEmpty())
+      {
+        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-    List<Attribute> pwAttr = userEntry.getAttribute(pwType);
-    if ((pwAttr == null) || pwAttr.isEmpty())
+        int msgID = MSGID_SASLCRAMMD5_NO_REVERSIBLE_PASSWORDS;
+        String message = getMessage(msgID, String.valueOf(userEntry.getDN()));
+        bindOperation.setAuthFailureReason(msgID, message);
+        return;
+      }
+    }
+    catch (Exception e)
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLCRAMMD5_NO_PW_ATTR;
-      String message = getMessage(msgID, pwType.getNameOrOID());
+      int    msgID   = MSGID_SASLCRAMMD5_CANNOT_GET_REVERSIBLE_PASSWORDS;
+      String message = getMessage(msgID, String.valueOf(userEntry.getDN()),
+                                  String.valueOf(e));
       bindOperation.setAuthFailureReason(msgID, message);
       return;
     }
 
-    boolean reversibleFound = false;
-    boolean matchFound       = false;
-    for (Attribute a : pwAttr)
+
+    // Iterate through the clear-text values and see if any of them can be used
+    // in conjunction with the challenge to construct the provided digest.
+    boolean matchFound = false;
+    for (ByteString clearPassword : clearPasswords)
     {
-      for (AttributeValue v : a.getValues())
+      byte[] generatedDigest = generateDigest(clearPassword, challenge);
+      if (Arrays.equals(digestBytes, generatedDigest))
       {
-        String valueStr = v.getStringValue();
-        int closePos;
-        if (valueStr.startsWith(STORAGE_SCHEME_PREFIX) &&
-            (closePos = valueStr.indexOf(STORAGE_SCHEME_SUFFIX, 2)) > 0)
-        {
-          String schemeName =
-               toLowerCase(valueStr.substring(1, closePos));
-          PasswordStorageScheme scheme =
-               DirectoryServer.getPasswordStorageScheme(schemeName);
-          if (scheme == null)
-          {
-            // We can't do anything with this.  Append a message to the
-            // error message to include in the response and continue.
-            int    msgID   = MSGID_SASLCRAMMD5_UNKNOWN_STORAGE_SCHEME;
-            String message = getMessage(msgID,
-                                        String.valueOf(userEntry.getDN()),
-                                        schemeName);
-            logError(ErrorLogCategory.EXTENSIONS,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-            continue;
-          }
-          else if (! scheme.isReversible())
-          {
-            // It's not a reversible scheme, so we can't get the clear-text
-            // password to test.  Skip it and go on.
-            continue;
-          }
-          else
-          {
-            ASN1OctetString encodedPassword =
-                 new ASN1OctetString(valueStr.substring(closePos+1));
-            ByteString clearPassword;
-
-            try
-            {
-              clearPassword   = scheme.getPlaintextValue(encodedPassword);
-              reversibleFound = true;
-            }
-            catch (DirectoryException de)
-            {
-              assert debugException(CLASS_NAME, "processSASLBind", de);
-
-              int    msgID   = MSGID_SASLCRAMMD5_CANNOT_GET_CLEAR_PASSWORD;
-              String message = getMessage(msgID,
-                                          String.valueOf(userEntry.getDN()),
-                                          schemeName, de.getErrorMessage());
-              logError(ErrorLogCategory.EXTENSIONS,
-                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-              continue;
-            }
-
-
-            byte[] generatedDigest = generateDigest(clearPassword, challenge);
-            if (Arrays.equals(digestBytes, generatedDigest))
-            {
-              matchFound = true;
-              break;
-            }
-          }
-        }
-        else
-        {
-          reversibleFound = true;
-          byte[] generatedDigest = generateDigest(v.getValue(), challenge);
-          if (Arrays.equals(digestBytes, generatedDigest))
-          {
-            matchFound = true;
-            break;
-          }
-        }
-      }
-
-      if (matchFound)
-      {
+        matchFound = true;
         break;
       }
     }
@@ -622,20 +552,10 @@ public class CRAMMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      if (reversibleFound)
-      {
-        int    msgID   = MSGID_SASLCRAMMD5_INVALID_PASSWORD;
-        String message = getMessage(msgID);
-        bindOperation.setAuthFailureReason(msgID, message);
-        return;
-      }
-      else
-      {
-        int    msgID   = MSGID_SASLCRAMMD5_NO_REVERSIBLE_PASSWORDS;
-        String message = getMessage(msgID, String.valueOf(userEntry.getDN()));
-        bindOperation.setAuthFailureReason(msgID, message);
-        return;
-      }
+      int    msgID   = MSGID_SASLCRAMMD5_INVALID_PASSWORD;
+      String message = getMessage(msgID);
+      bindOperation.setAuthFailureReason(msgID, message);
+      return;
     }
 
 
