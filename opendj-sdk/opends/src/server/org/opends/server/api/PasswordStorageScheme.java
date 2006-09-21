@@ -277,6 +277,30 @@ public abstract class PasswordStorageScheme
 
 
   /**
+   * Retrieves the original plaintext value for the provided password
+   * stored in the authPassword syntax.  Note that this should only be
+   * called if <CODE>isReversible</CODE> returns <CODE>true</CODE>.
+   *
+   * @param  authInfo   The authInfo component of the password encoded
+   *                    in the authentication password syntax.
+   * @param  authValue  The authValue component of the password
+   *                    encoded in the authentication password syntax.
+   *
+   * @return  The plaintext value for the provided stored password.
+   *
+   * @throws  DirectoryException  If it is not possible to obtain the
+   *                              plaintext value for the provided
+   *                              stored password, or if this storage
+   *                              scheme does not support the
+   *                              authPassword syntax..
+   */
+  public abstract ByteString getAuthPasswordPlaintextValue(
+                                  String authInfo, String authValue)
+         throws DirectoryException;
+
+
+
+  /**
    * Indicates whether this password storage scheme should be
    * considered "secure".  If the encoding used for this scheme does
    * not obscure the value at all, or if it uses a method that is

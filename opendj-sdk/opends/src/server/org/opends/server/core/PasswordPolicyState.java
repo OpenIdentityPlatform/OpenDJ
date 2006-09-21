@@ -3380,6 +3380,129 @@ public class PasswordPolicyState
 
 
   /**
+   * Retrieves a list of the clear-text passwords for the user.  If the user
+   * does not have any passwords in the clear, then the list will be empty.
+   *
+   * @return  A list of the clear-text passwords for the user.
+   */
+  public List<ByteString> getClearPasswords()
+  {
+    LinkedList<ByteString> clearPasswords = new LinkedList<ByteString>();
+
+    List<Attribute> attrList =
+         userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
+    if (attrList != null)
+    {
+      if (passwordPolicy.usesAuthPasswordSyntax())
+      {
+        for (Attribute a : attrList)
+        {
+          for (AttributeValue v : a.getValues())
+          {
+            try
+            {
+              StringBuilder[] pwComponents =
+                   AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
+              PasswordStorageScheme scheme =
+                   DirectoryServer.getAuthPasswordStorageScheme(
+                                        pwComponents[0].toString());
+              if (scheme == null)
+              {
+                if (debug)
+                {
+                  debugMessage(DebugLogCategory.PASSWORD_POLICY,
+                               DebugLogSeverity.WARNING, CLASS_NAME,
+                               "getClearPasswords",
+                               "User entry " + userDNString + " contains an " +
+                               "authPassword with scheme " + pwComponents[0] +
+                               " that is not defined in the server.");
+                }
+
+                continue;
+              }
+              else if (scheme.isReversible())
+              {
+                ByteString clearValue =
+                     scheme.getAuthPasswordPlaintextValue(
+                          pwComponents[1].toString(),
+                          pwComponents[2].toString());
+                clearPasswords.add(clearValue);
+              }
+            }
+            catch (Exception e)
+            {
+              assert debugException(CLASS_NAME, "getClearPasswords", e);
+
+              if (debug)
+              {
+                debugMessage(DebugLogCategory.PASSWORD_POLICY,
+                             DebugLogSeverity.WARNING, CLASS_NAME,
+                             "getClearPasswords",
+                             "Cannot get clear authPassword value for user " +
+                             userDNString + ":  " + e);
+              }
+            }
+          }
+        }
+      }
+      else
+      {
+        for (Attribute a : attrList)
+        {
+          for (AttributeValue v : a.getValues())
+          {
+            try
+            {
+              String[] pwComponents =
+                   UserPasswordSyntax.decodeUserPassword(v.getStringValue());
+              PasswordStorageScheme scheme =
+                   DirectoryServer.getPasswordStorageScheme(pwComponents[0]);
+              if (scheme == null)
+              {
+                if (debug)
+                {
+                  debugMessage(DebugLogCategory.PASSWORD_POLICY,
+                               DebugLogSeverity.WARNING, CLASS_NAME,
+                               "getClearPasswords",
+                               "User entry " + userDNString + " contains a " +
+                               "password with scheme " + pwComponents[0] +
+                               " that is not defined in the server.");
+                }
+
+                continue;
+              }
+              else if (scheme.isReversible())
+              {
+                ByteString clearValue =
+                     scheme.getPlaintextValue(
+                          new ASN1OctetString(pwComponents[1]));
+                clearPasswords.add(clearValue);
+              }
+            }
+            catch (Exception e)
+            {
+              assert debugException(CLASS_NAME, "getClearPasswords", e);
+
+              if (debug)
+              {
+                debugMessage(DebugLogCategory.PASSWORD_POLICY,
+                             DebugLogSeverity.WARNING, CLASS_NAME,
+                             "getClearPasswords",
+                             "Cannot get clear password value for user " +
+                             userDNString + ":  " + e);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return clearPasswords;
+  }
+
+
+
+  /**
    * Indicates whether the provided password value matches any of the stored
    * passwords in the user entry.
    *

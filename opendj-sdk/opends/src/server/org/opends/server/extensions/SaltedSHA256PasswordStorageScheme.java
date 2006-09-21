@@ -112,21 +112,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Initializes this password storage scheme handler based on the information
-   * in the provided configuration entry.  It should also register itself with
-   * the Directory Server for the particular storage scheme that it will manage.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this password storage scheme
-   *                      handler.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
+  @Override()
   public void initializePasswordStorageScheme(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
@@ -156,10 +144,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Retrieves the name of the password storage scheme provided by this handler.
-   *
-   * @return  The name of the password storage scheme provided by this handler.
+   * {@inheritDoc}
    */
+  @Override()
   public String getStorageSchemeName()
   {
     assert debugEnter(CLASS_NAME, "getStorageSchemeName");
@@ -170,15 +157,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Encodes the provided plaintext password for this storage scheme.  Note that
-   * the provided plaintext password should not be altered in any way.
-   *
-   * @param  plaintext  The plaintext version of the password.
-   *
-   * @return  The password that has been encoded using this storage scheme.
-   *
-   * @throws  DirectoryException  If a problem occurs while processing.
+   * {@inheritDoc}
    */
+  @Override()
   public ByteString encodePassword(ByteString plaintext)
          throws DirectoryException
   {
@@ -233,16 +214,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Encodes the provided plaintext password for this storage scheme, prepending
-   * the name of the scheme in curly braces.  Note that the provided plaintext
-   * password should not be altered in any way.
-   *
-   * @param  plaintext  The plaintext version of the password.
-   *
-   * @return  The encoded password, including the name of the storage scheme.
-   *
-   * @throws  DirectoryException  If a problem occurs while processing.
+   * {@inheritDoc}
    */
+  @Override()
   public ByteString encodePasswordWithScheme(ByteString plaintext)
          throws DirectoryException
   {
@@ -304,17 +278,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Indicates whether the provided plaintext password included in a bind
-   * request matches the given stored value.
-   *
-   * @param  plaintextPassword  The plaintext password provided by the user as
-   *                            part of a simple bind attempt.
-   * @param  storedPassword     The stored password to compare against the
-   *                            provided plaintext password.
-   *
-   * @return  <CODE>true</CODE> if the provided plaintext password matches the
-   *          provided stored password, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean passwordMatches(ByteString plaintextPassword,
                                  ByteString storedPassword)
   {
@@ -381,14 +347,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Indicates whether this password storage scheme supports the ability to
-   * interact with values using the authentication password syntax defined in
-   * RFC 3112.
-   *
-   * @return  <CODE>true</CODE> if this password storage scheme supports the
-   *          ability to interact with values using the authentication password
-   *          syntax, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean supportsAuthPasswordSyntax()
   {
     assert debugEnter(CLASS_NAME, "supportsAuthPasswordSyntax");
@@ -400,15 +361,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Retrieves the scheme name that should be used with this password storage
-   * scheme when it is used in the context of the authentication password
-   * syntax.  This default implementation will return the same value as the
-   * <CODE>getStorageSchemeName</CODE> method.
-   *
-   * @return  The scheme name that should be used with this password storage
-   *          scheme when it is used in the context of the authentication
-   *          password syntax.
+   * {@inheritDoc}
    */
+  @Override()
   public String getAuthPasswordSchemeName()
   {
     assert debugEnter(CLASS_NAME, "getAuthPasswordSchemeName");
@@ -419,19 +374,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Encodes the provided plaintext password for this storage scheme using the
-   * authentication password syntax defined in RFC 3112.  Note that the
-   * provided plaintext password should not be altered in any way.
-   *
-   * @param  plaintext  The plaintext version of the password.
-   *
-   * @return  The password that has been encoded in the authentication password
-   *          syntax.
-   *
-   * @throws  DirectoryException  If a problem occurs while processing of if
-   *                              this storage scheme does not support the
-   *                              authentication password syntax.
+   * {@inheritDoc}
    */
+  @Override()
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
@@ -490,21 +435,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Indicates whether the provided plaintext password matches the encoded
-   * password using the authentication password syntax with the given authInfo
-   * and authValue components.
-   *
-   * @param  plaintextPassword  The plaintext password provided by the user.
-   * @param  authInfo           The authInfo component of the password encoded
-   *                            in the authentication password syntax.
-   * @param  authValue          The authValue component of the password encoded
-   *                            in the authentication password syntax.
-   *
-   * @return  <CODE>true</CODE> if the provided plaintext password matches the
-   *          encoded password according to the authentication password info
-   *          syntax, or <CODE>false</CODE> if it does not or this storage
-   *          scheme does not support the authentication password syntax.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean authPasswordMatches(ByteString plaintextPassword,
                                      String authInfo, String authValue)
   {
@@ -550,12 +483,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Indicates whether this storage scheme is reversible (i.e., it is possible
-   * to obtain the original plaintext value from the stored password).
-   *
-   * @return  <CODE>true</CODE> if this is a reversible password storage scheme,
-   *          or <CODE>false</CODE> if it is not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean isReversible()
   {
     assert debugEnter(CLASS_NAME, "isReversible");
@@ -566,18 +496,9 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Retrieves the original plaintext value for the provided stored password.
-   * Note that this should only be called if <CODE>isReversible</CODE> returns
-   * <CODE>true</CODE>.
-   *
-   * @param  storedPassword  The password for which to obtain the plaintext
-   *                         value.
-   *
-   * @return  The plaintext value for the provided stored password.
-   *
-   * @throws  DirectoryException  If it is not possible to obtain the plaintext
-   *                              value for the provided stored password.
+   * {@inheritDoc}
    */
+  @Override()
   public ByteString getPlaintextValue(ByteString storedPassword)
          throws DirectoryException
   {
@@ -593,22 +514,29 @@ public class SaltedSHA256PasswordStorageScheme
 
 
   /**
-   * Indicates whether this password storage scheme should be considered
-   * "secure".  If the encoding used for this scheme does not obscure the value
-   * at all, or if it uses a method that is trivial to reverse (e.g., base64),
-   * then it should not be considered secure.
-   * <BR><BR>
-   * This may be used to determine whether a password may be included in a set
-   * of search results, including the possibility of overriding access controls
-   * in the case that access controls would allow the password to be returned
-   * but the password is considered too insecure to reveal.
-   *
-   * @return  <CODE>false</CODE> if it may be trivial to discover the original
-   *          plain-text password from the encoded form, or <CODE>true</CODE> if
-   *          the scheme offers sufficient protection that revealing the encoded
-   *          password will not easily reveal the corresponding plain-text
-   *          value.
+   * {@inheritDoc}
    */
+  @Override()
+  public ByteString getAuthPasswordPlaintextValue(String authInfo,
+                                                  String authValue)
+         throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "getAuthPasswordPlaintextValue",
+                      String.valueOf(authInfo), String.valueOf(authValue));
+
+    int msgID = MSGID_PWSCHEME_NOT_REVERSIBLE;
+    String message = getMessage(msgID,
+                                AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_256);
+    throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                 msgID);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public boolean isStorageSchemeSecure()
   {
     assert debugEnter(CLASS_NAME, "isStorageSchemeSecure");
