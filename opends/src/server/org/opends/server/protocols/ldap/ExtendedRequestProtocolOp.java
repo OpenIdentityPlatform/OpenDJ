@@ -30,8 +30,6 @@ package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
 
-import org.opends.server.core.DirectoryException;
-import org.opends.server.core.ExtendedOperation;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
@@ -292,36 +290,6 @@ public class ExtendedRequestProtocolOp
 
 
     return new ExtendedRequestProtocolOp(oid, value);
-  }
-
-
-
-  /**
-   * Converts the provided LDAP message containing an extended request protocol
-   * op to a <CODE>ExtendedOperation</CODE> object that may be processed by the
-   * core server.
-   *
-   * @param  requestMessage    The LDAP message containing the extended request
-   *                           protocol op.
-   * @param  clientConnection  The client connection from which the request was
-   *                           read.
-   *
-   * @return  The extended operation created from the provided request message.
-   *
-   * @throws  DirectoryException  If the provided LDAP message cannot be decoded
-   *                              as an extended operation.
-   */
-  public static ExtendedOperation messageToExtendedOperation(
-                                       LDAPMessage requestMessage,
-                                       LDAPClientConnection clientConnection)
-         throws DirectoryException
-  {
-    assert debugEnter(CLASS_NAME, "messageToExtendedOperation",
-                      String.valueOf(requestMessage),
-                      String.valueOf(clientConnection));
-
-    // NYI
-    return null;
   }
 
 

@@ -30,8 +30,6 @@ package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
 
-import org.opends.server.core.DirectoryException;
-import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.protocols.asn1.ASN1Boolean;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -403,36 +401,6 @@ public class ModifyDNRequestProtocolOp
 
     return new ModifyDNRequestProtocolOp(entryDN, newRDN, deleteOldRDN,
                                          newSuperior);
-  }
-
-
-
-  /**
-   * Converts the provided LDAP message containing a modify DN request protocol
-   * op to a <CODE>ModifyDNOperation</CODE> object that may be processed by the
-   * core server.
-   *
-   * @param  requestMessage    The LDAP message containing the modify DN request
-   *                           protocol op.
-   * @param  clientConnection  The client connection from which the request was
-   *                           read.
-   *
-   * @return  The modify DN operation created from the provided request message.
-   *
-   * @throws  DirectoryException  If the provided LDAP message cannot be decoded
-   *                              as a modify DN operation.
-   */
-  public static ModifyDNOperation messageToModifyDNOperation(
-                                       LDAPMessage requestMessage,
-                                       LDAPClientConnection clientConnection)
-         throws DirectoryException
-  {
-    assert debugEnter(CLASS_NAME, "messageToModifyDNOperation",
-                      String.valueOf(requestMessage),
-                      String.valueOf(clientConnection));
-
-    // NYI
-    return null;
   }
 
 
