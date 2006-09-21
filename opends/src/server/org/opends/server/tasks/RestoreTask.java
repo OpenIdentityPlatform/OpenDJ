@@ -54,6 +54,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.RestoreConfig;
 
 import java.util.List;
+import java.io.File;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -69,7 +70,8 @@ public class RestoreTask extends Task
 
 
 
-  private String backupDirectory;
+  // The task arguments.
+  private File backupDirectory;
   private String backupID;
   private boolean verifyOnly;
 
@@ -99,7 +101,13 @@ public class RestoreTask extends Task
     List<Attribute> attrList;
 
     attrList = taskEntry.getAttribute(typeBackupDirectory);
-    backupDirectory = TaskUtils.getSingleValueString(attrList);
+    String backupDirectoryPath = TaskUtils.getSingleValueString(attrList);
+    backupDirectory = new File(backupDirectoryPath);
+    if (! backupDirectory.isAbsolute())
+    {
+      backupDirectory =
+           new File(DirectoryServer.getServerRoot(), backupDirectoryPath);
+    }
 
     attrList = taskEntry.getAttribute(typebackupID);
     backupID = TaskUtils.getSingleValueString(attrList);
@@ -110,6 +118,72 @@ public class RestoreTask extends Task
   }
 
   /**
+   * Acquire an exclusive lock on a backend.
+   * @param backend The backend on which the lock is to be acquired.
+   * @return true if the lock was successfully acquired.
+   */
+  private boolean lockBackend(Backend backend)
+  {
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(backend);
+      StringBuilder failureReason = new StringBuilder();
+      if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+      {
+        int    msgID   = MSGID_RESTOREDB_CANNOT_LOCK_BACKEND;
+        String message = getMessage(msgID, backend.getBackendID(),
+                                    String.valueOf(failureReason));
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+        return false;
+      }
+    }
+    catch (Exception e)
+    {
+      int    msgID   = MSGID_RESTOREDB_CANNOT_LOCK_BACKEND;
+      String message = getMessage(msgID, backend.getBackendID(),
+                                  stackTraceToSingleLineString(e));
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+               message, msgID);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Release a lock on a backend.
+   * @param backend The backend on which the lock is held.
+   * @return true if the lock was successfully released.
+   */
+  private boolean unlockBackend(Backend backend)
+  {
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(backend);
+      StringBuilder failureReason = new StringBuilder();
+      if (! LockFileManager.releaseLock(lockFile, failureReason))
+      {
+        int    msgID   = MSGID_RESTOREDB_CANNOT_UNLOCK_BACKEND;
+        String message = getMessage(msgID, backend.getBackendID(),
+                                    String.valueOf(failureReason));
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
+                 message, msgID);
+        return false;
+      }
+    }
+    catch (Exception e)
+    {
+      int    msgID   = MSGID_RESTOREDB_CANNOT_UNLOCK_BACKEND;
+      String message = getMessage(msgID, backend.getBackendID(),
+                                  stackTraceToSingleLineString(e));
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
+               message, msgID);
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * {@inheritDoc}
    */
   protected TaskState runTask()
@@ -117,11 +191,11 @@ public class RestoreTask extends Task
     assert debugEnter(CLASS_NAME, "runTask");
 
     // Open the backup directory and make sure it is valid.
-    BackupDirectory backupDir = null;
+    BackupDirectory backupDir;
     try
     {
-      backupDir =
-           BackupDirectory.readBackupDirectoryDescriptor(backupDirectory);
+      backupDir = BackupDirectory.readBackupDirectoryDescriptor(
+           backupDirectory.getPath());
     }
     catch (Exception e)
     {
@@ -221,89 +295,48 @@ public class RestoreTask extends Task
 
 
     // From here we must make sure to re-enable the backend before returning.
+    boolean errorsEncountered = false;
     try
     {
       // Acquire an exclusive lock for the backend.
-      try
+      if (lockBackend(backend))
       {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
-        {
-          int    msgID   = MSGID_RESTOREDB_CANNOT_LOCK_BACKEND;
-          String message = getMessage(msgID, backend.getBackendID(),
-                                      String.valueOf(failureReason));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-          return TaskState.STOPPED_BY_ERROR;
-        }
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_LOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        return TaskState.STOPPED_BY_ERROR;
-      }
-
-
-      // From here we must make sure to release the backend exclusive lock.
-      try
-      {
-        // Perform the restore.
+        // From here we must make sure to release the backend exclusive lock.
         try
         {
-          backend.restoreBackup(configEntry, restoreConfig);
-        }
-        catch (DirectoryException de)
-        {
-          int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
-          String message = getMessage(msgID, backupID, backupDir.getPath(),
-                                      de.getErrorMessage());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-          return TaskState.STOPPED_BY_ERROR;
-        }
-        catch (Exception e)
-        {
-          int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
-          String message = getMessage(msgID, backupID, backupDir.getPath(),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-          return TaskState.STOPPED_BY_ERROR;
-        }
-      }
-      finally
-      {
-        // Release the exclusive lock on the backend.
-        try
-        {
-          String lockFile = LockFileManager.getBackendLockFileName(backend);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
+          // Perform the restore.
+          try
           {
-            int    msgID   = MSGID_RESTOREDB_CANNOT_UNLOCK_BACKEND;
-            String message = getMessage(msgID, backend.getBackendID(),
-                                        String.valueOf(failureReason));
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
+            backend.restoreBackup(configEntry, restoreConfig);
+          }
+          catch (DirectoryException de)
+          {
+            int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
+            String message = getMessage(msgID, backupID, backupDir.getPath(),
+                                        de.getErrorMessage());
+            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                      message, msgID);
-            return TaskState.COMPLETED_WITH_ERRORS;
+            errorsEncountered = true;
+          }
+          catch (Exception e)
+          {
+            int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
+            String message = getMessage(msgID, backupID, backupDir.getPath(),
+                                        stackTraceToSingleLineString(e));
+            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                     message, msgID);
+            errorsEncountered = true;
           }
         }
-        catch (Exception e)
+        finally
         {
-          int    msgID   = MSGID_RESTOREDB_CANNOT_UNLOCK_BACKEND;
-          String message = getMessage(msgID, backend.getBackendID(),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
-          return TaskState.COMPLETED_WITH_ERRORS;
+          // Release the exclusive lock on the backend.
+          if (!unlockBackend(backend))
+          {
+            errorsEncountered = true;
+          }
         }
       }
-
     }
     finally
     {
@@ -318,10 +351,17 @@ public class RestoreTask extends Task
 
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  e.getErrorMessage(), e.getErrorMessageID());
-        return TaskState.STOPPED_BY_ERROR;
+        errorsEncountered = true;
       }
     }
 
-    return TaskState.COMPLETED_SUCCESSFULLY;
+    if (errorsEncountered)
+    {
+      return TaskState.COMPLETED_WITH_ERRORS;
+    }
+    else
+    {
+      return TaskState.COMPLETED_SUCCESSFULLY;
+    }
   }
 }
