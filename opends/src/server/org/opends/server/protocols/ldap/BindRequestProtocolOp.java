@@ -551,36 +551,6 @@ public class BindRequestProtocolOp
   }
 
 
-
-  /**
-   * Converts the provided LDAP message containing a bind request protocol op
-   * to a <CODE>BindOperation</CODE> object that may be processed by the core
-   * server.
-   *
-   * @param  requestMessage    The LDAP message containing the bind request
-   *                           protocol op.
-   * @param  clientConnection  The client connection from which the request was
-   *                           read.
-   *
-   * @return  The bind operation created from the provided request message.
-   *
-   * @throws  DirectoryException  If the provided LDAP message cannot be decoded
-   *                              as a bind operation.
-   */
-  public static BindOperation messageToBindOperation(LDAPMessage requestMessage,
-                                   LDAPClientConnection clientConnection)
-         throws DirectoryException
-  {
-    assert debugEnter(CLASS_NAME, "messageToBindOperation",
-                      String.valueOf(requestMessage),
-                      String.valueOf(clientConnection));
-
-    // NYI
-    return null;
-  }
-
-
-
   /**
    * Appends a string representation of this LDAP protocol op to the provided
    * buffer.
