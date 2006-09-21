@@ -17,6 +17,7 @@
             <package name="org.opends.server.tasks"/>
             <package name="org.opends.server.plugins"/>
             <package name="org.opends.server.types"/>
+            <package name="org.opends.server.changelog"/>
         </packages>
     </test>
 
