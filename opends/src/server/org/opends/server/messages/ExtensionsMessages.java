@@ -3972,6 +3972,37 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if SASL DIGEST-MD5
+   * authentication fails because an error occured while trying to get the
+   * clear-text password value(s) from a user's entry.
+   */
+  public static final int MSGID_SASLDIGESTMD5_CANNOT_GET_REVERSIBLE_PASSWORDS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 376;
+
+
+
+  /**
+   * The message ID for the message that will be used if SASL CRAM-MD5
+   * authentication fails because an error occured while trying to get the
+   * clear-text password value(s) from a user's entry.
+   */
+  public static final int MSGID_SASLCRAMMD5_CANNOT_GET_REVERSIBLE_PASSWORDS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 377;
+
+
+
+  /**
+   * The message ID for the message that will be used if SASL PLAIN
+   * authentication fails because an error occurred while trying to get the
+   * password policy state.  This takes two arguments, which are the user DN and
+   * a message explaining the problem that occurred.
+   */
+  public static final int MSGID_SASLPLAIN_CANNOT_CHECK_PASSWORD_VALIDITY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 378;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -4901,6 +4932,10 @@ public class ExtensionsMessages
                     "unknown storage scheme of %s.");
     registerMessage(MSGID_SASLPLAIN_INVALID_PASSWORD,
                     "The provided password is invalid.");
+    registerMessage(MSGID_SASLPLAIN_CANNOT_CHECK_PASSWORD_VALIDITY,
+                    "An error occurred while attempting to verify the " +
+                    "password for user %s during SASL PLAIN authentication:  " +
+                    "%s.");
     registerMessage(MSGID_SASLPLAIN_UPDATED_IDENTITY_MAPPER,
                     "Attribute " + ATTR_IDMAPPER_DN +
                     " in configuration entry %s has been updated.  The " +
@@ -5057,6 +5092,10 @@ public class ExtensionsMessages
                     "SASL CRAM-MD5 authentication is not possible for user " +
                     "%s because none of the passwords in the user entry are " +
                     "stored in a reversible form.");
+    registerMessage(MSGID_SASLCRAMMD5_CANNOT_GET_REVERSIBLE_PASSWORDS,
+                    "An error occurred while attempting to retrieve the " +
+                    "clear-text password(s) for user %s in order to perform " +
+                    "SASL CRAM-MD5 authentication:  %s.");
     registerMessage(MSGID_SASLCRAMMD5_UPDATED_IDENTITY_MAPPER,
                     "Attribute " + ATTR_IDMAPPER_DN +
                     " in configuration entry %s has been updated.  The " +
@@ -5288,6 +5327,10 @@ public class ExtensionsMessages
                     "SASL DIGEST-MD5 authentication is not possible for user " +
                     "%s because none of the passwords in the user entry are " +
                     "stored in a reversible form.");
+    registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GET_REVERSIBLE_PASSWORDS,
+                    "An error occurred while attempting to retrieve the " +
+                    "clear-text password(s) for user %s in order to perform " +
+                    "SASL DIGEST-MD5 authentication:  %s.");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_DIGEST,
                     "An error occurred while attempting to generate a " +
                     "server-side digest to compare with the client " +

@@ -35,7 +35,6 @@ import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.IdentityMapper;
-import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
@@ -46,17 +45,13 @@ import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
 import org.opends.server.core.LockManager;
+import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -421,85 +416,31 @@ public class PlainSASLMechanismHandler
     }
 
 
-    // Get the password attribute from the user entry and see if any of the
-    // values match the provided clear-text password.
-    // FIXME -- Determine the attribute based on the user's password policy.
-    AttributeType pwType = DirectoryServer.getAttributeType(ATTR_USER_PASSWORD);
-    if (pwType == null)
+    // Get the password policy for the user and use it to determine if the
+    // provided password was correct.
+    try
     {
-      pwType = DirectoryServer.getDefaultAttributeType(ATTR_USER_PASSWORD);
-    }
-
-    List<Attribute> pwAttr = userEntry.getAttribute(pwType);
-    if ((pwAttr == null) || pwAttr.isEmpty())
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      int    msgID   = MSGID_SASLPLAIN_NO_PW_ATTR;
-      String message = getMessage(msgID, pwType.getNameOrOID());
-      bindOperation.setAuthFailureReason(msgID, message);
-      return;
-    }
-
-    ASN1OctetString passwordOS = new ASN1OctetString(password);
-    boolean matchFound = false;
-    for (Attribute a : pwAttr)
-    {
-      for (AttributeValue v : a.getValues())
+      PasswordPolicyState pwPolicyState =
+           new PasswordPolicyState(userEntry, false, false);
+      if (! pwPolicyState.passwordMatches(new ASN1OctetString(password)))
       {
-        String valueStr = v.getStringValue();
-        int closePos;
-        if (valueStr.startsWith(STORAGE_SCHEME_PREFIX) &&
-            (closePos = valueStr.indexOf(STORAGE_SCHEME_SUFFIX, 2)) > 0)
-        {
-          String schemeName =
-               toLowerCase(valueStr.substring(1, closePos));
-          PasswordStorageScheme scheme =
-               DirectoryServer.getPasswordStorageScheme(schemeName);
-          if (scheme == null)
-          {
-            // We can't do anything with this.  Append a message to the
-            // error message to include in the response and continue.
-            int    msgID   = MSGID_SASLPLAIN_UNKNOWN_STORAGE_SCHEME;
-            String message = getMessage(msgID,
-                                        String.valueOf(userEntry.getDN()),
-                                        schemeName);
-            logError(ErrorLogCategory.EXTENSIONS,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          }
-          else
-          {
-            ASN1OctetString storedPassword =
-                 new ASN1OctetString(valueStr.substring(closePos+1));
-            if (scheme.passwordMatches(passwordOS, storedPassword))
-            {
-              matchFound = true;
-              break;
-            }
-          }
-        }
-        else
-        {
-          matchFound = passwordOS.equalsIgnoreType(v.getValue());
-          if (matchFound)
-          {
-            break;
-          }
-        }
-      }
+        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      if (matchFound)
-      {
-        break;
+        int    msgID   = MSGID_SASLPLAIN_INVALID_PASSWORD;
+        String message = getMessage(msgID);
+        bindOperation.setAuthFailureReason(msgID, message);
+        return;
       }
     }
-
-    if (! matchFound)
+    catch (Exception e)
     {
+      assert debugException(CLASS_NAME, "processSASLBind", e);
+
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLPLAIN_INVALID_PASSWORD;
-      String message = getMessage(msgID);
+      int    msgID   = MSGID_SASLPLAIN_CANNOT_CHECK_PASSWORD_VALIDITY;
+      String message = getMessage(msgID, String.valueOf(userEntry.getDN()),
+                                  String.valueOf(e));
       bindOperation.setAuthFailureReason(msgID, message);
       return;
     }
