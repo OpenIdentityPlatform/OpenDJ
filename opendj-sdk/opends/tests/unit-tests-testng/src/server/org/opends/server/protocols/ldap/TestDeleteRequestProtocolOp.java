@@ -31,6 +31,7 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Element;
+import static org.opends.server.util.ServerConstants.EOL;
 
 /**
  * This class defines a set of tests for the
@@ -192,8 +193,10 @@ public class TestDeleteRequestProtocolOp extends LdapTestCase
     DeleteRequestProtocolOp deleteRequest = new DeleteRequestProtocolOp(dn);
     StringBuilder buffer = new StringBuilder();
 
-    String expectedStr = "   Delete Request\n     Entry DN:  " + dn.toString() +
-        "\n";
+    String expectedStr = "   Delete Request" +
+        EOL + "     Entry DN:  " +
+        dn.toString() +
+        EOL;
     deleteRequest.toString(buffer, 3);
 
     assertEquals(buffer.toString(), expectedStr);
