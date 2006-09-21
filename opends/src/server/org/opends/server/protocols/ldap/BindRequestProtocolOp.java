@@ -30,8 +30,6 @@ package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
 
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Integer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
