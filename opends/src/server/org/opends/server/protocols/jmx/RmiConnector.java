@@ -27,12 +27,10 @@
 package org.opends.server.protocols.jmx;
 
 import java.io.IOException;
-import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.RMISocketFactory;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 
 import javax.net.ssl.SSLSocketFactory;
@@ -479,19 +477,6 @@ public class RmiConnector
     }
 
     //
-    // Stop the RMI registry
-    try
-    {
-      UnicastRemoteObject.unexportObject(registry, true);
-    }
-    catch (NoSuchObjectException e)
-    {
-      // TODO Log an error message
-      assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
-    }
-    registry = null;
-
-    //
     // Close the socket
     try
     {
@@ -502,6 +487,6 @@ public class RmiConnector
       // TODO Log an error message
       assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
     }
-
+    registry = null;
   }
 }
