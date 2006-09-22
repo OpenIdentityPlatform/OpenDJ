@@ -474,7 +474,7 @@ public class ModifyDNRequestProtocolOp
     if (newSuperior != null)
     {
       buffer.append(indentBuf);
-      buffer.append("  New Superior:");
+      buffer.append("  New Superior:  ");
       newSuperior.toString(buffer);
       buffer.append(EOL);
     }
