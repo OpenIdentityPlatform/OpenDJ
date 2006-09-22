@@ -37,9 +37,9 @@ import java.io.*;
     #@TestSuitePurpose		Test the add functionality for OpenDS
     #@TestSuiteID		Add Tests
     #@TestSuiteGroup		Bob
-    #@TestGroup  		Bob/BobAddTests
+    #@TestGroup  		Bob
     #@TestScript  		BobAddTests.java
-    #@TestHTMLLink  		blahblah
+    #@TestHTMLLink
 */
 /**
  * This class contains the TestNG tests for the Bob adds.
@@ -49,7 +49,7 @@ public class BobAddTests extends BobTests
 {
 /*
     Place test-specific test information here.
-    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
     #@TestMarker		Bob Add Tests
     #@TestName  		Bob Add 1
     #@TestID    		BobAdd1
@@ -91,7 +91,7 @@ public class BobAddTests extends BobTests
 
 /*
     Place test-specific test information here.
-    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
     #@TestMarker		Bob Add Tests
     #@TestName  		Bob Add 2
     #@TestID    		BobAdd2
@@ -131,6 +131,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 3
+    #@TestID    		BobAdd3
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a new entry as objectclass=inetorgperson that includes a small jpeg photo.
  *
@@ -161,6 +173,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 4
+    #@TestID    		BobAdd4
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a new entry as objectclass=inetorgperson that includes a large jpeg photo.
  *
@@ -191,6 +215,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 5
+    #@TestID    		BobAdd5
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a small jpeg photo to each of five existing entries.
  *
@@ -221,6 +257,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 6
+    #@TestID    		BobAdd6
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a large jpeg photo to each of five existing entries.
  *
@@ -251,6 +299,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 7
+    #@TestID    		BobAdd7
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add five new entries as objectclass=inetorgperson each of which
  *  includes a small jpeg photo.
@@ -282,6 +342,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 8
+    #@TestID    		BobAdd8
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add five new entries as objectclass=inetorgperson each of which
  *  includes a large jpeg photo.
@@ -313,6 +385,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 9
+    #@TestID    		BobAdd9
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a short labeleduri to an existing entry.
  *
@@ -343,6 +427,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 10
+    #@TestID    		BobAdd10
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a long labeleduri to an existing entry.
  *
@@ -373,6 +469,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 11
+    #@TestID    		BobAdd11
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a new entry as objectclass=inetorgperson that includes a short labeleduri.
  *
@@ -403,6 +511,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 12
+    #@TestID    		BobAdd12
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a new entry as objectclass=inetorgperson that includes a long labeleduri.
  *
@@ -433,6 +553,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 13
+    #@TestID    		BobAdd13
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a short labeleduri to each of five existing entries.
  *
@@ -463,6 +595,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 14
+    #@TestID    		BobAdd14
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a long labeleduri to each of five existing entries.
  *
@@ -493,6 +637,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 15
+    #@TestID    		BobAdd15
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add five new entries as objectclass=inetorgperson each of which
  *  includes a short labeleduri.
@@ -524,6 +680,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 16
+    #@TestID    		BobAdd16
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add five new entries as objectclass=inetorgperson each of which
  *  includes a long labeleduri.
@@ -555,6 +723,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 17
+    #@TestID    		BobAdd17
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a short description to an existing entry.
  *
@@ -585,6 +765,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 18
+    #@TestID    		BobAdd18
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a long description to an existing entry.
  *
@@ -615,6 +807,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 19
+    #@TestID    		BobAdd19
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a new entry as objectclass=inetorgperson that includes a short description.
  *
@@ -645,6 +849,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 20
+    #@TestID    		BobAdd20
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a new entry as objectclass=inetorgperson that includes a long description.
  *
@@ -675,6 +891,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 21
+    #@TestID    		BobAdd21
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a short description to each of five existing entries.
  *
@@ -705,6 +933,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 22
+    #@TestID    		BobAdd22
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a long description to each of five existing entries.
  *
@@ -735,6 +975,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 23
+    #@TestID    		BobAdd23
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add five new entries as objectclass=inetorgperson each of which
  *  includes a short description.
@@ -766,6 +1018,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 24
+    #@TestID    		BobAdd24
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add five new entries as objectclass=inetorgperson each of which
  *  includes a long description.
@@ -797,6 +1061,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 25
+    #@TestID    		BobAdd25
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a short seeAlso to an existing entry.
  *
@@ -827,6 +1103,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 26
+    #@TestID    		BobAdd26
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a long seeAlso to an existing entry.
  *
@@ -857,6 +1145,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 27
+    #@TestID    		BobAdd27
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a new entry as objectclass=inetorgperson that includes a short seeAlso.
  *
@@ -887,6 +1187,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 28
+    #@TestID    		BobAdd28
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a new entry as objectclass=inetorgperson that includes a long seeAlso.
  *
@@ -917,6 +1229,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 29
+    #@TestID    		BobAdd29
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a short seeAlso to each of five existing entries.
  *
@@ -947,6 +1271,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 30
+    #@TestID    		BobAdd30
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a long seeAlso to each of five existing entries.
  *
@@ -977,6 +1313,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 31
+    #@TestID    		BobAdd31
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add five new entries as objectclass=inetorgperson each of which
  *  includes a short seeAlso.
@@ -1008,6 +1356,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 32
+    #@TestID    		BobAdd32
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add five new entries as objectclass=inetorgperson each of which
  *  includes a long seeAlso.
@@ -1039,6 +1399,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 33
+    #@TestID    		BobAdd33
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a short pager number to an existing entry.
  *
@@ -1069,6 +1441,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 34
+    #@TestID    		BobAdd34
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a long pager number to an existing entry.
  *
@@ -1099,6 +1483,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 35
+    #@TestID    		BobAdd35
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a new entry as objectclass=inetorgperson that includes a short pager number.
  *
@@ -1129,6 +1525,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 36
+    #@TestID    		BobAdd36
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a new entry as objectclass=inetorgperson that includes a long pager number.
  *
@@ -1159,6 +1567,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 37
+    #@TestID    		BobAdd37
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a short pager number to each of five existing entries.
  *
@@ -1189,6 +1609,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 38
+    #@TestID    		BobAdd38
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a long pager number to each of five existing entries.
  *
@@ -1219,6 +1651,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 39
+    #@TestID    		BobAdd39
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add five new entries as objectclass=inetorgperson each of which
  *  includes a short pager number.
@@ -1250,6 +1694,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 40
+    #@TestID    		BobAdd40
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add five new entries as objectclass=inetorgperson each of which
  *  includes a long pager number.
@@ -1281,6 +1737,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 41
+    #@TestID    		BobAdd41
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a jpeg photo attribute with no value to an existing entry.
  *
@@ -1311,6 +1779,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 42
+    #@TestID    		BobAdd42
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 0
+*/
 /**
  *  Add a jpeg photo attribute with an ascii value to an existing entry.
  *
@@ -1341,6 +1821,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 43
+    #@TestID    		BobAdd43
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 68
+*/
 /**
  *  Add a duplicate entry as objectclass=inetorgperson that includes a jpeg
  *  photo with no attribute.
@@ -1372,6 +1864,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 44
+    #@TestID    		BobAdd44
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 68
+*/
 /**
  *  Add a duplicate entry as objectclass=inetorgperson that includes a jpeg
  *  photo with an ascii value.
@@ -1443,6 +1947,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 */
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 47
+    #@TestID    		BobAdd47
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 68
+*/
 /**
  *  Add a set of entries where the first entry is a duplicate to an existing entry.
  *
@@ -1473,6 +1989,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 48
+    #@TestID    		BobAdd48
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 68
+*/
 /**
  *  Add a set of entries where the third  entry is a duplicate to an existing entry.
  *
@@ -1503,6 +2031,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 49
+    #@TestID    		BobAdd49
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 21
+*/
 /**
  *  Add a description with no value to an existing entry.
  *
@@ -1533,6 +2073,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 50
+    #@TestID    		BobAdd50
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 1
+*/
 /**
  *  Add a description with a binary value to an existing entry.
  *
@@ -1563,6 +2115,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 51
+    #@TestID    		BobAdd51
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 68
+*/
 /**
  *  Add a new entry with a description that has no value.
  *
@@ -1593,6 +2157,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 52
+    #@TestID    		BobAdd52
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 1
+*/
 /**
  *  Add a new entry with a description that has a binary value.
  *
@@ -1623,6 +2199,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 53
+    #@TestID    		BobAdd53
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 20
+*/
 /**
  *  Add a duplicate desciption to an existing entry.
  *
@@ -1653,6 +2241,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 54
+    #@TestID    		BobAdd54
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 1
+*/
 /**
  *  Add a set of entries where the fourth entry has a binary value for the description.
  *
@@ -1683,6 +2283,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 55
+    #@TestID    		BobAdd55
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 68
+*/
 /**
  *  Add a set of duplicate entries where the descriptions have no value.
  *
@@ -1713,6 +2325,18 @@ public class BobAddTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker		Bob Add Tests
+    #@TestName  		Bob Add 56
+    #@TestID    		BobAdd56
+    #@TestPreamble
+    #@TestSteps  		Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult		Success if OpenDS returns 68
+*/
 /**
  *  Add a set of duplicate entries where the descriptions have very long values.
  *

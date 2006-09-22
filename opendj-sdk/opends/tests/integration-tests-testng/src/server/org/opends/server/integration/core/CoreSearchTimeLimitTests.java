@@ -37,9 +37,9 @@ import java.io.*;
     #@TestSuitePurpose          To check that the search time limit is enforced.
     #@TestSuiteID               Search Time Limit
     #@TestSuiteGroup            Core
-    #@TestGroup                 Core/SearchTimeLimit
+    #@TestGroup                 Core
     #@TestScript                CoreSearchTimeLimitTests.java
-    #@TestHTMLLink              blahblah
+    #@TestHTMLLink
 */
 /**
  * This class contains the TestNG tests for the Core functional tests for search size limits.
@@ -47,6 +47,19 @@ import java.io.*;
 @Test
 public class CoreSearchTimeLimitTests extends CoreTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 1
+    #@TestID                    CoreSearchTimeLimit1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with time limit (1) against 1150 entries.
+                                The client binds as cn=Directory Manager.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 3
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a search time limit defined in the command line and the search time is exceeeded.
@@ -77,6 +90,19 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 2
+    #@TestID                    CoreSearchTimeLimit2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with time limit (100) against 1150 entries.
+                                The client binds as cn=Directory Manager.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a search time limit defined in the command line and the search time 
@@ -108,6 +134,20 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 3
+    #@TestID                    CoreSearchTimeLimit3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filenename to the appropriate ldif file.
+                                The ds-cfg-time-limit parameter is changed to
+                                1 under cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Change the server-wide search time limit to 1.
  *
@@ -138,6 +178,19 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 4
+    #@TestID                    CoreSearchTimeLimit4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with time limit (1) against 1150 entries.
+                                The client binds as anonymous.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 3
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a search time limit defined by the server-wide parameter,
@@ -169,6 +222,20 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 5
+    #@TestID                    CoreSearchTimeLimit5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filenename to the appropriate ldif file.
+                                The ds-cfg-time-limit parameter is changed to
+                                60 under cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Change the server-wide search time limit to 60.
  *
@@ -199,6 +266,19 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 6
+    #@TestID                    CoreSearchTimeLimit6
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with time limit (60) against 1150 entries.
+                                The client binds as anonymous.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a search time limit defined by the server-wide parameter,
@@ -230,6 +310,20 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 7
+    #@TestID                    CoreSearchTimeLimit7
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filenename to the appropriate ldif file.
+                                The ds-rlim-time-limit parameter is changed to
+                                1 under cn=Directory Manager,cn=Root,cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Change the user search time limit for cn=Directory Manager to 1.
  *
@@ -260,6 +354,20 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 8
+    #@TestID                    CoreSearchTimeLimit8
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with time limit (1) for user,
+				cn=Directory Manager, against 1150 entries.
+                                The client binds as cn=Directory Manager.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 3
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a user search time limit defined by the user-specific parameter,
@@ -291,6 +399,20 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 9
+    #@TestID                    CoreSearchTimeLimit9
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with time limit (1) for user,
+				cn=Directory Manager, against 1150 entries.
+                                The client binds as anonymous.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a user search time limit defined by the user-specific parameter,
@@ -322,6 +444,20 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 10
+    #@TestID                    CoreSearchTimeLimit10
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filenename to the appropriate ldif file.
+                                The ds-rlim-time-limit parameter is changed to
+                                60 under cn=Directory Manager,cn=Root,cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Change the user search time limit for cn=Directory Manager to 60.
  *
@@ -352,6 +488,19 @@ public class CoreSearchTimeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Time Limit
+    #@TestName                  Search Time Limit 11
+    #@TestID                    CoreSearchTimeLimit11
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with time limit (60) for user,
+				cn=Directory Manager, against 1150 entries.
+                                The client binds as cn=Directory Manager.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a user search time limit defined by the user-specific parameter,

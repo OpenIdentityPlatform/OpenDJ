@@ -30,12 +30,35 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.tools.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Quickstart Setup
+    #@TestSuitePurpose          Perform basic tests to ensure that OpenDS is ready.
+    #@TestSuiteID               Quickstart
+    #@TestSuiteGroup            Quickstart
+    #@TestGroup                 Quickstart
+    #@TestScript                QuickstartAddTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the QuickstartAdd startup.
  */
 @Test
 public class QuickstartAddTests extends QuickstartTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Quickstart Setup
+    #@TestName                  Quickstart Setup 1
+    #@TestID                    Quickstart Add 1
+    #@TestPreamble
+    #@TestSteps                 Client calls checklogdir.sh on unix systems
+				and checklogdir.bat on Windows systems
+				with the java Runtime method, exec().
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  To make the directory for the OpenDS output that will be generated
  *  during the rest of the Integration Tests.
@@ -77,6 +100,18 @@ public class QuickstartAddTests extends QuickstartTests
     compareExitCode(0, 0);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Quickstart Setup
+    #@TestName                  Quickstart Setup 2
+    #@TestID                    Quickstart Add 2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  To add "dc=example,dc=com" and several entries under that dn.
  *

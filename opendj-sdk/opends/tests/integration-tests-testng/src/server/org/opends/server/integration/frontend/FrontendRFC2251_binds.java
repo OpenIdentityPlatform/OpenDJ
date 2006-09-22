@@ -31,12 +31,34 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Frontend RFC2251 Binds
+    #@TestSuitePurpose          Test the RFC2251 standards regarding binds
+    #@TestSuiteID               RFC2251 Binds
+    #@TestSuiteGroup            RFC2251 Binds
+    #@TestGroup                 RFC2251 Binds
+    #@TestScript                FrontendRFC2251_binds.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Frontend functional tests for binds.
  */
 @Test
 public class FrontendRFC2251_binds extends FrontendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Binds
+    #@TestName                  Frontend User Bind 1
+    #@TestID                    FrontendUserBind1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                binding as anonymous.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when a search request is conducted
  *  with an anonymous bind.
@@ -67,6 +89,19 @@ public class FrontendRFC2251_binds extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Binds
+    #@TestName                  Frontend User Bind 2
+    #@TestID                    FrontendUserBind2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                binding as uid=scarter,ou=People,o=frontend tests,
+				dc=example,dc=com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when a search request is conducted
  *  as one of the users.
@@ -97,6 +132,19 @@ public class FrontendRFC2251_binds extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Binds
+    #@TestName                  Frontend User Bind 3
+    #@TestID                    FrontendUserBind3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                binding as uid=scarter,ou=People,o=frontend tests,
+				dc=example,dc=com, but with the wrong password.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 1
+*/
 /**
  *  Check the response of OpenDS when a search request is conducted
  *  when binding as one of the users but with a bad password.
@@ -127,6 +175,19 @@ public class FrontendRFC2251_binds extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Binds
+    #@TestName                  Frontend User Bind 4
+    #@TestID                    FrontendUserBind4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                binding as uid=scarter,ou=People,o=frontend tests,
+				dc=example,dc=com, but with a null password.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 1
+*/
 /**
  *  Check the response of OpenDS when a search request is conducted
  *  when binding as one of the users but with a null password.

@@ -37,9 +37,9 @@ import java.io.*;
     #@TestSuitePurpose          Test the delete functionality for OpenDS
     #@TestSuiteID               Delete Tests
     #@TestSuiteGroup            Bob
-    #@TestGroup                 Bob/BobDeleteTests
+    #@TestGroup                 Bob
     #@TestScript                BobDeleteTests.java
-    #@TestHTMLLink              blahblah
+    #@TestHTMLLink
 */
 /**
  * This class contains the TestNG tests for the Bob deletes.
@@ -47,6 +47,18 @@ import java.io.*;
 @Test
 public class BobDeleteTests extends BobTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 1
+    #@TestID                    BobDelete1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Delete an existing entry using ldapmodify.
  *
@@ -77,6 +89,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 2
+    #@TestID                    BobDelete2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 32
+*/
 /**
  *  Delete a non-existent entry using ldapmodify by trying to delete the entry that
  *  was deleted in the last step.
@@ -108,6 +132,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 3
+    #@TestID                    BobDelete3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 32
+*/
 /**
  *  Delete an entry that has a bad DN using ladpmodify.
  *
@@ -138,6 +174,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 4
+    #@TestID                    BobDelete4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Delete five existing entries using ldapmodify.
  *
@@ -168,6 +216,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 5
+    #@TestID                    BobDelete5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 32
+*/
 /**
  *  Delete five existing entries using ldapmodify, the fourth of which
  *  has a bad DN.
@@ -199,6 +259,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 6
+    #@TestID                    BobDelete6
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 1
+*/
 /**
  *  Delete an existing entry using ldapmodify with an ldif file that
  *  improperly has the format for ldapdelete.
@@ -230,6 +302,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 7
+    #@TestID                    BobDelete7
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPDelete.mainDelete()
+                                with the filename to the appropriate data file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Delete an existing entry using ldapdelete.
  *
@@ -260,6 +344,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 8
+    #@TestID                    BobDelete8
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPDelete.mainDelete()
+                                with the filename to the appropriate data file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 32
+*/
 /**
  *  Delete a non-existent entry using ldapdelete by trying to delete the entry that
  *  was deleted in the last step.
@@ -291,6 +387,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 9
+    #@TestID                    BobDelete9
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPDelete.mainDelete()
+                                with the filename to the appropriate data file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 32
+*/
 /**
  *  Delete an entry that has a bad DN using ldapdelete.
  *
@@ -321,6 +429,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 10
+    #@TestID                    BobDelete10
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPDelete.mainDelete()
+                                with the filename to the appropriate data file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Delete five existing entries using ldapdelete.
  *
@@ -351,6 +471,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 11
+    #@TestID                    BobDelete11
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPDelete.mainDelete()
+                                with the filename to the appropriate data file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 32
+*/
 /**
  *  Delete five existing entries using ldapdelete, the fourth of which
  *  has a bad DN.
@@ -382,6 +514,18 @@ public class BobDeleteTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Delete Tests
+    #@TestName                  Bob Delete 12
+    #@TestID                    BobDelete12
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPDelete.mainDelete()
+                                with the filename to the appropriate data file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 34
+*/
 /**
  *  Delete an existing entry using ldapdelete with a file that
  *  improperly has the format for ldapmodify.
