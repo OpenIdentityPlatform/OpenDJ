@@ -44,6 +44,8 @@ import org.opends.server.core.InitializationException;
 import org.opends.server.loggers.Error;
 import org.opends.server.loggers.Debug;
 import org.opends.server.types.DN;
+import org.opends.server.types.FilePermission;
+import org.opends.server.types.OperatingSystem;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -130,8 +132,9 @@ public final class TestCaseUtils {
     }
     testRoot.mkdirs();
 
-    String[] subDirectories = { "bak", "changelogDb", "classes", "config", "db",
-                                "ldif", "lib", "locks", "logs" };
+    String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
+                                "config", "db", "ldif", "lib", "locks",
+                                "logs" };
     for (String s : subDirectories)
     {
       new File(testRoot, s).mkdir();
@@ -143,7 +146,9 @@ public final class TestCaseUtils {
     File resourceDir   = new File(buildRoot, "resource");
     File testResourceDir = new File(testSrcRoot, "resource");
     File testConfigDir = new File(testRoot, "config");
+    File testBinDir = new File(testRoot, "bin");
 
+    copyDirectory(new File(resourceDir, "bin"), testBinDir);
     copyDirectory(new File(resourceDir, "config"), testConfigDir);
     copyDirectory(new File(resourceDir, "schema"),
                   new File(testConfigDir, "schema"));
@@ -151,6 +156,26 @@ public final class TestCaseUtils {
                   new File(testConfigDir, "MakeLDIF"));
     copyFile(new File(testResourceDir, "jmxkeystore"),
              new File(testRoot, "jmxkeystore"));
+
+
+    // Make the shell scripts in the bin directory executable, if possible.
+    OperatingSystem os = DirectoryServer.getOperatingSystem();
+    if ((os != null) && OperatingSystem.isUNIXBased(os) &&
+        FilePermission.canSetPermissions())
+    {
+      try
+      {
+        FilePermission perm = FilePermission.decodeUNIXMode("755");
+        for (File f : testBinDir.listFiles())
+        {
+          if (f.getName().endsWith(".sh"))
+          {
+            FilePermission.setPermissions(f, perm);
+          }
+        }
+      } catch (Exception e) {}
+    }
+
 
     // Find some free ports for the listeners and write them to the
     // config-chamges.ldif file.
