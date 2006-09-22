@@ -33,6 +33,7 @@ import org.opends.server.types.ByteString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_OID;
 import static org.testng.Assert.*;
 
 /**
@@ -44,6 +45,27 @@ public class EqualityMatchingRuleTest extends SchemaTestCase
   public Object[][] createEqualityMatchingRuleTest()
   {
     return new Object[][] {
+        {"WordEqualityMatchingRule", "first word", "first", true},
+        {"WordEqualityMatchingRule", "first,word", "first", true},
+        {"WordEqualityMatchingRule", "first  word", "first", true},
+        {"WordEqualityMatchingRule", "first#word", "first", true},
+        {"WordEqualityMatchingRule", "first.word", "first", true},
+        {"WordEqualityMatchingRule", "first/word", "first", true},
+        {"WordEqualityMatchingRule", "first$word", "first", true},
+        {"WordEqualityMatchingRule", "first+word", "first", true},
+        {"WordEqualityMatchingRule", "first-word", "first", true},
+        {"WordEqualityMatchingRule", "first=word", "first", true},
+        {"WordEqualityMatchingRule", "word", "first", false},
+        {"WordEqualityMatchingRule", "", "empty", false},
+        {"WordEqualityMatchingRule", "", "", true},
+        
+        {"DirectoryStringFirstComponentEqualityMatchingRule",
+          "(1.2.8.5 NAME 'testtype' DESC 'full type')",
+           "1.2.8.5", true},
+        {"DirectoryStringFirstComponentEqualityMatchingRule",
+             "(1.2.8.5 NAME 'testtype' DESC 'full type')",
+             "something", false},   
+    
         {"BooleanEqualityMatchingRule", "TRUE", "true", true},
         {"BooleanEqualityMatchingRule", "YES", "true", true},
         {"BooleanEqualityMatchingRule", "ON", "true", true},
@@ -103,7 +125,27 @@ public class EqualityMatchingRuleTest extends SchemaTestCase
         {"BitStringEqualityMatchingRule", "\'1\'B", "\'1\'B", true},
         {"BitStringEqualityMatchingRule", "\'0\'B", "\'1\'B", false},
         
-       
+        {"CaseExactIA5EqualityMatchingRule", "12345678",
+                                             "12345678", true},
+        {"CaseExactIA5EqualityMatchingRule", "ABC45678",
+                                             "ABC45678", true},
+        {"CaseExactIA5EqualityMatchingRule", "ABC45678",
+                                             "abc45678", false},
+                                             
+        {"CaseIgnoreIA5EqualityMatchingRule", "12345678",
+                                              "12345678", true},
+        {"CaseIgnoreIA5EqualityMatchingRule", "ABC45678",
+                                              "ABC45678", true},
+        {"CaseIgnoreIA5EqualityMatchingRule", "ABC45678",
+                                              "abc45678", true},
+                                              
+        {"UniqueMemberEqualityMatchingRule",
+                 "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B",
+                 "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B", true},
+        {"UniqueMemberEqualityMatchingRule",
+                 "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B",
+                 "1.3.6.1.4.1.1466.0=#04024869,o=Test,C=GB#'0101'B", true},
+      
     };
 
   }
@@ -168,6 +210,14 @@ public class EqualityMatchingRuleTest extends SchemaTestCase
         {"BitStringEqualityMatchingRule", "010101"},
         {"BitStringEqualityMatchingRule", "\'10101"},
         {"BitStringEqualityMatchingRule", "\'1010\'A"},
+        
+        {"CaseExactIA5EqualityMatchingRule", "12345678\u2163"},
+        
+        {"CaseIgnoreIA5EqualityMatchingRule", "12345678\u2163"},
+        
+        {"UniqueMemberEqualityMatchingRule",
+                "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'123'B"},
+        {"UniqueMemberEqualityMatchingRule", "1.3.6.1.4.1.1466.01"}
         
     };
   }
