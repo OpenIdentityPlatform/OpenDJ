@@ -31,12 +31,36 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Schema RFC Tests
+    #@TestSuitePurpose          Perform rfc-specific schema tests
+    #@TestSuiteID               Schema RFC tests
+    #@TestSuiteGroup            Schema
+    #@TestGroup                 Schema
+    #@TestScript                SchemaRFCTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Schema RFC tests.
  */
 @Test
 public class SchemaRFCTests extends SchemaTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 1
+    #@TestID                    Schema RFC Test 1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry that has a 
+				labeledURI attribute.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by rfc 2079.
  *
@@ -67,6 +91,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 2
+    #@TestID                    Schema RFC Test 2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry that uses
+				dcObject objectclass.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by rfc 2247.
  *
@@ -97,6 +135,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 3
+    #@TestID                    Schema RFC Test 3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry that uses
+				domain objectclass.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by rfc 2247.
  *
@@ -127,6 +179,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 4
+    #@TestID                    Schema RFC Test 4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry that uses
+				dcObject objectclass, but has no structural
+				objectclass which is required.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 65
+*/
 /**
  *  Add an entry that is covered by rfc 2247.
  *
@@ -157,6 +224,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 5
+    #@TestID                    Schema RFC Test 5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry that uses
+				dcObject objectclass, but lacks required attributes.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 65
+*/
 /**
  *  Add an entry that is covered by rfc 2247.
  *
@@ -187,6 +268,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 6
+    #@TestID                    Schema RFC Test 6
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry that uses
+				dcObject objectclass, but lacks required attributes
+				and lacks a required structural objectclass.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 65
+*/
 /**
  *  Add an entry that is covered by rfc 2247.
  *
@@ -217,6 +313,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 7
+    #@TestID                    Schema RFC Test 7
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains entries that use
+				uid=, dc=, and cn= in the rdn.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by rfc 2377.
  *
@@ -247,6 +357,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 8
+    #@TestID                    Schema RFC Test 8
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains entries that use
+				inetorgperson objectclass.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by rfc 2798.
  *
@@ -277,6 +401,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 9
+    #@TestID                    Schema RFC Test 9
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				which modifies the vendorName attribute. 
+				The user should not be able to modify this attribute.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 53
+*/
 /**
  *  Modify an entry that is covered by rfc 3045.
  *
@@ -307,6 +446,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 10
+    #@TestID                    Schema RFC Test 10
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				which modifies the vendorVersion attribute. 
+				The user should not be able to modify this attribute.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 53
+*/
 /**
  *  Modify an entry that is covered by rfc 3045.
  *
@@ -337,6 +491,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 11
+    #@TestID                    Schema RFC Test 11
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses uddiBusinessEntity objectclass.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by rfc 4403.
  *
@@ -367,6 +535,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 12
+    #@TestID                    Schema RFC Test 12
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses uddiBusinessService objectclass.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by rfc 4403.
  *
@@ -397,6 +579,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 13
+    #@TestID                    Schema RFC Test 13
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses uddiBusinessService objectclass
+				but violates the DIT structure rule.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 65
+*/
 /**
  *  Add an entry that is covered by rfc 4403.
  *
@@ -427,6 +624,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 14
+    #@TestID                    Schema RFC Test 14
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses uddiContact objectclass.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by rfc 4403.
  *
@@ -457,6 +668,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 15
+    #@TestID                    Schema RFC Test 15
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses uddiContact objectclass,
+				but violates the DIT structure rule.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 65
+*/
 /**
  *  Add an entry that is covered by rfc 4403.
  *
@@ -487,6 +713,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 16
+    #@TestID                    Schema RFC Test 16
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses ipHost and device objectclasses.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-howard-rfc2307bis.
  *
@@ -517,6 +757,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 17
+    #@TestID                    Schema RFC Test 17
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses ipHost and device objectclasses,
+				but required attributes are missing.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 65
+*/
 /**
  *  Add an entry that is violates draft-howard-rfc2307bis.
  *
@@ -547,6 +802,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 18
+    #@TestID                    Schema RFC Test 18
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses ipHost, device and bootabledevice
+				objectclasses.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-howard-rfc2307bis.
  *
@@ -577,6 +847,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 19
+    #@TestID                    Schema RFC Test 19
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses ipHost and device objectclasses,
+				but contains attributes for bootabledevice objectclass.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 65
+*/
 /**
  *  Add an entry that is covered by draft-howard-rfc2307bis.
  *
@@ -607,6 +892,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 20
+    #@TestID                    Schema RFC Test 20
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses untypedobject objectclass.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-furseth-ldap-untypedobject.
  *
@@ -637,6 +936,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 21
+    #@TestID                    Schema RFC Test 21
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses changeLogEntry objectclass. The
+				change type for the log is add.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-good-ldap-changelog.
  *
@@ -667,6 +981,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 22
+    #@TestID                    Schema RFC Test 22
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses changeLogEntry objectclass. The
+				change type for the log is delete.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-good-ldap-changelog.
  *
@@ -697,6 +1026,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 23
+    #@TestID                    Schema RFC Test 23
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses changeLogEntry objectclass. The
+				change type for the log is modify.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-good-ldap-changelog.
  *
@@ -727,6 +1071,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 24
+    #@TestID                    Schema RFC Test 24
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses namedObject objectclass. 
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-howard-namedobject.
  *
@@ -757,6 +1115,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 25
+    #@TestID                    Schema RFC Test 25
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses namedObject objectclass, 
+				and contains other optional attributes. 
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-howard-namedobject.
  *
@@ -787,6 +1160,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 26
+    #@TestID                    Schema RFC Test 26
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses ldapSubEntry objectclass. 
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-ietf-ldup-subentry.
  *
@@ -817,6 +1204,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 27
+    #@TestID                    Schema RFC Test 27
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses ldapSubEntry and posixGroup objectclasses. 
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-ietf-ldup-subentry.
  *
@@ -847,6 +1248,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 28
+    #@TestID                    Schema RFC Test 28
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry
+				that uses ldapSubEntry and posixGroup objectclasses,
+				but contains an attribute defined as NO_USER_MODIFICATION. 
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 53
+*/
 /**
  *  Add an entry that is covered by draft-ietf-ldup-subentry.
  *
@@ -877,6 +1293,18 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 29
+    #@TestID                    Schema RFC Test 29
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Disable schema checking.
  *
@@ -907,6 +1335,18 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 30
+    #@TestID                    Schema RFC Test 30
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Enable schema checking.
  *
@@ -937,6 +1377,18 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 31
+    #@TestID                    Schema RFC Test 31
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Disable syntax checking.
  *
@@ -967,6 +1419,18 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 32
+    #@TestID                    Schema RFC Test 32
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Enable syntax checking.
  *
@@ -997,6 +1461,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 33
+    #@TestID                    Schema RFC Test 33
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry that uses document
+				objectclass.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine.
  *
@@ -1027,6 +1505,21 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 34
+    #@TestID                    Schema RFC Test 34
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry that uses document
+				objectclass, and contains additional optional
+				attributes.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine.
  *
@@ -1057,6 +1550,20 @@ public class SchemaRFCTests extends SchemaTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema RFC Tests
+    #@TestName                  Schema RFC Test 35
+    #@TestID                    Schema RFC Test 35
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+				The ldif file contains an entry that uses document
+				objectclass, but is missing required attributes.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 65
+*/
 /**
  *  Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine.
  *

@@ -36,9 +36,9 @@ import org.opends.server.tools.*;
     #@TestSuitePurpose          Setup methods for core server test suites
     #@TestSuiteID               Setup
     #@TestSuiteGroup            Core
-    #@TestGroup                 Core/Setup
+    #@TestGroup                 Core
     #@TestScript                CoreStartupTests.java
-    #@TestHTMLLink              blahblah
+    #@TestHTMLLink
 */
 /**
  * This class contains the TestNG tests for the Core startup.

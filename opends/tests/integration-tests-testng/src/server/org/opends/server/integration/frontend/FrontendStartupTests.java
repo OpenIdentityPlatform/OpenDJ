@@ -30,12 +30,34 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.tools.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Frontend Setup
+    #@TestSuitePurpose          Setup methods for the Frontend test suites
+    #@TestSuiteID               Setup
+    #@TestSuiteGroup            Frontend
+    #@TestGroup                 Frontend
+    #@TestScript                FrontendStartupTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Frontend startup.
  */
 @Test
 public class FrontendStartupTests extends FrontendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend Setup
+    #@TestName                  Frontend Setup 1
+    #@TestID                    FrontendStartup1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add entries that are required for the Frontend Tests.
  *

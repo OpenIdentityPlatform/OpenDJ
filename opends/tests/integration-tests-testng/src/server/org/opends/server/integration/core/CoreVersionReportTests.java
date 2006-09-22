@@ -33,13 +33,13 @@ import java.io.*;
 
 /*
     Place suite-specific test information here.
-    #@TestSuiteName             Server Version Reporting
+    #@TestSuiteName             Core Server Version Reporting
     #@TestSuitePurpose          To check that the server version reporting is correct
     #@TestSuiteID               Server Version Reporting
     #@TestSuiteGroup            Core
-    #@TestGroup                 Core/VersionReport
+    #@TestGroup                 Core
     #@TestScript                CoreVersionReportTests.java
-    #@TestHTMLLink              blahblah
+    #@TestHTMLLink
 */
 /**
  * This class contains the TestNG tests for the Core version reporting tests. 
@@ -47,6 +47,18 @@ import java.io.*;
 @Test
 public class CoreVersionReportTests extends CoreTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core Server Version Reporting
+    #@TestName                  Version Report 1
+    #@TestID                    CoreVersionReport1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                for entry, cn=version,cn=monitor.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  for the current version of OpenDS.

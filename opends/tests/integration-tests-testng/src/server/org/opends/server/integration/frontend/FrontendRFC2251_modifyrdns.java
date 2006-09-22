@@ -31,12 +31,34 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Frontend RFC2251 Modify RDNs
+    #@TestSuitePurpose          Test the RFC2251 standards regarding modify RDNs
+    #@TestSuiteID               RFC2251 Modify RDNs
+    #@TestSuiteGroup            RFC2251 Modify RDNs
+    #@TestGroup                 RFC2251 Modify RDNs
+    #@TestScript                FrontendRFC2251_modifyrdns.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Frontend functional tests for modify RDNs.
  */
 @Test
 public class FrontendRFC2251_modifyrdns extends FrontendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modify RDNs
+    #@TestName                  Frontend User Modify RDN 1
+    #@TestID                    FrontendUserModifyRDN1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Modify the RDN for an existing entry and retain the old RDN.
  *
@@ -67,6 +89,20 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modify RDNs
+    #@TestName                  Frontend User Modify RDN 1 check entry
+    #@TestID                    FrontendUserModifyRDN1_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+                                uid, with value, kwintersmith.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the entry that was modified in the last test.
  *
@@ -96,6 +132,18 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modify RDNs
+    #@TestName                  Frontend User Modify RDN 2
+    #@TestID                    FrontendUserModifyRDN2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Modify the RDN for an existing entry and delete the old RDN.
  *
@@ -126,6 +174,20 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modify RDNs
+    #@TestName                  Frontend User Modify RDN 2 check entry
+    #@TestID                    FrontendUserModifyRDN2_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+                                uid, with value, kwintersmith.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the entry that was modified in the last test.
  *
@@ -155,6 +217,18 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modify RDNs
+    #@TestName                  Frontend User Modify RDN 3
+    #@TestID                    FrontendUserModifyRDN3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 32
+*/
 /**
  *  Modify the RDN for non-existent entry.
  *
@@ -185,6 +259,18 @@ public class FrontendRFC2251_modifyrdns extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modify RDNs
+    #@TestName                  Frontend User Modify RDN 4
+    #@TestID                    FrontendUserModifyRDN4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 68
+*/
 /**
  *  Modify the RDN for an existing entry to the RDN of another existing entry.
  *

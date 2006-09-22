@@ -37,9 +37,9 @@ import java.io.*;
     #@TestSuitePurpose          To check that the search size limit is enforced.
     #@TestSuiteID               Search Size Limit
     #@TestSuiteGroup            Core
-    #@TestGroup                 Core/SearchSizeLimit
+    #@TestGroup                 Core
     #@TestScript                CoreSearchSizeLimitTests.java
-    #@TestHTMLLink              blahblah
+    #@TestHTMLLink
 */
 /**
  * This class contains the TestNG tests for the Core functional tests for search size limits.
@@ -55,8 +55,8 @@ public class CoreSearchSizeLimitTests extends CoreTests
     #@TestID                    CoreSearchSizeLimit1
     #@TestPreamble
     #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
-                                with a search size limit defined in the command
-				line and the search size is exceeded.
+                                with size limit (150) against 151 entries.
+				The client binds as cn=Directory Manager.
     #@TestPostamble
     #@TestResult                Success if OpenDS returns 4
 */
@@ -91,6 +91,19 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 2
+    #@TestID                    CoreSearchSizeLimit2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with size limit (151) against 151 entries.
+				The client binds as cn=Directory Manager.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a search size limit defined in the command line and the search
@@ -122,6 +135,20 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 3
+    #@TestID                    CoreSearchSizeLimit3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filenename to the appropriate ldif file.
+				The ds-cfg-size-limit parameter is changed to
+				5 under cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Change the server-wide search size limit to 5.
  *
@@ -152,6 +179,19 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 4
+    #@TestID                    CoreSearchSizeLimit4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with size limit (5) against many entries.
+				The client binds as anonymous.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 4
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a search size limit defined by the server-wide parameter,
@@ -183,6 +223,20 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 5
+    #@TestID                    CoreSearchSizeLimit5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filenename to the appropriate ldif file.
+				The ds-cfg-size-limit parameter is changed to
+				10000 under cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Change the server-wide search size limit to 1000.
  *
@@ -213,6 +267,19 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 6
+    #@TestID                    CoreSearchSizeLimit6
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with size limit (10000) against less than 10000 entries.
+				The client binds as anonymous.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a search size limit defined by the server-wide parameter,
@@ -244,6 +311,20 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 7
+    #@TestID                    CoreSearchSizeLimit7
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filenename to the appropriate ldif file.
+				The ds-rlim-size-limit is changed to 5 under
+				cn=Directory Manager,cn=Root DNs,cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Change the search size limit for cn=Directory Manager to 5.
  *
@@ -274,6 +355,20 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 8
+    #@TestID                    CoreSearchSizeLimit8
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with user size limit (5) for user,
+				cn=Directory Manager, against many entries.
+				The client binds as cn=Directory Manager.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 4
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a user search size limit defined by the user-specific parameter,
@@ -305,6 +400,20 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 9
+    #@TestID                    CoreSearchSizeLimit9
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with user size limit (5) for user,
+				cn=Directory Manager, against many entries.
+				The client binds as anonymous.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a user search size limit defined by the user-specific parameter,
@@ -336,6 +445,20 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 10
+    #@TestID                    CoreSearchSizeLimit10
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filenename to the appropriate ldif file.
+				The ds-rlim-size-limit is changed to -1 under
+				cn=Directory Manager,cn=Root DNs,cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Change the search size limit for cn=Directory Manager to -1.
  *
@@ -366,6 +489,19 @@ public class CoreSearchSizeLimitTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Search Size Limit
+    #@TestName                  Search Size Limit 11
+    #@TestID                    CoreSearchSizeLimit11
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with user size limit (-1) against many entries.
+				The client binds as cn=Directory Manager.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
  *  with a user search size limit defined as "unlimited" by the user-specific 

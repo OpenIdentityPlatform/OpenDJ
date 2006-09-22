@@ -30,12 +30,34 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.tools.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Schema Setup
+    #@TestSuitePurpose          Setup methods for the Schema test suites
+    #@TestSuiteID               Setup
+    #@TestSuiteGroup            Schema
+    #@TestGroup                 Schema
+    #@TestScript                SchemaStartupTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Schema startup.
  */
 @Test
 public class SchemaStartupTests extends SchemaTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Schema Setup
+    #@TestName                  Schema Setup 1
+    #@TestID                    SchemaStartup1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add entries that are required for the Schema Tests.
  *

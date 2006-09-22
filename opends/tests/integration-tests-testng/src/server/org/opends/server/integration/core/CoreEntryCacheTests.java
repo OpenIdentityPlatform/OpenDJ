@@ -37,9 +37,9 @@ import java.io.*;
     #@TestSuitePurpose          To check that the entry cache is managed correctly.
     #@TestSuiteID               Entry Cache
     #@TestSuiteGroup            Core
-    #@TestGroup                 Core/EntryCache
+    #@TestGroup                 Core
     #@TestScript                CoreEntryCacheTests.java
-    #@TestHTMLLink              blahblah
+    #@
 */
 /**
  * This class contains the TestNG tests for the Core version reporting tests. 
@@ -90,6 +90,20 @@ public class CoreEntryCacheTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core Entry Cache
+    #@TestName                  Entry Cache 2
+    #@TestID                    CoreEntryCache2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify() 
+                                with the filename to the appropriate ldif file.
+				The ds-config-entryCacheEnabled parameter is set
+				to true under cn=Entry Cache,cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Enable the default entry cache.
  *
@@ -120,6 +134,22 @@ public class CoreEntryCacheTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core Entry Cache
+    #@TestName                  Entry Cache 3
+    #@TestID                    CoreEntryCache3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify() 
+                                with the filename to the appropriate ldif file.
+				The attributes, ds-config-locktimeout (value=60),
+				ds-config-excludeFilter (value="telephonenumber=*"),
+				and ds-config-includeFilter (value="roomnumber=*") 
+				are added to cn=Entry Cache,cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add three attributes to cn=Entry Cache,cn=config.
  *
@@ -150,6 +180,20 @@ public class CoreEntryCacheTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core Entry Cache
+    #@TestName                  Entry Cache 4
+    #@TestID                    CoreEntryCache4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify() 
+                                with the filename to the appropriate ldif file.
+				The attribute, ds-config-maxEntries, is added
+				cn=Entry Cache,cn=config.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 65
+*/
 /**
  *  Add one attribute that is not allowed under cn=Entry Cache,cn=config
  *
@@ -180,6 +224,20 @@ public class CoreEntryCacheTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core Entry Cache
+    #@TestName                  Entry Cache 5
+    #@TestID                    CoreEntryCache5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify() 
+                                with the filename to the appropriate ldif file.
+				The entry, "cn=Entry Cache 2,cn=config, is added
+				to OpenDS with several attributes.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add second entry cache which is an object of the ds-cfg-fifo-entry-cache class.
  *
@@ -210,6 +268,19 @@ public class CoreEntryCacheTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core Entry Cache
+    #@TestName                  Entry Cache 6
+    #@TestID                    CoreEntryCache6
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch() 
+                                against all the entries currently in OpenDS.
+				The client binds as cn=Directory Manager.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted.
  *

@@ -31,12 +31,35 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Frontend RFC2251 Deletes
+    #@TestSuitePurpose          Test the RFC2251 standards regarding deletes
+    #@TestSuiteID               RFC2251 Deletes
+    #@TestSuiteGroup            RFC2251 Deletes
+    #@TestGroup                 RFC2251 Deletes
+    #@TestScript                FrontendRFC2251_deletes.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Frontend functional tests for deletes.
  */
 @Test
 public class FrontendRFC2251_deletes extends FrontendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Deletes
+    #@TestName                  Frontend User Delete 1 precheck
+    #@TestID                    FrontendUserDelete1_precheck
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+				with base DN, uid=jvedder,ou=People,ou=deletes,
+				o=frontend tests,dc=example,dc=com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check for the existence of the entry which will be deleted in the next test.
  *
@@ -66,6 +89,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Deletes
+    #@TestName                  Frontend User Delete 1 
+    #@TestID                    FrontendUserDelete1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPDelete.mainDelete()
+				with base DN, uid=jvedder,ou=People,ou=deletes,
+				o=frontend tests,dc=example,dc=com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when a delete request is conducted
  *  for an existing entry.
@@ -96,6 +132,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Deletes
+    #@TestName                  Frontend User Delete 1 check entry
+    #@TestID                    FrontendUserDelete1_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+				with base DN, uid=jvedder,ou=People,ou=deletes,
+				o=frontend tests,dc=example,dc=com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 32
+*/
 /**
  *  Check for the existence of the entry which was deleted in the last test.
  *
@@ -125,6 +174,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Deletes
+    #@TestName                  Frontend User Delete 2 precheck
+    #@TestID                    FrontendUserDelete2_precheck
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+				with base DN, uid=mtyler,ou=People,ou=deletes,
+				o=frontend tests,dc=example,dc=com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check for the existence of the entry as a precheck for the next test.
  *
@@ -154,6 +216,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Deletes
+    #@TestName                  Frontend User Delete 2 
+    #@TestID                    FrontendUserDelete2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPDelete.mainDelete()
+				with base DN, uid=mtyler,ou=People,ou=deletes,
+				o=frontend tests,dc=example,dc=com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 66
+*/
 /**
  *  Check the response of OpenDS when a delete request is conducted
  *  for  branch.
@@ -184,6 +259,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Deletes
+    #@TestName                  Frontend User Delete 2 check entry
+    #@TestID                    FrontendUserDelete2_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+				with base DN, uid=mtyler,ou=People,ou=deletes,
+				o=frontend tests,dc=example,dc=com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check for the existence of the entry that should still be present
  *  after the last test.
@@ -214,6 +302,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Deletes
+    #@TestName                  Frontend User Delete 3 precheck
+    #@TestID                    FrontendUserDelete3_precheck
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+				with base DN, uid=mtyler,ou=People,ou=deletes,
+				o=frontend tests,dc=example,dc=com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check for the existence of the entry as a precheck for the next test.
  *
@@ -243,6 +344,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Deletes
+    #@TestName                  Frontend User Delete 3 
+    #@TestID                    FrontendUserDelete3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPDelete.mainDelete()
+				with the parameter, -x, on ou=People,ou=deletes,
+				o=frontend tests,dc=example,dc=com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when a delete request is conducted
  *  on a branck using the "-x" parameter.
@@ -273,6 +387,19 @@ public class FrontendRFC2251_deletes extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Deletes
+    #@TestName                  Frontend User Delete 3 check entry
+    #@TestID                    FrontendUserDelete3_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+				with base DN, uid=mtyler,ou=People,ou=deletes,
+				o=frontend tests,dc=example,dc=com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 32
+*/
 /**
  *  Check for the existence of the entry that should have been deleted
  *  after the last test.

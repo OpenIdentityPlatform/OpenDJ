@@ -37,9 +37,9 @@ import java.io.*;
     #@TestSuitePurpose          Setup methods for the Bob test suites
     #@TestSuiteID               Setup 
     #@TestSuiteGroup            Bob
-    #@TestGroup                 Bob/Setup
+    #@TestGroup                 Bob
     #@TestScript                BobStartup.java
-    #@TestHTMLLink              blahblah
+    #@TestHTMLLink
 */
 /**
  * This class contains the TestNG tests for the Bob startup.

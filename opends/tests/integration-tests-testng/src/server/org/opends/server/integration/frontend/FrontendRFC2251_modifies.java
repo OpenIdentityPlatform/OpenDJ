@@ -31,12 +31,36 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Frontend RFC2251 Modifies
+    #@TestSuitePurpose          Test the RFC2251 standards regarding modifies
+    #@TestSuiteID               RFC2251 Modifies
+    #@TestSuiteGroup            RFC2251 Modifies
+    #@TestGroup                 RFC2251 Modifies
+    #@TestScript                FrontendRFC2251_modifies.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Frontend functional tests for modifies.
  */
 @Test
 public class FrontendRFC2251_modifies extends FrontendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 1 precheck
+    #@TestID                    FrontendUserModify1_precheck
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=scarter,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				st, with value, Calfornia.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 16
+*/
 /**
  *  Check an entry for a non-existent attribute which will be added 
  *  in the next test.
@@ -66,7 +90,18 @@ public class FrontendRFC2251_modifies extends FrontendTests
 
     compareExitCode(retCode, expCode);
   }
-
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 1
+    #@TestID                    FrontendUserModify1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an attribute to an existing entry.
  *
@@ -97,6 +132,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 1 check entry
+    #@TestID                    FrontendUserModify1_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=scarter,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				st, with value, Calfornia.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check an entry for  the attribute that was added in the last test.
  *
@@ -126,6 +175,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 2 precheck
+    #@TestID                    FrontendUserModify2_precheck
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=tmorris,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				mail, with value, tmorris@example.com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check an entry for an existing attribute which will be deleted 
  *  in the next test.
@@ -156,6 +219,18 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 2
+    #@TestID                    FrontendUserModify2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Delete an attribute from an existing entry.  
  *
@@ -186,6 +261,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 2 check entry
+    #@TestID                    FrontendUserModify2_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=tmorris,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				mail, with value, tmorris@example.com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 16
+*/
 /**
  *  Check an entry for an attribute that was deleted in the last test.
  *
@@ -215,6 +304,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 3 precheck
+    #@TestID                    FrontendUserModify3_precheck
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=kvaughn,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				l, with value, Sunnyvale.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check an entry for an existing attribute which will be replaced 
  *  in the next test.
@@ -245,6 +348,18 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 3
+    #@TestID                    FrontendUserModify3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Replace an attribute in an existing entry.
  *
@@ -275,6 +390,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 3 check entry
+    #@TestID                    FrontendUserModify3_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=kvaughn,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				l, with value, Grenoble.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check an entry for an existing attribute which was replaced 
  *  in the last test.
@@ -305,6 +434,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 4 precheck
+    #@TestID                    FrontendUserModify4_precheck
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=kvaughn,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				st, with value, California.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 16
+*/
 /**
  *  Check an entry for a non-existent attribute which will be added 
  *  in the next test.
@@ -335,6 +478,18 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 4
+    #@TestID                    FrontendUserModify4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add an attribute to an existing entry by a replace operation.
  *
@@ -365,6 +520,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 4 check entry
+    #@TestID                    FrontendUserModify4_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=kvaughn,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				st, with value, California.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check an entry for the attribute which was added 
  *  in the last test.
@@ -395,6 +564,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 5 precheck
+    #@TestID                    FrontendUserModify5_precheck
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=abergin,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				mail, with value, abergin@example.com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check an entry for an existing attribute which will be deleted 
  *  in the next test.
@@ -425,6 +608,18 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 5
+    #@TestID                    FrontendUserModify5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Delete an attribute from an existing entry by a replace operation.
  *
@@ -455,6 +650,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 5 check entry
+    #@TestID                    FrontendUserModify5_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=abergin,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				mail, with value, abergin@example.com.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 16
+*/
 /**
  *  Check an entry for an attribute which was deleted 
  *  in the last test.
@@ -485,6 +694,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 6 precheck
+    #@TestID                    FrontendUserModify6_precheck
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=dmiller,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				st, with value, California.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 16
+*/
 /**
  *  Check an entry for a non-existent attribute.
  *
@@ -514,6 +737,18 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 6
+    #@TestID                    FrontendUserModify6
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Modify a non-existent attribute in an existing entry.
  *
@@ -544,6 +779,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 6 check entry
+    #@TestID                    FrontendUserModify6_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=dmiller,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				st, with value, California.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 16
+*/
 /**
  *  Check the entry was modified in the last test.
  *
@@ -573,6 +822,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 7 precheck
+    #@TestID                    FrontendUserModify7_precheck
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=dmiller,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				uid, with value, dmiller.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check an entry for a required attribute.
  *
@@ -602,6 +865,18 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 7
+    #@TestID                    FrontendUserModify7
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Delete a required attribute in an existing entry.
  *
@@ -632,6 +907,20 @@ public class FrontendRFC2251_modifies extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Modifies
+    #@TestName                  Frontend User Modify 7 check entry
+    #@TestID                    FrontendUserModify7_checkentry
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=dmiller,ou=People,
+                                o=frontend tests,dc=example,dc=com and attribute,
+				uid, with value, dmiller.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the entry was modified in the last test.
  *

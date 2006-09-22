@@ -37,9 +37,9 @@ import java.io.*;
     #@TestSuitePurpose          To check that true/false filters are correctly handled
     #@TestSuiteID               True/False Filters
     #@TestSuiteGroup            Core
-    #@TestGroup                 Core/TFFFilters
+    #@TestGroup                 Core
     #@TestScript                CoreTFFFiltersTests.java
-    #@TestHTMLLink              blahblah
+    #@TestHTMLLink
 */
 /**
  * This class contains the TestNG tests for the Core true/false filter tests. 
@@ -47,9 +47,22 @@ import java.io.*;
 @Test
 public class CoreTFFiltersTests extends CoreTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core True/False Filters
+    #@TestName                  True/False Filters 1
+    #@TestID                    CoreTFFilters1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                for entry, cn=version,cn=monitor, with the
+				single ampersand filter.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
- *  with a single ampersand character ("&").
+ *  with a single ampersand character.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.
@@ -77,9 +90,22 @@ public class CoreTFFiltersTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core True/False Filters
+    #@TestName                  True/False Filters 2
+    #@TestID                    CoreTFFilters2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                for entry, cn=version,cn=monitor, with the
+				single pipe filter.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
- *  with a single pipe character ("|").
+ *  with a single pipe character.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.
@@ -107,9 +133,22 @@ public class CoreTFFiltersTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core True/False Filters
+    #@TestName                  True/False Filters 3
+    #@TestID                    CoreTFFilters3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                for a non-existent entry with the
+				single ampersand filter.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
- *  with a single ampersand character ("&") for a non-existent entry.
+ *  with a single ampersand character for a non-existent entry.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.
@@ -137,9 +176,22 @@ public class CoreTFFiltersTests extends CoreTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Core True/False Filters
+    #@TestName                  True/False Filters 4
+    #@TestID                    CoreTFFilters4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                for a non-existent entry with the
+				single pipe filter.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Check the response of OpenDS when an ldap search request is conducted
- *  with a single pipe character ("|") for a non-existent entry.
+ *  with a single pipe character for a non-existent entry.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.

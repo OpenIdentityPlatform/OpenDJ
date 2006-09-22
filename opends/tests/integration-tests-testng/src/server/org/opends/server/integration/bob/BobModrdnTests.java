@@ -37,7 +37,7 @@ import java.io.*;
     #@TestSuitePurpose          Test the modify rdn functionality for OpenDS
     #@TestSuiteID               Modify RDN Tests
     #@TestSuiteGroup            Bob
-    #@TestGroup                 Bob/BobModifyRDNTests
+    #@TestGroup                 Bob
     #@TestScript                BobModrdnTests.java
     #@TestHTMLLink              blahblah
 */
@@ -47,6 +47,18 @@ import java.io.*;
 @Test
 public class BobModrdnTests extends BobTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Modify RDN Tests
+    #@TestName                  Bob Modify RDN 1
+    #@TestID                    BobModifyRDN1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Replace the RDN of an existing entry with a short RDN.
  *
@@ -77,6 +89,18 @@ public class BobModrdnTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Modify RDN Tests
+    #@TestName                  Bob Modify RDN 2
+    #@TestID                    BobModifyRDN2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Replace the RDN of an existing entry with a long RDN.
  *
@@ -107,6 +131,18 @@ public class BobModrdnTests extends BobTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Bob Modify RDN Tests
+    #@TestName                  Bob Modify RDN 3
+    #@TestID                    BobModifyRDN3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Replace the RDN of an existing entry with a very long RDN.
  *
