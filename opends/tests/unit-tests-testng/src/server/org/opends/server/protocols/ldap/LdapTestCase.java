@@ -27,8 +27,27 @@
 package org.opends.server.protocols.ldap ;
 
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ConnectionHandler;
+import org.opends.server.api.ConnectionSecurityProvider;
+import org.opends.server.core.CancelRequest;
+import org.opends.server.core.CancelResult;
+import org.opends.server.core.Operation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.protocols.asn1.ASN1Boolean;
+import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.IntermediateResponse;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 import org.testng.annotations.Test;
 
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -75,6 +94,21 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
     return !(e1.hasNext() || e2.hasNext());
   }
 
+  static void 
+  tooManyElements(ProtocolOp op, byte type) throws Exception
+  {
+	  ASN1Element element = op.encode();
+	  ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+	  elements.add(new ASN1Boolean(true));
+	  ProtocolOp.decode(new ASN1Sequence(type, elements));
+  }
 
-
+  static void 
+  tooFewElements(ProtocolOp op, byte type) throws Exception
+  {
+	  ASN1Element element = op.encode();
+	  ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+      elements.remove(0);
+	  ProtocolOp.decode(new ASN1Sequence(type, elements));
+  }
 }
