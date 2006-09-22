@@ -412,8 +412,7 @@ public class BackupTask extends Task
     }
 
 
-    // Create a backup configuration.  All the backends are known
-    // to support backups so there is
+    // Create a backup configuration.
     BackupConfig backupConfig = new BackupConfig(backupDir, backupID,
                                                  incremental);
     backupConfig.setCompressData(compress);
