@@ -84,7 +84,7 @@ public abstract class OperationContext
    * Get the change number of an operation.
    *
    * @param op The operation.
-   * @return the hange number of the provided operation.
+   * @return the change number of the provided operation.
    */
   public static ChangeNumber getChangeNumber(Operation op)
   {
