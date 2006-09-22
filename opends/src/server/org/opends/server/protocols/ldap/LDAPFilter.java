@@ -191,7 +191,7 @@ public class LDAPFilter
       case NOT:
         notComponent = new LDAPFilter(filter.getNotComponent());
 
-        notComponent      = null;
+        filterComponents  = null;
         attributeType     = null;
         assertionValue    = null;
         subInitialElement = null;
@@ -1643,7 +1643,10 @@ public class LDAPFilter
       {
         dnAttributes = true;
 
-        matchingRuleID = filterString.substring(startPos+4, equalPos-1);
+        if((startPos+4) < (equalPos-1))
+        {
+          matchingRuleID = filterString.substring(startPos+4, equalPos-1);
+        }
       }
       else
       {
@@ -2242,14 +2245,14 @@ public class LDAPFilter
         elements = new ArrayList<ASN1Element>(4);
         if (matchingRuleID != null)
         {
-          elements.add(new ASN1OctetString(TYPE_MATCHING_RULE_TYPE,
+          elements.add(new ASN1OctetString(TYPE_MATCHING_RULE_ID,
                                            matchingRuleID));
         }
 
         if (attributeType != null)
         {
           elements.add(new ASN1OctetString(TYPE_MATCHING_RULE_TYPE,
-                                           matchingRuleID));
+                                           attributeType));
         }
 
         assertionValue.setType(TYPE_MATCHING_RULE_VALUE);
