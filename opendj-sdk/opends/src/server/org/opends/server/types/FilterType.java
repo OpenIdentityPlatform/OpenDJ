@@ -105,7 +105,7 @@ public enum FilterType
   /**
    * The filter type for extensible matching filters.
    */
-  EXTENSIBLE_MATCH(TYPE_FILTER_OR);
+  EXTENSIBLE_MATCH(TYPE_FILTER_EXTENSIBLE_MATCH);
 
 
 
