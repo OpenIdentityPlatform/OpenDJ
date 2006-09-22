@@ -30,9 +30,9 @@ import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
 
 /**
- * An abstract class that all types  unit test should extend. 
+ * An abstract class that all types unit tests should extend.
  */
 
-@Test(groups = { "precommit, types" })
-public abstract class TypesTestCase extends DirectoryServerTestCase 
+@Test(groups = { "precommit", "types" })
+public abstract class TypesTestCase extends DirectoryServerTestCase
 {}
