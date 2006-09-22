@@ -348,14 +348,14 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       {
         ic.getEntryContainer().close();
       }
-    }
 
-    // Sync the environment to disk.
-    msgID = MSGID_JEB_IMPORT_CLOSING_DATABASE;
-    message = getMessage(msgID);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-             message, msgID);
-    env.close();
+      // Sync the environment to disk.
+      msgID = MSGID_JEB_IMPORT_CLOSING_DATABASE;
+      message = getMessage(msgID);
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
+               message, msgID);
+      env.close();
+    }
 
     long finishTime = System.currentTimeMillis();
     long importTime = (finishTime - startTime);

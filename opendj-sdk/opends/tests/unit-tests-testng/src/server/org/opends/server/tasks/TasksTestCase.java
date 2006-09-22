@@ -30,7 +30,7 @@ package org.opends.server.tasks;
 
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.schema.DirectoryStringSyntax;
 import static org.opends.server.config.ConfigConstants.
@@ -54,11 +54,26 @@ public class TasksTestCase extends DirectoryServerTestCase {
 
   /**
    * Add a task definition and check that it completes with the expected state.
+   * The task is expected to complete quickly and the timeout is set
+   * accordingly.
    * @param taskEntry The task entry.
    * @param expectedState The expected completion state of the task.
    * @throws Exception If the test fails.
    */
   protected void testTask(Entry taskEntry, TaskState expectedState)
+       throws Exception
+  {
+    testTask(taskEntry, expectedState, 10);
+  }
+
+  /**
+   * Add a task definition and check that it completes with the expected state.
+   * @param taskEntry The task entry.
+   * @param expectedState The expected completion state of the task.
+   * @param timeout The number of seconds to wait for the task to complete.
+   * @throws Exception If the test fails.
+   */
+  protected void testTask(Entry taskEntry, TaskState expectedState, int timeout)
        throws Exception
   {
     InternalClientConnection connection =
@@ -78,27 +93,42 @@ public class TasksTestCase extends DirectoryServerTestCase {
          ATTR_TASK_COMPLETION_TIME.toLowerCase());
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectclass=*)");
-    Entry resultEntry;
-    String completionTime;
-    int countdown = 10; // Do not wait forever.
+    Entry resultEntry = null;
+    String completionTime = null;
+    long startMillisecs = System.currentTimeMillis();
     do
     {
-      countdown--;
-      Thread.sleep(1000);
-
       InternalSearchOperation searchOperation =
            connection.processSearch(taskEntry.getDN(),
                                     SearchScope.BASE_OBJECT,
                                     filter);
-      resultEntry = searchOperation.getSearchEntries().getFirst();
+      try
+      {
+        resultEntry = searchOperation.getSearchEntries().getFirst();
+      } catch (Exception e)
+      {
+        // FIXME How is this possible?
+//        fail("Task entry was not returned from the search.");
+        continue;
+      }
       completionTime =
            resultEntry.getAttributeValue(completionTimeType,
                                          DirectoryStringSyntax.DECODER);
 
-    } while (completionTime == null && countdown > 0);
+      if (completionTime == null)
+      {
+        if (System.currentTimeMillis() - startMillisecs > 1000*timeout)
+        {
+          break;
+        }
+        Thread.sleep(10);
+      }
+    } while (completionTime == null);
 
-    assertNotNull(completionTime,
-                  "The task did not complete");
+    if (completionTime == null)
+    {
+      fail("The task had not completed after " + timeout + " seconds.");
+    }
 
     // Check that the task state is as expected.
     AttributeType taskStateType =

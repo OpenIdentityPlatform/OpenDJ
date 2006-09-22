@@ -252,15 +252,6 @@ public class ImportTask extends Task
                  message, msgID);
         return TaskState.STOPPED_BY_ERROR;
       }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER;
-        String message = getMessage(msgID, filterString,
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        return TaskState.STOPPED_BY_ERROR;
-      }
     }
 
     ArrayList<SearchFilter> includeFilters =
@@ -276,15 +267,6 @@ public class ImportTask extends Task
         int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER;
         String message = getMessage(msgID, filterString,
                                     de.getErrorMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        return TaskState.STOPPED_BY_ERROR;
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER;
-        String message = getMessage(msgID, filterString,
-                                    stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return TaskState.STOPPED_BY_ERROR;
@@ -354,7 +336,7 @@ public class ImportTask extends Task
 
     for (String s : excludeBranchStrings)
     {
-      DN excludeBranch = null;
+      DN excludeBranch;
       try
       {
         excludeBranch = DN.decode(s);
@@ -393,7 +375,7 @@ public class ImportTask extends Task
       includeBranches = new ArrayList<DN>(includeBranchStrings.size());
       for (String s : includeBranchStrings)
       {
-        DN includeBranch = null;
+        DN includeBranch;
         try
         {
           includeBranch = DN.decode(s);
