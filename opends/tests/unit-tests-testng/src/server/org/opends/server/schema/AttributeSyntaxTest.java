@@ -26,7 +26,7 @@
  */
 package org.opends.server.schema;
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import org.opends.server.api.AttributeSyntax;
@@ -45,7 +45,7 @@ public class AttributeSyntaxTest extends SchemaTestCase
     // - a value that must be tested for correctness
     // - a boolean indicating if the value is correct.
     return new Object[][] {
-
+        
         // tests for the UTC time syntax. This time syntax only uses 2 digits
         // for the year but it is currently implemented using 4 digits
         // disable the tests for now.
@@ -59,6 +59,7 @@ public class AttributeSyntaxTest extends SchemaTestCase
         {SYNTAX_UTC_TIME_OID,"061231235959Z", true},
         {SYNTAX_UTC_TIME_OID,"060906135030+0101", true},
         {SYNTAX_UTC_TIME_OID,"060906135030+2359", true},
+        */
         {SYNTAX_UTC_TIME_OID,"060906135030+3359", false},
         {SYNTAX_UTC_TIME_OID,"060906135030+2389", false},
         {SYNTAX_UTC_TIME_OID,"062231235959Z", false},
@@ -69,7 +70,6 @@ public class AttributeSyntaxTest extends SchemaTestCase
         {SYNTAX_UTC_TIME_OID,"0612-1235959Z", false},
         {SYNTAX_UTC_TIME_OID,"061231#35959Z", false},
         {SYNTAX_UTC_TIME_OID,"2006", false},
-        */
 
         // generalized time.
         {SYNTAX_GENERALIZED_TIME_OID,"2006090613Z", true},
@@ -183,8 +183,9 @@ public class AttributeSyntaxTest extends SchemaTestCase
                      + " SYNTAX 2.5.4.3 "
                      + " ( this is an extension ) ", false},
 
-         {SYNTAX_BIT_STRING_OID, "\'0\'B", true},
-         {SYNTAX_BIT_STRING_OID, "\'1\'B", true},
+         {SYNTAX_BIT_STRING_OID, "'0101'B", true},
+         {SYNTAX_BIT_STRING_OID, "'1'B", true},
+         {SYNTAX_BIT_STRING_OID, "'0'B", true},
          {SYNTAX_BIT_STRING_OID, "invalid", false},
          
          // disabled because test is failing :
@@ -229,23 +230,46 @@ public class AttributeSyntaxTest extends SchemaTestCase
            "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP 1.2" +
            " EQUALITY 2.3 ORDERING 5.6 SUBSTR 7.8 SYNTAX 9.1 SINGLE-VALUE" +
            " COLLECTIVE NO-USER-MODIFICATION USAGE directoryOperations )",
-           true},
-           
+           true},        
          {SYNTAX_ATTRIBUTE_TYPE_OID,
                "(1.2.8.5 NAME 'testtype' DESC 'full type')",
                true},
          {SYNTAX_ATTRIBUTE_TYPE_OID,
                "(1.2.8.5 USAGE directoryOperations )",
                true},
-        /* {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
-         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
-         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
-         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
-         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
-         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
-         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
-         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},
-         {SYNTAX_ATTRIBUTE_TYPE_OID, "", true},*/
+
+
+         {SYNTAX_UUID_OID, "12345678-9ABC-DEF0-1234-1234567890ab", true},
+         {SYNTAX_UUID_OID, "12345678-9abc-def0-1234-1234567890ab", true},
+         {SYNTAX_UUID_OID, "12345678-9abc-def0-1234-1234567890ab", true},
+         {SYNTAX_UUID_OID, "12345678-9abc-def0-1234-1234567890ab", true},
+         {SYNTAX_UUID_OID, "02345678-9abc-def0-1234-1234567890ab", true},
+         {SYNTAX_UUID_OID, "12345678-9abc-def0-1234-1234567890ab", true},
+         {SYNTAX_UUID_OID, "12345678-9abc-def0-1234-1234567890ab", true},
+         {SYNTAX_UUID_OID, "02345678-9abc-def0-1234-1234567890ab", true},
+         {SYNTAX_UUID_OID, "G2345678-9abc-def0-1234-1234567890ab", false},
+         {SYNTAX_UUID_OID, "g2345678-9abc-def0-1234-1234567890ab", false},
+         {SYNTAX_UUID_OID, "12345678/9abc/def0/1234/1234567890ab", false},
+         {SYNTAX_UUID_OID, "12345678-9abc-def0-1234-1234567890a", false},
+         
+         {SYNTAX_IA5_STRING_OID, "12345678", true},
+         {SYNTAX_IA5_STRING_OID, "12345678\u2163", false},
+         
+         {SYNTAX_OTHER_MAILBOX_OID, "MyMail$Mymailbox", true},
+         {SYNTAX_OTHER_MAILBOX_OID, "MyMailMymailbox", false},
+         
+         {SYNTAX_TELEX_OID, "123$france$456", true},
+         {SYNTAX_TELEX_OID, "abcdefghijk$lmnopqr$stuvwxyz", true},
+         {SYNTAX_TELEX_OID, "12345$67890$()+,-./:? ", true},    
+         /*
+          * disabled because of issue : 701
+          * should accept "
+         {SYNTAX_TELEX_OID, "12345$67890$\"\"\"", true},
+         */
+         /* disabled because of issue : 701
+          * should not accept backslash and equal sign 
+         {SYNTAX_TELEX_OID, "12345$67890$\'\'", false},
+         {SYNTAX_TELEX_OID, "12345$67890$===", false},*/
          
     };
   }
@@ -260,10 +284,14 @@ public class AttributeSyntaxTest extends SchemaTestCase
     // Make sure that the specified class can be instantiated as a task.
     AttributeSyntax rule = DirectoryServer.getAttributeSyntax(oid, false);
 
+    StringBuilder reason = new StringBuilder();
     // normalize the 2 provided values and check that they are equals
-    Boolean liveResult = rule.valueIsAcceptable(
-        new ASN1OctetString(value), new StringBuilder());
-    assertEquals(result, liveResult);
+    Boolean liveResult =
+      rule.valueIsAcceptable(new ASN1OctetString(value), reason);
+    
+    if (liveResult != result)
+      fail(rule + ".valueIsAcceptable gave bad result for " + value + 
+          "reason : " + reason);
 
     // call the getters to increase code coverage...
     rule.getApproximateMatchingRule();
