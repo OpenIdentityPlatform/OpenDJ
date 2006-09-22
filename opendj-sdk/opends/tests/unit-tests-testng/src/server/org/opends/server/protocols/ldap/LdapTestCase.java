@@ -27,27 +27,13 @@
 package org.opends.server.protocols.ldap ;
 
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConnectionHandler;
-import org.opends.server.api.ConnectionSecurityProvider;
-import org.opends.server.core.CancelRequest;
-import org.opends.server.core.CancelResult;
-import org.opends.server.core.Operation;
-import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.asn1.ASN1Boolean;
 import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.protocols.asn1.ASN1Long;
 import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.IntermediateResponse;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
 import org.testng.annotations.Test;
 
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -94,7 +80,28 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
     return !(e1.hasNext() || e2.hasNext());
   }
 
-  static void 
+  /**
+   * Generate an exception by writing a long into a integer element.
+   * @param op The op.
+   * @param type The type of sequence.
+   * @param index The index into the element to write to.
+   * @throws Exception If the protocol op decode can't write the sequence.
+   */
+static void 
+  badIntegerElement(ProtocolOp op, byte type, int index) throws Exception {
+      ASN1Element element = op.encode();
+      ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+      elements.set(index, new ASN1Long(Long.MAX_VALUE));
+      ProtocolOp.decode(new ASN1Sequence(type, elements));
+  }
+  
+  /**
+   * Generate an exception by adding an element.
+ * @param op The op.
+ * @param type The type of sequence.
+ * @throws Exception If the protocol op decode has too many elements.
+ */
+static void 
   tooManyElements(ProtocolOp op, byte type) throws Exception
   {
 	  ASN1Element element = op.encode();
@@ -103,7 +110,13 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
 	  ProtocolOp.decode(new ASN1Sequence(type, elements));
   }
 
-  static void 
+/**
+ * Generate an excepting by removing an element.
+ * @param op The op.
+ * @param type The type of sequence.
+ * @throws Exception If the protocol op decode has too few elements.
+ */
+static void 
   tooFewElements(ProtocolOp op, byte type) throws Exception
   {
 	  ASN1Element element = op.encode();
