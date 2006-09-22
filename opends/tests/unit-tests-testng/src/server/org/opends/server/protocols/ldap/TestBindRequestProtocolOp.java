@@ -28,7 +28,6 @@ package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
 
-import org.opends.server.protocols.asn1.ASN1Boolean;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Integer;
 import org.opends.server.protocols.asn1.ASN1Long;
@@ -116,29 +115,23 @@ public class TestBindRequestProtocolOp extends LdapTestCase {
 	 @Test (expectedExceptions = LDAPException.class)
 	 public void testInvalidBindRequestTooManyElements() throws Exception
 	 {
-		 ASN1OctetString bindDn=new ASN1OctetString(dn);
-		 ASN1OctetString pw=new ASN1OctetString(pwd);
-		 BindRequestProtocolOp sasl =
-			 new BindRequestProtocolOp(bindDn, SASL_MECHANISM_PLAIN, pw);
-		 ASN1Element element = sasl.encode();
-		 ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-		 elements.add(new ASN1Boolean(true));
-		 ProtocolOp.decode(new ASN1Sequence(OP_TYPE_BIND_REQUEST, elements));
+	     ASN1OctetString bindDn=new ASN1OctetString(dn);
+	     ASN1OctetString pw=new ASN1OctetString(pwd);
+	     BindRequestProtocolOp sasl =
+	         new BindRequestProtocolOp(bindDn, SASL_MECHANISM_PLAIN, pw);
+	     tooManyElements(sasl, OP_TYPE_BIND_REQUEST);
 	 }
 
 	 @Test (expectedExceptions = LDAPException.class)
 	 public void testInvalidBindRequestTooFewElements() throws Exception
 	 {
-		 ASN1OctetString bindDn=new ASN1OctetString(dn);
-		 ASN1OctetString pw=new ASN1OctetString(pwd);
-		 BindRequestProtocolOp sasl =
-			 new BindRequestProtocolOp(bindDn, SASL_MECHANISM_PLAIN, pw);
-		 ASN1Element element = sasl.encode();
-		 ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-		 elements.remove(0);
-		 ProtocolOp.decode(new ASN1Sequence(OP_TYPE_BIND_REQUEST, elements));
+	     ASN1OctetString bindDn=new ASN1OctetString(dn);
+	     ASN1OctetString pw=new ASN1OctetString(pwd);
+	     BindRequestProtocolOp sasl =
+	         new BindRequestProtocolOp(bindDn, SASL_MECHANISM_PLAIN, pw);
+	     tooFewElements(sasl, OP_TYPE_BIND_REQUEST);
 	 }
-	 
+
 	 @Test (expectedExceptions = LDAPException.class)
 	 public void testInvalidBindRequestProtoVersion() throws Exception
 	 {
