@@ -291,7 +291,7 @@ public class TestImportAndExport extends TasksTestCase
   public void testImportExport(Entry taskEntry, TaskState expectedState)
        throws Exception
   {
-    testTask(taskEntry, expectedState);
+    testTask(taskEntry, expectedState, 60);
   }
 
 }
