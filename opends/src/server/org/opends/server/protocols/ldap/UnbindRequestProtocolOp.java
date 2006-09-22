@@ -28,16 +28,8 @@ package org.opends.server.protocols.ldap;
 
 
 
-import java.util.ArrayList;
-
-import org.opends.server.core.DirectoryException;
-import org.opends.server.core.UnbindOperation;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Null;
-import org.opends.server.types.Control;
-import org.opends.server.types.ResultCode;
-import org.opends.server.api.ClientConnection;
-
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -142,62 +134,6 @@ public class UnbindRequestProtocolOp
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
-  }
-
-
-
-  /**
-   * Converts the provided LDAP message containing an abandon request protocol
-   * op to an <CODE>AbandonOperation</CODE> object that may be processed by the
-   * core server.
-   *
-   * @param  requestMessage    The LDAP message containing the abandon request
-   *                           protocol op.
-   * @param  clientConnection  The client connection from which the request was
-   *                           read.
-   * @param  nextOperationID  The next ldap operation id that would be used for
-   *                          this connection.
-   * @return  The unbind operation created from the provided request message.
-   *
-   * @throws  DirectoryException  If the provided LDAP message cannot be decoded
-   *                              as an unbind operation or if the LDAPMessage
-   *                              protocol operation is not an AbandonOperation.
-   */
-  public static UnbindOperation messageToUnbindOperation(
-          LDAPMessage requestMessage, ClientConnection clientConnection,
-          int nextOperationID)
-  throws DirectoryException
-  {
-      assert debugEnter(CLASS_NAME, "messageToUnbindOperation",
-              String.valueOf(requestMessage),
-              String.valueOf(clientConnection));
-      ProtocolOp op=requestMessage.getProtocolOp();
-      if(!(op instanceof AbandonRequestProtocolOp))
-      {
-          int msgID = MSGID_LDAP_UNBIND_INVALID_MESSAGE_TYPE;
-          String message = getMessage(msgID, String.valueOf(requestMessage));
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                                             message, msgID);
-      }
-
-      ArrayList<Control> controls;
-      ArrayList<LDAPControl> ldapControls = requestMessage.getControls();
-      if ((ldapControls == null) || ldapControls.isEmpty())
-      {
-          controls = null;
-      }
-      else
-      {
-          controls = new ArrayList<Control>(ldapControls.size());
-          for (LDAPControl c : ldapControls)
-          {
-              controls.add(c.getControl());
-          }
-      }
-
-      return new UnbindOperation(clientConnection,
-              nextOperationID, requestMessage.getMessageID(),
-              controls);
   }
 
 
