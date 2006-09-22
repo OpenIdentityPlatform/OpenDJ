@@ -36,6 +36,7 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Null;
 import org.opends.server.types.Control;
 import org.opends.server.types.ResultCode;
+import org.opends.server.api.ClientConnection;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -43,8 +44,6 @@ import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines the structures and methods for an LDAP unbind request
@@ -156,56 +155,49 @@ public class UnbindRequestProtocolOp
    *                           protocol op.
    * @param  clientConnection  The client connection from which the request was
    *                           read.
-   *
+   * @param  nextOperationID  The next ldap operation id that would be used for
+   *                          this connection.
    * @return  The unbind operation created from the provided request message.
    *
    * @throws  DirectoryException  If the provided LDAP message cannot be decoded
-   *                              as an unbind operation.
+   *                              as an unbind operation or if the LDAPMessage
+   *                              protocol operation is not an AbandonOperation.
    */
   public static UnbindOperation messageToUnbindOperation(
-                                      LDAPMessage requestMessage,
-                                      LDAPClientConnection clientConnection)
-         throws DirectoryException
+          LDAPMessage requestMessage, ClientConnection clientConnection,
+          int nextOperationID)
+  throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "messageToAbandonOperation",
-                      String.valueOf(requestMessage),
-                      String.valueOf(clientConnection));
-
-    UnbindRequestProtocolOp unbindRequest;
-    try
-    {
-      unbindRequest =
-           (UnbindRequestProtocolOp) requestMessage.getProtocolOp();
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "messageToUnbindOperation", e);
-
-      int msgID = MSGID_LDAP_UNBIND_INVALID_MESSAGE_TYPE;
-      String message = getMessage(msgID, String.valueOf(requestMessage),
-                                  String.valueOf(e));
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, msgID,
-                                   e);
-    }
-
-    ArrayList<Control> controls;
-    ArrayList<LDAPControl> ldapControls = requestMessage.getControls();
-    if ((ldapControls == null) || ldapControls.isEmpty())
-    {
-      controls = null;
-    }
-    else
-    {
-      controls = new ArrayList<Control>(ldapControls.size());
-      for (LDAPControl c : ldapControls)
+      assert debugEnter(CLASS_NAME, "messageToUnbindOperation",
+              String.valueOf(requestMessage),
+              String.valueOf(clientConnection));
+      ProtocolOp op=requestMessage.getProtocolOp();
+      if(!(op instanceof AbandonRequestProtocolOp))
       {
-        controls.add(c.getControl());
+          int msgID = MSGID_LDAP_UNBIND_INVALID_MESSAGE_TYPE;
+          String message = getMessage(msgID, String.valueOf(requestMessage));
+          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                                             message, msgID);
       }
-    }
 
-    return new UnbindOperation(clientConnection,
-                               clientConnection.nextOperationID(),
-                               requestMessage.getMessageID(), controls);
+      ArrayList<Control> controls;
+      ArrayList<LDAPControl> ldapControls = requestMessage.getControls();
+      if ((ldapControls == null) || ldapControls.isEmpty())
+      {
+          controls = null;
+      }
+      else
+      {
+          controls = new ArrayList<Control>(ldapControls.size());
+          for (LDAPControl c : ldapControls)
+          {
+              controls.add(c.getControl());
+          }
+      }
+
+      return new UnbindOperation(clientConnection,
+              nextOperationID, requestMessage.getMessageID(),
+              controls);
   }
 
 
