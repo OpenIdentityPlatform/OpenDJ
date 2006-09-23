@@ -1798,6 +1798,31 @@ modifyDNProcessing:
         }
 
 
+        // Check for and handle a request to cancel this operation.
+        if (cancelRequest != null)
+        {
+          setCancelResult(CancelResult.CANCELED);
+
+          if (cancelRequest.notifyOriginalRequestor() ||
+              DirectoryServer.notifyAbandonedOperations())
+          {
+            setResultCode(ResultCode.CANCELED);
+
+            String cancelReason = cancelRequest.getCancelReason();
+            if (cancelReason != null)
+            {
+              appendErrorMessage(cancelReason);
+            }
+
+            clientConnection.sendResponse(this);
+          }
+
+          processingStopTime = System.currentTimeMillis();
+          logModifyDNResponse(this);
+          return;
+        }
+
+
         // Actually perform the modify DN operation.  This should include taking
         // care of any synchronization that might be needed.
         try

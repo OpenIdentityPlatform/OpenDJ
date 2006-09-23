@@ -971,6 +971,31 @@ deleteProcessing:
         }
 
 
+        // Check for and handle a request to cancel this operation.
+        if (cancelRequest != null)
+        {
+          setCancelResult(CancelResult.CANCELED);
+
+          if (cancelRequest.notifyOriginalRequestor() ||
+              DirectoryServer.notifyAbandonedOperations())
+          {
+            setResultCode(ResultCode.CANCELED);
+
+            String cancelReason = cancelRequest.getCancelReason();
+            if (cancelReason != null)
+            {
+              appendErrorMessage(cancelReason);
+            }
+
+            clientConnection.sendResponse(this);
+          }
+
+          processingStopTime = System.currentTimeMillis();
+          logDeleteResponse(this);
+          return;
+        }
+
+
         // Get the backend to use for the delete.  If there is none, then fail.
         Backend backend = DirectoryServer.getBackend(entryDN);
         if (backend == null)

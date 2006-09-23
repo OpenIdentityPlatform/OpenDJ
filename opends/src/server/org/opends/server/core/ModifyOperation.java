@@ -2326,6 +2326,31 @@ modifyProcessing:
         }
 
 
+        // Check for and handle a request to cancel this operation.
+        if (cancelRequest != null)
+        {
+          setCancelResult(CancelResult.CANCELED);
+
+          if (cancelRequest.notifyOriginalRequestor() ||
+              DirectoryServer.notifyAbandonedOperations())
+          {
+            setResultCode(ResultCode.CANCELED);
+
+            String cancelReason = cancelRequest.getCancelReason();
+            if (cancelReason != null)
+            {
+              appendErrorMessage(cancelReason);
+            }
+
+            clientConnection.sendResponse(this);
+          }
+
+          processingStopTime = System.currentTimeMillis();
+          logModifyResponse(this);
+          return;
+        }
+
+
         // Actually perform the modify operation.  This should also include
         // taking care of any synchronization that might be needed.
         Backend backend = DirectoryServer.getBackend(entryDN);
