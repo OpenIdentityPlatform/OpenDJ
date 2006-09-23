@@ -100,3 +100,19 @@ ds-cfg-require-secure-authentication: false
 ds-cfg-require-secure-password-changes: false
 ds-cfg-skip-validation-for-administrators: false
 
+dn: cn=Delay PreOperation Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Delay PreOperation Plugin
+ds-cfg-plugin-class: org.opends.server.plugins.DelayPreOpPlugin
+ds-cfg-plugin-enabled: true
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationBind
+ds-cfg-plugin-type: preOperationCompare
+ds-cfg-plugin-type: preOperationDelete
+ds-cfg-plugin-type: preOperationExtended
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: preOperationSearch
+
