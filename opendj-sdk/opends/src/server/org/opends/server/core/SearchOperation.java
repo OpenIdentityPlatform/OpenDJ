@@ -1974,6 +1974,31 @@ searchProcessing:
       }
 
 
+      // Check for and handle a request to cancel this operation.
+      if (cancelRequest != null)
+      {
+        setCancelResult(CancelResult.CANCELED);
+
+        if (cancelRequest.notifyOriginalRequestor() ||
+            DirectoryServer.notifyAbandonedOperations())
+        {
+          setResultCode(ResultCode.CANCELED);
+
+          String cancelReason = cancelRequest.getCancelReason();
+          if (cancelReason != null)
+          {
+            appendErrorMessage(cancelReason);
+          }
+
+          clientConnection.sendResponse(this);
+        }
+
+        processingStopTime = System.currentTimeMillis();
+        logSearchResultDone(this);
+        return;
+      }
+
+
       // Get the backend that should hold the search base.  If there is none,
       // then fail.
       Backend backend = DirectoryServer.getBackend(baseDN);
