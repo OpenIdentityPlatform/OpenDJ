@@ -80,9 +80,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
             new BindResponseProtocolOp(okCode.getIntValue(),
                     message, responseDn, referralURLs, 
                     serverSASLCredentials);
-        StringBuilder sb = new StringBuilder();
-        r.toString(sb);
-        r.toString(sb, 1);
+        toString(r);
     }
 
     @Test (expectedExceptions = LDAPException.class)
