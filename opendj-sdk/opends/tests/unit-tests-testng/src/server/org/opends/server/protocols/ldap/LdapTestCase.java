@@ -87,21 +87,21 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
    * @param index The index into the element to write to.
    * @throws Exception If the protocol op decode can't write the sequence.
    */
-static void 
+  static void 
   badIntegerElement(ProtocolOp op, byte type, int index) throws Exception {
-      ASN1Element element = op.encode();
-      ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-      elements.set(index, new ASN1Long(Long.MAX_VALUE));
-      ProtocolOp.decode(new ASN1Sequence(type, elements));
+	  ASN1Element element = op.encode();
+	  ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
+	  elements.set(index, new ASN1Long(Long.MAX_VALUE));
+	  ProtocolOp.decode(new ASN1Sequence(type, elements));
   }
-  
+
   /**
    * Generate an exception by adding an element.
- * @param op The op.
- * @param type The type of sequence.
- * @throws Exception If the protocol op decode has too many elements.
- */
-static void 
+   * @param op The op.
+   * @param type The type of sequence.
+   * @throws Exception If the protocol op decode has too many elements.
+   */
+  static void 
   tooManyElements(ProtocolOp op, byte type) throws Exception
   {
 	  ASN1Element element = op.encode();
@@ -110,18 +110,30 @@ static void
 	  ProtocolOp.decode(new ASN1Sequence(type, elements));
   }
 
-/**
- * Generate an excepting by removing an element.
- * @param op The op.
- * @param type The type of sequence.
- * @throws Exception If the protocol op decode has too few elements.
- */
-static void 
+  /**
+   * Generate an exception by removing an element.
+   * @param op The op.
+   * @param type The type of sequence.
+   * @throws Exception If the protocol op decode has too few elements.
+   */
+  static void 
   tooFewElements(ProtocolOp op, byte type) throws Exception
   {
 	  ASN1Element element = op.encode();
 	  ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-      elements.remove(0);
+	  elements.remove(0);
 	  ProtocolOp.decode(new ASN1Sequence(type, elements));
+  }
+
+  /**
+   * Test toString methods.
+   * @param op The op.
+   * @throws Exception If the toString method fails.
+   */
+  static void 
+  toString(ProtocolOp op) throws Exception {
+	  StringBuilder sb = new StringBuilder();
+	  op.toString(sb);
+	  op.toString(sb, 1);
   }
 }

@@ -26,32 +26,16 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 
 public class TestUnbindRequestProtocolOp  extends LdapTestCase {
 
-    /**
-     * Once-only initialization.
-     * 
-     * @throws Exception
-     *           If an unexpected error occurred.
-     */
-    @BeforeClass
-    public void setUp() throws Exception {
-        // This test suite depends on having the schema available, so we'll
-        // start the server.TestBindResponseProtocolOp
-        TestCaseUtils.startServer();
-    }
-
-
   @Test()
-  public void testUnbindRequest() throws Exception {
+  public void testUnbindEncodeDecodeRequest() throws Exception {
       UnbindRequestProtocolOp req = new UnbindRequestProtocolOp();
       ASN1Element reqElem=req.encode();
       ProtocolOp reqOp= ProtocolOp.decode(reqElem);
@@ -64,8 +48,6 @@ public class TestUnbindRequestProtocolOp  extends LdapTestCase {
   {
       UnbindRequestProtocolOp r = 
           new UnbindRequestProtocolOp();
-      StringBuilder sb = new StringBuilder();
-      r.toString(sb);
-      r.toString(sb, 1);
+      toString(r);
   }
 }
