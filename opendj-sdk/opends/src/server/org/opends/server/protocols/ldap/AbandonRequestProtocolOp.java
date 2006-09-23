@@ -28,15 +28,8 @@ package org.opends.server.protocols.ldap;
 
 
 
-import java.util.ArrayList;
-
-import org.opends.server.core.AbandonOperation;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.types.Control;
-import org.opends.server.types.ResultCode;
-
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -186,70 +179,6 @@ public class AbandonRequestProtocolOp
     }
 
     return new AbandonRequestProtocolOp(idToAbandon);
-  }
-
-
-
-  /**
-   * Converts the provided LDAP message containing an abandon request protocol
-   * op to an <CODE>AbandonOperation</CODE> object that may be processed by the
-   * core server.
-   *
-   * @param  requestMessage    The LDAP message containing the abandon request
-   *                           protocol op.
-   * @param  clientConnection  The client connection from which the request was
-   *                           read.
-   *
-   * @return  The abandon operation created from the provided request message.
-   *
-   * @throws  DirectoryException  If the provided LDAP message cannot be decoded
-   *                              as an abandon operation.
-   */
-  public static AbandonOperation messageToAbandonOperation(
-                                      LDAPMessage requestMessage,
-                                      LDAPClientConnection clientConnection)
-         throws DirectoryException
-  {
-    assert debugEnter(CLASS_NAME, "messageToAbandonOperation",
-                      String.valueOf(requestMessage),
-                      String.valueOf(clientConnection));
-
-    AbandonRequestProtocolOp abandonRequest;
-    try
-    {
-      abandonRequest =
-           (AbandonRequestProtocolOp) requestMessage.getProtocolOp();
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "messageToAbandonOperation", e);
-
-      int msgID = MSGID_LDAP_ABANDON_INVALID_MESSAGE_TYPE;
-      String message = getMessage(msgID, String.valueOf(requestMessage),
-                                  String.valueOf(e));
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, msgID,
-                                   e);
-    }
-
-    ArrayList<Control> controls;
-    ArrayList<LDAPControl> ldapControls = requestMessage.getControls();
-    if ((ldapControls == null) || ldapControls.isEmpty())
-    {
-      controls = null;
-    }
-    else
-    {
-      controls = new ArrayList<Control>(ldapControls.size());
-      for (LDAPControl c : ldapControls)
-      {
-        controls.add(c.getControl());
-      }
-    }
-
-    return new AbandonOperation(clientConnection,
-                                clientConnection.nextOperationID(),
-                                requestMessage.getMessageID(),
-                                controls, abandonRequest.getIDToAbandon());
   }
 
 
