@@ -872,33 +872,33 @@ modifyProcessing:
       }
 
 
-      // Check for and handle a request to cancel this operation.
-      if (cancelRequest != null)
-      {
-        setCancelResult(CancelResult.CANCELED);
-
-        if (cancelRequest.notifyOriginalRequestor() ||
-            DirectoryServer.notifyAbandonedOperations())
-        {
-          setResultCode(ResultCode.CANCELED);
-
-          String cancelReason = cancelRequest.getCancelReason();
-          if (cancelReason != null)
-          {
-            appendErrorMessage(cancelReason);
-          }
-
-          clientConnection.sendResponse(this);
-        }
-
-        processingStopTime = System.currentTimeMillis();
-        logModifyResponse(this);
-        return;
-      }
-
-
       try
       {
+        // Check for and handle a request to cancel this operation.
+        if (cancelRequest != null)
+        {
+          setCancelResult(CancelResult.CANCELED);
+
+          if (cancelRequest.notifyOriginalRequestor() ||
+              DirectoryServer.notifyAbandonedOperations())
+          {
+            setResultCode(ResultCode.CANCELED);
+
+            String cancelReason = cancelRequest.getCancelReason();
+            if (cancelReason != null)
+            {
+              appendErrorMessage(cancelReason);
+            }
+
+            clientConnection.sendResponse(this);
+          }
+
+          processingStopTime = System.currentTimeMillis();
+          logModifyResponse(this);
+          return;
+        }
+
+
         // Get the entry to modify.  If it does not exist, then fail.
         try
         {
