@@ -37,14 +37,14 @@ public enum AttributeUsage
   /**
    * The attribute usage intended for user-defined attribute types.
    */
-  USER_APPLICATIONS("userApplications"),
+  USER_APPLICATIONS("userApplications", false),
 
 
 
   /**
    * The attribute usage intended for standard operational attributes.
    */
-  DIRECTORY_OPERATION("directoryOperation"),
+  DIRECTORY_OPERATION("directoryOperation", true),
 
 
 
@@ -52,7 +52,7 @@ public enum AttributeUsage
    * The attribute usage intended for non-standard operational
    * attributes shared among multiple DSAs.
    */
-  DISTRIBUTED_OPERATION("distributedOperation"),
+  DISTRIBUTED_OPERATION("distributedOperation", true),
 
 
 
@@ -60,12 +60,16 @@ public enum AttributeUsage
    * The attribute usage intended for non-standard operational
    * attributes used by a single DSA.
    */
-  DSA_OPERATION("dSAOperation");
+  DSA_OPERATION("dSAOperation", true);
 
 
 
   // The string representation of this attribute usage.
-  String usageString;
+  private final String usageString;
+
+  // Flag indicating whether or not the usage should be categorized as
+  // operational.
+  private final boolean isOperational;
 
 
 
@@ -73,12 +77,17 @@ public enum AttributeUsage
    * Creates a new attribute usage with the provided string
    * representation.
    *
-   * @param  usageString  The string representation of this attribute
-   *                      usage.
+   * @param usageString
+   *          The string representation of this attribute usage.
+   * @param isOperational
+   *          <code>true</code> if attributes having this attribute
+   *          usage are operational, or <code>false</code>
+   *          otherwise.
    */
-  private AttributeUsage(String usageString)
+  private AttributeUsage(String usageString, boolean isOperational)
   {
     this.usageString = usageString;
+    this.isOperational = isOperational;
   }
 
 
@@ -91,6 +100,20 @@ public enum AttributeUsage
   public String toString()
   {
     return usageString;
+  }
+
+
+
+  /**
+   * Determine whether or not attributes having this attribute usage
+   * are operational.
+   *
+   * @return Returns <code>true</code> if attributes having this
+   *         attribute usage are operational, or <code>false</code>
+   *         otherwise.
+   */
+  public boolean isOperational() {
+    return isOperational;
   }
 }
 
