@@ -26,13 +26,19 @@
  */
 package org.opends.server.protocols.ldap ;
 
+import static org.opends.server.config.ConfigConstants.ATTR_LISTEN_PORT;
+import org.opends.server.types.Entry;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.protocols.asn1.ASN1Boolean;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Long;
 import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.types.Attribute;
 import org.testng.annotations.Test;
 
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -44,6 +50,9 @@ import java.util.ListIterator;
 @Test(groups = { "precommit", "ldap" })
 public abstract class LdapTestCase extends DirectoryServerTestCase
 {
+	
+	private static String localHost = "127.0.0.1";
+	
   /**
    * Determine whether one LDAPAttribute is equal to another.
    * The values of the attribute must be identical and in the same order.
@@ -135,5 +144,42 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
 	  StringBuilder sb = new StringBuilder();
 	  op.toString(sb);
 	  op.toString(sb, 1);
+  }
+  
+  /**
+   * Generate a LDAPConnectionHandler from a entry. The listen port is
+   * determined automatiacally, so no ATTR_LISTEN_PORT should be in the
+   * entry.
+   * 
+   * @param handlerEntry The entry to be used to configure the handle.
+   * @return
+   * @throws Exception if the handler cannot be initialized.
+   */
+  static LDAPConnectionHandler 
+  getLDAPHandlerInstance(Entry handlerEntry) throws Exception {
+	  ServerSocket serverLdapSocket = new ServerSocket();
+	  serverLdapSocket.setReuseAddress(true);
+	  serverLdapSocket.bind(new InetSocketAddress(localHost, 0));
+	  long serverLdapPort = serverLdapSocket.getLocalPort();
+	  Attribute a=new Attribute(ATTR_LISTEN_PORT, String.valueOf(serverLdapPort));
+	  handlerEntry.addAttribute(a,null);
+	  String LDAPClassName=LDAPConnectionHandler.class.getName();
+	  Class LDAPConnHandlerClass = Class.forName(LDAPClassName);
+	  LDAPConnectionHandler LDAPConnHandler = 
+		  (LDAPConnectionHandler) LDAPConnHandlerClass.newInstance();
+	  LDAPConnHandler.initializeConnectionHandler(new ConfigEntry(handlerEntry, null ));
+	  return LDAPConnHandler;
+  }
+  
+  /**
+ * @return A free port number.
+ * @throws Exception if socket cannot be created or bound to.
+ */
+static long
+  getFreePort() throws Exception {
+	  ServerSocket serverLdapSocket = new ServerSocket();
+	  serverLdapSocket.setReuseAddress(true);
+	  serverLdapSocket.bind(new InetSocketAddress(localHost, 0));
+	  return serverLdapSocket.getLocalPort();
   }
 }
