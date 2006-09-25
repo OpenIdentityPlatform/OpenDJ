@@ -270,7 +270,13 @@ public class LDAPConnection
       }
 
       String result = null;
-      if(connectionOptions.getSASLMechanism() != null)
+      if (connectionOptions.useSASLExternal())
+      {
+        result = handler.doSASLExternal(new ASN1OctetString(bindDN),
+                                        connectionOptions.getSASLProperties(),
+                                        requestControls, responseControls);
+      }
+      else if (connectionOptions.getSASLMechanism() != null)
       {
             result = handler.doSASLBind(new ASN1OctetString(bindDN), bindPW,
             connectionOptions.getSASLMechanism(),
