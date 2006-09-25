@@ -3139,6 +3139,7 @@ public class PasswordPolicy
     lastLoginTimeFormat              = p.lastLoginTimeFormat;
     previousLastLoginTimeFormats     = p.previousLastLoginTimeFormats;
     passwordGenerator                = p.passwordGenerator;
+    passwordGeneratorDN              = p.passwordGeneratorDN;
     notificationHandlers             = p.notificationHandlers;
     defaultStorageSchemes            = p.defaultStorageSchemes;
     deprecatedStorageSchemes         = p.deprecatedStorageSchemes;
