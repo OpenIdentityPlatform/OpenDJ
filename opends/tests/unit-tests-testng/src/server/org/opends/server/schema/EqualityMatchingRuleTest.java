@@ -28,230 +28,154 @@ package org.opends.server.schema;
 
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryException;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ConditionResult;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_OID;
 import static org.testng.Assert.*;
 
 /**
  * Test The equality matching rules and the equality matching rule api.
  */
-public class EqualityMatchingRuleTest extends SchemaTestCase
+public abstract class EqualityMatchingRuleTest extends SchemaTestCase
 {
+  /**
+   * Generate data for the EqualityMatching Rule test.
+   *
+   * @return the data for the equality matching rule test.
+   */
   @DataProvider(name="equalitymatchingrules")
-  public Object[][] createEqualityMatchingRuleTest()
-  {
-    return new Object[][] {
-        {"WordEqualityMatchingRule", "first word", "first", true},
-        {"WordEqualityMatchingRule", "first,word", "first", true},
-        {"WordEqualityMatchingRule", "first  word", "first", true},
-        {"WordEqualityMatchingRule", "first#word", "first", true},
-        {"WordEqualityMatchingRule", "first.word", "first", true},
-        {"WordEqualityMatchingRule", "first/word", "first", true},
-        {"WordEqualityMatchingRule", "first$word", "first", true},
-        {"WordEqualityMatchingRule", "first+word", "first", true},
-        {"WordEqualityMatchingRule", "first-word", "first", true},
-        {"WordEqualityMatchingRule", "first=word", "first", true},
-        {"WordEqualityMatchingRule", "word", "first", false},
-        {"WordEqualityMatchingRule", "", "empty", false},
-        {"WordEqualityMatchingRule", "", "", true},
-        
-        {"DirectoryStringFirstComponentEqualityMatchingRule",
-          "(1.2.8.5 NAME 'testtype' DESC 'full type')",
-           "1.2.8.5", true},
-        {"DirectoryStringFirstComponentEqualityMatchingRule",
-             "(1.2.8.5 NAME 'testtype' DESC 'full type')",
-             "something", false},   
-    
-        {"BooleanEqualityMatchingRule", "TRUE", "true", true},
-        {"BooleanEqualityMatchingRule", "YES", "true", true},
-        {"BooleanEqualityMatchingRule", "ON", "true", true},
-        {"BooleanEqualityMatchingRule", "1", "true", true},
-        {"BooleanEqualityMatchingRule", "FALSE", "false", true},
-        {"BooleanEqualityMatchingRule", "NO", "false", true},
-        {"BooleanEqualityMatchingRule", "OFF", "false", true},
-        {"BooleanEqualityMatchingRule", "0", "false", true},
-        {"BooleanEqualityMatchingRule", "TRUE", "false", false},
+  public abstract Object[][] createEqualityMatchingRuleTest();
 
-        {"CaseIgnoreEqualityMatchingRule", " string ", "string", true},
-        {"CaseIgnoreEqualityMatchingRule", "string ", "string", true},
-        {"CaseIgnoreEqualityMatchingRule", " string", "string", true},
-        {"CaseIgnoreEqualityMatchingRule", "    ", " ", true},
-        {"CaseIgnoreEqualityMatchingRule", "Z", "z", true},
-        {"CaseIgnoreEqualityMatchingRule",
-                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
-                            "abcdefghijklmnopqrstuvwxyz1234567890", true},
+  /**
+   * Generate invalid data for the EqualityMatching Rule test.
+   *
+   * @return the data for the EqualityMatchingRulesInvalidValuestest.
+   */
+  @DataProvider(name="equalityMatchingRuleInvalidValues")
+  public abstract Object[][] createEqualityMatchingRuleInvalidValues();
 
-        {"IntegerEqualityMatchingRule", "1234567890", "1234567890", true},
-        {"IntegerEqualityMatchingRule", "-1", "-1", true},
-        {"IntegerEqualityMatchingRule", "-9876543210", "-9876543210", true},
-        {"IntegerEqualityMatchingRule", "1", "-1", false},
 
-        {"GeneralizedTimeEqualityMatchingRule","2006090613Z",
-                                               "20060906130000.000Z", true},
-        {"GeneralizedTimeEqualityMatchingRule","200609061350Z",
-                                               "20060906135000.000Z", true},
-        {"GeneralizedTimeEqualityMatchingRule","200609061351Z",
-                                               "20060906135000.000Z", false},
-        {"GeneralizedTimeEqualityMatchingRule","20060906135030Z",
-                                               "20060906135030.000Z", true},
-        {"GeneralizedTimeEqualityMatchingRule","20060906135030.3Z",
-                                               "20060906135030.300Z", true},
-        {"GeneralizedTimeEqualityMatchingRule","20060906135030.30Z",
-                                               "20060906135030.300Z", true},
-        {"GeneralizedTimeEqualityMatchingRule","20060906135030.Z",
-                                               "20060906135030.000Z", true},
-        {"GeneralizedTimeEqualityMatchingRule","20060906135030.0118Z",
-                                               "20060906135030.012Z", true},
-        {"GeneralizedTimeEqualityMatchingRule","20060906135030+01",
-                                               "20060906125030.000Z", true},
-        {"GeneralizedTimeEqualityMatchingRule","20060906135030+0101",
-                                               "20060906124930.000Z", true},
-                                               
-        {"UUIDEqualityMatchingRule",
-                 "12345678-9ABC-DEF0-1234-1234567890ab",
-                 "12345678-9abc-def0-1234-1234567890ab", true},
-        {"UUIDEqualityMatchingRule",
-                  "12345678-9abc-def0-1234-1234567890ab",
-                  "12345678-9abc-def0-1234-1234567890ab", true},
-        {"UUIDEqualityMatchingRule",
-                  "02345678-9abc-def0-1234-1234567890ab",
-                  "12345678-9abc-def0-1234-1234567890ab", false},
-                  
-        {"BitStringEqualityMatchingRule", "\'0\'B", "\'0\'B", true},
-        {"BitStringEqualityMatchingRule", "\'1\'B", "\'1\'B", true},
-        {"BitStringEqualityMatchingRule", "\'0\'B", "\'1\'B", false},
-        
-        {"CaseExactIA5EqualityMatchingRule", "12345678",
-                                             "12345678", true},
-        {"CaseExactIA5EqualityMatchingRule", "ABC45678",
-                                             "ABC45678", true},
-        {"CaseExactIA5EqualityMatchingRule", "ABC45678",
-                                             "abc45678", false},
-                                             
-        {"CaseIgnoreIA5EqualityMatchingRule", "12345678",
-                                              "12345678", true},
-        {"CaseIgnoreIA5EqualityMatchingRule", "ABC45678",
-                                              "ABC45678", true},
-        {"CaseIgnoreIA5EqualityMatchingRule", "ABC45678",
-                                              "abc45678", true},
-                                              
-        {"UniqueMemberEqualityMatchingRule",
-                 "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B",
-                 "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B", true},
-        {"UniqueMemberEqualityMatchingRule",
-                 "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B",
-                 "1.3.6.1.4.1.1466.0=#04024869,o=Test,C=GB#'0101'B", true},
-      
-    };
-
-  }
+  /**
+   * Get an instance of the matching rule.
+   * 
+   * @return An instance of the matching rule to test.
+   */
+  public abstract EqualityMatchingRule getRule();
 
   /**
    * Test the normalization and the comparison of valid values.
    */
   @Test(dataProvider= "equalitymatchingrules")
-  public void EqualityMatchingRules(String ruleClassName, String value1,
+  public void equalityMatchingRules(String value1,
                              String value2, Boolean result) throws Exception
   {
-    // load the mathing rule code
-    Class rule = Class.forName("org.opends.server.schema."+ruleClassName);
-
-    // Make sure that the specified class can be instantiated as a task.
-    EqualityMatchingRule ruleInstance =
-      (EqualityMatchingRule) rule.newInstance();
-
-    // we should call initializeMatchingRule but they all seem empty at the
-    // moment.
-    // ruleInstance.initializeMatchingRule(configEntry);
+    EqualityMatchingRule rule = getRule();
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue1 =
-      ruleInstance.normalizeValue(new ASN1OctetString(value1));
+      rule.normalizeValue(new ASN1OctetString(value1));
     ByteString normalizedValue2 =
-      ruleInstance.normalizeValue(new ASN1OctetString(value2));
+      rule.normalizeValue(new ASN1OctetString(value2));
 
-    Boolean liveResult = ruleInstance.areEqual(normalizedValue1,
-        normalizedValue2);
+    Boolean liveResult = rule.areEqual(normalizedValue1, normalizedValue2);
     assertEquals(result, liveResult);
   }
 
-  @DataProvider(name="equalityMathchingRuleInvalidValues")
-  public Object[][] createEqualityMathchingRuleInvalidValues()
+  
+  /**
+   * Generate data for the EqualityMatching Rule test in warn mode.
+   *
+   * @return the data for the equality matching rule test in warn mode.
+   */
+  @DataProvider(name="warnmodeEqualityMatchingRule")
+  public Object[][] createWarnmodeEqualityMatchingRuleTest()
   {
-    return new Object[][] {
-        {"IntegerEqualityMatchingRule", "01"},
-        {"IntegerEqualityMatchingRule", "00"},
-        {"IntegerEqualityMatchingRule", "-01"},
-        {"IntegerEqualityMatchingRule", "1-2"},
-        {"IntegerEqualityMatchingRule", "b2"},
-        {"IntegerEqualityMatchingRule", "-"},
-        {"IntegerEqualityMatchingRule", ""},
-
-        {"GeneralizedTimeEqualityMatchingRule","2006september061Z"},
-        {"GeneralizedTimeEqualityMatchingRule","2006"},
-        {"GeneralizedTimeEqualityMatchingRule","200609061Z"},
-        {"GeneralizedTimeEqualityMatchingRule","20060906135Z"},
-        {"GeneralizedTimeEqualityMatchingRule","200609061350G"},
-        {"GeneralizedTimeEqualityMatchingRule","2006090613mmZ"},
-        {"GeneralizedTimeEqualityMatchingRule","20060906135030.011"},
-        {"GeneralizedTimeEqualityMatchingRule","20060906135030Zx"},
-        
-        {"UUIDEqualityMatchingRule", "G2345678-9abc-def0-1234-1234567890ab"},
-        {"UUIDEqualityMatchingRule", "g2345678-9abc-def0-1234-1234567890ab"},
-        {"UUIDEqualityMatchingRule", "12345678/9abc/def0/1234/1234567890ab"},
-        {"UUIDEqualityMatchingRule", "12345678-9abc-def0-1234-1234567890a"},
-        
-        {"BitStringEqualityMatchingRule", "\'a\'B"},
-        {"BitStringEqualityMatchingRule", "0"},
-        {"BitStringEqualityMatchingRule", "010101"},
-        {"BitStringEqualityMatchingRule", "\'10101"},
-        {"BitStringEqualityMatchingRule", "\'1010\'A"},
-        
-        {"CaseExactIA5EqualityMatchingRule", "12345678\u2163"},
-        
-        {"CaseIgnoreIA5EqualityMatchingRule", "12345678\u2163"},
-        
-        {"UniqueMemberEqualityMatchingRule",
-                "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'123'B"},
-        {"UniqueMemberEqualityMatchingRule", "1.3.6.1.4.1.1466.01"}
-        
-    };
+    return new Object[][] {};
+  }
+  
+  /**
+   * Test the normalization and the comparison in the warning mode 
+   */
+  @Test(dataProvider= "warnmodeEqualityMatchingRule")
+  public void warnmodeEqualityMatchingRules(
+      String value1, String value2, Boolean result)
+      throws Exception
+  {
+    AcceptRejectWarn accept = DirectoryServer.getSyntaxEnforcementPolicy();
+    DirectoryServer.setSyntaxEnforcementPolicy(AcceptRejectWarn.WARN);
+    try 
+    {
+      equalityMatchingRules(value1, value2, result);
+    }
+    finally
+    {
+      DirectoryServer.setSyntaxEnforcementPolicy(accept);
+    } 
   }
 
   /**
    * Test that invalid values are rejected.
    */
-  @Test(dataProvider= "equalityMathchingRuleInvalidValues")
-  public void EqualityMatchingRulesInvalidValues(String ruleClassName,
-      String value) throws Exception
+  @Test(dataProvider= "equalityMatchingRuleInvalidValues")
+  public void equalityMatchingRulesInvalidValues(String value) throws Exception
     {
-
-    // load the matching rule code
-    Class rule = Class.forName("org.opends.server.schema."+ruleClassName);
-
-    // Make sure that the specified class can be instantiated as a task.
-    EqualityMatchingRule ruleInstance =
-      (EqualityMatchingRule) rule.newInstance();
-
-    // we should call initializeMatchingRule but they all seem empty at the
-    // moment.
-    // ruleInstance.initializeMatchingRule(configEntry);
+    // Get the instance of the rule to be tested.
+    EqualityMatchingRule rule = getRule();
 
     // normalize the 2 provided values
     boolean success = false;
     try
     {
-      ruleInstance.normalizeValue(new ASN1OctetString(value));
+      rule.normalizeValue(new ASN1OctetString(value));
     } catch (DirectoryException e) {
       success = true;
     }
-    // if we get there with false value for  success then the tested
-    // matching rule did not raised the Exception.
 
-    assertTrue(success);
+    if (!success)
+    {
+      fail("The matching rule : " + rule.getName() +
+           " should detect that value \"" + value + "\" is invalid");
+    }
   }
+  
+  /**
+   * Generate data for the EqualityMatching Rule test.
+   *
+   * @return the data for the equality matching rule test.
+   */
+  @DataProvider(name="valuesMatch")
+  public Object[][] createValuesMatch()
+  {
+    return new Object[][] {};
+  }
+  
+  /**
+   * Test the valuesMatch method used for extensible filters.
+   */
+  @Test(dataProvider= "valuesMatch")
+  public void testValuesMatch(String value1,
+                             String value2, Boolean result) throws Exception
+  {
+    EqualityMatchingRule rule = getRule();
+
+    // normalize the 2 provided values and check that they are equals
+    ByteString normalizedValue1 =
+      rule.normalizeValue(new ASN1OctetString(value1));
+    ByteString normalizedValue2 =
+      rule.normalizeValue(new ASN1OctetString(value2));
+
+    ConditionResult liveResult =
+      rule.valuesMatch(normalizedValue1, normalizedValue2);
+    if (result == true)
+      assertEquals(ConditionResult.TRUE, liveResult);
+    else
+      assertEquals(ConditionResult.FALSE, liveResult);
+    
+  }
+
 }
