@@ -4674,6 +4674,7 @@ public class PasswordPolicyTestCase
   /**
    * Tests the <CODE>toString</CODE> methods with the default password policy.
    */
+  @Test()
   public void testToStringDefault()
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
@@ -4692,6 +4693,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testToStringAuth()
          throws Exception
   {
