@@ -60,7 +60,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Debug.*;
@@ -1412,21 +1411,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the attribute type used to store the password.
-   *
-   * @param  passwordAttribute  The attribute type used to store the password.
-   */
-  public void setPasswordAttribute(AttributeType passwordAttribute)
-  {
-    assert debugEnter(CLASS_NAME, "setPasswordAttribute",
-                      String.valueOf(passwordAttribute));
-
-    this.passwordAttribute = passwordAttribute;
-  }
-
-
-
-  /**
    * Indicates whether the associated password attribute uses the auth password
    * syntax.
    *
@@ -1455,24 +1439,6 @@ public class PasswordPolicy
     assert debugEnter(CLASS_NAME, "getDefaultStorageSchemes");
 
     return defaultStorageSchemes;
-  }
-
-
-
-  /**
-   * Specifies the default set of password storage schemes that will be used for
-   * this password policy.
-   *
-   * @param  defaultStorageSchemes  The default set of password storage schemes
-   *                                that will be used for this password policy.
-   */
-  public void setDefaultStorageSchemes(
-       CopyOnWriteArrayList<PasswordStorageScheme> defaultStorageSchemes)
-  {
-    assert debugEnter(CLASS_NAME, "setDefaultStorageSchemes",
-                      String.valueOf(defaultStorageSchemes));
-
-    this.defaultStorageSchemes = defaultStorageSchemes;
   }
 
 
@@ -1543,24 +1509,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the names of the password storage schemes that have been
-   * deprecated.
-   *
-   * @param  deprecatedStorageSchemes  The names of the password storage schemes
-   *                                   that have been deprecated.
-   */
-  public void setDeprecatedStorageSchemes(CopyOnWriteArraySet<String>
-                                               deprecatedStorageSchemes)
-  {
-    assert debugEnter(CLASS_NAME, "setDeprecatedStorageSchemes",
-                      String.valueOf(deprecatedStorageSchemes));
-
-    this.deprecatedStorageSchemes = deprecatedStorageSchemes;
-  }
-
-
-
-  /**
    * Indicates whether the specified storage scheme is deprecated.
    *
    * @param  name  The name of the password storage scheme for which to make the
@@ -1610,23 +1558,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the set of password validators for this password policy.
-   *
-   * @param  passwordValidators  The set of password validators for this
-   *                             password policy.
-   */
-  public void setPasswordValidators(ConcurrentHashMap<DN,PasswordValidator>
-                                         passwordValidators)
-  {
-    assert debugEnter(CLASS_NAME, "setPasswordValidators",
-                      String.valueOf(passwordValidators));
-
-    this.passwordValidators = passwordValidators;
-  }
-
-
-
-  /**
    * Retrieves the set of account status notification handlers that should be
    * used with this password policy.  The returned list should not be altered by
    * the caller.
@@ -1645,26 +1576,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the set of account status notification handlers that should be
-   * used with this password policy.
-   *
-   * @param  notificationHandlers  The set of account status notification
-   *                               handlers that should be used with this
-   *                               password policy.
-   */
-  public void setAccountStatusNotificationHandlers(
-                   ConcurrentHashMap<DN,AccountStatusNotificationHandler>
-                        notificationHandlers)
-  {
-    assert debugEnter(CLASS_NAME, "setAccountStatusNotificationHandlers",
-                      String.valueOf(notificationHandlers));
-
-    this.notificationHandlers = notificationHandlers;
-  }
-
-
-
-  /**
    * Indicates whether end users will be allowed to change their own passwords
    * (subject to access control restrictions).
    *
@@ -1676,23 +1587,6 @@ public class PasswordPolicy
     assert debugEnter(CLASS_NAME, "allowUserPasswordChanges");
 
     return allowUserPasswordChanges;
-  }
-
-
-
-  /**
-   * Specifies whether end users will be allowed to change their own passwords
-   * (subject to access control restrictions).
-   *
-   * @param  allowUserPasswordChanges  Specifies whether end users will be
-   *                                   allowed to change their own passwords.
-   */
-  public void setAllowUserPasswordChanges(boolean allowUserPasswordChanges)
-  {
-    assert debugEnter(CLASS_NAME, "setAllowUserPasswordChanges",
-                      String.valueOf(allowUserPasswordChanges));
-
-    this.allowUserPasswordChanges = allowUserPasswordChanges;
   }
 
 
@@ -1715,24 +1609,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies whether the end user must provide their current password (via the
-   * password modify extended operation) in order to set a new password.
-   *
-   * @param  requireCurrentPassword  Specifies whether the end user must provide
-   *                                 their current password in order to set a
-   *                                 new password.
-   */
-  public void setRequireCurrentPassword(boolean requireCurrentPassword)
-  {
-    assert debugEnter(CLASS_NAME, "setRequireCurrentPassword",
-                      String.valueOf(requireCurrentPassword));
-
-    this.requireCurrentPassword = requireCurrentPassword;
-  }
-
-
-
-  /**
    * Indicates whether users will be required to change their passwords as soon
    * as they authenticate after their accounts have been created.
    *
@@ -1745,24 +1621,6 @@ public class PasswordPolicy
     assert debugEnter(CLASS_NAME, "forceChangeOnAdd");
 
     return forceChangeOnAdd;
-  }
-
-
-
-  /**
-   * Specifies whether user will be required to change their passwords on first
-   * authenticating to the server.
-   *
-   * @param  forceChangeOnAdd  Specifies whether users will be required to
-   *                           change their passwords after first authenticating
-   *                           to the server.
-   */
-  public void setForceChangeOnAdd(boolean forceChangeOnAdd)
-  {
-    assert debugEnter(CLASS_NAME, "setForceChangeOnAdd",
-                      String.valueOf(forceChangeOnAdd));
-
-    this.forceChangeOnAdd = forceChangeOnAdd;
   }
 
 
@@ -1785,24 +1643,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies whether a user will be required to change their password after it
-   * has been reset by an administrator.
-   *
-   * @param  forceChangeOnReset  Specifies whether a user will be required to
-   *                             change their password after it has been reset
-   *                             by an administrator.
-   */
-  public void setForceChangeOnReset(boolean forceChangeOnReset)
-  {
-    assert debugEnter(CLASS_NAME, "setForceChangeOnReset",
-                      String.valueOf(forceChangeOnReset));
-
-    this.forceChangeOnReset = forceChangeOnReset;
-  }
-
-
-
-  /**
    * Indicates whether operations by administrators that specify a new password
    * for a user (e.g., add, modify, or password modify) will be allowed to
    * bypass the password validation process that will be required for user
@@ -1816,27 +1656,6 @@ public class PasswordPolicy
     assert debugEnter(CLASS_NAME, "skipValidationForAdministrators");
 
     return skipValidationForAdministrators;
-  }
-
-
-
-  /**
-   * Specifies whether operations by administrators that specify a new password
-   * for a user (e.g., add, modify, or password modify) will be allowed to
-   * bypass the password validation process that will be required for user
-   * password changes.
-   *
-   * @param  skipValidationForAdministrators  Specifies whether administrators
-   *                                          will be allowed to bypass password
-   *                                          validation checks.
-   */
-  public void setSkipValidationForAdministrators(
-                   boolean skipValidationForAdministrators)
-  {
-    assert debugEnter(CLASS_NAME, "setSkipValidationForAdministrators",
-                      String.valueOf(skipValidationForAdministrators));
-
-    this.skipValidationForAdministrators = skipValidationForAdministrators;
   }
 
 
@@ -1872,27 +1691,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the password generator that will be used with this password
-   * policy.
-   *
-   * @param  passwordGeneratorDN  The DN of the password validator configuration
-   *                              entry.
-   * @param  passwordGenerator    The password generator that will be used with
-   *                              this password policy.
-   */
-  public void setPasswordGenerator(DN passwordGeneratorDN,
-                                  PasswordGenerator passwordGenerator)
-  {
-    assert debugEnter(CLASS_NAME, "setPasswordGenerator",
-                      String.valueOf(passwordGenerator));
-
-    this.passwordGeneratorDN = passwordGeneratorDN;
-    this.passwordGenerator   = passwordGenerator;
-  }
-
-
-
-  /**
    * Indicates whether users with this password policy will be required to
    * authenticate in a secure manner that does not expose their password.
    *
@@ -1906,26 +1704,6 @@ public class PasswordPolicy
     assert debugEnter(CLASS_NAME, "requireSecureAuthentication");
 
     return requireSecureAuthentication;
-  }
-
-
-
-  /**
-   * Specifies whether users with this password policy will be required to
-   * authenticate in a secure manner that does not expose their password.
-   *
-   * @param  requireSecureAuthentication  Specifies whether users with this
-   *                                      password policy will be required to
-   *                                      authenticate in a secure manner that
-   *                                      does not expose their password.
-   */
-  public void setRequireSecureAuthentication(boolean
-                                                  requireSecureAuthentication)
-  {
-    assert debugEnter(CLASS_NAME, "setRequireSecureAuthentication",
-                      String.valueOf(requireSecureAuthentication));
-
-    this.requireSecureAuthentication = requireSecureAuthentication;
   }
 
 
@@ -1950,28 +1728,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies whether users with this password policy will be required to
-   * change their passwords in a secure manner that does not expose the new
-   * password.
-   *
-   * @param  requireSecurePasswordChanges  Specifies whether users with this
-   *                                       password policy will be required to
-   *                                       change their passwords in a secure
-   *                                       manner that does not expose the new
-   *                                       password.
-   */
-  public void setRequireSecurePasswordChanges(boolean
-                                                   requireSecurePasswordChanges)
-  {
-    assert debugEnter(CLASS_NAME, "setRequireSecurePasswordChanges",
-                      String.valueOf(requireSecurePasswordChanges));
-
-    this.requireSecurePasswordChanges = requireSecurePasswordChanges;
-  }
-
-
-
-  /**
    * Indicates whether user entries will be allowed to have multiple distinct
    * values in the password attribute.
    *
@@ -1988,25 +1744,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies whether user entries will be allowed to have multiple distinct
-   * values in the password attribute.
-   *
-   * @param  allowMultiplePasswordValues  Specifies whether user entries will be
-   *                                      allowed to have multiple distinct
-   *                                      values in the password attribute.
-   */
-  public void setAllowMultiplePasswordValues(boolean
-                                                  allowMultiplePasswordValues)
-  {
-    assert debugEnter(CLASS_NAME, "setAllowMultiplePasswordValues",
-                      String.valueOf(allowMultiplePasswordValues));
-
-    this.allowMultiplePasswordValues = allowMultiplePasswordValues;
-  }
-
-
-
-  /**
    * Indicates whether clients will be allowed to set pre-encoded passwords that
    * are already hashed and therefore cannot be validated for correctness.
    *
@@ -2018,25 +1755,6 @@ public class PasswordPolicy
     assert debugEnter(CLASS_NAME, "allowPreEncodedPasswords");
 
     return allowPreEncodedPasswords;
-  }
-
-
-
-  /**
-   * Specifies whether clients will be allowed to set pre-encoded passwords that
-   * are already hashed and therefore cannot be validated for correctness.
-   *
-   * @param  allowPreEncodedPasswords  Specifies whether clients will be allowed
-   *                                   to set pre-encoded passwords that are
-   *                                   already hashed and therefore cannot be
-   *                                   validated for correctness.
-   */
-  public void setAllowPreEncodedPasswords(boolean allowPreEncodedPasswords)
-  {
-    assert debugEnter(CLASS_NAME, "setAllowPreEncodedPasswords",
-                      String.valueOf(allowPreEncodedPasswords));
-
-    this.allowPreEncodedPasswords = allowPreEncodedPasswords;
   }
 
 
@@ -2064,25 +1782,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the minimum password age, which is the minimum length of time in
-   * seconds that must elapse between user password changes.
-   *
-   * @param  minimumPasswordAge  The minimum password age, which is the minimum
-   *                             length of time in seconds that must elapse
-   *                             between user password changes.
-   */
-  public void setMinimumPasswordAge(int minimumPasswordAge)
-  {
-    assert debugEnter(CLASS_NAME, "setMinimumPasswordAge",
-                      String.valueOf(minimumPasswordAge));
-
-    this.minimumPasswordAge = minimumPasswordAge;
-  }
-
-
-
-
-  /**
    * Retrieves the maximum length of time in seconds that will be allowed to
    * pass between password changes before the password is expired.
    *
@@ -2100,24 +1799,6 @@ public class PasswordPolicy
     }
 
     return maximumPasswordAge;
-  }
-
-
-
-  /**
-   * Specifies the maximum length of time in seconds that will be allowed to
-   * pass between password changes before the password is expired.
-   *
-   * @param  maximumPasswordAge  The maximum length of time in seconds that will
-   *                             be allowed to pass between password changes
-   *                             before the password is expired.
-   */
-  public void setMaximumPasswordAge(int maximumPasswordAge)
-  {
-    assert debugEnter(CLASS_NAME, "setMaximumPasswordAge",
-                      String.valueOf(maximumPasswordAge));
-
-    this.maximumPasswordAge = maximumPasswordAge;
   }
 
 
@@ -2146,26 +1827,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the maximum length of time in seconds that will be allowed to
-   * pass after an administrative password reset before that password is
-   * expired.
-   *
-   * @param  maximumPasswordResetAge  The maximum length of time in seconds that
-   *                                  will be allowed to pass after an
-   *                                  administrative password reset before that
-   *                                  password is expired.
-   */
-  public void setMaximumPasswordResetAge(int maximumPasswordResetAge)
-  {
-    assert debugEnter(CLASS_NAME, "setMaximumPasswordResetAge",
-                      String.valueOf(maximumPasswordResetAge));
-
-    this.maximumPasswordResetAge = maximumPasswordResetAge;
-  }
-
-
-
-  /**
    * Retrieves the maximum length of time in seconds before the password will
    * expire that the user should start receiving warning notifications.
    *
@@ -2183,24 +1844,6 @@ public class PasswordPolicy
     }
 
     return warningInterval;
-  }
-
-
-
-  /**
-   * Specifies the maximum length of time in seconds before the password will
-   * expire that the user should start receiving warning notifications.
-   *
-   * @param  warningInterval  The maximum length of time in seconds before the
-   *                          password will expire that the user should start
-   *                          receiving warning notifications.
-   */
-  public void setWarningInterval(int warningInterval)
-  {
-    assert debugEnter(CLASS_NAME, "setWarningInterval",
-                      String.valueOf(warningInterval));
-
-    this.warningInterval = warningInterval;
   }
 
 
@@ -2224,26 +1867,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies whether user passwords will be allowed to expire without the
-   * user receiving at least one notification during the warning period.
-   *
-   * @param  expirePasswordsWithoutWarning  Specifies whether user passwords
-   *                                        will be allowed to expire without
-   *                                        the user receiving at least one
-   *                                        warning during the warning period.
-   */
-  public void setExpirePasswordsWithoutWarning(
-                   boolean expirePasswordsWithoutWarning)
-  {
-    assert debugEnter(CLASS_NAME, "setExpirePasswordsWithoutWarning",
-                      String.valueOf(expirePasswordsWithoutWarning));
-
-    this.expirePasswordsWithoutWarning = expirePasswordsWithoutWarning;
-  }
-
-
-
-  /**
    * Indicates whether a user will be allowed to change their password after it
    * expires and they have no remaining grace logins (and will not be allowed to
    * perform any other operation until the password is changed).
@@ -2258,26 +1881,6 @@ public class PasswordPolicy
     assert debugEnter(CLASS_NAME, "allowExpiredPasswordChanges");
 
     return allowExpiredPasswordChanges;
-  }
-
-
-
-  /**
-   * Specifies whether a user will be allowed to change their password after it
-   * expires and they have no remaining grace logins.
-   *
-   * @param  allowExpiredPasswordChanges  Specifies whether a user will be
-   *                                      allowed to change their password after
-   *                                      it expires and they have no remaining
-   *                                      grace logins.
-   */
-  public void setAllowExpiredPasswordChanges(boolean
-                                                  allowExpiredPasswordChanges)
-  {
-    assert debugEnter(CLASS_NAME, "setAllowExpiredPasswordChanges",
-                      String.valueOf(allowExpiredPasswordChanges));
-
-    this.allowExpiredPasswordChanges = allowExpiredPasswordChanges;
   }
 
 
@@ -2307,24 +1910,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the maximum number of grace logins that a user will be allowed
-   * after their password has expired before they are completely locked out.
-   *
-   * @param  graceLoginCount  The maximum number of grace logins that a user
-   *                          will be allowed after their password has expired
-   *                          before they are completely locked out.
-   */
-  public void setGraceLoginCount(int graceLoginCount)
-  {
-    assert debugEnter(CLASS_NAME, "setGraceLoginCount",
-                      String.valueOf(graceLoginCount));
-
-    this.graceLoginCount = graceLoginCount;
-  }
-
-
-
-  /**
    * Retrieves the maximum number of authentication failures that will be
    * allowed before an account is locked out.
    *
@@ -2342,24 +1927,6 @@ public class PasswordPolicy
     }
 
     return lockoutFailureCount;
-  }
-
-
-
-  /**
-   * Specifies the maximum number of authentication failures that will be
-   * allowed before an account is locked out.
-   *
-   * @param  lockoutFailureCount  The maximum number of authentication failures
-   *                              that will be allowed before an account is
-   *                              locked out.
-   */
-  public void setLockoutFailureCount(int lockoutFailureCount)
-  {
-    assert debugEnter(CLASS_NAME, "setLockoutFailureCount",
-                      String.valueOf(lockoutFailureCount));
-
-    this.lockoutFailureCount = lockoutFailureCount;
   }
 
 
@@ -2388,24 +1955,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the maximum length of time in seconds that an account will be
-   * locked out due to too many failed authentication attempts.
-   *
-   * @param  lockoutDuration  The maximum length of time in seconds that an
-   *                          account will be locked out due to too many failed
-   *                          authentication attempts.
-   */
-  public void setLockoutDuration(int lockoutDuration)
-  {
-    assert debugEnter(CLASS_NAME, "setLockoutDuration",
-                      String.valueOf(lockoutDuration));
-
-    this.lockoutDuration = lockoutDuration;
-  }
-
-
-
-  /**
    * Retrieves the maximum length of time in seconds that an authentication
    * failure will be held against a user before it is removed from the failed
    * login count.
@@ -2425,28 +1974,6 @@ public class PasswordPolicy
     }
 
     return lockoutFailureExpirationInterval;
-  }
-
-
-
-  /**
-   * Specifies the maximum length of time in seconds that an authentication
-   * failure will be held against a user before it is removed from the failed
-   * login count.
-   *
-   * @param  lockoutFailureExpirationInterval  The maximum length of time in
-   *                                           seconds that an authentication
-   *                                           failure will be held against a
-   *                                           user before it is removed from
-   *                                           the failed login count.
-   */
-  public void setLockoutFailureExpirationInterval(
-                   int lockoutFailureExpirationInterval)
-  {
-    assert debugEnter(CLASS_NAME, "setLockoutFailureExpirationInterval",
-                      String.valueOf(lockoutFailureExpirationInterval));
-
-    this.lockoutFailureExpirationInterval = lockoutFailureExpirationInterval;
   }
 
 
@@ -2477,24 +2004,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the time by which all users will be required to change their
-   * passwords, expressed in the number of milliseconds since midnight of
-   * January 1, 1970.
-   *
-   * @param  requireChangeByTime  The time by which all users will be required
-   *                              to change their passwords.
-   */
-  public void setRequireChangeByTime(long requireChangeByTime)
-  {
-    assert debugEnter(CLASS_NAME, "setRequireChangeByTime",
-                      String.valueOf(requireChangeByTime));
-
-    this.requireChangeByTime = requireChangeByTime;
-  }
-
-
-
-  /**
    * Retrieves the attribute type used to store the last login time.
    *
    * @return  The attribute type used to store the last login time, or
@@ -2505,23 +2014,6 @@ public class PasswordPolicy
     assert debugEnter(CLASS_NAME, "getLastLoginTimeAttribute");
 
     return lastLoginTimeAttribute;
-  }
-
-
-
-  /**
-   * Specifies the attribute type used to store the last login time.
-   *
-   * @param  lastLoginTimeAttribute  The attribute type used to store the last
-   *                                 login time, or <CODE>null</CODE> if the
-   *                                 last login time is not to be maintained.
-   */
-  public void setLastLoginTimeAttribute(AttributeType lastLoginTimeAttribute)
-  {
-    assert debugEnter(CLASS_NAME, "setLastLoginTimeAttribute",
-                      String.valueOf(lastLoginTimeAttribute));
-
-    this.lastLoginTimeAttribute = lastLoginTimeAttribute;
   }
 
 
@@ -2543,38 +2035,6 @@ public class PasswordPolicy
 
 
   /**
-   * Specifies the format string that should be used for the last login time.
-   *
-   * @param  lastLoginTimeFormat  The format string that should be used for the
-   *                              last login time, or <CODE>null</CODE> if the
-   *                              last login time is not to be maintained.
-   *
-   * @throws  IllegalArgumentException  If the provided time format is invalid.
-   */
-  public void setLastLoginTimeFormat(String lastLoginTimeFormat)
-         throws IllegalArgumentException
-  {
-    assert debugEnter(CLASS_NAME, "setLastLoginTimeFormat",
-                      String.valueOf(lastLoginTimeFormat));
-
-    if (lastLoginTimeFormat != null)
-    {
-      // This will validate that the provided format string is acceptable and
-      // ensure that it gets automatically generated from now on.
-      TimeThread.getUserDefinedTime(lastLoginTimeFormat);
-    }
-
-    if (this.lastLoginTimeFormat != null)
-    {
-      TimeThread.removeUserDefinedFormatter(this.lastLoginTimeFormat);
-    }
-
-    this.lastLoginTimeFormat = lastLoginTimeFormat;
-  }
-
-
-
-  /**
    * Retrieves the list of previous last login time formats that might have been
    * used for users associated with this password policy.
    *
@@ -2586,33 +2046,6 @@ public class PasswordPolicy
     assert debugEnter(CLASS_NAME, "getPreviousLastLoginTimeFormats");
 
     return previousLastLoginTimeFormats;
-  }
-
-
-
-  /**
-   * Specifies the list of previous last login time formats that might have been
-   * used for users associated with this password policy.
-   *
-   * @param  previousLastLoginTimeFormats  The list of previous last login time
-   *                                       formats that might have been used
-   *                                       for users associated with this
-   *                                       password policy.
-   */
-  public void setPreviousLastLoginTimeFormats(CopyOnWriteArrayList<String>
-                                                   previousLastLoginTimeFormats)
-  {
-    assert debugEnter(CLASS_NAME, "setPreviousLastLoginTimeFormats",
-                      String.valueOf(previousLastLoginTimeFormats));
-
-    if (previousLastLoginTimeFormats == null)
-    {
-      this.previousLastLoginTimeFormats = new CopyOnWriteArrayList<String>();
-    }
-    else
-    {
-      this.previousLastLoginTimeFormats = previousLastLoginTimeFormats;
-    }
   }
 
 
@@ -2635,24 +2068,6 @@ public class PasswordPolicy
     }
 
     return idleLockoutInterval;
-  }
-
-
-
-  /**
-   * Specifies the maximum length of time in seconds that an account will be
-   * allowed to remain idle (i.e., unused) before it will be locked out.
-   *
-   * @param  idleLockoutInterval  The maximum length of time in seconds that an
-   *                              account will be allowed to remain idle before
-   *                              it will be locked out.
-   */
-  public void setIdleLockoutInterval(int idleLockoutInterval)
-  {
-    assert debugEnter(CLASS_NAME, "setIdleLockoutInterval",
-                      String.valueOf(idleLockoutInterval));
-
-    this.idleLockoutInterval = idleLockoutInterval;
   }
 
 
