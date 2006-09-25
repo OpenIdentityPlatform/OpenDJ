@@ -31,12 +31,36 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Frontend RFC2252 Standards
+    #@TestSuitePurpose          Test the RFC2252 standards regarding standards
+    #@TestSuiteID               RFC2252 Standards
+    #@TestSuiteGroup            RFC2252 Standards
+    #@TestGroup                 RFC2252 Standards
+    #@TestScript                FrontendRFC2252_standards.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Frontend functional tests for standards.
  */
 @Test
 public class FrontendRFC2252_standards extends FrontendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2252 Standards
+    #@TestName                  Frontend User Standard 1
+    #@TestID                    FrontendUserStandard1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=jreuter,ou=People,o=frontend tests, 
+				dc=example,dc=com and attribute, createTimeStamp,
+				with value, 2006.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPCompare.mainCompare(), returns 0
+*/
 /**
  *  Verify the existence of the attribute, createTimestamp, 
  *  for an existing entry.
@@ -67,6 +91,20 @@ public class FrontendRFC2252_standards extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2252 Standards
+    #@TestName                  Frontend User Standard 2
+    #@TestID                    FrontendUserStandard2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=jreuter,ou=People,o=frontend tests, 
+				dc=example,dc=com and attribute, creatorsName,
+				with value, cn=Directory Manager,cn=Root DNs,cn=config.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPCompare.mainCompare(), returns 0
+*/
 /**
  *  Verify the existence of the attribute, creatorsName, 
  *  for an existing entry.
@@ -97,6 +135,22 @@ public class FrontendRFC2252_standards extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2252 Standards
+    #@TestName                  Frontend User Standard 3
+    #@TestID                    FrontendUserStandard3
+    #@TestPreamble
+    #@TestSteps                 Client calls LDAPModify.mainModify() with the
+				appropriate ldif file.
+				Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=jreuter,ou=People,o=frontend tests, 
+				dc=example,dc=com and attribute, modifyTimeStamp,
+				with value, 2006.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPCompare.mainCompare(), returns 0
+*/
 /**
  *  Verify the existence of the attribute, modifyTimestamp, 
  *  for an existing entry.
@@ -137,6 +191,22 @@ public class FrontendRFC2252_standards extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2252 Standards
+    #@TestName                  Frontend User Standard 4
+    #@TestID                    FrontendUserStandard4
+    #@TestPreamble
+    #@TestSteps                 Client calls LDAPModify.mainModify() with the
+				appropriate ldif file.
+				Client calls static method LDAPCompare.mainCompare()
+                                with base DN, uid=jreuter,ou=People,o=frontend tests, 
+				dc=example,dc=com and attribute, modifiersName,
+				with value, cn=Directory Manager,cn=Root DNs,cn=config.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPCompare.mainCompare(), returns 0
+*/
 /**
  *  Verify the existence of the attribute, modifiersName, 
  *  for an existing entry.

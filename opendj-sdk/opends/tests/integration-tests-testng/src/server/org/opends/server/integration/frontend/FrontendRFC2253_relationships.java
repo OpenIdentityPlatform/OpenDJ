@@ -31,12 +31,35 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Frontend RFC2253 Relationships
+    #@TestSuitePurpose          Test the RFC2253 standards regarding realtionships
+    #@TestSuiteID               RFC2253 Relationships
+    #@TestSuiteGroup            RFC2253 Relationships
+    #@TestGroup                 RFC2253 Relationships
+    #@TestScript                FrontendRFC2253_relationships.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Frontend functional tests for relationships in DNs.
  */
 @Test
 public class FrontendRFC2253_relationships extends FrontendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2253 Relationships
+    #@TestName                  Frontend User Relationship 1
+    #@TestID                    FrontendUserRelationship1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder;ou=People;o=frontend tests,
+                                dc=example,dc=com and filter, objectclass=*. 
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries that have a base DN that contains semicolons.
  *
@@ -66,6 +89,19 @@ public class FrontendRFC2253_relationships extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2253 Relationships
+    #@TestName                  Frontend User Relationship 2
+    #@TestID                    FrontendUserRelationship2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder,ou=People,o=frontend tests,
+                                dc=example,dc=com, with extra spaces and filter, objectclass=*. 
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries that have a base DN that contains extra spaces.
  *
@@ -95,6 +131,19 @@ public class FrontendRFC2253_relationships extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2253 Relationships
+    #@TestName                  Frontend User Relationship 3
+    #@TestID                    FrontendUserRelationship3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder,ou=People,o=frontend tests,
+                                dc=example,dc=com, with quote marks and filter, objectclass=*.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries that have a base DN that contains quote marks.
  *
@@ -124,6 +173,19 @@ public class FrontendRFC2253_relationships extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2253 Relationships
+    #@TestName                  Frontend User Relationship 4
+    #@TestID                    FrontendUserRelationship4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder, and Sons,ou=People,o=frontend tests,
+                                dc=example,dc=com, with quote marks  and filter, objectclass=*.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries that have a base DN that contains quote marks
  *  and a comma.
@@ -154,8 +216,21 @@ public class FrontendRFC2253_relationships extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2253 Relationships
+    #@TestName                  Frontend User Relationship 5
+    #@TestID                    FrontendUserRelationship5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder=superguy,ou=People,o=frontend tests,
+                                dc=example,dc=com, with quote marks  and filter, objectclass=*.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
- *  Search for entries that have a base DN that contains an equal sign.
+ *  Search for entries that have a base DN where the lowest level contains an equal sign.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.
@@ -183,8 +258,21 @@ public class FrontendRFC2253_relationships extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2253 Relationships
+    #@TestName                  Frontend User Relationship 6
+    #@TestID                    FrontendUserRelationship6
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder+football=superguy,ou=People,o=frontend tests,
+                                dc=example,dc=com, with quote marks  and filter, objectclass=*.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
- *  Search for entries that have a base DN that contains an equal sign 
+ *  Search for entries that have a base DN where the lowest level contains an equal sign 
  *  and a plus sign.
  *
  *  @param  hostname               The hostname for the server where OpenDS
@@ -213,9 +301,22 @@ public class FrontendRFC2253_relationships extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2253 Relationships
+    #@TestName                  Frontend User Relationship 7
+    #@TestID                    FrontendUserRelationship7
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder>Sons,ou=People,o=frontend tests,
+                                dc=example,dc=com, with quote marks and filter, objectclass=*.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
- *  Search for entries that have a base DN that contains an equal sign 
- *  and a greater-than sign.
+ *  Search for entries that have a base DN where the lowest level contains 
+ *  a greater-than sign.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.
@@ -243,6 +344,19 @@ public class FrontendRFC2253_relationships extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2253 Relationships
+    #@TestName                  Frontend User Relationship 8
+    #@TestID                    FrontendUserRelationship8
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder[less-than-sign]Boss,ou=People,o=frontend tests,
+                                dc=example,dc=com, with quote marks and filter, objectclass=*.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries that have a base DN that contains an equal sign 
  *  and a less-than sign.
@@ -273,8 +387,21 @@ public class FrontendRFC2253_relationships extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2253 Relationships
+    #@TestName                  Frontend User Relationship 9
+    #@TestID                    FrontendUserRelationship9
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder#Sons,ou=People,o=frontend tests,
+                                dc=example,dc=com, with quote marks and filter, objectclass=*.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
- *  Search for entries that have a base DN that contains an oglethorpe.
+ *  Search for entries that have a base DN where the lowest level contains an oglethorpe.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.
@@ -302,8 +429,21 @@ public class FrontendRFC2253_relationships extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2253 Relationships
+    #@TestName                  Frontend User Relationship 10
+    #@TestID                    FrontendUserRelationship10
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder;Sons,ou=People,o=frontend tests,
+                                dc=example,dc=com, with quote marks and filter, objectclass=*.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
- *  Search for entries that have a base DN that contains a semicolon.
+ *  Search for entries that have a base DN where the lowest level contains a semicolon.
  *
  *  @param  hostname               The hostname for the server where OpenDS
  *                                 is installed.

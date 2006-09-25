@@ -30,12 +30,37 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.tools.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Security Setup
+    #@TestSuitePurpose          Setup methods for the Security test suites
+    #@TestSuiteID               Security Setup
+    #@TestSuiteGroup            Security Setup
+    #@TestGroup                 Security Setup
+    #@TestScript                JKSStartupTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the SSL JKS startup.
  */
 @Test
 public class JKSStartupTests extends JKSTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Setup
+    #@TestName                  JKS Setup 1
+    #@TestID                    JKSSetup1
+    #@TestPreamble
+    #@TestSteps                 The script, generate_server_cert.sh in unix
+				systems, and the script, generate_server_cert.bat
+				in Windows systems are called by Runtime.exec().
+				The server certificate is generated and copied 
+				to [opends_home]/config directory.
+    #@TestPostamble
+    #@TestResult                 -
+*/
 /**
  *  Generate the server certificate and copy it to the config subdirectory
  *  in the OpenDS installation.
@@ -105,6 +130,18 @@ public class JKSStartupTests extends JKSTests
     compareExitCode(0, 0);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Setup
+    #@TestName                  JKS Setup 2
+    #@TestID                    JKSSetup2
+    #@TestPreamble
+    #@TestSteps                 Client calls LDAPModify.mainModify() with the
+				filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Modify the entry, cn=Key Manager Provider,cn=SSL,cn=config.
  *
@@ -135,6 +172,18 @@ public class JKSStartupTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Setup
+    #@TestName                  JKS Setup 3 prep
+    #@TestID                    JKSSetup3prep
+    #@TestPreamble
+    #@TestSteps                 Client calls LDAPModify.mainModify() with the
+				filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Delete the default entry, cn=Trust Manager Provider,cn=SSL,cn=config.
  *
@@ -165,6 +214,18 @@ public class JKSStartupTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Setup
+    #@TestName                  JKS Setup 3
+    #@TestID                    JKSSetup3
+    #@TestPreamble
+    #@TestSteps                 Client calls LDAPModify.mainModify() with the
+				filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add the new entry, cn=Trust Manager Provider,cn=SSL,cn=config.
  *
@@ -195,6 +256,18 @@ public class JKSStartupTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Setup
+    #@TestName                  JKS Setup 4
+    #@TestID                    JKSSetup4
+    #@TestPreamble
+    #@TestSteps                 Client calls LDAPModify.mainModify() with the
+				filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add the entry, cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
  *
@@ -225,6 +298,18 @@ public class JKSStartupTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Setup
+    #@TestName                  JKS Setup 5
+    #@TestID                    JKSSetup5
+    #@TestPreamble
+    #@TestSteps                 Client calls LDAPSearch.mainSearch() with the
+				port 636 and with -Z and -X extra parameters.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add the entry, cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config.
  *
