@@ -107,8 +107,8 @@ public class RDNComparator
           }
           else
           {
-            return types1[index].getLowerName().compareTo(
-                        types2[index].getLowerName());
+            return types1[index].getNormalizedPrimaryName().compareTo(
+                        types2[index].getNormalizedPrimaryName());
           }
         }
         else

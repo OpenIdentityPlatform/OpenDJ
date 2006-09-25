@@ -345,7 +345,7 @@ public class Historical
           String strValue;
           if (valInfo.getValueDeleteTime() != null)
           {
-            strValue = type.getLowerName() + optionsString + ":" +
+            strValue = type.getNormalizedPrimaryName() + optionsString + ":" +
             valInfo.getValueDeleteTime().toString() +
             ":del:" + valInfo.getValue().toString();
             AttributeValue val = new AttributeValue(historicalAttrType,
@@ -356,14 +356,14 @@ public class Historical
           {
             if (delAttr && valInfo.getValueUpdateTime() == deleteTime)
             {
-              strValue = type.getLowerName() + optionsString + ":" +
+              strValue = type.getNormalizedPrimaryName() + optionsString + ":" +
               valInfo.getValueUpdateTime().toString() +  ":repl:" +
               valInfo.getValue().toString();
               delAttr = false;
             }
             else
             {
-              strValue = type.getLowerName() + optionsString + ":" +
+              strValue = type.getNormalizedPrimaryName() + optionsString + ":" +
               valInfo.getValueUpdateTime().toString() +
               ":add:" + valInfo.getValue().toString();
             }
@@ -376,8 +376,9 @@ public class Historical
 
         if (delAttr)
         {
-          String strValue = type.getLowerName() + optionsString + ":"
-          + deleteTime.toString() + ":attrDel";
+          String strValue = type.getNormalizedPrimaryName()
+              + optionsString + ":" + deleteTime.toString()
+              + ":attrDel";
           delAttr = false;
           AttributeValue val = new AttributeValue(historicalAttrType, strValue);
           hist.add(val);

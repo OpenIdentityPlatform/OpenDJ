@@ -933,8 +933,6 @@ public class SchemaConfigManager
             {
               attrType = attrTypeSyntax.decodeAttributeType(v.getValue(),
                                                             schema);
-              attrType.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-              attrType.setSchemaFile(schemaFile);
             }
             catch (DirectoryException de)
             {

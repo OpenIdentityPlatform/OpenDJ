@@ -29,6 +29,7 @@ package org.opends.server.core;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Properties;
@@ -3078,10 +3079,6 @@ public class DirectoryServer
 
       if (directoryServer.objectClassAttributeType == null)
       {
-        ConcurrentHashMap<String,String> typeNames =
-             new ConcurrentHashMap<String,String>();
-        typeNames.put(OBJECTCLASS_ATTRIBUTE_TYPE_NAME, "objectClass");
-
         AttributeSyntax oidSyntax =
              directoryServer.schema.getSyntax(SYNTAX_OID_NAME);
         if (oidSyntax == null)
@@ -3099,7 +3096,8 @@ public class DirectoryServer
         }
 
         directoryServer.objectClassAttributeType =
-             new AttributeType("objectClass", typeNames,
+             new AttributeType("objectClass",
+                               Collections.singleton("objectClass"),
                                OBJECTCLASS_ATTRIBUTE_TYPE_OID, null, null,
                                oidSyntax, AttributeUsage.USER_APPLICATIONS,
                                false, false, false, false);
@@ -3137,15 +3135,7 @@ public class DirectoryServer
                       String.valueOf(name));
 
 
-    String lowerName = toLowerCase(name);
-    ConcurrentHashMap<String,String> names =
-         new ConcurrentHashMap<String,String>(1);
-    names.put(lowerName, name);
-
-    return new AttributeType(name, names, lowerName, null, null,
-                             getDefaultAttributeSyntax(),
-                             AttributeUsage.USER_APPLICATIONS, false, false,
-                             false, false);
+    return getDefaultAttributeType(name, getDefaultAttributeSyntax());
   }
 
 
@@ -3169,11 +3159,8 @@ public class DirectoryServer
 
 
     String lowerName = toLowerCase(name);
-    ConcurrentHashMap<String,String> names =
-         new ConcurrentHashMap<String,String>(1);
-    names.put(lowerName, name);
-
-    return new AttributeType(name, names, lowerName, null, null, syntax,
+    return new AttributeType(name, Collections.singleton(name),
+                             lowerName, null, null, syntax,
                              AttributeUsage.USER_APPLICATIONS, false, false,
                              false, false);
   }

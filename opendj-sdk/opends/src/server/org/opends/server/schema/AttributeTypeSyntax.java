@@ -28,9 +28,10 @@ package org.opends.server.schema;
 
 
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -476,8 +477,7 @@ public class AttributeTypeSyntax
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
     String  primaryName = oid;
-    ConcurrentHashMap<String,String> typeNames =
-         new ConcurrentHashMap<String,String>();
+    List<String> typeNames = new LinkedList<String>();
     String description = null;
     AttributeType superiorType = null;
     AttributeSyntax syntax = DirectoryServer.getDefaultAttributeSyntax();
@@ -490,8 +490,8 @@ public class AttributeTypeSyntax
     boolean isNoUserModification = false;
     boolean isObsolete = false;
     boolean isSingleValue = false;
-    ConcurrentHashMap<String,CopyOnWriteArrayList<String>> extraProperties =
-         new ConcurrentHashMap<String,CopyOnWriteArrayList<String>>();
+    HashMap<String,List<String>> extraProperties =
+         new HashMap<String,List<String>>();
 
 
     while (true)
@@ -526,7 +526,7 @@ public class AttributeTypeSyntax
           pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer,
                                  (pos-1));
           primaryName = userBuffer.toString();
-          typeNames.put(lowerBuffer.toString(), primaryName);
+          typeNames.add(primaryName);
         }
         else if (c == '(')
         {
@@ -535,7 +535,7 @@ public class AttributeTypeSyntax
           pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer,
                                  pos);
           primaryName = userBuffer.toString();
-          typeNames.put(lowerBuffer.toString(), primaryName);
+          typeNames.add(primaryName);
 
 
           while (true)
@@ -558,7 +558,7 @@ public class AttributeTypeSyntax
 
               pos = readQuotedString(valueStr, lowerStr, userBuffer,
                                      lowerBuffer, pos);
-              typeNames.put(lowerBuffer.toString(), userBuffer.toString());
+              typeNames.add(userBuffer.toString());
             }
           }
         }
@@ -918,8 +918,7 @@ public class AttributeTypeSyntax
         // either a single value in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        CopyOnWriteArrayList<String> valueList =
-             new CopyOnWriteArrayList<String>();
+        List<String> valueList = new ArrayList<String>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
       }
@@ -1350,7 +1349,7 @@ public class AttributeTypeSyntax
    *                              the value.
    */
   private static int readExtraParameterValues(String valueStr,
-                          CopyOnWriteArrayList<String> valueList, int startPos)
+                          List<String> valueList, int startPos)
           throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "readExtraParameterValues",
