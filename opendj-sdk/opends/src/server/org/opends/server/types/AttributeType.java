@@ -233,7 +233,7 @@ public final class AttributeType
    *          "single-value".
    * @param extraProperties
    *          A set of extra properties for this attribute type, or
-   *          <code>null</code> if there is no rule.
+   *          <code>null</code> if there are no extra properties.
    */
   public AttributeType(String primaryName,
                        Collection<String> typeNames,
