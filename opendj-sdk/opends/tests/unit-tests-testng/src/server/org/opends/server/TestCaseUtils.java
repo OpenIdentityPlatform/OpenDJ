@@ -156,6 +156,18 @@ public final class TestCaseUtils {
                   new File(testConfigDir, "MakeLDIF"));
     copyFile(new File(testResourceDir, "jmxkeystore"),
              new File(testRoot, "jmxkeystore"));
+    copyFile(new File(testResourceDir, "server.keystore"),
+             new File(testConfigDir, "server.keystore"));
+    copyFile(new File(testResourceDir, "server.truststore"),
+             new File(testConfigDir, "server.truststore"));
+    copyFile(new File(testResourceDir, "client.keystore"),
+             new File(testConfigDir, "client.keystore"));
+    copyFile(new File(testResourceDir, "client.truststore"),
+             new File(testConfigDir, "client.truststore"));
+    copyFile(new File(testResourceDir, "server-cert.p12"),
+             new File(testConfigDir, "server-cert.p12"));
+    copyFile(new File(testResourceDir, "client-cert.p12"),
+             new File(testConfigDir, "client-cert.p12"));
 
 
     // Make the shell scripts in the bin directory executable, if possible.
