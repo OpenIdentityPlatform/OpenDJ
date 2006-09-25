@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.server.core;
+package org.opends.server.types;
 
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -35,12 +35,14 @@ import java.util.LinkedHashSet;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SubtreeSpecificationSet;
+import org.opends.server.core.DirectoryException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.RFC3672SubtreeSpecification;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.schema.RFC3672SubtreeSpecificationSyntax;
-import org.opends.server.types.*;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterClass;
@@ -51,7 +53,7 @@ import org.testng.annotations.AfterClass;
  * At the moment this test suite only tests the getAttributeValue and
  * getAttributeValues methods.
  */
-public final class TestEntry extends CoreTestCase {
+public final class TestEntry extends TypesTestCase {
 
   /**
    * Create an entry with the specified single attribute type and value.
