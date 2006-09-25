@@ -31,12 +31,36 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Frontend RFC2252 Syntax
+    #@TestSuitePurpose          Test the RFC2252 standards regarding syntax
+    #@TestSuiteID               RFC2252 Syntax
+    #@TestSuiteGroup            RFC2252 Syntax
+    #@TestGroup                 RFC2252 Syntax
+    #@TestScript                FrontendRFC2252_syntax.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Frontend functional tests for syntax.
  */
 @Test
 public class FrontendRFC2252_syntax extends FrontendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2252 Syntax
+    #@TestName                  Frontend User Syntax 1
+    #@TestID                    FrontendUserSyntax1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=jvedder,ou=People,ou=syntax,o=frontend tests,
+                                dc=example,dc=com and a filter with the hexadecimal
+				number, 27.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries with a filter that contains a single quote
  *  character as the hexadecimal value, 27.
@@ -67,6 +91,20 @@ public class FrontendRFC2252_syntax extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2252 Syntax
+    #@TestName                  Frontend User Syntax 2
+    #@TestID                    FrontendUserSyntax2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=cnewport,ou=People,ou=syntax,o=frontend tests,
+                                dc=example,dc=com and a filter with the hexadecimal
+				number, 5C.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries with a filter that contains a single back slash.
  *
@@ -96,6 +134,20 @@ public class FrontendRFC2252_syntax extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2252 Syntax
+    #@TestName                  Frontend User Syntax 3
+    #@TestID                    FrontendUserSyntax3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, uid=elott,ou=People,ou=syntax,o=frontend tests,
+                                dc=example,dc=com and a filter with the hexadecimal
+				number, 23.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries with a filter that contains an oglethorpe
  *  character as the hexadecimal value, 23.

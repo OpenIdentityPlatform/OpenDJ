@@ -30,12 +30,34 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.tools.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Security Bob Tests
+    #@TestSuitePurpose          Perform Bob tests through secure port 636
+    #@TestSuiteID               Security Bob Tests
+    #@TestSuiteGroup            Security Bob Tests
+    #@TestGroup                 Security Bob Tests
+    #@TestScript                JKSBobTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the SSL JKS bob tests.
  */
 @Test
 public class JKSBobTests extends JKSTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Bob Tests
+    #@TestName                  JKS Bob Test 1
+    #@TestID                    JKSBobTest1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0 
+*/
 /**
  *  Add the entries by ssl that are needed for all the Security Tests.
  *
@@ -66,6 +88,18 @@ public class JKSBobTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Bob Tests
+    #@TestName                  JKS Bob Test 2
+    #@TestID                    JKSBobTest2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0 
+*/
 /**
  *  Add an RDN to an existing entry through an SSL connection.
  *
@@ -96,6 +130,18 @@ public class JKSBobTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Bob Tests
+    #@TestName                  JKS Bob Test 3
+    #@TestID                    JKSBobTest3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0 
+*/
 /**
  *  Add a jpeg photo to an existing entry through an SSL connection.
  *
@@ -126,6 +172,18 @@ public class JKSBobTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Bob Tests
+    #@TestName                  JKS Bob Test 4
+    #@TestID                    JKSBobTest4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0 
+*/
 /**
  *  Replace a jpeg photo in an existing entry through an SSL connection.
  *
@@ -156,6 +214,18 @@ public class JKSBobTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security Bob Tests
+    #@TestName                  JKS Bob Test 5
+    #@TestID                    JKSBobTest5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+				with the filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0 
+*/
 /**
  *  Delete an existing entry through an SSL connection.
  *

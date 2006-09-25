@@ -31,12 +31,35 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Frontend RFC2251 Searches
+    #@TestSuitePurpose          Test the RFC2251 standards regarding searches
+    #@TestSuiteID               RFC2251 Searches
+    #@TestSuiteGroup            RFC2251 Searches
+    #@TestGroup                 RFC2251 Searches
+    #@TestScript                FrontendRFC2251_searches.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Frontend functional tests for searches.
  */
 @Test
 public class FrontendRFC2251_searches extends FrontendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 1
+    #@TestID                    FrontendUserSearch1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and attribute, uid, with value, scarter.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for one existing entry.
  *
@@ -66,6 +89,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 2
+    #@TestID                    FrontendUserSearch2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and requesting scope as "base."
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for one existing entry with the scope, "base".
  *
@@ -95,6 +131,20 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 3
+    #@TestID                    FrontendUserSearch3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and requesting scope as "sub," and attribute, uid, with
+				value, scarter.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for one existing entry with the scope, "sub".
  *
@@ -124,6 +174,20 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 4
+    #@TestID                    FrontendUserSearch4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and attribute, uid, with value, scarter, and with
+				parameter, -A.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for one existing entry and request only attribute names be returned.
  *
@@ -153,6 +217,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 5
+    #@TestID                    FrontendUserSearch5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and a filter with an ampersand.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries with a filter that includes an ampersand.
  *
@@ -182,6 +259,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 6
+    #@TestID                    FrontendUserSearch6
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and a filter with an ampersand that is false for all entries.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries with a filter that includes an ampersand, 
  *  but the filter is false for all entries.
@@ -212,6 +302,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 7
+    #@TestID                    FrontendUserSearch7
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and a filter with a pipe.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries with a filter that includes a pipe character.
  *
@@ -241,6 +344,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 8
+    #@TestID                    FrontendUserSearch8
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and a filter with a pipe that is false for all entries.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries with a filter that includes a pipe character,
  *  but one of the two statements is false for all entries.
@@ -271,6 +387,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 9
+    #@TestID                    FrontendUserSearch9
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and a filter with a pipe and an exclamation mark.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries with a filter that includes a pipe character
  *  an exclamation mark.
@@ -301,6 +430,19 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 10
+    #@TestID                    FrontendUserSearch10
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and a filter, uid=sc*r.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries with a filter that contains an asterisk.
  *
@@ -330,6 +472,20 @@ public class FrontendRFC2251_searches extends FrontendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Frontend RFC2251 Searches
+    #@TestName                  Frontend User Search 11
+    #@TestID                    FrontendUserSearch11
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+                                with base DN, ou=People,o=frontend tests, dc=example,dc=com
+				and a filter that contains the attribute, roomnumber,
+				and the less-than sign.
+    #@TestPostamble
+    #@TestResult                Success if the static method, LDAPSearch.mainSearch(), returns 0
+*/
 /**
  *  Search for entries with a filter that contains a less-than character.
  *

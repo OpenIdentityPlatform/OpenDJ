@@ -30,12 +30,34 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.tools.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Security TLS Tests
+    #@TestSuitePurpose          Enable TLS using port 389; perform Bob tests through secure port 389
+    #@TestSuiteID               Security TLS Tests
+    #@TestSuiteGroup            Security TLS Tests
+    #@TestGroup                 Security TLS Tests
+    #@TestScript                JKSTLSTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the SSL JKS TLS tests.
  */
 @Test
 public class JKSTLSTests extends JKSTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security TLS Tests
+    #@TestName                  JKS TLS Test 1
+    #@TestID                    JKSTLSTest1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Enable startTLS by modifying the entry, 
  *  cn=LDAP Connection Handler,cn=Connection Handlers,cn=config.
@@ -67,6 +89,17 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security TLS Tests
+    #@TestName                  JKS TLS Test 2
+    #@TestID                    JKSTLSTest2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Search for entries through the startTLS port.
  *
@@ -96,6 +129,18 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security TLS Tests
+    #@TestName                  JKS TLS Test 3
+    #@TestID                    JKSTLSTest3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Add a jpeg photo to an existing entry through a startTLS connection.
  *
@@ -126,6 +171,18 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security TLS Tests
+    #@TestName                  JKS TLS Test 4
+    #@TestID                    JKSTLSTest4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Replace a jpeg photo in an existing entry through a startTLS connection.
  *
@@ -156,6 +213,18 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security TLS Tests
+    #@TestName                  JKS TLS Test 5
+    #@TestID                    JKSTLSTest5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Delete an existing entry through a startTLS connection.
  *
@@ -186,6 +255,18 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security TLS Tests
+    #@TestName                  JKS TLS Test 6
+    #@TestID                    JKSTLSTest6
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPModify.mainModify()
+                                with the filename to the appropriate file.
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Disable startTLS by modifying the entry, 
  *  cn=LDAP Connection Handler,cn=Connection Handlers,cn=config.
@@ -217,6 +298,17 @@ public class JKSTLSTests extends JKSTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Security TLS Tests
+    #@TestName                  JKS TLS Test 7
+    #@TestID                    JKSTLSTest7
+    #@TestPreamble
+    #@TestSteps                 Client calls static method LDAPSearch.mainSearch()
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 1
+*/
 /**
  *  Search for entries through the startTLS port which was disabled in the last test.
  *
