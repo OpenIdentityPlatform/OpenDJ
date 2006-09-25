@@ -24,15 +24,13 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.server.core;
+package org.opends.server.types;
 
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.DN;
-import org.opends.server.types.RDN;
-import org.opends.server.types.AttributeValue;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -44,7 +42,7 @@ import java.util.Arrays;
  * This class defines a set of tests for the org.opends.server.core.DN
  * class.
  */
-public class TestDN extends CoreTestCase {
+public class TestDN extends TypesTestCase {
   /**
    * DN test data provider.
    *
