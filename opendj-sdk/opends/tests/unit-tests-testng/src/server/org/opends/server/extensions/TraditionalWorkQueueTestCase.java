@@ -125,7 +125,7 @@ public class TraditionalWorkQueueTestCase
 
     for (int i=0; i < 7; i++)
     {
-      assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+      assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
     }
   }
 }

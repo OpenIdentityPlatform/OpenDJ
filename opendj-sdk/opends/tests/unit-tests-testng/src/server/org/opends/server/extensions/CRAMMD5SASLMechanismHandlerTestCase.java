@@ -230,7 +230,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
   }
 
 
@@ -279,7 +279,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
   }
 
 
@@ -331,7 +331,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
   }
 
 
