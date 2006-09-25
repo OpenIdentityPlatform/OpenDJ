@@ -47,10 +47,6 @@ import static org.testng.Assert.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-/**
- * @author Administrator
- *
- */
 public class TestLDAPConnectionHandler extends LdapTestCase {
 
 	private static String reasonMsg="Don't need a reason.";
@@ -122,7 +118,6 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		LDAPConnHandler.processServerShutdown(reasonMsg);
 		//Reset some things for the SSL handler	
 		Attribute useSSL=new Attribute(ATTR_USE_SSL, String.valueOf(false));
-		//MPD fix this in ConfigConstants
 		Attribute startTls=new Attribute(ATTR_ALLOW_STARTTLS, String.valueOf(false));
 		AttributeType attrType=DirectoryServer.getAttributeType(ATTR_LISTEN_PORT, true);
 		Attribute a=new Attribute(attrType);
@@ -141,7 +136,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 	@Test()
 	/**
 	 *  Start a handler an then give its hasAcceptableConfiguration a ConfigEntry with
-	 *  numerous invalid cases.
+	 *  numerous invalid cases and single-valued attrs with duplicate values.
 	 *  
 	 * @throws Exception if handler cannot be instantiated or the configuration is 
 	 *                   accepted.
@@ -171,8 +166,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 				"ds-cfg-ssl-client-auth-policy: optional",
 		"ds-cfg-ssl-cert-nickname: server-cert");
 		LDAPConnectionHandler LDAPConnHandler=getLDAPHandlerInstance(BadHandlerEntry);
-		//Add some invalid attrs and some duplicate attrs probably a better way but I feel
-		//like typing
+		//Add some invalid attrs and some duplicate attrs 
 		Attribute a2=new Attribute(ATTR_LISTEN_PORT, String.valueOf(389));
 		Attribute a2a=new Attribute(ATTR_LISTEN_PORT, String.valueOf(70000));
 		Attribute a3=new Attribute(ATTR_LISTEN_ADDRESS, "localhost");
@@ -246,7 +240,9 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		LDAPConnectionHandler LDAPConnHandler=getLDAPHandlerInstance(GoodHandlerEntry);
 		//Make attrTypes to remove
 		AttributeType at0=DirectoryServer.getAttributeType(ATTR_LISTEN_PORT, true);
-		AttributeType at1=DirectoryServer.getAttributeType(ATTR_LISTEN_ADDRESS, true);
+//		AttributeType at1=DirectoryServer.getAttributeType(ATTR_LISTEN_ADDRESS, true);
+//		Attribute rAttr1=new Attribute(at1);
+//		GoodHandlerEntry.removeAttribute(rAttr1, null);
 		AttributeType at2=DirectoryServer.getAttributeType(ATTR_ALLOW_LDAPV2, true);
 		AttributeType at3=DirectoryServer.getAttributeType(ATTR_ALLOW_LDAPV2, true);
 		AttributeType at4=DirectoryServer.getAttributeType(ATTR_KEEP_LDAP_STATS, true);
@@ -261,8 +257,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		//Remove them
 		Attribute rAttr0=new Attribute(at0);
 		GoodHandlerEntry.removeAttribute(rAttr0, null);
-		Attribute rAttr1=new Attribute(at1);
-		GoodHandlerEntry.removeAttribute(rAttr1, null);
+
 		Attribute rAttr2=new Attribute(at2);
 		GoodHandlerEntry.removeAttribute(rAttr2, null);
 		Attribute rAttr3=new Attribute(at3);
@@ -288,7 +283,8 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		//Make new AttrTypes with different values
 		long newPort=getFreePort();
 		Attribute a2=new Attribute(ATTR_LISTEN_PORT, String.valueOf(newPort));
-		Attribute a3=new Attribute(ATTR_LISTEN_ADDRESS, "localhost");	
+		//uncomment if want to test listen address
+//		Attribute a3=new Attribute(ATTR_LISTEN_ADDRESS, "localhost");	
 		Attribute a4=new Attribute(ATTR_ACCEPT_BACKLOG, String.valueOf(25));
 		Attribute a5=new Attribute(ATTR_ALLOWED_CLIENT, "129.56.56.45");
 		Attribute a6=new Attribute(ATTR_DENIED_CLIENT, "129.*.*.90");
@@ -303,7 +299,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		Attribute a15=new Attribute(ATTR_ALLOW_STARTTLS, "true");
 		//Add them
 		GoodHandlerEntry.addAttribute(a2, null);
-		GoodHandlerEntry.addAttribute(a3, null);
+//		GoodHandlerEntry.addAttribute(a3, null);
 		GoodHandlerEntry.addAttribute(a4, null);
 		GoodHandlerEntry.addAttribute(a5, null);
 		GoodHandlerEntry.addAttribute(a6, null);
@@ -321,6 +317,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		//see if we're ok
 		boolean ret=LDAPConnHandler.hasAcceptableConfiguration(newConfigEntry, reasons);
 		assertTrue(ret);	
+		//apply it
 		LDAPConnHandler.applyNewConfiguration(newConfigEntry, true);
 		LDAPConnHandler.finalizeConnectionHandler(reasonMsg, true);
 
