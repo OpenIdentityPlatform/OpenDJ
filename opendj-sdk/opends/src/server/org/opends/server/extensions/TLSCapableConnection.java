@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 
 
 import org.opends.server.core.DirectoryException;
+import org.opends.server.core.Operation;
 
 
 
@@ -85,6 +86,23 @@ public interface TLSCapableConnection
    *                              underlying client connection has been closed.
    */
   public void disableTLSConnectionSecurityProvider()
+         throws DirectoryException;
+
+
+
+  /**
+   * Sends a response to the client in the clear rather than through the
+   * encrypted channel.  This should only be used when processing the StartTLS
+   * extended operation to send the response in the clear after the SSL
+   * negotiation has already been initiated.
+   *
+   * @param  operation  The operation for which to send the response in the
+   *                    clear.
+   *
+   * @throws  DirectoryException  If a problem occurs while sending the response
+   *                              in the clear.
+   */
+  public void sendClearResponse(Operation operation)
          throws DirectoryException;
 }
 

@@ -126,6 +126,10 @@ public class LDAPClientConnection
   // The set of all operations currently in progress on this connection.
   private ConcurrentHashMap<Integer,Operation> operationsInProgress;
 
+  // The connection security provider that was in use for the client connection
+  // before switching to a TLS-based provider.
+  private ConnectionSecurityProvider clearSecurityProvider;
+
   // The connection security provider for this client connection.
   private ConnectionSecurityProvider securityProvider;
 
@@ -209,9 +213,10 @@ public class LDAPClientConnection
     assert debugConstructor(CLASS_NAME, String.valueOf(connectionHandler),
                             String.valueOf(clientChannel));
 
-    this.connectionHandler = connectionHandler;
-    this.clientChannel     = clientChannel;
-    this.securityProvider  = null;
+    this.connectionHandler     = connectionHandler;
+    this.clientChannel         = clientChannel;
+    this.securityProvider      = null;
+    this.clearSecurityProvider = null;
 
     opsInProgressLock = new ReentrantLock();
     transmitLock      = new ReentrantLock();
@@ -561,6 +566,30 @@ public class LDAPClientConnection
   {
     assert debugEnter(CLASS_NAME, "sendResponse", String.valueOf(operation));
 
+    LDAPMessage message = operationToResponseLDAPMessage(operation);
+    if (message != null)
+    {
+      sendLDAPMessage(securityProvider, message);
+    }
+  }
+
+
+
+  /**
+   * Retrieves an LDAPMessage containing a response generated from the provided
+   * operation.
+   *
+   * @param  operation  The operation to use to generate the response
+   *                    LDAPMessage.
+   *
+   * @return  An LDAPMessage containing a response generated from the provided
+   *          operation.
+   */
+  private LDAPMessage operationToResponseLDAPMessage(Operation operation)
+  {
+    assert debugEnter(CLASS_NAME, "operationToResponseLDAPMessage",
+                      String.valueOf(operation));
+
     ResultCode resultCode = operation.getResultCode();
     if (resultCode == null)
     {
@@ -646,7 +675,7 @@ public class LDAPClientConnection
                    ErrorLogSeverity.MILD_WARNING,
                    MSGID_LDAPV2_SKIPPING_EXTENDED_RESPONSE,
                    getConnectionID(), String.valueOf(operation));
-          return;
+          return null;
         }
 
         ExtendedOperation extOp = (ExtendedOperation) operation;
@@ -675,7 +704,7 @@ public class LDAPClientConnection
         logError(ErrorLogCategory.REQUEST_HANDLING, ErrorLogSeverity.MILD_ERROR,
                  MSGID_LDAP_CLIENT_SEND_RESPONSE_INVALID_OP,
                  String.valueOf(operation));
-        return;
+        return null;
     }
 
 
@@ -702,9 +731,7 @@ public class LDAPClientConnection
       }
     }
 
-
-    sendLDAPMessage(new LDAPMessage(operation.getMessageID(), protocolOp,
-                                    controls));
+    return new LDAPMessage(operation.getMessageID(), protocolOp, controls);
   }
 
 
@@ -741,7 +768,8 @@ public class LDAPClientConnection
       }
     }
 
-    sendLDAPMessage(new LDAPMessage(searchOperation.getMessageID(), protocolOp,
+    sendLDAPMessage(securityProvider,
+                    new LDAPMessage(searchOperation.getMessageID(), protocolOp,
                                     controls));
   }
 
@@ -801,7 +829,8 @@ public class LDAPClientConnection
       }
     }
 
-    sendLDAPMessage(new LDAPMessage(searchOperation.getMessageID(), protocolOp,
+    sendLDAPMessage(securityProvider,
+                    new LDAPMessage(searchOperation.getMessageID(), protocolOp,
                                     controls));
     return true;
   }
@@ -840,7 +869,7 @@ public class LDAPClientConnection
 
     LDAPMessage message = new LDAPMessage(operation.getMessageID(), protocolOp,
                                           ldapControls);
-    sendLDAPMessage(message);
+    sendLDAPMessage(securityProvider, message);
 
 
     // The only reason we shouldn't continue processing is if the connection is
@@ -853,9 +882,12 @@ public class LDAPClientConnection
   /**
    * Sends the provided LDAP message to the client.
    *
-   * @param  message  The LDAP message to send to the client.
+   * @param  securityProvider  The connection security provider to use to
+   *                           handle any necessary security translation.
+   * @param  message           The LDAP message to send to the client.
    */
-  private void sendLDAPMessage(LDAPMessage message)
+  private void sendLDAPMessage(ConnectionSecurityProvider secProvider,
+                               LDAPMessage message)
   {
     assert debugEnter(CLASS_NAME, "sendLDAPMessage", String.valueOf(message));
 
@@ -873,7 +905,7 @@ public class LDAPClientConnection
       try
       {
         int bytesWritten = messageBuffer.limit() - messageBuffer.position();
-        if (! securityProvider.writeData(messageBuffer))
+        if (! secProvider.writeData(messageBuffer))
         {
           return;
         }
@@ -1837,7 +1869,8 @@ public class LDAPClientConnection
            new AddResponseProtocolOp(de.getResultCode().getIntValue(),
                                      de.getErrorMessage(), de.getMatchedDN(),
                                      de.getReferralURLs());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(), responseOp));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
     }
 
 
@@ -1876,7 +1909,8 @@ public class LDAPClientConnection
            new BindResponseProtocolOp(
                     LDAPResultCode.INAPPROPRIATE_AUTHENTICATION,
                     getMessage(MSGID_LDAPV2_CLIENTS_NOT_ALLOWED));
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(), responseOp));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
       disconnect(DisconnectReason.PROTOCOL_ERROR, false, null, -1);
       return false;
     }
@@ -1923,7 +1957,8 @@ public class LDAPClientConnection
            new BindResponseProtocolOp(de.getResultCode().getIntValue(),
                                       de.getErrorMessage(), de.getMatchedDN(),
                                       de.getReferralURLs());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(), responseOp));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
 
       // If it was a protocol error, then terminate the connection.
       if (de.getResultCode() == ResultCode.PROTOCOL_ERROR)
@@ -1983,7 +2018,8 @@ public class LDAPClientConnection
                                          de.getErrorMessage(),
                                          de.getMatchedDN(),
                                          de.getReferralURLs());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(), responseOp));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
     }
 
 
@@ -2032,7 +2068,8 @@ public class LDAPClientConnection
            new DeleteResponseProtocolOp(de.getResultCode().getIntValue(),
                                         de.getErrorMessage(), de.getMatchedDN(),
                                         de.getReferralURLs());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(), responseOp));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
     }
 
 
@@ -2103,7 +2140,8 @@ public class LDAPClientConnection
                                           de.getErrorMessage(),
                                           de.getMatchedDN(),
                                           de.getReferralURLs());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(), responseOp));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
     }
 
 
@@ -2152,7 +2190,8 @@ public class LDAPClientConnection
            new ModifyResponseProtocolOp(de.getResultCode().getIntValue(),
                                         de.getErrorMessage(), de.getMatchedDN(),
                                         de.getReferralURLs());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(), responseOp));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
     }
 
 
@@ -2205,7 +2244,8 @@ public class LDAPClientConnection
                                           de.getErrorMessage(),
                                           de.getMatchedDN(),
                                           de.getReferralURLs());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(), responseOp));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
     }
 
 
@@ -2260,7 +2300,8 @@ public class LDAPClientConnection
                                           de.getErrorMessage(),
                                           de.getMatchedDN(),
                                           de.getReferralURLs());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(), responseOp));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
     }
 
 
@@ -2427,7 +2468,8 @@ public class LDAPClientConnection
                                    message, msgID);
     }
 
-    securityProvider = tlsSecurityProvider;
+    clearSecurityProvider = securityProvider;
+    securityProvider      = tlsSecurityProvider;
   }
 
 
@@ -2454,6 +2496,39 @@ public class LDAPClientConnection
     disconnect(DisconnectReason.OTHER, false, message, msgID);
     throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                  message, msgID);
+  }
+
+
+
+  /**
+   * Sends a response to the client in the clear rather than through the
+   * encrypted channel.  This should only be used when processing the StartTLS
+   * extended operation to send the response in the clear after the TLS
+   * negotiation has already been initiated.
+   *
+   * @param  operation  The operation for which to send the response in the
+   *                    clear.
+   *
+   *
+   * @throws  DirectoryException  If a problem occurs while sending the response
+   *                              in the clear.
+   */
+  public void sendClearResponse(Operation operation)
+         throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "sendClearResponse",
+                      String.valueOf(operation));
+
+    if (clearSecurityProvider == null)
+    {
+      int    msgID   = MSGID_LDAP_NO_CLEAR_SECURITY_PROVIDER;
+      String message = getMessage(msgID, toString());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, msgID);
+    }
+
+    sendLDAPMessage(clearSecurityProvider,
+                    operationToResponseLDAPMessage(operation));
   }
 }
 

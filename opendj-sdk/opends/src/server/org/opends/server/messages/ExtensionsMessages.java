@@ -4003,6 +4003,17 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to send the clear-text StartTLS response after initiating TLS
+   * negotiation.  This takes a single argument, which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 379;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -4818,6 +4829,10 @@ public class ExtensionsMessages
                     "An unexpected error occurred while attempting to enable " +
                     "the TLS connection security manager on the client " +
                     "connection for the purpose of StartTLS:  %s.");
+    registerMessage(MSGID_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE,
+                    "An unexpected error occurred while attempting to " +
+                    "send the clear-text response to the client after " +
+                    "starting TLS negotiation:  %s.");
 
 
 

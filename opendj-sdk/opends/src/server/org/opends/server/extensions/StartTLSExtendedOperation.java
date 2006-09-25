@@ -36,6 +36,7 @@ import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.InitializationException;
+import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
@@ -176,15 +177,6 @@ public class StartTLSExtendedOperation
     }
 
 
-    // If we've gotten here, then we are going to enable TLS protection or
-    // close the client connection if an error occurs.  But we have to send the
-    // response to the client now before enabling TLS.  Note that by doing this,
-    // we forfeit the ability to send and error response if a failure occurs
-    // later (e.g., in a post-operation plugin).
-    operation.setResultCode(ResultCode.SUCCESS);
-    operation.sendExtendedResponse();
-
-
     // Actually enable TLS protection on the client connection.  This may fail,
     // but if it does then the connection will be closed so we'll just need to
     // log it.
@@ -199,6 +191,29 @@ public class StartTLSExtendedOperation
       logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_ERROR,
                MSGID_STARTTLS_ERROR_ON_ENABLE,
                stackTraceToSingleLineString(de));
+    }
+
+
+    // TLS was successfully enabled on the client connection, but we need to
+    // send the response in the clear.
+    operation.setResultCode(ResultCode.SUCCESS);
+
+    try
+    {
+      tlsCapableConnection.sendClearResponse(operation);
+      operation.setResponseSent();
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "processExtendedOperation", e);
+
+      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_ERROR,
+               MSGID_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE,
+               stackTraceToSingleLineString(e));
+
+      clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM, false,
+                                  MSGID_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE,
+                                  stackTraceToSingleLineString(e));
     }
   }
 }

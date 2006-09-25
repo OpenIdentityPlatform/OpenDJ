@@ -702,6 +702,23 @@ extendedProcessing:
 
 
   /**
+   * Indicates whether the response for this extended operation has been sent
+   * from somewhere outside of this class.  This should only be used by the
+   * StartTLS extended operation for the case in which it needs to send a
+   * response in the clear after TLS negotiation has already started on the
+   * connection.
+   */
+  public void setResponseSent()
+  {
+    assert debugEnter(CLASS_NAME, "setResponseSent",
+                      String.valueOf(responseSent));
+
+    this.responseSent = true;
+  }
+
+
+
+  /**
    * Attempts to cancel this operation before processing has completed.
    *
    * @param  cancelRequest  Information about the way in which the operation
