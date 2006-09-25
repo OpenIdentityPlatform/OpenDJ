@@ -28,10 +28,12 @@ package org.opends.server.types;
 
 
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
+import java.util.List;
+import java.util.Map;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -55,7 +57,7 @@ import static org.opends.server.util.StaticUtils.*;
  * of an attribute and the syntax and matching rules that should be
  * used when interacting with it.
  */
-public class AttributeType
+public final class AttributeType
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -66,99 +68,105 @@ public class AttributeType
 
 
   // The approximate matching rule for this attribute type.
-  private ApproximateMatchingRule approximateMatchingRule;
+  private final ApproximateMatchingRule approximateMatchingRule;
 
   // The syntax for this attribute type.
-  private AttributeSyntax syntax;
+  private final AttributeSyntax syntax;
 
   // The superior attribute type from which this attribute type
   // inherits.
-  private AttributeType superiorType;
+  private final AttributeType superiorType;
 
   // The attribute usage for this attribute type.
-  private AttributeUsage attributeUsage;
+  private final AttributeUsage attributeUsage;
 
   // Indicates whether this attribute type is declared "collective".
-  private boolean isCollective;
+  private final boolean isCollective;
 
   // Indicates whether this attribute type is declared
   // "no-user-modification".
-  private boolean isNoUserModification;
+  private final boolean isNoUserModification;
 
   // Indicates whether this attribute type is the objectclass type.
-  private boolean isObjectClassType;
+  private final boolean isObjectClassType;
 
   // Indicates whether this attribute type is declared "obsolete".
-  private boolean isObsolete;
+  private final boolean isObsolete;
 
   // Indicates whether this attribute type is declared "single-value".
-  private boolean isSingleValue;
+  private final boolean isSingleValue;
 
   // The set of additional name-value pairs associated with this
   // attribute type definition.
-  private ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-               extraProperties;
+  private final Map<String,List<String>> extraProperties;
 
   // The set of names for this attribute type, in a mapping between
   // the all-lowercase form and the user-defined form.
-  private ConcurrentHashMap<String,String> typeNames;
+  private final Map<String,String> typeNames;
 
   // The equality matching rule for this attribute type.
-  private EqualityMatchingRule equalityMatchingRule;
+  private final EqualityMatchingRule equalityMatchingRule;
 
   // The ordering matching rule for this attribute type.
-  private OrderingMatchingRule orderingMatchingRule;
+  private final OrderingMatchingRule orderingMatchingRule;
 
   // The description for this attribute type.
-  private String description;
+  private final String description;
 
   // The OID that may be used to reference this attribute type.
-  private String oid;
+  private final String oid;
 
   // The primary name to use for this attribute type.
-  private String primaryName;
+  private final String primaryName;
 
   // The lower case name for this attribute type.
-  private String lowerName;
-
-  // The path to the schema configuration file that contains this
-  // attribute type definition.
-  private String schemaFile;
+  private final String lowerName;
 
   // The substring matching rule for this attribute type.
-  private SubstringMatchingRule substringMatchingRule;
+  private final SubstringMatchingRule substringMatchingRule;
 
 
 
   /**
    * Creates a new attribute type with the provided information.
    *
-   * @param  primaryName           The primary name for this attribute
-   *                               type.
-   * @param  typeNames             The full set of names for this
-   *                               attribute type, mapping the
-   *                               lowercase names with the
-   *                               user-defined values.
-   * @param  oid                   The OID for this attribute type.
-   * @param  description           The description for the attribute
-   *                               type.
-   * @param  superiorType          The reference to the superior type
-   *                               for this attribute type.
-   * @param  syntax                The syntax for this attribute type.
-   * @param  attributeUsage        The attribute usage for this
-   *                               attribute type.
-   * @param  isCollective          Indicates whether this attribute
-   *                               type is declared "collective".
-   * @param  isNoUserModification  Indicates whether this attribute
-   *                               type is declared
-   *                               "no-user-modification".
-   * @param  isObsolete            Indicates whether this attribute
-   *                               type is declared "obsolete".
-   * @param  isSingleValue         Indicates whether this attribute
-   *                               type is declared "single-value".
+   * @param primaryName
+   *          The primary name for this attribute type, or
+   *          <code>null</code> if there is no primary name.
+   * @param typeNames
+   *          The full set of names for this attribute type, or
+   *          <code>null</code> if there are no names.
+   * @param oid
+   *          The OID for this attribute type (must not be
+   *          <code>null</code>).
+   * @param description
+   *          The description for the attribute type, or
+   *          <code>null</code> if there is no description.
+   * @param superiorType
+   *          The reference to the superior type for this attribute
+   *          type, or <code>null</code> if there is no superior
+   *          type.
+   * @param syntax
+   *          The syntax for this attribute type, or <code>null</code>
+   *          if there is no syntax.
+   * @param attributeUsage
+   *          The attribute usage for this attribute type, or
+   *          <code>null</code> to default to user applications.
+   * @param isCollective
+   *          Indicates whether this attribute type is declared
+   *          "collective".
+   * @param isNoUserModification
+   *          Indicates whether this attribute type is declared
+   *          "no-user-modification".
+   * @param isObsolete
+   *          Indicates whether this attribute type is declared
+   *          "obsolete".
+   * @param isSingleValue
+   *          Indicates whether this attribute type is declared
+   *          "single-value".
    */
   public AttributeType(String primaryName,
-                       ConcurrentHashMap<String,String> typeNames,
+                       Collection<String> typeNames,
                        String oid, String description,
                        AttributeType superiorType,
                        AttributeSyntax syntax,
@@ -167,60 +175,10 @@ public class AttributeType
                        boolean isNoUserModification,
                        boolean isObsolete, boolean isSingleValue)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(primaryName),
-                              String.valueOf(typeNames),
-                              String.valueOf(oid),
-                              String.valueOf(description),
-                              String.valueOf(superiorType),
-                              String.valueOf(syntax),
-                              String.valueOf(attributeUsage),
-                              String.valueOf(isCollective),
-                              String.valueOf(isNoUserModification),
-                              String.valueOf(isObsolete),
-                              String.valueOf(isSingleValue),
-                            });
-
-
-    this.primaryName             = primaryName;
-    this.lowerName               = toLowerCase(primaryName);
-    this.typeNames               = typeNames;
-    this.oid                     = oid;
-    this.description             = description;
-    this.superiorType            = superiorType;
-    this.syntax                  = syntax;
-    this.approximateMatchingRule =
-         syntax.getApproximateMatchingRule();
-    this.equalityMatchingRule    = syntax.getEqualityMatchingRule();
-    this.orderingMatchingRule    = syntax.getOrderingMatchingRule();
-    this.substringMatchingRule   = syntax.getSubstringMatchingRule();
-    this.attributeUsage          = attributeUsage;
-    this.isCollective            = isCollective;
-    this.isNoUserModification    = isNoUserModification;
-    this.isObsolete              = isObsolete;
-    this.isSingleValue           = isSingleValue;
-    this.schemaFile              = null;
-    this.extraProperties         =
-         new ConcurrentHashMap<String,
-                               CopyOnWriteArrayList<String>>(0);
-
-    isObjectClassType = false;
-    if ((oid != null) && oid.equals(OBJECTCLASS_ATTRIBUTE_TYPE_OID))
-    {
-      isObjectClassType = true;
-    }
-    else
-    {
-      for (String lowerName : typeNames.keySet())
-      {
-        if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
-        {
-          isObjectClassType = true;
-        }
-      }
-    }
+    this(primaryName, typeNames, oid, description,
+        superiorType, syntax, null, null, null,
+        null, attributeUsage, isCollective,
+        isNoUserModification, isObsolete, isSingleValue, null);
   }
 
 
@@ -228,43 +186,58 @@ public class AttributeType
   /**
    * Creates a new attribute type with the provided information.
    *
-   * @param  primaryName              The primary name for this
-   *                                  attribute type.
-   * @param  typeNames                The full set of names for this
-   *                                  attribute type, mapping the
-   *                                  lowercase names with the
-   *                                  user-defined values.
-   * @param  oid                      The OID for this attribute type.
-   * @param  description              The description for the
-   *                                  attribute type.
-   * @param  superiorType             The reference to the superior
-   *                                  type for this attribute type.
-   * @param  syntax                   The syntax for this attribute
-   *                                  type.
-   * @param  approximateMatchingRule  The approximate matching rule
-   *                                  for this attribute type.
-   * @param  equalityMatchingRule     The equality matching rule for
-   *                                  this attribute type.
-   * @param  orderingMatchingRule     The ordering matching rule for
-   *                                  this attribute type.
-   * @param  substringMatchingRule    The substring matching rule for
-   *                                  this attribute type.
-   * @param  attributeUsage           The attribute usage for this
-   *                                  attribute type.
-   * @param  isCollective             Indicates whether this attribute
-   *                                  type is declared "collective".
-   * @param  isNoUserModification     Indicates whether this attribute
-   *                                  type is declared
-   *                                  "no-user-modification".
-   * @param  isObsolete               Indicates whether this attribute
-   *                                  type is declared "obsolete".
-   * @param  isSingleValue            Indicates whether this attribute
-   *                                  type is declared "single-value".
-   * @param  extraProperties          A set of extra properties for
-   *                                  this attribute type.
+   * @param primaryName
+   *          The primary name for this attribute type, or
+   *          <code>null</code> if there is no primary name.
+   * @param typeNames
+   *          The full set of names for this attribute type, or
+   *          <code>null</code> if there are no names.
+   * @param oid
+   *          The OID for this attribute type (must not be
+   *          <code>null</code>).
+   * @param description
+   *          The description for the attribute type, or
+   *          <code>null</code> if there is no description.
+   * @param superiorType
+   *          The reference to the superior type for this attribute
+   *          type, or <code>null</code> if there is no superior
+   *          type.
+   * @param syntax
+   *          The syntax for this attribute type, or <code>null</code>
+   *          if there is no syntax.
+   * @param approximateMatchingRule
+   *          The approximate matching rule for this attribute type,
+   *          or <code>null</code> if there is no rule.
+   * @param equalityMatchingRule
+   *          The equality matching rule for this attribute type, or
+   *          <code>null</code> if there is no rule.
+   * @param orderingMatchingRule
+   *          The ordering matching rule for this attribute type, or
+   *          <code>null</code> if there is no rule.
+   * @param substringMatchingRule
+   *          The substring matching rule for this attribute type, or
+   *          <code>null</code> if there is no rule.
+   * @param attributeUsage
+   *          The attribute usage for this attribute type, or
+   *          <code>null</code> to default to user applications.
+   * @param isCollective
+   *          Indicates whether this attribute type is declared
+   *          "collective".
+   * @param isNoUserModification
+   *          Indicates whether this attribute type is declared
+   *          "no-user-modification".
+   * @param isObsolete
+   *          Indicates whether this attribute type is declared
+   *          "obsolete".
+   * @param isSingleValue
+   *          Indicates whether this attribute type is declared
+   *          "single-value".
+   * @param extraProperties
+   *          A set of extra properties for this attribute type, or
+   *          <code>null</code> if there is no rule.
    */
   public AttributeType(String primaryName,
-                       ConcurrentHashMap<String,String> typeNames,
+                       Collection<String> typeNames,
                        String oid, String description,
                        AttributeType superiorType,
                        AttributeSyntax syntax,
@@ -277,14 +250,9 @@ public class AttributeType
                        boolean isCollective,
                        boolean isNoUserModification,
                        boolean isObsolete, boolean isSingleValue,
-                       ConcurrentHashMap<String,
-                                         CopyOnWriteArrayList<String>>
-                            extraProperties)
+                       Map<String,List<String>> extraProperties)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(primaryName),
+    assert debugConstructor(CLASS_NAME,String.valueOf(primaryName),
                               String.valueOf(typeNames),
                               String.valueOf(oid),
                               String.valueOf(description),
@@ -299,33 +267,44 @@ public class AttributeType
                               String.valueOf(isNoUserModification),
                               String.valueOf(isObsolete),
                               String.valueOf(isSingleValue),
-                              String.valueOf(extraProperties)
-                            });
+                              String.valueOf(extraProperties));
 
-
-    this.primaryName             = primaryName;
-    this.lowerName               = toLowerCase(primaryName);
-    this.typeNames               = typeNames;
-    this.oid                     = oid;
-    this.description             = description;
-    this.superiorType            = superiorType;
-    this.isCollective            = isCollective;
-    this.isNoUserModification    = isNoUserModification;
-    this.isObsolete              = isObsolete;
-    this.isSingleValue           = isSingleValue;
-    this.extraProperties         = extraProperties;
-    this.schemaFile              = null;
-
-
-    if (attributeUsage == null)
+    // Make sure mandatory parameters are specified.
+    if (oid == null)
     {
-      this.attributeUsage = AttributeUsage.USER_APPLICATIONS;
+      throw new NullPointerException(
+          "No oid specified in constructor");
+    }
+
+    this.primaryName = primaryName;
+    this.lowerName = toLowerCase(primaryName);
+    this.oid = oid;
+    this.description = description;
+    this.superiorType = superiorType;
+    this.isCollective = isCollective;
+    this.isNoUserModification = isNoUserModification;
+    this.isObsolete = isObsolete;
+    this.isSingleValue = isSingleValue;
+
+    // Construct the normalized attribute name mapping.
+    if (typeNames != null)
+    {
+      this.typeNames = new HashMap<String, String>(typeNames.size());
+      for (String name : typeNames)
+      {
+        this.typeNames.put(toLowerCase(name), name);
+      }
     }
     else
     {
-      this.attributeUsage = attributeUsage;
+      this.typeNames = new HashMap<String, String>();
     }
 
+    // Add the primary name to the type names if it is not present.
+    if (lowerName != null && !this.typeNames.containsKey(lowerName))
+    {
+      this.typeNames.put(lowerName, this.primaryName);
+    }
 
     if (syntax == null)
     {
@@ -335,7 +314,7 @@ public class AttributeType
       }
       else
       {
-        syntax = DirectoryServer.getDefaultAttributeSyntax();
+        this.syntax = DirectoryServer.getDefaultAttributeSyntax();
       }
     }
     else
@@ -346,11 +325,8 @@ public class AttributeType
 
     if (approximateMatchingRule == null)
     {
-      if (syntax != null)
-      {
-        this.approximateMatchingRule =
-             syntax.getApproximateMatchingRule();
-      }
+      this.approximateMatchingRule =
+             this.syntax.getApproximateMatchingRule();
     }
     else
     {
@@ -360,10 +336,8 @@ public class AttributeType
 
     if (equalityMatchingRule == null)
     {
-      if (syntax != null)
-      {
-        this.equalityMatchingRule = syntax.getEqualityMatchingRule();
-      }
+      this.equalityMatchingRule =
+        this.syntax.getEqualityMatchingRule();
     }
     else
     {
@@ -373,10 +347,8 @@ public class AttributeType
 
     if (orderingMatchingRule == null)
     {
-      if (syntax != null)
-      {
-        this.orderingMatchingRule = syntax.getOrderingMatchingRule();
-      }
+      this.orderingMatchingRule =
+        this.syntax.getOrderingMatchingRule();
     }
     else
     {
@@ -386,31 +358,41 @@ public class AttributeType
 
     if (substringMatchingRule == null)
     {
-      if (syntax != null)
-      {
-        this.substringMatchingRule =
-             syntax.getSubstringMatchingRule();
-      }
+      this.substringMatchingRule =
+        this.syntax.getSubstringMatchingRule();
     }
     else
     {
       this.substringMatchingRule = substringMatchingRule;
     }
 
-    isObjectClassType = false;
-    if ((oid != null) && oid.equals(OBJECTCLASS_ATTRIBUTE_TYPE_OID))
+    if (attributeUsage != null)
+    {
+      this.attributeUsage = attributeUsage;
+    }
+    else
+    {
+      this.attributeUsage = AttributeUsage.USER_APPLICATIONS;
+    }
+
+    if (oid.equals(OBJECTCLASS_ATTRIBUTE_TYPE_OID))
     {
       isObjectClassType = true;
     }
     else
     {
-      for (String lowerName : typeNames.keySet())
-      {
-        if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
-        {
-          isObjectClassType = true;
-        }
-      }
+      isObjectClassType =
+        this.typeNames.containsKey(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+    }
+
+    if (extraProperties != null)
+    {
+      this.extraProperties =
+        new HashMap<String, List<String>>(extraProperties);
+    }
+    else
+    {
+      this.extraProperties = Collections.emptyMap();
     }
   }
 
@@ -419,7 +401,8 @@ public class AttributeType
   /**
    * Retrieves the primary name for this attribute type.
    *
-   * @return  The primary name for this attribute type.
+   * @return The primary name for this attribute type, or
+   *         <code>null</code> if there is no primary name.
    */
   public String getPrimaryName()
   {
@@ -431,67 +414,50 @@ public class AttributeType
 
 
   /**
-   * Retrieve the lower case name for this attribute type.
+   * Retrieve the normalized primary name for this attribute type.
    *
-   * @return The lower case name for this attribute type.
+   * @return Returns the normalized primary name for this attribute
+   *         type, or <code>null</code> if there is no primary name.
    */
-  public String getLowerName()
+  public String getNormalizedPrimaryName()
   {
+    assert debugEnter(CLASS_NAME, "getNormalizedPrimaryName");
+
     return lowerName;
   }
 
 
 
   /**
-   * Specifies the primary name for this attribute type.
+   * Retrieves an iterable over the set of normalized names that may
+   * be used to reference this attribute type. The normalized form of
+   * an attribute name is defined as the user-defined name converted
+   * to lower-case.
    *
-   * @param  primaryName  The primary name for this attribute type.
+   * @return Returns an iterable over the set of normalized names that
+   *         may be used to reference this attribute type.
    */
-  public void setPrimaryName(String primaryName)
+  public Iterable<String> getNormalizedNames()
   {
-    assert debugEnter(CLASS_NAME, "setPrimaryName",
-                      String.valueOf(primaryName));
+    assert debugEnter(CLASS_NAME, "getNormalizedNames");
 
-    this.primaryName = primaryName;
-
-    this.lowerName = toLowerCase(primaryName);
-    typeNames.put(this.lowerName, primaryName);
+    return typeNames.keySet();
   }
 
 
 
   /**
-   * Retrieves the set of names that may be used to reference this
-   * attribute type.  The returned mapping will be between an all
-   * lower-case form of the name and a name in the user-defined form
-   * (which may include mixed capitalization).
+   * Retrieves an iterable over the set of user-defined names that may
+   * be used to reference this attribute type.
    *
-   * @return  The set of names that may be used to reference this
-   *          attribute type.
+   * @return Returns an iterable over the set of user-defined names
+   *         that may be used to reference this attribute type.
    */
-  public ConcurrentHashMap<String,String> getNames()
+  public Iterable<String> getUserDefinedNames()
   {
-    assert debugEnter(CLASS_NAME, "getNames");
+    assert debugEnter(CLASS_NAME, "getUserDefinedNames");
 
-    return typeNames;
-  }
-
-
-
-  /**
-   * Specifies the set of names that may be used to reference this
-   * attribute type.  The provided set must contain a mapping between
-   * each name in all lowercase characters and the name in a
-   * user-defined form (which may include mixed capitalization).
-   *
-   * @param  names  The set of names that may be used to reference
-   *                this attribute type.
-   */
-  public void setNames(ConcurrentHashMap<String,String> names)
-  {
-    assert debugEnter(CLASS_NAME, "setNames", String.valueOf(names));
-
-    this.typeNames = names;
+    return typeNames.values();
   }
 
 
@@ -516,52 +482,6 @@ public class AttributeType
 
 
   /**
-   * Adds the specified name to the set of names for this attribute
-   * type.
-   *
-   * @param  name  The name to add to the set of names for this
-   *               attribute type.
-   */
-  public void addName(String name)
-  {
-    assert debugEnter(CLASS_NAME, "addName", String.valueOf(name));
-
-    String lowerName = toLowerCase(name);
-    typeNames.put(lowerName, name);
-  }
-
-
-
-  /**
-   * Removes the specified name from the set of names for this
-   * attribute type.  This will have no effect if the specified name
-   * is not associated with this attribute type.
-   *
-   * @param  lowerName  The lowercase name to remove from the set of
-   *                    names for this attribute type.
-   */
-  public void removeName(String lowerName)
-  {
-    assert debugEnter(CLASS_NAME, "removeName",
-                      String.valueOf(lowerName));
-
-    typeNames.remove(lowerName);
-    if (lowerName.equalsIgnoreCase(primaryName))
-    {
-      if (typeNames.isEmpty())
-      {
-        primaryName = null;
-      }
-      else
-      {
-        primaryName = typeNames.values().iterator().next();
-      }
-    }
-  }
-
-
-
-  /**
    * Retrieves the OID for this attribute type.
    *
    * @return  The OID for this attribute type.
@@ -571,20 +491,6 @@ public class AttributeType
     assert debugEnter(CLASS_NAME, "getOID");
 
     return oid;
-  }
-
-
-
-  /**
-   * Specifies the OID for this attribute type.
-   *
-   * @param  oid  The OID for this attribute type.
-   */
-  public void setOID(String oid)
-  {
-    assert debugEnter(CLASS_NAME, "setOID", String.valueOf(oid));
-
-    this.oid = toLowerCase(oid);
   }
 
 
@@ -655,24 +561,13 @@ public class AttributeType
   {
     assert debugEnter(CLASS_NAME, "getSchemaFile");
 
-    return schemaFile;
-  }
+    List<String> values =
+      extraProperties.get(SCHEMA_PROPERTY_FILENAME);
+    if (values != null && !values.isEmpty()) {
+      return values.get(0);
+    }
 
-
-
-  /**
-   * Specifies the path to the schema file that contains the
-   * definition for this attribute type.
-   *
-   * @param  schemaFile  The path to the schema file that contains the
-   *                     definition for this attribute type.
-   */
-  public void setSchemaFile(String schemaFile)
-  {
-    assert debugEnter(CLASS_NAME, "setSchemaFile",
-                      String.valueOf(schemaFile));
-
-    this.schemaFile = schemaFile;
+    return null;
   }
 
 
@@ -680,27 +575,14 @@ public class AttributeType
   /**
    * Retrieves the description for this attribute type.
    *
-   * @return  The description for this attribute type.
+   * @return  The description for this attribute type, or
+   *         <code>null</code> if there is no description.
    */
   public String getDescription()
   {
     assert debugEnter(CLASS_NAME, "getDescription");
 
     return description;
-  }
-
-
-
-  /**
-   * Specifies the description for this attribute type.
-   *
-   * @param  description  The description for this attribute type.
-   */
-  public void setDescription(String description)
-  {
-    assert debugEnter(CLASS_NAME, "setDescription", description);
-
-    this.description = description;
   }
 
 
@@ -716,22 +598,6 @@ public class AttributeType
     assert debugEnter(CLASS_NAME, "getSuperiorType");
 
     return superiorType;
-  }
-
-
-
-  /**
-   * Specifies the superior type to use for this attribute type.  It
-   * may be <CODE>null</CODE> if it should not have a superior type.
-   *
-   * @param  superiorType  The superior type for this attribute type.
-   */
-  public void setSuperiorType(AttributeType superiorType)
-  {
-    assert debugEnter(CLASS_NAME, "setSuperiorType",
-                      String.valueOf(superiorType));
-
-    this.superiorType = superiorType;
   }
 
 
@@ -767,21 +633,6 @@ public class AttributeType
 
 
   /**
-   * Specifies the syntax for this attribute type.
-   *
-   * @param  syntax  The syntax for this attribute type.
-   */
-  public void setSyntax(AttributeSyntax syntax)
-  {
-    assert debugEnter(CLASS_NAME, "setSyntax",
-                      String.valueOf(syntax));
-
-    this.syntax = syntax;
-  }
-
-
-
-  /**
    * Retrieves the matching rule that should be used for approximate
    * matching with this attribute type.
    *
@@ -793,25 +644,6 @@ public class AttributeType
     assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     return approximateMatchingRule;
-  }
-
-
-
-  /**
-   * Specifies the matching rule that should be used for approximate
-   * matching with this attribute type.
-   *
-   * @param  approximateMatchingRule  The matching rule that should be
-   *                                  used for approximate matching
-   *                                  with this attribute type.
-   */
-  public void setApproximateMatchingRule(ApproximateMatchingRule
-                                              approximateMatchingRule)
-  {
-    assert debugEnter(CLASS_NAME, "setApproximateMatchingRule",
-                      String.valueOf(approximateMatchingRule));
-
-    this.approximateMatchingRule = approximateMatchingRule;
   }
 
 
@@ -833,25 +665,6 @@ public class AttributeType
 
 
   /**
-   * Specifies the matching rule that should be used for equality
-   * matching with this attribute type.
-   *
-   * @param  equalityMatchingRule  The matching rule that should be
-   *                               used for equality matching with
-   *                               this attribute type.
-   */
-  public void setEqualityMatchingRule(EqualityMatchingRule
-                                           equalityMatchingRule)
-  {
-    assert debugEnter(CLASS_NAME, "setEqualityMatchingRule",
-                      String.valueOf(equalityMatchingRule));
-
-    this.equalityMatchingRule = equalityMatchingRule;
-  }
-
-
-
-  /**
    * Retrieves the matching rule that should be used for ordering with
    * this attribute type.
    *
@@ -863,25 +676,6 @@ public class AttributeType
     assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     return orderingMatchingRule;
-  }
-
-
-
-  /**
-   * Specifies the matching rule that should be used for ordering with
-   * this attribute type.
-   *
-   * @param  orderingMatchingRule  The matching rule that should be
-   *                               used for ordering with this
-   *                               attribute type.
-   */
-  public void setOrderingMatchingRule(OrderingMatchingRule
-                                           orderingMatchingRule)
-  {
-    assert debugEnter(CLASS_NAME, "setOrderingMatchingRule",
-                      String.valueOf(orderingMatchingRule));
-
-    this.orderingMatchingRule = orderingMatchingRule;
   }
 
 
@@ -903,25 +697,6 @@ public class AttributeType
 
 
   /**
-   * Specifies the matching rule that should be used for substring
-   * matching with this attribute type.
-   *
-   * @param  substringMatchingRule  The matching rule that should be
-   *                                used for substring matching with
-   *                                this attribute type.
-   */
-  public void setSubstringMatchingRule(SubstringMatchingRule
-                                            substringMatchingRule)
-  {
-    assert debugEnter(CLASS_NAME, "setSubstringMatchingRule",
-                      String.valueOf(substringMatchingRule));
-
-    this.substringMatchingRule = substringMatchingRule;
-  }
-
-
-
-  /**
    * Retrieves the usage indicator for this attribute type.
    *
    * @return  The usage indicator for this attribute type.
@@ -931,22 +706,6 @@ public class AttributeType
     assert debugEnter(CLASS_NAME, "getUsage");
 
     return attributeUsage;
-  }
-
-
-
-  /**
-   * Specifies the usage indicator for this attribute type.
-   *
-   * @param  attributeUsage  The usage indicator for this attribute
-   *                         type.
-   */
-  public void setUsage(AttributeUsage attributeUsage)
-  {
-    assert debugEnter(CLASS_NAME, "setUsage",
-                      String.valueOf(attributeUsage));
-
-    this.attributeUsage = attributeUsage;
   }
 
 
@@ -1000,22 +759,6 @@ public class AttributeType
 
 
   /**
-   * Specifies whether this attribute type is declared "collective".
-   *
-   * @param  isCollective  Specifies whether this attribute type is
-   *                       declared "collective".
-   */
-  public void setCollective(boolean isCollective)
-  {
-    assert debugEnter(CLASS_NAME, "setCollective",
-                      String.valueOf(isCollective));
-
-    this.isCollective = isCollective;
-  }
-
-
-
-  /**
    * Indicates whether this attribute type is declared
    * "no-user-modification".
    *
@@ -1027,24 +770,6 @@ public class AttributeType
     assert debugEnter(CLASS_NAME, "isNoUserModification");
 
     return isNoUserModification;
-  }
-
-
-
-  /**
-   * Specifies whether this attribute type is declared
-   * "no-user-modification".
-   *
-   * @param  isNoUserModification  Specifies whether this attribute
-   *                               type is declared
-   *                               "no-user-modification".
-   */
-  public void setNoUserModification(boolean isNoUserModification)
-  {
-    assert debugEnter(CLASS_NAME, "setNoUserModification",
-                      String.valueOf(isNoUserModification));
-
-    this.isNoUserModification = isNoUserModification;
   }
 
 
@@ -1065,22 +790,6 @@ public class AttributeType
 
 
   /**
-   * Specifies whether this attribute type is declared "obsolete".
-   *
-   * @param  isObsolete  Specifies whether this attribute type is
-   *                     declared "obsolete".
-   */
-  public void setObsolete(boolean isObsolete)
-  {
-    assert debugEnter(CLASS_NAME, "setObsolete",
-                      String.valueOf(isObsolete));
-
-    this.isObsolete = isObsolete;
-  }
-
-
-
-  /**
    * Indicates whether this attribute type is declared "single-value".
    *
    * @return  <CODE>true</CODE> if this attribute type is declared
@@ -1096,54 +805,33 @@ public class AttributeType
 
 
   /**
-   * Specifies whether this attribute type is declared "single-value".
+   * Retrieves an iterable over the names of "extra" properties
+   * associated with this attribute type.
    *
-   * @param  isSingleValue  Specifies whether this attribute type is
-   *                        declared "single-value".
+   * @return Returns an iterable over the names of "extra" properties
+   *         associated with this attribute type.
    */
-  public void setSingleValue(boolean isSingleValue)
+  public Iterable<String> getExtraPropertyNames()
   {
-    assert debugEnter(CLASS_NAME, "setSingleValue",
-                      String.valueOf(isSingleValue));
+    assert debugEnter(CLASS_NAME, "getExtraPropertyNames");
 
-    this.isSingleValue = isSingleValue;
+    return extraProperties.keySet();
   }
 
 
 
   /**
-   * Retrieves a mapping between the names of any extra non-standard
-   * properties that may be associated with this attribute type and
-   * the value for that property.  The caller may alter the contents
-   * of this mapping.
+   * Retrieves an iterable over the value(s) of the specified "extra"
+   * property for this attribute type.
    *
-   * @return  A mapping between the names of any extra non-standard
-   *          properties that may be associated with this attribute
-   *          type and the value for that property.
+   * @param propertyName
+   *          The name of the "extra" property for which to retrieve
+   *          the value(s).
+   * @return Returns an iterable over the value(s) of the specified
+   *         "extra" property for this attribute type, or
+   *         <CODE>null</CODE> if no such property is defined.
    */
-  public ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-              getExtraProperties()
-  {
-    assert debugEnter(CLASS_NAME, "getExtraProperties");
-
-    return extraProperties;
-  }
-
-
-
-  /**
-   * Retrieves the value of the specified "extra" property for this
-   * attribute type.
-   *
-   * @param  propertyName  The name of the "extra" property for which
-   *                       to retrieve the value.
-   *
-   * @return  The value of the specified "extra" property for this
-   *          attribute type, or <CODE>null</CODE> if no such property
-   *          is defined.
-   */
-  public CopyOnWriteArrayList<String>
-              getExtraProperty(String propertyName)
+  public Iterable<String> getExtraProperty(String propertyName)
   {
     assert debugEnter(CLASS_NAME, "getExtraProperty",
                       String.valueOf(propertyName));
@@ -1445,10 +1133,17 @@ public class AttributeType
 
     if (! extraProperties.isEmpty())
     {
-      for (String property : extraProperties.keySet())
-      {
-        CopyOnWriteArrayList<String> valueList =
-             extraProperties.get(property);
+      for (Map.Entry<String, List<String>> e :
+        extraProperties.entrySet()) {
+
+        String property = e.getKey();
+        if (!includeFileElement
+            && property.equals(SCHEMA_PROPERTY_FILENAME)) {
+          // Don't include the schema file if it was not requested.
+          continue;
+        }
+
+        List<String> valueList = e.getValue();
 
         buffer.append(" ");
         buffer.append(property);
@@ -1473,16 +1168,6 @@ public class AttributeType
           buffer.append(")");
         }
       }
-    }
-
-    if (includeFileElement && (schemaFile != null) &&
-        (! extraProperties.containsKey(SCHEMA_PROPERTY_FILENAME)))
-    {
-      buffer.append(" ");
-      buffer.append(SCHEMA_PROPERTY_FILENAME);
-      buffer.append(" '");
-      buffer.append(schemaFile);
-      buffer.append("'");
     }
 
     buffer.append(" )");

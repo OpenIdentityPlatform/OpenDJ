@@ -296,7 +296,7 @@ public class Schema
                                        msgID);
         }
 
-        for (String name : attributeType.getNames().keySet())
+        for (String name : attributeType.getNormalizedNames())
         {
           if (attributeTypes.containsKey(name))
           {
@@ -313,7 +313,7 @@ public class Schema
 
       attributeTypes.put(toLowerCase(attributeType.getOID()), attributeType);
 
-      for (String name : attributeType.getNames().keySet())
+      for (String name : attributeType.getNormalizedNames())
       {
         attributeTypes.put(name, attributeType);
       }
@@ -344,7 +344,7 @@ public class Schema
     {
       attributeTypes.remove(toLowerCase(attributeType.getOID()), attributeType);
 
-      for (String name : attributeType.getNames().keySet())
+      for (String name : attributeType.getNormalizedNames())
       {
         attributeTypes.remove(name, attributeType);
       }

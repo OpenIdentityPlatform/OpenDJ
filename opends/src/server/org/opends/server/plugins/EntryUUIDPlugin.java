@@ -29,6 +29,7 @@ package org.opends.server.plugins;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +72,13 @@ public class EntryUUIDPlugin
    */
   private static final String CLASS_NAME =
        "org.opends.server.plugins.EntryUUIDPlugin";
+
+
+
+  /**
+   * The name of the entryUUID attribute type.
+   */
+  private static final String ENTRYUUID = "entryuuid";
 
 
 
@@ -144,13 +152,17 @@ public class EntryUUIDPlugin
 
 
     // Get the entryUUID attribute type.
-    entryUUIDType = DirectoryServer.getAttributeType("entryuuid");
+    entryUUIDType = DirectoryServer.getAttributeType(ENTRYUUID);
     if (entryUUIDType == null)
     {
-      entryUUIDType = DirectoryServer.getDefaultAttributeType("entryUUID");
-      entryUUIDType.setUsage(AttributeUsage.DIRECTORY_OPERATION);
-      entryUUIDType.setNoUserModification(true);
-      entryUUIDType.setSingleValue(true);
+      entryUUIDType = new AttributeType(ENTRYUUID,
+          Collections.singleton(ENTRYUUID),
+          ENTRYUUID,
+          null,
+          null,
+          DirectoryServer.getDefaultAttributeSyntax(),
+          AttributeUsage.DIRECTORY_OPERATION,
+          false, true, false, true);
     }
   }
 
