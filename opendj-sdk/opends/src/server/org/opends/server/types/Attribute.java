@@ -95,7 +95,7 @@ public class Attribute
 
   /**
    * Creates a new attribute with the specified type and user-provided
-   * name.  It * will not have any values.
+   * name.  It will not have any values.
    *
    * @param  attributeType  The attribute type for this attribute.
    * @param  name           The user-provided name for this attribute.
