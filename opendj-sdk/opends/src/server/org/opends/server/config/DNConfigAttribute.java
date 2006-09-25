@@ -547,11 +547,17 @@ public class DNConfigAttribute
   {
     assert debugEnter(CLASS_NAME, "getValueSet", String.valueOf(value));
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(1);
-
-    valueSet.add(new AttributeValue(new ASN1OctetString(value.toString()),
-                          new ASN1OctetString(value.toNormalizedString())));
+    LinkedHashSet<AttributeValue> valueSet;
+    if (value == null)
+    {
+      valueSet = new LinkedHashSet<AttributeValue>(0);
+    }
+    else
+    {
+      valueSet = new LinkedHashSet<AttributeValue>(1);
+      valueSet.add(new AttributeValue(new ASN1OctetString(value.toString()),
+                            new ASN1OctetString(value.toNormalizedString())));
+    }
 
     return valueSet;
   }
