@@ -87,7 +87,7 @@ public class StartTLSExtendedOperationTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
   }
 
 
@@ -110,7 +110,7 @@ public class StartTLSExtendedOperationTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
   }
 
 
@@ -139,7 +139,7 @@ public class StartTLSExtendedOperationTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
   }
 
 
@@ -164,7 +164,7 @@ public class StartTLSExtendedOperationTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
   }
 
 
@@ -219,7 +219,7 @@ public class StartTLSExtendedOperationTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
   }
 
 
@@ -272,7 +272,7 @@ public class StartTLSExtendedOperationTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
   }
 }
 

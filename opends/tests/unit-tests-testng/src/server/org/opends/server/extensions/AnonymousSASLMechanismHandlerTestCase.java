@@ -224,7 +224,7 @@ public class AnonymousSASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
 
     handler.finalizeSASLMechanismHandler();
   }
@@ -253,7 +253,7 @@ public class AnonymousSASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
 
     handler.finalizeSASLMechanismHandler();
   }
