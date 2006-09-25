@@ -43,7 +43,6 @@ import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -723,22 +722,7 @@ public final class AttributeType
   {
     assert debugEnter(CLASS_NAME, "isOperational");
 
-    switch (attributeUsage)
-    {
-      case USER_APPLICATIONS:
-        return false;
-      case DIRECTORY_OPERATION:
-      case DISTRIBUTED_OPERATION:
-      case DSA_OPERATION:
-        return true;
-    }
-
-    // We should never get here.  If we do, assume it's a user-defined
-    // attribute.
-    logError(ErrorLogCategory.CORE_SERVER,
-             ErrorLogSeverity.SEVERE_WARNING,
-             MSGID_UNKNOWN_ATTRIBUTE_USAGE, getNameOrOID());
-    return false;
+    return attributeUsage.isOperational();
   }
 
 
