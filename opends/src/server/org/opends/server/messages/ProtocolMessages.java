@@ -4155,6 +4155,19 @@ public class ProtocolMessages
   public static final int MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 382;
 
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * send a clear-text response over a client connection that doesn't have a
+   * handle to the clear-text security provider.  This takes a single argument,
+   * which is a string representation of the client connection.
+   */
+  public static final int MSGID_LDAP_NO_CLEAR_SECURITY_PROVIDER =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 383;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -5504,6 +5517,10 @@ public class ProtocolMessages
                     "close a StartTLS session on a client connection while " +
                     "leaving the underlying TCP connection active.  The " +
                     "TCP connection will be closed.");
+    registerMessage(MSGID_LDAP_NO_CLEAR_SECURITY_PROVIDER,
+                    "LDAP connection handler %s could not send a clear-text " +
+                    "response to the client because it does not have a " +
+                    "reference to a clear connection security provider.");
 
 
     registerMessage(MSGID_LDAP_PAGED_RESULTS_DECODE_NULL,
