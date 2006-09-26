@@ -116,13 +116,13 @@ public enum PersistentSearchChangeType
     switch (intValue)
     {
       case 1:
-        return "Add";
+        return "add";
       case 2:
-        return "Delete";
+        return "delete";
       case 4:
-        return "Modify";
+        return "modify";
       case 8:
-        return "Modify_DN";
+        return "modDN";
       default:
         return "unknown";
     }
@@ -307,7 +307,7 @@ public enum PersistentSearchChangeType
    *
    * @return  A string representation of the provided set of change types.
    */
-  public static String changeTypesToString(HashSet<PersistentSearchChangeType>
+  public static String changeTypesToString(Set<PersistentSearchChangeType>
                                                 changeTypes)
   {
     StringBuilder buffer = new StringBuilder();
