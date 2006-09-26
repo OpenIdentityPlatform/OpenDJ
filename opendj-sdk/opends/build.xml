@@ -104,8 +104,6 @@
   <property name="dynconstants.stubfile"
         location="${resource.dir}/DynamicConstants.java.stubs" />
 
-
-
   <property file="PRODUCT"                                                />
 
 
@@ -597,7 +595,11 @@
 
     <preptestng file="${testng.dir}/testng.xml"
                 tofile="${unittest.resource.dir}/testng.xml"
-                grouplist="${test.groups}" />
+                grouplist="${test.groups}" 
+		packagelist="${test.packages}"
+                classList="${test.classes}" 
+		methodList="${test.methods}" />
+
 
 
   </target>
@@ -609,10 +611,15 @@
     <property name="TESTASSERT" value="true"/>
   </target>
 
+  <!-- Execute Directory Server TestNG unit tests specified from CLI -->
+  <target name="testcustom"
+	  depends="testinit,runtests"
+          description="Execute the Directory Server TestNG unit tests specified from CLI.">
+  </target>
 
   <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
   <target name="testall"
-          depends="enableTestNGAssertions,testinit,runtests"
+          depends="enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
           description="Run all of the TestNG tests.">
   </target>
 
@@ -633,6 +640,12 @@
   <target name="testallwithcoverage"
           depends="coverage,testall"
           description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.">
+  </target>
+
+  <!-- Execute the Directory Server TestNG unit tests specified from CLI in text mode with a coverage report. -->
+  <target name="testcustomwithcoverage"
+	  depends="coverage,testcustom"
+          description="Execute the Directory Server TestNG unit tests specified from CLI in text mode with a coverage report.">
   </target>
 
   <!-- Internal target to execute the Directory Server TestNG unit tests in text mode after everything has been initialized. -->
@@ -692,9 +705,19 @@
 
   </target>
 
-  <!-- Internal target used to set the group list property for the preptestng task -->
+  <!-- Internal target used to set the properties for the preptestng task -->
   <target name="prepdefaulttest">
     <property name="test.groups" value="exclude=slow" />
+    <property name="test.packages" value="org.opends.server.*" />
+    <property name="test.classes" value="" />
+    <property name="test.methods" value="" />
+  </target>
+
+  <target name="prepdefaultalltest">
+    <property name="test.groups" value="" />
+    <property name="test.packages" value="org.opends.server.*" />
+    <property name="test.classes" value="" />
+    <property name="test.methods" value="" />
   </target>
 
   <target name="testreport"
