@@ -43,9 +43,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
 import org.opends.server.loggers.Error;
 import org.opends.server.loggers.Debug;
+import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.OperatingSystem;
+
+import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -117,6 +120,8 @@ public final class TestCaseUtils {
     {
       return;
     }
+
+    InvocationCounterPlugin.resetStartupCalled();
 
     // Get the build root and use it to create a test package directory.
     String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
@@ -252,6 +257,9 @@ public final class TestCaseUtils {
     Error.removeAllErrorLoggers(false);
     Debug.removeAllDebugLoggers(false);
     directoryServer.startServer();
+
+    assertTrue(InvocationCounterPlugin.startupCalled());
+
     SERVER_STARTED = true;
   }
 
@@ -263,7 +271,9 @@ public final class TestCaseUtils {
   {
     if (SERVER_STARTED)
     {
+      InvocationCounterPlugin.resetShutdownCalled();
       DirectoryServer.shutDown("org.opends.server.TestCaseUtils", reason);
+      assertTrue(InvocationCounterPlugin.shutdownCalled());
       SERVER_STARTED = false;
     }
   }
