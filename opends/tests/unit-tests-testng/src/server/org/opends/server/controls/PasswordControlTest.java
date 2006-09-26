@@ -325,7 +325,7 @@ public class PasswordControlTest
     assertNotNull(newPec);
     assertEquals(newPec.isCritical(), isCritical);
     assertEquals(newPec.getOID(), oid);
-    // assertEquals(newPec.getSecondsUntilExpiration(), sec);
+    assertEquals(newPec.getSecondsUntilExpiration(), sec);
   }
   
   /**
@@ -490,12 +490,11 @@ public class PasswordControlTest
         try
         {
           pprc = PasswordPolicyResponseControl.decodeControl(control);
-//          assertTrue(false,"the warning type shouldn't be null");
+          assertNull(pprc.getWarningType());
         }
         catch (LDAPException e)
         {
-          // normal case
-          assertTrue(true,"the warning type shouldn't be null");
+          assertTrue(false,"We should be able to decode the control");
         }
         
         // check null error type
@@ -504,12 +503,11 @@ public class PasswordControlTest
         try
         {
           pprc = PasswordPolicyResponseControl.decodeControl(control);
-//          assertTrue(false,"the error type shouldn't be null");
+          assertNull(pprc.getErrorType());
         }
         catch (LDAPException e)
         {
-          // normal case
-          assertTrue(true,"the error type shouldn't be null");
+          assertTrue(false,"We should be able to decode the control");
         }
       }
     }
