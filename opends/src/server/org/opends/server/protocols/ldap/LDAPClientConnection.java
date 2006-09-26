@@ -56,6 +56,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.Operation;
 import org.opends.server.core.PersistentSearch;
+import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.extensions.NullConnectionSecurityProvider;
@@ -1125,7 +1126,17 @@ public class LDAPClientConnection
     }
 
 
-    // NYI -- Invoke the post-disconnect plugins.
+    try
+    {
+      PluginConfigManager pluginManager =
+           DirectoryServer.getPluginConfigManager();
+      pluginManager.invokePostDisconnectPlugins(this, disconnectReason,
+                                                messageID, message);
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "disconnect", e);
+    }
   }
 
 
