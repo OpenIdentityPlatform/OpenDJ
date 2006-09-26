@@ -50,8 +50,10 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
+import org.opends.server.api.plugin.PostConnectPluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.InitializationException;
+import org.opends.server.core.PluginConfigManager;
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
@@ -1279,9 +1281,21 @@ public class LDAPConnectionHandler
                   }
 
                   // If we've gotten here, then we'll take the connection so
-                  // choose a request handler and register the client with it.
+                  // invoke the post-connect plugins and register the client
+                  // connection with a request handler.
                   try
                   {
+                    PluginConfigManager pluginManager =
+                         DirectoryServer.getPluginConfigManager();
+                    PostConnectPluginResult pluginResult =
+                         pluginManager.invokePostConnectPlugins(
+                              clientConnection);
+                    if (pluginResult.connectionTerminated())
+                    {
+                      iterator.remove();
+                      continue;
+                    }
+
                     LDAPRequestHandler requestHandler =
                          requestHandlers[requestHandlerIndex++];
                     if (requestHandlerIndex >= numRequestHandlers)
