@@ -1,3 +1,8 @@
+dn: cn=config
+changetype: modify
+replace: ds-cfg-notify-abandoned-operations
+ds-cfg-notify-abandoned-operations: true
+
 dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config
 changeType: modify
 replace: ds-cfg-listen-port
@@ -118,6 +123,103 @@ ds-cfg-plugin-type: preOperationExtended
 ds-cfg-plugin-type: preOperationModify
 ds-cfg-plugin-type: preOperationModifyDN
 ds-cfg-plugin-type: preOperationSearch
+
+dn: cn=Disconnect Client Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Disconnect Client Plugin
+ds-cfg-plugin-class: org.opends.server.plugins.DisconnectClientPlugin
+ds-cfg-plugin-enabled: true
+ds-cfg-plugin-type: preParseAbandon
+ds-cfg-plugin-type: preParseAdd
+ds-cfg-plugin-type: preParseBind
+ds-cfg-plugin-type: preParseCompare
+ds-cfg-plugin-type: preParseDelete
+ds-cfg-plugin-type: preParseExtended
+ds-cfg-plugin-type: preParseModify
+ds-cfg-plugin-type: preParseModifyDN
+ds-cfg-plugin-type: preParseSearch
+ds-cfg-plugin-type: preParseUnbind
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationBind
+ds-cfg-plugin-type: preOperationCompare
+ds-cfg-plugin-type: preOperationDelete
+ds-cfg-plugin-type: preOperationExtended
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: preOperationSearch
+ds-cfg-plugin-type: postOperationAbandon
+ds-cfg-plugin-type: postOperationAdd
+ds-cfg-plugin-type: postOperationBind
+ds-cfg-plugin-type: postOperationCompare
+ds-cfg-plugin-type: postOperationDelete
+ds-cfg-plugin-type: postOperationExtended
+ds-cfg-plugin-type: postOperationModify
+ds-cfg-plugin-type: postOperationModifyDN
+ds-cfg-plugin-type: postOperationSearch
+ds-cfg-plugin-type: postOperationUnbind
+ds-cfg-plugin-type: postResponseAdd
+ds-cfg-plugin-type: postResponseBind
+ds-cfg-plugin-type: postResponseCompare
+ds-cfg-plugin-type: postResponseDelete
+ds-cfg-plugin-type: postResponseExtended
+ds-cfg-plugin-type: postResponseModify
+ds-cfg-plugin-type: postResponseModifyDN
+ds-cfg-plugin-type: postResponseSearch
+
+dn: cn=Invocation Counter Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Invocation Counter Plugin
+ds-cfg-plugin-class: org.opends.server.plugins.InvocationCounterPlugin
+ds-cfg-plugin-enabled: true
+ds-cfg-plugin-type: preParseAbandon
+ds-cfg-plugin-type: preParseAdd
+ds-cfg-plugin-type: preParseBind
+ds-cfg-plugin-type: preParseCompare
+ds-cfg-plugin-type: preParseDelete
+ds-cfg-plugin-type: preParseExtended
+ds-cfg-plugin-type: preParseModify
+ds-cfg-plugin-type: preParseModifyDN
+ds-cfg-plugin-type: preParseSearch
+ds-cfg-plugin-type: preParseUnbind
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationBind
+ds-cfg-plugin-type: preOperationCompare
+ds-cfg-plugin-type: preOperationDelete
+ds-cfg-plugin-type: preOperationExtended
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: preOperationSearch
+ds-cfg-plugin-type: postOperationAbandon
+ds-cfg-plugin-type: postOperationAdd
+ds-cfg-plugin-type: postOperationBind
+ds-cfg-plugin-type: postOperationCompare
+ds-cfg-plugin-type: postOperationDelete
+ds-cfg-plugin-type: postOperationExtended
+ds-cfg-plugin-type: postOperationModify
+ds-cfg-plugin-type: postOperationModifyDN
+ds-cfg-plugin-type: postOperationSearch
+ds-cfg-plugin-type: postOperationUnbind
+ds-cfg-plugin-type: postResponseAdd
+ds-cfg-plugin-type: postResponseBind
+ds-cfg-plugin-type: postResponseCompare
+ds-cfg-plugin-type: postResponseDelete
+ds-cfg-plugin-type: postResponseExtended
+ds-cfg-plugin-type: postResponseModify
+ds-cfg-plugin-type: postResponseModifyDN
+ds-cfg-plugin-type: postResponseSearch
+ds-cfg-plugin-type: searchResultEntry
+ds-cfg-plugin-type: searchResultReference
+ds-cfg-plugin-type: intermediateResponse
+ds-cfg-plugin-type: postConnect
+ds-cfg-plugin-type: postDisconnect
+ds-cfg-plugin-type: ldifImport
+ds-cfg-plugin-type: ldifExport
+ds-cfg-plugin-type: startup
+ds-cfg-plugin-type: shutdown
 
 dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
 changetype: add
