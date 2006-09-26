@@ -19,6 +19,7 @@
             <package name="org.opends.server.types"/>
             <package name="org.opends.server.changelog"/>
             <package name="org.opends.server.api"/>
+            <package name="org.opends.server.controls"/>
         </packages>
     </test>
 
