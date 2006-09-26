@@ -30,12 +30,34 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.tools.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Backend Setup
+    #@TestSuitePurpose          Setup methods for the Backend test suites
+    #@TestSuiteID               Setup
+    #@TestSuiteGroup            Backend
+    #@TestGroup                 Backend
+    #@TestScript                BackendStartupTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Backend startup.
  */
 @Test
 public class BackendStartupTests extends BackendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Setup
+    #@TestName                  Backend Setup 1
+    #@TestID                    BackendStartup1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ImportLDIF.mainImportLDIF()
+                                with the filename to the appropriate ldif file.
+    #@TestPostamble
+    #@TestResult                Success if ImportLDIF.mainImportLDIF() returns 0
+*/
 /**
  *  Add entries that are required for the Backend Tests.
  *

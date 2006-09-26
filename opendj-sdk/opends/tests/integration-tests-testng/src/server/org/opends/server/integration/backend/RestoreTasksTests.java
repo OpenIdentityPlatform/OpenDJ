@@ -33,12 +33,35 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Backend Restore Tasks Tests
+    #@TestSuitePurpose          Test the restore tasks functionality for OpenDS
+    #@TestSuiteID               Restore Tasks Tests
+    #@TestSuiteGroup            Restore Tasks
+    #@TestGroup                 Backend
+    #@TestScript                RestoreTasksTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Backend functional tests for restore
  */
 @Test
 public class RestoreTasksTests extends BackendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Restore Tasks Tests
+    #@TestName                  Restore Tasks 1
+    #@TestID                    RestoreTasks1
+    #@TestPreamble
+    #@TestSteps                 An ldif file is created that describes the restore task to be
+                                scheduled. The task is scheduled by adding the ldif file
+                                with the static method, LDAPModify.mainModify().
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Restore data in OpenDS by scheduling a task.
  *

@@ -31,11 +31,34 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Backend Backup Tasks Tests
+    #@TestSuitePurpose          Test the backup tasks functionality for OpenDS
+    #@TestSuiteID               Backup Tasks Tests
+    #@TestSuiteGroup            Backup Tasks
+    #@TestGroup                 Backend
+    #@TestScript                BackupTasksTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Backend functional tests for backup
  */
 public class BackupTasksTests extends BackendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Backup Tasks Tests
+    #@TestName                  Backup Tasks 1
+    #@TestID                    BackupTasks1
+    #@TestPreamble
+    #@TestSteps                 An ldif file is created that describes the backup task to be
+                                scheduled. The task is scheduled by adding the ldif file
+                                with the static method, LDAPModify.mainModify().
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Create a backup of the data in OpenDS by scheduling a task.
  *

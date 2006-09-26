@@ -32,12 +32,35 @@ import org.opends.server.tools.*;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Backend Restore Tests
+    #@TestSuitePurpose          Test the restore functionality for OpenDS
+    #@TestSuiteID               Restore Tests
+    #@TestSuiteGroup            Restore
+    #@TestGroup                 Backend
+    #@TestScript                RestoreTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Backend functional tests for restore
  */
 @Test
 public class RestoreTests extends BackendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Restore Tests
+    #@TestName                  Restore 1
+    #@TestID                    Restore1
+    #@TestPreamble		The OpenDS is stopped.
+    #@TestSteps                 Client calls static method RestoreDB.mainRestoreDB()
+                                with the parameters, --configClass, --configFileHandler,
+                                and --backupDirectory.
+    #@TestPostamble		The OpenDs is started. 
+    #@TestResult                Success if RestoreDB.mainRestoreDB() returns 0
+*/
 /**
  *  Restore data to OpenDS.
  *
@@ -80,6 +103,19 @@ public class RestoreTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Restore Tests
+    #@TestName                  Restore 2
+    #@TestID                    Restore2
+    #@TestPreamble		The OpenDS is stopped.
+    #@TestSteps                 Client calls static method RestoreDB.mainRestoreDB()
+                                with the parameters, --configClass, --configFileHandler,
+                                --backupDirectory, --isCompressed.
+    #@TestPostamble		The OpenDs is started. 
+    #@TestResult                Success if RestoreDB.mainRestoreDB() returns 0
+*/
 /**
  *  Restore compressed data to OpenDS.
  *

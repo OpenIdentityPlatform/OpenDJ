@@ -31,12 +31,35 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Backend Import Tasks Tests
+    #@TestSuitePurpose          Test the import tasks functionality for OpenDS
+    #@TestSuiteID               Import Tasks Tests
+    #@TestSuiteGroup            Import Tasks
+    #@TestGroup                 Backend
+    #@TestScript                ImportTasksTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Backend functional tests for import
  */
 @Test
 public class ImportTasksTests extends BackendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Import Tasks Tests
+    #@TestName                  Import Tasks 1
+    #@TestID                    ImportTasks1
+    #@TestPreamble
+    #@TestSteps                 An ldif file is created that describes the import task to be
+                                scheduled. The task is scheduled by adding the ldif file
+                                with the static method, LDAPModify.mainModify().
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Import data in OpenDS by scheduling a task.
  *
@@ -55,7 +78,7 @@ public class ImportTasksTests extends BackendTests
  *                                 be placed.
 */
   @Parameters({ "hostname", "port", "bindDN", "bindPW", "integration_test_home", "logDir", "dsee_home" })
-  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests14.testImport14_check" })
+  @Test(alwaysRun=true, dependsOnMethods = { "org.opends.server.integration.backend.ImportTests.testImport14_check" })
   public void testImportTasks1(String hostname, String port, String bindDN, String bindPW, String integration_test_home, String logDir, String dsee_home) throws Exception
   {
     System.out.println("*********************************************");
