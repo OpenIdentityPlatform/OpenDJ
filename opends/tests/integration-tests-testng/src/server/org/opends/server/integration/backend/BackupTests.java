@@ -33,6 +33,16 @@ import java.io.*;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Backend Backup Tests
+    #@TestSuitePurpose          Test the backup functionality for OpenDS
+    #@TestSuiteID               Backup Tests
+    #@TestSuiteGroup            Backup
+    #@TestGroup                 Backend
+    #@TestScript                BackupTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Backend functional tests for backup
  */
@@ -41,6 +51,19 @@ public class BackupTests extends BackendTests
 {
   public String backup_id = null;
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Backup Tests
+    #@TestName                  Backup 1
+    #@TestID                    Backup1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method BackUpDB.mainBackUpDB()
+                                with the parameters, --configClass, --configFileHandler,
+                                --backendID, and --backupDirectory.
+    #@TestPostamble
+    #@TestResult                Success if BackUpDB.mainBackUpDB() returns 0
+*/
 /**
  *  Create a backup of the data in OpenDS.
  *
@@ -70,6 +93,19 @@ public class BackupTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Backup Tests
+    #@TestName                  Backup 2
+    #@TestID                    Backup2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method BackUpDB.mainBackUpDB()
+                                with the parameters, --configClass, --configFileHandler,
+                                --backendID, --backupDirectory and --incremental.
+    #@TestPostamble
+    #@TestResult                Success if BackUpDB.mainBackUpDB() returns 0
+*/
 /**
  *  Create an incremental backup of the data in OpenDS.
  *
@@ -111,6 +147,19 @@ public class BackupTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Backup Tests
+    #@TestName                  Backup 3
+    #@TestID                    Backup3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method BackUpDB.mainBackUpDB()
+                                with the parameters, --configClass, --configFileHandler,
+                                --backendID, --backupDirectory and --backupID.
+    #@TestPostamble
+    #@TestResult                Success if BackUpDB.mainBackUpDB() returns 0
+*/
 /**
  *  Create a backup of the data in OpenDS with a backup id.
  *
@@ -142,6 +191,20 @@ public class BackupTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Backup Tests
+    #@TestName                  Backup 4
+    #@TestID                    Backup4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method BackUpDB.mainBackUpDB()
+                                with the parameters, --configClass, --configFileHandler,
+                                --backendID, --backupDirectory, --incremental, 
+				and --incrementalBaseID.
+    #@TestPostamble
+    #@TestResult                Success if BackUpDB.mainBackUpDB() returns 0
+*/
 /**
  *  Create an incremental backup of the data in OpenDS with a backup id.
  *
@@ -185,6 +248,19 @@ public class BackupTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Backup Tests
+    #@TestName                  Backup 5
+    #@TestID                    Backup5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method BackUpDB.mainBackUpDB()
+                                with the parameters, --configClass, --configFileHandler,
+				and --compress.
+    #@TestPostamble
+    #@TestResult                Success if BackUpDB.mainBackUpDB() returns 0
+*/
 /**
  *  Create a compressed backup of the data in OpenDS. 
  *

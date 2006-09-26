@@ -31,12 +31,35 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Backend Export Tasks Tests
+    #@TestSuitePurpose          Test the backend functionality for OpenDS
+    #@TestSuiteID               Export Tasks Tests
+    #@TestSuiteGroup            Export Tasks
+    #@TestGroup                 Backend
+    #@TestScript                ExportTasksTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Backend functional tests for export
  */
 @Test
 public class ExportTasksTests extends BackendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tasks Tests
+    #@TestName                  Export Tasks 1
+    #@TestID                    ExportTasks1
+    #@TestPreamble
+    #@TestSteps                 An ldif file is created that describes the export task to be
+				scheduled. The task is scheduled by adding the ldif file
+				with the static method, LDAPModify.mainModify(). 
+    #@TestPostamble
+    #@TestResult                Success if OpenDS returns 0
+*/
 /**
  *  Export the data in OpenDS by scheduling a task.
  *

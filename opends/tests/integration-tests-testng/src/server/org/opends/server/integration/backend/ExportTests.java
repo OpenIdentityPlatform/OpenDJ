@@ -31,12 +31,35 @@ import org.testng.annotations.*;
 import org.opends.server.tools.*;
 import java.io.*;
 
+/*
+    Place suite-specific test information here.
+    #@TestSuiteName             Backend Export Tests
+    #@TestSuitePurpose          Test the export functionality for OpenDS
+    #@TestSuiteID               Export Tests
+    #@TestSuiteGroup            Export
+    #@TestGroup                 Backend
+    #@TestScript                ExportTests.java
+    #@TestHTMLLink
+*/
 /**
  * This class contains the TestNG tests for the Backend functional tests for export
  */
 @Test
 public class ExportTests extends BackendTests
 {
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 1
+    #@TestID                    Export1
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, and --ldifFile.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS.
  *
@@ -70,6 +93,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 2
+    #@TestID                    Export2
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and --append.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS by appending to an ldif file.
  *
@@ -103,6 +139,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 3
+    #@TestID                    Export3
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and --includeAttribute.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with one --includeAttribute parameter.
  *
@@ -136,6 +185,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 4
+    #@TestID                    Export4
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and three --includeAttributes.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with three --includeAttribute parameters.
  *
@@ -169,6 +231,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 5
+    #@TestID                    Export5
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and --excludeAttribute.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with one --excludeAttribute parameter.
  *
@@ -202,6 +277,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 6
+    #@TestID                    Export6
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and three --excludeAttributes.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with three --excludeAttribute parameters.
  *
@@ -235,6 +323,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 7
+    #@TestID                    Export7
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and --includeFilter.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with one --includeFilter parameter.
  *
@@ -268,6 +369,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 8
+    #@TestID                    Export8
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and three --includeFilters.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with three --includeFilter parameters.
  *
@@ -301,6 +415,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 9
+    #@TestID                    Export9
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and --excludeFilter.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with one --excludeFilter parameter.
  *
@@ -334,6 +461,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 10
+    #@TestID                    Export10
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and three --excludeFilters.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with three --excludeFilter parameters.
  *
@@ -367,6 +507,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 11
+    #@TestID                    Export11
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and --includeBranch.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with one --includeBranch parameter.
  *
@@ -400,6 +553,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 12
+    #@TestID                    Export12
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and --excludeBranch.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with one --excludeBranch parameter.
  *
@@ -433,6 +599,20 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 13
+    #@TestID                    Export13
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, 
+				--includeAttribute, --excludeFilter, and --includeBranch.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with one --includeAttribute, 
  *  one --excludeFilter, and one --includeBranch parameter.
@@ -467,6 +647,20 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 14
+    #@TestID                    Export14
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, 
+				--excludeAttribute, --includeFilter, and --excludeBranch.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS with one --excludeAttribute, 
  *  one --includeFilter, and one --excludeBranch parameter.
@@ -501,6 +695,19 @@ public class ExportTests extends BackendTests
     compareExitCode(retCode, expCode);
   }
 
+/*
+    Place test-specific test information here.
+    The tag, TestMarker, must be present and must be the same as the marker, TestSuiteName.
+    #@TestMarker                Backend Export Tests
+    #@TestName                  Export 15
+    #@TestID                    Export15
+    #@TestPreamble
+    #@TestSteps                 Client calls static method ExportLDIF.mainExportLDIF()
+				with the parameters, --configClass, --configFileHandler,
+				--backendID, --ldifFile, and --compressLDIF.
+    #@TestPostamble
+    #@TestResult                Success if ExportLDIF.mainExportLDIF() returns 0
+*/
 /**
  *  Export the data in OpenDS in compressed format. 
  *
