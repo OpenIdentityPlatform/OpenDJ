@@ -101,7 +101,7 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
       
       EqualityMatchingRule matchingRule = syntax.getEqualityMatchingRule();
      /* disabled because it currently fails
-      * see issue 
+      * see issue 726
       * 
       * assertTrue(matchingRule.areEqual(byteStringValue, newValue));
       */
