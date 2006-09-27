@@ -6603,6 +6603,15 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used to indicate that the
+   * LDIF import was unsuccessful.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_IMPORT_UNSUCCESSFUL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 672;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8316,6 +8325,8 @@ public class ToolMessages
                     "database....");
     registerMessage(MSGID_INSTALLDS_IMPORT_SUCCESSFUL,
                     "Import complete.");
+    registerMessage(MSGID_INSTALLDS_IMPORT_UNSUCCESSFUL,
+                    "Import failed.");
     registerMessage(MSGID_INSTALLDS_STATUS_SUCCESS,
                     "The " + SHORT_NAME + " setup process has completed " +
                     "successfully.");

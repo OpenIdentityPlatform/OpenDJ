@@ -345,8 +345,8 @@ public class ImportLDIF
 
     try
     {
-      directoryServer.bootstrapClient();
-      directoryServer.initializeJMX();
+      DirectoryServer.bootstrapClient();
+      DirectoryServer.initializeJMX();
     }
     catch (Exception e)
     {
@@ -914,7 +914,7 @@ public class ImportLDIF
                                     String.valueOf(failureReason));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        return 0;
+        return 1;
       }
     }
     catch (Exception e)
@@ -924,11 +924,12 @@ public class ImportLDIF
                                   stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
-      return 0;
+      return 1;
     }
 
 
     // Launch the import.
+    int retCode = 0;
     try
     {
       backend.importLDIF(configEntry, baseDNs, importConfig);
@@ -939,6 +940,7 @@ public class ImportLDIF
       String message = getMessage(msgID, de.getErrorMessage());
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
+      retCode = 1;
     }
     catch (Exception e)
     {
@@ -946,6 +948,7 @@ public class ImportLDIF
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
+      retCode = 1;
     }
 
 
@@ -961,6 +964,7 @@ public class ImportLDIF
                                     String.valueOf(failureReason));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
                  message, msgID);
+        retCode = 1;
       }
     }
     catch (Exception e)
@@ -970,12 +974,13 @@ public class ImportLDIF
                                   stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
                message, msgID);
+      retCode = 1;
     }
 
 
     // Clean up after the import by closing the import config.
     importConfig.close();
-    return 0;
+    return retCode;
   }
 
 
