@@ -700,22 +700,7 @@ public class ModifyOperation
     // Check for and handle a request to cancel this operation.
     if (cancelRequest != null)
     {
-      setCancelResult(CancelResult.CANCELED);
-
-      if (cancelRequest.notifyOriginalRequestor() ||
-          DirectoryServer.notifyAbandonedOperations())
-      {
-        setResultCode(ResultCode.CANCELED);
-
-        String cancelReason = cancelRequest.getCancelReason();
-        if (cancelReason != null)
-        {
-          appendErrorMessage(cancelReason);
-        }
-
-        clientConnection.sendResponse(this);
-      }
-
+      indicateCancelled(cancelRequest);
       processingStopTime = System.currentTimeMillis();
       return;
     }
@@ -758,22 +743,7 @@ modifyProcessing:
       // Check for and handle a request to cancel this operation.
       if (cancelRequest != null)
       {
-        setCancelResult(CancelResult.CANCELED);
-
-        if (cancelRequest.notifyOriginalRequestor() ||
-            DirectoryServer.notifyAbandonedOperations())
-        {
-          setResultCode(ResultCode.CANCELED);
-
-          String cancelReason = cancelRequest.getCancelReason();
-          if (cancelReason != null)
-          {
-            appendErrorMessage(cancelReason);
-          }
-
-          clientConnection.sendResponse(this);
-        }
-
+        indicateCancelled(cancelRequest);
         processingStopTime = System.currentTimeMillis();
         logModifyResponse(this);
         return;
@@ -828,22 +798,7 @@ modifyProcessing:
       // Check for and handle a request to cancel this operation.
       if (cancelRequest != null)
       {
-        setCancelResult(CancelResult.CANCELED);
-
-        if (cancelRequest.notifyOriginalRequestor() ||
-            DirectoryServer.notifyAbandonedOperations())
-        {
-          setResultCode(ResultCode.CANCELED);
-
-          String cancelReason = cancelRequest.getCancelReason();
-          if (cancelReason != null)
-          {
-            appendErrorMessage(cancelReason);
-          }
-
-          clientConnection.sendResponse(this);
-        }
-
+        indicateCancelled(cancelRequest);
         processingStopTime = System.currentTimeMillis();
         logModifyResponse(this);
         return;
@@ -877,22 +832,7 @@ modifyProcessing:
         // Check for and handle a request to cancel this operation.
         if (cancelRequest != null)
         {
-          setCancelResult(CancelResult.CANCELED);
-
-          if (cancelRequest.notifyOriginalRequestor() ||
-              DirectoryServer.notifyAbandonedOperations())
-          {
-            setResultCode(ResultCode.CANCELED);
-
-            String cancelReason = cancelRequest.getCancelReason();
-            if (cancelReason != null)
-            {
-              appendErrorMessage(cancelReason);
-            }
-
-            clientConnection.sendResponse(this);
-          }
-
+          indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
           logModifyResponse(this);
           return;
@@ -2277,22 +2217,7 @@ modifyProcessing:
         // Check for and handle a request to cancel this operation.
         if (cancelRequest != null)
         {
-          setCancelResult(CancelResult.CANCELED);
-
-          if (cancelRequest.notifyOriginalRequestor() ||
-              DirectoryServer.notifyAbandonedOperations())
-          {
-            setResultCode(ResultCode.CANCELED);
-
-            String cancelReason = cancelRequest.getCancelReason();
-            if (cancelReason != null)
-            {
-              appendErrorMessage(cancelReason);
-            }
-
-            clientConnection.sendResponse(this);
-          }
-
+          indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
           logModifyResponse(this);
           return;
@@ -2329,22 +2254,7 @@ modifyProcessing:
         // Check for and handle a request to cancel this operation.
         if (cancelRequest != null)
         {
-          setCancelResult(CancelResult.CANCELED);
-
-          if (cancelRequest.notifyOriginalRequestor() ||
-              DirectoryServer.notifyAbandonedOperations())
-          {
-            setResultCode(ResultCode.CANCELED);
-
-            String cancelReason = cancelRequest.getCancelReason();
-            if (cancelReason != null)
-            {
-              appendErrorMessage(cancelReason);
-            }
-
-            clientConnection.sendResponse(this);
-          }
-
+          indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
           logModifyResponse(this);
           return;

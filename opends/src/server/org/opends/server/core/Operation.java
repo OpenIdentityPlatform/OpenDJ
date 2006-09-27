@@ -152,7 +152,15 @@ public abstract class Operation
     this.clientConnection = clientConnection;
     this.operationID      = operationID;
     this.messageID        = messageID;
-    this.requestControls  = requestControls;
+
+    if (requestControls == null)
+    {
+      this.requestControls = new ArrayList<Control>(0);
+    }
+    else
+    {
+      this.requestControls  = requestControls;
+    }
 
     resultCode                 = ResultCode.UNDEFINED;
     additionalLogMessage       = new StringBuilder();
@@ -826,6 +834,39 @@ public abstract class Operation
                       String.valueOf(cancelResult));
 
     this.cancelResult = cancelResult;
+  }
+
+
+
+  /**
+   * Indicates that this operation has been cancelled.  If appropriate, it will
+   * send a response to the client to indicate that.  This method must not be
+   * called by abandon, bind, or unbind operations under any circumstances, nor
+   * by extended operations if the request OID is that of the cancel or the
+   * StartTLS operation.
+   *
+   * @param  cancelRequest  The request to cancel this operation.
+   */
+  protected void indicateCancelled(CancelRequest cancelRequest)
+  {
+    assert debugEnter(CLASS_NAME, "indicateCancelled",
+                      String.valueOf(cancelRequest));
+
+    setCancelResult(CancelResult.CANCELED);
+
+    if (cancelRequest.notifyOriginalRequestor() ||
+        DirectoryServer.notifyAbandonedOperations())
+    {
+      setResultCode(ResultCode.CANCELED);
+
+      String cancelReason = cancelRequest.getCancelReason();
+      if (cancelReason != null)
+      {
+        appendErrorMessage(cancelReason);
+      }
+
+      clientConnection.sendResponse(this);
+    }
   }
 
 
