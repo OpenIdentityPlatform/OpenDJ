@@ -47,6 +47,7 @@ import static org.opends.server.loggers.Access.*;
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -458,24 +459,13 @@ public class ExtendedOperation
     // Check for and handle a request to cancel this operation.
     if (cancelRequest != null)
     {
-      setCancelResult(CancelResult.CANCELED);
-
-      if (cancelRequest.notifyOriginalRequestor() ||
-          DirectoryServer.notifyAbandonedOperations())
+      if (! (requestOID.equals(OID_CANCEL_REQUEST) ||
+             requestOID.equals(OID_START_TLS_REQUEST)))
       {
-        setResultCode(ResultCode.CANCELED);
-
-        String cancelReason = cancelRequest.getCancelReason();
-        if (cancelReason != null)
-        {
-          appendErrorMessage(cancelReason);
-        }
-
-        clientConnection.sendResponse(this);
+        indicateCancelled(cancelRequest);
+        processingStopTime = System.currentTimeMillis();
+        return;
       }
-
-      processingStopTime = System.currentTimeMillis();
-      return;
     }
 
 
@@ -516,25 +506,13 @@ extendedProcessing:
       // Check for and handle a request to cancel this operation.
       if (cancelRequest != null)
       {
-        setCancelResult(CancelResult.CANCELED);
-
-        if (cancelRequest.notifyOriginalRequestor() ||
-            DirectoryServer.notifyAbandonedOperations())
+        if (! (requestOID.equals(OID_CANCEL_REQUEST) ||
+               requestOID.equals(OID_START_TLS_REQUEST)))
         {
-          setResultCode(ResultCode.CANCELED);
-
-          String cancelReason = cancelRequest.getCancelReason();
-          if (cancelReason != null)
-          {
-            appendErrorMessage(cancelReason);
-          }
-
-          clientConnection.sendResponse(this);
+          indicateCancelled(cancelRequest);
+          processingStopTime = System.currentTimeMillis();
+          return;
         }
-
-        processingStopTime = System.currentTimeMillis();
-        logExtendedResponse(this);
-        return;
       }
 
 
@@ -601,25 +579,13 @@ extendedProcessing:
       // Check for and handle a request to cancel this operation.
       if (cancelRequest != null)
       {
-        setCancelResult(CancelResult.CANCELED);
-
-        if (cancelRequest.notifyOriginalRequestor() ||
-            DirectoryServer.notifyAbandonedOperations())
+        if (! (requestOID.equals(OID_CANCEL_REQUEST) ||
+               requestOID.equals(OID_START_TLS_REQUEST)))
         {
-          setResultCode(ResultCode.CANCELED);
-
-          String cancelReason = cancelRequest.getCancelReason();
-          if (cancelReason != null)
-          {
-            appendErrorMessage(cancelReason);
-          }
-
-          clientConnection.sendResponse(this);
+          indicateCancelled(cancelRequest);
+          processingStopTime = System.currentTimeMillis();
+          return;
         }
-
-        processingStopTime = System.currentTimeMillis();
-        logExtendedResponse(this);
-        return;
       }
 
 
