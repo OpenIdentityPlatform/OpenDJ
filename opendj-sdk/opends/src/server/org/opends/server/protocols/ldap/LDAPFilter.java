@@ -1671,7 +1671,7 @@ public class LDAPFilter
       // by the matching rule ID.
       if (colonPos < (equalPos-1))
       {
-        if (lowerLeftStr.startsWith(":dn:", colonPos))
+        if (lowerLeftStr.startsWith(":dn:", colonPos - startPos))
         {
           dnAttributes = true;
 
