@@ -743,6 +743,8 @@ public class InstallDS
       returnValue = ImportLDIF.mainImportLDIF(importLDIFArguments);
       if (returnValue != 0)
       {
+        String message = getMessage(MSGID_INSTALLDS_IMPORT_UNSUCCESSFUL);
+        System.out.println(wrapText(message, MAX_LINE_WIDTH));
         return returnValue;
       }
       else
