@@ -40,86 +40,26 @@ import org.testng.annotations.Test;
 /**
  * Test The Ordering matching rules and the Ordering matching rule api.
  */
-public class OrderingMatchingRuleTest extends SchemaTestCase
+public abstract class OrderingMatchingRuleTest extends SchemaTestCase
 {
+  /**
+   * Create data for the OrderingMatchingRules test.
+   *
+   * @return The data for the OrderingMatchingRules test.
+   */
   @DataProvider(name="Orderingmatchingrules")
-  public Object[][] createOrderingMatchingRuleTest()
-  {
-    return new Object[][] {
-        {"GeneralizedTimeOrderingMatchingRule","20060906135030+0101",
-          "20060906135030+2359", 1},
-        {"GeneralizedTimeOrderingMatchingRule", "20060912180130Z",
-          "20060912180130Z", 0},
-        {"GeneralizedTimeOrderingMatchingRule", "20060912180130Z",
-          "20060912180129Z", 1},
-        {"GeneralizedTimeOrderingMatchingRule", "20060912180129Z",
-          "20060912180130Z", -1},
-        {"GeneralizedTimeOrderingMatchingRule", "20060912180129.000Z",
-            "20060912180130.001Z", -1},
-        {"GeneralizedTimeOrderingMatchingRule", "20060912180129.1Z",
-            "20060912180130.2Z", -1},
-        {"GeneralizedTimeOrderingMatchingRule", "20060912180129.11Z",
-              "20060912180130.12Z", -1},
+  public abstract Object[][] createOrderingMatchingRuleTestData();
 
-         
-        // following test is currently disabled because it does not work  
-        // {"NumericStringOrderingMatchingRule", "1", "09", -1},
-        // see issue 638
-        {"NumericStringOrderingMatchingRule", "1", "999999999999999999999", -1},
-        {"NumericStringOrderingMatchingRule", "1", "9", -1},
-        {"NumericStringOrderingMatchingRule", "1", " 1 ", 0},
-        {"NumericStringOrderingMatchingRule", "0", "1", -1},
-        {"NumericStringOrderingMatchingRule", "1", "0", 1},
-      
-        {"IntegerOrderingMatchingRule", "1", "0", 1},
-        {"IntegerOrderingMatchingRule", "1", "1", 0},
-        {"IntegerOrderingMatchingRule", "45", "54", -1},
-        {"IntegerOrderingMatchingRule", "-63", "63", -1},
-        {"IntegerOrderingMatchingRule", "-63", "0", -1},
-        {"IntegerOrderingMatchingRule", "63", "0", 1},
-        {"IntegerOrderingMatchingRule", "0", "-63", 1},
-        {"IntegerOrderingMatchingRule", "987654321987654321987654321",
-                                        "987654321987654321987654322", -1},
-                                        
-         {"UUIDOrderingMatchingRule",
-             "12345678-9ABC-DEF0-1234-1234567890ab",
-             "12345678-9abc-def0-1234-1234567890ab", 0},
-         {"UUIDOrderingMatchingRule",
-             "12345678-9abc-def0-1234-1234567890ab",
-             "12345678-9abc-def0-1234-1234567890ab", 0},
-         {"UUIDOrderingMatchingRule",
-               "02345678-9abc-def0-1234-1234567890ab",
-               "12345678-9abc-def0-1234-1234567890ab", -1},
-         {"UUIDOrderingMatchingRule",
-               "12345678-9abc-def0-1234-1234567890ab",
-               "02345678-9abc-def0-1234-1234567890ab", 1},
-               
-         {"CaseExactOrderingMatchingRule", "12345678", "02345678", 1},
-         {"CaseExactOrderingMatchingRule","abcdef", "bcdefa", -1},
-         {"CaseExactOrderingMatchingRule","abcdef", "abcdef", 0},
-         
-         {"CaseIgnoreOrderingMatchingRule", "12345678", "02345678", 1},
-         {"CaseIgnoreOrderingMatchingRule","abcdef", "bcdefa", -1},
-         {"CaseIgnoreOrderingMatchingRule","abcdef", "abcdef", 0},
-         {"CaseIgnoreOrderingMatchingRule","abcdef", "ABCDEF", 0},
-         {"CaseIgnoreOrderingMatchingRule","abcdef", "aCcdef", -1},
-         {"CaseIgnoreOrderingMatchingRule","aCcdef", "abcdef", 1},
-    };
-  }
 
   /**
    * Test the comparison of valid values.
    */
   @Test(dataProvider= "Orderingmatchingrules")
-  public void OrderingMatchingRules(String ruleClassName, String value1,
-      String value2, int result) throws Exception
+  public void OrderingMatchingRules(String value1,String value2, int result)
+         throws Exception
   {
-    // load the mathing rule code
-    Class rule = Class.forName("org.opends.server.schema."+ruleClassName);
-
     // Make sure that the specified class can be instantiated as a task.
-    OrderingMatchingRule ruleInstance =
-      (OrderingMatchingRule) rule.newInstance();
+    OrderingMatchingRule ruleInstance = getRule();
 
     // we should call initializeMatchingRule but they all seem empty at the
     // moment.
@@ -134,7 +74,7 @@ public class OrderingMatchingRuleTest extends SchemaTestCase
     {
       if (res != 0)
       {
-        fail(ruleClassName + ".compareValues should return 0 for values " +
+        fail(ruleInstance + ".compareValues should return 0 for values " +
             value1 + " and " + value2);
       }
     }
@@ -142,7 +82,7 @@ public class OrderingMatchingRuleTest extends SchemaTestCase
     {
       if (res <= 0)
       {
-        fail(ruleClassName + ".compareValues should return a positive integer "
+        fail(ruleInstance + ".compareValues should return a positive integer "
             + "for values : " + value1 + " and " + value2);
       }
     }
@@ -150,102 +90,62 @@ public class OrderingMatchingRuleTest extends SchemaTestCase
     {
       if (res >= 0)
       {
-        fail(ruleClassName + ".compareValues should return a negative integer "
+        fail(ruleInstance + ".compareValues should return a negative integer "
             + "for values : " + value1 + " and " + value2);
       }
     }
   }
 
+  /**
+   * Get the Ordering matching Rules that is to be tested.
+   *
+   * @return The Ordering matching Rules that is to be tested.
+   */
+  public abstract OrderingMatchingRule getRule();
+
+
+  /**
+   * Create data for the OrderingMatchingRulesInvalidValues test.
+   *
+   * @return The data for the OrderingMatchingRulesInvalidValues test.
+   */
   @DataProvider(name="OrderingMatchingRuleInvalidValues")
-  public Object[][] createOrderingMatchingRuleInvalidValues()
-  {
-    return new Object[][] {
-        {"GeneralizedTimeOrderingMatchingRule", "20060912180130"},
-        {"GeneralizedTimeOrderingMatchingRule","2006123123595aZ"},
-        {"GeneralizedTimeOrderingMatchingRule","200a1231235959Z"},
-        {"GeneralizedTimeOrderingMatchingRule","2006j231235959Z"},
-        {"GeneralizedTimeOrderingMatchingRule","20061231#35959Z"},
-        {"GeneralizedTimeOrderingMatchingRule","20060912180a30Z"},
-        {"GeneralizedTimeOrderingMatchingRule","20060912180030Z.01"},
-        {"GeneralizedTimeOrderingMatchingRule","200609121800"},
-        {"GeneralizedTimeOrderingMatchingRule","20060912180129.hhZ"},
-        {"GeneralizedTimeOrderingMatchingRule","20060912180129.1hZ"},
-        {"GeneralizedTimeOrderingMatchingRule","20060906135030+aa01"},
-        {"GeneralizedTimeOrderingMatchingRule","2006"},
-        /* disabled because these tests are failing
-         * see issue 675
-        {"GeneralizedTimeOrderingMatchingRule","20060906135030+3359"},
-        {"GeneralizedTimeOrderingMatchingRule","20060906135030+2389"},
-        {"GeneralizedTimeOrderingMatchingRule","20060906135030+2361"},*/
-        {"GeneralizedTimeOrderingMatchingRule","20060906135030+"},
-        {"GeneralizedTimeOrderingMatchingRule","20060906135030+0"},
-        {"GeneralizedTimeOrderingMatchingRule","20060906135030+010"},
-        
-        {"NumericStringOrderingMatchingRule", "jfhslur"},
-        {"NumericStringOrderingMatchingRule", "123AB"},
-        
-        {"IntegerOrderingMatchingRule", " 63 "},
-        {"IntegerOrderingMatchingRule", "- 63"},
-        {"IntegerOrderingMatchingRule", "+63"},
-        {"IntegerOrderingMatchingRule", "AB"},
-        {"IntegerOrderingMatchingRule", "0xAB"},
-        
-        {"UUIDOrderingMatchingRule", "G2345678-9abc-def0-1234-1234567890ab"},
-        {"UUIDOrderingMatchingRule", "g2345678-9abc-def0-1234-1234567890ab"},
-        {"UUIDOrderingMatchingRule", "12345678/9abc/def0/1234/1234567890ab"},
-        {"UUIDOrderingMatchingRule", "12345678-9abc-def0-1234-1234567890a"},
-    };
-  }
+  public abstract Object[][] createOrderingMatchingRuleInvalidValues();
+
 
   /**
    * Test that invalid values are rejected.
    */
   @Test(dataProvider= "OrderingMatchingRuleInvalidValues")
-  public void OrderingMatchingRulesInvalidValues(String ruleClassName,
-      String value) throws Exception
+  public void OrderingMatchingRulesInvalidValues(String value) throws Exception
   {
-
-    // load the matching rule code
-    Class rule = Class.forName("org.opends.server.schema."+ruleClassName);
-
     // Make sure that the specified class can be instantiated as a task.
-    OrderingMatchingRule ruleInstance =
-      (OrderingMatchingRule) rule.newInstance();
-
-    // we should call initializeMatchingRule but they all seem empty at the
-    // moment.
-    // ruleInstance.initializeMatchingRule(configEntry);
+    OrderingMatchingRule ruleInstance = getRule();
 
     // normalize the 2 provided values
     try
     {
       ruleInstance.normalizeValue(new ASN1OctetString(value));
     } catch (DirectoryException e) {
-      // that's the expected path : the matching rule has detected that 
+      // that's the expected path : the matching rule has detected that
       // the value is incorrect.
       return;
     }
     // if we get there with false value for  success then the tested
     // matching rule did not raised the Exception.
 
-    fail(ruleClassName + " did not catch that value " + value + " is invalid.");
+    fail(ruleInstance + " did not catch that value " + value + " is invalid.");
   }
-  
+
   /**
    * Test that invalid values are rejected.
    */
   @Test(dataProvider= "OrderingMatchingRuleInvalidValues")
-  public void OrderingMatchingRulesInvalidValuesWarn(String ruleClassName,
-      String value) throws Exception
+  public void OrderingMatchingRulesInvalidValuesWarn(String value)
+         throws Exception
   {
-    
-    
-    // load the matching rule code
-    Class rule = Class.forName("org.opends.server.schema."+ruleClassName);
-
     // Make sure that the specified class can be instantiated as a task.
-    OrderingMatchingRule ruleInstance =
-      (OrderingMatchingRule) rule.newInstance();
+    OrderingMatchingRule ruleInstance = getRule();
 
     AcceptRejectWarn accept = DirectoryServer.getSyntaxEnforcementPolicy();
     DirectoryServer.setSyntaxEnforcementPolicy(AcceptRejectWarn.WARN);
@@ -255,12 +155,44 @@ public class OrderingMatchingRuleTest extends SchemaTestCase
       ruleInstance.normalizeValue(new ASN1OctetString(value));
     } catch (Exception e)
     {
-      fail(ruleClassName + " in warn mode should not reject value " + value + e);
+      fail(ruleInstance + " in warn mode should not reject value " + value + e);
       return;
     }
     finally
     {
       DirectoryServer.setSyntaxEnforcementPolicy(accept);
-    } 
+    }
+  }
+
+  private void dummy ()
+  {
+  
+       Object a = new Object[][] {
+        
+  
+  
+      
+  
+           
+  
+          
+  
+         
+      };
+  
+  }
+
+
+  private Object dummy_invalid()
+  {
+    return new Object[][] {
+      
+
+
+
+
+
+        
+    };
   }
 }
