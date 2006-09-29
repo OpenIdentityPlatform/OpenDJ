@@ -203,10 +203,26 @@ public class BindOperation
                             });
 
     this.authType        = AuthenticationType.SIMPLE;
-    this.rawBindDN       = rawBindDN;
-    this.simplePassword  = simplePassword;
     this.saslMechanism   = null;
     this.saslCredentials = null;
+
+    if (rawBindDN == null)
+    {
+      this.rawBindDN = new ASN1OctetString();
+    }
+    else
+    {
+      this.rawBindDN = rawBindDN;
+    }
+
+    if (simplePassword == null)
+    {
+      this.simplePassword = new ASN1OctetString();
+    }
+    else
+    {
+      this.simplePassword = simplePassword;
+    }
 
     bindDN                   = null;
     userEntryDN              = null;
@@ -260,10 +276,18 @@ public class BindOperation
                             });
 
     this.authType        = AuthenticationType.SASL;
-    this.rawBindDN       = rawBindDN;
     this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
     this.simplePassword  = null;
+
+    if (rawBindDN == null)
+    {
+      this.rawBindDN = new ASN1OctetString();
+    }
+    else
+    {
+      this.rawBindDN = rawBindDN;
+    }
 
     bindDN            = null;
     userEntryDN       = null;
@@ -306,7 +330,6 @@ public class BindOperation
 
     this.authType        = AuthenticationType.SIMPLE;
     this.bindDN          = bindDN;
-    this.simplePassword  = simplePassword;
     this.saslMechanism   = null;
     this.saslCredentials = null;
 
@@ -317,6 +340,15 @@ public class BindOperation
     else
     {
       rawBindDN = new ASN1OctetString(bindDN.toString());
+    }
+
+    if (simplePassword == null)
+    {
+      this.simplePassword = new ASN1OctetString();
+    }
+    else
+    {
+      this.simplePassword = simplePassword;
     }
 
     responseControls         = new ArrayList<Control>(0);
@@ -406,21 +438,6 @@ public class BindOperation
 
 
   /**
-   * Specifies the authentication type for this bind operation.
-   *
-   * @param  authType  The authentication type for this bind operation.
-   */
-  public void setAuthenticationType(AuthenticationType authType)
-  {
-    assert debugEnter(CLASS_NAME, "setAuthenticationType",
-                      String.valueOf(authType));
-
-    this.authType = authType;
-  }
-
-
-
-  /**
    * Retrieves the raw, unprocessed bind DN for this bind operation as contained
    * in the client request.  The value may not actually contain a valid DN, as
    * no validation will have been performed.
@@ -449,7 +466,14 @@ public class BindOperation
   {
     assert debugEnter(CLASS_NAME, "setRawBindDN", String.valueOf(rawBindDN));
 
-    this.rawBindDN = rawBindDN;
+    if (rawBindDN == null)
+    {
+      this.rawBindDN = new ASN1OctetString();
+    }
+    else
+    {
+      this.rawBindDN = rawBindDN;
+    }
 
     bindDN = null;
   }
@@ -515,7 +539,18 @@ public class BindOperation
     assert debugEnter(CLASS_NAME, "setSimplePassword",
                       String.valueOf(simplePassword));
 
-    this.simplePassword = simplePassword;
+    if (simplePassword == null)
+    {
+      this.simplePassword = new ASN1OctetString();
+    }
+    else
+    {
+      this.simplePassword = simplePassword;
+    }
+
+    authType        = AuthenticationType.SIMPLE;
+    saslMechanism   = null;
+    saslCredentials = null;
   }
 
 
@@ -523,7 +558,8 @@ public class BindOperation
   /**
    * Retrieves the SASL mechanism for this bind operation.
    *
-   * @return  The SASL mechanism for this bind operation.
+   * @return  The SASL mechanism for this bind operation, or <CODE>null</CODE>
+   *          if the bind does not use SASL authentication.
    */
   public String getSASLMechanism()
   {
@@ -535,24 +571,10 @@ public class BindOperation
 
 
   /**
-   * Specifies the SASL mechanism for this bind operation.
-   *
-   * @param  saslMechanism  The SASL mechanism for this bind operation.
-   */
-  public void setSASLMechanism(String saslMechanism)
-  {
-    assert debugEnter(CLASS_NAME, "setSASLMechanism",
-                      String.valueOf(saslMechanism));
-
-    this.saslMechanism = saslMechanism;
-  }
-
-
-
-  /**
    * Retrieves the SASL credentials for this bind operation.
    *
-   * @return  The SASL credentials for this bind operation.
+   * @return  The SASL credentials for this bind operation, or <CODE>null</CODE>
+   *          if there are none or if the bind does not use SASL authentication.
    */
   public ASN1OctetString getSASLCredentials()
   {
@@ -566,14 +588,21 @@ public class BindOperation
   /**
    * Specifies the SASL credentials for this bind operation.
    *
-   * @param  saslCredentials  The SASL credentials for this bind operation.
+   * @param  saslMechanism    The SASL mechanism for this bind operation.
+   * @param  saslCredentials  The SASL credentials for this bind operation, or
+   *                          <CODE>null</CODE> if there are none.
    */
-  public void setSASLCredentials(ASN1OctetString saslCredentials)
+  public void setSASLCredentials(String saslMechanism,
+                                 ASN1OctetString saslCredentials)
   {
     assert debugEnter(CLASS_NAME, "setSASLCredentials",
                       String.valueOf(saslCredentials));
 
+    this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
+
+    authType       = AuthenticationType.SASL;
+    simplePassword = null;
   }
 
 
@@ -914,6 +943,34 @@ public class BindOperation
 
 
   /**
+   * Adds the provided control to the set of controls to include in the response
+   * to the client.
+   *
+   * @param  control  The control to add to the set of controls to include in
+   *                  the response to the client.
+   */
+  public void addResponseControl(Control control)
+  {
+    responseControls.add(control);
+  }
+
+
+
+  /**
+   * Removes the provided control from the set of controls to include in the
+   * response to the client.
+   *
+   * @param  control  The control to remove from the set of controls to include
+   *                  in the response to the client.
+   */
+  public void removeResponseControl(Control control)
+  {
+    responseControls.remove(control);
+  }
+
+
+
+  /**
    * Performs the work of actually processing this operation.  This should
    * include all processing for the operation, including invoking plugins,
    * logging messages, performing access control, managing synchronization, and
@@ -1018,10 +1075,11 @@ bindProcessing:
       // specified.
       if (AccessControlConfigManager.getInstance()
           .getAccessControlHandler().isAllowed(this) == false) {
-        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+        setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int msgID = MSGID_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-        appendErrorMessage(getMessage(msgID, String.valueOf(bindDN)));
+        int    msgID   = MSGID_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+        String message = getMessage(msgID, String.valueOf(bindDN));
+        setAuthFailureReason(msgID, message);
 
         skipPostOperation = true;
         break bindProcessing;
@@ -1069,7 +1127,7 @@ bindProcessing:
           // to allow it.
           if ((simplePassword == null) || (simplePassword.value().length == 0))
           {
-            // If there is a bind DN, then wee whether that is acceptable.
+            // If there is a bind DN, then see whether that is acceptable.
             if (DirectoryServer.bindWithDNRequiresPassword() &&
                 ((bindDN != null) && (! bindDN.isNullDN())))
             {
@@ -1081,6 +1139,29 @@ bindProcessing:
               break bindProcessing;
             }
 
+
+            // Invoke the pre-operation bind plugins.
+            PreOperationPluginResult preOpResult =
+                 pluginConfigManager.invokePreOperationBindPlugins(this);
+            if (preOpResult.connectionTerminated())
+            {
+              // There's no point in continuing with anything.  Log the result
+              // and return.
+              setResultCode(ResultCode.CANCELED);
+
+              int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
+              appendErrorMessage(getMessage(msgID));
+
+              processingStopTime = System.currentTimeMillis();
+
+              logBindResponse(this);
+              return;
+            }
+            else if (preOpResult.sendResponseImmediately())
+            {
+              skipPostOperation = true;
+              break bindProcessing;
+            }
 
             setResultCode(ResultCode.SUCCESS);
             authInfo = new AuthenticationInfo();
@@ -1691,8 +1772,9 @@ bindProcessing:
             {
               setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int msgID = MSGID_BIND_OPERATION_ACCOUNT_DISABLED;
-              appendErrorMessage(getMessage(msgID, userDNString));
+              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_DISABLED;
+              String message = getMessage(msgID, userDNString);
+              setAuthFailureReason(msgID, message);
               break bindProcessing;
             }
             else if (pwPolicyState.isAccountExpired())
@@ -1701,7 +1783,7 @@ bindProcessing:
 
               int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_EXPIRED;
               String message = getMessage(msgID, userDNString);
-              appendErrorMessage(message);
+              setAuthFailureReason(msgID, message);
 
               pwPolicyState.generateAccountStatusNotification(
                    AccountStatusNotificationType.ACCOUNT_EXPIRED, bindDN, msgID,
@@ -1716,9 +1798,9 @@ bindProcessing:
             {
               setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int msgID = MSGID_BIND_OPERATION_INSECURE_SASL_BIND;
-              appendErrorMessage(getMessage(msgID, saslMechanism,
-                                            userDNString));
+              int    msgID   = MSGID_BIND_OPERATION_INSECURE_SASL_BIND;
+              String message = getMessage(msgID, saslMechanism, userDNString);
+              setAuthFailureReason(msgID, message);
               break bindProcessing;
             }
 
@@ -1731,8 +1813,9 @@ bindProcessing:
                 pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
               }
 
-              int msgID = MSGID_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED;
-              appendErrorMessage(getMessage(msgID, userDNString));
+              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED;
+              String message = getMessage(msgID, userDNString);
+              setAuthFailureReason(msgID, message);
               break bindProcessing;
             }
 
@@ -1747,7 +1830,7 @@ bindProcessing:
 
               int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_IDLE_LOCKED;
               String message = getMessage(msgID, userDNString);
-              appendErrorMessage(message);
+              setAuthFailureReason(msgID, message);
 
               pwPolicyState.generateAccountStatusNotification(
                    AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, bindDN,
@@ -1770,7 +1853,7 @@ bindProcessing:
 
                 int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_RESET_LOCKED;
                 String message = getMessage(msgID, userDNString);
-                appendErrorMessage(message);
+                setAuthFailureReason(msgID, message);
 
                 pwPolicyState.generateAccountStatusNotification(
                      AccountStatusNotificationType.ACCOUNT_RESET_LOCKED, bindDN,
@@ -1840,7 +1923,7 @@ bindProcessing:
                 int numSeconds = pwPolicyState.getSecondsUntilExpiration();
                 String timeToExpiration = secondsToTimeString(numSeconds);
 
-                int msgID = MSGID_BIND_PASSWORD_EXPIRING;
+                int    msgID   = MSGID_BIND_PASSWORD_EXPIRING;
                 String message = getMessage(msgID, timeToExpiration);
                 appendErrorMessage(message);
 
