@@ -267,3 +267,8 @@ ds-cfg-trust-store-file: config/server.truststore
 replace: ds-cfg-trust-store-pin
 ds-cfg-trust-store-pin: password
 
+dn: cn=File-Based Debug Logger,cn=Loggers,cn=config
+changetype: modify
+replace: ds-cfg-override-severity
+ds-cfg-override-severity: EXCEPTION=INFO
+
