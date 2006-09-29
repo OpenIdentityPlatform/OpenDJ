@@ -221,6 +221,32 @@ ds-cfg-plugin-type: ldifExport
 ds-cfg-plugin-type: startup
 ds-cfg-plugin-type: shutdown
 
+dn: cn=Short Circuit Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Short Circuit Plugin
+ds-cfg-plugin-class: org.opends.server.plugins.ShortCircuitPlugin
+ds-cfg-plugin-enabled: true
+ds-cfg-plugin-type: preParseAbandon
+ds-cfg-plugin-type: preParseAdd
+ds-cfg-plugin-type: preParseBind
+ds-cfg-plugin-type: preParseCompare
+ds-cfg-plugin-type: preParseDelete
+ds-cfg-plugin-type: preParseExtended
+ds-cfg-plugin-type: preParseModify
+ds-cfg-plugin-type: preParseModifyDN
+ds-cfg-plugin-type: preParseSearch
+ds-cfg-plugin-type: preParseUnbind
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationBind
+ds-cfg-plugin-type: preOperationCompare
+ds-cfg-plugin-type: preOperationDelete
+ds-cfg-plugin-type: preOperationExtended
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: preOperationSearch
+
 dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
 changetype: add
 objectClass: top

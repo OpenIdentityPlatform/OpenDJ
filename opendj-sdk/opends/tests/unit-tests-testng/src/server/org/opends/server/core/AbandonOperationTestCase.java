@@ -30,9 +30,9 @@ package org.opends.server.core;
 
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
@@ -56,20 +56,27 @@ import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
+import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
+import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchScope;
 
 import static org.testng.Assert.*;
+
+import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -80,31 +87,9 @@ public class AbandonOperationTestCase
        extends OperationTestCase
 {
   /**
-   * Ensures that the Directory Server is running.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
-  {
-    TestCaseUtils.startServer();
-  }
-
-
-
-  /**
-   * Creates a set of valid operation instances of this type that may be used
-   * for testing the general methods defined in the Operation superclass.  Only
-   * the constructors for the operation need to be used -- it does not require
-   * any further initialization (no tests will be performed that require any
-   * further processing).
-   *
-   * @return  A set of operation instances of this type that may be used for
-   *          testing the general methods defined in the Operation superclass.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
+  @Override()
   public Operation[] createTestOperations()
          throws Exception
   {
@@ -436,7 +421,7 @@ public class AbandonOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = { "slow" })
+  @Test()
   public void testAbandonDelete()
          throws Exception
   {
@@ -499,6 +484,285 @@ public class AbandonOperationTestCase
     DeleteResponseProtocolOp deleteResponse =
          message.getDeleteResponseProtocolOp();
     assertEquals(deleteResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    s.close();
+
+    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
+    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
+  }
+
+
+
+  /**
+   * Tests the ability to abandon an extended operation.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAbandonExtended()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    InvocationCounterPlugin.resetAllCounters();
+
+
+    // Establish a connection to the server and bind as a root user.
+    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    ASN1Reader r = new ASN1Reader(s);
+    ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
+                                   3, new ASN1OctetString("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeElement(message.encode());
+
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+
+
+    // Create a "Who Am I?" extended oepration and send it to the server.  Make
+    // sure to include the delay request control so it won't complete before we
+    // can send the abandon request.
+    ExtendedRequestProtocolOp whoAmIRequest =
+         new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST, null);
+    message = new LDAPMessage(2, whoAmIRequest,
+                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
+    w.writeElement(message.encode());
+
+
+    // Send the abandon request to the server and wait a few seconds to ensure
+    // it has completed before closing the connection.
+    AbandonRequestProtocolOp abandonRequest = new AbandonRequestProtocolOp(2);
+    w.writeElement(new LDAPMessage(3, abandonRequest).encode());
+
+
+    // Normally, abandoned operations don't receive a response.  However, the
+    // testing configuration has been updated to ensure that if an operation
+    // does get abandoned, the server will return a response for it with a
+    // result code of "cancelled".
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    ExtendedResponseProtocolOp extendedResponse =
+         message.getExtendedResponseProtocolOp();
+    assertEquals(extendedResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    s.close();
+
+    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
+    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
+  }
+
+
+
+  /**
+   * Tests the ability to abandon a modify operation.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAbandonModify()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    InvocationCounterPlugin.resetAllCounters();
+
+
+    // Establish a connection to the server and bind as a root user.
+    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    ASN1Reader r = new ASN1Reader(s);
+    ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
+                                   3, new ASN1OctetString("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeElement(message.encode());
+
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+
+
+    // Create a modify request and send it to the server.  Make sure to include
+    // the delay request control so it won't complete before we can send the
+    // abandon request.
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>(1);
+    values.add(new ASN1OctetString("foo"));
+
+    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>(1);
+    mods.add(new LDAPModification(ModificationType.REPLACE,
+                                  new LDAPAttribute("description", values)));
+
+    ModifyRequestProtocolOp modifyRequest =
+         new ModifyRequestProtocolOp(new ASN1OctetString("o=test"), mods);
+    message = new LDAPMessage(2, modifyRequest,
+                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
+    w.writeElement(message.encode());
+
+
+    // Send the abandon request to the server and wait a few seconds to ensure
+    // it has completed before closing the connection.
+    AbandonRequestProtocolOp abandonRequest = new AbandonRequestProtocolOp(2);
+    w.writeElement(new LDAPMessage(3, abandonRequest).encode());
+
+
+    // Normally, abandoned operations don't receive a response.  However, the
+    // testing configuration has been updated to ensure that if an operation
+    // does get abandoned, the server will return a response for it with a
+    // result code of "cancelled".
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    ModifyResponseProtocolOp modifyResponse =
+         message.getModifyResponseProtocolOp();
+    assertEquals(modifyResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    s.close();
+
+    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
+    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
+  }
+
+
+
+  /**
+   * Tests the ability to abandon a modify DN operation.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAbandonModifyDN()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    InvocationCounterPlugin.resetAllCounters();
+
+
+    // Add an entry to the server that we can rename.
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=test,o=test",
+         "objectClass: top",
+         "objectClass: device",
+         "cn: test");
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+                         e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    // Establish a connection to the server and bind as a root user.
+    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    ASN1Reader r = new ASN1Reader(s);
+    ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
+                                   3, new ASN1OctetString("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeElement(message.encode());
+
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+
+
+    // Create a modify DN request and send it to the server.  Make sure to
+    // include the delay request control so it won't complete before we can send
+    // the abandon request.
+    ModifyDNRequestProtocolOp modifyDNRequest =
+         new ModifyDNRequestProtocolOp(new ASN1OctetString("cn=test,o=test"),
+                                       new ASN1OctetString("cn=test2"), true);
+    message = new LDAPMessage(2, modifyDNRequest,
+                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
+    w.writeElement(message.encode());
+
+
+    // Send the abandon request to the server and wait a few seconds to ensure
+    // it has completed before closing the connection.
+    AbandonRequestProtocolOp abandonRequest = new AbandonRequestProtocolOp(2);
+    w.writeElement(new LDAPMessage(3, abandonRequest).encode());
+
+
+    // Normally, abandoned operations don't receive a response.  However, the
+    // testing configuration has been updated to ensure that if an operation
+    // does get abandoned, the server will return a response for it with a
+    // result code of "cancelled".
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    ModifyDNResponseProtocolOp modifyDNResponse =
+         message.getModifyDNResponseProtocolOp();
+    assertEquals(modifyDNResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    s.close();
+
+    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
+    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
+  }
+
+
+
+  /**
+   * Tests the ability to abandon a search operation.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAbandonSearch()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    InvocationCounterPlugin.resetAllCounters();
+
+
+    // Establish a connection to the server and bind as a root user.
+    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    ASN1Reader r = new ASN1Reader(s);
+    ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
+                                   3, new ASN1OctetString("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeElement(message.encode());
+
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+
+
+    // Create a search request and send it to the server.  Make sure to include
+    // the delay request control so it won't complete before we can send the
+    // abandon request.
+    SearchRequestProtocolOp searchRequest =
+         new SearchRequestProtocolOp(new ASN1OctetString("o=test"),
+                                     SearchScope.BASE_OBJECT,
+                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     0, false,
+                                     LDAPFilter.decode("(match=false)"),
+                                     new LinkedHashSet<String>());
+    message = new LDAPMessage(2, searchRequest,
+                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
+    w.writeElement(message.encode());
+
+
+    // Send the abandon request to the server and wait a few seconds to ensure
+    // it has completed before closing the connection.
+    AbandonRequestProtocolOp abandonRequest = new AbandonRequestProtocolOp(2);
+    w.writeElement(new LDAPMessage(3, abandonRequest).encode());
+
+
+    // Normally, abandoned operations don't receive a response.  However, the
+    // testing configuration has been updated to ensure that if an operation
+    // does get abandoned, the server will return a response for it with a
+    // result code of "cancelled".
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    SearchResultDoneProtocolOp searchDone =
+         message.getSearchResultDoneProtocolOp();
+    assertEquals(searchDone.getResultCode(), LDAPResultCode.CANCELED);
 
     s.close();
 
