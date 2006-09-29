@@ -1213,8 +1213,8 @@ private LDAPAttribute getLdapAttributeFromJmx(
   }
 
   /**
-   * Get the client JMX connection to use. Returns null if an Exception is caught or if 
-   * the AccessControlContext subject is null.
+   * Get the client JMX connection to use. Returns null if an Exception is
+   * caught or if the AccessControlContext subject is null.
    *
    * @return The JmxClientConnection.
    */
@@ -1228,9 +1228,9 @@ private LDAPAttribute getLdapAttributeFromJmx(
           javax.security.auth.Subject subject = javax.security.auth.Subject
           .getSubject(acc);
           if(subject != null) {
-              Set privateCreds = subject.getPrivateCredentials(Credential.class);
-              jmxClientConnection = ((Credential) privateCreds
-                      .iterator().next()).getClientConnection();
+            Set privateCreds = subject.getPrivateCredentials(Credential.class);
+            jmxClientConnection = ((Credential) privateCreds
+                    .iterator().next()).getClientConnection();
           }
       }
       catch (Exception e) {}
