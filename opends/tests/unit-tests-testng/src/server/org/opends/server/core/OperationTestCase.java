@@ -28,6 +28,7 @@ package org.opends.server.core;
 
 
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -44,6 +45,20 @@ import static org.testng.Assert.*;
 public abstract class OperationTestCase
        extends CoreTestCase
 {
+  /**
+   * Ensures that the Directory Server is running.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @BeforeClass()
+  public void startServer()
+         throws Exception
+  {
+    TestCaseUtils.startServer();
+  }
+
+
+
   /**
    * Creates a set of valid operation instances of this type that may be used
    * for testing the general methods defined in the Operation superclass.  Only
