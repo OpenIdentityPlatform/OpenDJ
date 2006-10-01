@@ -897,7 +897,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPreParseSimpleAnonymous()
          throws Exception
   {
@@ -936,7 +936,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPreOperationSimpleAnonymous()
          throws Exception
   {
@@ -976,7 +976,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPostOperationSimpleAnonymous()
          throws Exception
   {
@@ -1016,7 +1016,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPostResponseSimpleAnonymous()
          throws Exception
   {
@@ -1055,7 +1055,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPreParseSimpleAuthenticated()
          throws Exception
   {
@@ -1094,7 +1094,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPreOperationSimpleAuthenticated()
          throws Exception
   {
@@ -1134,7 +1134,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPostOperationSimpleAuthenticated()
          throws Exception
   {
@@ -1174,7 +1174,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPostResponseSimpleAuthenticated()
          throws Exception
   {
@@ -1213,7 +1213,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPreParseSASL()
          throws Exception
   {
@@ -1253,7 +1253,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPreOperationSASL()
          throws Exception
   {
@@ -1294,7 +1294,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPostOperationSASL()
          throws Exception
   {
@@ -1335,7 +1335,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled = false)
   public void testBindDisconnectInPostResponseSASL()
          throws Exception
   {
