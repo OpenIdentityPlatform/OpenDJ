@@ -484,6 +484,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
    * Record the entry count for each base DN when all entries have been
    * processed.
    *
+   * @return true if is more data to be read from the LDIF file (the import
+   * pass size was reached), false if the entire LDIF file has been read.
+   *
    * @throws JebException If an error occurs in the JE backend.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws  IOException  If a problem occurs while opening the LDIF file for
@@ -570,14 +573,12 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
               assert debugException(CLASS_NAME, "processLDIF", e);
               // Update stats.
               rejectedCount++;
-              continue;
             }
             catch (DirectoryException e)
             {
               assert debugException(CLASS_NAME, "processLDIF", e);
               // Update stats.
               rejectedCount++;
-              continue;
             }
           } while (true);
 
@@ -589,7 +590,10 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
               try
               {
                 Thread.sleep(100);
-              } catch (Exception e) {}
+              } catch (Exception e)
+              {
+                // No action needed.
+              }
             }
           }
 
@@ -808,7 +812,10 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       {
         t.join();
       }
-      catch (InterruptedException ie) {}
+      catch (InterruptedException ie)
+      {
+        // No action needed?
+      }
     }
   }
 
@@ -832,8 +839,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
    */
   private int getRejectedCount()
   {
-    int count = rejectedCount;
-    return count;
+    return rejectedCount;
   }
 
   /**
@@ -875,7 +881,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     {
       // The entry should not have been given to this backend.
       String message = getMessage(JebMessages.MSGID_JEB_INCORRECT_ROUTING,
-                                  dn.toString());
+                                  String.valueOf(dn));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
                                    JebMessages.MSGID_JEB_INCORRECT_ROUTING);
     }
@@ -968,12 +974,15 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
 
         prevEnvStats = envStats;
       }
-      catch (DatabaseException e) {}
+      catch (DatabaseException e)
+      {
+        // Unlikely to happen and not critical.
+      }
 
 
       previousCount = latestCount;
       previousTime = latestTime;
     }
-  };
+  }
 
 }
