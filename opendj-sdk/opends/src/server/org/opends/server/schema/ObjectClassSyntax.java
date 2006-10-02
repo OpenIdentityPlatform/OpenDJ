@@ -28,10 +28,12 @@ package org.opends.server.schema;
 
 
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
@@ -477,19 +479,17 @@ public class ObjectClassSyntax
     // out what it is and how to treat what comes after it, then repeat until
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
-    String  primaryName = oid;
-    ConcurrentHashMap<String,String> names =
-         new ConcurrentHashMap<String,String>();
+    String primaryName = oid;
+    List<String> names = new LinkedList<String>();
     String description = null;
     boolean isObsolete = false;
     ObjectClass superiorClass = DirectoryServer.getTopObjectClass();
-    CopyOnWriteArraySet<AttributeType> requiredAttributes =
-         new CopyOnWriteArraySet<AttributeType>();
-    CopyOnWriteArraySet<AttributeType> optionalAttributes =
-         new CopyOnWriteArraySet<AttributeType>();
-    ObjectClassType objectClassType = superiorClass.getObjectClassType();
-    ConcurrentHashMap<String,CopyOnWriteArrayList<String>> extraProperties =
-         new ConcurrentHashMap<String,CopyOnWriteArrayList<String>>();
+    Set<AttributeType> requiredAttributes = new LinkedHashSet<AttributeType>();
+    Set<AttributeType> optionalAttributes = new LinkedHashSet<AttributeType>();
+    ObjectClassType objectClassType = superiorClass
+        .getObjectClassType();
+    Map<String, List<String>> extraProperties =
+      new LinkedHashMap<String, List<String>>();
 
 
     while (true)
@@ -525,7 +525,7 @@ public class ObjectClassSyntax
           pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer,
                                  (pos-1));
           primaryName = userBuffer.toString();
-          names.put(lowerBuffer.toString(), primaryName);
+          names.add(primaryName);
         }
         else if (c == '(')
         {
@@ -534,7 +534,7 @@ public class ObjectClassSyntax
           pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer,
                                  pos);
           primaryName = userBuffer.toString();
-          names.put(lowerBuffer.toString(), primaryName);
+          names.add(primaryName);
 
 
           while (true)
@@ -557,7 +557,7 @@ public class ObjectClassSyntax
 
               pos = readQuotedString(valueStr, lowerStr, userBuffer,
                                      lowerBuffer, pos);
-              names.put(lowerBuffer.toString(), userBuffer.toString());
+              names.add(userBuffer.toString());
             }
           }
         }
@@ -792,8 +792,7 @@ public class ObjectClassSyntax
         // either a single value in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        CopyOnWriteArrayList<String> valueList =
-             new CopyOnWriteArrayList<String>();
+        List<String> valueList = new LinkedList<String>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
       }
@@ -1228,7 +1227,7 @@ public class ObjectClassSyntax
    *                              the value.
    */
   private static int readExtraParameterValues(String valueStr,
-                          CopyOnWriteArrayList<String> valueList, int startPos)
+                          List<String> valueList, int startPos)
           throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "readExtraParameterValues",

@@ -448,7 +448,7 @@ public class Schema
                                        msgID);
         }
 
-        for (String name : objectClass.getNames().keySet())
+        for (String name : objectClass.getNormalizedNames())
         {
           if (objectClasses.containsKey(name))
           {
@@ -465,7 +465,7 @@ public class Schema
 
       objectClasses.put(toLowerCase(objectClass.getOID()), objectClass);
 
-      for (String name : objectClass.getNames().keySet())
+      for (String name : objectClass.getNormalizedNames())
       {
         objectClasses.put(name, objectClass);
       }
@@ -496,7 +496,7 @@ public class Schema
     {
       objectClasses.remove(toLowerCase(objectClass.getOID()), objectClass);
 
-      for (String name : objectClass.getNames().keySet())
+      for (String name : objectClass.getNormalizedNames())
       {
         objectClasses.remove(name, objectClass);
       }
