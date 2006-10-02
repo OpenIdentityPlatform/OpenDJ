@@ -48,18 +48,7 @@ import org.opends.server.api.plugin.SearchEntryPluginResult;
 import org.opends.server.api.plugin.SearchReferencePluginResult;
 import org.opends.server.api.plugin.StartupPluginResult;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.core.AbandonOperation;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.Operation;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.core.UnbindOperation;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
@@ -67,6 +56,7 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.operation.*;
 
 
 
@@ -143,7 +133,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(AbandonOperation abandonOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseAbandonOperation abandonOperation)
   {
     preParseCounter.incrementAndGet();
     return new PreParsePluginResult();
@@ -155,7 +146,7 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(AddOperation addOperation)
+  public PreParsePluginResult doPreParse(PreParseAddOperation addOperation)
   {
     preParseCounter.incrementAndGet();
     return new PreParsePluginResult();
@@ -167,7 +158,7 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(BindOperation bindOperation)
+  public PreParsePluginResult doPreParse(PreParseBindOperation bindOperation)
   {
     preParseCounter.incrementAndGet();
     return new PreParsePluginResult();
@@ -179,7 +170,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(CompareOperation compareOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseCompareOperation compareOperation)
   {
     preParseCounter.incrementAndGet();
     return new PreParsePluginResult();
@@ -191,7 +183,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(DeleteOperation deleteOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseDeleteOperation deleteOperation)
   {
     preParseCounter.incrementAndGet();
     return new PreParsePluginResult();
@@ -203,7 +196,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(ExtendedOperation extendedOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseExtendedOperation extendedOperation)
   {
     preParseCounter.incrementAndGet();
     return new PreParsePluginResult();
@@ -215,7 +209,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(ModifyOperation modifyOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseModifyOperation modifyOperation)
   {
     preParseCounter.incrementAndGet();
     return new PreParsePluginResult();
@@ -227,7 +222,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(ModifyDNOperation modifyDNOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
     preParseCounter.incrementAndGet();
     return new PreParsePluginResult();
@@ -239,7 +235,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(SearchOperation searchOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseSearchOperation searchOperation)
   {
     preParseCounter.incrementAndGet();
     return new PreParsePluginResult();
@@ -251,7 +248,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(UnbindOperation unbindOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseUnbindOperation unbindOperation)
   {
     preParseCounter.incrementAndGet();
     return new PreParsePluginResult();
@@ -289,7 +287,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(AddOperation addOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationAddOperation addOperation)
   {
     preOperationCounter.incrementAndGet();
     return new PreOperationPluginResult();
@@ -301,7 +300,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(BindOperation bindOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationBindOperation bindOperation)
   {
     preOperationCounter.incrementAndGet();
     return new PreOperationPluginResult();
@@ -313,8 +313,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(CompareOperation
-                                                      compareOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationCompareOperation compareOperation)
   {
     preOperationCounter.incrementAndGet();
     return new PreOperationPluginResult();
@@ -326,8 +326,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(DeleteOperation
-                                                      deleteOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
     preOperationCounter.incrementAndGet();
     return new PreOperationPluginResult();
@@ -339,8 +339,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(ExtendedOperation
-                                                      extendedOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
     preOperationCounter.incrementAndGet();
     return new PreOperationPluginResult();
@@ -352,8 +352,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(ModifyOperation
-                                                      modifyOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     preOperationCounter.incrementAndGet();
     return new PreOperationPluginResult();
@@ -365,8 +365,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(ModifyDNOperation
-                                                      modifyDNOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     preOperationCounter.incrementAndGet();
     return new PreOperationPluginResult();
@@ -378,8 +378,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(SearchOperation
-                                                      searchOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationSearchOperation searchOperation)
   {
     preOperationCounter.incrementAndGet();
     return new PreOperationPluginResult();
@@ -417,8 +417,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult doPostOperation(AbandonOperation
-                                                        abandonOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
     postOperationCounter.incrementAndGet();
     return new PostOperationPluginResult();
@@ -430,7 +430,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult doPostOperation(AddOperation addOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationAddOperation addOperation)
   {
     postOperationCounter.incrementAndGet();
     return new PostOperationPluginResult();
@@ -442,7 +443,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult doPostOperation(BindOperation bindOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationBindOperation bindOperation)
   {
     postOperationCounter.incrementAndGet();
     return new PostOperationPluginResult();
@@ -454,8 +456,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult doPostOperation(CompareOperation
-                                                        compareOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationCompareOperation compareOperation)
   {
     postOperationCounter.incrementAndGet();
     return new PostOperationPluginResult();
@@ -467,8 +469,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult doPostOperation(DeleteOperation
-                                                        deleteOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
     postOperationCounter.incrementAndGet();
     return new PostOperationPluginResult();
@@ -480,8 +482,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult doPostOperation(ExtendedOperation
-                                                        extendedOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationExtendedOperation extendedOperation)
   {
     postOperationCounter.incrementAndGet();
     return new PostOperationPluginResult();
@@ -493,8 +495,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult doPostOperation(ModifyOperation
-                                                        modifyOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationModifyOperation modifyOperation)
   {
     postOperationCounter.incrementAndGet();
     return new PostOperationPluginResult();
@@ -506,8 +508,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult doPostOperation(ModifyDNOperation
-                                                        modifyDNOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {
     postOperationCounter.incrementAndGet();
     return new PostOperationPluginResult();
@@ -519,8 +521,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult doPostOperation(SearchOperation
-                                                        searchOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationSearchOperation searchOperation)
   {
     postOperationCounter.incrementAndGet();
     return new PostOperationPluginResult();
@@ -532,8 +534,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult doPostOperation(UnbindOperation
-                                                        unbindOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
     postOperationCounter.incrementAndGet();
     return new PostOperationPluginResult();
@@ -571,7 +573,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult doPostResponse(AddOperation addOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseAddOperation addOperation)
   {
     postResponseCounter.incrementAndGet();
     return new PostResponsePluginResult();
@@ -583,7 +586,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult doPostResponse(BindOperation bindOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseBindOperation bindOperation)
   {
     postResponseCounter.incrementAndGet();
     return new PostResponsePluginResult();
@@ -595,8 +599,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult doPostResponse(CompareOperation
-                                                        compareOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseCompareOperation compareOperation)
   {
     postResponseCounter.incrementAndGet();
     return new PostResponsePluginResult();
@@ -608,8 +612,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult doPostResponse(DeleteOperation
-                                                        deleteOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
     postResponseCounter.incrementAndGet();
     return new PostResponsePluginResult();
@@ -621,8 +625,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult doPostResponse(ExtendedOperation
-                                                        extendedOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
     postResponseCounter.incrementAndGet();
     return new PostResponsePluginResult();
@@ -634,8 +638,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult doPostResponse(ModifyOperation
-                                                        modifyOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseModifyOperation modifyOperation)
   {
     postResponseCounter.incrementAndGet();
     return new PostResponsePluginResult();
@@ -647,8 +651,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult doPostResponse(ModifyDNOperation
-                                                        modifyDNOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
     postResponseCounter.incrementAndGet();
     return new PostResponsePluginResult();
@@ -660,8 +664,8 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult doPostResponse(SearchOperation
-                                                        searchOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseSearchOperation searchOperation)
   {
     postResponseCounter.incrementAndGet();
     return new PostResponsePluginResult();
@@ -699,9 +703,9 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public SearchEntryPluginResult processSearchEntry(
-                                      SearchOperation searchOperation,
-                                      SearchResultEntry searchEntry)
+  public SearchEntryPluginResult
+       processSearchEntry(SearchEntrySearchOperation searchOperation,
+                          SearchResultEntry searchEntry)
   {
     searchEntryCounter.incrementAndGet();
     return new SearchEntryPluginResult();
@@ -740,9 +744,9 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public SearchReferencePluginResult processSearchReference(
-                                          SearchOperation searchOperation,
-                                          SearchResultReference searchReference)
+  public SearchReferencePluginResult
+       processSearchReference(SearchReferenceSearchOperation searchOperation,
+                              SearchResultReference searchReference)
   {
     searchReferenceCounter.incrementAndGet();
     return new SearchReferencePluginResult();

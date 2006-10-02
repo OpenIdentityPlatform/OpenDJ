@@ -34,12 +34,12 @@ import static org.testng.Assert.*;
 
 
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.synchronization.ChangeNumber;
 import org.opends.server.synchronization.DeleteContext;
 import org.opends.server.synchronization.DeleteMsg;
 import org.opends.server.synchronization.UpdateMessage;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.util.TimeThread;
 
@@ -60,7 +60,7 @@ public class UpdateComparatorTest extends ChangeLogTestCase
     ChangeNumber cn1 = new ChangeNumber(1, (short) 0, (short) 1);
     ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(),
                                        (short) 123, (short) 45);
-    
+
     //
     // Create the update messgae
     InternalClientConnection connection = new InternalClientConnection();
@@ -80,7 +80,7 @@ public class UpdateComparatorTest extends ChangeLogTestCase
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn2, "uniqueid 2"));
     DeleteMsg msg2 = new DeleteMsg(op);
 
-    
+
     return new Object[][] {
        {msg1, msg1, 0},
        {msg1, msg2, -1},

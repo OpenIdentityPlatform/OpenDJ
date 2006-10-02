@@ -30,8 +30,6 @@ package org.opends.server.plugins;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.opends.server.api.plugin.DirectoryServerPlugin;
@@ -39,19 +37,18 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Debug.*;
@@ -67,7 +64,7 @@ import static org.opends.server.util.TimeThread.*;
  * to the server, and will add the modifiersName and modifyTimestamp attributes
  * whenever the entry is modified or renamed.
  */
-public class LastModPlugin
+public final class LastModPlugin
        extends DirectoryServerPlugin
 {
   /**
@@ -79,16 +76,16 @@ public class LastModPlugin
 
 
   // The attribute type for the "createTimestamp" attribute.
-  private AttributeType createTimestampType;
+  private final AttributeType createTimestampType;
 
   // The attribute type for the "creatorsName" attribute.
-  private AttributeType creatorsNameType;
+  private final AttributeType creatorsNameType;
 
   // The attribute type for the "modifiersName" attribute.
-  private AttributeType modifiersNameType;
+  private final AttributeType modifiersNameType;
 
   // The attribute type for the "modifyTimestamp" attribute.
-  private AttributeType modifyTimestampType;
+  private final AttributeType modifyTimestampType;
 
 
 
@@ -103,33 +100,31 @@ public class LastModPlugin
     super();
 
     assert debugConstructor(CLASS_NAME);
+
+
+    // Get the attribute types for the attributes that we will use.  This needs
+    // to be done in the constructor in order to make the associated variables
+    // "final".
+    createTimestampType =
+         DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC, true);
+    creatorsNameType =
+         DirectoryServer.getAttributeType(OP_ATTR_CREATORS_NAME_LC, true);
+    modifiersNameType =
+         DirectoryServer.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC, true);
+    modifyTimestampType =
+      DirectoryServer.getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC, true);
   }
 
 
 
   /**
-   * Performs any initialization necessary for this plugin.  This will be called
-   * as soon as the plugin has been loaded and before it is registered with the
-   * server.
-   *
-   * @param  directoryServer  The reference to the Directory Server instance in
-   *                          which the plugin will be running.
-   * @param  pluginTypes      The set of plugin types that indicate the ways in
-   *                          which this plugin will be invoked.
-   * @param  configEntry      The entry containing the configuration information
-   *                          for this plugin.
-   *
-   * @throws  ConfigException  If the provided entry does not contain a valid
-   *                           configuration for this plugin.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the plugin that is not related to the
-   *                                   server configuration.
+   * {@inheritDoc}
    */
-  public void initializePlugin(DirectoryServer directoryServer,
-                               Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
-         throws ConfigException, InitializationException
+  @Override()
+  public final void initializePlugin(DirectoryServer directoryServer,
+                                     Set<PluginType> pluginTypes,
+                                     ConfigEntry configEntry)
+         throws ConfigException
   {
     assert debugEnter(CLASS_NAME, "initializePlugin",
                       String.valueOf(directoryServer),
@@ -155,61 +150,19 @@ public class LastModPlugin
           throw new ConfigException(msgID, message);
       }
     }
-
-
-    // Get the attribute types for the attributes that we will use.
-    createTimestampType =
-         DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC);
-    if (createTimestampType == null)
-    {
-      createTimestampType =
-           DirectoryServer.getDefaultAttributeType(OP_ATTR_CREATE_TIMESTAMP);
-    }
-
-    creatorsNameType =
-         DirectoryServer.getAttributeType(OP_ATTR_CREATORS_NAME_LC);
-    if (creatorsNameType == null)
-    {
-      creatorsNameType =
-           DirectoryServer.getDefaultAttributeType(OP_ATTR_CREATORS_NAME);
-    }
-
-    modifiersNameType =
-         DirectoryServer.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC);
-    if (modifiersNameType == null)
-    {
-      modifiersNameType =
-           DirectoryServer.getDefaultAttributeType(OP_ATTR_MODIFIERS_NAME);
-    }
-
-    modifyTimestampType =
-         DirectoryServer.getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC);
-    if (modifyTimestampType == null)
-    {
-      modifyTimestampType =
-           DirectoryServer.getDefaultAttributeType(OP_ATTR_MODIFY_TIMESTAMP);
-    }
   }
 
 
 
   /**
-   * Performs any necessary processing that should be done just before the
-   * Directory Server performs the core processing for an add operation.
-   *
-   * @param  addOperation  The add operation to be processed.
-   *
-   * @return  Information about the result of the plugin processing.
+   * {@inheritDoc}
    */
-  public PreOperationPluginResult doPreOperation(AddOperation addOperation)
+  @Override()
+  public final PreOperationPluginResult
+       doPreOperation(PreOperationAddOperation addOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(addOperation));
-
-
-    // Get the set of operational attributes for the add operation.
-    Map<AttributeType,List<Attribute>> operationalAttrs =
-         addOperation.getOperationalAttributes();
 
 
     // Create the attribute list for the creatorsName attribute, if appropriate.
@@ -232,7 +185,7 @@ public class LastModPlugin
                                        nameValues);
     ArrayList<Attribute> nameList = new ArrayList<Attribute>(1);
     nameList.add(nameAttr);
-    operationalAttrs.put(creatorsNameType, nameList);
+    addOperation.setAttribute(creatorsNameType, nameList);
 
 
     //  Create the attribute list for the createTimestamp attribute.
@@ -245,7 +198,7 @@ public class LastModPlugin
                                        OP_ATTR_CREATE_TIMESTAMP, timeValues);
     ArrayList<Attribute> timeList = new ArrayList<Attribute>(1);
     timeList.add(timeAttr);
-    operationalAttrs.put(createTimestampType, timeList);
+    addOperation.setAttribute(createTimestampType, timeList);
 
 
     // We shouldn't ever need to return a non-success result.
@@ -255,24 +208,14 @@ public class LastModPlugin
 
 
   /**
-   * Performs any necessary processing that should be done just before the
-   * Directory Server performs the core processing for a modify operation.
-   *
-   * @param  modifyOperation  The modify operation to be processed.
-   *
-   * @return  Information about the result of the plugin processing.
+   * {@inheritDoc}
    */
-  public PreOperationPluginResult doPreOperation(ModifyOperation
-                                                      modifyOperation)
+  @Override()
+  public final PreOperationPluginResult
+       doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(modifyOperation));
-
-
-    // Get the set of modifications for this operation.  Also get the modified
-    // entry.  We need to make sure that both get updated appropriately.
-    List<Modification> mods = modifyOperation.getModifications();
-    Entry modifiedEntry = modifyOperation.getModifiedEntry();
 
 
     // Create the modifiersName attribute.
@@ -293,11 +236,20 @@ public class LastModPlugin
     }
     Attribute nameAttr = new Attribute(modifiersNameType,
                                        OP_ATTR_MODIFIERS_NAME, nameValues);
-    mods.add(new Modification(ModificationType.REPLACE, nameAttr));
+    try
+    {
+      modifyOperation.addModification(new Modification(ModificationType.REPLACE,
+                                                       nameAttr));
+    }
+    catch (DirectoryException de)
+    {
+      assert debugException(CLASS_NAME, "doPreOperation", de);
 
-    ArrayList<Attribute> nameList = new ArrayList<Attribute>(1);
-    nameList.add(nameAttr);
-    modifiedEntry.putAttribute(modifiersNameType, nameList);
+      // This should never happen.
+      modifyOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
+      modifyOperation.appendErrorMessage(de.getErrorMessage());
+      return new PreOperationPluginResult(false, false, true);
+    }
 
 
     //  Create the modifyTimestamp attribute.
@@ -308,11 +260,20 @@ public class LastModPlugin
 
     Attribute timeAttr = new Attribute(modifyTimestampType,
                                        OP_ATTR_MODIFY_TIMESTAMP, timeValues);
-    mods.add(new Modification(ModificationType.REPLACE, timeAttr));
+    try
+    {
+      modifyOperation.addModification(new Modification(ModificationType.REPLACE,
+                                                       timeAttr));
+    }
+    catch (DirectoryException de)
+    {
+      assert debugException(CLASS_NAME, "doPreOperation", de);
 
-    ArrayList<Attribute> timeList = new ArrayList<Attribute>(1);
-    timeList.add(timeAttr);
-    modifiedEntry.putAttribute(modifyTimestampType, timeList);
+      // This should never happen.
+      modifyOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
+      modifyOperation.appendErrorMessage(de.getErrorMessage());
+      return new PreOperationPluginResult(false, false, true);
+    }
 
 
     // We shouldn't ever need to return a non-success result.
@@ -322,22 +283,14 @@ public class LastModPlugin
 
 
   /**
-   * Performs any necessary processing that should be done just before the
-   * Directory Server performs the core processing for a modify DN operation.
-   *
-   * @param  modifyDNOperation  The modify DN operation to be processed.
-   *
-   * @return  Information about the result of the plugin processing.
+   * {@inheritDoc}
    */
-  public PreOperationPluginResult doPreOperation(ModifyDNOperation
-                                                      modifyDNOperation)
+  @Override()
+  public final PreOperationPluginResult
+       doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(modifyDNOperation));
-
-
-    // Get the set of modifications for this operation.
-    List<Modification> mods = modifyDNOperation.getModifications();
 
 
     // Create the modifiersName attribute.
@@ -358,7 +311,8 @@ public class LastModPlugin
     }
     Attribute nameAttr = new Attribute(modifiersNameType,
                                        OP_ATTR_MODIFIERS_NAME, nameValues);
-    mods.add(new Modification(ModificationType.REPLACE, nameAttr));
+    modifyDNOperation.addModification(new Modification(ModificationType.REPLACE,
+                                                       nameAttr));
 
 
     //  Create the modifyTimestamp attribute.
@@ -369,7 +323,8 @@ public class LastModPlugin
 
     Attribute timeAttr = new Attribute(modifyTimestampType,
                                        OP_ATTR_MODIFY_TIMESTAMP, timeValues);
-    mods.add(new Modification(ModificationType.REPLACE, timeAttr));
+    modifyDNOperation.addModification(new Modification(ModificationType.REPLACE,
+                                                       timeAttr));
 
 
     // We shouldn't ever need to return a non-success result.

@@ -33,9 +33,9 @@ import java.util.concurrent.locks.Lock;
 
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.InitializationException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockType;
 
 

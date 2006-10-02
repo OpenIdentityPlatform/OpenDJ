@@ -38,9 +38,16 @@ import org.opends.server.api.plugin.PostOperationPluginResult;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.operation.PostOperationExtendedOperation;
+import org.opends.server.types.operation.PostResponseExtendedOperation;
+import org.opends.server.types.operation.PreOperationExtendedOperation;
+import org.opends.server.types.operation.PreParseExtendedOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
@@ -57,6 +64,8 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class ExtendedOperation
        extends Operation
+       implements PreParseExtendedOperation, PreOperationExtendedOperation,
+                  PostOperationExtendedOperation, PostResponseExtendedOperation
 {
   /*** The fully-qualified name of this class for debugging purposes.
    */
@@ -142,7 +151,7 @@ public class ExtendedOperation
    *
    * @return  The OID for the request associated with this extended operation.
    */
-  public String getRequestOID()
+  public final String getRequestOID()
   {
     assert debugEnter(CLASS_NAME, "getRequestOID");
 
@@ -153,11 +162,12 @@ public class ExtendedOperation
 
   /**
    * Specifies the OID for the request associated with this extended operation.
+   * This should only be called by pre-parse plugins.
    *
    * @param  requestOID  The OID for the request associated with this extended
    *                     operation.
    */
-  public void setRequestOID(String requestOID)
+  public final void setRequestOID(String requestOID)
   {
     assert debugEnter(CLASS_NAME, "setRequestOID", String.valueOf(requestOID));
 
@@ -172,7 +182,7 @@ public class ExtendedOperation
    *
    * @return  The value for the request associated with this extended operation.
    */
-  public ASN1OctetString getRequestValue()
+  public final ASN1OctetString getRequestValue()
   {
     assert debugEnter(CLASS_NAME, "getRequestValue");
 
@@ -183,12 +193,12 @@ public class ExtendedOperation
 
   /**
    * Specifies the value for the request associated with this extended
-   * operation.
+   * operation.  This should only be called by pre-parse plugins.
    *
    * @param  requestValue  The value for the request associated with this
    *                       extended operation.
    */
-  public void setRequestValue(ASN1OctetString requestValue)
+  public final void setRequestValue(ASN1OctetString requestValue)
   {
     assert debugEnter(CLASS_NAME, "setRequestValue",
                       String.valueOf(requestValue));
@@ -199,11 +209,12 @@ public class ExtendedOperation
 
 
   /**
-   * Retrieves the OID to include in the response to the client.
+   * Retrieves the OID to include in the response to the client.  This should
+   * not be called by pre-parse or pre-operation plugins.
    *
    * @return  The OID to include in the response to the client.
    */
-  public String getResponseOID()
+  public final String getResponseOID()
   {
     assert debugEnter(CLASS_NAME, "getResponseOID");
 
@@ -213,11 +224,12 @@ public class ExtendedOperation
 
 
   /**
-   * Specifies the OID to include in the response to the client.
+   * Specifies the OID to include in the response to the client.  This should
+   * not be called by post-response plugins.
    *
    * @param  responseOID  The OID to include in the response to the client.
    */
-  public void setResponseOID(String responseOID)
+  public final void setResponseOID(String responseOID)
   {
     assert debugEnter(CLASS_NAME, "setResponseOID",
                       String.valueOf(responseOID));
@@ -228,11 +240,12 @@ public class ExtendedOperation
 
 
   /**
-   * Retrieves the value to include in the response to the client.
+   * Retrieves the value to include in the response to the client.  This should
+   * not be called by pre-parse or pre-operation plugins.
    *
    * @return  The value to include in the response to the client.
    */
-  public ASN1OctetString getResponseValue()
+  public final ASN1OctetString getResponseValue()
   {
     assert debugEnter(CLASS_NAME, "getResponseValue");
 
@@ -242,11 +255,12 @@ public class ExtendedOperation
 
 
   /**
-   * Specifies the value to include in the response to the client.
+   * Specifies the value to include in the response to the client.  This should
+   * not be called by post-response plugins.
    *
    * @param  responseValue  The value to include in the response to the client.
    */
-  public void setResponseValue(ASN1OctetString responseValue)
+  public final void setResponseValue(ASN1OctetString responseValue)
   {
     assert debugEnter(CLASS_NAME, "setResponseValue",
                       String.valueOf(responseValue));
@@ -257,11 +271,10 @@ public class ExtendedOperation
 
 
   /**
-   * Retrieves the time that processing started for this operation.
-   *
-   * @return  The time that processing started for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStartTime()
+  @Override()
+  public final long getProcessingStartTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
@@ -271,13 +284,10 @@ public class ExtendedOperation
 
 
   /**
-   * Retrieves the time that processing stopped for this operation.  This will
-   * actually hold a time immediately before the response was sent to the
-   * client.
-   *
-   * @return  The time that processing stopped for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStopTime()
+  @Override()
+  public final long getProcessingStopTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
@@ -287,14 +297,10 @@ public class ExtendedOperation
 
 
   /**
-   * Retrieves the length of time in milliseconds that the server spent
-   * processing this operation.  This should not be called until after the
-   * server has sent the response to the client.
-   *
-   * @return  The length of time in milliseconds that the server spent
-   *          processing this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingTime()
+  @Override()
+  public final long getProcessingTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingTime");
 
@@ -304,11 +310,10 @@ public class ExtendedOperation
 
 
   /**
-   * Retrieves the operation type for this operation.
-   *
-   * @return  The operation type for this operation.
+   * {@inheritDoc}
    */
-  public OperationType getOperationType()
+  @Override()
+  public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -319,16 +324,10 @@ public class ExtendedOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in requests for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in requests for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getRequestLogElements()
+  @Override()
+  public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -342,16 +341,10 @@ public class ExtendedOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in responses for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in responses for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getResponseLogElements()
+  @Override()
+  public final String[][] getResponseLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -418,13 +411,10 @@ public class ExtendedOperation
 
 
   /**
-   * Retrieves the set of controls to include in the response to the client.
-   * Note that the contents of this list should not be altered after
-   * post-operation plugins have been called.
-   *
-   * @return  The set of controls to include in the response to the client.
+   * {@inheritDoc}
    */
-  public List<Control> getResponseControls()
+  @Override()
+  public final List<Control> getResponseControls()
   {
     assert debugEnter(CLASS_NAME, "getResponseControls");
 
@@ -434,12 +424,32 @@ public class ExtendedOperation
 
 
   /**
-   * Performs the work of actually processing this operation.  This should
-   * include all processing for the operation, including invoking plugins,
-   * logging messages, performing access control, managing synchronization, and
-   * any other work that might need to be done in the course of processing.
+   * {@inheritDoc}
    */
-  public void run()
+  @Override()
+  public final void addResponseControl(Control control)
+  {
+    responseControls.add(control);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void removeResponseControl(Control control)
+  {
+    responseControls.remove(control);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void run()
   {
     assert debugEnter(CLASS_NAME, "run");
 
@@ -654,7 +664,7 @@ extendedProcessing:
    * operation in which the response must be sent in the clear before actually
    * enabling TLS protection).
    */
-  public void sendExtendedResponse()
+  public final void sendExtendedResponse()
   {
     assert debugEnter(CLASS_NAME, "sendExtendedResponse");
 
@@ -668,13 +678,12 @@ extendedProcessing:
 
 
   /**
-   * Indicates whether the response for this extended operation has been sent
-   * from somewhere outside of this class.  This should only be used by the
-   * StartTLS extended operation for the case in which it needs to send a
-   * response in the clear after TLS negotiation has already started on the
-   * connection.
+   * Indicates that the response for this extended operation has been sent from
+   * somewhere outside of this class.  This should only be used by the StartTLS
+   * extended operation for the case in which it needs to send a response in the
+   * clear after TLS negotiation has already started on the connection.
    */
-  public void setResponseSent()
+  public final void setResponseSent()
   {
     assert debugEnter(CLASS_NAME, "setResponseSent",
                       String.valueOf(responseSent));
@@ -685,14 +694,10 @@ extendedProcessing:
 
 
   /**
-   * Attempts to cancel this operation before processing has completed.
-   *
-   * @param  cancelRequest  Information about the way in which the operation
-   *                        should be canceled.
-   *
-   * @return  A code providing information on the result of the cancellation.
+   * {@inheritDoc}
    */
-  public CancelResult cancel(CancelRequest cancelRequest)
+  @Override()
+  public final CancelResult cancel(CancelRequest cancelRequest)
   {
     assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
@@ -730,13 +735,10 @@ extendedProcessing:
 
 
   /**
-   * Retrieves the cancel request that has been issued for this operation, if
-   * there is one.
-   *
-   * @return  The cancel request that has been issued for this operation, or
-   *          <CODE>null</CODE> if there has not been any request to cancel.
+   * {@inheritDoc}
    */
-  public CancelRequest getCancelRequest()
+  @Override()
+  public final CancelRequest getCancelRequest()
   {
     assert debugEnter(CLASS_NAME, "getCancelRequest");
 
@@ -746,12 +748,10 @@ extendedProcessing:
 
 
   /**
-   * Appends a string representation of this operation to the provided buffer.
-   *
-   * @param  buffer  The buffer into which a string representation of this
-   *                 operation should be appended.
+   * {@inheritDoc}
    */
-  public void toString(StringBuilder buffer)
+  @Override()
+  public final void toString(StringBuilder buffer)
   {
     assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 

@@ -32,7 +32,7 @@ import java.nio.channels.SocketChannel;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionSecurityProvider;
-import org.opends.server.core.DirectoryException;
+import org.opends.server.types.DirectoryException;
 
 import static org.opends.server.loggers.Debug.*;
 

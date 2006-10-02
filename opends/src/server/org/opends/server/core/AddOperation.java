@@ -62,17 +62,27 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.CancelledOperationException;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostResponseAddOperation;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -94,6 +104,8 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class AddOperation
        extends Operation
+       implements PreParseAddOperation, PreOperationAddOperation,
+                  PostOperationAddOperation, PostResponseAddOperation
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -275,7 +287,7 @@ public class AddOperation
    *
    * @return  The DN of the entry in a raw, unparsed form.
    */
-  public ByteString getRawEntryDN()
+  public final ByteString getRawEntryDN()
   {
     assert debugEnter(CLASS_NAME, "getRawEntryDN");
 
@@ -293,7 +305,7 @@ public class AddOperation
    *
    * @param  rawEntryDN  The raw entry DN for the entry to add.
    */
-  public void setRawEntryDN(ByteString rawEntryDN)
+  public final void setRawEntryDN(ByteString rawEntryDN)
   {
     assert debugEnter(CLASS_NAME, "setRawEntryDN", String.valueOf(rawEntryDN));
 
@@ -312,27 +324,11 @@ public class AddOperation
    * @return  The DN of the entry to add, or <CODE>null</CODE> if it has not yet
    *          been parsed from the raw DN.
    */
-  public DN getEntryDN()
+  public final DN getEntryDN()
   {
     assert debugEnter(CLASS_NAME, "getEntryDN");
 
     return entryDN;
-  }
-
-
-
-  /**
-   * Specifies the DN of the entry to add.  This method should not be called by
-   * pre-parse plugins, in which case the <CODE>setRawEntryDN</CODE> method
-   * should be used instead.
-   *
-   * @param  entryDN  The DN of the entry to add.
-   */
-  public void setEntryDN(DN entryDN)
-  {
-    assert debugEnter(CLASS_NAME, "setEntryDN", String.valueOf(entryDN));
-
-    this.entryDN = entryDN;
   }
 
 
@@ -346,7 +342,7 @@ public class AddOperation
    * @return  The set of attributes in their raw, unparsed form as read from the
    *          client request.
    */
-  public List<LDAPAttribute> getRawAttributes()
+  public final List<LDAPAttribute> getRawAttributes()
   {
     assert debugEnter(CLASS_NAME, "getRawAttributes");
 
@@ -362,7 +358,7 @@ public class AddOperation
    * @param  rawAttribute  The attribute to add to the set of raw attributes for
    *                       this add operation.
    */
-  public void addRawAttribute(LDAPAttribute rawAttribute)
+  public final void addRawAttribute(LDAPAttribute rawAttribute)
   {
     assert debugEnter(CLASS_NAME, "addRawAttribute",
                       String.valueOf(rawAttribute));
@@ -382,7 +378,7 @@ public class AddOperation
    *
    * @param  rawAttributes  The set of raw attributes for this add operation.
    */
-  public void setRawAttributes(List<LDAPAttribute> rawAttributes)
+  public final void setRawAttributes(List<LDAPAttribute> rawAttributes)
   {
     assert debugEnter(CLASS_NAME, "setRawAttributes",
                       String.valueOf(rawAttributes));
@@ -399,17 +395,56 @@ public class AddOperation
   /**
    * Retrieves the set of processed objectclasses for the entry to add.  This
    * should not be called by pre-parse plugins because this information will not
-   * yet be available.  The contents of the returned map may be altered by the
-   * caller.
+   * yet be available.  The contents of the returned map may not be altered by
+   * the caller.
    *
    * @return  The set of processed objectclasses for the entry to add, or
    *          <CODE>null</CODE> if that information is not yet available.
    */
-  public Map<ObjectClass,String> getObjectClasses()
+  public final Map<ObjectClass,String> getObjectClasses()
   {
     assert debugEnter(CLASS_NAME, "getObjectClasses");
 
     return objectClasses;
+  }
+
+
+
+  /**
+   * Adds the provided objectclass to the entry to add.  This should only be
+   * called from pre-operation plugins.  Note that pre-operation plugin
+   * processing is invoked after access control and schema validation, so
+   * plugins should be careful to only make changes that will not violate either
+   * schema or access control rules.
+   *
+   * @param  objectClass  The objectclass to add to the entry.
+   * @param  name         The name to use for the objectclass.
+   */
+  public final void addObjectClass(ObjectClass objectClass, String name)
+  {
+    assert debugEnter(CLASS_NAME, "addObjectClass", String.valueOf(objectClass),
+                      String.valueOf(name));
+
+    objectClasses.put(objectClass, name);
+  }
+
+
+
+  /**
+   * Removes the provided objectclass from the entry to add.  This should only
+   * be called from pre-operation plugins.  Note that pre-operation plugin
+   * processing is invoked after access control and schema validation, so
+   * plugins should be careful to only make changes that will not violate either
+   * schema or access control rules.
+   *
+   * @param  objectClass  The objectclass to remove from the entry.
+   */
+  public final void removeObjectClass(ObjectClass objectClass)
+  {
+    assert debugEnter(CLASS_NAME, "removeObjectClass",
+                      String.valueOf(objectClass));
+
+    objectClasses.remove(objectClass);
   }
 
 
@@ -423,7 +458,7 @@ public class AddOperation
    * @return  The set of processed user attributes for the entry to add, or
    *          <CODE>null</CODE> if that information is not yet available.
    */
-  public Map<AttributeType,List<Attribute>> getUserAttributes()
+  public final Map<AttributeType,List<Attribute>> getUserAttributes()
   {
     assert debugEnter(CLASS_NAME, "getUserAttributes");
 
@@ -441,11 +476,80 @@ public class AddOperation
    * @return  The set of processed operational attributes for the entry to add,
    *          or <CODE>null</CODE> if that information is not yet available.
    */
-  public Map<AttributeType,List<Attribute>> getOperationalAttributes()
+  public final Map<AttributeType,List<Attribute>> getOperationalAttributes()
   {
     assert debugEnter(CLASS_NAME, "getOperationalAttributes");
 
     return operationalAttributes;
+  }
+
+
+
+  /**
+   * Sets the specified attribute in the entry to add, overwriting any existing
+   * attribute of the specified type if necessary.  This should only be called
+   * from pre-operation plugins.  Note that pre-operation plugin processing is
+   * invoked after access control and schema validation, so plugins should be
+   * careful to only make changes that will not violate either schema or access
+   * control rules.
+   *
+   * @param  attributeType  The attribute type for the attribute.
+   * @param  attributeList  The attribute list for the provided attribute type.
+   */
+  public final void setAttribute(AttributeType attributeType,
+                                 List<Attribute> attributeList)
+  {
+    assert debugEnter(CLASS_NAME, "setAttribute", String.valueOf(attributeType),
+                      String.valueOf(attributeList));
+
+    if (attributeType.isOperational())
+    {
+      if ((attributeList == null) || (attributeList.isEmpty()))
+      {
+        operationalAttributes.remove(attributeType);
+      }
+      else
+      {
+        operationalAttributes.put(attributeType, attributeList);
+      }
+    }
+    else
+    {
+      if ((attributeList == null) || (attributeList.isEmpty()))
+      {
+        userAttributes.remove(attributeType);
+      }
+      else
+      {
+        userAttributes.put(attributeType, attributeList);
+      }
+    }
+  }
+
+
+
+  /**
+   * Removes the specified attribute from the entry to add. This should only be
+   * called from pre-operation plugins.  Note that pre-operation processing is
+   * invoked after access control and schema validation, so plugins should be
+   * careful to only make changes that will not violate either schema or access
+   * control rules.
+   *
+   * @param  attributeType  The attribute tyep for the attribute to remove.
+   */
+  public final void removeAttribute(AttributeType attributeType)
+  {
+    assert debugEnter(CLASS_NAME, "removeAttribute",
+                      String.valueOf(attributeType));
+
+    if (attributeType.isOperational())
+    {
+      operationalAttributes.remove(attributeType);
+    }
+    else
+    {
+      userAttributes.remove(attributeType);
+    }
   }
 
 
@@ -458,7 +562,7 @@ public class AddOperation
    * @return  The entry to be added to the server, or <CODE>null</CODE> if it is
    *          not yet available.
    */
-  public Entry getEntryToAdd()
+  public final Entry getEntryToAdd()
   {
     assert debugEnter(CLASS_NAME, "getEntryToAdd");
 
@@ -468,11 +572,10 @@ public class AddOperation
 
 
   /**
-   * Retrieves the time that processing started for this operation.
-   *
-   * @return  The time that processing started for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStartTime()
+  @Override()
+  public final long getProcessingStartTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
@@ -482,13 +585,10 @@ public class AddOperation
 
 
   /**
-   * Retrieves the time that processing stopped for this operation.  This will
-   * actually hold a time immediately before the response was sent to the
-   * client.
-   *
-   * @return  The time that processing stopped for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStopTime()
+  @Override()
+  public final long getProcessingStopTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
@@ -498,14 +598,10 @@ public class AddOperation
 
 
   /**
-   * Retrieves the length of time in milliseconds that the server spent
-   * processing this operation.  This should not be called until after the
-   * server has sent the response to the client.
-   *
-   * @return  The length of time in milliseconds that the server spent
-   *          processing this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingTime()
+  @Override()
+  public final long getProcessingTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingTime");
 
@@ -521,7 +617,7 @@ public class AddOperation
    *          if none has been assigned yet or if there is no applicable
    *          synchronization mechanism in place that uses change numbers.
    */
-  public long getChangeNumber()
+  public final long getChangeNumber()
   {
     assert debugEnter(CLASS_NAME, "getChangeNumber");
 
@@ -537,7 +633,7 @@ public class AddOperation
    * @param  changeNumber  The change number that has been assigned to this
    *                       operation by the synchronization mechanism.
    */
-  public void setChangeNumber(long changeNumber)
+  public final void setChangeNumber(long changeNumber)
   {
     assert debugEnter(CLASS_NAME, "setChangeNumber",
                       String.valueOf(changeNumber));
@@ -548,11 +644,10 @@ public class AddOperation
 
 
   /**
-   * Retrieves the operation type for this operation.
-   *
-   * @return  The operation type for this operation.
+   * {@inheritDoc}
    */
-  public OperationType getOperationType()
+  @Override()
+  public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -563,16 +658,10 @@ public class AddOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in requests for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in requests for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getRequestLogElements()
+  @Override()
+  public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -586,16 +675,10 @@ public class AddOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in responses for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in responses for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getResponseLogElements()
+  @Override()
+  public final String[][] getResponseLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -661,13 +744,10 @@ public class AddOperation
 
 
   /**
-   * Retrieves the set of controls to include in the response to the client.
-   * Note that the contents of this list should not be altered after
-   * post-operation plugins have been called.
-   *
-   * @return  The set of controls to include in the response to the client.
+   * {@inheritDoc}
    */
-  public ArrayList<Control> getResponseControls()
+  @Override()
+  public final ArrayList<Control> getResponseControls()
   {
     assert debugEnter(CLASS_NAME, "getResponseControls");
 
@@ -677,12 +757,32 @@ public class AddOperation
 
 
   /**
-   * Performs the work of actually processing this operation.  This should
-   * include all processing for the operation, including invoking plugins,
-   * logging messages, performing access control, managing synchronization, and
-   * any other work that might need to be done in the course of processing.
+   * {@inheritDoc}
    */
-  public void run()
+  @Override()
+  public final void addResponseControl(Control control)
+  {
+    responseControls.add(control);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void removeResponseControl(Control control)
+  {
+    responseControls.remove(control);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void run()
   {
     assert debugEnter(CLASS_NAME, "run");
 
@@ -2062,7 +2162,7 @@ addProcessing:
    *
    * @param  objectClass  The objectclass to add to the entry.
    */
-  private void addObjectClassChain(ObjectClass objectClass)
+  private final void addObjectClassChain(ObjectClass objectClass)
   {
     assert debugEnter(CLASS_NAME, "addObjectClassChain",
                       String.valueOf(objectClass));
@@ -2093,8 +2193,8 @@ addProcessing:
    * @throws  DirectoryException  If a problem occurs while performing password
    *                              policy processing for the add operation.
    */
-  private void handlePasswordPolicy(PasswordPolicy passwordPolicy,
-                                    Entry userEntry)
+  private final void handlePasswordPolicy(PasswordPolicy passwordPolicy,
+                                          Entry userEntry)
          throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "handlePasswordPolicy",
@@ -2287,14 +2387,10 @@ addProcessing:
 
 
   /**
-   * Attempts to cancel this operation before processing has completed.
-   *
-   * @param  cancelRequest  Information about the way in which the operation
-   *                        should be canceled.
-   *
-   * @return  A code providing information on the result of the cancellation.
+   * {@inheritDoc}
    */
-  public CancelResult cancel(CancelRequest cancelRequest)
+  @Override()
+  public final CancelResult cancel(CancelRequest cancelRequest)
   {
     assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
@@ -2332,13 +2428,10 @@ addProcessing:
 
 
   /**
-   * Retrieves the cancel request that has been issued for this operation, if
-   * there is one.
-   *
-   * @return  The cancel request that has been issued for this operation, or
-   *          <CODE>null</CODE> if there has not been any request to cancel.
+   * {@inheritDoc}
    */
-  public CancelRequest getCancelRequest()
+  @Override()
+  public final CancelRequest getCancelRequest()
   {
     assert debugEnter(CLASS_NAME, "getCancelRequest");
 
@@ -2348,12 +2441,10 @@ addProcessing:
 
 
   /**
-   * Appends a string representation of this operation to the provided buffer.
-   *
-   * @param  buffer  The buffer into which a string representation of this
-   *                 operation should be appended.
+   * {@inheritDoc}
    */
-  public void toString(StringBuilder buffer)
+  @Override()
+  public final void toString(StringBuilder buffer)
   {
     assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
@@ -2365,6 +2456,5 @@ addProcessing:
     buffer.append(rawEntryDN);
     buffer.append(")");
   }
-
 }
 

@@ -30,7 +30,7 @@ package org.opends.server.tools.makeldif;
 
 import java.util.List;
 
-import org.opends.server.core.InitializationException;
+import org.opends.server.types.InitializationException;
 
 
 

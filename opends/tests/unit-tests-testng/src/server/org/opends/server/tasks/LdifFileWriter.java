@@ -31,11 +31,11 @@ import org.opends.server.tools.makeldif.EntryWriter;
 import org.opends.server.tools.makeldif.MakeLDIFException;
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.LDIFException;
-import org.opends.server.core.InitializationException;
 
 import java.io.IOException;
 import java.util.Random;

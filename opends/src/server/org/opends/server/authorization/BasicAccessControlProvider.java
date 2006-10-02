@@ -33,7 +33,7 @@ import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccessControlProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.InitializationException;
+import org.opends.server.types.InitializationException;
 
 /**
  * This class implements an access control handler for the Directory

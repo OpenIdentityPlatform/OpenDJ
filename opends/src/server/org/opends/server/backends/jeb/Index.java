@@ -41,9 +41,9 @@ import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
 
-import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ConditionResult;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 

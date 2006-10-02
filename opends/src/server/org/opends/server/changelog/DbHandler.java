@@ -45,9 +45,9 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.synchronization.ChangeNumber;
 import org.opends.server.synchronization.UpdateMessage;
 

@@ -41,9 +41,7 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.CancelledOperationException;
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
@@ -55,7 +53,9 @@ import org.opends.server.controls.PagedResultsControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.CancelledOperationException;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockType;
@@ -504,7 +504,7 @@ public class EntryContainer
    * <CODE>SearchOperation.returnEntry</CODE> method.
    *
    * @param searchOperation The search operation to be processed.
-   * @throws org.opends.server.core.DirectoryException
+   * @throws org.opends.server.types.DirectoryException
    *          If a problem occurs while processing the
    *          search.
    * @throws DatabaseException If an error occurs in the JE database.
@@ -2454,10 +2454,10 @@ public class EntryContainer
    * @param modifyDNOperation The modify DN operation with which this action
    *                          is associated.  This may be <CODE>null</CODE>
    *                          for modify DN operations performed internally.
-   * @throws org.opends.server.core.DirectoryException
+   * @throws org.opends.server.types.DirectoryException
    *          If a problem occurs while trying to perform
    *          the rename.
-   * @throws org.opends.server.core.CancelledOperationException
+   * @throws org.opends.server.types.CancelledOperationException
    *          If this backend noticed and reacted
    *          to a request to cancel or abandon the
    *          modify DN operation.

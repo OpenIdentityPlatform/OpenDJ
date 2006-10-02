@@ -29,10 +29,10 @@ package org.opends.server.extensions;
 
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.core.CancelRequest;
-import org.opends.server.core.CancelResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.Operation;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.DisconnectReason;

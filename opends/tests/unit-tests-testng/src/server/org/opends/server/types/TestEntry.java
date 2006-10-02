@@ -35,7 +35,6 @@ import java.util.LinkedHashSet;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SubtreeSpecificationSet;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.RFC3672SubtreeSpecification;
 import org.opends.server.protocols.asn1.ASN1OctetString;

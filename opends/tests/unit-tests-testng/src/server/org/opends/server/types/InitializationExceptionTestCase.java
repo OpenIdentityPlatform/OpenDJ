@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.server.core;
+package org.opends.server.types;
 
 
 
@@ -40,7 +40,7 @@ import static org.testng.Assert.*;
  * A set of generic test cases for the initialization exception class.
  */
 public class InitializationExceptionTestCase
-       extends CoreTestCase
+       extends TypesTestCase
 {
   /**
    * Tests the first constructor, which takes int and String arguments.

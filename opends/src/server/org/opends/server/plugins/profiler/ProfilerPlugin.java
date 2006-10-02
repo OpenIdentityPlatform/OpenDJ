@@ -49,7 +49,6 @@ import org.opends.server.config.MultiChoiceConfigAttribute;
 import org.opends.server.config.ReadOnlyConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
@@ -76,7 +75,7 @@ import static org.opends.server.util.StaticUtils.*;
  * can be analyzed to see where the server is spending all of its processing
  * time.
  */
-public class ProfilerPlugin
+public final class ProfilerPlugin
        extends DirectoryServerPlugin
        implements ConfigurableComponent
 {
@@ -176,28 +175,13 @@ public class ProfilerPlugin
 
 
   /**
-   * Performs any initialization necessary for this plugin.  This will be called
-   * as soon as the plugin has been loaded and before it is registered with the
-   * server.
-   *
-   * @param  directoryServer  The reference to the Directory Server instance in
-   *                          which the plugin will be running.
-   * @param  pluginTypes      The set of plugin types that indicate the ways in
-   *                          which this plugin will be invoked.
-   * @param  configEntry      The entry containing the configuration information
-   *                          for this plugin.
-   *
-   * @throws  ConfigException  If the provided entry does not contain a valid
-   *                           configuration for this plugin.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the plugin that is not related to the
-   *                                   server configuration.
+   * {@inheritDoc}
    */
-  public void initializePlugin(DirectoryServer directoryServer,
+  @Override()
+  public final void initializePlugin(DirectoryServer directoryServer,
                                Set<PluginType> pluginTypes,
                                ConfigEntry configEntry)
-         throws ConfigException, InitializationException
+         throws ConfigException
   {
     assert debugEnter(CLASS_NAME, "initializePlugin",
                       String.valueOf(directoryServer),
@@ -342,11 +326,10 @@ public class ProfilerPlugin
 
 
   /**
-   * Performs any necessary finalization for this plugin.  This will be called
-   * just after the plugin has been deregistered with the server but before it
-   * has been unloaded.
+   * {@inheritDoc}
    */
-  public void finalizePlugin()
+  @Override()
+  public final void finalizePlugin()
   {
     assert debugEnter(CLASS_NAME, "finalizePlugin");
 
@@ -386,14 +369,10 @@ public class ProfilerPlugin
 
 
   /**
-   * Performs any processing that should be done when the Directory Server is in
-   * the process of starting.  This method will be called after virtually all
-   * initialization has been performed but before other plugins have before the
-   * connection handlers are started.
-   *
-   * @return  The result of the startup plugin processing.
+   * {@inheritDoc}
    */
-  public StartupPluginResult doStartup()
+  @Override()
+  public final StartupPluginResult doStartup()
   {
     assert debugEnter(CLASS_NAME, "doStartup");
 
@@ -410,13 +389,9 @@ public class ProfilerPlugin
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
+  public final DN getConfigurableComponentEntryDN()
   {
     assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
@@ -426,13 +401,9 @@ public class ProfilerPlugin
 
 
   /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
+   * {@inheritDoc}
    */
-  public List<ConfigAttribute> getConfigurationAttributes()
+  public final List<ConfigAttribute> getConfigurationAttributes()
   {
     assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
@@ -484,21 +455,10 @@ public class ProfilerPlugin
 
 
   /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
+  public final boolean hasAcceptableConfiguration(ConfigEntry configEntry,
+                            List<String> unacceptableReasons)
   {
     assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
                       String.valueOf(configEntry), "java.lang.List<String>");
@@ -614,23 +574,10 @@ public class ProfilerPlugin
 
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public final ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
+                                                        boolean detailedResults)
   {
     assert debugEnter(CLASS_NAME, "applyNewConfiguration",
                       String.valueOf(configEntry),

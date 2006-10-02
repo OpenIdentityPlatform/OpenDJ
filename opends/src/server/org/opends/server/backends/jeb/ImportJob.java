@@ -34,12 +34,12 @@ import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.Transaction;
 
 import org.opends.server.api.Backend;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.loggers.Debug;
 import org.opends.server.messages.JebMessages;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;

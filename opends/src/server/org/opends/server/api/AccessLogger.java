@@ -36,12 +36,12 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.InitializationException;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 

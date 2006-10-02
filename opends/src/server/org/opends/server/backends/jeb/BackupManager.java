@@ -28,13 +28,13 @@ package org.opends.server.backends.jeb;
 
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.CryptoManager;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
+import org.opends.server.types.CryptoManager;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.RestoreConfig;

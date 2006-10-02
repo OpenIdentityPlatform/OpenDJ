@@ -769,6 +769,17 @@ public class PluginMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * invoke a plugin for a plugin type that it does not support.  This takes
+   * two arguments, which are the DN of the plugin configuration entry and the
+   * name of the unsupported plugin type.
+   */
+  public static final int MSGID_PLUGIN_TYPE_NOT_SUPPORTED =
+       CATEGORY_MASK_PLUGIN | SEVERITY_MASK_SEVERE_ERROR | 67;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1120,6 +1131,11 @@ public class PluginMessages
                     "An error occurred while attempting to encode a password " +
                     "value stored in attribute %s of user entry %s:  %s.  " +
                     "Password values for this user will not be encoded.");
+
+
+    registerMessage(MSGID_PLUGIN_TYPE_NOT_SUPPORTED,
+                    "The plugin defined in configuration entry %s does not " +
+                    "support the %s plugin type.");
   }
 }
 

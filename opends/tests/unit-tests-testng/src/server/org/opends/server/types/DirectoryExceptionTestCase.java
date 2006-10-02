@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.server.core;
+package org.opends.server.types;
 
 
 
@@ -35,8 +35,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.types.DN;
-import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;
 
@@ -46,7 +44,7 @@ import static org.testng.Assert.*;
  * A set of generic test cases for the directory exception class.
  */
 public class DirectoryExceptionTestCase
-       extends CoreTestCase
+       extends TypesTestCase
 {
   /**
    * Retrieves the set of result codes that may be used by the server.

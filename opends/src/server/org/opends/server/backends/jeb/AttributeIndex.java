@@ -40,11 +40,11 @@ import com.sleepycat.je.Transaction;
 
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchFilter;

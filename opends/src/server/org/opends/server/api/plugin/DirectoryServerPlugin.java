@@ -33,28 +33,21 @@ import java.util.Set;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AbandonOperation;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.InitializationException;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.core.UnbindOperation;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.operation.*;
 
 import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.PluginMessages.*;
 
 
 
@@ -168,7 +161,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  The DN of the configuration entry for this plugin.
    */
-  public DN getPluginEntryDN()
+  public final DN getPluginEntryDN()
   {
     assert debugEnter(CLASS_NAME, "getPluginEntryDN");
 
@@ -183,7 +176,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  The plugin types for which this plugin is registered.
    */
-  public Set<PluginType> getPluginTypes()
+  public final Set<PluginType> getPluginTypes()
   {
     assert debugEnter(CLASS_NAME, "getPluginTypes");
 
@@ -196,8 +189,7 @@ public abstract class DirectoryServerPlugin
    * Performs any processing that should be done when the Directory
    * Server is in the process of starting.  This method will be called
    * after virtually all other initialization has been performed but
-   * before other plugins have before the connection handlers are
-   * started.
+   * before the connection handlers are started.
    *
    * @return  The result of the startup plugin processing.
    */
@@ -205,8 +197,10 @@ public abstract class DirectoryServerPlugin
   {
     assert debugEnter(CLASS_NAME, "doStartup");
 
-    // No implementation is required by default.
-    return new StartupPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                                PluginType.STARTUP.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -222,7 +216,10 @@ public abstract class DirectoryServerPlugin
   {
     assert debugEnter(CLASS_NAME, "doShutdown");
 
-    // No implementation is required by default.
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                                PluginType.SHUTDOWN.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -244,8 +241,10 @@ public abstract class DirectoryServerPlugin
     assert debugEnter(CLASS_NAME, "doPostConnect",
                       String.valueOf(clientConnection));
 
-    // No implementation is required by default.
-    return new PostConnectPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                                PluginType.POST_CONNECT.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -278,8 +277,10 @@ public abstract class DirectoryServerPlugin
                       String.valueOf(messageID),
                       String.valueOf(message));
 
-    // No implementation is required by default.
-    return new PostDisconnectPluginResult();
+    int    msgID = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String msg   = getMessage(msgID, String.valueOf(pluginDN),
+                              PluginType.POST_DISCONNECT.getName());
+    throw new UnsupportedOperationException(msg);
   }
 
 
@@ -303,8 +304,10 @@ public abstract class DirectoryServerPlugin
                       String.valueOf(importConfig),
                       String.valueOf(entry));
 
-    // No implementation is required by default.
-    return new LDIFPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                                PluginType.LDIF_IMPORT.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -326,8 +329,10 @@ public abstract class DirectoryServerPlugin
                       String.valueOf(exportConfig),
                       String.valueOf(entry));
 
-    // No implementation is required by default.
-    return new LDIFPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                                PluginType.LDIF_EXPORT.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -341,14 +346,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult doPreParse(AbandonOperation
-                                              abandonOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseAbandonOperation abandonOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParse",
                       String.valueOf(abandonOperation));
 
-    // No implementation is required by default.
-    return new PreParsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_PARSE_ABANDON.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -364,13 +371,16 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostOperationPluginResult
-              doPostOperation(AbandonOperation abandonOperation)
+       doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostOperation",
                       String.valueOf(abandonOperation));
 
-    // No implementation is required by default.
-    return new PostOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message =
+         getMessage(msgID, String.valueOf(pluginDN),
+                    PluginType.POST_OPERATION_ABANDON.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -383,13 +393,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult doPreParse(AddOperation addOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseAddOperation addOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParse",
                       String.valueOf(addOperation));
 
-    // No implementation is required by default.
-    return new PreParsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                                PluginType.PRE_PARSE_ADD.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -405,14 +418,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreOperationPluginResult doPreOperation(AddOperation
-                                                      addOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationAddOperation addOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(addOperation));
 
-    // No implementation is required by default.
-    return new PreOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_OPERATION_ADD.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -428,14 +443,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult doPostOperation(AddOperation
-                                                        addOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationAddOperation addOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostOperation",
                       String.valueOf(addOperation));
 
-    // No implementation is required by default.
-    return new PostOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_OPERATION_ADD.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -451,14 +468,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult doPostResponse(AddOperation
-                                                      addOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseAddOperation addOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostResponse",
                       String.valueOf(addOperation));
 
-    // No implementation is required by default.
-    return new PostResponsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_RESPONSE_ADD.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -472,13 +491,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult doPreParse(BindOperation bindOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseBindOperation bindOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParse",
                       String.valueOf(bindOperation));
 
-    // No implementation is required by default.
-    return new PreParsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                                PluginType.PRE_PARSE_BIND.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -492,14 +514,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreOperationPluginResult doPreOperation(BindOperation
-                                                      bindOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationBindOperation bindOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(bindOperation));
 
-    // No implementation is required by default.
-    return new PreOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_OPERATION_BIND.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -515,14 +539,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult doPostOperation(BindOperation
-                                                        bindOperation)
+  public PostOperationPluginResult
+       doPostOperation(PostOperationBindOperation bindOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostOperation",
                       String.valueOf(bindOperation));
 
-    // No implementation is required by default.
-    return new PostOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_OPERATION_BIND.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -538,14 +564,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult doPostResponse(BindOperation
-                                                      bindOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseBindOperation bindOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostResponse",
                       String.valueOf(bindOperation));
 
-    // No implementation is required by default.
-    return new PostResponsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_RESPONSE_BIND.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -559,14 +587,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult doPreParse(CompareOperation
-                                              compareOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseCompareOperation compareOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParse",
                       String.valueOf(compareOperation));
 
-    // No implementation is required by default.
-    return new PreParsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_PARSE_COMPARE.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -581,13 +611,15 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PreOperationPluginResult
-              doPreOperation(CompareOperation compareOperation)
+       doPreOperation(PreOperationCompareOperation compareOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(compareOperation));
 
-    // No implementation is required by default.
-    return new PreOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_OPERATION_COMPARE.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -604,13 +636,16 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostOperationPluginResult
-              doPostOperation(CompareOperation compareOperation)
+       doPostOperation(PostOperationCompareOperation compareOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostOperation",
                       String.valueOf(compareOperation));
 
-    // No implementation is required by default.
-    return new PostOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message =
+         getMessage(msgID, String.valueOf(pluginDN),
+                    PluginType.POST_OPERATION_COMPARE.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -627,13 +662,15 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostResponsePluginResult
-              doPostResponse(CompareOperation compareOperation)
+       doPostResponse(PostResponseCompareOperation compareOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostResponse",
                       String.valueOf(compareOperation));
 
-    // No implementation is required by default.
-    return new PostResponsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_RESPONSE_COMPARE.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -647,14 +684,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult doPreParse(DeleteOperation
-                                              deleteOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseDeleteOperation deleteOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParse",
                       String.valueOf(deleteOperation));
 
-    // No implementation is required by default.
-    return new PreParsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_PARSE_DELETE.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -670,14 +709,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreOperationPluginResult doPreOperation(DeleteOperation
-                                                      deleteOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(deleteOperation));
 
-    // No implementation is required by default.
-    return new PreOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_OPERATION_DELETE.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -694,13 +735,15 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostOperationPluginResult
-              doPostOperation(DeleteOperation deleteOperation)
+       doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostOperation",
                       String.valueOf(deleteOperation));
 
-    // No implementation is required by default.
-    return new PostOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_OPERATION_DELETE.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -716,14 +759,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult doPostResponse(DeleteOperation
-                                                      deleteOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostResponse",
                       String.valueOf(deleteOperation));
 
-    // No implementation is required by default.
-    return new PostResponsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_RESPONSE_DELETE.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -737,14 +782,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult doPreParse(ExtendedOperation
-                                              extendedOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseExtendedOperation extendedOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParse",
                       String.valueOf(extendedOperation));
 
-    // No implementation is required by default.
-    return new PreParsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_PARSE_EXTENDED.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -760,13 +807,16 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PreOperationPluginResult
-              doPreOperation(ExtendedOperation extendedOperation)
+       doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(extendedOperation));
 
-    // No implementation is required by default.
-    return new PreOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message =
+         getMessage(msgID, String.valueOf(pluginDN),
+                    PluginType.PRE_OPERATION_EXTENDED.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -784,13 +834,17 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostOperationPluginResult
-              doPostOperation(ExtendedOperation extendedOperation)
+       doPostOperation(PostOperationExtendedOperation
+                            extendedOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostOperation",
                       String.valueOf(extendedOperation));
 
-    // No implementation is required by default.
-    return new PostOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message =
+         getMessage(msgID, String.valueOf(pluginDN),
+                    PluginType.POST_OPERATION_EXTENDED.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -807,13 +861,16 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostResponsePluginResult
-              doPostResponse(ExtendedOperation extendedOperation)
+       doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostResponse",
                       String.valueOf(extendedOperation));
 
-    // No implementation is required by default.
-    return new PostResponsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message =
+         getMessage(msgID, String.valueOf(pluginDN),
+                    PluginType.POST_RESPONSE_EXTENDED.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -827,14 +884,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult doPreParse(ModifyOperation
-                                              modifyOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseModifyOperation modifyOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParse",
                       String.valueOf(modifyOperation));
 
-    // No implementation is required by default.
-    return new PreParsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_PARSE_MODIFY.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -850,14 +909,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreOperationPluginResult doPreOperation(ModifyOperation
-                                                      modifyOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(modifyOperation));
 
-    // No implementation is required by default.
-    return new PreOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_OPERATION_MODIFY.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -874,13 +935,15 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostOperationPluginResult
-              doPostOperation(ModifyOperation modifyOperation)
+       doPostOperation(PostOperationModifyOperation modifyOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostOperation",
                       String.valueOf(modifyOperation));
 
-    // No implementation is required by default.
-    return new PostOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_OPERATION_MODIFY.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -896,14 +959,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult doPostResponse(ModifyOperation
-                                                      modifyOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseModifyOperation modifyOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostResponse",
                       String.valueOf(modifyOperation));
 
-    // No implementation is required by default.
-    return new PostResponsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_RESPONSE_MODIFY.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -917,14 +982,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult doPreParse(ModifyDNOperation
-                                              modifyDNOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParse",
                       String.valueOf(modifyDNOperation));
 
-    // No implementation is required by default.
-    return new PreParsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_PARSE_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -942,13 +1009,16 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PreOperationPluginResult
-              doPreOperation(ModifyDNOperation modifyDNOperation)
+       doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(modifyDNOperation));
 
-    // No implementation is required by default.
-    return new PreOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message =
+         getMessage(msgID, String.valueOf(pluginDN),
+                    PluginType.PRE_OPERATION_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -965,13 +1035,17 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostOperationPluginResult
-              doPostOperation(ModifyDNOperation modifyDNOperation)
+       doPostOperation(PostOperationModifyDNOperation
+                            modifyDNOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostOperation",
                       String.valueOf(modifyDNOperation));
 
-    // No implementation is required by default.
-    return new PostOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message =
+         getMessage(msgID, String.valueOf(pluginDN),
+                    PluginType.POST_OPERATION_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -988,13 +1062,16 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostResponsePluginResult
-              doPostResponse(ModifyDNOperation modifyDNOperation)
+       doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostResponse",
                       String.valueOf(modifyDNOperation));
 
-    // No implementation is required by default.
-    return new PostResponsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message =
+         getMessage(msgID, String.valueOf(pluginDN),
+                    PluginType.POST_RESPONSE_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -1008,14 +1085,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult doPreParse(SearchOperation
-                                              searchOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseSearchOperation searchOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParse",
                       String.valueOf(searchOperation));
 
-    // No implementation is required by default.
-    return new PreParsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_PARSE_SEARCH.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -1029,14 +1108,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreOperationPluginResult doPreOperation(SearchOperation
-                                                      searchOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationSearchOperation searchOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(searchOperation));
 
-    // No implementation is required by default.
-    return new PreOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_OPERATION_SEARCH.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -1057,16 +1138,18 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public SearchEntryPluginResult processSearchEntry(
-                                      SearchOperation searchOperation,
-                                      SearchResultEntry searchEntry)
+  public SearchEntryPluginResult
+       processSearchEntry(SearchEntrySearchOperation searchOperation,
+                          SearchResultEntry searchEntry)
   {
     assert debugEnter(CLASS_NAME, "processSearchEntry",
                       String.valueOf(searchOperation),
                       String.valueOf(searchEntry));
 
-    // No implementation is required by default.
-    return new SearchEntryPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.SEARCH_RESULT_ENTRY.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -1084,15 +1167,19 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public SearchReferencePluginResult
-              processSearchReference(SearchOperation searchOperation,
-                   SearchResultReference searchReference)
+       processSearchReference(SearchReferenceSearchOperation
+                                   searchOperation,
+                              SearchResultReference searchReference)
   {
     assert debugEnter(CLASS_NAME, "processSearchReference",
                       String.valueOf(searchOperation),
                       String.valueOf(searchReference));
 
-    // No implementation is required by default.
-    return new SearchReferencePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message =
+         getMessage(msgID, String.valueOf(pluginDN),
+                    PluginType.SEARCH_RESULT_REFERENCE.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -1109,13 +1196,15 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostOperationPluginResult
-              doPostOperation(SearchOperation searchOperation)
+       doPostOperation(PostOperationSearchOperation searchOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostOperation",
                       String.valueOf(searchOperation));
 
-    // No implementation is required by default.
-    return new PostOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_OPERATION_SEARCH.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -1131,14 +1220,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult doPostResponse(SearchOperation
-                                                      searchOperation)
+  public PostResponsePluginResult
+       doPostResponse(PostResponseSearchOperation searchOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostResponse",
                       String.valueOf(searchOperation));
 
-    // No implementation is required by default.
-    return new PostResponsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_RESPONSE_SEARCH.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -1152,14 +1243,16 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult doPreParse(UnbindOperation
-                                              unbindOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseUnbindOperation unbindOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParse",
                       String.valueOf(unbindOperation));
 
-    // No implementation is required by default.
-    return new PreParsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.PRE_PARSE_UNBIND.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -1175,13 +1268,15 @@ public abstract class DirectoryServerPlugin
    * @return  Information about the result of the plugin processing.
    */
   public PostOperationPluginResult
-              doPostOperation(UnbindOperation unbindOperation)
+       doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
     assert debugEnter(CLASS_NAME, "doPostOperation",
                       String.valueOf(unbindOperation));
 
-    // No implementation is required by default.
-    return new PostOperationPluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.POST_OPERATION_UNBIND.getName());
+    throw new UnsupportedOperationException(message);
   }
 
 
@@ -1202,8 +1297,10 @@ public abstract class DirectoryServerPlugin
     assert debugEnter(CLASS_NAME, "processIntermediateResponse",
                       String.valueOf(intermediateResponse));
 
-    // No implementation is required by default.
-    return new IntermediateResponsePluginResult();
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message = getMessage(msgID, String.valueOf(pluginDN),
+                          PluginType.INTERMEDIATE_RESPONSE.getName());
+    throw new UnsupportedOperationException(message);
   }
 }
 

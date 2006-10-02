@@ -31,9 +31,9 @@ package org.opends.server.api;
 import java.nio.ByteBuffer;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.InitializationException;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;
+import org.opends.server.types.InitializationException;
 
 
 

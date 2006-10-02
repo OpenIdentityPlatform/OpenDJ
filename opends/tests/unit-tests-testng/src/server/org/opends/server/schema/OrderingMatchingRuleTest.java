@@ -29,11 +29,11 @@ package org.opends.server.schema;
 import static org.testng.Assert.*;
 
 import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -166,33 +166,33 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
 
   private void dummy ()
   {
-  
+
        Object a = new Object[][] {
-        
-  
-  
-      
-  
-           
-  
-          
-  
-         
+
+
+
+
+
+
+
+
+
+
       };
-  
+
   }
 
 
   private Object dummy_invalid()
   {
     return new Object[][] {
-      
 
 
 
 
 
-        
+
+
     };
   }
 }

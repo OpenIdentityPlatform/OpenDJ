@@ -40,8 +40,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
-import org.opends.server.core.DirectoryException;
-
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;

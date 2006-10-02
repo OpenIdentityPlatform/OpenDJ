@@ -33,9 +33,9 @@ import java.util.LinkedList;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.core.InitializationException;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.types.InitializationException;
 
 import static org.opends.server.loggers.Debug.*;
 

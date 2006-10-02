@@ -53,12 +53,21 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.operation.PostOperationBindOperation;
+import org.opends.server.types.operation.PostResponseBindOperation;
+import org.opends.server.types.operation.PreOperationBindOperation;
+import org.opends.server.types.operation.PreParseBindOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.CoreConstants.*;
@@ -86,6 +95,8 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class BindOperation
              extends Operation
+             implements PreParseBindOperation, PreOperationBindOperation,
+                        PostOperationBindOperation, PostResponseBindOperation
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -428,7 +439,7 @@ public class BindOperation
    *
    * @return  The authentication type for this bind operation.
    */
-  public AuthenticationType getAuthenticationType()
+  public final AuthenticationType getAuthenticationType()
   {
     assert debugEnter(CLASS_NAME, "getAuthenticationType");
 
@@ -445,7 +456,7 @@ public class BindOperation
    * @return  The raw, unprocessed bind DN for this bind operation as contained
    *          in the client request.
    */
-  public ByteString getRawBindDN()
+  public final ByteString getRawBindDN()
   {
     assert debugEnter(CLASS_NAME, "getRawBindDN");
 
@@ -456,13 +467,11 @@ public class BindOperation
 
   /**
    * Specifies the raw, unprocessed bind DN for this bind operation.  This
-   * should only be called by pre-parse plugins; all other code that wishes to
-   * alter the bind DN should use the <CODE>getBindDN</CODE> and
-   * <CODE>setBindDN</CODE> methods.
+   * should only be called by pre-parse plugins.
    *
    * @param  rawBindDN  The raw, unprocessed bind DN for this bind operation.
    */
-  public void setRawBindDN(ByteString rawBindDN)
+  public final void setRawBindDN(ByteString rawBindDN)
   {
     assert debugEnter(CLASS_NAME, "setRawBindDN", String.valueOf(rawBindDN));
 
@@ -489,7 +498,7 @@ public class BindOperation
    * @return  The bind DN for this bind operation, or <CODE>null</CODE> if the
    *          raw DN has not yet been processed.
    */
-  public DN getBindDN()
+  public final DN getBindDN()
   {
     assert debugEnter(CLASS_NAME, "getBindDN");
 
@@ -499,27 +508,11 @@ public class BindOperation
 
 
   /**
-   * Specifies the bind DN for this bind operation. This method should not be
-   * called by pre-parse plugins, which should use <CODE>setRawBindDN</CODE>
-   * instead.
-   *
-   * @param  bindDN  The bind DN for this bind operation.
-   */
-  public void setBindDN(DN bindDN)
-  {
-    assert debugEnter(CLASS_NAME, "setBindDN", String.valueOf(bindDN));
-
-    this.bindDN = bindDN;
-  }
-
-
-
-  /**
    * Retrieves the simple authentication password for this bind operation.
    *
    * @return  The simple authentication password for this bind operation.
    */
-  public ByteString getSimplePassword()
+  public final ByteString getSimplePassword()
   {
     assert debugEnter(CLASS_NAME, "getSimplePassword");
 
@@ -534,7 +527,7 @@ public class BindOperation
    * @param  simplePassword  The simple authentication password for this bind
    *                         operation.
    */
-  public void setSimplePassword(ByteString simplePassword)
+  public final void setSimplePassword(ByteString simplePassword)
   {
     assert debugEnter(CLASS_NAME, "setSimplePassword",
                       String.valueOf(simplePassword));
@@ -561,7 +554,7 @@ public class BindOperation
    * @return  The SASL mechanism for this bind operation, or <CODE>null</CODE>
    *          if the bind does not use SASL authentication.
    */
-  public String getSASLMechanism()
+  public final String getSASLMechanism()
   {
     assert debugEnter(CLASS_NAME, "getSASLMechanism");
 
@@ -576,7 +569,7 @@ public class BindOperation
    * @return  The SASL credentials for this bind operation, or <CODE>null</CODE>
    *          if there are none or if the bind does not use SASL authentication.
    */
-  public ASN1OctetString getSASLCredentials()
+  public final ASN1OctetString getSASLCredentials()
   {
     assert debugEnter(CLASS_NAME, "getSASLCredentials");
 
@@ -592,8 +585,8 @@ public class BindOperation
    * @param  saslCredentials  The SASL credentials for this bind operation, or
    *                          <CODE>null</CODE> if there are none.
    */
-  public void setSASLCredentials(String saslMechanism,
-                                 ASN1OctetString saslCredentials)
+  public final void setSASLCredentials(String saslMechanism,
+                                       ASN1OctetString saslCredentials)
   {
     assert debugEnter(CLASS_NAME, "setSASLCredentials",
                       String.valueOf(saslCredentials));
@@ -614,7 +607,7 @@ public class BindOperation
    * @return  The set of server SASL credentials to include in the bind
    *          response, or <CODE>null</CODE> if there are none.
    */
-  public ASN1OctetString getServerSASLCredentials()
+  public final ASN1OctetString getServerSASLCredentials()
   {
     assert debugEnter(CLASS_NAME, "getServerSASLCredentials");
 
@@ -630,7 +623,8 @@ public class BindOperation
    * @param  serverSASLCredentials  The set of server SASL credentials to
    *                                include in the bind response.
    */
-  public void setServerSASLCredentials(ASN1OctetString serverSASLCredentials)
+  public final void setServerSASLCredentials(ASN1OctetString
+                                                  serverSASLCredentials)
   {
     assert debugEnter(CLASS_NAME, "setServerSASLCredentials",
                       String.valueOf(serverSASLCredentials));
@@ -650,7 +644,7 @@ public class BindOperation
    *          <CODE>null</CODE> if it was not a SASL authentication or the SASL
    *          processing was not able to map the request to a user.
    */
-  public Entry getSASLAuthUserEntry()
+  public final Entry getSASLAuthUserEntry()
   {
     assert debugEnter(CLASS_NAME, "getSASLAuthUserEntry");
 
@@ -668,7 +662,7 @@ public class BindOperation
    * @param  saslAuthUserEntry  The user entry associated with the SASL
    *                            authentication attempt.
    */
-  public void setSASLAuthUserEntry(Entry saslAuthUserEntry)
+  public final void setSASLAuthUserEntry(Entry saslAuthUserEntry)
   {
     assert debugEnter(CLASS_NAME, "setSASLAuthUserEntry",
                       String.valueOf(saslAuthUserEntry));
@@ -685,7 +679,7 @@ public class BindOperation
    * @return  A human-readable message providing the reason that the
    *          authentication failed, or <CODE>null</CODE> if none is available.
    */
-  public String getAuthFailureReason()
+  public final String getAuthFailureReason()
   {
     assert debugEnter(CLASS_NAME, "getAuthFailureReason");
 
@@ -701,7 +695,7 @@ public class BindOperation
    * @return  The unique identifier for the authentication failure reason, or
    *          zero if none is available.
    */
-  public int getAuthFailureID()
+  public final int getAuthFailureID()
   {
     assert debugEnter(CLASS_NAME, "getAuthFailureID");
 
@@ -718,7 +712,7 @@ public class BindOperation
    * @param  reason  A human-readable message providing the reason that the
    *                 authentication failed.
    */
-  public void setAuthFailureReason(int id, String reason)
+  public final void setAuthFailureReason(int id, String reason)
   {
     assert debugEnter(CLASS_NAME, "setAuthFailureReason",
                       String.valueOf(id), String.valueOf(reason));
@@ -740,13 +734,13 @@ public class BindOperation
   /**
    * Retrieves the user entry DN for this bind operation.  It will only be
    * available if the bind processing has proceeded far enough to identify the
-   * user attempting to authenticate or if the user DN could not be determined.
+   * user attempting to authenticate.
    *
    * @return  The user entry DN for this bind operation, or <CODE>null</CODE> if
    *          the bind processing has not progressed far enough to identify the
    *          user or if the user DN could not be determined.
    */
-  public DN getUserEntryDN()
+  public final DN getUserEntryDN()
   {
     assert debugEnter(CLASS_NAME, "getUserEntryDN");
 
@@ -756,11 +750,10 @@ public class BindOperation
 
 
   /**
-   * Retrieves the time that processing started for this operation.
-   *
-   * @return  The time that processing started for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStartTime()
+  @Override()
+  public final long getProcessingStartTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
@@ -770,13 +763,10 @@ public class BindOperation
 
 
   /**
-   * Retrieves the time that processing stopped for this operation.  This will
-   * actually hold a time immediately before the response was sent to the
-   * client.
-   *
-   * @return  The time that processing stopped for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStopTime()
+  @Override()
+  public final long getProcessingStopTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
@@ -786,14 +776,10 @@ public class BindOperation
 
 
   /**
-   * Retrieves the length of time in milliseconds that the server spent
-   * processing this operation.  This should not be called until after the
-   * server has sent the response to the client.
-   *
-   * @return  The length of time in milliseconds that the server spent
-   *          processing this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingTime()
+  @Override()
+  public final long getProcessingTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingTime");
 
@@ -802,11 +788,10 @@ public class BindOperation
 
 
   /**
-   * Retrieves the operation type for this operation.
-   *
-   * @return  The operation type for this operation.
+   * {@inheritDoc}
    */
-  public OperationType getOperationType()
+  @Override()
+  public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -817,16 +802,10 @@ public class BindOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in requests for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in requests for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getRequestLogElements()
+  @Override()
+  public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -853,16 +832,10 @@ public class BindOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in responses for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in responses for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getResponseLogElements()
+  @Override()
+  public final String[][] getResponseLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -927,13 +900,10 @@ public class BindOperation
 
 
   /**
-   * Retrieves the set of controls to include in the response to the client.
-   * Note that the contents of this list should not be altered after
-   * post-operation plugins have been called.
-   *
-   * @return  The set of controls to include in the response to the client.
+   * {@inheritDoc}
    */
-  public List<Control> getResponseControls()
+  @Override()
+  public final List<Control> getResponseControls()
   {
     assert debugEnter(CLASS_NAME, "getResponseControls");
 
@@ -943,13 +913,10 @@ public class BindOperation
 
 
   /**
-   * Adds the provided control to the set of controls to include in the response
-   * to the client.
-   *
-   * @param  control  The control to add to the set of controls to include in
-   *                  the response to the client.
+   * {@inheritDoc}
    */
-  public void addResponseControl(Control control)
+  @Override()
+  public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
@@ -957,13 +924,10 @@ public class BindOperation
 
 
   /**
-   * Removes the provided control from the set of controls to include in the
-   * response to the client.
-   *
-   * @param  control  The control to remove from the set of controls to include
-   *                  in the response to the client.
+   * {@inheritDoc}
    */
-  public void removeResponseControl(Control control)
+  @Override()
+  public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
@@ -971,12 +935,10 @@ public class BindOperation
 
 
   /**
-   * Performs the work of actually processing this operation.  This should
-   * include all processing for the operation, including invoking plugins,
-   * logging messages, performing access control, managing synchronization, and
-   * any other work that might need to be done in the course of processing.
+   * {@inheritDoc}
    */
-  public void run()
+  @Override()
+  public final void run()
   {
     assert debugEnter(CLASS_NAME, "run");
 
@@ -2290,16 +2252,10 @@ bindProcessing:
 
 
   /**
-   * Attempts to cancel this operation before processing has completed.  Note
-   * that a bind operation may not be canceled, so this should never do
-   * anything.
-   *
-   * @param  cancelRequest  Information about the way in which the operation
-   *                        should be canceled.
-   *
-   * @return  A code providing information on the result of the cancellation.
+   * {@inheritDoc}
    */
-  public CancelResult cancel(CancelRequest cancelRequest)
+  @Override()
+  public final CancelResult cancel(CancelRequest cancelRequest)
   {
     assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
@@ -2310,14 +2266,10 @@ bindProcessing:
 
 
   /**
-   * Retrieves the cancel request that has been issued for this operation, if
-   * there is one.  Note that a bind operation may not be canceled, so this will
-   * always return <CODE>null</CODE>.
-   *
-   * @return  The cancel request that has been issued for this operation, or
-   *          <CODE>null</CODE> if there has not been any request to cancel.
+   * {@inheritDoc}
    */
-  public CancelRequest getCancelRequest()
+  @Override()
+  public final CancelRequest getCancelRequest()
   {
     assert debugEnter(CLASS_NAME, "getCancelRequest");
 
@@ -2327,12 +2279,10 @@ bindProcessing:
 
 
   /**
-   * Appends a string representation of this operation to the provided buffer.
-   *
-   * @param  buffer  The buffer into which a string representation of this
-   *                 operation should be appended.
+   * {@inheritDoc}
    */
-  public void toString(StringBuilder buffer)
+  @Override()
+  public final void toString(StringBuilder buffer)
   {
     assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 

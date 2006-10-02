@@ -33,7 +33,6 @@ import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.config.ConfigConstants.*;

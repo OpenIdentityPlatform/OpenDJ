@@ -40,12 +40,12 @@ import org.opends.server.backends.MemoryBackend;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.loggers.Error;
 import org.opends.server.loggers.Debug;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.OperatingSystem;
 
 import static org.testng.Assert.*;

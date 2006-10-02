@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.server.core;
+package org.opends.server.types;
 
 
 
@@ -33,9 +33,9 @@ import static org.opends.server.loggers.Debug.*;
 
 
 /**
- * This class defines an exception that may be thrown if the operation being
- * processed is cancelled for some reason (e.g., an abandon or cancel request
- * from the client).
+ * This class defines an exception that may be thrown if the operation
+ * being processed is cancelled for some reason (e.g., an abandon or
+ * cancel request from the client).
  */
 public class CancelledOperationException
        extends Exception
@@ -44,33 +44,33 @@ public class CancelledOperationException
    * The fully-qualified name of this class for debugging purposes.
    */
   private static final String CLASS_NAME =
-       "org.opends.server.core.CancelledOperationException";
+       "org.opends.server.types.CancelledOperationException";
 
 
 
   /**
-   * The serial version identifier required to satisfy the compiler because this
-   * class extends <CODE>java.lang.Exception</CODE>, which implements the
-   * <CODE>java.io.Serializable</CODE> interface.  This value was generated
-   * using the <CODE>serialver</CODE> command-line utility included with the
-   * Java SDK.
+   * The serial version identifier required to satisfy the compiler
+   * because this class extends <CODE>java.lang.Exception</CODE>,
+   * which implements the <CODE>java.io.Serializable</CODE> interface.
+   * This value was generated using the <CODE>serialver</CODE>
+   * command-line utility included with the Java SDK.
    */
   private static final long serialVersionUID = -1936491673256446966L;
 
 
 
-  // The cancel result that provides information about the status of the
-  // cancellation.
-  private CancelResult cancelResult;
+  // The cancel result that provides information about the status of
+  // the cancellation.
+  private final CancelResult cancelResult;
 
   // The message ID for the cancel message.
-  private int messageID;
+  private final int messageID;
 
 
 
   /**
-   * Creates a new cancelled operation exception with the provided result and
-   * no additional message.
+   * Creates a new cancelled operation exception with the provided
+   * result and no additional message.
    *
    * @param  cancelResult  The result of the cancel processing.
    */
@@ -87,22 +87,25 @@ public class CancelledOperationException
 
 
   /**
-   * Creates a new cancelled operation exception with the provided information.
+   * Creates a new cancelled operation exception with the provided
+   * information.
    *
    * @param  cancelResult  The result of the cancel processing.
-   * @param  message       The message providing additional information about
-   *                       the cancel processing, or <CODE>null</CODE> if there
-   *                       is no message.
-   * @param  messageID     The message ID that uniquely identifies the cancel
-   *                       message, or -1 if there is no message.
+   * @param  message       The message providing additional
+   *                       information about the cancel processing, or
+   *                       <CODE>null</CODE> if there is no message.
+   * @param  messageID     The message ID that uniquely identifies the
+   *                       cancel message, or -1 if there is no
+   *                       message.
    */
-  public CancelledOperationException(CancelResult cancelResult, String message,
-                                     int messageID)
+  public CancelledOperationException(CancelResult cancelResult,
+                                     String message, int messageID)
   {
     super(message);
 
     assert debugConstructor(CLASS_NAME, String.valueOf(cancelResult),
-                            String.valueOf(message), String.valueOf(messageID));
+                            String.valueOf(message),
+                            String.valueOf(messageID));
 
     this.cancelResult = cancelResult;
     this.messageID    = messageID;
@@ -111,11 +114,13 @@ public class CancelledOperationException
 
 
   /**
-   * Retrieves the cancel result for this cancelled operation exception.
+   * Retrieves the cancel result for this cancelled operation
+   * exception.
    *
-   * @return  The cancel result for this cancelled operation exception.
+   * @return  The cancel result for this cancelled operation
+   *          exception.
    */
-  public CancelResult getCancelResult()
+  public final CancelResult getCancelResult()
   {
     assert debugEnter(CLASS_NAME, "getCancelResult");
 
@@ -125,14 +130,14 @@ public class CancelledOperationException
 
 
   /**
-   * Retrieves the unique message ID for the message associated with this
-   * cancelled operation exception.
+   * Retrieves the unique message ID for the message associated with
+   * this cancelled operation exception.
    *
-   * @return  The unique message ID for the message associated with this
-   *          cancelled operation exception, or <CODE>-1</CODE> if there is no
-   *          message.
+   * @return  The unique message ID for the message associated with
+   *          this cancelled operation exception, or <CODE>-1</CODE>
+   *          if there is no message.
    */
-  public int getMessageID()
+  public final int getMessageID()
   {
     assert debugEnter(CLASS_NAME, "getMessageID");
 

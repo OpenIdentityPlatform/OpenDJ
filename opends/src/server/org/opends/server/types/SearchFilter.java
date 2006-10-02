@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.server.api.MatchingRule;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 

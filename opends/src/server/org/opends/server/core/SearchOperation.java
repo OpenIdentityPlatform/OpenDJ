@@ -55,15 +55,26 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.CancelledOperationException;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
+import org.opends.server.types.operation.PostOperationSearchOperation;
+import org.opends.server.types.operation.PostResponseSearchOperation;
+import org.opends.server.types.operation.PreOperationSearchOperation;
+import org.opends.server.types.operation.PreParseSearchOperation;
+import org.opends.server.types.operation.SearchEntrySearchOperation;
+import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.core.CoreConstants.*;
@@ -82,6 +93,9 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class SearchOperation
        extends Operation
+       implements PreParseSearchOperation, PreOperationSearchOperation,
+                  PostOperationSearchOperation, PostResponseSearchOperation,
+                  SearchEntrySearchOperation, SearchReferenceSearchOperation
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -219,7 +233,15 @@ public class SearchOperation
     this.timeLimit   = timeLimit;
     this.typesOnly   = typesOnly;
     this.rawFilter   = rawFilter;
-    this.attributes  = attributes;
+
+    if (attributes == null)
+    {
+      this.attributes  = new LinkedHashSet<String>(0);
+    }
+    else
+    {
+      this.attributes  = attributes;
+    }
 
 
     if (clientConnection.getSizeLimit() <= 0)
@@ -324,7 +346,15 @@ public class SearchOperation
     this.timeLimit   = timeLimit;
     this.typesOnly   = typesOnly;
     this.filter      = filter;
-    this.attributes  = attributes;
+
+    if (attributes == null)
+    {
+      this.attributes = new LinkedHashSet<String>(0);
+    }
+    else
+    {
+      this.attributes  = attributes;
+    }
 
     rawBaseDN = new ASN1OctetString(baseDN.toString());
     rawFilter = new LDAPFilter(filter);
@@ -386,7 +416,7 @@ public class SearchOperation
    * @return  The raw, unprocessed base DN as included in the request from the
    *          client.
    */
-  public ByteString getRawBaseDN()
+  public final ByteString getRawBaseDN()
   {
     assert debugEnter(CLASS_NAME, "getRawBaseDN");
 
@@ -397,14 +427,12 @@ public class SearchOperation
 
   /**
    * Specifies the raw, unprocessed base DN as included in the request from the
-   * client.  This method should only be called by pre-parse plugins.  Any other
-   * code that wishes to alter the base DN should use the <CODE>setBaseDN</CODE>
-   * method instead.
+   * client.  This method should only be called by pre-parse plugins.
    *
    * @param  rawBaseDN  The raw, unprocessed base DN as included in the request
    *                    from the client.
    */
-  public void setRawBaseDN(ByteString rawBaseDN)
+  public final void setRawBaseDN(ByteString rawBaseDN)
   {
     assert debugEnter(CLASS_NAME, "setRawBaseDN", String.valueOf(rawBaseDN));
 
@@ -423,7 +451,7 @@ public class SearchOperation
    * @return  The base DN for this search operation, or <CODE>null</CODE> if the
    *          raw base DN has not yet been processed.
    */
-  public DN getBaseDN()
+  public final DN getBaseDN()
   {
     assert debugEnter(CLASS_NAME, "getBaseDN");
 
@@ -433,13 +461,12 @@ public class SearchOperation
 
 
   /**
-   * Specifies the base DN for this search operation.  This should not be called
-   * by pre-parse plugins, which should use the <CODE>setRawBaseDN</CODE> method
-   * instead.
+   * Specifies the base DN for this search operation.  This method is only
+   * intended for internal use.
    *
    * @param  baseDN  The base DN for this search operation.
    */
-  public void setBaseDN(DN baseDN)
+  public final void setBaseDN(DN baseDN)
   {
     assert debugEnter(CLASS_NAME, "setBaseDN", String.valueOf(baseDN));
 
@@ -453,7 +480,7 @@ public class SearchOperation
    *
    * @return  The scope for this search operation.
    */
-  public SearchScope getScope()
+  public final SearchScope getScope()
   {
     assert debugEnter(CLASS_NAME, "getScope");
 
@@ -463,11 +490,12 @@ public class SearchOperation
 
 
   /**
-   * Specifies the scope for this search operation.
+   * Specifies the scope for this search operation.  This should only be called
+   * by pre-parse plugins.
    *
    * @param  scope  The scope for this search operation.
    */
-  public void setScope(SearchScope scope)
+  public final void setScope(SearchScope scope)
   {
     assert debugEnter(CLASS_NAME, "setScope", String.valueOf(scope));
 
@@ -481,7 +509,7 @@ public class SearchOperation
    *
    * @return  The alias dereferencing policy for this search operation.
    */
-  public DereferencePolicy getDerefPolicy()
+  public final DereferencePolicy getDerefPolicy()
   {
     assert debugEnter(CLASS_NAME, "getDerefPolicy");
 
@@ -491,12 +519,13 @@ public class SearchOperation
 
 
   /**
-   * Specifies the alias dereferencing policy for this search operation.
+   * Specifies the alias dereferencing policy for this search operation.  This
+   * should only be called by pre-parse plugins.
    *
    * @param  derefPolicy  The alias dereferencing policy for this search
    *                      operation.
    */
-  public void setDerefPolicy(DereferencePolicy derefPolicy)
+  public final void setDerefPolicy(DereferencePolicy derefPolicy)
   {
     assert debugEnter(CLASS_NAME, "setDerefPolicy",
                       String.valueOf(derefPolicy));
@@ -511,7 +540,7 @@ public class SearchOperation
    *
    * @return  The size limit for this search operation.
    */
-  public int getSizeLimit()
+  public final int getSizeLimit()
   {
     assert debugEnter(CLASS_NAME, "getSizeLimit");
 
@@ -521,11 +550,12 @@ public class SearchOperation
 
 
   /**
-   * Specifies the size limit for this search operation.
+   * Specifies the size limit for this search operation.  This should only be
+   * called by pre-parse plugins.
    *
    * @param  sizeLimit  The size limit for this search operation.
    */
-  public void setSizeLimit(int sizeLimit)
+  public final void setSizeLimit(int sizeLimit)
   {
     assert debugEnter(CLASS_NAME, "setSizeLimit", String.valueOf(sizeLimit));
 
@@ -539,7 +569,7 @@ public class SearchOperation
    *
    * @return  The time limit for this search operation.
    */
-  public int getTimeLimit()
+  public final int getTimeLimit()
   {
     assert debugEnter(CLASS_NAME, "getTimeLimit");
 
@@ -549,11 +579,12 @@ public class SearchOperation
 
 
   /**
-   * Specifies the time limit for this search operation.
+   * Specifies the time limit for this search operation.  This should only be
+   * called by pre-parse plugins.
    *
    * @param  timeLimit  The time limit for this search operation.
    */
-  public void setTimeLimit(int timeLimit)
+  public final void setTimeLimit(int timeLimit)
   {
     assert debugEnter(CLASS_NAME, "setTimeLimit", String.valueOf(timeLimit));
 
@@ -567,7 +598,7 @@ public class SearchOperation
    *
    * @return  The typesOnly flag for this search operation.
    */
-  public boolean getTypesOnly()
+  public final boolean getTypesOnly()
   {
     assert debugEnter(CLASS_NAME, "getTypesOnly");
 
@@ -577,11 +608,12 @@ public class SearchOperation
 
 
   /**
-   * Specifies the typesOnly flag for this search operation.
+   * Specifies the typesOnly flag for this search operation.  This should only
+   * be called by pre-parse plugins.
    *
    * @param  typesOnly  The typesOnly flag for this search operation.
    */
-  public void setTypesOnly(boolean typesOnly)
+  public final void setTypesOnly(boolean typesOnly)
   {
     assert debugEnter(CLASS_NAME, "setTypesOnly", String.valueOf(typesOnly));
 
@@ -599,7 +631,7 @@ public class SearchOperation
    * @return  The raw, unprocessed search filter as included in the request from
    *          the client.
    */
-  public LDAPFilter getRawFilter()
+  public final LDAPFilter getRawFilter()
   {
     assert debugEnter(CLASS_NAME, "getRawFilter");
 
@@ -611,13 +643,11 @@ public class SearchOperation
   /**
    * Specifies the raw, unprocessed search filter as included in the request
    * from the client.  This method should only be called by pre-parse plugins.
-   * All later processing that wishes to change the filter should use the
-   * <CODE>setFilter</CODE> method instead.
    *
    * @param  rawFilter  The raw, unprocessed search filter as included in the
    *                    request from the client.
    */
-  public void setRawFilter(LDAPFilter rawFilter)
+  public final void setRawFilter(LDAPFilter rawFilter)
   {
     assert debugEnter(CLASS_NAME, "setRawFilter", String.valueOf(rawFilter));
 
@@ -631,12 +661,12 @@ public class SearchOperation
   /**
    * Retrieves the filter for this search operation.  This should not be called
    * by pre-parse plugins, because the raw filter will not yet have been
-   * processed.  Instead, they should use the <CODE>getRawFilter</CODE> method.
+   * processed.
    *
    * @return  The filter for this search operation, or <CODE>null</CODE> if the
    *          raw filter has not yet been processed.
    */
-  public SearchFilter getFilter()
+  public final SearchFilter getFilter()
   {
     assert debugEnter(CLASS_NAME, "getFilter");
 
@@ -646,32 +676,40 @@ public class SearchOperation
 
 
   /**
-   * Specifies the filter for this search operation.  This should not be called
-   * by pre-parse plugins, which should instead use the
-   * <CODE>setRawFilter</CODE> method.
+   * Retrieves the set of requested attributes for this search operation.  Its
+   * contents should not be be altered.
    *
-   * @param  filter  The filter for this search operation.
+   * @return  The set of requested attributes for this search operation.
    */
-  public void setFilter(SearchFilter filter)
+  public final LinkedHashSet<String> getAttributes()
   {
-    assert debugEnter(CLASS_NAME, "setFilter", String.valueOf(filter));
+    assert debugEnter(CLASS_NAME, "getAttributes");
 
-    this.filter = filter;
+    return attributes;
   }
 
 
 
   /**
-   * Retrieves the set of requested attributes for this search operation.  Its
-   * contents may be altered in pre-parse or pre-operation plugins.
+   * Specifies the set of requested attributes for this search operation.  It
+   * should only be called by pre-parse plugins.
    *
-   * @return  The set of requested attributes for this search operation.
+   * @param  attributes  The set of requested attributes for this search
+   *                     operation.
    */
-  public LinkedHashSet<String> getAttributes()
+  public final void setAttributes(LinkedHashSet<String> attributes)
   {
-    assert debugEnter(CLASS_NAME, "getAttributes");
+    assert debugEnter(CLASS_NAME, "setAttributes",
+                      String.valueOf(attributes));
 
-    return attributes;
+    if (attributes == null)
+    {
+      this.attributes.clear();
+    }
+    else
+    {
+      this.attributes = attributes;
+    }
   }
 
 
@@ -683,7 +721,7 @@ public class SearchOperation
    * @return  The number of entries sent to the client for this search
    *          operation.
    */
-  public int getEntriesSent()
+  public final int getEntriesSent()
   {
     assert debugEnter(CLASS_NAME, "getEntriesSent");
 
@@ -699,7 +737,7 @@ public class SearchOperation
    * @return  The number of search references sent to the client for this search
    *          operation.
    */
-  public int getReferencesSent()
+  public final int getReferencesSent()
   {
     assert debugEnter(CLASS_NAME, "getReferencesSent");
 
@@ -709,11 +747,10 @@ public class SearchOperation
 
 
   /**
-   * Retrieves the time that processing started for this operation.
-   *
-   * @return  The time that processing started for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStartTime()
+  @Override()
+  public final long getProcessingStartTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
@@ -723,13 +760,10 @@ public class SearchOperation
 
 
   /**
-   * Retrieves the time that processing stopped for this operation.  This will
-   * actually hold a time immediately before the response was sent to the
-   * client.
-   *
-   * @return  The time that processing stopped for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStopTime()
+  @Override()
+  public final long getProcessingStopTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
@@ -739,14 +773,10 @@ public class SearchOperation
 
 
   /**
-   * Retrieves the length of time in milliseconds that the server spent
-   * processing this operation.  This should not be called until after the
-   * server has sent the response to the client.
-   *
-   * @return  The length of time in milliseconds that the server spent
-   *          processing this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingTime()
+  @Override()
+  public final long getProcessingTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingTime");
 
@@ -770,7 +800,7 @@ public class SearchOperation
    *          <CODE>false</CODE> if not for some reason (e.g., the size limit
    *          has been reached or the search has been abandoned).
    */
-  public boolean returnEntry(Entry entry, List<Control> controls)
+  public final boolean returnEntry(Entry entry, List<Control> controls)
   {
     assert debugEnter(CLASS_NAME, "returnEntry", String.valueOf(entry));
 
@@ -1227,7 +1257,7 @@ public class SearchOperation
    *          <CODE>false</CODE> if not for some reason (e.g., the size limit
    *          has been reached or the search has been abandoned).
    */
-  public boolean returnReference(SearchResultReference reference)
+  public final boolean returnReference(SearchResultReference reference)
   {
     assert debugEnter(CLASS_NAME, "returnReference", String.valueOf(reference));
 
@@ -1319,7 +1349,7 @@ public class SearchOperation
    * message should have been set for this operation before this method is
    * called.
    */
-  public void sendSearchResultDone()
+  public final void sendSearchResultDone()
   {
     assert debugEnter(CLASS_NAME, "sendSearchResultDone");
 
@@ -1345,11 +1375,10 @@ public class SearchOperation
 
 
   /**
-   * Retrieves the operation type for this operation.
-   *
-   * @return  The operation type for this operation.
+   * {@inheritDoc}
    */
-  public OperationType getOperationType()
+  @Override()
+  public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -1360,16 +1389,10 @@ public class SearchOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in requests for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in requests for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getRequestLogElements()
+  @Override()
+  public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -1408,16 +1431,10 @@ public class SearchOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in responses for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in responses for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getResponseLogElements()
+  @Override()
+  public final String[][] getResponseLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -1486,13 +1503,10 @@ public class SearchOperation
 
 
   /**
-   * Retrieves the set of controls to include in the response to the client.
-   * Note that the contents of this list should not be altered after
-   * post-operation plugins have been called.
-   *
-   * @return  The set of controls to include in the response to the client.
+   * {@inheritDoc}
    */
-  public List<Control> getResponseControls()
+  @Override()
+  public final List<Control> getResponseControls()
   {
     assert debugEnter(CLASS_NAME, "getResponseControls");
 
@@ -1502,12 +1516,32 @@ public class SearchOperation
 
 
   /**
-   * Performs the work of actually processing this operation.  This should
-   * include all processing for the operation, including invoking plugins,
-   * logging messages, performing access control, managing synchronization, and
-   * any other work that might need to be done in the course of processing.
+   * {@inheritDoc}
    */
-  public void run()
+  @Override()
+  public final void addResponseControl(Control control)
+  {
+    responseControls.add(control);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void removeResponseControl(Control control)
+  {
+    responseControls.remove(control);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void run()
   {
     assert debugEnter(CLASS_NAME, "run");
 
@@ -2093,7 +2127,7 @@ searchProcessing:
    *                                       to a request to cancel or abandon the
    *                                       search operation.
    */
-  private void searchBackend(Backend backend)
+  private final void searchBackend(Backend backend)
           throws DirectoryException, CancelledOperationException
   {
     assert debugEnter(CLASS_NAME, "searchBackend", String.valueOf(backend));
@@ -2132,14 +2166,10 @@ searchProcessing:
 
 
   /**
-   * Attempts to cancel this operation before processing has completed.
-   *
-   * @param  cancelRequest  Information about the way in which the operation
-   *                        should be canceled.
-   *
-   * @return  A code providing information on the result of the cancellation.
+   * {@inheritDoc}
    */
-  public CancelResult cancel(CancelRequest cancelRequest)
+  @Override()
+  public final CancelResult cancel(CancelRequest cancelRequest)
   {
     assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
@@ -2183,13 +2213,10 @@ searchProcessing:
 
 
   /**
-   * Retrieves the cancel request that has been issued for this operation, if
-   * there is one.
-   *
-   * @return  The cancel request that has been issued for this operation, or
-   *          <CODE>null</CODE> if there has not been any request to cancel.
+   * {@inheritDoc}
    */
-  public CancelRequest getCancelRequest()
+  @Override()
+  public final CancelRequest getCancelRequest()
   {
     assert debugEnter(CLASS_NAME, "getCancelRequest");
 
@@ -2199,12 +2226,10 @@ searchProcessing:
 
 
   /**
-   * Appends a string representation of this operation to the provided buffer.
-   *
-   * @param  buffer  The buffer into which a string representation of this
-   *                 operation should be appended.
+   * {@inheritDoc}
    */
-  public void toString(StringBuilder buffer)
+  @Override()
+  public final void toString(StringBuilder buffer)
   {
     assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 

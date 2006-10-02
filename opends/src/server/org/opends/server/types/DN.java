@@ -31,7 +31,6 @@ package org.opends.server.types;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 

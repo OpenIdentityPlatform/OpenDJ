@@ -39,7 +39,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -47,6 +46,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 

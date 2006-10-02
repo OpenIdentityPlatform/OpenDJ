@@ -33,7 +33,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.Debug.*;

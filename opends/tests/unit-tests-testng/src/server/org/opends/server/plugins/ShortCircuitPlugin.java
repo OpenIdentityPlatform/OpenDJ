@@ -38,18 +38,7 @@ import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AbandonOperation;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.Operation;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.core.UnbindOperation;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Enumerated;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -57,6 +46,7 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Control;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.operation.*;
 
 
 
@@ -139,9 +129,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(AbandonOperation abandonOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseAbandonOperation abandonOperation)
   {
-    int resultCode = shortCircuitInternal(abandonOperation, "PreParse");
+    int resultCode = shortCircuitInternal(abandonOperation.getRequestControls(),
+                                          "PreParse");
     if (resultCode >= 0)
     {
       abandonOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -160,9 +152,10 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(AddOperation addOperation)
+  public PreParsePluginResult doPreParse(PreParseAddOperation addOperation)
   {
-    int resultCode = shortCircuitInternal(addOperation, "PreParse");
+    int resultCode = shortCircuitInternal(addOperation.getRequestControls(),
+                                          "PreParse");
     if (resultCode >= 0)
     {
       addOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -181,9 +174,10 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(BindOperation bindOperation)
+  public PreParsePluginResult doPreParse(PreParseBindOperation bindOperation)
   {
-    int resultCode = shortCircuitInternal(bindOperation, "PreParse");
+    int resultCode = shortCircuitInternal(bindOperation.getRequestControls(),
+                                          "PreParse");
     if (resultCode >= 0)
     {
       bindOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -202,9 +196,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(CompareOperation compareOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseCompareOperation compareOperation)
   {
-    int resultCode = shortCircuitInternal(compareOperation, "PreParse");
+    int resultCode = shortCircuitInternal(compareOperation.getRequestControls(),
+                                          "PreParse");
     if (resultCode >= 0)
     {
       compareOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -223,9 +219,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(DeleteOperation deleteOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseDeleteOperation deleteOperation)
   {
-    int resultCode = shortCircuitInternal(deleteOperation, "PreParse");
+    int resultCode = shortCircuitInternal(deleteOperation.getRequestControls(),
+                                          "PreParse");
     if (resultCode >= 0)
     {
       deleteOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -244,9 +242,12 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(ExtendedOperation extendedOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseExtendedOperation extendedOperation)
   {
-    int resultCode = shortCircuitInternal(extendedOperation, "PreParse");
+    int resultCode =
+             shortCircuitInternal(extendedOperation.getRequestControls(),
+                                  "PreParse");
     if (resultCode >= 0)
     {
       extendedOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -265,9 +266,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(ModifyOperation modifyOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseModifyOperation modifyOperation)
   {
-    int resultCode = shortCircuitInternal(modifyOperation, "PreParse");
+    int resultCode = shortCircuitInternal(modifyOperation.getRequestControls(),
+                                          "PreParse");
     if (resultCode >= 0)
     {
       modifyOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -286,9 +289,12 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(ModifyDNOperation modifyDNOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
-    int resultCode = shortCircuitInternal(modifyDNOperation, "PreParse");
+    int resultCode =
+             shortCircuitInternal(modifyDNOperation.getRequestControls(),
+                                  "PreParse");
     if (resultCode >= 0)
     {
       modifyDNOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -307,9 +313,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(SearchOperation searchOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseSearchOperation searchOperation)
   {
-    int resultCode = shortCircuitInternal(searchOperation, "PreParse");
+    int resultCode = shortCircuitInternal(searchOperation.getRequestControls(),
+                                          "PreParse");
     if (resultCode >= 0)
     {
       searchOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -328,9 +336,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(UnbindOperation unbindOperation)
+  public PreParsePluginResult
+       doPreParse(PreParseUnbindOperation unbindOperation)
   {
-    int resultCode = shortCircuitInternal(unbindOperation, "PreParse");
+    int resultCode = shortCircuitInternal(unbindOperation.getRequestControls(),
+                                          "PreParse");
     if (resultCode >= 0)
     {
       unbindOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -349,9 +359,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(AddOperation addOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationAddOperation addOperation)
   {
-    int resultCode = shortCircuitInternal(addOperation, "PreOperation");
+    int resultCode = shortCircuitInternal(addOperation.getRequestControls(),
+                                          "PreOperation");
     if (resultCode >= 0)
     {
       addOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -370,9 +382,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(BindOperation bindOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationBindOperation bindOperation)
   {
-    int resultCode = shortCircuitInternal(bindOperation, "PreOperation");
+    int resultCode = shortCircuitInternal(bindOperation.getRequestControls(),
+                                          "PreOperation");
     if (resultCode >= 0)
     {
       bindOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -391,10 +405,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(CompareOperation
-                                                      compareOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationCompareOperation compareOperation)
   {
-    int resultCode = shortCircuitInternal(compareOperation, "PreOperation");
+    int resultCode = shortCircuitInternal(compareOperation.getRequestControls(),
+                                          "PreOperation");
     if (resultCode >= 0)
     {
       compareOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -413,10 +428,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(DeleteOperation
-                                                      deleteOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
-    int resultCode = shortCircuitInternal(deleteOperation, "PreOperation");
+    int resultCode = shortCircuitInternal(deleteOperation.getRequestControls(),
+                                          "PreOperation");
     if (resultCode >= 0)
     {
       deleteOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -435,10 +451,12 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(ExtendedOperation
-                                                      extendedOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
-    int resultCode = shortCircuitInternal(extendedOperation, "PreOperation");
+    int resultCode =
+             shortCircuitInternal(extendedOperation.getRequestControls(),
+                                  "PreOperation");
     if (resultCode >= 0)
     {
       extendedOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -457,10 +475,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(ModifyOperation
-                                                      modifyOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationModifyOperation modifyOperation)
   {
-    int resultCode = shortCircuitInternal(modifyOperation, "PreOperation");
+    int resultCode = shortCircuitInternal(modifyOperation.getRequestControls(),
+                                          "PreOperation");
     if (resultCode >= 0)
     {
       modifyOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -479,10 +498,12 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(ModifyDNOperation
-                                                      modifyDNOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
-    int resultCode = shortCircuitInternal(modifyDNOperation, "PreOperation");
+    int resultCode =
+             shortCircuitInternal(modifyDNOperation.getRequestControls(),
+                                  "PreOperation");
     if (resultCode >= 0)
     {
       modifyDNOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -501,10 +522,11 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(SearchOperation
-                                                      searchOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationSearchOperation searchOperation)
   {
-    int resultCode = shortCircuitInternal(searchOperation, "PreOperation");
+    int resultCode = shortCircuitInternal(searchOperation.getRequestControls(),
+                                          "PreOperation");
     if (resultCode >= 0)
     {
       searchOperation.setResultCode(ResultCode.valueOf(resultCode));
@@ -529,9 +551,9 @@ public class ShortCircuitPlugin
    * @return  The result code that should be immediately sent to the client, or
    *          -1 if operation processing should continue as normal.
    */
-  private int shortCircuitInternal(Operation operation, String section)
+  private int shortCircuitInternal(List<Control> requestControls,
+                                   String section)
   {
-    List<Control> requestControls = operation.getRequestControls();
     if (requestControls != null)
     {
       for (Control c : requestControls)

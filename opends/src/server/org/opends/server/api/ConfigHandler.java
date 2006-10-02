@@ -30,9 +30,9 @@ package org.opends.server.api;
 
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryException;
-import org.opends.server.core.InitializationException;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.InitializationException;
 
 
 

@@ -29,6 +29,7 @@ package org.opends.server.core;
 import static org.testng.AssertJUnit.assertEquals;
 
 import org.opends.server.api.SubtreeSpecification;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.testng.annotations.Test;
 

@@ -29,7 +29,7 @@ package org.opends.server.api;
 
 
 import org.opends.server.config.ConfigAttribute;
-import org.opends.server.core.DirectoryException;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.InvokableMethod;
 

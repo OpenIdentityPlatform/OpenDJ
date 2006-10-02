@@ -41,7 +41,7 @@ import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
+import org.opends.server.types.InitializationException;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;

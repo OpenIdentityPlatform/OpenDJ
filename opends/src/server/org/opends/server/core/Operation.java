@@ -35,10 +35,18 @@ import java.util.Map;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.operation.PostOperationOperation;
+import org.opends.server.types.operation.PostResponseOperation;
+import org.opends.server.types.operation.PreOperationOperation;
+import org.opends.server.types.operation.PreParseOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Debug.*;
@@ -52,7 +60,8 @@ import static org.opends.server.loggers.Debug.*;
  * appropriate for the type of operation.
  */
 public abstract class Operation
-       implements Runnable
+       implements PreParseOperation, PreOperationOperation,
+                  PostOperationOperation, PostResponseOperation, Runnable
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -73,21 +82,21 @@ public abstract class Operation
   /**
    * The client connection with which this operation is associated.
    */
-  protected ClientConnection clientConnection;
+  protected final ClientConnection clientConnection;
 
 
 
   /**
    * The message ID for this operation.
    */
-  protected int messageID;
+  protected final int messageID;
 
 
 
   /**
    * The operation ID for this operation.
    */
-  protected long operationID;
+  protected final long operationID;
 
 
 
@@ -196,7 +205,7 @@ public abstract class Operation
    * @return  A standard set of elements that should be logged in requests and
    *          responses for all types of operations.
    */
-  public String[][] getCommonLogElements()
+  public final String[][] getCommonLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -301,12 +310,11 @@ public abstract class Operation
 
   /**
    * Retrieves the set of controls included in the request from the client.
-   * Note that it is only acceptable for the caller to alter the contents of the
-   * returned list in pre-parse plugins.
+   * The returned list must not be altered.
    *
    * @return  The set of controls included in the request from the client.
    */
-  public List<Control> getRequestControls()
+  public final List<Control> getRequestControls()
   {
     assert debugEnter(CLASS_NAME, "getRequestControls");
 
@@ -316,9 +324,41 @@ public abstract class Operation
 
 
   /**
+   * Adds the provided control to the set of request controls for this
+   * operation.  This method may only be called by pre-parse plugins.
+   *
+   * @param  control  The control to add to the set of request controls for this
+   *                  operation.
+   */
+  public final void addRequestControl(Control control)
+  {
+    assert debugEnter(CLASS_NAME, "addRequestControl", String.valueOf(control));
+
+    requestControls.add(control);
+  }
+
+
+
+  /**
+   * Removes the provided control from the set of request controls for this
+   * operation.  This method may only be called by pre-parse plugins.
+   *
+   * @param  control  The control to remove from the set of request controls for
+   *                  this operation.
+   */
+  public final void removeRequestControl(Control control)
+  {
+    assert debugEnter(CLASS_NAME, "removeRequestControl",
+                      String.valueOf(control));
+
+    requestControls.remove(control);
+  }
+
+
+
+  /**
    * Retrieves the set of controls to include in the response to the client.
-   * Note that the contents of this list should not be altered after
-   * post-operation plugins have been called.
+   * The contents of this list must not be altered.
    *
    * @return  The set of controls to include in the response to the client.
    */
@@ -327,12 +367,35 @@ public abstract class Operation
 
 
   /**
+   * Adds the provided control to the set of controls to include in the response
+   * to the client.  This method may not be called by post-response plugins.
+   *
+   * @param  control  The control to add to the set of controls to include in
+   *                  the response to the client.
+   */
+  public abstract void addResponseControl(Control control);
+
+
+
+  /**
+   * Removes the provided control from the set of controls to include in the
+   * response to the client.  This method may not be called by post-response
+   * plugins.
+   *
+   * @param  control  The control to remove from the set of controls to include
+   *                  in the response to the client.
+   */
+  public abstract void removeResponseControl(Control control);
+
+
+
+  /**
    * Retrieves the result code for this operation.
    *
    * @return  The result code associated for this operation, or
-   *          <CODE>null</CODE> if the operation has not yet completed.
+   *          <CODE>UNDEFINED</CODE> if the operation has not yet completed.
    */
-  public ResultCode getResultCode()
+  public final ResultCode getResultCode()
   {
     assert debugEnter(CLASS_NAME, "getResultCode");
 
@@ -342,11 +405,12 @@ public abstract class Operation
 
 
   /**
-   * Specifies the result code for this operation.
+   * Specifies the result code for this operation.  This method may not be
+   * called by post-response plugins.
    *
    * @param  resultCode  The result code for this operation.
    */
-  public void setResultCode(ResultCode resultCode)
+  public final void setResultCode(ResultCode resultCode)
   {
     assert debugEnter(CLASS_NAME, "setResultCode", String.valueOf(resultCode));
 
@@ -357,11 +421,12 @@ public abstract class Operation
 
   /**
    * Retrieves the error message for this operation.  Its contents may be
-   * altered by the caller.
+   * altered by pre-parse, pre-operation, and post-operation plugins, but not
+   * by post-response plugins.
    *
    * @return  The error message for this operation.
    */
-  public StringBuilder getErrorMessage()
+  public final StringBuilder getErrorMessage()
   {
     assert debugEnter(CLASS_NAME, "getErrorMessage");
 
@@ -371,11 +436,12 @@ public abstract class Operation
 
 
   /**
-   * Specifies the error message for this operation.
+   * Specifies the error message for this operation.  This method may not be
+   * called by post-response plugins.
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public void setErrorMessage(StringBuilder errorMessage)
+  public final void setErrorMessage(StringBuilder errorMessage)
   {
     assert debugEnter(CLASS_NAME, "setErrorMessage",
                       String.valueOf(errorMessage));
@@ -395,11 +461,11 @@ public abstract class Operation
   /**
    * Appends the provided message to the error message buffer.  If the buffer
    * has not yet been created, then this will create it first and then add the
-   * provided message.
+   * provided message.  This method may not be called by post-response plugins.
    *
    * @param  message  The message to append to the error message buffer.
    */
-  public void appendErrorMessage(String message)
+  public final void appendErrorMessage(String message)
   {
     assert debugEnter(CLASS_NAME, "appendErrorMessage",
                       String.valueOf(message));
@@ -424,11 +490,12 @@ public abstract class Operation
   /**
    * Retrieves the additional log message for this operation, which should be
    * written to the log but not included in the response to the client.  The
-   * contents of this buffer may be altered by the caller.
+   * contents of this buffer may be altered by pre-parse, pre-operation, and
+   * post-operation plugins, but not by post-response plugins.
    *
    * @return  The additional log message for this operation.
    */
-  public StringBuilder getAdditionalLogMessage()
+  public final StringBuilder getAdditionalLogMessage()
   {
     assert debugEnter(CLASS_NAME, "getAdditionalLogMessage");
 
@@ -439,12 +506,13 @@ public abstract class Operation
 
   /**
    * Specifies the additional log message for this operation, which should be
-   * written to the log but not included in the response to the client.
+   * written to the log but not included in the response to the client.  This
+   * method may not be called by post-response plugins.
    *
    * @param  additionalLogMessage  The additional log message for this
    *                               operation.
    */
-  public void setAdditionalLogMessage(StringBuilder additionalLogMessage)
+  public final void setAdditionalLogMessage(StringBuilder additionalLogMessage)
   {
     assert debugEnter(CLASS_NAME, "setAdditionalLogMessage",
                       String.valueOf(additionalLogMessage));
@@ -463,12 +531,12 @@ public abstract class Operation
 
   /**
    * Appends the provided message to the additional log information for this
-   * operation.
+   * operation.  This method may not be called by post-response plugins.
    *
    * @param  message  The message that should be appended to the additional log
    *                  information for this operation.
    */
-  public void appendAdditionalLogMessage(String message)
+  public final void appendAdditionalLogMessage(String message)
   {
     assert debugEnter(CLASS_NAME, "appendAdditionalLogMessage",
                       String.valueOf(message));
@@ -491,7 +559,7 @@ public abstract class Operation
    * @return  The matched DN for this operation, or <CODE>null</CODE> if the
    *          operation has not yet completed or does not have a matched DN.
    */
-  public DN getMatchedDN()
+  public final DN getMatchedDN()
   {
     assert debugEnter(CLASS_NAME, "getMatchedDN");
 
@@ -501,11 +569,12 @@ public abstract class Operation
 
 
   /**
-   * Specifies the matched DN for this operation.
+   * Specifies the matched DN for this operation.  This may not be called by
+   * post-response plugins.
    *
    * @param  matchedDN  The matched DN for this operation.
    */
-  public void setMatchedDN(DN matchedDN)
+  public final void setMatchedDN(DN matchedDN)
   {
     assert debugEnter(CLASS_NAME, "setMatchedDN", String.valueOf(matchedDN));
 
@@ -515,14 +584,14 @@ public abstract class Operation
 
 
   /**
-   * Retrieves the set of referral URLs for this operation.  If it is non-null
-   * then its contents may be altered by the caller.
+   * Retrieves the set of referral URLs for this operation.  Its contents must
+   * not be altered by the caller.
    *
    * @return  The set of referral URLs for this operation, or <CODE>null</CODE>
    *          if the operation is not yet complete or does not have a set of
    *          referral URLs.
    */
-  public List<String> getReferralURLs()
+  public final List<String> getReferralURLs()
   {
     assert debugEnter(CLASS_NAME, "getReferralURLs");
 
@@ -532,11 +601,12 @@ public abstract class Operation
 
 
   /**
-   * Specifies the set of referral URLs for this operation.
+   * Specifies the set of referral URLs for this operation.  This may not be
+   * called by post-response plugins.
    *
    * @param  referralURLs  The set of referral URLs for this operation.
    */
-  public void setReferralURLs(List<String> referralURLs)
+  public final void setReferralURLs(List<String> referralURLs)
   {
     assert debugEnter(CLASS_NAME, "setReferralURLs",
                       String.valueOf(referralURLs));
@@ -548,12 +618,13 @@ public abstract class Operation
 
   /**
    * Sets the response elements for this operation based on the information
-   * contained in the provided <CODE>DirectoryException</CODE> object.
+   * contained in the provided <CODE>DirectoryException</CODE> object.  This
+   * method may not be called by post-response plugins.
    *
    * @param  directoryException  The exception containing the information to use
    *                             for the response elements.
    */
-  public void setResponseData(DirectoryException directoryException)
+  public final void setResponseData(DirectoryException directoryException)
   {
     assert debugEnter(CLASS_NAME, "setResponseData");
 
@@ -573,7 +644,7 @@ public abstract class Operation
    * @return  <CODE>true</CODE> if this is an internal operation, or
    *          <CODE>false</CODE> if it is not.
    */
-  public boolean isInternalOperation()
+  public final boolean isInternalOperation()
   {
     assert debugEnter(CLASS_NAME, "isInternalOperation");
 
@@ -584,13 +655,14 @@ public abstract class Operation
 
   /**
    * Specifies whether this is an internal operation rather than one that was
-   * requested by an external client.
+   * requested by an external client.  This may not be called from within a
+   * plugin.
    *
    * @param  isInternalOperation  Specifies whether this is an internal
    *                              operation rather than one that was requested
    *                              by an external client.
    */
-  public void setInternalOperation(boolean isInternalOperation)
+  public final void setInternalOperation(boolean isInternalOperation)
   {
     assert debugEnter(CLASS_NAME, "setInternalOperation",
                       String.valueOf(isInternalOperation));
@@ -607,7 +679,7 @@ public abstract class Operation
    * @return  <CODE>true</CODE> if this is a data synchronization operation, or
    *          <CODE>false</CODE> if it is not.
    */
-  public boolean isSynchronizationOperation()
+  public final boolean isSynchronizationOperation()
   {
     assert debugEnter(CLASS_NAME, "isSynchronizationOperation");
 
@@ -618,14 +690,16 @@ public abstract class Operation
 
   /**
    * Specifies whether this is a synchronization operation rather than one that
-   * was requested by an external client.
+   * was requested by an external client.  This method may not be called from
+   * within a plugin.
    *
    * @param  isSynchronizationOperation  Specifies whether this is a
    *                                     synchronization operation rather than
    *                                     one that was requested by an external
    *                                     client.
    */
-  public void setSynchronizationOperation(boolean isSynchronizationOperation)
+  public final void setSynchronizationOperation(
+                         boolean isSynchronizationOperation)
   {
     assert debugEnter(CLASS_NAME, "setSynchronizationOperation",
                       String.valueOf(isSynchronizationOperation));
@@ -641,11 +715,12 @@ public abstract class Operation
    * connection, or the null DN if no authentication has been performed on that
    * connection.  However, it may be some other value if special processing has
    * been requested (e.g., the operation included a proxied authorization
-   * control).
+   * control).  This method should not be called by pre-parse plugins because
+   * the correct value may not have yet been determined.
    *
    * @return  The authorization DN for this operation.
    */
-  public DN getAuthorizationDN()
+  public final DN getAuthorizationDN()
   {
     assert debugEnter(CLASS_NAME, "getAuthorizationDN");
 
@@ -670,13 +745,14 @@ public abstract class Operation
 
 
   /**
-   * Specifies the authorization DN for this operation.
+   * Specifies the authorization DN for this operation.  This method may not be
+   * called from within a plugin.
    *
    * @param  authorizationDN  The authorization DN for this operation, or
    *                          <CODE>null</CODE> if it should use the DN of the
    *                          authenticated user.
    */
-  public void setAuthorizationDN(DN authorizationDN)
+  public final void setAuthorizationDN(DN authorizationDN)
   {
     assert debugEnter(CLASS_NAME, "setAuthorizationDN",
                       String.valueOf(authorizationDN));
@@ -692,7 +768,7 @@ public abstract class Operation
    *
    * @return  The set of attachments defined for this operation.
    */
-  public Map<String,Object> getAttachments()
+  public final Map<String,Object> getAttachments()
   {
     assert debugEnter(CLASS_NAME, "getAttachments");
 
@@ -710,7 +786,7 @@ public abstract class Operation
    * @return  The requested attachment object, or <CODE>null</CODE> if it does
    *          not exist.
    */
-  public Object getAttachment(String name)
+  public final Object getAttachment(String name)
   {
     assert debugEnter(CLASS_NAME, "getAttachment", String.valueOf(name));
 
@@ -728,7 +804,7 @@ public abstract class Operation
    * @return  The attachment that was removed, or <CODE>null</CODE> if it does
    *          not exist.
    */
-  public Object removeAttachment(String name)
+  public final Object removeAttachment(String name)
   {
     assert debugEnter(CLASS_NAME, "removeAttachment", String.valueOf(name));
 
@@ -748,13 +824,45 @@ public abstract class Operation
    * @return  The former value held by the attachment with the given name, or
    *          <CODE>null</CODE> if there was previously no such attachment.
    */
-  public Object setAttachment(String name, Object value)
+  public final Object setAttachment(String name, Object value)
   {
     assert debugEnter(CLASS_NAME, "putAttachment", String.valueOf(name),
                       String.valueOf(value));
 
     return attachments.put(name, value);
   }
+
+
+
+  /**
+   * Retrieves the time that processing started for this operation.
+   *
+   * @return  The time that processing started for this operation.
+   */
+  public abstract long getProcessingStartTime();
+
+
+
+  /**
+   * Retrieves the time that processing stopped for this operation.  This will
+   * actually hold a time immediately before the response was sent to the
+   * client.
+   *
+   * @return  The time that processing stopped for this operation.
+   */
+  public abstract long getProcessingStopTime();
+
+
+
+  /**
+   * Retrieves the length of time in milliseconds that the server spent
+   * processing this operation.  This should not be called until after the
+   * server has sent the response to the client.
+   *
+   * @return  The length of time in milliseconds that the server spent
+   *          processing this operation.
+   */
+  public abstract long getProcessingTime();
 
 
 
@@ -772,7 +880,7 @@ public abstract class Operation
    * Indicates that processing on this operation has completed successfully and
    * that the client should perform any associated cleanup work.
    */
-  public void operationCompleted()
+  public final void operationCompleted()
   {
     assert debugEnter(CLASS_NAME, "operationCompleted");
 
@@ -798,7 +906,8 @@ public abstract class Operation
 
   /**
    * Retrieves the cancel request that has been issued for this operation, if
-   * there is one.
+   * there is one.  This method should not be called by post-operation or
+   * post-response plugins.
    *
    * @return  The cancel request that has been issued for this operation, or
    *          <CODE>null</CODE> if there has not been any request to cancel.
@@ -814,7 +923,7 @@ public abstract class Operation
    *          <CODE>null</CODE> if the operation has not seen and reacted to a
    *          cancel request.
    */
-  public CancelResult getCancelResult()
+  public final CancelResult getCancelResult()
   {
     assert debugEnter(CLASS_NAME, "getCancelResult");
 
@@ -828,7 +937,7 @@ public abstract class Operation
    *
    * @param  cancelResult  The cancel result for this operation.
    */
-  public void setCancelResult(CancelResult cancelResult)
+  public final void setCancelResult(CancelResult cancelResult)
   {
     assert debugEnter(CLASS_NAME, "setCancelResult",
                       String.valueOf(cancelResult));
@@ -847,7 +956,7 @@ public abstract class Operation
    *
    * @param  cancelRequest  The request to cancel this operation.
    */
-  protected void indicateCancelled(CancelRequest cancelRequest)
+  protected final void indicateCancelled(CancelRequest cancelRequest)
   {
     assert debugEnter(CLASS_NAME, "indicateCancelled",
                       String.valueOf(cancelRequest));
@@ -876,7 +985,7 @@ public abstract class Operation
    *
    * @return  A string representation of this operation.
    */
-  public String toString()
+  public final String toString()
   {
     assert debugEnter(CLASS_NAME, "toString");
 

@@ -45,10 +45,10 @@ import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.SSLClientAuthPolicy;
 
 import static org.opends.server.loggers.Debug.*;

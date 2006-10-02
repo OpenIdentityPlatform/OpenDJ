@@ -29,7 +29,6 @@ package org.opends.server.types;
 
 
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static org.opends.server.loggers.Debug.*;

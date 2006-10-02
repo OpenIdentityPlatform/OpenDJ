@@ -61,6 +61,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;
@@ -353,32 +354,18 @@ public class BindOperationTestCase
 
 
   /**
-   * Tests the <CODE>getBindDN</CODE> and <CODE>setBindDN</CODE> methods on bind
-   * operations using simple authentication.
+   * Tests the <CODE>getBindDN</CODE> method on bind operations using simple
+   * authentication.
    *
    * @param  o  The bind operation to be tested.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "simpleBinds")
-  public void testGetAndSetBindDNSimple(BindOperation o)
+  public void testGetBindDNSimple(BindOperation o)
          throws Exception
   {
-    DN originalDN = o.getBindDN();
-
-    o.setBindDN(null);
-    assertNull(o.getBindDN());
-
-    o.setBindDN(new DN());
-    assertNotNull(o.getBindDN());
-    assertTrue(o.getBindDN().isNullDN());
-
-    o.setBindDN(DN.decode("cn=Directory Manager"));
-    assertNotNull(o.getBindDN());
-    assertEquals(o.getBindDN(), DN.decode("cn=Directory Manager"));
-
-    o.setBindDN(originalDN);
-    assertEquals(o.getBindDN(), originalDN);
+    o.getBindDN();
   }
 
 
@@ -904,6 +891,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString(), 3,
@@ -943,6 +931,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString(), 3,
@@ -983,6 +972,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString(), 3,
@@ -1023,6 +1013,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString(), 3,
@@ -1062,6 +1053,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
@@ -1101,6 +1093,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
@@ -1141,6 +1134,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
@@ -1181,6 +1175,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
@@ -1220,6 +1215,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     ASN1OctetString saslCreds =
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
@@ -1260,6 +1256,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     ASN1OctetString saslCreds =
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
@@ -1301,6 +1298,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     ASN1OctetString saslCreds =
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
@@ -1342,6 +1340,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     ASN1OctetString saslCreds =
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
@@ -1384,6 +1383,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString(), 3,
@@ -1418,6 +1418,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString(), 3,
@@ -1453,6 +1454,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
@@ -1487,6 +1489,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
@@ -1521,6 +1524,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     ASN1OctetString saslCreds =
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
@@ -1556,6 +1560,7 @@ public class BindOperationTestCase
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
 
     ASN1OctetString saslCreds =
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");

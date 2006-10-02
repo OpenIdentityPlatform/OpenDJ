@@ -33,11 +33,11 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.InitializationException;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
@@ -101,7 +101,7 @@ public class DatabaseEnvironmentMonitor extends MonitorProvider
    * @throws org.opends.server.config.ConfigException
    *          If an unrecoverable problem arises in the
    *          process of performing the initialization.
-   * @throws org.opends.server.core.InitializationException
+   * @throws org.opends.server.types.InitializationException
    *          If a problem occurs during initialization
    *          that is not related to the server
    *          configuration.

@@ -123,19 +123,24 @@ import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.CryptoManager;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.OperatingSystem;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.Schema;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.args.ArgumentException;
@@ -996,6 +1001,10 @@ public class DirectoryServer
       synchronizationProviderConfigManager.initializeSynchronizationProviders();
 
 
+      // Create and initialize the work queue.
+      initializeWorkQueue();
+
+
       StartupPluginResult startupPluginResult =
            pluginConfigManager.invokeStartupPlugins();
       if (! startupPluginResult.continueStartup())
@@ -1006,10 +1015,6 @@ public class DirectoryServer
                                     startupPluginResult.getErrorID());
         throw new InitializationException(msgID, message);
       }
-
-
-      // Create and initialize the work queue.
-      initializeWorkQueue();
 
 
       // At this point, we should be ready to go.  Start all the connection
@@ -6683,6 +6688,17 @@ public class DirectoryServer
     }
     directoryServer.connectionHandlers.clear();
 
+
+
+    // Call the shutdown plugins, and then finalize all the plugins defined in
+    // the server.
+    if (directoryServer.pluginConfigManager != null)
+    {
+      directoryServer.pluginConfigManager.invokeShutdownPlugins();
+      directoryServer.pluginConfigManager.finalizePlugins();
+    }
+
+
     // shutdown the Synchronization Providers
     for (SynchronizationProvider provider :
          directoryServer.synchronizationProviders)
@@ -6717,16 +6733,6 @@ public class DirectoryServer
       {
         assert debugException(CLASS_NAME, "shutDown", e);
       }
-    }
-
-
-
-    // Call the shutdown plugins, and then finalize all the plugins defined in
-    // the server.
-    if (directoryServer.pluginConfigManager != null)
-    {
-      directoryServer.pluginConfigManager.invokeShutdownPlugins();
-      directoryServer.pluginConfigManager.finalizePlugins();
     }
 
 
