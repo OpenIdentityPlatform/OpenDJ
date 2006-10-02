@@ -35,13 +35,11 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.util.ServerConstants.OID_NS_PASSWORD_EXPIRED;
-import static org.opends.server.util.ServerConstants.OID_NS_PASSWORD_EXPIRING;
-import static org.opends.server.util.ServerConstants.OID_PASSWORD_POLICY_CONTROL;
 import static org.testng.Assert.*;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.Control;
+import org.opends.server.types.DN;
 
 /**
  * Test ChangeNumber and ChangeNumberGenerator
@@ -81,8 +79,8 @@ public class PersistentSearchControlTest
       assertEquals(val.toString(), expected);
     }
   }
-  
-  
+
+
   /**
    * Test If we have only the required values
    */
@@ -102,7 +100,7 @@ public class PersistentSearchControlTest
       assertTrue(exceptedValues.containsKey(val.intValue()));
     }
   }
-  
+
   /**
    * Test invalid int values
    */
@@ -125,7 +123,7 @@ public class PersistentSearchControlTest
       }
     }
   }
-  
+
   /**
    * Test int to type
    */
@@ -134,11 +132,11 @@ public class PersistentSearchControlTest
       HashMap<Integer, String> exceptedValues) throws Exception
   {
     Set<Integer> keys = exceptedValues.keySet() ;
-    
+
     Set<PersistentSearchChangeType> returnTypes;
     HashSet<PersistentSearchChangeType> expectedTypes =
       new HashSet<PersistentSearchChangeType>(4);
-    
+
     for (int i = 1; i <= 15; i++)
     {
       expectedTypes.clear();
@@ -155,8 +153,8 @@ public class PersistentSearchControlTest
       {
         assertTrue(returnTypes.contains(type));
       }
-    } 
-    
+    }
+
     // We should have and exception
     try
     {
@@ -167,7 +165,7 @@ public class PersistentSearchControlTest
     {
       assertTrue(true,"the int is not a set of type - exception expected");
     }
-    
+
     // We should have and exception
     try
     {
@@ -196,7 +194,7 @@ public class PersistentSearchControlTest
       assertEquals(ret, i);
     }
   }
-  
+
   @Test(dataProvider = "persistentSearchChangeTypeData", dependsOnMethods= {"checkIntToTypeTest"})
   public void checkChangeTypesToStringTest(
       HashMap<Integer, String> exceptedValues) throws Exception
@@ -221,7 +219,7 @@ public class PersistentSearchControlTest
       assertEquals(ret, exceptedRet);
     }
   }
-  
+
   /**
    * Create values for PersistentSearchControl
    */
@@ -241,7 +239,7 @@ public class PersistentSearchControlTest
    * Test PersistentSearchControl
    */
   @Test(dataProvider = "persistentSearchControl")
-  public void CheckPersistentSearchControlTest(
+  public void checkPersistentSearchControlTest(
       String oid, boolean isCritical, boolean changesOnly, boolean returnECs)
       throws Exception
   {
@@ -259,9 +257,9 @@ public class PersistentSearchControlTest
       assertEquals(changesOnly, psc.getChangesOnly());
       assertEquals(returnECs, psc.getReturnECs());
       assertEquals(returnTypes.size(), psc.getChangeTypes().size());
-      assertEquals(OID_PERSISTENT_SEARCH, psc.getOID()); 
+      assertEquals(OID_PERSISTENT_SEARCH, psc.getOID());
     }
-    
+
     // Test contructor
     // CString oid, boolean isCritical,
     // Set<PersistentSearchChangeType> changeTypes,
@@ -278,8 +276,8 @@ public class PersistentSearchControlTest
       assertEquals(returnECs, psc.getReturnECs());
       assertEquals(returnTypes.size(), psc.getChangeTypes().size());
     }
-    
-    
+
+
     // Test decodeControl
     for (int i = 1; i <= 15; i++)
     {
@@ -293,35 +291,35 @@ public class PersistentSearchControlTest
       assertEquals(changesOnly, psc.getChangesOnly());
       assertEquals(returnECs, psc.getReturnECs());
       assertEquals(returnTypes.size(), psc.getChangeTypes().size());
-      
+
       // Check setChangeTypes
-      Set<PersistentSearchChangeType> newChangetype = 
+      Set<PersistentSearchChangeType> newChangetype =
         new HashSet<PersistentSearchChangeType>();
       psc.setChangeTypes(newChangetype);
       assertEquals(0, psc.getChangeTypes().size());
       psc.setChangeTypes(returnTypes);
       assertEquals(returnTypes.size(), psc.getChangeTypes().size());
-      
+
       // Check setChangesOnly
       psc.setChangesOnly(!psc.getChangesOnly());
       assertEquals(!changesOnly,psc.getChangesOnly());
       psc.setChangesOnly(!psc.getChangesOnly());
       assertEquals(changesOnly,psc.getChangesOnly());
-      
+
       // Check setReturnECs
       psc.setReturnECs(!psc.getReturnECs());
       assertEquals(!returnECs,psc.getReturnECs());
       psc.setReturnECs(!psc.getReturnECs());
       assertEquals(returnECs,psc.getReturnECs());
-      
+
       // Check the toString
       String toString = "PersistentSearchControl(changeTypes=\"" +
       PersistentSearchChangeType.changeTypesToString(psc.getChangeTypes()) +
       "\",changesOnly=" + psc.getChangesOnly() +
       ",returnECs=" +psc.getReturnECs() +")" ;
       assertEquals(psc.toString(), toString);
-      
-      
+
+
       // check null value for the control
       try
       {
@@ -334,7 +332,7 @@ public class PersistentSearchControlTest
         // normal case
         assertTrue(true,"the control should have a value");
       }
-      
+
       // check invalid value for the control
       control = new PasswordPolicyResponseControl(oid, isCritical,
           PasswordPolicyWarningType.GRACE_LOGINS_REMAINING, 2,
@@ -350,8 +348,202 @@ public class PersistentSearchControlTest
         // normal case
         assertTrue(true, "the control should have a value");
       }
- 
+
     }
+  }
+
+  
+  /**
+   * Create values for EntryChangeNotificationControl
+   */
+  @DataProvider(name = "entryChangeNotificationControl")
+  public Object[][] createEntryChangeNotificationControlData()
+  {
+    return new Object[][]
+    {
+    { OID_NS_PASSWORD_EXPIRED, true, 1, "cn=test" },
+    { OID_NS_PASSWORD_EXPIRED, false, 2, "dc=example,dc=com" },
+    { OID_PERSISTENT_SEARCH, true, 3, "cn=test, dc=example,dc=com" },
+    { OID_PERSISTENT_SEARCH, false, 4, "cn= new test, dc=example,dc=com" } };
+  }
+  /**
+   * Test EntryChangeNotificationControl
+   */
+  @Test(dataProvider = "entryChangeNotificationControl")
+  public void checkEntryChangeNotificationControlTest(
+      String oid, boolean isCritical, long changeNumber, String dnString)
+      throws Exception
+  {
+    // Test contructor EntryChangeNotificationControl
+    // (PersistentSearchChangeType changeType,long changeNumber)
+    PersistentSearchChangeType[] types = PersistentSearchChangeType.values();
+    EntryChangeNotificationControl ecnc = null ;
+    EntryChangeNotificationControl newEcnc ;
+    for (PersistentSearchChangeType type : types)
+    {
+      ecnc = new EntryChangeNotificationControl(type, changeNumber);
+      assertNotNull(ecnc);
+      assertEquals(OID_ENTRY_CHANGE_NOTIFICATION, ecnc.getOID());
+      assertEquals(changeNumber, ecnc.getChangeNumber());
+      assertEquals(type, ecnc.getChangeType());
+      assertNull(ecnc.getPreviousDN()) ;
+      assertEquals(false, ecnc.isCritical()) ;
+      checkEntryChangeNotificationControlToString(ecnc);
       
+      // also check encode
+      try
+      {
+        newEcnc = EntryChangeNotificationControl.decodeControl(ecnc);
+        assertNotNull(newEcnc);
+        assertEquals(ecnc.getOID(), newEcnc.getOID());
+        assertEquals(ecnc.getChangeNumber(), newEcnc.getChangeNumber());
+        assertEquals(ecnc.getChangeType(), newEcnc.getChangeType());
+        assertNull(newEcnc.getPreviousDN());
+        assertEquals(ecnc.isCritical(), newEcnc.isCritical());
+      }
+      catch (LDAPException e)
+      {
+        if (type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0)
+        {
+          assertTrue(true,"could decode a control with previousDN=null " +
+              "and type=modDN");
+        }
+        else
+        {
+          assertTrue(false,"could decode a control with previousDN=null " +
+          "and type=modDN");
+        }
+      }
+    }
+
+    // Test contructor EntryChangeNotificationControl
+    // (PersistentSearchChangeType changeType, DN previousDN, long
+    // changeNumber)
+    DN dn = DN.decode(dnString);
+    for (PersistentSearchChangeType type : types)
+    {
+      ecnc = new EntryChangeNotificationControl(type, dn, changeNumber);
+      assertNotNull(ecnc);
+      assertEquals(OID_ENTRY_CHANGE_NOTIFICATION, ecnc.getOID());
+      assertEquals(changeNumber, ecnc.getChangeNumber());
+      assertEquals(type, ecnc.getChangeType());
+      assertEquals(dn, ecnc.getPreviousDN());
+      assertEquals(false, ecnc.isCritical()) ;
+      checkEntryChangeNotificationControlToString(ecnc);
+      
+      // also check encode
+      try
+      {
+        newEcnc = EntryChangeNotificationControl.decodeControl(ecnc);
+        assertNotNull(newEcnc);
+        assertEquals(ecnc.getOID(),newEcnc.getOID());
+        assertEquals(ecnc.getChangeNumber(),newEcnc.getChangeNumber());
+        assertEquals(ecnc.getChangeType(),newEcnc.getChangeType());
+        assertEquals(ecnc.getPreviousDN(),newEcnc.getPreviousDN());
+        assertEquals(ecnc.isCritical(),newEcnc.isCritical()) ;
+      }
+      catch (LDAPException e)
+      {
+        if (type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0)
+        {
+          assertTrue(false,"couldn't decode a control with previousDN " +
+              "not null and type=modDN");
+        }
+        else
+        {
+          assertTrue(true,"couldn't decode a control with previousDN " +
+          "not null and type=modDN");
+        }
+      }
+    }
+    
+
+    // Test contructor EntryChangeNotificationControl(String oid, boolean
+    // isCritical, PersistentSearchChangeType changeType,
+    // DN previousDN, long changeNumber)
+    for (PersistentSearchChangeType type : types)
+    {
+      ecnc = new EntryChangeNotificationControl(oid, isCritical, type, dn,
+          changeNumber);
+      assertNotNull(ecnc);
+      assertEquals(oid, ecnc.getOID());
+      assertEquals(changeNumber, ecnc.getChangeNumber());
+      assertEquals(type, ecnc.getChangeType());
+      assertEquals(dn, ecnc.getPreviousDN());   
+      assertEquals(isCritical, ecnc.isCritical()) ;
+      checkEntryChangeNotificationControlToString(ecnc);
+      
+      // also check encode
+      try
+      {
+        newEcnc = EntryChangeNotificationControl.decodeControl(ecnc);
+        assertNotNull(newEcnc);
+        assertEquals(ecnc.getOID(),newEcnc.getOID());
+        assertEquals(ecnc.getChangeNumber(),newEcnc.getChangeNumber());
+        assertEquals(ecnc.getChangeType(),newEcnc.getChangeType());
+        assertEquals(ecnc.getPreviousDN(),newEcnc.getPreviousDN());
+        assertEquals(ecnc.isCritical(),newEcnc.isCritical()) ;
+      }
+      catch (LDAPException e)
+      {
+        if (type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0)
+        {
+          assertTrue(false,"couldn't decode a control with previousDN " +
+              "not null and type=modDN");
+        }
+        else
+        {
+          assertTrue(true,"couldn't decode a control with previousDN " +
+          "not null and type=modDN");
+        }
+      }
+    }
+    
+    // check setPreviousDN
+    ecnc.setPreviousDN(null) ;
+    assertNull(ecnc.getPreviousDN()) ;
+    ecnc.setPreviousDN(dn) ;
+    assertEquals(dn, ecnc.getPreviousDN());
+    
+    // Check setChangeNumber
+    ecnc.setChangeNumber(changeNumber +1) ;
+    assertEquals(changeNumber +1, ecnc.getChangeNumber());
+    
+    // Check setChangeType
+    for (PersistentSearchChangeType type : types)
+    {
+      ecnc.setChangeType(type) ;
+      assertEquals(type, ecnc.getChangeType());
+    }
+    
+    // Check error on decode
+    try
+    {
+      ecnc.setValue(null) ;
+      newEcnc = EntryChangeNotificationControl.decodeControl(ecnc);
+      assertTrue(false,"couldn't decode a control with null");
+    }
+    catch (LDAPException e)
+    {
+      assertTrue(true,"couldn't decode a control with null");
+    }
+  }
+  
+  private void checkEntryChangeNotificationControlToString(EntryChangeNotificationControl ecnc)
+  {
+    String toString ="EntryChangeNotificationControl(changeType=";
+    toString = toString + ecnc.getChangeType();
+
+    if (ecnc.getPreviousDN() != null)
+    {
+      toString = toString + ",previousDN=\"" + ecnc.getPreviousDN() + "\"" ;
+    }
+
+    if (ecnc.getChangeNumber() > 0)
+    {
+      toString = toString + ",changeNumber=" + ecnc.getChangeNumber() ;
+    }
+    toString = toString +")";
+    assertEquals(toString, ecnc.toString());
   }
 }

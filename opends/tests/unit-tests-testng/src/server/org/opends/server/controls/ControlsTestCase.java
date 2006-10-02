@@ -49,6 +49,7 @@ public abstract class ControlsTestCase extends DirectoryServerTestCase
   public void setUp() throws Exception
   {
     // This test suite depends on having the schema available.
+    TestCaseUtils.startServer();
   }
 
 }
