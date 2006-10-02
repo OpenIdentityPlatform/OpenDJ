@@ -41,7 +41,7 @@ import java.util.UUID;
 
 
 /**
- * Tests invocation of the backup and restore tasks, but does not aim to
+ * Tests invocation of the import and export tasks, but does not aim to
  * thoroughly test the underlying backend implementations.
  */
 public class TestImportAndExport extends TasksTestCase
@@ -129,7 +129,7 @@ public class TestImportAndExport extends TasksTestCase
   public Object[][] createData() throws Exception
   {
     return new Object[][] {
-         // A fairly simple valid import task.
+         // A fairly simple, valid import task.
          {
               TestCaseUtils.makeEntry(
                    "dn: ds-task-id=" + UUID.randomUUID() +
@@ -148,7 +148,7 @@ public class TestImportAndExport extends TasksTestCase
               ),
               TaskState.COMPLETED_SUCCESSFULLY
          },
-         // A complex valid import task.
+         // A complex, valid import task.
          {
               TestCaseUtils.makeEntry(
                    "dn: ds-task-id=" + UUID.randomUUID() +
