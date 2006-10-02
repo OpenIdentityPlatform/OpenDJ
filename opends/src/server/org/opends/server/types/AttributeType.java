@@ -29,9 +29,6 @@ package org.opends.server.types;
 
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.opends.server.api.ApproximateMatchingRule;
@@ -46,7 +43,6 @@ import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -55,8 +51,17 @@ import static org.opends.server.util.StaticUtils.*;
  * with an attribute type, which contains information about the format
  * of an attribute and the syntax and matching rules that should be
  * used when interacting with it.
+ * <p>
+ * Any methods which accesses the set of names associated with this
+ * attribute type, will retrieve the primary name as the first name,
+ * regardless of whether or not it was contained in the original set
+ * of <code>names</code> passed to the constructor.
+ * <p>
+ * Where ordered sets of names, or extra properties are provided, the
+ * ordering will be preserved when the associated fields are accessed
+ * via their getters or via the {@link #toString()} methods.
  */
-public final class AttributeType
+public final class AttributeType extends CommonSchemaElements
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -89,37 +94,14 @@ public final class AttributeType
   // Indicates whether this attribute type is the objectclass type.
   private final boolean isObjectClassType;
 
-  // Indicates whether this attribute type is declared "obsolete".
-  private final boolean isObsolete;
-
   // Indicates whether this attribute type is declared "single-value".
   private final boolean isSingleValue;
-
-  // The set of additional name-value pairs associated with this
-  // attribute type definition.
-  private final Map<String,List<String>> extraProperties;
-
-  // The set of names for this attribute type, in a mapping between
-  // the all-lowercase form and the user-defined form.
-  private final Map<String,String> typeNames;
 
   // The equality matching rule for this attribute type.
   private final EqualityMatchingRule equalityMatchingRule;
 
   // The ordering matching rule for this attribute type.
   private final OrderingMatchingRule orderingMatchingRule;
-
-  // The description for this attribute type.
-  private final String description;
-
-  // The OID that may be used to reference this attribute type.
-  private final String oid;
-
-  // The primary name to use for this attribute type.
-  private final String primaryName;
-
-  // The lower case name for this attribute type.
-  private final String lowerName;
 
   // The substring matching rule for this attribute type.
   private final SubstringMatchingRule substringMatchingRule;
@@ -128,6 +110,11 @@ public final class AttributeType
 
   /**
    * Creates a new attribute type with the provided information.
+   * <p>
+   * If no <code>primaryName</code> is specified, but a set of
+   * <code>names</code> is specified, then the first name retrieved
+   * from the set of <code>names</code> will be used as the primary
+   * name.
    *
    * @param primaryName
    *          The primary name for this attribute type, or
@@ -184,6 +171,11 @@ public final class AttributeType
 
   /**
    * Creates a new attribute type with the provided information.
+   * <p>
+   * If no <code>primaryName</code> is specified, but a set of
+   * <code>names</code> is specified, then the first name retrieved
+   * from the set of <code>names</code> will be used as the primary
+   * name.
    *
    * @param primaryName
    *          The primary name for this attribute type, or
@@ -234,6 +226,8 @@ public final class AttributeType
    * @param extraProperties
    *          A set of extra properties for this attribute type, or
    *          <code>null</code> if there are no extra properties.
+   * @throws NullPointerException
+   *           If the provided OID was <code>null</code>.
    */
   public AttributeType(String primaryName,
                        Collection<String> typeNames,
@@ -250,7 +244,11 @@ public final class AttributeType
                        boolean isNoUserModification,
                        boolean isObsolete, boolean isSingleValue,
                        Map<String,List<String>> extraProperties)
+                       throws NullPointerException
   {
+    super(primaryName, typeNames, oid, description, isObsolete,
+        extraProperties);
+
     assert debugConstructor(CLASS_NAME,String.valueOf(primaryName),
                               String.valueOf(typeNames),
                               String.valueOf(oid),
@@ -268,42 +266,10 @@ public final class AttributeType
                               String.valueOf(isSingleValue),
                               String.valueOf(extraProperties));
 
-    // Make sure mandatory parameters are specified.
-    if (oid == null)
-    {
-      throw new NullPointerException(
-          "No oid specified in constructor");
-    }
-
-    this.primaryName = primaryName;
-    this.lowerName = toLowerCase(primaryName);
-    this.oid = oid;
-    this.description = description;
     this.superiorType = superiorType;
     this.isCollective = isCollective;
     this.isNoUserModification = isNoUserModification;
-    this.isObsolete = isObsolete;
     this.isSingleValue = isSingleValue;
-
-    // Construct the normalized attribute name mapping.
-    if (typeNames != null)
-    {
-      this.typeNames = new HashMap<String, String>(typeNames.size());
-      for (String name : typeNames)
-      {
-        this.typeNames.put(toLowerCase(name), name);
-      }
-    }
-    else
-    {
-      this.typeNames = new HashMap<String, String>();
-    }
-
-    // Add the primary name to the type names if it is not present.
-    if (lowerName != null && !this.typeNames.containsKey(lowerName))
-    {
-      this.typeNames.put(lowerName, this.primaryName);
-    }
 
     if (syntax == null)
     {
@@ -380,208 +346,8 @@ public final class AttributeType
     }
     else
     {
-      isObjectClassType =
-        this.typeNames.containsKey(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+      isObjectClassType = hasName(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     }
-
-    if (extraProperties != null)
-    {
-      this.extraProperties =
-        new HashMap<String, List<String>>(extraProperties);
-    }
-    else
-    {
-      this.extraProperties = Collections.emptyMap();
-    }
-  }
-
-
-
-  /**
-   * Retrieves the primary name for this attribute type.
-   *
-   * @return The primary name for this attribute type, or
-   *         <code>null</code> if there is no primary name.
-   */
-  public String getPrimaryName()
-  {
-    assert debugEnter(CLASS_NAME, "getPrimaryName");
-
-    return primaryName;
-  }
-
-
-
-  /**
-   * Retrieve the normalized primary name for this attribute type.
-   *
-   * @return Returns the normalized primary name for this attribute
-   *         type, or <code>null</code> if there is no primary name.
-   */
-  public String getNormalizedPrimaryName()
-  {
-    assert debugEnter(CLASS_NAME, "getNormalizedPrimaryName");
-
-    return lowerName;
-  }
-
-
-
-  /**
-   * Retrieves an iterable over the set of normalized names that may
-   * be used to reference this attribute type. The normalized form of
-   * an attribute name is defined as the user-defined name converted
-   * to lower-case.
-   *
-   * @return Returns an iterable over the set of normalized names that
-   *         may be used to reference this attribute type.
-   */
-  public Iterable<String> getNormalizedNames()
-  {
-    assert debugEnter(CLASS_NAME, "getNormalizedNames");
-
-    return typeNames.keySet();
-  }
-
-
-
-  /**
-   * Retrieves an iterable over the set of user-defined names that may
-   * be used to reference this attribute type.
-   *
-   * @return Returns an iterable over the set of user-defined names
-   *         that may be used to reference this attribute type.
-   */
-  public Iterable<String> getUserDefinedNames()
-  {
-    assert debugEnter(CLASS_NAME, "getUserDefinedNames");
-
-    return typeNames.values();
-  }
-
-
-
-  /**
-   * Indicates whether this attribute type has the specified name.
-   *
-   * @param  lowerName  The lowercase name for which to make the
-   *                    determination.
-   *
-   * @return  <CODE>true</CODE> if the specified name is assigned to
-   *          this attribute type, or <CODE>false</CODE> if not.
-   */
-  public boolean hasName(String lowerName)
-  {
-    assert debugEnter(CLASS_NAME, "hasName",
-                      String.valueOf(lowerName));
-
-    return typeNames.containsKey(lowerName);
-  }
-
-
-
-  /**
-   * Retrieves the OID for this attribute type.
-   *
-   * @return  The OID for this attribute type.
-   */
-  public String getOID()
-  {
-    assert debugEnter(CLASS_NAME, "getOID");
-
-    return oid;
-  }
-
-
-
-  /**
-   * Retrieves the name or OID for this attribute type.  If it has one
-   * or more names, then the primary name will be returned.  If it
-   * does not have any names, then the OID will be returned.
-   *
-   * @return  The name or OID for this attribute type.
-   */
-  public String getNameOrOID()
-  {
-    assert debugEnter(CLASS_NAME, "getNameOrOID");
-
-    if (primaryName != null)
-    {
-      return primaryName;
-    }
-
-    if (typeNames.isEmpty())
-    {
-      return oid;
-    }
-    else
-    {
-      return typeNames.values().iterator().next();
-    }
-  }
-
-
-
-  /**
-   * Indicates whether this attribute type has the specified name or
-   * OID.
-   *
-   * @param  lowerValue  The lowercase value for which to make the
-   *                     determination.
-   *
-   * @return  <CODE>true</CODE> if the provided value matches the OID
-   *          or one of the names assigned to this attribute type, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean hasNameOrOID(String lowerValue)
-  {
-    assert debugEnter(CLASS_NAME, "hasNameOrOID",
-                      String.valueOf(lowerValue));
-
-    if (typeNames.containsKey(lowerValue))
-    {
-      return true;
-    }
-
-    return oid.equals(lowerValue);
-  }
-
-
-
-  /**
-   * Retrieves the path to the schema file that contains the
-   * definition for this attribute type.
-   *
-   * @return  The path to the schema file that contains the definition
-   *          for this attribute type, or <CODE>null</CODE> if it is
-   *          not known or if it is not stored in any schema file.
-   */
-  public String getSchemaFile()
-  {
-    assert debugEnter(CLASS_NAME, "getSchemaFile");
-
-    List<String> values =
-      extraProperties.get(SCHEMA_PROPERTY_FILENAME);
-    if (values != null && !values.isEmpty()) {
-      return values.get(0);
-    }
-
-    return null;
-  }
-
-
-
-  /**
-   * Retrieves the description for this attribute type.
-   *
-   * @return  The description for this attribute type, or
-   *         <code>null</code> if there is no description.
-   */
-  public String getDescription()
-  {
-    assert debugEnter(CLASS_NAME, "getDescription");
-
-    return description;
   }
 
 
@@ -759,21 +525,6 @@ public final class AttributeType
 
 
   /**
-   * Indicates whether this attribute type is declared "obsolete".
-   *
-   * @return  <CODE>true</CODE> if this attribute type is declared
-   *          "obsolete", or <CODE>false</CODE> if not.
-   */
-  public boolean isObsolete()
-  {
-    assert debugEnter(CLASS_NAME, "isObsolete");
-
-    return isObsolete;
-  }
-
-
-
-  /**
    * Indicates whether this attribute type is declared "single-value".
    *
    * @return  <CODE>true</CODE> if this attribute type is declared
@@ -784,43 +535,6 @@ public final class AttributeType
     assert debugEnter(CLASS_NAME, "isSingleValue");
 
     return isSingleValue;
-  }
-
-
-
-  /**
-   * Retrieves an iterable over the names of "extra" properties
-   * associated with this attribute type.
-   *
-   * @return Returns an iterable over the names of "extra" properties
-   *         associated with this attribute type.
-   */
-  public Iterable<String> getExtraPropertyNames()
-  {
-    assert debugEnter(CLASS_NAME, "getExtraPropertyNames");
-
-    return extraProperties.keySet();
-  }
-
-
-
-  /**
-   * Retrieves an iterable over the value(s) of the specified "extra"
-   * property for this attribute type.
-   *
-   * @param propertyName
-   *          The name of the "extra" property for which to retrieve
-   *          the value(s).
-   * @return Returns an iterable over the value(s) of the specified
-   *         "extra" property for this attribute type, or
-   *         <CODE>null</CODE> if no such property is defined.
-   */
-  public Iterable<String> getExtraProperty(String propertyName)
-  {
-    assert debugEnter(CLASS_NAME, "getExtraProperty",
-                      String.valueOf(propertyName));
-
-    return extraProperties.get(propertyName);
   }
 
 
@@ -870,57 +584,6 @@ public final class AttributeType
     }
 
     return equalityMatchingRule.normalizeValue(value);
-  }
-
-
-
-  /**
-   * Indicates whether the provided object is equal to this attribute
-   * type.  The object will be considered equal if it is an attribute
-   * type with the same OID as the current type.
-   *
-   * @param  o  The object for which to make the determination.
-   *
-   * @return  <CODE>true</CODE> if the provided object is equal to
-   *          this attribute type, or <CODE>false</CODE> if not.
-   */
-  public boolean equals(Object o)
-  {
-    assert debugEnter(CLASS_NAME, "equals");
-
-    if (this == o)
-    {
-      return true;
-    }
-
-    if ((o == null) || (! (o instanceof AttributeType)))
-    {
-      return false;
-    }
-
-    return oid.equals(((AttributeType) o).oid);
-  }
-
-
-
-  /**
-   * Retrieves the hash code for this attribute type.  It will be
-   * based on the sum of the bytes of the OID.
-   *
-   * @return  The hash code for this attribute type.
-   */
-  public int hashCode()
-  {
-    assert debugEnter(CLASS_NAME, "hashCode");
-
-    int oidLength = oid.length();
-    int hashCode  = 0;
-    for (int i=0; i < oidLength; i++)
-    {
-      hashCode += oid.charAt(i);
-    }
-
-    return hashCode;
   }
 
 
@@ -982,81 +645,12 @@ public final class AttributeType
 
 
   /**
-   * Retrieves the string representation of this attribute type in the
-   * form specified in RFC 2252.
-   *
-   * @return  The string representation of this attribute type in the
-   *          form specified in RFC 2252.
+   * {@inheritDoc}
    */
-  public String toString()
+  protected void toStringContent(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString");
-
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer, true);
-    return buffer.toString();
-  }
-
-
-
-  /**
-   * Appends a string representation of this attribute type in the
-   * form specified in RFC 2252 to the provided buffer.
-   *
-   * @param  buffer              The buffer to which the information
-   *                             should be appended.
-   * @param  includeFileElement  Indicates whether to include an
-   *                             "extra" property that specifies the
-   *                             path to the schema file from which
-   *                             this attribute type was loaded.
-   */
-  public void toString(StringBuilder buffer,
-                       boolean includeFileElement)
-  {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder",
-                      String.valueOf(includeFileElement));
-
-    buffer.append("( ");
-    buffer.append(oid);
-
-    if (! typeNames.isEmpty())
-    {
-      Iterator<String> iterator = typeNames.values().iterator();
-
-      String firstName = iterator.next();
-      if (iterator.hasNext())
-      {
-        buffer.append(" NAME ( '");
-        buffer.append(firstName);
-
-        while (iterator.hasNext())
-        {
-          buffer.append("' '");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append("' )");
-      }
-      else
-      {
-        buffer.append(" NAME '");
-        buffer.append(firstName);
-        buffer.append("'");
-      }
-    }
-
-    if ((description != null) && (description.length() > 0))
-    {
-      buffer.append(" DESC '");
-      buffer.append(description);
-      buffer.append("'");
-    }
-
-    if (isObsolete)
-    {
-      buffer.append(" OBSOLETE");
-    }
+    assert debugEnter(CLASS_NAME, "toStringContent",
+                      "java.lang.StringBuilder");
 
     if (superiorType != null)
     {
@@ -1114,47 +708,6 @@ public final class AttributeType
       buffer.append(" USAGE ");
       buffer.append(attributeUsage.toString());
     }
-
-    if (! extraProperties.isEmpty())
-    {
-      for (Map.Entry<String, List<String>> e :
-        extraProperties.entrySet()) {
-
-        String property = e.getKey();
-        if (!includeFileElement
-            && property.equals(SCHEMA_PROPERTY_FILENAME)) {
-          // Don't include the schema file if it was not requested.
-          continue;
-        }
-
-        List<String> valueList = e.getValue();
-
-        buffer.append(" ");
-        buffer.append(property);
-
-        if (valueList.size() == 1)
-        {
-          buffer.append(" '");
-          buffer.append(valueList.get(0));
-          buffer.append("'");
-        }
-        else
-        {
-          buffer.append(" ( ");
-
-          for (String value : valueList)
-          {
-            buffer.append("'");
-            buffer.append(value);
-            buffer.append("' ");
-          }
-
-          buffer.append(")");
-        }
-      }
-    }
-
-    buffer.append(" )");
   }
 }
 

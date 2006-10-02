@@ -1005,8 +1005,6 @@ public class SchemaConfigManager
             try
             {
               oc = ocSyntax.decodeObjectClass(v.getValue(), schema);
-              oc.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-              oc.setSchemaFile(schemaFile);
             }
             catch (DirectoryException de)
             {

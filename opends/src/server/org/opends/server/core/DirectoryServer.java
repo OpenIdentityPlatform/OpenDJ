@@ -2867,24 +2867,10 @@ public class DirectoryServer
          directoryServer.schema.getObjectClass(TOP_OBJECTCLASS_NAME);
     if (objectClass == null)
     {
-      ConcurrentHashMap<String,String> names =
-           new ConcurrentHashMap<String,String>(1);
-      names.put(TOP_OBJECTCLASS_NAME, TOP_OBJECTCLASS_NAME);
-
-      CopyOnWriteArraySet<AttributeType> requiredAttrs =
-           new CopyOnWriteArraySet<AttributeType>();
-      CopyOnWriteArraySet<AttributeType> optionalAttrs =
-           new CopyOnWriteArraySet<AttributeType>();
-
-      ConcurrentHashMap<String,CopyOnWriteArrayList<String>> extraProperties =
-           new ConcurrentHashMap<String,CopyOnWriteArrayList<String>>(0);
-
-      objectClass = new ObjectClass(TOP_OBJECTCLASS_NAME, names,
-                                    TOP_OBJECTCLASS_OID,
-                                    TOP_OBJECTCLASS_DESCRIPTION, null,
-                                    requiredAttrs, optionalAttrs,
-                                    ObjectClassType.ABSTRACT, false,
-                                    extraProperties);
+      objectClass = new ObjectClass(TOP_OBJECTCLASS_NAME, Collections
+          .singleton(TOP_OBJECTCLASS_NAME), TOP_OBJECTCLASS_OID,
+          TOP_OBJECTCLASS_DESCRIPTION, null, null, null,
+          ObjectClassType.ABSTRACT, false, null);
     }
 
     return objectClass;
@@ -2893,14 +2879,16 @@ public class DirectoryServer
 
 
   /**
-   * Causes the Directory Server to construct a new objectclass definition with
-   * the provided name and with no required or allowed attributes.  This should
-   * only be used if there is no objectclass for the specified name.  It will
-   * not register the created objectclass with the Directory Server.
+   * Causes the Directory Server to construct a new objectclass
+   * definition with the provided name and with no required or allowed
+   * attributes. This should only be used if there is no objectclass
+   * for the specified name. It will not register the created
+   * objectclass with the Directory Server.
    *
-   * @param  name  The name to use for the objectclass, as provided by the user.
-   *
-   * @return  The constructed objectclass definition.
+   * @param name
+   *          The name to use for the objectclass, as provided by the
+   *          user.
+   * @return The constructed objectclass definition.
    */
   public static ObjectClass getDefaultObjectClass(String name)
   {
@@ -2911,22 +2899,10 @@ public class DirectoryServer
     ObjectClass objectClass = directoryServer.schema.getObjectClass(lowerName);
     if (objectClass == null)
     {
-      ConcurrentHashMap<String,String> names =
-           new ConcurrentHashMap<String,String>(1);
-      names.put(lowerName, name);
-
-      CopyOnWriteArraySet<AttributeType> requiredAttrs =
-           new CopyOnWriteArraySet<AttributeType>();
-      CopyOnWriteArraySet<AttributeType> optionalAttrs =
-           new CopyOnWriteArraySet<AttributeType>();
-
-      ConcurrentHashMap<String,CopyOnWriteArrayList<String>> extraProperties =
-           new ConcurrentHashMap<String,CopyOnWriteArrayList<String>>(0);
-
-      objectClass = new ObjectClass(name, names, lowerName, null,
-                                    getTopObjectClass(), requiredAttrs,
-                                    optionalAttrs, ObjectClassType.ABSTRACT,
-                                    false, extraProperties);
+      objectClass = new ObjectClass(name,
+          Collections.singleton(name), lowerName, null,
+          getTopObjectClass(), null, null, ObjectClassType.ABSTRACT,
+          false, null);
     }
 
     return objectClass;
@@ -2935,11 +2911,11 @@ public class DirectoryServer
 
 
   /**
-   * Retrieves the set of attribute type definitions that have been defined in
-   * the Directory Server.
+   * Retrieves the set of attribute type definitions that have been
+   * defined in the Directory Server.
    *
-   * @return  The set of attribute type definitions that have been defined in
-   *          the Directory Server.
+   * @return The set of attribute type definitions that have been
+   *         defined in the Directory Server.
    */
   public static ConcurrentHashMap<String,AttributeType> getAttributeTypes()
   {

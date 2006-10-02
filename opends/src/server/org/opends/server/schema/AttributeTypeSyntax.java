@@ -30,6 +30,7 @@ package org.opends.server.schema;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import org.opends.server.api.ApproximateMatchingRule;
@@ -491,7 +492,7 @@ public class AttributeTypeSyntax
     boolean isObsolete = false;
     boolean isSingleValue = false;
     HashMap<String,List<String>> extraProperties =
-         new HashMap<String,List<String>>();
+         new LinkedHashMap<String,List<String>>();
 
 
     while (true)
