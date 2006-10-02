@@ -57,11 +57,11 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.config.IntegerConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 /**

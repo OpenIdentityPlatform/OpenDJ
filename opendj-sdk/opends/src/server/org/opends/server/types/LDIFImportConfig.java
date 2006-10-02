@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
-import org.opends.server.core.DirectoryException;
 import org.opends.server.tools.makeldif.MakeLDIFInputStream;
 import org.opends.server.tools.makeldif.TemplateFile;
 

@@ -29,8 +29,6 @@ package org.opends.server.backends.jeb;
 
 import static org.opends.server.loggers.Debug.debugEnter;
 
-import org.opends.server.core.CryptoManager;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -42,6 +40,8 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.CryptoManager;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;

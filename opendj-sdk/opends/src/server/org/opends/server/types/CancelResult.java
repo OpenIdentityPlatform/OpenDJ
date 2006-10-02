@@ -24,67 +24,64 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.server.core;
-
-
-
-import org.opends.server.types.ResultCode;
+package org.opends.server.types;
 
 
 
 /**
- * This enumeration defines the set of possible outcomes that can result from
- * processing a cancel request.  This is based on the specification contained in
- * RFC 3909.
+ * This enumeration defines the set of possible outcomes that can
+ * result from processing a cancel request.  This is based on the
+ * specification contained in RFC 3909.
  */
 public enum CancelResult
 {
   /**
-   * The cancel result that indicates that the target operation was canceled
-   * successfully and in a manner that should have no permanent effects on the
-   * server or the data it contains.
+   * The cancel result that indicates that the target operation was
+   * canceled successfully and in a manner that should have no
+   * permanent effects on the server or the data it contains.
    */
   CANCELED(ResultCode.CANCELED),
 
 
 
   /**
-   * The cancel result that indicates that the target operation could not be
-   * found, which may mean that it either does not exist or has already
-   * completed.
+   * The cancel result that indicates that the target operation could
+   * not be found, which may mean that it either does not exist or has
+   * already completed.
    */
   NO_SUCH_OPERATION(ResultCode.NO_SUCH_OPERATION),
 
 
 
   /**
-   * The cancel result that indicates that processing on the target operation
-   * had already progressed to a point in which it was too late to be able to
-   * cancel.
+   * The cancel result that indicates that processing on the target
+   * operation had already progressed to a point in which it was too
+   * late to be able to cancel.
    */
   TOO_LATE(ResultCode.TOO_LATE),
 
 
 
   /**
-   * The cancel result that indicates that the operation exists but cannot be
-   * canceled for some reason (e.g., it is an abandon, bind, cancel, or unbind
-   * operation, or if it is one that would impact the security of the underlying
-   * connection).
+   * The cancel result that indicates that the operation exists but
+   * cannot be canceled for some reason (e.g., it is an abandon, bind,
+   * cancel, or unbind operation, or if it is one that would impact
+   * the security of the underlying connection).
    */
   CANNOT_CANCEL(ResultCode.CANNOT_CANCEL);
 
 
 
   // The result code associated with this cancel result.
-  private ResultCode resultCode;
+  private final ResultCode resultCode;
 
 
 
   /**
    * Creates a new cancel result with the provided result code.
    *
-   * @param  resultCode  The result code associated with this cancel result.
+   * @param  resultCode  The result code associated with this cancel
+   *                     result.
    */
   private CancelResult(ResultCode resultCode)
   {
@@ -98,7 +95,7 @@ public enum CancelResult
    *
    * @return  The result code associated with this cancel result.
    */
-  public ResultCode getResultCode()
+  public final ResultCode getResultCode()
   {
     return resultCode;
   }
@@ -110,7 +107,7 @@ public enum CancelResult
    *
    * @return  A string representation of this cancel result.
    */
-  public String toString()
+  public final String toString()
   {
     return String.valueOf(resultCode);
   }

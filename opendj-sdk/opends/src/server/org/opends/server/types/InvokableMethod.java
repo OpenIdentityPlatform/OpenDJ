@@ -35,7 +35,6 @@ import javax.management.MBeanParameterInfo;
 
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.config.ConfigAttribute;
-import org.opends.server.core.DirectoryException;
 
 import static org.opends.server.loggers.Debug.*;
 

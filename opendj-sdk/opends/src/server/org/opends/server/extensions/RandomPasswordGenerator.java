@@ -41,13 +41,13 @@ import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.NamedCharacterSet;
 import org.opends.server.types.ResultCode;
 

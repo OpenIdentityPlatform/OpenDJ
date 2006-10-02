@@ -58,23 +58,23 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.CancelledOperationException;
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.CancelledOperationException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.RestoreConfig;
@@ -1046,9 +1046,9 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    * @param modifyDNOperation The modify DN operation with which this action is
    *                          associated.  This may be <CODE>null</CODE> for
    *                          modify DN operations performed internally.
-   * @throws org.opends.server.core.DirectoryException
+   * @throws org.opends.server.types.DirectoryException
    *          If a problem occurs while trying to perform the rename.
-   * @throws org.opends.server.core.CancelledOperationException
+   * @throws org.opends.server.types.CancelledOperationException
    *          If this backend noticed and reacted to a request to cancel or
    *          abandon the modify DN operation.
    */
@@ -1104,7 +1104,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    * <CODE>SearchOperation.returnEntry</CODE> method.
    *
    * @param searchOperation The search operation to be processed.
-   * @throws org.opends.server.core.DirectoryException
+   * @throws org.opends.server.types.DirectoryException
    *          If a problem occurs while processing the search.
    */
   public void search(SearchOperation searchOperation)
@@ -1142,7 +1142,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    * @param configEntry  The configuration entry for this backend.
    * @param baseDNs      The set of base DNs configured for this backend.
    * @param exportConfig The configuration to use when performing the export.
-   * @throws org.opends.server.core.DirectoryException
+   * @throws org.opends.server.types.DirectoryException
    *          If a problem occurs while performing the LDIF export.
    */
   public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,

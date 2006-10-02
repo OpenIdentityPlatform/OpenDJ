@@ -40,9 +40,9 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 import org.opends.server.api.InvokableComponent;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.InvokableMethod;
 import org.opends.server.types.ResultCode;

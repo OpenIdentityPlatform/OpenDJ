@@ -26,8 +26,8 @@
  */
 package org.opends.server.api;
 
-import org.opends.server.core.DirectoryException;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DirectoryException;
 
 /**
  * A factory interface for decoding attribute values into objects.

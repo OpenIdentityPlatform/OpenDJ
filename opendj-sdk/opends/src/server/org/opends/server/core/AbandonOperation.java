@@ -32,8 +32,13 @@ import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.operation.PostOperationAbandonOperation;
+import org.opends.server.types.operation.PreParseAbandonOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
@@ -50,6 +55,7 @@ import static org.opends.server.messages.MessageHandler.*;
  */
 public class AbandonOperation
        extends Operation
+       implements PreParseAbandonOperation, PostOperationAbandonOperation
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -60,7 +66,7 @@ public class AbandonOperation
 
 
   // The message ID of the operation that should be abandoned.
-  private int idToAbandon;
+  private final int idToAbandon;
 
   // The time that processing started on this operation.
   private long processingStartTime;
@@ -104,7 +110,7 @@ public class AbandonOperation
    *
    * @return  The message ID of the operation that should be abandoned.
    */
-  public int getIDToAbandon()
+  public final int getIDToAbandon()
   {
     assert debugEnter(CLASS_NAME, "getIDToAbandon");
 
@@ -114,11 +120,10 @@ public class AbandonOperation
 
 
   /**
-   * Retrieves the time that processing started for this operation.
-   *
-   * @return  The time that processing started for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStartTime()
+  @Override()
+  public final long getProcessingStartTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
@@ -128,12 +133,10 @@ public class AbandonOperation
 
 
   /**
-   * Retrieves the time that processing stopped for this operation.  This will
-   * actually hold a time immediately before the result was logged.
-   *
-   * @return  The time that processing stopped for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStopTime()
+  @Override()
+  public final long getProcessingStopTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
@@ -143,14 +146,10 @@ public class AbandonOperation
 
 
   /**
-   * Retrieves the length of time in milliseconds that the server spent
-   * processing this operation.  This should not be called until after the
-   * server has sent the response to the client.
-   *
-   * @return  The length of time in milliseconds that the server spent
-   *          processing this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingTime()
+  @Override()
+  public final long getProcessingTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingTime");
 
@@ -160,12 +159,13 @@ public class AbandonOperation
 
 
   /**
-   * Retrieves the operation type for this operation.
-   *
-   * @return  The operation type for this operation.
+   * {@inheritDoc}
    */
-  public OperationType getOperationType()
+  @Override()
+  public final OperationType getOperationType()
   {
+    assert debugEnter(CLASS_NAME, "getOperationType");
+
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
 
@@ -175,17 +175,13 @@ public class AbandonOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in requests for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in requests for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getRequestLogElements()
+  @Override()
+  public final String[][] getRequestLogElements()
   {
+    assert debugEnter(CLASS_NAME, "getRequestLogElements");
+
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
 
@@ -198,16 +194,10 @@ public class AbandonOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in responses for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in responses for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getResponseLogElements()
+  @Override()
+  public final String[][] getResponseLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -241,15 +231,10 @@ public class AbandonOperation
 
 
   /**
-   * Retrieves the set of controls to include in the response to the client.
-   * Note that the contents of this list should not be altered after
-   * post-operation plugins have been called.  Note that abandon operations
-   * must never have an associated response, so this method will not be used for
-   * this type of operation.
-   *
-   * @return  The set of controls to include in the response to the client.
+   * {@inheritDoc}
    */
-  public List<Control> getResponseControls()
+  @Override()
+  public final List<Control> getResponseControls()
   {
     assert debugEnter(CLASS_NAME, "getResponseControls");
 
@@ -261,12 +246,32 @@ public class AbandonOperation
 
 
   /**
-   * Performs the work of actually processing this operation.  This should
-   * include all processing for the operation, including invoking plugins,
-   * logging messages, performing access control, managing synchronization, and
-   * any other work that might need to be done in the course of processing.
+   * {@inheritDoc}
    */
-  public void run()
+  @Override()
+  public final void addResponseControl(Control control)
+  {
+    // An abandon operation can never have a response, so just ignore this.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void removeResponseControl(Control control)
+  {
+    // An abandon operation can never have a response, so just ignore this.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void run()
   {
     assert debugEnter(CLASS_NAME, "run");
 
@@ -365,16 +370,10 @@ abandonProcessing:
 
 
   /**
-   * Attempts to cancel this operation before processing has completed.  Note
-   * that an abandon operation may not be canceled, so this should never do
-   * anything.
-   *
-   * @param  cancelRequest  Information about the way in which the operation
-   *                        should be canceled.
-   *
-   * @return  A code providing information on the result of the cancellation.
+   * {@inheritDoc}
    */
-  public CancelResult cancel(CancelRequest cancelRequest)
+  @Override()
+  public final CancelResult cancel(CancelRequest cancelRequest)
   {
     assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
@@ -385,14 +384,10 @@ abandonProcessing:
 
 
   /**
-   * Retrieves the cancel request that has been issued for this operation, if
-   * there is one.  Note that an abandon operation may not be canceled, so this
-   * will always return <CODE>null</CODE>.
-   *
-   * @return  The cancel request that has been issued for this operation, or
-   *          <CODE>null</CODE> if there has not been any request to cancel.
+   * {@inheritDoc}
    */
-  public CancelRequest getCancelRequest()
+  @Override()
+  public final CancelRequest getCancelRequest()
   {
     assert debugEnter(CLASS_NAME, "getCancelRequest");
 
@@ -402,12 +397,10 @@ abandonProcessing:
 
 
   /**
-   * Appends a string representation of this operation to the provided buffer.
-   *
-   * @param  buffer  The buffer into which a string representation of this
-   *                 operation should be appended.
+   * {@inheritDoc}
    */
-  public void toString(StringBuilder buffer)
+  @Override()
+  public final void toString(StringBuilder buffer)
   {
     assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 

@@ -48,11 +48,20 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.types.operation.PostOperationCompareOperation;
+import org.opends.server.types.operation.PostResponseCompareOperation;
+import org.opends.server.types.operation.PreOperationCompareOperation;
+import org.opends.server.types.operation.PreParseCompareOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
@@ -71,6 +80,8 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class CompareOperation
        extends Operation
+       implements PreParseCompareOperation, PreOperationCompareOperation,
+                  PostOperationCompareOperation, PostResponseCompareOperation
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -211,7 +222,7 @@ public class CompareOperation
    *
    * @return  The raw, unprocessed entry DN as included in the client request.
    */
-  public ByteString getRawEntryDN()
+  public final ByteString getRawEntryDN()
   {
     assert debugEnter(CLASS_NAME, "getRawEntryDN");
 
@@ -222,13 +233,12 @@ public class CompareOperation
 
   /**
    * Specifies the raw, unprocessed entry DN as included in the client request.
-   * This should only be called by pre-parse plugins.  All other code that needs
-   * to set the entry DN should use the <CODE>setEntryDN</CODE> method.
+   * This should only be called by pre-parse plugins.
    *
    * @param  rawEntryDN  The raw, unprocessed entry DN as included in the client
    *                     request.
    */
-  public void setRawEntryDN(ByteString rawEntryDN)
+  public final void setRawEntryDN(ByteString rawEntryDN)
   {
     assert debugEnter(CLASS_NAME, "setRawEntryDN");
 
@@ -247,7 +257,7 @@ public class CompareOperation
    * @return  The DN of the entry to compare, or <CODE>null</CODE> if the raw
    *          entry DN has not yet been processed.
    */
-  public DN getEntryDN()
+  public final DN getEntryDN()
   {
     assert debugEnter(CLASS_NAME, "getEntryDN");
 
@@ -257,27 +267,11 @@ public class CompareOperation
 
 
   /**
-   * Specifies the DN of the entry to compare.  This should not be called by
-   * pre-parse plugins, since they should use <CODE>setRawEntryDN</CODE>
-   * instead.
-   *
-   * @param  entryDN  The DN of the entry to compare.
-   */
-  public void setEntryDN(DN entryDN)
-  {
-    assert debugEnter(CLASS_NAME, "setEntryDN", String.valueOf(entryDN));
-
-    this.entryDN = entryDN;
-  }
-
-
-
-  /**
    * Retrieves the raw attribute type for this compare operation.
    *
    * @return  The raw attribute type for this compare operation.
    */
-  public String getRawAttributeType()
+  public final String getRawAttributeType()
   {
     assert debugEnter(CLASS_NAME, "getRawAttributeType");
 
@@ -293,7 +287,7 @@ public class CompareOperation
    * @param  rawAttributeType  The raw attribute type for this compare
    *                           operation.
    */
-  public void setRawAttributeType(String rawAttributeType)
+  public final void setRawAttributeType(String rawAttributeType)
   {
     assert debugEnter(CLASS_NAME, "setRawAttributeType",
                       String.valueOf(rawAttributeType));
@@ -306,11 +300,13 @@ public class CompareOperation
 
 
   /**
-   * Retrieves the attribute type for this compare operation.
+   * Retrieves the attribute type for this compare operation.  This should not
+   * be called by pre-parse plugins because the processed attribute type will
+   * not be available yet.
    *
    * @return  The attribute type for this compare operation.
    */
-  public AttributeType getAttributeType()
+  public final AttributeType getAttributeType()
   {
     assert debugEnter(CLASS_NAME, "getAttributeType");
 
@@ -324,7 +320,7 @@ public class CompareOperation
    *
    * @return  The assertion value for this compare operation.
    */
-  public ByteString getAssertionValue()
+  public final ByteString getAssertionValue()
   {
     assert debugEnter(CLASS_NAME, "getAssertionValue");
 
@@ -334,11 +330,12 @@ public class CompareOperation
 
 
   /**
-   * Specifies the assertion value for this compare operation.
+   * Specifies the assertion value for this compare operation.  This should only
+   * be called by pre-parse and pre-operation plugins.
    *
    * @param  assertionValue  The assertion value for this compare operation.
    */
-  public void setAssertionValue(ByteString assertionValue)
+  public final void setAssertionValue(ByteString assertionValue)
   {
     assert debugEnter(CLASS_NAME, "setAssertionValue",
                       String.valueOf(assertionValue));
@@ -349,13 +346,13 @@ public class CompareOperation
 
 
   /**
-   * Retrieves the entry to target with the compare operation.  It will not be
-   * available to pre-parse plugins.
+   * Retrieves the entry to target with the compare operation.  This should not
+   * be called by pre-parse plugins.
    *
    * @return  The entry to target with the compare operation, or
    *          <CODE>null</CODE> if the entry is not yet available.
    */
-  public Entry getEntryToCompare()
+  public final Entry getEntryToCompare()
   {
     assert debugEnter(CLASS_NAME, "getEntryToCompare");
 
@@ -365,11 +362,10 @@ public class CompareOperation
 
 
   /**
-   * Retrieves the time that processing started for this operation.
-   *
-   * @return  The time that processing started for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStartTime()
+  @Override()
+  public final long getProcessingStartTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
@@ -379,13 +375,10 @@ public class CompareOperation
 
 
   /**
-   * Retrieves the time that processing stopped for this operation.  This will
-   * actually hold a time immediately before the response was sent to the
-   * client.
-   *
-   * @return  The time that processing stopped for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStopTime()
+  @Override()
+  public final long getProcessingStopTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
@@ -395,14 +388,10 @@ public class CompareOperation
 
 
   /**
-   * Retrieves the length of time in milliseconds that the server spent
-   * processing this operation.  This should not be called until after the
-   * server has sent the response to the client.
-   *
-   * @return  The length of time in milliseconds that the server spent
-   *          processing this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingTime()
+  @Override()
+  public final long getProcessingTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingTime");
 
@@ -412,11 +401,10 @@ public class CompareOperation
 
 
   /**
-   * Retrieves the operation type for this operation.
-   *
-   * @return  The operation type for this operation.
+   * {@inheritDoc}
    */
-  public OperationType getOperationType()
+  @Override()
+  public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -427,16 +415,10 @@ public class CompareOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in requests for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in requests for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getRequestLogElements()
+  @Override()
+  public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -451,16 +433,10 @@ public class CompareOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in responses for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in responses for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getResponseLogElements()
+  @Override()
+  public final String[][] getResponseLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -526,13 +502,10 @@ public class CompareOperation
 
 
   /**
-   * Retrieves the set of controls to include in the response to the client.
-   * Note that the contents of this list should not be altered after
-   * post-operation plugins have been called.
-   *
-   * @return  The set of controls to include in the response to the client.
+   * {@inheritDoc}
    */
-  public List<Control> getResponseControls()
+  @Override()
+  public final List<Control> getResponseControls()
   {
     assert debugEnter(CLASS_NAME, "getResponseControls");
 
@@ -542,12 +515,32 @@ public class CompareOperation
 
 
   /**
-   * Performs the work of actually processing this operation.  This should
-   * include all processing for the operation, including invoking plugins,
-   * logging messages, performing access control, managing synchronization, and
-   * any other work that might need to be done in the course of processing.
+   * {@inheritDoc}
    */
-  public void run()
+  @Override()
+  public final void addResponseControl(Control control)
+  {
+    responseControls.add(control);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void removeResponseControl(Control control)
+  {
+    responseControls.remove(control);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void run()
   {
     assert debugEnter(CLASS_NAME, "run");
 
@@ -1083,14 +1076,10 @@ compareProcessing:
 
 
   /**
-   * Attempts to cancel this operation before processing has completed.
-   *
-   * @param  cancelRequest  Information about the way in which the operation
-   *                        should be canceled.
-   *
-   * @return  A code providing information on the result of the cancellation.
+   * {@inheritDoc}
    */
-  public CancelResult cancel(CancelRequest cancelRequest)
+  @Override()
+  public final CancelResult cancel(CancelRequest cancelRequest)
   {
     assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
@@ -1128,13 +1117,10 @@ compareProcessing:
 
 
   /**
-   * Retrieves the cancel request that has been issued for this operation, if
-   * there is one.
-   *
-   * @return  The cancel request that has been issued for this operation, or
-   *          <CODE>null</CODE> if there has not been any request to cancel.
+   * {@inheritDoc}
    */
-  public CancelRequest getCancelRequest()
+  @Override()
+  public final CancelRequest getCancelRequest()
   {
     assert debugEnter(CLASS_NAME, "getCancelRequest");
 
@@ -1144,12 +1130,10 @@ compareProcessing:
 
 
   /**
-   * Appends a string representation of this operation to the provided buffer.
-   *
-   * @param  buffer  The buffer into which a string representation of this
-   *                 operation should be appended.
+   * {@inheritDoc}
    */
-  public void toString(StringBuilder buffer)
+  @Override()
+  public final void toString(StringBuilder buffer)
   {
     assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 

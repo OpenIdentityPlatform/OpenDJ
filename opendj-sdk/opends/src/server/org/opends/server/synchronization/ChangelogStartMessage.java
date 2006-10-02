@@ -30,8 +30,8 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.core.DirectoryException;
 
 /**
  * Message sent by a changelog server to another changelog server at Startup.

@@ -43,7 +43,6 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -69,7 +68,7 @@ import static org.opends.server.util.StaticUtils.*;
  * password policy processing during an LDIF import.  In particular, it ensures
  * that all of the password values are properly encoded before they are stored.
  */
-public class PasswordPolicyImportPlugin
+public final class PasswordPolicyImportPlugin
        extends DirectoryServerPlugin
 {
   /**
@@ -81,10 +80,12 @@ public class PasswordPolicyImportPlugin
 
 
   // The sets of password storage schemes for the auth password attributes.
-  private HashMap<AttributeType,PasswordStorageScheme[]> authPasswordSchemes;
+  private final HashMap<AttributeType,PasswordStorageScheme[]>
+                     authPasswordSchemes;
 
   // The sets of password storage schemes for the user password attributes.
-  private HashMap<AttributeType,PasswordStorageScheme[]> userPasswordSchemes;
+  private final HashMap<AttributeType,PasswordStorageScheme[]>
+                     userPasswordSchemes;
 
 
 
@@ -99,59 +100,11 @@ public class PasswordPolicyImportPlugin
     super();
 
     assert debugConstructor(CLASS_NAME);
-  }
 
 
-
-  /**
-   * Performs any initialization necessary for this plugin.  This will be called
-   * as soon as the plugin has been loaded and before it is registered with the
-   * server.
-   *
-   * @param  directoryServer  The reference to the Directory Server instance in
-   *                          which the plugin will be running.
-   * @param  pluginTypes      The set of plugin types that indicate the ways in
-   *                          which this plugin will be invoked.
-   * @param  configEntry      The entry containing the configuration information
-   *                          for this plugin.
-   *
-   * @throws  ConfigException  If the provided entry does not contain a valid
-   *                           configuration for this plugin.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the plugin that is not related to the
-   *                                   server configuration.
-   */
-  public void initializePlugin(DirectoryServer directoryServer,
-                               Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
-         throws ConfigException, InitializationException
-  {
-    assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(directoryServer),
-                      String.valueOf(pluginTypes),
-                      String.valueOf(configEntry));
-
-
-    // Make sure that the plugin has been enabled for the appropriate types.
-    for (PluginType t : pluginTypes)
-    {
-      switch (t)
-      {
-        case LDIF_IMPORT:
-          // This is the only acceptable type.
-          break;
-
-
-        default:
-          int msgID = MSGID_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE;
-          String message = getMessage(msgID, t.toString());
-          throw new ConfigException(msgID, message);
-      }
-    }
-
-
-    // Get the password policies from the Directory Server configuration.
+    // Get the password policies from the Directory Server configuration.  This
+    // is done in the constructor to allow the instance variables to be declared
+    // "final".
     authPasswordSchemes = new HashMap<AttributeType,PasswordStorageScheme[]>();
     userPasswordSchemes = new HashMap<AttributeType,PasswordStorageScheme[]>();
     for (PasswordPolicy p : DirectoryServer.getPasswordPolicies().values())
@@ -223,17 +176,46 @@ public class PasswordPolicyImportPlugin
 
 
   /**
-   * Performs any necessary processing that should be done during an LDIF import
-   * operation immediately after reading an entry and confirming that it should
-   * be imported based on the provided configuration.
-   *
-   * @param  importConfig  The configuration used for the LDIF import.
-   * @param  entry         The entry that has been read to the LDIF file.
-   *
-   * @return  The result of the plugin processing.
+   * {@inheritDoc}
    */
-  public LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
-                                       Entry entry)
+  @Override()
+  public final void initializePlugin(DirectoryServer directoryServer,
+                               Set<PluginType> pluginTypes,
+                               ConfigEntry configEntry)
+         throws ConfigException
+  {
+    assert debugEnter(CLASS_NAME, "initializePlugin",
+                      String.valueOf(directoryServer),
+                      String.valueOf(pluginTypes),
+                      String.valueOf(configEntry));
+
+
+    // Make sure that the plugin has been enabled for the appropriate types.
+    for (PluginType t : pluginTypes)
+    {
+      switch (t)
+      {
+        case LDIF_IMPORT:
+          // This is the only acceptable type.
+          break;
+
+
+        default:
+          int msgID = MSGID_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE;
+          String message = getMessage(msgID, t.toString());
+          throw new ConfigException(msgID, message);
+      }
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
+                                             Entry entry)
   {
     assert debugEnter(CLASS_NAME, "doLDIFImport",
                       String.valueOf(importConfig), String.valueOf(entry));

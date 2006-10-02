@@ -29,7 +29,6 @@ package org.opends.server.types;
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

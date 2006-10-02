@@ -35,12 +35,12 @@ import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 
 import static org.testng.Assert.*;

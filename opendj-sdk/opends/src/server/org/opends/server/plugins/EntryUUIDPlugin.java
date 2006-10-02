@@ -42,9 +42,7 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -52,6 +50,7 @@ import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.operation.PreOperationAddOperation;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -62,9 +61,14 @@ import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements a Directory Server plugin that will add the entryUUID
- * attribute to an entry whenever it is added or imported.
+ * attribute to an entry whenever it is added or imported as per RFC 4530.  For
+ * entries added over LDAP, the entryUUID will be based on a semi-random UUID
+ * (which is still guaranteed to be unique).  For entries imported from LDIF,
+ * the UUID will be constructed from the entry DN using a repeatable algorithm.
+ * This will ensure that LDIF files imported in parallel across multiple systems
+ * will have identical entryUUID values.
  */
-public class EntryUUIDPlugin
+public final class EntryUUIDPlugin
        extends DirectoryServerPlugin
 {
   /**
@@ -83,7 +87,7 @@ public class EntryUUIDPlugin
 
 
   // The attribute type for the "entryUUID" attribute.
-  private AttributeType entryUUIDType;
+  private final AttributeType entryUUIDType;
 
 
 
@@ -98,33 +102,33 @@ public class EntryUUIDPlugin
     super();
 
     assert debugConstructor(CLASS_NAME);
+
+
+    // Get the entryUUID attribute type.  This needs to be done in the
+    // constructor in order to make the associated variables "final".
+    AttributeType at = DirectoryServer.getAttributeType(ENTRYUUID);
+    if (at == null)
+    {
+      at = new AttributeType(ENTRYUUID, Collections.singleton(ENTRYUUID),
+                             ENTRYUUID, null, null,
+                             DirectoryServer.getDefaultAttributeSyntax(),
+                             AttributeUsage.DIRECTORY_OPERATION, false, true,
+                             false, true);
+    }
+
+    entryUUIDType = at;
   }
 
 
 
   /**
-   * Performs any initialization necessary for this plugin.  This will be called
-   * as soon as the plugin has been loaded and before it is registered with the
-   * server.
-   *
-   * @param  directoryServer  The reference to the Directory Server instance in
-   *                          which the plugin will be running.
-   * @param  pluginTypes      The set of plugin types that indicate the ways in
-   *                          which this plugin will be invoked.
-   * @param  configEntry      The entry containing the configuration information
-   *                          for this plugin.
-   *
-   * @throws  ConfigException  If the provided entry does not contain a valid
-   *                           configuration for this plugin.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the plugin that is not related to the
-   *                                   server configuration.
+   * {@inheritDoc}
    */
-  public void initializePlugin(DirectoryServer directoryServer,
-                               Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
-         throws ConfigException, InitializationException
+  @Override()
+  public final void initializePlugin(DirectoryServer directoryServer,
+                                    Set<PluginType> pluginTypes,
+                                    ConfigEntry configEntry)
+         throws ConfigException
   {
     assert debugEnter(CLASS_NAME, "initializePlugin",
                       String.valueOf(directoryServer),
@@ -149,37 +153,16 @@ public class EntryUUIDPlugin
           throw new ConfigException(msgID, message);
       }
     }
-
-
-    // Get the entryUUID attribute type.
-    entryUUIDType = DirectoryServer.getAttributeType(ENTRYUUID);
-    if (entryUUIDType == null)
-    {
-      entryUUIDType = new AttributeType(ENTRYUUID,
-          Collections.singleton(ENTRYUUID),
-          ENTRYUUID,
-          null,
-          null,
-          DirectoryServer.getDefaultAttributeSyntax(),
-          AttributeUsage.DIRECTORY_OPERATION,
-          false, true, false, true);
-    }
   }
 
 
 
   /**
-   * Performs any necessary processing that should be done during an LDIF import
-   * operation immediately after reading an entry and confirming that it should
-   * be imported based on the provided configuration.
-   *
-   * @param  importConfig  The configuration used for the LDIF import.
-   * @param  entry         The entry that has been read to the LDIF file.
-   *
-   * @return  The result of the plugin processing.
+   * {@inheritDoc}
    */
-  public LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
-                                       Entry entry)
+  @Override()
+  public final LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
+                                             Entry entry)
   {
     assert debugEnter(CLASS_NAME, "doLDIFImport",
                       String.valueOf(importConfig), String.valueOf(entry));
@@ -217,14 +200,11 @@ public class EntryUUIDPlugin
 
 
   /**
-   * Performs any necessary processing that should be done just before the
-   * Directory Server performs the core processing for an add operation.
-   *
-   * @param  addOperation  The add operation to be processed.
-   *
-   * @return  Information about the result of the plugin processing.
+   * {@inheritDoc}
    */
-  public PreOperationPluginResult doPreOperation(AddOperation addOperation)
+  @Override()
+  public final PreOperationPluginResult
+       doPreOperation(PreOperationAddOperation addOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreOperation",
                       String.valueOf(addOperation));
@@ -252,10 +232,10 @@ public class EntryUUIDPlugin
     uuidList = new ArrayList<Attribute>(1);
     Attribute uuidAttr = new Attribute(entryUUIDType, "entryUUID", values);
     uuidList.add(uuidAttr);
-    operationalAttributes.put(entryUUIDType, uuidList);
 
 
-    // We shouldn't ever need to return a non-success result.
+    // Add the attribute to the entry and return.
+    addOperation.setAttribute(entryUUIDType, uuidList);
     return new PreOperationPluginResult();
   }
 }

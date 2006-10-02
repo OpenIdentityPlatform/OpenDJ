@@ -32,13 +32,13 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.CancelRequest;
-import org.opends.server.core.CancelResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.InitializationException;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.Debug.*;

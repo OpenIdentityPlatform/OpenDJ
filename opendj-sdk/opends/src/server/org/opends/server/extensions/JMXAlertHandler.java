@@ -55,7 +55,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
-import org.opends.server.core.InitializationException;
+import org.opends.server.types.InitializationException;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.ConfigMessages.*;

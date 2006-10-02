@@ -37,21 +37,13 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.Operation;
-import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.asn1.ASN1Long;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Control;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.operation.*;
 
 
 
@@ -125,7 +117,8 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(AddOperation addOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationAddOperation addOperation)
   {
     return doPreOperationInternal(addOperation);
   }
@@ -136,7 +129,8 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(BindOperation bindOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationBindOperation bindOperation)
   {
     return doPreOperationInternal(bindOperation);
   }
@@ -147,8 +141,8 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(CompareOperation
-                                                      compareOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationCompareOperation compareOperation)
   {
     return doPreOperationInternal(compareOperation);
   }
@@ -159,8 +153,8 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(DeleteOperation
-                                                      deleteOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
     return doPreOperationInternal(deleteOperation);
   }
@@ -171,8 +165,8 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(ExtendedOperation
-                                                      extendedOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
     return doPreOperationInternal(extendedOperation);
   }
@@ -183,8 +177,8 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(ModifyOperation
-                                                      modifyOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     return doPreOperationInternal(modifyOperation);
   }
@@ -195,8 +189,8 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(ModifyDNOperation
-                                                      modifyDNOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     return doPreOperationInternal(modifyDNOperation);
   }
@@ -207,8 +201,8 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult doPreOperation(SearchOperation
-                                                      searchOperation)
+  public PreOperationPluginResult
+       doPreOperation(PreOperationSearchOperation searchOperation)
   {
     return doPreOperationInternal(searchOperation);
   }
@@ -225,7 +219,8 @@ public class DelayPreOpPlugin
    *
    * @return  The result of the plugin processing.
    */
-  private PreOperationPluginResult doPreOperationInternal(Operation operation)
+  private PreOperationPluginResult
+       doPreOperationInternal(PreOperationOperation operation)
   {
     long delayDuration = 0L;
     List<Control> requestControls = operation.getRequestControls();

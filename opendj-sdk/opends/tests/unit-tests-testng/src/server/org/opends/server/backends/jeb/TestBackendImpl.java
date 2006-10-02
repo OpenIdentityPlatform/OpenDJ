@@ -32,7 +32,7 @@ import java.io.File;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.core.DirectoryException;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;

@@ -30,8 +30,8 @@ package org.opends.server.tools.makeldif;
 
 import java.util.List;
 
-import org.opends.server.core.InitializationException;
 import org.opends.server.types.DN;
+import org.opends.server.types.InitializationException;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;

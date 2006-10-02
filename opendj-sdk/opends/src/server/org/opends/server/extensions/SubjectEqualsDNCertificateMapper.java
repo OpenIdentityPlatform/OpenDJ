@@ -36,12 +36,12 @@ import java.util.concurrent.locks.Lock;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
-import org.opends.server.core.LockManager;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.Debug.*;

@@ -36,27 +36,27 @@ import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
-import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.operation.PreParseSearchOperation;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 /**
- *  This pre-parse plugin modifies the operation to allow an object class
+ * This pre-parse plugin modifies the operation to allow an object class
  * identifier to be specified in attributes lists, such as in Search requests,
  * to request the return all attributes belonging to an object class as per the
  * specification in RFC 4529.  The "@" character is used to distinguish an
  * object class identifier from an attribute descriptions.
  */
-public class LDAPADListPlugin
+public final class LDAPADListPlugin
        extends DirectoryServerPlugin
 {
   private static final String CLASS_NAME =
@@ -80,28 +80,13 @@ public class LDAPADListPlugin
 
 
   /**
-   * Performs any initialization necessary for this plugin.  This will be called
-   * as soon as the plugin has been loaded and before it is registered with the
-   * server.
-   *
-   * @param  directoryServer  The reference to the Directory Server instance in
-   *                          which the plugin will be running.
-   * @param  pluginTypes      The set of plugin types that indicate the ways in
-   *                          which this plugin will be invoked.
-   * @param  configEntry      The entry containing the configuration information
-   *                          for this plugin.
-   *
-   * @throws  ConfigException  If the provided entry does not contain a valid
-   *                           configuration for this plugin.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the plugin that is not related to the
-   *                                   server configuration.
+   * {@inheritDoc}
    */
-  public void initializePlugin(DirectoryServer directoryServer,
-                               Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
-         throws ConfigException, InitializationException
+  @Override()
+  public final void initializePlugin(DirectoryServer directoryServer,
+                                     Set<PluginType> pluginTypes,
+                                     ConfigEntry configEntry)
+         throws ConfigException
   {
     assert debugEnter(CLASS_NAME, "initializePlugin",
                       String.valueOf(directoryServer),
@@ -138,69 +123,71 @@ public class LDAPADListPlugin
 
 
   /**
-   * Performs any necessary processing that should be done before the Directory
-   * Server parses the elements of a search request.
-   *
-   * @param  searchOperation  The search operation that has been requested.
-   *
-   * @return  Information about the result of the plugin processing.
+   * {@inheritDoc}
    */
-  public PreParsePluginResult doPreParse(SearchOperation searchOperation)
+  @Override()
+  public final PreParsePluginResult
+       doPreParse(PreParseSearchOperation searchOperation)
   {
     assert debugEnter(CLASS_NAME, "doPreParseSearch",
           String.valueOf(searchOperation));
 
+
+    // Iterate through the requested attributes to see if any of them start with
+    // an "@" symbol.  If not, then we don't need to do anything.  If so, then
+    // keep track of them.
     LinkedHashSet<String> attributes = searchOperation.getAttributes();
-
-    LinkedHashSet<String> objectClassList = new LinkedHashSet<String> ();
-
-    // Create list of object classes that need to be replaced with attributes.
-    for(String attribute : attributes)
+    boolean foundOC = false;
+    for (String attrName : attributes)
     {
-      // check if it starts with "@". If so add it to the list of object classes
-      if(attribute.startsWith("@"))
+      if (attrName.startsWith("@"))
       {
-        objectClassList.add(attribute);
+        foundOC = true;
+        break;
       }
     }
 
-    // Iterate through list of object classes and replace with attributes.
-    for (String objectClass : objectClassList)
+    if (foundOC)
     {
-      // find object class and get list of attributes.
-      ObjectClass objClass = DirectoryServer.getObjectClass(
-          objectClass.substring(1, objectClass.length()));
-      // remove the object class from the attribute list.
-      attributes.remove(objectClass);
-
-      if(objClass == null)
+      LinkedHashSet<String> newAttrs = new LinkedHashSet<String>();
+      for (String attrName : attributes)
       {
-        // object class not found.
-        assert debugMessage(DebugLogCategory.PLUGIN, DebugLogSeverity.WARNING,
-                        CLASS_NAME, "doPreSearch",
-                        "Invalid object class: " + objectClass);
-      } else
-      {
-        Set<AttributeType> requiredAttributes =
-            objClass.getRequiredAttributeChain();
-        Set<AttributeType> optionalAttributes =
-            objClass.getOptionalAttributeChain();
-
-        // remove attribute and replace with expanded list.
-        assert debugMessage(DebugLogCategory.PLUGIN, DebugLogSeverity.INFO,
-                            CLASS_NAME, "doPreParse",
-                            "Replacing object class " +
-                                 String.valueOf(objClass));
-        for(AttributeType req : requiredAttributes)
+        if (attrName.startsWith("@"))
         {
-          attributes.add(req.getNameOrOID());
+          String lowerName = toLowerCase(attrName.substring(1));
+          ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
+          if (oc == null)
+          {
+            debugMessage(DebugLogCategory.PLUGIN, DebugLogSeverity.WARNING,
+                         CLASS_NAME, "doPreParse",
+                         "Cannot replace unknown objectclass " + lowerName);
+          }
+          else
+          {
+            debugMessage(DebugLogCategory.PLUGIN, DebugLogSeverity.INFO,
+                         CLASS_NAME, "doPreParse",
+                         "Replacing objectclass " + lowerName);
+
+            for (AttributeType at : oc.getRequiredAttributeChain())
+            {
+              newAttrs.add(at.getNameOrOID());
+            }
+
+            for (AttributeType at : oc.getOptionalAttributeChain())
+            {
+              newAttrs.add(at.getNameOrOID());
+            }
+          }
         }
-        for(AttributeType opt : optionalAttributes)
+        else
         {
-          attributes.add(opt.getNameOrOID());
+          newAttrs.add(attrName);
         }
       }
+
+      searchOperation.setAttributes(newAttrs);
     }
+
 
     return new PreParsePluginResult();
   }

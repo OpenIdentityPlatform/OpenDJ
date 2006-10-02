@@ -37,6 +37,7 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.opends.server.api.SubtreeSpecification;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 

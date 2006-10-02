@@ -32,8 +32,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.zip.DataFormatException;
 
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.core.DirectoryException;
 
 /**
  * This message is used by LDAP server when they first connect.

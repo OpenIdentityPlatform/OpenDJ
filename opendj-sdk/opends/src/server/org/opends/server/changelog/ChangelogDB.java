@@ -35,10 +35,10 @@ import java.util.List;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.synchronization.ChangeNumber;
 import org.opends.server.synchronization.UpdateMessage;
 

@@ -55,18 +55,28 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.CancelledOperationException;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostResponseModifyDNOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
+import org.opends.server.types.operation.PreParseModifyDNOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
@@ -85,6 +95,8 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class ModifyDNOperation
        extends Operation
+       implements PreParseModifyDNOperation, PreOperationModifyDNOperation,
+                  PostOperationModifyDNOperation, PostResponseModifyDNOperation
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -270,7 +282,7 @@ public class ModifyDNOperation
    *
    * @return  The raw, unprocessed entry DN as included in the client request.
    */
-  public ByteString getRawEntryDN()
+  public final ByteString getRawEntryDN()
   {
     assert debugEnter(CLASS_NAME, "getRawEntryDN");
 
@@ -281,13 +293,12 @@ public class ModifyDNOperation
 
   /**
    * Specifies the raw, unprocessed entry DN as included in the client request.
-   * This should only be called by pre-parse plugins.  All other code that needs
-   * to set the entry DN should use the <CODE>setEntryDN</CODE> method.
+   * This should only be called by pre-parse plugins.
    *
    * @param  rawEntryDN  The raw, unprocessed entry DN as included in the client
    *                     request.
    */
-  public void setRawEntryDN(ByteString rawEntryDN)
+  public final void setRawEntryDN(ByteString rawEntryDN)
   {
     assert debugEnter(CLASS_NAME, "setRawEntryDN");
 
@@ -306,27 +317,11 @@ public class ModifyDNOperation
    * @return  The DN of the entry to rename, or <CODE>null</CODE> if the raw
    *          entry DN has not yet been processed.
    */
-  public DN getEntryDN()
+  public final DN getEntryDN()
   {
     assert debugEnter(CLASS_NAME, "getEntryDN");
 
     return entryDN;
-  }
-
-
-
-  /**
-   * Specifies the DN of the entry to rename.  This should not be called by
-   * pre-parse plugins, since they should use <CODE>setRawEntryDN</CODE>
-   * instead.
-   *
-   * @param  entryDN  The DN of the entry to compare.
-   */
-  public void setEntryDN(DN entryDN)
-  {
-    assert debugEnter(CLASS_NAME, "setEntryDN", String.valueOf(entryDN));
-
-    this.entryDN = entryDN;
   }
 
 
@@ -339,7 +334,7 @@ public class ModifyDNOperation
    * @return  The raw, unprocessed newRDN as included in the request from the
    *          client.
    */
-  public ByteString getRawNewRDN()
+  public final ByteString getRawNewRDN()
   {
     assert debugEnter(CLASS_NAME, "getRawNewRDN");
 
@@ -351,13 +346,12 @@ public class ModifyDNOperation
   /**
    * Specifies the raw, unprocessed newRDN as included in the request from the
    * client.  This should only be called by pre-parse plugins and should not be
-   * used in later stages of processing where the <CODE>getNewRDN</CODE> and
-   * <CODE>setNewRDN</CODE> methods should be used instead.
+   * used in later stages of processing.
    *
    * @param  rawNewRDN  The raw, unprocessed newRDN as included in the request
    *                    from the client.
    */
-  public void setRawNewRDN(ByteString rawNewRDN)
+  public final void setRawNewRDN(ByteString rawNewRDN)
   {
     assert debugEnter(CLASS_NAME, "setRawNewRDN", String.valueOf(rawNewRDN));
 
@@ -376,27 +370,11 @@ public class ModifyDNOperation
    * @return  The new RDN to use for the entry, or <CODE>null</CODE> if the raw
    *          newRDN has not yet been processed.
    */
-  public RDN getNewRDN()
+  public final RDN getNewRDN()
   {
     assert debugEnter(CLASS_NAME, "getNewRDN");
 
     return newRDN;
-  }
-
-
-
-  /**
-   * Specifies the new RDN to use for the entry.  This should not be called by
-   * pre-parse plugins, which should use the <CODE>getRawNewRDN</CODE> and
-   * <CODE>setRawNewRDN</CODE> methods instead.
-   *
-   * @param  newRDN  The new RDN to use for the entry.
-   */
-  public void setNewRDN(RDN newRDN)
-  {
-    assert debugEnter(CLASS_NAME, "setNewRDN", String.valueOf(newRDN));
-
-    this.newRDN = newRDN;
   }
 
 
@@ -407,7 +385,7 @@ public class ModifyDNOperation
    * @return  <CODE>true</CODE> if the current RDN value should be removed from
    *          the entry, or <CODE>false</CODE> if not.
    */
-  public boolean deleteOldRDN()
+  public final boolean deleteOldRDN()
   {
     assert debugEnter(CLASS_NAME, "deleteOldRDN");
 
@@ -422,7 +400,7 @@ public class ModifyDNOperation
    * @param  deleteOldRDN  Specifies whether the current RDN value should be
    *                       removed from the entry.
    */
-  public void setDeleteOldRDN(boolean deleteOldRDN)
+  public final void setDeleteOldRDN(boolean deleteOldRDN)
   {
     assert debugEnter(CLASS_NAME, "setDeleteOldRDN",
                       String.valueOf(deleteOldRDN));
@@ -440,7 +418,7 @@ public class ModifyDNOperation
    * @return  The raw, unprocessed newSuperior from the client request, or
    *          <CODE>null</CODE> if there is none.
    */
-  public ByteString getRawNewSuperior()
+  public final ByteString getRawNewSuperior()
   {
     assert debugEnter(CLASS_NAME, "getRawNewSuperior");
 
@@ -452,13 +430,12 @@ public class ModifyDNOperation
   /**
    * Specifies the raw, unprocessed newSuperior for this modify DN operation, as
    * provided in the request from the client.  This method should only be called
-   * by pre-parse plugins.  Later processing that needs to set the newSuperior
-   * should use the <CODE>setNewSuperior</CODE> method.
+   * by pre-parse plugins.
    *
    * @param  rawNewSuperior  The raw, unprocessed newSuperior as provided in the
    *                         request from the client.
    */
-  public void setRawNewSuperior(ByteString rawNewSuperior)
+  public final void setRawNewSuperior(ByteString rawNewSuperior)
   {
     assert debugEnter(CLASS_NAME, "setRawNewSuperior",
                       String.valueOf(rawNewSuperior));
@@ -480,28 +457,11 @@ public class ModifyDNOperation
    *          no newSuperior DN for this request or if the raw newSuperior has
    *          not yet been processed.
    */
-  public DN getNewSuperior()
+  public final DN getNewSuperior()
   {
     assert debugEnter(CLASS_NAME, "getNewSuperior");
 
     return newSuperior;
-  }
-
-
-
-  /**
-   * Specifies the new parent DN for the entry.  This should not be called by
-   * pre-parse plugins, which should use the <CODE>setRawNewSuperior</CODE>
-   * method instead.
-   *
-   * @param  newSuperior  The new parent DN for the entry.
-   */
-  public void setNewSuperior(DN newSuperior)
-  {
-    assert debugEnter(CLASS_NAME, "setNewSuperior",
-                      String.valueOf(newSuperior));
-
-    this.newSuperior = newSuperior;
   }
 
 
@@ -523,11 +483,29 @@ public class ModifyDNOperation
    *          of the modify DN processing, or <CODE>null</CODE> if that
    *          information is not yet available (e.g., during pre-parse plugins).
    */
-  public List<Modification> getModifications()
+  public final List<Modification> getModifications()
   {
     assert debugEnter(CLASS_NAME, "getModifications");
 
     return modifications;
+  }
+
+
+
+  /**
+   * Adds the provided modification to the set of modifications to be applied
+   * as part of the update.  This should only be called by pre-operation
+   * plugins.
+   *
+   * @param  modification  The modification to add to the set of modifications
+   *                       to apply to the entry.
+   */
+  public final void addModification(Modification modification)
+  {
+    assert debugEnter(CLASS_NAME, "addModification",
+                      String.valueOf(modification));
+
+    modifications.add(modification);
   }
 
 
@@ -540,7 +518,7 @@ public class ModifyDNOperation
    * @return  The current entry, or <CODE>null</CODE> if it is not yet
    *           available.
    */
-  public Entry getOriginalEntry()
+  public final Entry getOriginalEntry()
   {
     assert debugEnter(CLASS_NAME, "getOriginalEntry");
 
@@ -557,7 +535,7 @@ public class ModifyDNOperation
    * @return  The updated entry, or <CODE>null</CODE> if it is not yet
    *           available.
    */
-  public Entry getUpdatedEntry()
+  public final Entry getUpdatedEntry()
   {
     assert debugEnter(CLASS_NAME, "getUpdatedEntry");
 
@@ -567,11 +545,10 @@ public class ModifyDNOperation
 
 
   /**
-   * Retrieves the time that processing started for this operation.
-   *
-   * @return  The time that processing started for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStartTime()
+  @Override()
+  public final long getProcessingStartTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
@@ -581,13 +558,10 @@ public class ModifyDNOperation
 
 
   /**
-   * Retrieves the time that processing stopped for this operation.  This will
-   * actually hold a time immediately before the response was sent to the
-   * client.
-   *
-   * @return  The time that processing stopped for this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingStopTime()
+  @Override()
+  public final long getProcessingStopTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
@@ -597,14 +571,10 @@ public class ModifyDNOperation
 
 
   /**
-   * Retrieves the length of time in milliseconds that the server spent
-   * processing this operation.  This should not be called until after the
-   * server has sent the response to the client.
-   *
-   * @return  The length of time in milliseconds that the server spent
-   *          processing this operation.
+   * {@inheritDoc}
    */
-  public long getProcessingTime()
+  @Override()
+  public final long getProcessingTime()
   {
     assert debugEnter(CLASS_NAME, "getProcessingTime");
 
@@ -620,7 +590,7 @@ public class ModifyDNOperation
    *          if none has been assigned yet or if there is no applicable
    *          synchronization mechanism in place that uses change numbers.
    */
-  public long getChangeNumber()
+  public final long getChangeNumber()
   {
     assert debugEnter(CLASS_NAME, "getChangeNumber");
 
@@ -636,7 +606,7 @@ public class ModifyDNOperation
    * @param  changeNumber  The change number that has been assigned to this
    *                       operation by the synchronization mechanism.
    */
-  public void setChangeNumber(long changeNumber)
+  public final void setChangeNumber(long changeNumber)
   {
     assert debugEnter(CLASS_NAME, "setChangeNumber",
                       String.valueOf(changeNumber));
@@ -647,11 +617,10 @@ public class ModifyDNOperation
 
 
   /**
-   * Retrieves the operation type for this operation.
-   *
-   * @return  The operation type for this operation.
+   * {@inheritDoc}
    */
-  public OperationType getOperationType()
+  @Override()
+  public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -662,16 +631,10 @@ public class ModifyDNOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in requests for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in requests for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getRequestLogElements()
+  @Override()
+  public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -698,16 +661,10 @@ public class ModifyDNOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in responses for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in responses for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getResponseLogElements()
+  @Override()
+  public final String[][] getResponseLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -773,13 +730,10 @@ public class ModifyDNOperation
 
 
   /**
-   * Retrieves the set of controls to include in the response to the client.
-   * Note that the contents of this list should not be altered after
-   * post-operation plugins have been called.
-   *
-   * @return  The set of controls to include in the response to the client.
+   * {@inheritDoc}
    */
-  public List<Control> getResponseControls()
+  @Override()
+  public final List<Control> getResponseControls()
   {
     assert debugEnter(CLASS_NAME, "getResponseControls");
 
@@ -789,12 +743,32 @@ public class ModifyDNOperation
 
 
   /**
-   * Performs the work of actually processing this operation.  This should
-   * include all processing for the operation, including invoking plugins,
-   * logging messages, performing access control, managing synchronization, and
-   * any other work that might need to be done in the course of processing.
+   * {@inheritDoc}
    */
-  public void run()
+  @Override()
+  public final void addResponseControl(Control control)
+  {
+    responseControls.add(control);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void removeResponseControl(Control control)
+  {
+    responseControls.remove(control);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void run()
   {
     assert debugEnter(CLASS_NAME, "run");
 
@@ -2065,14 +2039,10 @@ modifyDNProcessing:
 
 
   /**
-   * Attempts to cancel this operation before processing has completed.
-   *
-   * @param  cancelRequest  Information about the way in which the operation
-   *                        should be canceled.
-   *
-   * @return  A code providing information on the result of the cancellation.
+   * {@inheritDoc}
    */
-  public CancelResult cancel(CancelRequest cancelRequest)
+  @Override()
+  public final CancelResult cancel(CancelRequest cancelRequest)
   {
     assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
@@ -2110,13 +2080,10 @@ modifyDNProcessing:
 
 
   /**
-   * Retrieves the cancel request that has been issued for this operation, if
-   * there is one.
-   *
-   * @return  The cancel request that has been issued for this operation, or
-   *          <CODE>null</CODE> if there has not been any request to cancel.
+   * {@inheritDoc}
    */
-  public CancelRequest getCancelRequest()
+  @Override()
+  public final CancelRequest getCancelRequest()
   {
     assert debugEnter(CLASS_NAME, "getCancelRequest");
 
@@ -2126,12 +2093,10 @@ modifyDNProcessing:
 
 
   /**
-   * Appends a string representation of this operation to the provided buffer.
-   *
-   * @param  buffer  The buffer into which a string representation of this
-   *                 operation should be appended.
+   * {@inheritDoc}
    */
-  public void toString(StringBuilder buffer)
+  @Override()
+  public final void toString(StringBuilder buffer)
   {
     assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 

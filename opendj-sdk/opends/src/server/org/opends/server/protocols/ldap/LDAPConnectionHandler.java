@@ -52,7 +52,6 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.api.plugin.PostConnectPluginResult;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.InitializationException;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigAttribute;
@@ -70,6 +69,7 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SSLClientAuthPolicy;
 

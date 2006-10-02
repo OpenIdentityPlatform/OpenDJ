@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;

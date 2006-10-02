@@ -36,7 +36,6 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.Debug.*;

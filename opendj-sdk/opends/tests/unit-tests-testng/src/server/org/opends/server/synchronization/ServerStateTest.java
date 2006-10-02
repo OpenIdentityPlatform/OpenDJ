@@ -41,7 +41,6 @@ import static org.testng.Assert.*;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
@@ -53,6 +52,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
@@ -67,7 +67,7 @@ import static org.opends.server.synchronization.OperationContext.*;
  */
 public class ServerStateTest extends SynchronizationTestCase
 {
- 
+
   /**
    * Create ChangeNumber Data
    */
@@ -89,14 +89,14 @@ public class ServerStateTest extends SynchronizationTestCase
     // Check constructor
     DN dn = DN.decode("cn=com");
     ServerState serverState = new ServerState(dn) ;
-    
+
     // Check Load
     // serverState.loadState() ;
     // TODO Check result
-    
+
     // Check getServerStateDn()
     DN returned_DN = serverState.getServerStateDn();
-    // TODO Check the returned DN  
+    // TODO Check the returned DN
 
     // Check update
     assertFalse(serverState.update(null));
@@ -106,29 +106,29 @@ public class ServerStateTest extends SynchronizationTestCase
     cn1 = new ChangeNumber(cn.getTime()+1,cn.getSeqnum(),cn.getServerId());
     cn2 = new ChangeNumber(cn1.getTime(),cn1.getSeqnum()+1,cn1.getServerId());
     cn3 = new ChangeNumber(cn2.getTime(),cn2.getSeqnum(),(short)(cn2.getServerId()+1));
-    
+
     assertTrue(serverState.update(cn1)) ;
     assertTrue(serverState.update(cn2)) ;
     assertTrue(serverState.update(cn3)) ;
-    
+
     // Check toStringSet
     ChangeNumber[] cns = {cn2,cn3};
     Set<String> stringSet = serverState.toStringSet();
-    assertEquals(cns.length, stringSet.size()); 
+    assertEquals(cns.length, stringSet.size());
     // TODO Check the value
-    
+
     // Check getMaxChangeNumber
     assertEquals(cn2.compareTo(serverState.getMaxChangeNumber(cn2.getServerId())),0);
     assertEquals(cn3.compareTo(serverState.getMaxChangeNumber(cn3.getServerId())),0);
-    
+
     // Check the toString
     String stringRep = serverState.toString() ;
     // TODO Check the value
-    
+
     // Check getBytes
     byte[] b = serverState.getBytes();
     ServerState generatedServerState = new ServerState(b,0,b.length -1) ;
     assertEquals(b, generatedServerState.getBytes()) ;
-    
+
   }
 }

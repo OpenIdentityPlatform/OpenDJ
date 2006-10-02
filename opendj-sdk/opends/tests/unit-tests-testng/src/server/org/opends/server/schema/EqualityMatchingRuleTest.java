@@ -27,12 +27,12 @@
 package org.opends.server.schema;
 
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -62,7 +62,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
 
   /**
    * Get an instance of the matching rule.
-   * 
+   *
    * @return An instance of the matching rule to test.
    */
   public abstract EqualityMatchingRule getRule();
@@ -86,7 +86,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
     assertEquals(result, liveResult);
   }
 
-  
+
   /**
    * Generate data for the EqualityMatching Rule test in warn mode.
    *
@@ -97,9 +97,9 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
   {
     return new Object[][] {};
   }
-  
+
   /**
-   * Test the normalization and the comparison in the warning mode 
+   * Test the normalization and the comparison in the warning mode
    */
   @Test(dataProvider= "warnmodeEqualityMatchingRule")
   public void warnmodeEqualityMatchingRules(
@@ -108,14 +108,14 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
   {
     AcceptRejectWarn accept = DirectoryServer.getSyntaxEnforcementPolicy();
     DirectoryServer.setSyntaxEnforcementPolicy(AcceptRejectWarn.WARN);
-    try 
+    try
     {
       equalityMatchingRules(value1, value2, result);
     }
     finally
     {
       DirectoryServer.setSyntaxEnforcementPolicy(accept);
-    } 
+    }
   }
 
   /**
@@ -142,7 +142,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
            " should detect that value \"" + value + "\" is invalid");
     }
   }
-  
+
   /**
    * Generate data for the EqualityMatching Rule test.
    *
@@ -153,7 +153,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
   {
     return new Object[][] {};
   }
-  
+
   /**
    * Test the valuesMatch method used for extensible filters.
    */
@@ -175,7 +175,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
       assertEquals(ConditionResult.TRUE, liveResult);
     else
       assertEquals(ConditionResult.FALSE, liveResult);
-    
+
   }
 
 }

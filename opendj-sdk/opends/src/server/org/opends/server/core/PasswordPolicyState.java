@@ -55,6 +55,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;

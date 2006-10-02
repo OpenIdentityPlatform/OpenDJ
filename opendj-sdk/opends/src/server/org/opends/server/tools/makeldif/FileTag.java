@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
-import org.opends.server.core.InitializationException;
+import org.opends.server.types.InitializationException;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;

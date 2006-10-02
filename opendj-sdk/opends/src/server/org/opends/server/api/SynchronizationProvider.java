@@ -32,10 +32,10 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryException;
-import org.opends.server.core.InitializationException;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.SynchronizationProviderResult;
 
 import static org.opends.server.loggers.Debug.*;

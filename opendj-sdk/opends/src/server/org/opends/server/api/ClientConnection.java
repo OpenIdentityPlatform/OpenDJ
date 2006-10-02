@@ -34,14 +34,14 @@ import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.api.plugin.IntermediateResponsePluginResult;
-import org.opends.server.core.CancelRequest;
-import org.opends.server.core.CancelResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.Operation;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.SearchResultEntry;

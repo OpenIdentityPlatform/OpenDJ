@@ -24,13 +24,13 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.server.core;
+package org.opends.server.types;
 
 
 
 /**
- * This enumeration defines the set of possible operation types that may be
- * processed by the Directory Server.
+ * This enumeration defines the set of possible operation types that
+ * may be processed by the Directory Server.
  */
 public enum OperationType
 {
@@ -105,14 +105,15 @@ public enum OperationType
 
 
   // The string representation of this operation type.
-  private String operationName;
+  private final String operationName;
 
 
 
   /**
    * Creates a new operation type with the provided operation name.
    *
-   * @param  operationName  The operation name for this operation type.
+   * @param  operationName  The operation name for this operation
+   *                        type.
    */
   private OperationType(String operationName)
   {
@@ -126,7 +127,7 @@ public enum OperationType
    *
    * @return  The human-readable name for this operation type.
    */
-  public String getOperationName()
+  public final String getOperationName()
   {
     return operationName;
   }
@@ -138,7 +139,7 @@ public enum OperationType
    *
    * @return  A string representation of this operation type.
    */
-  public String toString()
+  public final String toString()
   {
     return operationName;
   }

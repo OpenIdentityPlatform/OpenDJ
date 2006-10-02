@@ -38,7 +38,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryException;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.CoreMessages.*;

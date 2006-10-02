@@ -36,9 +36,9 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryException;
-import org.opends.server.core.InitializationException;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.InitializationException;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.ExtensionsMessages.*;

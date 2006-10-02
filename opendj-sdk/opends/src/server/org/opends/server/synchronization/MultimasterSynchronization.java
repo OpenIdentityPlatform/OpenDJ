@@ -39,7 +39,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.types.DN;
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryException;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
 import org.opends.server.core.ModifyDNOperation;

@@ -32,8 +32,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.operation.PostOperationUnbindOperation;
+import org.opends.server.types.operation.PreParseUnbindOperation;
 
 import static org.opends.server.loggers.Access.*;
 import static org.opends.server.loggers.Debug.*;
@@ -48,12 +53,21 @@ import static org.opends.server.messages.MessageHandler.*;
  */
 public class UnbindOperation
        extends Operation
+       implements PreParseUnbindOperation, PostOperationUnbindOperation
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
    */
   private static final String CLASS_NAME =
        "org.opends.server.core.UnbindOperation";
+
+
+
+  // The time that processing started on this operation.
+  private long processingStartTime;
+
+  // The time that processing ended on this operation.
+  private long processingStopTime;
 
 
 
@@ -81,11 +95,10 @@ public class UnbindOperation
 
 
   /**
-   * Retrieves the operation type for this operation.
-   *
-   * @return  The operation type for this operation.
+   * {@inheritDoc}
    */
-  public OperationType getOperationType()
+  @Override()
+  public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -96,16 +109,10 @@ public class UnbindOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in requests for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in requests for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getRequestLogElements()
+  @Override()
+  public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -118,16 +125,10 @@ public class UnbindOperation
 
 
   /**
-   * Retrieves a standard set of elements that should be logged in responses for
-   * this type of operation.  Each element in the array will itself be a
-   * two-element array in which the first element is the name of the field and
-   * the second is a string representation of the value, or <CODE>null</CODE> if
-   * there is no value for that field.
-   *
-   * @return  A standard set of elements that should be logged in responses for
-   *          this type of operation.
+   * {@inheritDoc}
    */
-  public String[][] getResponseLogElements()
+  @Override()
+  public final String[][] getResponseLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -140,19 +141,14 @@ public class UnbindOperation
 
 
   /**
-   * Retrieves the set of controls to include in the response to the client.
-   * Note that the contents of this list should not be altered after
-   * post-operation plugins have been called.  Note that unbind operations
-   * must never have an associated response, so this method will not be used for
-   * this type of operation.
-   *
-   * @return  The set of controls to include in the response to the client.
+   * {@inheritDoc}
    */
-  public List<Control> getResponseControls()
+  @Override()
+  public final List<Control> getResponseControls()
   {
     assert debugEnter(CLASS_NAME, "getResponseControls");
 
-    // An abandon operation can never have a response, so just return an empty
+    // An unbind operation can never have a response, so just return an empty
     // list.
     return NO_RESPONSE_CONTROLS;
   }
@@ -160,12 +156,71 @@ public class UnbindOperation
 
 
   /**
-   * Performs the work of actually processing this operation.  This should
-   * include all processing for the operation, including invoking plugins,
-   * logging messages, performing access control, managing synchronization, and
-   * any other work that might need to be done in the course of processing.
+   * {@inheritDoc}
    */
-  public void run()
+  @Override()
+  public final void addResponseControl(Control control)
+  {
+    // An unbind operation can never have a response, so just ignore this.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void removeResponseControl(Control control)
+  {
+    // An unbind operation can never have a response, so just ignore this.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public long getProcessingStartTime()
+  {
+    assert debugEnter(CLASS_NAME, "getProcessingStartTime");
+
+    return processingStartTime;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public long getProcessingStopTime()
+  {
+    assert debugEnter(CLASS_NAME, "getProcessingStopTime");
+
+    return processingStopTime;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public long getProcessingTime()
+  {
+    assert debugEnter(CLASS_NAME, "getProcessingTime");
+
+    return (processingStopTime - processingStartTime);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void run()
   {
     assert debugEnter(CLASS_NAME, "run");
 
@@ -174,6 +229,8 @@ public class UnbindOperation
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
     boolean skipPostOperation = false;
+
+    processingStartTime = System.currentTimeMillis();
 
 
     // Invoke the pre-parse unbind plugins.  We don't care about the result
@@ -196,21 +253,17 @@ public class UnbindOperation
 
     // Invoke the post-operation unbind plugins.
     pluginConfigManager.invokePostOperationUnbindPlugins(this);
+
+    processingStopTime = System.currentTimeMillis();
   }
 
 
 
   /**
-   * Attempts to cancel this operation before processing has completed.  Note
-   * that an unbind operation may not be canceled, so this should never do
-   * anything.
-   *
-   * @param  cancelRequest  Information about the way in which the operation
-   *                        should be canceled.
-   *
-   * @return  A code providing information on the result of the cancellation.
+   * {@inheritDoc}
    */
-  public CancelResult cancel(CancelRequest cancelRequest)
+  @Override()
+  public final CancelResult cancel(CancelRequest cancelRequest)
   {
     assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
@@ -221,14 +274,10 @@ public class UnbindOperation
 
 
   /**
-   * Retrieves the cancel request that has been issued for this operation, if
-   * there is one.  Note that an unbind operation may not be canceled, so this
-   * will always return <CODE>null</CODE>.
-   *
-   * @return  The cancel request that has been issued for this operation, or
-   *          <CODE>null</CODE> if there has not been any request to cancel.
+   * {@inheritDoc}
    */
-  public CancelRequest getCancelRequest()
+  @Override()
+  public final CancelRequest getCancelRequest()
   {
     assert debugEnter(CLASS_NAME, "getCancelRequest");
 
@@ -238,12 +287,10 @@ public class UnbindOperation
 
 
   /**
-   * Appends a string representation of this operation to the provided buffer.
-   *
-   * @param  buffer  The buffer into which a string representation of this
-   *                 operation should be appended.
+   * {@inheritDoc}
    */
-  public void toString(StringBuilder buffer)
+  @Override()
+  public final void toString(StringBuilder buffer)
   {
     assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 

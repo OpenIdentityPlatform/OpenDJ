@@ -31,9 +31,7 @@ package org.opends.server.controls;
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.LockManager;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -41,8 +39,10 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.Debug.*;

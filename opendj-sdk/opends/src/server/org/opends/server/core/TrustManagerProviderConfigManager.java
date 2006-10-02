@@ -39,9 +39,11 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;

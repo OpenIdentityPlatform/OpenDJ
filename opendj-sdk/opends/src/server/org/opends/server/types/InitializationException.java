@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.server.core;
+package org.opends.server.types;
 
 
 
@@ -33,8 +33,8 @@ import static org.opends.server.loggers.Debug.*;
 
 
 /**
- * This class defines an exception that may be thrown if a problem occurs while
- * trying to initialize a Directory Server component.
+ * This class defines an exception that may be thrown if a problem
+ * occurs while trying to initialize a Directory Server component.
  */
 public class InitializationException
        extends Exception
@@ -43,32 +43,34 @@ public class InitializationException
    * The fully-qualified name of this class for debugging purposes.
    */
   private static final String CLASS_NAME =
-       "org.opends.server.core.InitializationException";
+       "org.opends.server.types.InitializationException";
 
 
 
   /**
-   * The serial version identifier required to satisfy the compiler because this
-   * class extends <CODE>java.lang.Exception</CODE>, which implements the
-   * <CODE>java.io.Serializable</CODE> interface.  This value was generated
-   * using the <CODE>serialver</CODE> command-line utility included with the
-   * Java SDK.
+   * The serial version identifier required to satisfy the compiler
+   * because this class extends <CODE>java.lang.Exception</CODE>,
+   * which implements the <CODE>java.io.Serializable</CODE> interface.
+   * This value was generated using the <CODE>serialver</CODE>
+   * command-line utility included with the Java SDK.
    */
   private static final long serialVersionUID = -6121147544833914730L;
 
 
 
-  // The message ID for the message associated with this initialization
-  // exception.
-  private int messageID;
+  // The message ID for the message associated with this
+  // initialization exception.
+  private final int messageID;
 
 
 
   /**
    * Creates a new initialization exception with the provided message.
    *
-   * @param  messageID  The unique identifier for the associated message.
-   * @param  message    The message that explains the problem that occurred.
+   * @param  messageID  The unique identifier for the associated
+   *                    message.
+   * @param  message    The message that explains the problem that
+   *                    occurred.
    */
   public InitializationException(int messageID, String message)
   {
@@ -82,14 +84,18 @@ public class InitializationException
 
 
   /**
-   * Creates a new initialization exception with the provided message and root
-   * cause.
+   * Creates a new initialization exception with the provided message
+   * and root cause.
    *
-   * @param  messageID  The unique identifier for the associated message.
-   * @param  message    The message that explains the problem that occurred.
-   * @param  cause      The exception that was caught to trigger this exception.
+   * @param  messageID  The unique identifier for the associated
+   *                    message.
+   * @param  message    The message that explains the problem that
+   *                    occurred.
+   * @param  cause      The exception that was caught to trigger this
+   *                    exception.
    */
-  public InitializationException(int messageID, String message, Throwable cause)
+  public InitializationException(int messageID, String message,
+                                 Throwable cause)
   {
     super(message, cause);
 
@@ -106,7 +112,7 @@ public class InitializationException
    *
    * @return  The unique identifier for the associated message.
    */
-  public int getMessageID()
+  public final int getMessageID()
   {
     assert debugEnter(CLASS_NAME, "getMessageID");
 

@@ -31,11 +31,11 @@ import static org.opends.server.loggers.Debug.debugException;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.DatabaseException;
 
-import org.opends.server.core.DirectoryException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 

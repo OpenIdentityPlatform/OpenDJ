@@ -33,9 +33,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.core.DirectoryException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.CoreMessages.*;

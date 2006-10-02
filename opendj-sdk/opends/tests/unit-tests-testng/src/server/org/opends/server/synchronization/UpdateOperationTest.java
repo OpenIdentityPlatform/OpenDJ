@@ -47,7 +47,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
-import org.opends.server.core.OperationType;
 
 import org.opends.server.protocols.internal.InternalClientConnection;
 
@@ -58,6 +57,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 
@@ -111,11 +111,11 @@ public class UpdateOperationTest
    * schema check flag
    */
   private boolean schemaCheck;
-  
+
 
   // WORKAROUND FOR BUG #639 - BEGIN -
   /**
-   * 
+   *
    */
   MultimasterSynchronization mms;
 
@@ -125,7 +125,7 @@ public class UpdateOperationTest
   /**
    * Set up the environment for performing the tests in this Class.
    * synchronization
-   * 
+   *
    * @throws Exception
    *         If the environment could not be set up.
    */
@@ -135,14 +135,14 @@ public class UpdateOperationTest
   {
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
-    
+
     // Disable schema check
     schemaCheck = DirectoryServer.checkSchema();
     DirectoryServer.setCheckSchema(false);
-    
+
     // Create an internal connection
     connection = new InternalClientConnection();
-    
+
     // Create backend top level entries
     String[] topEntries = new String[2];
     topEntries[0] = "dn: dc=example,dc=com\n" + "objectClass: top\n"
@@ -177,7 +177,7 @@ public class UpdateOperationTest
         + "ds-cfg-synchronization-provider-enabled: true\n"
         + "ds-cfg-synchronization-provider-class: org.opends.server.synchronization.MultimasterSynchronization\n";
     synchroPluginEntry = TestCaseUtils.entryFromLdifString(synchroPluginLdif);
-    
+
     // Change log
     changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
     String changeLogLdif = "dn: " + changeLogStringDN + "\n"
@@ -219,7 +219,7 @@ public class UpdateOperationTest
 
   /**
    * Clean up the environment. return null;
-   * 
+   *
    * @throws Exception
    *         If the environment could not be set up.
    */
@@ -229,7 +229,7 @@ public class UpdateOperationTest
 
     DirectoryServer.setCheckSchema(schemaCheck);
     DeleteOperation op;
-    
+
     //  WORKAROUND FOR BUG #639 - BEGIN -
     DirectoryServer.deregisterSynchronizationProvider(mms);
     mms.finalizeSynchronizationProvider();
@@ -258,14 +258,14 @@ public class UpdateOperationTest
   @Test()
   public void updateOperations() throws Exception
   {
-    // 
+    //
     // Add the Multimaster synchronization plugin
     DirectoryServer.getConfigHandler().addEntry(synchroPluginEntry, null);
     entryList.add(synchroPluginEntry);
     assertNotNull(DirectoryServer.getConfigEntry(DN
         .decode(synchroPluginStringDN)),
         "Unable to add the Multimaster synchronization plugin");
-    
+
     // WORKAROUND FOR BUG #639 - BEGIN -
     DN dn = DN.decode(synchroPluginStringDN);
     ConfigEntry mmsConfigEntry = DirectoryServer.getConfigEntry(dn);
@@ -302,7 +302,7 @@ public class UpdateOperationTest
     ServerState ss = MultimasterSynchronization
         .getServerState(synchroServerDN);
     // TODO Check server state field
-    
+
     //
     // Be Client of the Change log
     // We will check that the Chanlog server send us messages
@@ -322,7 +322,7 @@ public class UpdateOperationTest
     SynchronizationDomain syncDomain2 = new SynchronizationDomain(
         newConfigEntry);
 
-    // 
+    //
     // Create an Entry (add operation)
     AddOperation addOp = new AddOperation(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
@@ -333,7 +333,7 @@ public class UpdateOperationTest
     entryList.add(personEntry);
     assertNotNull(DirectoryServer.getEntry(personEntry.getDN()),
         "The Add Entry operation fails");
-    
+
     // Check if the client has receive the msg
     UpdateMessage msg = syncDomain2.receive() ;
     Operation receivedOp = msg.createOperation(connection);
@@ -360,7 +360,7 @@ public class UpdateOperationTest
     modOp.setInternalOperation(true);
     modOp.run();
     // TODO Check the telephoneNumber attribute
-    
+
     //  See if the client has receive the msg
     msg = syncDomain2.receive() ;
     receivedOp = msg.createOperation(connection);
@@ -383,7 +383,7 @@ public class UpdateOperationTest
     assertNull(DirectoryServer.getEntry(personEntry.getDN()),
         "The MOD_DN operation didn't delete the old person entry");
     entryList.add(DirectoryServer.getEntry(newDN));
-    
+
     //  See if the client has receive the msg
     msg = syncDomain2.receive() ;
     receivedOp = msg.createOperation(connection);
@@ -391,7 +391,7 @@ public class UpdateOperationTest
         "The received synchronization message is not a MODIFY_DN msg");
     assertTrue(DN.decode(msg.getDn()).compareTo(personEntry.getDN()) == 0,
         "The received MODIFY_DN synchronization message is not for the excepted DN");
-    
+
 
     // Delete the entry
     Entry newPersonEntry = DirectoryServer.getEntry(newDN) ;
@@ -403,7 +403,7 @@ public class UpdateOperationTest
     assertNull(DirectoryServer.getEntry(newDN),
         "Unable to delete the new person Entry");
     entryList.remove(newPersonEntry);
-    
+
     //  See if the client has receive the msg
     msg = syncDomain2.receive() ;
     receivedOp = msg.createOperation(connection);
@@ -412,15 +412,15 @@ public class UpdateOperationTest
     assertTrue(DN.decode(msg.getDn()).compareTo(DN
         .decode("uid= new person,ou=People,dc=example,dc=com")) == 0,
         "The received DELETE synchronization message is not for the excepted DN");
-    
+
     // Purge the client
     syncDomain2.shutdown() ;
-    
+
     //
     // Be new Client of the Change log
     // We will check that when we send message to the Chanlog server
     // the synchronization domain apply those changes.
-    
+
     // Create a new synchronization domain
     String synchroServerLdif3 = "dn: cn=example3, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
@@ -436,8 +436,8 @@ public class UpdateOperationTest
         .getConfigEntry(DN.decode(synchroPluginStringDN)));
     SynchronizationDomain syncDomain3 = new SynchronizationDomain(
         newConfigEntry);
-    
-    // 
+
+    //
     // Message to Create the Entry
     addOp = new AddOperation(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
@@ -447,7 +447,7 @@ public class UpdateOperationTest
     syncDomain3.doPreOperation(addOp);
     addOp.setResultCode(ResultCode.SUCCESS) ;
     syncDomain3.synchronize(addOp);
-    
+
     // Wait no more than 1 second (synchro operation has to be sent,
     // received and replay)
     Entry newEntry = null ;
@@ -462,9 +462,9 @@ public class UpdateOperationTest
     assertNotNull(newEntry,
         "The send ADD synchronization message was not applied");
     entryList.add(newEntry);
-    
+
     // Message to Modify the new created entry
-    
+
     // Unable to test it: the doPreOperation operation use
     // modifyOperation.getModifiedEntry() which cannot be set the
     // the public level.
@@ -479,10 +479,10 @@ public class UpdateOperationTest
     syncDomain3.synchronize(modOp);
     //  TODO Check the telephoneNumber attribute
      */
-    
+
     //  Purge the message sender
     syncDomain3.shutdown() ;
-    
+
 
     // Check synchronization monitoring
     SynchronizationDomain syncDomain = new SynchronizationDomain(
