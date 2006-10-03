@@ -90,16 +90,6 @@ public class EntryContainer
   private static final String CLASS_NAME =
        "org.opends.server.backends.jeb.EntryContainer";
 
- /**
-   * The JE database environment.
-   */
-  private static Environment env;
-
-  /**
-   * The backend configuration.
-   */
-  private static Config config;
-
   /**
    * The name of the entry database.
    */
@@ -141,16 +131,20 @@ public class EntryContainer
   private DN baseDN;
 
   /**
+   * The backend configuration.
+   */
+  private Config config;
+
+  /**
    * A list of JE database handles opened through this entryContainer.
    * They will be closed by the entryContainer.
    */
   private ArrayList<Database> databases;
 
   /**
-   * A list of JE cursor handles registered with this entryContainer.
-   * They will be closed by the entryContainer.
+   * The JE database environment.
    */
-  private ArrayList<Cursor> cursors;
+  private Environment env;
 
   /**
    * The DN database maps a normalized DN string to an entry ID (8 bytes).
@@ -213,7 +207,6 @@ public class EntryContainer
 
     // Instantiate database and cursor lists
     databases = new ArrayList<Database>();
-    cursors = new ArrayList<Cursor>();
 
     // Instantiate indexes for id2children and id2subtree.
     id2children = new Index(this, ID2CHILDREN_DATABASE_NAME,
@@ -413,12 +406,6 @@ public class EntryContainer
   public void close()
        throws DatabaseException
   {
-    // Close each cursor that has been registered.
-    for (Cursor cursor : cursors)
-    {
-      cursor.close();
-    }
-
     // Close each database handle that has been opened.
     for (Database database : databases)
     {
@@ -1297,7 +1284,7 @@ public class EntryContainer
     while (!completed)
     {
       // Start a transaction.
-      Transaction txn = operation.beginTransaction();
+      Transaction txn = operation.beginOperationTransaction();
 
       try
       {
@@ -1363,7 +1350,8 @@ public class EntryContainer
      *         will not use a transaction.
      * @throws DatabaseException If an error occurs in the JE database.
      */
-    public abstract Transaction beginTransaction() throws DatabaseException;
+    public abstract Transaction beginOperationTransaction()
+        throws DatabaseException;
 
     /**
      * Invoke the operation under the given transaction.
@@ -1412,9 +1400,9 @@ public class EntryContainer
      *         will not use a transaction.
      * @throws DatabaseException If an error occurs in the JE database.
      */
-    public Transaction beginTransaction() throws DatabaseException
+    public Transaction beginOperationTransaction() throws DatabaseException
     {
-      return EntryContainer.beginTransaction();
+      return beginTransaction();
     }
 
     /**
@@ -1861,9 +1849,9 @@ public class EntryContainer
      *         will not use a transaction.
      * @throws DatabaseException If an error occurs in the JE database.
      */
-    public Transaction beginTransaction() throws DatabaseException
+    public Transaction beginOperationTransaction() throws DatabaseException
     {
-      return EntryContainer.beginTransaction();
+      return beginTransaction();
     }
 
     /**
@@ -2188,7 +2176,7 @@ public class EntryContainer
      *         will not use a transaction.
      * @throws DatabaseException If an error occurs in the JE database.
      */
-    public Transaction beginTransaction() throws DatabaseException
+    public Transaction beginOperationTransaction() throws DatabaseException
     {
       // For best performance queries do not use a transaction.
       // We permit temporary inconsistencies between the multiple
@@ -2293,7 +2281,7 @@ public class EntryContainer
      *         will not use a transaction.
      * @throws DatabaseException If an error occurs in the JE database.
      */
-    public Transaction beginTransaction() throws DatabaseException
+    public Transaction beginOperationTransaction() throws DatabaseException
     {
       // For best performance queries do not use a transaction.
       // We permit temporary inconsistencies between the multiple
@@ -2390,9 +2378,9 @@ public class EntryContainer
      *         will not use a transaction.
      * @throws DatabaseException If an error occurs in the JE database.
      */
-    public Transaction beginTransaction() throws DatabaseException
+    public Transaction beginOperationTransaction() throws DatabaseException
     {
-      return EntryContainer.beginTransaction();
+      return beginTransaction();
     }
 
     /**
@@ -2752,9 +2740,9 @@ public class EntryContainer
      *         will not use a transaction.
      * @throws DatabaseException If an error occurs in the JE database.
      */
-    public Transaction beginTransaction() throws DatabaseException
+    public Transaction beginOperationTransaction() throws DatabaseException
     {
-      return EntryContainer.beginTransaction();
+      return beginTransaction();
     }
 
     /**
@@ -3441,24 +3429,13 @@ public class EntryContainer
   }
 
   /**
-   * Register a cursor with the entryContainer. The entryContainer will then
-   * take care of closing the cursor when the entryContainer is closed.
-   *
-   * @param cursor A cursor to one of the databases in the entryContainer.
-   */
-  public synchronized void addCursor(Cursor cursor)
-  {
-    cursors.add(cursor);
-  }
-
-  /**
    * Begin a leaf transaction using the default configuration.
    * Provides assertion debug logging.
    * @return A JE transaction handle.
    * @throws DatabaseException If an error occurs while attempting to begin
    * a new transaction.
    */
-  public static Transaction beginTransaction()
+  public Transaction beginTransaction()
        throws DatabaseException
   {
     Transaction parentTxn = null;
