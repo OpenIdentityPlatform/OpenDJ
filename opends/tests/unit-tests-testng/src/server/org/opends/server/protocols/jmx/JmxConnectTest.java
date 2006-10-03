@@ -29,7 +29,9 @@ package org.opends.server.protocols.jmx;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.ServerSocket;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -105,7 +107,7 @@ public class JmxConnectTest extends JmxTestCase
    * credentials are OK and refused when the credentials are invalid.
    *
    */
-  @Test(enabled = false, dataProvider="simpleConnect")
+  @Test(enabled = true, dataProvider="simpleConnect")
   public void simpleConnect(String user, String password,
       boolean expectedResult) throws Exception
   {
@@ -141,7 +143,7 @@ public class JmxConnectTest extends JmxTestCase
    * Test simple JMX get.
    *
    */
-  @Test(enabled = false, dataProvider="simpleGet")
+  @Test(enabled = true, dataProvider="simpleGet")
   public void simpleGet(String dn, String attributeName, Object value)
      throws Exception
   {
@@ -167,7 +169,7 @@ public class JmxConnectTest extends JmxTestCase
   /**
    * Test setting some config attribute through jmx.
    */
-  @Test(enabled = false)
+  @Test(enabled = true)
   public void simpleSet() throws Exception
   {
     OpendsJmxConnector connector = connect("cn=directory manager", "password",
@@ -202,7 +204,7 @@ public class JmxConnectTest extends JmxTestCase
    *
    * @throws Exception
    */
-  @Test(enabled = false)
+  @Test(enabled = true)
   public void disable() throws Exception
   {
     OpendsJmxConnector connector = connect("cn=directory manager", "password",
@@ -222,7 +224,7 @@ public class JmxConnectTest extends JmxTestCase
    * Test changing JMX port through LDAP
    * @throws Exception
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void changePort() throws Exception
   {
     // Connect to the JMX service and get the current port
@@ -241,7 +243,12 @@ public class JmxConnectTest extends JmxTestCase
     assertNotNull(initJmxPort);
     
     // change the configuration of the connection handler to use 
-    // the current port + 1 as the new port number
+    // a free port
+    ServerSocket serverJmxSocket = new ServerSocket();
+    serverJmxSocket.setReuseAddress(true);
+    serverJmxSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+    int serverJmxPort = serverJmxSocket.getLocalPort();
+    
     ConfigEntry config = new ConfigEntry(TestCaseUtils.makeEntry(
         "dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
         "objectClass: top",
@@ -251,17 +258,18 @@ public class JmxConnectTest extends JmxTestCase
         "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
         "ds-cfg-connection-handler-enabled: true",
         "ds-cfg-use-ssl: false",
-        "ds-cfg-listen-port: " + (initJmxPort+1),
+        "ds-cfg-listen-port: " + serverJmxPort,
         "cn: JMX Connection Handler"
          ), null);
+    serverJmxSocket.close();
     configureJmx(config);
     
     // connect the the JMX service using the new port
-    connector = connect("cn=directory manager", "password", initJmxPort+1) ;
+    connector = connect("cn=directory manager", "password",serverJmxPort) ;
     jmxc = connector.getMBeanServerConnection();
     assertNotNull(jmxc);
     Long val = (Long) jmxGet(dn, attribute, jmxc);
-    assertEquals((long) val, (long) initJmxPort+1);
+    assertEquals((long) val, (long) serverJmxPort);
     connector.close();
     
     // re-establish the initial configuration of the JMX service 
@@ -293,7 +301,7 @@ public class JmxConnectTest extends JmxTestCase
    * credentials are OK and refused when the credentials are invalid.
    *
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void sslConnect() throws Exception
   {
     // configure the JMX ssl key manager
@@ -329,7 +337,7 @@ public class JmxConnectTest extends JmxTestCase
         "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
         "ds-cfg-connection-handler-enabled: true",
         "ds-cfg-use-ssl: true",
-        "ds-cfg-listen-port: " + (initJmxPort +1),
+        "ds-cfg-listen-port: " + initJmxPort ,
         "cn: JMX Connection Handler"
          ), null);
     
@@ -337,7 +345,7 @@ public class JmxConnectTest extends JmxTestCase
     
 
     OpendsJmxConnector jmxc = sslConnect("cn=directory manager", "password",
-                                            initJmxPort +1);
+                                            initJmxPort);
     MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
     jmxc.close();
     
@@ -355,8 +363,18 @@ public class JmxConnectTest extends JmxTestCase
         "ds-cfg-listen-port: " + initJmxPort,
         "cn: JMX Connection Handler"
          ), null);
-    configureJmx(config);
+    try
+    {
+      configureJmx(config);
+    }
+    catch (RuntimeException e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     
+    jmxc = connect("cn=directory manager", "password", initJmxPort);  
+    jmxc.close();
     assertNotNull(jmxc);
   }
 
