@@ -26,41 +26,14 @@
  */
 package org.opends.server.synchronization;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
-import java.util.zip.DataFormatException;
-
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
-import org.opends.server.api.ClientConnection;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.Operation;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.synchronization.ModifyMsg;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RDN;
-import org.opends.server.util.TimeThread;
+import java.util.Set;
 
-import static org.opends.server.synchronization.OperationContext.*;
+import org.opends.server.types.DN;
+import org.opends.server.util.TimeThread;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test the ServerState
@@ -96,7 +69,8 @@ public class ServerStateTest extends SynchronizationTestCase
 
     // Check getServerStateDn()
     DN returned_DN = serverState.getServerStateDn();
-    // TODO Check the returned DN
+    // Check that the returned DN stays below dn
+    assertTrue(dn.isAncestorOf(returned_DN));
 
     // Check update
     assertFalse(serverState.update(null));
@@ -122,8 +96,10 @@ public class ServerStateTest extends SynchronizationTestCase
     assertEquals(cn3.compareTo(serverState.getMaxChangeNumber(cn3.getServerId())),0);
 
     // Check the toString
-    String stringRep = serverState.toString() ;
-    // TODO Check the value
+    String stringRep = serverState.toString();
+    assertFalse(stringRep.isEmpty());
+    assertTrue(stringRep.contains(cn2.toString()));
+    assertTrue(stringRep.contains(cn3.toString()));
 
     // Check getBytes
     byte[] b = serverState.getBytes();
