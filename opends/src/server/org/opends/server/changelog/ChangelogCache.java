@@ -359,7 +359,7 @@ public class ChangelogCache
 
     for (ServerHandler handler : changelogServers.values())
     {
-      mySet.add(handler.getServerURL());
+      mySet.add(handler.getServerAddressURL());
     }
 
     return mySet;

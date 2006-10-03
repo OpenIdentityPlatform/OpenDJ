@@ -120,4 +120,12 @@ public class SocketSession implements ProtocolSession
                             + totalLength + " bytes.");
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getRemoteAddress()
+  {
+    return socket.getInetAddress().getHostAddress();
+  }
 }

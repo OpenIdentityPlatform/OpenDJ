@@ -83,4 +83,11 @@ public interface ProtocolSession
   public abstract SynchronizationMessage receive()
                   throws IOException, ClassNotFoundException,
                          DataFormatException;
+
+  /**
+   * Retrieve the IP address of the remote server.
+   *
+   * @return The IP address of the remote server.
+   */
+  public abstract String getRemoteAddress();
 }
