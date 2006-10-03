@@ -89,7 +89,6 @@ public class Changelog implements Runnable, ConfigurableComponent
   private static HashMap<DN, ChangelogCache> baseDNs =
           new HashMap<DN, ChangelogCache>();
 
-  private String localhostname = "null";
   private String localURL = "null";
   private static boolean shutdown = false;
   private short changelogServerId;
@@ -207,17 +206,27 @@ public class Changelog implements Runnable, ConfigurableComponent
      */
     StringConfigAttribute changelogServer =
       (StringConfigAttribute) config.getConfigAttribute(changelogStub);
-    if (changelogServer == null)
+    changelogServers = new ArrayList<String>();
+    if (changelogServer != null)
     {
-      changelogServers = new ArrayList<String>();
-    }
-    else
-    {
-      changelogServers = changelogServer.activeValues();
+      for (String serverURL : changelogServer.activeValues())
+      {
+        String[] splitStrings = serverURL.split(":");
+        try
+        {
+          changelogServers.add(
+              InetAddress.getByName(splitStrings[0]).getHostAddress()
+              + ":" + splitStrings[1]);
+        } catch (UnknownHostException e)
+        {
+          throw new ConfigException(MSGID_UNKNOWN_HOSTNAME,
+              e.getLocalizedMessage());
+        }
+      }
     }
     configAttributes.add(changelogServer);
 
-    initialize(changelogServerId, changelogPort, changelogServers);
+    initialize(changelogServerId, changelogPort);
 
     configDn = config.getDN();
     DirectoryServer.registerConfigurableComponent(this);
@@ -384,12 +393,9 @@ public class Changelog implements Runnable, ConfigurableComponent
    *
    * @param  changelogId       The unique identifier for this changelog.
    * @param  changelogPort     The port on which the changelog should listen.
-   * @param  changelogServers  The set of changelog servers that have been
-   *                           defined.
    *
    */
-  private void initialize(short changelogId, int changelogPort,
-                         List<String> changelogServers)
+  private void initialize(short changelogId, int changelogPort)
   {
     try
     {
@@ -408,9 +414,10 @@ public class Changelog implements Runnable, ConfigurableComponent
       /*
        * Open changelog socket
        */
-      localhostname = InetAddress.getLocalHost().getHostName();
+      String localhostname = InetAddress.getLocalHost().getHostName();
+      String localAdddress = InetAddress.getLocalHost().getHostAddress();
       serverURL = localhostname + ":" + String.valueOf(changelogPort);
-      localURL = localhostname + ":" + String.valueOf(changelogPort);
+      localURL = localAdddress + ":" + String.valueOf(changelogPort);
       listenSocket = new ServerSocket(changelogPort);
 
       /*

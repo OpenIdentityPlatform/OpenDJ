@@ -103,4 +103,12 @@ public class SerializingProtocolSession implements ProtocolSession
     }
     return (SynchronizationMessage) socketInput.readObject();
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getRemoteAddress()
+  {
+    return socket.getInetAddress().getHostAddress();
+  }
 }

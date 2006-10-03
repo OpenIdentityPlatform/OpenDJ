@@ -92,6 +92,7 @@ public class ServerHandler extends MonitorProvider
   private boolean active = true;
   private ServerWriter writer = null;
   private DN baseDn = null;
+  private String serverAddressURL;
 
   private static Map<ChangeNumber, ChangelogAckMessageList>
    changelogsWaitingAcks = new HashMap<ChangeNumber, ChangelogAckMessageList>();
@@ -188,6 +189,8 @@ public class ServerHandler extends MonitorProvider
         ChangelogStartMessage receivedMsg = (ChangelogStartMessage) msg;
         serverId = receivedMsg.getServerId();
         serverURL = receivedMsg.getServerURL();
+        String[] splittedURL = serverURL.split(":");
+        serverAddressURL = session.getRemoteAddress() + ":" + splittedURL[1];
         serverIsLDAPserver = false;
         this.baseDn = receivedMsg.getBaseDn();
         if (baseDn == null)
@@ -259,6 +262,17 @@ public class ServerHandler extends MonitorProvider
   public short getServerId()
   {
     return serverId;
+  }
+
+  /**
+   * Retrieves the Address URL for this server handler.
+   *
+   * @return  The Address URL for this server handler,
+   *          in the form of an IP address and port separated by a colon.
+   */
+  public String getServerAddressURL()
+  {
+    return serverAddressURL;
   }
 
   /**
