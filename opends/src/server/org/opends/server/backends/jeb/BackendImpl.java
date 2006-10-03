@@ -824,7 +824,8 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       catch (DatabaseException e)
       {
         assert debugException(CLASS_NAME, "replaceEntry", e);
-        String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION);
+        String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
+                                    e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, MSGID_JEB_DATABASE_EXCEPTION);
       }
@@ -890,7 +891,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     catch (DatabaseException e)
     {
       assert debugException(CLASS_NAME, "renameEntry", e);
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION);
+      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, MSGID_JEB_DATABASE_EXCEPTION);
     }
@@ -933,7 +934,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     catch (DatabaseException e)
     {
       assert debugException(CLASS_NAME, "search", e);
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION);
+      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, MSGID_JEB_DATABASE_EXCEPTION);
     }
