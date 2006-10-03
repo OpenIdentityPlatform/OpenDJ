@@ -97,7 +97,6 @@ public class ServerStateTest extends SynchronizationTestCase
 
     // Check the toString
     String stringRep = serverState.toString();
-    assertFalse(stringRep.isEmpty());
     assertTrue(stringRep.contains(cn2.toString()));
     assertTrue(stringRep.contains(cn3.toString()));
 
