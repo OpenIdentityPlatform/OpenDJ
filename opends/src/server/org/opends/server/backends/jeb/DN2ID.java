@@ -49,9 +49,9 @@ import org.opends.server.util.StaticUtils;
 public class DN2ID
 {
   /**
-   * The database container.
+   * The database entryContainer.
    */
-  private Container container;
+  private EntryContainer entryContainer;
 
   /**
    * The JE database configuration.
@@ -59,7 +59,7 @@ public class DN2ID
   private DatabaseConfig dbConfig;
 
   /**
-   * The name of the database within the container.
+   * The name of the database within the entryContainer.
    */
   private String name;
 
@@ -70,16 +70,17 @@ public class DN2ID
        new ThreadLocal<Database>();
 
   /**
-   * Create a DN2ID instance for the DN database in a given container.
+   * Create a DN2ID instance for the DN database in a given entryContainer.
    *
-   * @param container The container of the DN database.
+   * @param entryContainer The entryContainer of the DN database.
    * @param dbConfig The JE database configuration which will be used to
    * open the database.
    * @param name The name of the DN database ("dn2id").
    */
-  public DN2ID(Container container, DatabaseConfig dbConfig, String name)
+  public DN2ID(EntryContainer entryContainer, DatabaseConfig dbConfig,
+               String name)
   {
-    this.container = container;
+    this.entryContainer = entryContainer;
     this.dbConfig = dbConfig;
     this.name = name;
   }
@@ -96,7 +97,7 @@ public class DN2ID
 
   /**
    * Get a handle to the database. It returns a per-thread handle to avoid
-   * any thread contention on the database handle. The container is
+   * any thread contention on the database handle. The entryContainer is
    * responsible for closing all handles.
    *
    * @return A database handle.
@@ -108,7 +109,7 @@ public class DN2ID
     Database database = threadLocalDatabase.get();
     if (database == null)
     {
-      database = container.openDatabase(dbConfig, name);
+      database = entryContainer.openDatabase(dbConfig, name);
       threadLocalDatabase.set(database);
     }
     return database;
@@ -144,7 +145,7 @@ public class DN2ID
 
     OperationStatus status;
 
-    status = Container.insert(getDatabase(), txn, key, data);
+    status = EntryContainer.insert(getDatabase(), txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -171,7 +172,7 @@ public class DN2ID
     DatabaseEntry data = id.getDatabaseEntry();
 
     OperationStatus status;
-    status = Container.put(getDatabase(), txn, key, data);
+    status = EntryContainer.put(getDatabase(), txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -194,7 +195,7 @@ public class DN2ID
        throws DatabaseException
   {
     OperationStatus status;
-    status = Container.put(getDatabase(), txn, key, data);
+    status = EntryContainer.put(getDatabase(), txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -216,7 +217,7 @@ public class DN2ID
   {
     DatabaseEntry key = DNdata(dn);
 
-    OperationStatus status = Container.delete(getDatabase(), txn, key);
+    OperationStatus status = EntryContainer.delete(getDatabase(), txn, key);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -239,7 +240,8 @@ public class DN2ID
     DatabaseEntry data = new DatabaseEntry();
 
     OperationStatus status;
-    status = Container.read(getDatabase(), txn, key, data, LockMode.DEFAULT);
+    status = EntryContainer.read(getDatabase(), txn, key, data,
+                                 LockMode.DEFAULT);
     if (status != OperationStatus.SUCCESS)
     {
       return null;

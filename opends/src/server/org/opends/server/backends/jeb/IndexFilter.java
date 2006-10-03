@@ -48,7 +48,7 @@ public class IndexFilter
   public static final int FILTER_CANDIDATE_THRESHOLD = 10;
 
   /**
-   * The entry container holding the attribute indexes.
+   * The entry entryContainer holding the attribute indexes.
    */
   private EntryContainer entryContainer;
 
@@ -67,7 +67,7 @@ public class IndexFilter
   /**
    * Construct an index filter for a search operation.
    *
-   * @param entryContainer The entry container.
+   * @param entryContainer The entry entryContainer.
    * @param searchOp       The search operation to be evaluated.
    *
    * @param debugBuilder If not null, a diagnostic string will be written

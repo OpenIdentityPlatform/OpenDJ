@@ -32,26 +32,20 @@ import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.EnvironmentStats;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.Transaction;
 
-import org.opends.server.api.Backend;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.Debug;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -65,7 +59,6 @@ import static org.opends.server.loggers.Debug.debugException;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -94,19 +87,14 @@ public class VerifyJob
   private VerifyConfig verifyConfig;
 
   /**
-   * The JE backend to be verified.
-   */
-  private Backend backend;
-
-  /**
    * The configuration of the JE backend.
    */
   private Config config;
 
   /**
-   * A read-only JE database environment handle for the purpose of verification.
+   * The root container used for the verify job.
    */
-  private Environment env;
+  RootContainer rootContainer;
 
   /**
    * The number of milliseconds between job progress reports.
@@ -193,44 +181,29 @@ public class VerifyJob
   /**
    * Construct a VerifyJob.
    *
-   * @param backend The backend performing the verify process.
    * @param config The backend configuration.
    * @param verifyConfig The verify configuration.
    */
-  public VerifyJob(Backend backend, Config config, VerifyConfig verifyConfig)
+  public VerifyJob(Config config, VerifyConfig verifyConfig)
   {
     this.verifyConfig = verifyConfig;
-    this.backend = backend;
     this.config = config;
   }
 
   /**
    * Verify the backend.
+   *
+   * @param rootContainer The root container that holds the entries to verify.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws JebException If an error occurs in the JE backend.
    */
-  public void verifyBackend() throws DatabaseException, JebException
+  public void verifyBackend(RootContainer rootContainer) throws
+      DatabaseException, JebException
   {
-    File backendDirectory = config.getBackendDirectory();
 
-    // Open the environment read-only.
-    EnvironmentConfig envConfig = config.getEnvironmentConfig();
-    envConfig.setReadOnly(true);
-    envConfig.setAllowCreate(false);
-    envConfig.setTransactional(false);
-    env = new Environment(backendDirectory, envConfig);
-
-    Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
-                       CLASS_NAME, "verifyBackend",
-                       env.getConfig().toString());
-
-    // Open a container read-only.
-    String containerName =
-         BackendImpl.getContainerName(verifyConfig.getBaseDN());
-    Container container = new Container(env, containerName);
+    this.rootContainer = rootContainer;
     EntryContainer entryContainer =
-         new EntryContainer(backend, config, container);
-    entryContainer.openReadOnly();
+        rootContainer.getEntryContainer(verifyConfig.getBaseDN());
 
     ArrayList<String> completeList = verifyConfig.getCompleteList();
     ArrayList<String> cleanList = verifyConfig.getCleanList();
@@ -304,7 +277,7 @@ public class VerifyJob
 
     // We will be updating these files independently of the indexes
     // so we need direct access to them rather than going through
-    // the entry container methods.
+    // the entry entryContainer methods.
     id2entry = entryContainer.getID2Entry();
     dn2id = entryContainer.getDN2ID();
     id2c = entryContainer.getID2Children();
@@ -1567,7 +1540,8 @@ public class VerifyJob
     public ProgressTask() throws DatabaseException
     {
       previousTime = System.currentTimeMillis();
-      prevEnvStats = env.getStats(new StatsConfig());
+      prevEnvStats =
+          rootContainer.getEnvironmentStats(new StatsConfig());
     }
 
     /**
@@ -1597,7 +1571,8 @@ public class VerifyJob
         Runtime runtime = Runtime.getRuntime();
         long freeMemory = runtime.freeMemory() / bytesPerMegabyte;
 
-        EnvironmentStats envStats = env.getStats(new StatsConfig());
+        EnvironmentStats envStats =
+            rootContainer.getEnvironmentStats(new StatsConfig());
         long nCacheMiss =
              envStats.getNCacheMiss() - prevEnvStats.getNCacheMiss();
 

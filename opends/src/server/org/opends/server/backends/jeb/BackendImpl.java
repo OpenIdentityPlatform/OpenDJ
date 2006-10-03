@@ -26,29 +26,13 @@
  */
 package org.opends.server.backends.jeb;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.sleepycat.je.CheckpointConfig;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.EnvironmentStats;
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.PreloadConfig;
-import com.sleepycat.je.PreloadStats;
-import com.sleepycat.je.PreloadStatus;
-import com.sleepycat.je.StatsConfig;
-import com.sleepycat.je.config.EnvironmentParams;
-import com.sleepycat.je.config.ConfigParam;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConfigurableComponent;
@@ -67,8 +51,6 @@ import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CancelledOperationException;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -79,10 +61,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.FilePermission;
-import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.util.LDIFException;
-import org.opends.server.loggers.Debug;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.JebMessages.*;
@@ -117,26 +96,9 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   private Config config;
 
   /**
-   * The directory containing persistent storage for the backend.
+   * The root JE container to use for this backend.
    */
-  private File backendDirectory;
-
-  /**
-   * The permissions mode for the directory containing persistent storage for
-   * the backend.
-   */
-  private FilePermission backendPermission;
-
-  /**
-   * The base DNs contained in this backend.
-   */
-  private ConcurrentHashMap<DN, EntryContainer> baseDNs;
-
-  /**
-   * The JE environment for this backend instance.  Each instance has its own
-   * environment.
-   */
-  private com.sleepycat.je.Environment dbEnv;
+  private RootContainer rootContainer;
 
   /**
    * A configurable component to handle changes to the configuration of
@@ -273,46 +235,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
   }
 
-
-
-  /**
-   * Determine the container of an entry DN.
-   *
-   * @param dn The DN of an entry.
-   * @return The container of the entry.
-   * @throws DirectoryException If the entry DN does not match any of the base
-   *                            DNs.
-   */
-  private EntryContainer getContainer(DN dn) throws DirectoryException
-  {
-    assert debugEnter(CLASS_NAME, "getContainer");
-
-    EntryContainer ec = null;
-    DN nodeDN = dn;
-
-    while (ec == null && nodeDN != null)
-    {
-      ec = baseDNs.get(nodeDN);
-      if (ec == null)
-      {
-        nodeDN = nodeDN.getParent();
-      }
-    }
-
-    if (ec == null)
-    {
-      // The operation should not have been routed to this backend.
-      String message = getMessage(MSGID_JEB_INCORRECT_ROUTING,
-                                  dn.toString());
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-                                   MSGID_JEB_INCORRECT_ROUTING);
-    }
-
-    return ec;
-  }
-
-
-
   /**
    * This method constructs a container name from a base DN. Only alphanumeric
    * characters are preserved, all other characters are replaced with an
@@ -371,34 +293,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     config = new Config();
     config.initializeConfig(configEntry, baseDNs);
 
-    // Get the backend database directory.
-    backendDirectory = config.getBackendDirectory();
-    if (!backendDirectory.isDirectory())
-    {
-      String message = getMessage(MSGID_JEB_DIRECTORY_INVALID,
-                                  backendDirectory.getPath());
-      throw new InitializationException(MSGID_JEB_DIRECTORY_INVALID,
-                                        message);
-    }
-
-    // Get the backend database directory permissions and apply
-    try
-    {
-      backendPermission = config.getBackendPermission();
-      if(!FilePermission.setPermissions(backendDirectory, backendPermission))
-      {
-        throw new Exception();
-      }
-    }
-    catch(Exception e)
-    {
-      // Log an warning that the permissions were not set.
-      int msgID = MSGID_JEB_SET_PERMISSIONS_FAILED;
-      String message = getMessage(msgID, backendDirectory.getPath());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
-    }
-
     // FIXME: Currently assuming every base DN is also a suffix.
     for (DN dn : baseDNs)
     {
@@ -416,14 +310,8 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     // Open the database environment
     try
     {
-      dbEnv = new Environment(backendDirectory,
-                              config.getEnvironmentConfig());
-
-      Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
-                         CLASS_NAME, "initializeBackend",
-                         dbEnv.getConfig().toString());
-
-//      cleanDatabase();
+      rootContainer = new RootContainer(config, this);
+      rootContainer.open();
     }
     catch (DatabaseException e)
     {
@@ -433,45 +321,33 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       throw new InitializationException(MSGID_JEB_OPEN_ENV_FAIL, message, e);
     }
 
-    // Create and register a monitor provider for the environment.
-    String monitorName = this.getBackendID() + " Database Environment";
+    // Register a monitor provider for the environment.
     MonitorProvider monitorProvider =
-         new DatabaseEnvironmentMonitor(monitorName, dbEnv);
+        rootContainer.getMonitorProvider();
     monitorProviders.add(monitorProvider);
     DirectoryServer.registerMonitorProvider(monitorProvider);
 
-    // Open all the databases.
-    this.baseDNs = new ConcurrentHashMap<DN, EntryContainer>(baseDNs.length);
-    for (DN dn : baseDNs)
+    try
     {
-      String containerName = getContainerName(dn);
-      Container container = new Container(dbEnv, containerName);
-      EntryContainer ec = new EntryContainer(this, config, container);
-
-      try
-      {
-        ec.open();
-      }
-      catch (DatabaseException databaseException)
-      {
-        assert debugException(CLASS_NAME, "initializeBackend",
-                              databaseException);
-        String message = getMessage(MSGID_JEB_OPEN_DATABASE_FAIL,
-                                    databaseException.getMessage());
-        throw new InitializationException(MSGID_JEB_OPEN_DATABASE_FAIL, message,
-                                          databaseException);
-      }
-
-      this.baseDNs.put(dn, ec);
+      rootContainer.openEntryContainers(baseDNs);
+    }
+    catch (DatabaseException databaseException)
+    {
+      assert debugException(CLASS_NAME, "initializeBackend",
+                            databaseException);
+      String message = getMessage(MSGID_JEB_OPEN_DATABASE_FAIL,
+                                  databaseException.getMessage());
+      throw new InitializationException(MSGID_JEB_OPEN_DATABASE_FAIL, message,
+                                        databaseException);
     }
 
     // Preload the database cache.
-    preload();
+    rootContainer.preload();
 
     // Determine the next entry ID and the total number of entries.
     EntryID highestID = null;
     long entryCount = 0;
-    for (EntryContainer ec : this.baseDNs.values())
+    for (EntryContainer ec : rootContainer.getEntryContainers())
     {
       try
       {
@@ -502,75 +378,13 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     DirectoryServer.registerConfigurableComponent(this);
 
     // Register the database environment as a configurable component.
-    DN envConfigDN = config.getEnvConfigDN();
-    if (envConfigDN != null)
+    ConfigurableEnvironment configurableEnv =
+        rootContainer.getConfigurableEnvironment();
+    if (configurableEnv != null)
     {
-      configurableEnv = new ConfigurableEnvironment(envConfigDN, dbEnv);
       DirectoryServer.registerConfigurableComponent(configurableEnv);
     }
   }
-
-
-
-  /**
-   * Synchronously invokes the cleaner on the database environment then forces a
-   * checkpoint to delete the log files that are no longer in use.
-   *
-   * @throws DatabaseException If an error occurs while cleaning the database
-   * environment.
-   */
-  private void cleanDatabase()
-       throws DatabaseException
-  {
-    assert debugEnter(CLASS_NAME, "cleanDatabase");
-
-    int msgID;
-    String message;
-
-    FilenameFilter filenameFilter = new FilenameFilter()
-    {
-      public boolean accept(File d, String name)
-      {
-        return name.endsWith(".jdb");
-      }
-    };
-
-    int beforeLogfileCount = backendDirectory.list(filenameFilter).length;
-
-    msgID = MSGID_JEB_CLEAN_DATABASE_START;
-    message = getMessage(msgID, beforeLogfileCount, backendDirectory.getPath());
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-             msgID);
-
-    int currentCleaned = 0;
-    int totalCleaned = 0;
-    while ((currentCleaned = dbEnv.cleanLog()) > 0)
-    {
-      totalCleaned += currentCleaned;
-    }
-
-    msgID = MSGID_JEB_CLEAN_DATABASE_MARKED;
-    message = getMessage(msgID, totalCleaned);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-             msgID);
-
-    if (totalCleaned > 0)
-    {
-      CheckpointConfig force = new CheckpointConfig();
-      force.setForce(true);
-      dbEnv.checkpoint(force);
-    }
-
-    int afterLogfileCount = backendDirectory.list(filenameFilter).length;
-
-    msgID = MSGID_JEB_CLEAN_DATABASE_FINISH;
-    message = getMessage(msgID, afterLogfileCount);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-             msgID);
-
-  }
-
-
 
   /**
    * Performs any necessary work to finalize this backend, including closing any
@@ -595,7 +409,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
     // Deregister our suffixes.
     // FIXME: Currently assuming every base DN is also a suffix.
-    for (DN dn : baseDNs.keySet())
+    for (DN dn : rootContainer.getBaseDNs())
     {
       try
       {
@@ -623,11 +437,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     // Close the database.
     try
     {
-      for (EntryContainer ec : baseDNs.values())
-      {
-        ec.close();
-      }
-      dbEnv.close();
+      rootContainer.close();
     }
     catch (DatabaseException e)
     {
@@ -850,7 +660,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     readerBegin();
     try
     {
-      EntryContainer ec = getContainer(entryDN);
+      EntryContainer ec = rootContainer.getEntryContainer(entryDN);
       Entry entry;
       try
       {
@@ -903,7 +713,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     try
     {
       DN entryDN = entry.getDN();
-      EntryContainer ec = getContainer(entryDN);
+      EntryContainer ec = rootContainer.getEntryContainer(entryDN);
 
       try
       {
@@ -954,7 +764,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     writerBegin();
     try
     {
-      EntryContainer ec = getContainer(entryDN);
+      EntryContainer ec = rootContainer.getEntryContainer(entryDN);
       try
       {
         ec.deleteEntry(entryDN, deleteOperation);
@@ -1005,7 +815,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     try
     {
       DN entryDN = entry.getDN();
-      EntryContainer ec = getContainer(entryDN);
+      EntryContainer ec = rootContainer.getEntryContainer(entryDN);
 
       try
       {
@@ -1061,12 +871,13 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     writerBegin();
     try
     {
-      EntryContainer currentContainer = getContainer(currentDN);
-      EntryContainer container = getContainer(entry.getDN());
+      EntryContainer currentContainer = rootContainer.getEntryContainer(
+          currentDN);
+      EntryContainer container = rootContainer.getEntryContainer(entry.getDN());
 
       if (currentContainer != container)
       {
-        // No reason why we cannot implement a move between containers
+        // FIXME: No reason why we cannot implement a move between containers
         // since the containers share the same database environment.
         int msgID = MSGID_JEB_FUNCTION_NOT_SUPPORTED;
         String msg = getMessage(MSGID_JEB_FUNCTION_NOT_SUPPORTED);
@@ -1115,7 +926,8 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     readerBegin();
     try
     {
-      EntryContainer ec = getContainer(searchOperation.getBaseDN());
+      EntryContainer ec = rootContainer.getEntryContainer(
+          searchOperation.getBaseDN());
       ec.search(searchOperation);
     }
     catch (DatabaseException e)
@@ -1166,48 +978,24 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                                    e.getMessageID());
     }
 
-    // If the backend already has the environment open, we must use the same
-    // underlying environment instance and its configuration.
-    Environment env;
-    try
-    {
-      EnvironmentConfig envConfig;
-      Environment existingEnv = dbEnv;
-      if (existingEnv == null)
-      {
-        // Open the environment read-only.
-        envConfig = config.getEnvironmentConfig();
-        envConfig.setReadOnly(true);
-        envConfig.setAllowCreate(false);
-        envConfig.setTransactional(false);
-      }
-      else
-      {
-        envConfig = existingEnv.getConfig();
-      }
-
-      // Open a new environment handle.
-      File backendDirectory = config.getBackendDirectory();
-      env = new Environment(backendDirectory, envConfig);
-
-      Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
-                         CLASS_NAME, "exportLDIF",
-                         env.getConfig().toString());
-
-    }
-    catch (DatabaseException e)
-    {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                  e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
-    }
+    // If the backend already has the root container open, we must use the same
+    // underlying root container
+    boolean openRootContainer = rootContainer == null;
 
     try
     {
-      ExportJob exportJob = new ExportJob(this, config, exportConfig);
-      exportJob.exportLDIF(env);
+      if (openRootContainer)
+      {
+        // Open the database environment
+        rootContainer = new RootContainer(config, this);
+        rootContainer.open(config.getBackendDirectory(),
+                           config.getBackendPermission(),
+                           true, false, false, false, true, true);
+        rootContainer.openEntryContainers(baseDNs);
+      }
+
+      ExportJob exportJob = new ExportJob(exportConfig);
+      exportJob.exportLDIF(rootContainer);
     }
     catch (IOException ioe)
     {
@@ -1241,13 +1029,19 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     finally
     {
-      try
+      //If a root container was opened in this method as read only, close it
+      //to leave the backend in the same state.
+      if (openRootContainer && rootContainer != null)
       {
-        env.close();
-      }
-      catch (DatabaseException e)
-      {
-        assert debugException(CLASS_NAME, "exportLDIF", e);
+        try
+        {
+          rootContainer.close();
+          rootContainer = null;
+        }
+        catch (DatabaseException e)
+        {
+          assert debugException(CLASS_NAME, "exportLDIF", e);
+        }
       }
     }
   }
@@ -1342,10 +1136,24 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     config = new Config();
     config.initializeConfig(configEntry, baseDNs);
 
-    VerifyJob verifyJob = new VerifyJob(this, config, verifyConfig);
+    // If the backend already has the root container open, we must use the same
+    // underlying root container
+    boolean openRootContainer = rootContainer == null;
+
     try
     {
-      verifyJob.verifyBackend();
+      if (openRootContainer)
+      {
+        // Open the database environment
+        rootContainer = new RootContainer(config, this);
+        rootContainer.open(config.getBackendDirectory(),
+                           config.getBackendPermission(),
+                           true, false, false, false, true, true);
+        rootContainer.openEntryContainers(baseDNs);
+      }
+
+      VerifyJob verifyJob = new VerifyJob(config, verifyConfig);
+      verifyJob.verifyBackend(rootContainer);
     }
     catch (DatabaseException e)
     {
@@ -1361,6 +1169,23 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
                                    e.getMessageID());
+    }
+    finally
+    {
+      //If a root container was opened in this method as read only, close it
+      //to leave the backend in the same state.
+      if (openRootContainer && rootContainer != null)
+      {
+        try
+        {
+          rootContainer.close();
+          rootContainer = null;
+        }
+        catch (DatabaseException e)
+        {
+          assert debugException(CLASS_NAME, "verifyBackend", e);
+        }
+      }
     }
   }
 
@@ -1582,78 +1407,22 @@ public class BackendImpl extends Backend implements ConfigurableComponent
           // operation threads with a handle on the entry container being
           // closed.
           DirectoryServer.deregisterSuffix(baseDN);
-          EntryContainer ec = this.baseDNs.remove(baseDN);
-          ec.close();
-          ec.removeContainer();
+          rootContainer.removeEntryContainer(baseDN);
         }
       }
 
       for (DN baseDN : newConfig.getBaseDNs())
       {
-        if (!this.baseDNs.containsKey(baseDN))
+        if (!rootContainer.getBaseDNs().contains(baseDN))
         {
           // The base DN was added.
-          String containerName = getContainerName(baseDN);
-          Container container = new Container(dbEnv, containerName);
-          EntryContainer ec = new EntryContainer(this, config, container);
-          ec.open();
-          this.baseDNs.put(baseDN, ec);
+          rootContainer.openEntryContainer(baseDN);
           DirectoryServer.registerSuffix(baseDN, this);
         }
       }
 
-      // Check for changes to the database directory permissions
-      FilePermission oldPermission = config.getBackendPermission();
-      FilePermission newPermission = newConfig.getBackendPermission();
-
-      if(!FilePermission.toUNIXMode(oldPermission).equals(
-          FilePermission.toUNIXMode(newPermission)))
-      {
-        try
-        {
-          if(!FilePermission.setPermissions(newConfig.getBackendDirectory(),
-              newPermission))
-          {
-            throw new Exception();
-          }
-        }
-        catch(Exception e)
-        {
-          // Log an warning that the permissions were not set.
-          int msgID = MSGID_JEB_SET_PERMISSIONS_FAILED;
-          String message = getMessage(msgID, backendDirectory.getPath());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
-        }
-      }
-
-      // Check if any JE non-mutable properties were changed.
-      EnvironmentConfig oldEnvConfig = config.getEnvironmentConfig();
-      EnvironmentConfig newEnvConfig = newConfig.getEnvironmentConfig();
-      Map paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
-      for (Object o : paramsMap.values())
-      {
-        ConfigParam param = (ConfigParam)o;
-        if (!param.isMutable())
-        {
-          String oldValue = oldEnvConfig.getConfigParam(param.getName());
-          String newValue = newEnvConfig.getConfigParam(param.getName());
-          if (!oldValue.equalsIgnoreCase(newValue))
-          {
-            System.out.println("The change to the following property will " +
-                               "take effect when the backend is restarted: " +
-                               param.getName());
-          }
-        }
-      }
-
-      // This takes care of changes to the JE environment for those
-      // properties that are mutable at runtime.
-      dbEnv.setMutableConfig(newConfig.getEnvironmentConfig());
-
-      Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
-                         CLASS_NAME, "applyNewConfiguration",
-                         dbEnv.getConfig().toString());
+      // Apply new JE configuration
+      rootContainer.applyNewConfig(config);
 
       // Put the new configuration in place.
       config = newConfig;
@@ -1671,76 +1440,15 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     return ccr;
   }
 
-
-
   /**
-   * Preload the database cache. There is no preload if the configured preload
-   * time limit is zero.
+   * Returns a handle to the JE root container currently used by this backend.
+   * The rootContainer could be NULL if the backend is not initialized.
+   *
+   * @return The RootContainer object currently used by this backend.
    */
-  private void preload()
+  public RootContainer getRootContainer()
   {
-    assert debugEnter(CLASS_NAME, "preload");
-
-    long timeLimit = config.getPreloadTimeLimit();
-
-    if (timeLimit > 0)
-    {
-      // Get a list of all the databases used by the backend.
-      ArrayList<Database> dbList = new ArrayList<Database>();
-      for (EntryContainer ec : baseDNs.values())
-      {
-        ec.listDatabases(dbList);
-      }
-
-      // Sort the list in order of priority.
-      Collections.sort(dbList, new DbPreloadComparator());
-
-      // Preload each database until we reach the time limit or the cache
-      // is filled.
-      try
-      {
-        long timeEnd = System.currentTimeMillis() + timeLimit;
-
-        // Configure preload of Leaf Nodes (LNs) containing the data values.
-        PreloadConfig preloadConfig = new PreloadConfig();
-        preloadConfig.setLoadLNs(true);
-
-        for (Database db : dbList)
-        {
-          // Calculate the remaining time.
-          long timeRemaining = timeEnd - System.currentTimeMillis();
-          if (timeRemaining <= 0)
-          {
-            break;
-          }
-
-          preloadConfig.setMaxMillisecs(timeRemaining);
-          PreloadStats preloadStats = db.preload(preloadConfig);
-/*
-          System.out.println("file=" + db.getDatabaseName() +
-                             " LNs=" + preloadStats.getNLNsLoaded());
-*/
-
-          // Stop if the cache is full or the time limit has been exceeded.
-          if (preloadStats.getStatus() != PreloadStatus.SUCCESS)
-          {
-            break;
-          }
-        }
-
-        // Log an informational message about the size of the cache.
-        EnvironmentStats stats = dbEnv.getStats(new StatsConfig());
-        long total = stats.getCacheTotalBytes();
-
-        int msgID = MSGID_JEB_CACHE_SIZE_AFTER_PRELOAD;
-        String message = getMessage(msgID, total / (1024 * 1024));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                 msgID);
-      }
-      catch (DatabaseException e)
-      {
-        assert debugException(CLASS_NAME, "preload", e);
-      }
-    }
+    assert debugEnter(CLASS_NAME, "getRootContainer");
+    return rootContainer;
   }
 }

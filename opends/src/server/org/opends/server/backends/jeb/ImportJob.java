@@ -27,8 +27,6 @@
 package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.EnvironmentStats;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.Transaction;
@@ -89,9 +87,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
   private Config config;
 
   /**
-   * The database environment.
+   * The root container used for this import job.
    */
-  private Environment env;
+  private RootContainer rootContainer;
 
   /**
    * The LDIF import configuration.
@@ -151,12 +149,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
    *                      reading, or while reading from the LDIF file.
    * @throws JebException If an error occurs in the JE backend.
    */
-  public void importLDIF() throws DatabaseException, IOException, JebException
+  public void importLDIF()
+      throws DatabaseException, IOException, JebException
   {
-    File backendDirectory = config.getBackendDirectory();
-
-    EnvironmentConfig envConfig = config.getEnvironmentConfig();
-    envConfig.setConfigParam("je.env.runCheckpointer", "false");
 /*
     envConfig.setConfigParam("je.env.runCleaner", "false");
     envConfig.setConfigParam("je.log.numBuffers", "2");
@@ -164,28 +159,30 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     envConfig.setConfigParam("je.log.totalBufferBytes", "30000000");
     envConfig.setConfigParam("je.log.fileMax", "100000000");
 */
-
+    rootContainer = new RootContainer(config, backend);
     if (ldifImportConfig.appendToExistingData())
     {
-      envConfig.setTransactional(true);
-      envConfig.setTxnNoSync(true);
+      rootContainer.open(config.getBackendDirectory(),
+                         config.getBackendPermission(),
+                         false, true, true, true, true, false);
     }
     else
     {
-      envConfig.setTransactional(false);
-      envConfig.setConfigParam("je.env.isLocking", "false");
+      rootContainer.open(config.getBackendDirectory(),
+                         config.getBackendPermission(),
+                         false, true, false, false, false, false);
     }
-
-    env = new Environment(backendDirectory, envConfig);
 
     if (!ldifImportConfig.appendToExistingData())
     {
       // We have the writer lock on the environment, now delete the
       // environment and re-open it. Only do this when we are
       // importing to all the base DNs in the backend.
-      env.close();
-      EnvManager.removeFiles(backendDirectory.getPath());
-      env = new Environment(backendDirectory, envConfig);
+      rootContainer.close();
+      EnvManager.removeFiles(config.getBackendDirectory().getPath());
+      rootContainer.open(config.getBackendDirectory(),
+                         config.getBackendPermission(),
+                         false, true, false, false, false, false);
     }
 
     // Divide the total buffer size by the number of threads
@@ -205,49 +202,25 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
              message, msgID);
 
     msgID = MSGID_JEB_IMPORT_ENVIRONMENT_CONFIG;
-    message = getMessage(msgID, env.getConfig().toString());
+    message = getMessage(msgID,
+                         rootContainer.getEnvironmentConfig().toString());
     logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
              message, msgID);
 
     Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
                        CLASS_NAME, "importLDIF",
-                       env.getConfig().toString());
+                       rootContainer.getEnvironmentConfig().toString());
 
 
-    // Create and open the containers for each base DN.
+    rootContainer.openEntryContainers(config.getBaseDNs());
+
+    // Create the import contextes for each base DN.
     EntryID highestID = null;
-    for (DN baseDN : config.getBaseDNs())
+    DN baseDN;
+
+    for (EntryContainer entryContainer : rootContainer.getEntryContainers())
     {
-      String containerName = BackendImpl.getContainerName(baseDN);
-      Container container = new Container(env, containerName);
-      EntryContainer entryContainer =
-           new EntryContainer(backend, config, container);
-
-      if (ldifImportConfig.appendToExistingData())
-      {
-        entryContainer.open();
-      }
-      else
-      {
-        // We will need this code when the import can specify a subset
-        // of the base DNs in the backend.
-/*
-        long t1, t2;
-
-        String msg = String.format("Removing existing data for base DN '%s'",
-                                   baseDN);
-        System.out.println(msg);
-
-        t1 = System.currentTimeMillis();
-        container.removeAllDatabases();
-        t2 = System.currentTimeMillis();
-
-        msg = String.format("Data removed in %d seconds", (t2-t1)/1000);
-        System.out.println(msg);
-*/
-
-        entryContainer.openNonTransactional(true);
-      }
+      baseDN = entryContainer.getBaseDN();
 
       // Keep track of the highest entry ID.
       EntryID id = entryContainer.getHighestEntryID();
@@ -263,7 +236,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       importContext.setLDIFImportConfig(this.ldifImportConfig);
 
       importContext.setBaseDN(baseDN);
-      importContext.setContainerName(containerName);
+      importContext.setContainerName(entryContainer.getContainerName());
       importContext.setEntryContainer(entryContainer);
       importContext.setBufferSize(bufferSize);
 
@@ -344,17 +317,13 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     }
     finally
     {
-      for (ImportContext ic : importMap.values())
-      {
-        ic.getEntryContainer().close();
-      }
+      rootContainer.close();
 
       // Sync the environment to disk.
       msgID = MSGID_JEB_IMPORT_CLOSING_DATABASE;
       message = getMessage(msgID);
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
                message, msgID);
-      env.close();
     }
 
     long finishTime = System.currentTimeMillis();
@@ -923,7 +892,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     public ProgressTask() throws DatabaseException
     {
       previousTime = System.currentTimeMillis();
-      prevEnvStats = env.getStats(new StatsConfig());
+      prevEnvStats = rootContainer.getEnvironmentStats(new StatsConfig());
     }
 
     /**
@@ -957,7 +926,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         Runtime runtime = Runtime.getRuntime();
         long freeMemory = runtime.freeMemory() / bytesPerMegabyte;
 
-        EnvironmentStats envStats = env.getStats(new StatsConfig());
+        EnvironmentStats envStats =
+            rootContainer.getEnvironmentStats(new StatsConfig());
         long nCacheMiss =
              envStats.getNCacheMiss() - prevEnvStats.getNCacheMiss();
 

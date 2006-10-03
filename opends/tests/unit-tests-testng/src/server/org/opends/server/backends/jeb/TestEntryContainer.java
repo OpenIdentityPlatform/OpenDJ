@@ -35,8 +35,11 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.FilePermission;
+import org.opends.server.types.DN;
 import org.opends.server.util.LDIFReader;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -181,14 +184,14 @@ public class TestEntryContainer extends JebTestCase {
   @Test()
   public void test1() throws Exception {
     EnvManager.createHomeDir(homeDirName);
-    EnvironmentConfig envConfig = new EnvironmentConfig();
-    envConfig.setTransactional(true);
-    envConfig.setAllowCreate(true);
-    Environment env = new Environment(new File(homeDirName), envConfig);
-    EntryContainer entryContainer = new EntryContainer(null, new Config(),
-        new Container(env, null));
+    RootContainer rootContainer = new RootContainer(new Config(), null);
+    rootContainer.open(new File(homeDirName),
+                       new FilePermission(true, true, true),
+                       false, true, true, false, true, true);
 
-    entryContainer.open();
+    EntryContainer entryContainer =
+        rootContainer.openEntryContainer(DirectoryServer.getSchemaDN());
+
     EntryID actualHighestID = entryContainer.getHighestEntryID();
     assertTrue(actualHighestID.equals(new EntryID(0)));
 
@@ -201,9 +204,7 @@ public class TestEntryContainer extends JebTestCase {
     actualHighestID = entryContainer.getHighestEntryID();
     assertTrue(actualHighestID.equals(new EntryID(calculatedHighestID)));
 
-    entryContainer.close();
-
-    env.close();
+    rootContainer.close();
     EnvManager.removeFiles(homeDirName);
   }
 }

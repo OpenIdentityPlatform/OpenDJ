@@ -26,16 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.DatabaseNotFoundException;
-import com.sleepycat.je.DeadlockException;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.Transaction;
+import com.sleepycat.je.*;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.Backend;
@@ -47,6 +38,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.Operation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.Debug;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.controls.PagedResultsControl;
@@ -55,6 +47,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.CancelledOperationException;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -77,6 +70,10 @@ import java.util.concurrent.locks.Lock;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.types.DebugLogSeverity.VERBOSE;
+import static org.opends.server.types.DebugLogCategory.DATABASE_ACCESS;
+import static org.opends.server.types.DebugLogCategory.DATABASE_WRITE;
+import static org.opends.server.types.DebugLogCategory.DATABASE_READ;
 import static org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
 import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
 
@@ -92,6 +89,16 @@ public class EntryContainer
    */
   private static final String CLASS_NAME =
        "org.opends.server.backends.jeb.EntryContainer";
+
+ /**
+   * The JE database environment.
+   */
+  private static Environment env;
+
+  /**
+   * The backend configuration.
+   */
+  private static Config config;
 
   /**
    * The name of the entry database.
@@ -124,19 +131,26 @@ public class EntryContainer
   public static final String ATTR_DEBUG_SEARCH_INDEX = "debugsearchindex";
 
   /**
-   * The backend to which this entry container belongs.
+   * The backend to which this entry entryContainer belongs.
    */
   private Backend backend;
 
   /**
-   * The database container.
+   * The baseDN this entry container is responsible for.
    */
-  private Container container;
+  private DN baseDN;
 
   /**
-   * The backend configuration.
+   * A list of JE database handles opened through this entryContainer.
+   * They will be closed by the entryContainer.
    */
-  private Config config;
+  private ArrayList<Database> databases;
+
+  /**
+   * A list of JE cursor handles registered with this entryContainer.
+   * They will be closed by the entryContainer.
+   */
+  private ArrayList<Cursor> cursors;
 
   /**
    * The DN database maps a normalized DN string to an entry ID (8 bytes).
@@ -179,25 +193,34 @@ public class EntryContainer
   private HashMap<AttributeType, AttributeIndex> attrIndexMap;
 
   /**
-   * Create a new entry container object.  This method does not actually create
-   * anything in the JE database environment.
+   * Create a new entry entryContainer object.
+   *
+   * @param baseDN  The baseDN this entry container will be responsible for
+   *                storing on disk.
    * @param backend A reference to the JE backend that is creating this entry
-   * container.  It is needed by the Directory Server entry cache methods.
+   *                container. It is needed by the Directory Server entry cache
+   *                methods.
    * @param config The configuration of the JE backend.
-   * @param container The databases reside in this container.
+   * @param env The JE environment to create this entryContainer in
    */
-  public EntryContainer(Backend backend, Config config, Container container)
+  public EntryContainer(DN baseDN, Backend backend, Config config,
+                        Environment env)
   {
     this.backend = backend;
+    this.baseDN = baseDN;
     this.config = config;
-    this.container = container;
+    this.env = env;
+
+    // Instantiate database and cursor lists
+    databases = new ArrayList<Database>();
+    cursors = new ArrayList<Cursor>();
 
     // Instantiate indexes for id2children and id2subtree.
-    id2children = new Index(container, ID2CHILDREN_DATABASE_NAME,
+    id2children = new Index(this, ID2CHILDREN_DATABASE_NAME,
                             new ID2CIndexer(),
                             config.getBackendIndexEntryLimit(),
                             0);
-    id2subtree = new Index(container, ID2SUBTREE_DATABASE_NAME,
+    id2subtree = new Index(this, ID2SUBTREE_DATABASE_NAME,
                            new ID2SIndexer(),
                            config.getBackendIndexEntryLimit(),
                            0);
@@ -208,7 +231,7 @@ public class EntryContainer
     {
       for (IndexConfig indexConfig : config.getIndexConfigMap().values())
       {
-        AttributeIndex index = new AttributeIndex(indexConfig, container);
+        AttributeIndex index = new AttributeIndex(this, indexConfig);
         attrIndexMap.put(indexConfig.getAttributeType(), index);
       }
     }
@@ -218,7 +241,7 @@ public class EntryContainer
   }
 
   /**
-   * Opens the container for reading and writing.
+   * Opens the entryContainer for reading and writing.
    *
    * @throws DatabaseException If an error occurs in the JE database.
    */
@@ -229,10 +252,10 @@ public class EntryContainer
     DatabaseConfig dbNodupsConfig = new DatabaseConfig();
     dbNodupsConfig.setAllowCreate(true);
     dbNodupsConfig.setTransactional(true);
-    container.open();
+
     try
     {
-      id2entry = new ID2Entry(container, dbNodupsConfig, entryDataConfig,
+      id2entry = new ID2Entry(this, dbNodupsConfig, entryDataConfig,
                               ID2ENTRY_DATABASE_NAME);
       id2entry.open();
 
@@ -242,7 +265,7 @@ public class EntryContainer
       dn2idConfig.setAllowCreate(true);
       dn2idConfig.setTransactional(true);
       dn2idConfig.setBtreeComparator(dn2idComparator.getClass());
-      dn2id = new DN2ID(container, dn2idConfig, DN2ID_DATABASE_NAME);
+      dn2id = new DN2ID(this, dn2idConfig, DN2ID_DATABASE_NAME);
       dn2id.open();
 
       id2children.open(dbNodupsConfig);
@@ -253,7 +276,7 @@ public class EntryContainer
       dn2uriConfig.setAllowCreate(true);
       dn2uriConfig.setTransactional(true);
       dn2uriConfig.setBtreeComparator(dn2idComparator.getClass());
-      dn2uri = new DN2URI(container, dn2uriConfig, REFERRAL_DATABASE_NAME);
+      dn2uri = new DN2URI(this, dn2uriConfig, REFERRAL_DATABASE_NAME);
       dn2uri.open();
 
       for (AttributeIndex index : attrIndexMap.values())
@@ -264,16 +287,16 @@ public class EntryContainer
     catch (DatabaseException e)
     {
       assert debugException(CLASS_NAME, "open", e);
-      container.close();
+      close();
       throw e;
     }
   }
 
   /**
-   * Opens the container for reading and writing without transactions.
+   * Opens the entryContainer for reading and writing without transactions.
    *
-   * @param  deferredWrite  Indicates whether to open the container using the
-   *                        deferred write mode.
+   * @param  deferredWrite  Indicates whether to open the entryContainer using
+   *                        the deferred write mode.
    *
    * @throws DatabaseException If an error occurs in the JE database.
    */
@@ -286,10 +309,9 @@ public class EntryContainer
     dbNodupsConfig.setTransactional(false);
     dbNodupsConfig.setDeferredWrite(deferredWrite);
 
-    container.open();
     try
     {
-      id2entry = new ID2Entry(container, dbNodupsConfig, entryDataConfig,
+      id2entry = new ID2Entry(this, dbNodupsConfig, entryDataConfig,
                               ID2ENTRY_DATABASE_NAME);
       id2entry.open();
 
@@ -300,7 +322,7 @@ public class EntryContainer
       dn2idConfig.setTransactional(false);
       dn2idConfig.setBtreeComparator(dn2idComparator.getClass());
       dn2idConfig.setDeferredWrite(deferredWrite);
-      dn2id = new DN2ID(container, dn2idConfig, DN2ID_DATABASE_NAME);
+      dn2id = new DN2ID(this, dn2idConfig, DN2ID_DATABASE_NAME);
       dn2id.open();
 
       id2children.open(dbNodupsConfig);
@@ -312,7 +334,7 @@ public class EntryContainer
       dn2uriConfig.setTransactional(false);
       dn2uriConfig.setBtreeComparator(dn2idComparator.getClass());
       dn2uriConfig.setDeferredWrite(deferredWrite);
-      dn2uri = new DN2URI(container, dn2uriConfig, REFERRAL_DATABASE_NAME);
+      dn2uri = new DN2URI(this, dn2uriConfig, REFERRAL_DATABASE_NAME);
       dn2uri.open();
 
       for (AttributeIndex index : attrIndexMap.values())
@@ -323,13 +345,13 @@ public class EntryContainer
     catch (DatabaseException e)
     {
       assert debugException(CLASS_NAME, "open", e);
-      container.close();
+      close();
       throw e;
     }
   }
 
   /**
-   * Opens the container for reading only.
+   * Opens the entryContainer for reading only.
    *
    * @throws DatabaseException If an error occurs in the JE database.
    */
@@ -342,10 +364,9 @@ public class EntryContainer
     dbNodupsConfig.setAllowCreate(false);
     dbNodupsConfig.setTransactional(false);
 
-    container.open();
     try
     {
-      id2entry = new ID2Entry(container, dbNodupsConfig, entryDataConfig,
+      id2entry = new ID2Entry(this, dbNodupsConfig, entryDataConfig,
                               ID2ENTRY_DATABASE_NAME);
       id2entry.open();
 
@@ -356,7 +377,7 @@ public class EntryContainer
       dn2idConfig.setAllowCreate(false);
       dn2idConfig.setTransactional(false);
       dn2idConfig.setBtreeComparator(dn2idComparator.getClass());
-      dn2id = new DN2ID(container, dn2idConfig, DN2ID_DATABASE_NAME);
+      dn2id = new DN2ID(this, dn2idConfig, DN2ID_DATABASE_NAME);
       dn2id.open();
 
       id2children.open(dbNodupsConfig);
@@ -368,7 +389,7 @@ public class EntryContainer
       dn2uriConfig.setAllowCreate(false);
       dn2uriConfig.setTransactional(false);
       dn2uriConfig.setBtreeComparator(dn2idComparator.getClass());
-      dn2uri = new DN2URI(container, dn2uriConfig, REFERRAL_DATABASE_NAME);
+      dn2uri = new DN2URI(this, dn2uriConfig, REFERRAL_DATABASE_NAME);
       dn2uri.open();
 
       for (AttributeIndex index : attrIndexMap.values())
@@ -379,21 +400,36 @@ public class EntryContainer
     catch (DatabaseException e)
     {
       assert debugException(CLASS_NAME, "openReadOnly", e);
-      container.close();
+      close();
       throw e;
     }
   }
 
   /**
-   * Closes the entry container.
+   * Closes the entry entryContainer.
    *
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void close()
        throws DatabaseException
   {
-    // The database container is responsible for closing the JE databases.
-    container.close();
+    // Close each cursor that has been registered.
+    for (Cursor cursor : cursors)
+    {
+      cursor.close();
+    }
+
+    // Close each database handle that has been opened.
+    for (Database database : databases)
+    {
+      if (database.getConfig().getDeferredWrite())
+      {
+        database.sync();
+      }
+
+      database.close();
+    }
+
     for (AttributeIndex index : attrIndexMap.values())
     {
       index.close();
@@ -401,8 +437,8 @@ public class EntryContainer
   }
 
   /**
-   * Get the DN database used by this entry container. The container must
-   * have been opened.
+   * Get the DN database used by this entry entryContainer. The entryContainer
+   * must have been opened.
    *
    * @return The DN database.
    */
@@ -412,8 +448,8 @@ public class EntryContainer
   }
 
   /**
-   * Get the entry database used by this entry container. The container must
-   * have been opened.
+   * Get the entry database used by this entry entryContainer. The
+   * entryContainer must have been opened.
    *
    * @return The entry database.
    */
@@ -423,8 +459,8 @@ public class EntryContainer
   }
 
   /**
-   * Get the referral database used by this entry container. The container must
-   * have been opened.
+   * Get the referral database used by this entry entryContainer. The
+   * entryContainer must have been opened.
    *
    * @return The referral database.
    */
@@ -434,8 +470,8 @@ public class EntryContainer
   }
 
   /**
-   * Get the children database used by this entry container.
-   * The container must have been opened.
+   * Get the children database used by this entry entryContainer.
+   * The entryContainer must have been opened.
    *
    * @return The children database.
    */
@@ -445,8 +481,8 @@ public class EntryContainer
   }
 
   /**
-   * Get the subtree database used by this entry container.
-   * The container must have been opened.
+   * Get the subtree database used by this entry entryContainer.
+   * The entryContainer must have been opened.
    *
    * @return The subtree database.
    */
@@ -467,8 +503,8 @@ public class EntryContainer
   }
 
   /**
-   * Determine the highest entryID in the container.
-   * The container must already be open.
+   * Determine the highest entryID in the entryContainer.
+   * The entryContainer must already be open.
    *
    * @return The highest entry ID.
    * @throws JebException If an error occurs in the JE backend.
@@ -499,7 +535,7 @@ public class EntryContainer
   }
 
   /**
-   * Processes the specified search in this container.
+   * Processes the specified search in this entryContainer.
    * Matching entries should be provided back to the core server using the
    * <CODE>SearchOperation.returnEntry</CODE> method.
    *
@@ -1269,12 +1305,12 @@ public class EntryContainer
         operation.invokeOperation(txn);
 
         // Commit the transaction.
-        Container.transactionCommit(txn);
+        EntryContainer.transactionCommit(txn);
         completed = true;
       }
       catch (DeadlockException deadlockException)
       {
-        Container.transactionAbort(txn);
+        EntryContainer.transactionAbort(txn);
         if (retryRemaining-- <= 0)
         {
           throw deadlockException;
@@ -1284,22 +1320,22 @@ public class EntryContainer
       }
       catch (DatabaseException databaseException)
       {
-        Container.transactionAbort(txn);
+        EntryContainer.transactionAbort(txn);
         throw databaseException;
       }
       catch (DirectoryException directoryException)
       {
-        Container.transactionAbort(txn);
+        EntryContainer.transactionAbort(txn);
         throw directoryException;
       }
       catch (JebException jebException)
       {
-        Container.transactionAbort(txn);
+        EntryContainer.transactionAbort(txn);
         throw jebException;
       }
       catch (Exception e)
       {
-        Container.transactionAbort(txn);
+        EntryContainer.transactionAbort(txn);
 
         int messageID = MSGID_JEB_UNCHECKED_EXCEPTION;
         String message = getMessage(messageID);
@@ -1378,7 +1414,7 @@ public class EntryContainer
      */
     public Transaction beginTransaction() throws DatabaseException
     {
-      return container.beginTransaction();
+      return EntryContainer.beginTransaction();
     }
 
     /**
@@ -1827,7 +1863,7 @@ public class EntryContainer
      */
     public Transaction beginTransaction() throws DatabaseException
     {
-      return container.beginTransaction();
+      return EntryContainer.beginTransaction();
     }
 
     /**
@@ -2356,7 +2392,7 @@ public class EntryContainer
      */
     public Transaction beginTransaction() throws DatabaseException
     {
-      return container.beginTransaction();
+      return EntryContainer.beginTransaction();
     }
 
     /**
@@ -2718,7 +2754,7 @@ public class EntryContainer
      */
     public Transaction beginTransaction() throws DatabaseException
     {
-      return container.beginTransaction();
+      return EntryContainer.beginTransaction();
     }
 
     /**
@@ -3196,9 +3232,9 @@ public class EntryContainer
   }
 
   /**
-   * Get a count of the number of entries stored in this entry container.
+   * Get a count of the number of entries stored in this entry entryContainer.
    *
-   * @return The number of entries stored in this entry container.
+   * @return The number of entries stored in this entry entryContainer.
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public long getEntryCount() throws DatabaseException
@@ -3207,7 +3243,8 @@ public class EntryContainer
   }
 
   /**
-   * Remove the entry container from disk. The container must not be open.
+   * Remove the entry entryContainer from disk. The entryContainer must not be
+   * open.
    *
    * @throws DatabaseException If an error occurs in the JE database.
    */
@@ -3215,7 +3252,7 @@ public class EntryContainer
   {
     try
     {
-      container.removeDatabase(DN2ID_DATABASE_NAME);
+      removeDatabase(DN2ID_DATABASE_NAME);
     }
     catch (DatabaseNotFoundException e)
     {
@@ -3223,7 +3260,7 @@ public class EntryContainer
     }
     try
     {
-      container.removeDatabase(ID2ENTRY_DATABASE_NAME);
+      removeDatabase(ID2ENTRY_DATABASE_NAME);
     }
     catch (DatabaseNotFoundException e)
     {
@@ -3231,7 +3268,7 @@ public class EntryContainer
     }
     try
     {
-      container.removeDatabase(ID2CHILDREN_DATABASE_NAME);
+      removeDatabase(ID2CHILDREN_DATABASE_NAME);
     }
     catch (DatabaseNotFoundException e)
     {
@@ -3239,7 +3276,7 @@ public class EntryContainer
     }
     try
     {
-      container.removeDatabase(ID2SUBTREE_DATABASE_NAME);
+      removeDatabase(ID2SUBTREE_DATABASE_NAME);
     }
     catch (DatabaseNotFoundException e)
     {
@@ -3260,7 +3297,7 @@ public class EntryContainer
 
   /**
    * Get the number of values for which the entry limit has been exceeded
-   * since the entry container was opened.
+   * since the entry entryContainer was opened.
    * @return The number of values for which the entry limit has been exceeded.
    */
   public int getEntryLimitExceededCount()
@@ -3276,53 +3313,18 @@ public class EntryContainer
   }
 
   /**
-   * Begin a leaf transaction.
-   * @return A JE transaction handle.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  protected Transaction beginTransaction()
-       throws DatabaseException
-  {
-    return container.beginTransaction();
-  }
-
-  /**
-   * Commit a transaction.
-   * @param txn The JE transaction handle.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  protected void transactionCommit(Transaction txn)
-       throws DatabaseException
-  {
-    Container.transactionCommit(txn);
-  }
-
-  /**
-   * Abort a transaction.
-   * @param txn The JE transaction handle.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  protected void transactionAbort(Transaction txn)
-       throws DatabaseException
-  {
-    Container.transactionAbort(txn);
-  }
-
-  /**
-   * Get a list of the databases opened by this container.  There will be
+   * Get a list of the databases opened by this entryContainer.  There will be
    * only one handle in the list for each database, regardless of the number
    * of handles open for a given database.
    * @param dbList A list of JE database handles.
    */
   public void listDatabases(List<Database> dbList)
   {
-    // The container has a list of all handles opened.
-    List<Database> dbCompleteList = container.getDatabaseList();
 
     // There may be more than one handle open for a given database
     // so we eliminate duplicates here.
     HashSet<String> set = new HashSet<String>();
-    for (Database db : dbCompleteList)
+    for (Database db : databases)
     {
       try
       {
@@ -3362,4 +3364,437 @@ public class EntryContainer
     return false;
   }
 
+  /**
+   * Constructs a full JE database name incorporating a entryContainer name.
+   *
+   * @param builder A string builder to which the full name will be appended.
+   * @param name    The short database name.
+   */
+  private void buildDatabaseName(StringBuilder builder, String name)
+  {
+    builder.append(getContainerName());
+    builder.append('_');
+    builder.append(name);
+  }
+
+  /**
+   * Opens a JE database in this entryContainer. The resulting database handle
+   * must not be closed by the caller, as it will be closed by the
+   * entryContainer. If the provided database configuration is transactional,
+   * a transaction will be created and used to perform the open.
+   * <p>
+   * Note that a database can be opened multiple times and will result in
+   * multiple unique handles to the database.  This is used for example to
+   * give each server thread its own database handle to eliminate contention
+   * that could occur on a single handle.
+   *
+   * @param dbConfig The JE database configuration to be used to open the
+   * database.
+   * @param name     The short database name, to which the entryContainer name
+   *                 will be added.
+   * @return A new JE database handle.
+   * @throws DatabaseException If an error occurs while attempting to open the
+   * database.
+   */
+  public synchronized Database openDatabase(DatabaseConfig dbConfig,
+                                            String name)
+       throws DatabaseException
+  {
+    Database database;
+
+    StringBuilder builder = new StringBuilder();
+    buildDatabaseName(builder, name);
+    String fullName = builder.toString();
+
+    if (dbConfig.getTransactional())
+    {
+      // Open the database under a transaction.
+      Transaction txn = beginTransaction();
+      try
+      {
+        database = env.openDatabase(txn, fullName, dbConfig);
+        assert Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
+                                  "openDatabase",
+                                  "open db=" + database.getDatabaseName() +
+                                  " txnid=" + txn.getId());
+        transactionCommit(txn);
+      }
+      catch (DatabaseException e)
+      {
+        transactionAbort(txn);
+        throw e;
+      }
+    }
+    else
+    {
+      database = env.openDatabase(null, fullName, dbConfig);
+      assert Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
+                                "openDatabase",
+                                "open db=" + database.getDatabaseName() +
+                                " txnid=none");
+    }
+
+    // Insert into the list of database handles.
+    databases.add(database);
+
+    return database;
+  }
+
+  /**
+   * Register a cursor with the entryContainer. The entryContainer will then
+   * take care of closing the cursor when the entryContainer is closed.
+   *
+   * @param cursor A cursor to one of the databases in the entryContainer.
+   */
+  public synchronized void addCursor(Cursor cursor)
+  {
+    cursors.add(cursor);
+  }
+
+  /**
+   * Begin a leaf transaction using the default configuration.
+   * Provides assertion debug logging.
+   * @return A JE transaction handle.
+   * @throws DatabaseException If an error occurs while attempting to begin
+   * a new transaction.
+   */
+  public static Transaction beginTransaction()
+       throws DatabaseException
+  {
+    Transaction parentTxn = null;
+    TransactionConfig txnConfig = null;
+    Transaction txn = env.beginTransaction(parentTxn, txnConfig);
+    assert Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
+                       "beginTransaction", "begin txnid=" + txn.getId());
+    return txn;
+  }
+
+  /**
+   * Commit a transaction.
+   * Provides assertion debug logging.
+   * @param txn The JE transaction handle.
+   * @throws DatabaseException If an error occurs while attempting to commit
+   * the transaction.
+   */
+  public static void transactionCommit(Transaction txn)
+       throws DatabaseException
+  {
+    if (txn != null)
+    {
+      txn.commit();
+      assert Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
+                                "transactionCommit", "commit txnid=" +
+                                                     txn.getId());
+    }
+  }
+
+  /**
+   * Abort a transaction.
+   * Provides assertion debug logging.
+   * @param txn The JE transaction handle.
+   * @throws DatabaseException If an error occurs while attempting to abort the
+   * transaction.
+   */
+  public static void transactionAbort(Transaction txn)
+       throws DatabaseException
+  {
+    if (txn != null)
+    {
+      txn.abort();
+      assert Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
+                                "transactionAbort", "abort txnid=" +
+                                                    txn.getId());
+    }
+  }
+
+  /**
+   * Debug log a read or write access to the database.
+   * @param operation The operation label: "read", "put", "insert".
+   * @param category The log category for raw data value logging
+   * @param status The JE return status code of the operation.
+   * @param database The JE database handle operated on.
+   * @param txn The JE transaction handle used in the operation.
+   * @param key The database key operated on.
+   * @param data The database value read or written.
+   * @return true so that the method can be used in an assertion
+   * @throws DatabaseException If an error occurs while retrieving information
+   * about the JE objects provided to the method.
+   */
+  private static boolean debugAccess(String operation,
+                             DebugLogCategory category,
+                             OperationStatus status,
+                             Database database,
+                             Transaction txn,
+                             DatabaseEntry key, DatabaseEntry data)
+       throws DatabaseException
+  {
+    // Build the string that is common to category DATABASE_ACCESS and
+    // DATABASE_READ/DATABASE_WRITE
+    StringBuilder builder = new StringBuilder();
+    builder.append(operation);
+    if (status == OperationStatus.SUCCESS)
+    {
+      builder.append(" (ok)");
+    }
+    else
+    {
+      builder.append(" (");
+      builder.append(status.toString());
+      builder.append(")");
+    }
+    builder.append(" db=");
+    builder.append(database.getDatabaseName());
+    if (txn != null)
+    {
+      builder.append(" txnid=");
+      builder.append(txn.getId());
+    }
+    else
+    {
+      builder.append(" txnid=none");
+    }
+    Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
+                       "debugAccess", builder.toString());
+
+    // If the operation was successful we log the same common information
+    // plus the key and data under category DATABASE_READ or DATABASE_WRITE
+    if (status == OperationStatus.SUCCESS)
+    {
+      builder.append(" key:");
+      builder.append(ServerConstants.EOL);
+      StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 0);
+      if (data != null)
+      {
+        builder.append("data(len=");
+        builder.append(data.getSize());
+        builder.append("):");
+        builder.append(ServerConstants.EOL);
+        StaticUtils.byteArrayToHexPlusAscii(builder, data.getData(), 0);
+      }
+      Debug.debugMessage(category, VERBOSE, CLASS_NAME,
+                         "debugAccess", builder.toString());
+/*
+      if (category == DATABASE_WRITE)
+      {
+        System.out.println(builder.toString());
+      }
+*/
+    }
+    return true;
+  }
+
+  /**
+   * Insert a record into a JE database, with optional debug logging. This is a
+   * simple wrapper around the JE Database.putNoOverwrite method.
+   * @param database The JE database handle.
+   * @param txn The JE transaction handle, or null if none.
+   * @param key The record key.
+   * @param data The record value.
+   * @return The operation status.
+   * @throws DatabaseException If an error occurs in the JE operation.
+   */
+  public static OperationStatus insert(Database database, Transaction txn,
+                                DatabaseEntry key, DatabaseEntry data)
+       throws DatabaseException
+  {
+    OperationStatus status = database.putNoOverwrite(txn, key, data);
+    assert debugAccess("insert", DATABASE_WRITE,
+                       status, database, txn, key, data);
+    return status;
+  }
+
+  /**
+   * Insert a record into a JE database through a cursor, with optional debug
+   * logging. This is a simple wrapper around the JE Cursor.putNoOverwrite
+   * method.
+   * @param cursor The JE cursor handle.
+   * @param key The record key.
+   * @param data The record value.
+   * @return The operation status.
+   * @throws DatabaseException If an error occurs in the JE operation.
+   */
+  public static OperationStatus cursorInsert(Cursor cursor,
+                                             DatabaseEntry key,
+                                             DatabaseEntry data)
+       throws DatabaseException
+  {
+    OperationStatus status = cursor.putNoOverwrite(key, data);
+    assert debugAccess("cursorInsert", DATABASE_WRITE,
+                       status, cursor.getDatabase(), null, key, data);
+    return status;
+  }
+
+  /**
+   * Replace or insert a record into a JE database, with optional debug logging.
+   * This is a simple wrapper around the JE Database.put method.
+   * @param database The JE database handle.
+   * @param txn The JE transaction handle, or null if none.
+   * @param key The record key.
+   * @param data The record value.
+   * @return The operation status.
+   * @throws DatabaseException If an error occurs in the JE operation.
+   */
+  public static OperationStatus put(Database database, Transaction txn,
+                                    DatabaseEntry key, DatabaseEntry data)
+       throws DatabaseException
+  {
+    OperationStatus status = database.put(txn, key, data);
+    assert debugAccess("put", DATABASE_WRITE,
+                       status, database, txn, key, data);
+    return status;
+  }
+
+  /**
+   * Replace or insert a record into a JE database through a cursor, with
+   * optional debug logging. This is a simple wrapper around the JE Cursor.put
+   * method.
+   * @param cursor The JE cursor handle.
+   * @param key The record key.
+   * @param data The record value.
+   * @return The operation status.
+   * @throws DatabaseException If an error occurs in the JE operation.
+   */
+  public static OperationStatus cursorPut(Cursor cursor,
+                                          DatabaseEntry key,
+                                          DatabaseEntry data)
+       throws DatabaseException
+  {
+    OperationStatus status = cursor.put(key, data);
+    assert debugAccess("cursorPut", DATABASE_WRITE,
+                       status, cursor.getDatabase(), null, key, data);
+    return status;
+  }
+
+  /**
+   * Read a record from a JE database, with optional debug logging. This is a
+   * simple wrapper around the JE Database.get method.
+   * @param database The JE database handle.
+   * @param txn The JE transaction handle, or null if none.
+   * @param key The key of the record to be read.
+   * @param data The record value returned as output. Its byte array does not
+   * need to be initialized by the caller.
+   * @param lockMode The JE locking mode to be used for the read.
+   * @return The operation status.
+   * @throws DatabaseException If an error occurs in the JE operation.
+   */
+  public static OperationStatus read(Database database, Transaction txn,
+                              DatabaseEntry key, DatabaseEntry data,
+                              LockMode lockMode)
+       throws DatabaseException
+  {
+    OperationStatus status = database.get(txn, key, data, lockMode);
+    assert debugAccess("read", DATABASE_READ,
+                       status, database, txn, key, data);
+    return status;
+  }
+
+  /**
+   * Read a record from a JE database through a cursor, with optional debug
+   * logging. This is a simple wrapper around the JE Cursor.getSearchKey method.
+   * @param cursor The JE cursor handle.
+   * @param key The key of the record to be read.
+   * @param data The record value returned as output. Its byte array does not
+   * need to be initialized by the caller.
+   * @param lockMode The JE locking mode to be used for the read.
+   * @return The operation status.
+   * @throws DatabaseException If an error occurs in the JE operation.
+   */
+  public static OperationStatus cursorRead(Cursor cursor,
+                                           DatabaseEntry key,
+                                           DatabaseEntry data,
+                                           LockMode lockMode)
+       throws DatabaseException
+  {
+    OperationStatus status = cursor.getSearchKey(key, data, lockMode);
+    assert debugAccess("cursorRead", DATABASE_READ,
+                       status, cursor.getDatabase(), null, key, data);
+    return status;
+  }
+
+  /**
+   * Delete a record from a JE database, with optional debug logging. This is a
+   * simple wrapper around the JE Database.delete method.
+   * @param database The JE database handle.
+   * @param txn The JE transaction handle, or null if none.
+   * @param key The key of the record to be read.
+   * @return The operation status.
+   * @throws DatabaseException If an error occurs in the JE operation.
+   */
+  public static OperationStatus delete(Database database, Transaction txn,
+                                       DatabaseEntry key)
+       throws DatabaseException
+  {
+    OperationStatus status = database.delete(txn, key);
+    assert debugAccess("delete", DATABASE_WRITE,
+                       status, database, txn, key, null);
+    return status;
+  }
+
+  /**
+   * Remove a database from disk.
+   *
+   * @param name The short database name, to which the entryContainer name will
+   * be added.
+   * @throws DatabaseException If an error occurs while attempting to delete the
+   * database.
+   */
+  public void removeDatabase(String name) throws DatabaseException
+  {
+    StringBuilder builder = new StringBuilder();
+    buildDatabaseName(builder, name);
+    String fullName = builder.toString();
+    env.removeDatabase(null, fullName);
+  }
+
+  /**
+   * Remove from disk all the databases in this entryContainer.
+   *
+   * @throws DatabaseException If an error occurs while attempting to delete any
+   * database.
+   */
+  private void removeAllDatabases() throws DatabaseException
+  {
+    for(Database database : databases)
+    {
+      String name = database.getDatabaseName();
+      env.removeDatabase(null, name);
+    }
+  }
+
+  /**
+   * This method constructs a container name from a base DN. Only alphanumeric
+   * characters are preserved, all other characters are replaced with an
+   * underscore.
+   *
+   * @return The container name for the base DN.
+   */
+  public String getContainerName()
+  {
+
+    String normStr = baseDN.toNormalizedString();
+    StringBuilder builder = new StringBuilder(normStr.length());
+    for (int i = 0; i < normStr.length(); i++)
+    {
+      char ch = normStr.charAt(i);
+      if (Character.isLetterOrDigit(ch))
+      {
+        builder.append(ch);
+      }
+      else
+      {
+        builder.append('_');
+      }
+    }
+    return builder.toString();
+  }
+
+  /**
+   * Get the baseDN this entry container is responsible for.
+   *
+   * @return The Base DN for this entry container.
+   */
+  public DN getBaseDN()
+  {
+    return baseDN;
+  }
 }

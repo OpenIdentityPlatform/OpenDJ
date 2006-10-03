@@ -58,17 +58,17 @@ public class ImportThread extends DirectoryThread
   private ImportContext importContext;
 
   /**
-   * The destination entry container for entries read from the queue.
+   * The destination entry entryContainer for entries read from the queue.
    */
   private EntryContainer entryContainer;
 
   /**
-   * The entry database of the destination entry container.
+   * The entry database of the destination entry entryContainer.
    */
   private ID2Entry id2entry;
 
   /**
-   * The referral database of the destination entry container.
+   * The referral database of the destination entry entryContainer.
    */
   private DN2URI dn2uri;
 

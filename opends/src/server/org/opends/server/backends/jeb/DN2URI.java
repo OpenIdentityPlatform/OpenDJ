@@ -90,9 +90,9 @@ public class DN2URI
        DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
 
   /**
-   * The database container.
+   * The database entryContainer.
    */
-  private Container container;
+  private EntryContainer entryContainer;
 
   /**
    * The JE database configuration.
@@ -100,7 +100,7 @@ public class DN2URI
   private DatabaseConfig dbConfig;
 
   /**
-   * The name of the database within the container.
+   * The name of the database within the entryContainer.
    */
   private String name;
 
@@ -116,16 +116,18 @@ public class DN2URI
        new ThreadLocal<Database>();
 
   /**
-   * Create a new object representing a referral database in a given container.
+   * Create a new object representing a referral database in a given
+   * entryContainer.
    *
-   * @param container The container of the referral database.
+   * @param entryContainer The entryContainer of the referral database.
    * @param dbConfig The JE database configuration which will be used to
    * open the database.
    * @param name The name of the referral database.
    */
-  public DN2URI(Container container, DatabaseConfig dbConfig, String name)
+  public DN2URI(EntryContainer entryContainer, DatabaseConfig dbConfig,
+                String name)
   {
-    this.container = container;
+    this.entryContainer = entryContainer;
     this.dbConfig = dbConfig;
     this.name = name;
   }
@@ -142,7 +144,7 @@ public class DN2URI
 
   /**
    * Get a handle to the database. It returns a per-thread handle to avoid
-   * any thread contention on the database handle. The container is
+   * any thread contention on the database handle. The entryContainer is
    * responsible for closing all handles.
    *
    * @return A database handle.
@@ -154,7 +156,7 @@ public class DN2URI
     Database database = threadLocalDatabase.get();
     if (database == null)
     {
-      database = container.openDatabase(dbConfig, name);
+      database = entryContainer.openDatabase(dbConfig, name);
       threadLocalDatabase.set(database);
     }
     return database;
@@ -181,7 +183,7 @@ public class DN2URI
 
     // The JE insert method does not permit duplicate keys so we must use the
     // put method.
-    status = Container.put(getDatabase(), txn, key, data);
+    status = EntryContainer.put(getDatabase(), txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -206,7 +208,7 @@ public class DN2URI
     DatabaseEntry key = new DatabaseEntry(normDN);
     OperationStatus status;
 
-    status = Container.delete(getDatabase(), txn, key);
+    status = EntryContainer.delete(getDatabase(), txn, key);
     if (status != OperationStatus.SUCCESS)
     {
       return false;

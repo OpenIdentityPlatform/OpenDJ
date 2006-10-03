@@ -356,6 +356,13 @@ public class Config
       throw new ConfigException(msgID, message);
     }
     backendDirectory = getFileForPath(backendDirectoryAttr.activeValue());
+    //Make sure the directory is valid.
+    if (!backendDirectory.isDirectory())
+    {
+      int msgID = MSGID_JEB_DIRECTORY_INVALID;
+      String message = getMessage(msgID, backendDirectory.getPath());
+      throw new ConfigException(MSGID_JEB_DIRECTORY_INVALID, message);
+    }
 
     // ds-cfg-backend-mode
     // Optional, single-valued config attribute requiring admin action on change

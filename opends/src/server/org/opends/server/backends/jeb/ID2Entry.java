@@ -49,9 +49,9 @@ import org.opends.server.types.Entry;
 public class ID2Entry
 {
   /**
-   * The database container.
+   * The database entryContainer.
    */
-  private Container container;
+  private EntryContainer entryContainer;
 
   /**
    * The JE database configuration.
@@ -64,7 +64,7 @@ public class ID2Entry
   private DataConfig dataConfig;
 
   /**
-   * The name of the database within the container.
+   * The name of the database within the entryContainer.
    */
   private String name;
 
@@ -76,17 +76,17 @@ public class ID2Entry
 
   /**
    * Create a new ID2Entry object.
-   * @param container The container of the entry database.
+   * @param entryContainer The entryContainer of the entry database.
    * @param dbConfig The JE database configuration to be used to open the
    * underlying JE database.
    * @param dataConfig The desired compression and encryption options for data
    * stored in the entry database.
    * @param name The name of the entry database.
    */
-  public ID2Entry(Container container, DatabaseConfig dbConfig,
+  public ID2Entry(EntryContainer entryContainer, DatabaseConfig dbConfig,
                   DataConfig dataConfig, String name)
   {
-    this.container = container;
+    this.entryContainer = entryContainer;
     this.dbConfig = dbConfig;
     this.name = name;
     this.dataConfig = dataConfig;
@@ -104,7 +104,7 @@ public class ID2Entry
 
   /**
    * Get a handle to the database. It returns a per-thread handle to avoid
-   * any thread contention on the database handle. The container is
+   * any thread contention on the database handle. The entryContainer is
    * responsible for closing all handles.
    *
    * @return A database handle.
@@ -116,7 +116,7 @@ public class ID2Entry
     Database database = threadLocalDatabase.get();
     if (database == null)
     {
-      database = container.openDatabase(dbConfig, name);
+      database = entryContainer.openDatabase(dbConfig, name);
       threadLocalDatabase.set(database);
     }
     return database;
@@ -152,7 +152,7 @@ public class ID2Entry
     DatabaseEntry data = entryData(entry);
 
     OperationStatus status;
-    status = Container.insert(getDatabase(), txn, key, data);
+    status = EntryContainer.insert(getDatabase(), txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -176,7 +176,7 @@ public class ID2Entry
     DatabaseEntry data = entryData(entry);
 
     OperationStatus status;
-    status = Container.put(getDatabase(), txn, key, data);
+    status = EntryContainer.put(getDatabase(), txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -197,7 +197,7 @@ public class ID2Entry
        throws DatabaseException
   {
     OperationStatus status;
-    status = Container.put(getDatabase(), txn, key, data);
+    status = EntryContainer.put(getDatabase(), txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -218,7 +218,7 @@ public class ID2Entry
   {
     DatabaseEntry key = id.getDatabaseEntry();
 
-    OperationStatus status = Container.delete(getDatabase(), txn, key);
+    OperationStatus status = EntryContainer.delete(getDatabase(), txn, key);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -242,7 +242,8 @@ public class ID2Entry
     DatabaseEntry data = new DatabaseEntry();
 
     OperationStatus status;
-    status = Container.read(getDatabase(), txn, key, data, LockMode.DEFAULT);
+    status = EntryContainer.read(getDatabase(), txn, key, data,
+                                 LockMode.DEFAULT);
 
     if (status != OperationStatus.SUCCESS)
     {
@@ -311,7 +312,7 @@ public class ID2Entry
     key = id.getDatabaseEntry();
 
     // Read the current count, if any.
-    OperationStatus status = Container.read(getDatabase(), txn,
+    OperationStatus status = EntryContainer.read(getDatabase(), txn,
                                             key, data, LockMode.DEFAULT);
 
     // Parse the current count.
@@ -343,7 +344,7 @@ public class ID2Entry
     key = id.getDatabaseEntry();
 
     // Read the current count, if any.
-    OperationStatus status = Container.read(getDatabase(), txn,
+    OperationStatus status = EntryContainer.read(getDatabase(), txn,
                                             key, data, LockMode.RMW);
 
     // Parse the current count.
@@ -359,6 +360,6 @@ public class ID2Entry
     // Write it.
     byte[] bytes = JebFormat.entryIDToDatabase(count);
     data.setData(bytes);
-    Container.put(getDatabase(), txn, key, data);
+    EntryContainer.put(getDatabase(), txn, key, data);
   }
 }

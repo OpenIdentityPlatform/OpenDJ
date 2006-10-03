@@ -30,11 +30,9 @@ import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 
-import org.opends.server.api.Backend;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
@@ -44,10 +42,7 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.StaticUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import static org.opends.server.loggers.Debug.debugException;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -71,16 +66,6 @@ public class ExportJob
   private LDIFExportConfig exportConfig;
 
   /**
-   * The JE backend instance to be exported.
-   */
-  private Backend backend;
-
-  /**
-   * The configuration of the JE backend instance.
-   */
-  private Config config;
-
-  /**
    * The number of milliseconds between job progress reports.
    */
   private long progressInterval = 10000;
@@ -98,43 +83,38 @@ public class ExportJob
   /**
    * Create a new export job.
    *
-   * @param backend The JE backend performing the export job.
-   * @param config The JE backend configuration.
    * @param exportConfig The requested LDIF export configuration.
    */
-  public ExportJob(Backend backend, Config config,
-                   LDIFExportConfig exportConfig)
+  public ExportJob(LDIFExportConfig exportConfig)
   {
     this.exportConfig = exportConfig;
-    this.backend = backend;
-    this.config = config;
   }
 
   /**
    * Export entries from the backend to an LDIF file.
-   * @param env A handle to the JE database environment of the backend.
+   * @param rootContainer The root container to export.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws IOException If an I/O error occurs while writing an entry.
    * @throws JebException If an error occurs in the JE backend.
    * @throws LDIFException If an error occurs while trying to determine whether
    * to write an entry.
    */
-  public void exportLDIF(Environment env)
+  public void exportLDIF(RootContainer rootContainer)
        throws IOException, LDIFException, DatabaseException, JebException
   {
-    // Open the containers read-only.
     List<DN> includeBranches = exportConfig.getIncludeBranches();
-    DN baseDNs[] = config.getBaseDNs();
-    ArrayList<EntryContainer> containers =
-         new ArrayList<EntryContainer>(baseDNs.length);
-    for (DN baseDN : baseDNs)
+    DN baseDN;
+    ArrayList<EntryContainer> exportContainers =
+        new ArrayList<EntryContainer>();
+
+    for (EntryContainer entryContainer : rootContainer.getEntryContainers())
     {
       // Skip containers that are not covered by the include branches.
+      baseDN = entryContainer.getBaseDN();
 
-      boolean includeBase = false;
       if (includeBranches == null || includeBranches.isEmpty())
       {
-        includeBase = true;
+        exportContainers.add(entryContainer);
       }
       else
       {
@@ -143,61 +123,34 @@ public class ExportJob
           if (includeBranch.isDescendantOf(baseDN) ||
                includeBranch.isAncestorOf(baseDN))
           {
-            includeBase = true;
+            exportContainers.add(entryContainer);
           }
         }
       }
-
-      if (includeBase)
-      {
-        String containerName = BackendImpl.getContainerName(baseDN);
-        Container container = new Container(env, containerName);
-        EntryContainer entryContainer =
-             new EntryContainer(backend, config, container);
-        if (env.getConfig().getReadOnly())
-        {
-          entryContainer.openReadOnly();
-        }
-        else
-        {
-          entryContainer.open();
-        }
-        containers.add(entryContainer);
-      }
-
     }
 
     // Make a note of the time we started.
     long startTime = System.currentTimeMillis();
 
+    // Start a timer for the progress report.
+    Timer timer = new Timer();
+    TimerTask progressTask = new ProgressTask();
+    timer.scheduleAtFixedRate(progressTask, progressInterval,
+                              progressInterval);
+
+    // Iterate through the containers.
     try
     {
-      // Start a timer for the progress report.
-      Timer timer = new Timer();
-      TimerTask progressTask = new ProgressTask();
-      timer.scheduleAtFixedRate(progressTask, progressInterval,
-                                progressInterval);
-
-      // Iterate through the containers.
-      try
+      for (EntryContainer exportContainer : exportContainers)
       {
-        for (EntryContainer ec : containers)
-        {
-          exportContainer(ec);
-        }
-      }
-      finally
-      {
-        timer.cancel();
+        exportContainer(exportContainer);
       }
     }
     finally
     {
-      for (EntryContainer ec : containers)
-      {
-        ec.close();
-      }
+      timer.cancel();
     }
+
 
     long finishTime = System.currentTimeMillis();
     long totalTime = (finishTime - startTime);
@@ -217,9 +170,10 @@ public class ExportJob
   }
 
   /**
-   * Export the entries in a single entry container, in other words from
+   * Export the entries in a single entry entryContainer, in other words from
    * one of the base DNs.
-   * @param entryContainer The entry container of those entries to be exported.
+   * @param entryContainer The entry container that holds the entries to be
+   *                       exported.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws IOException If an error occurs while writing an entry.
    * @throws  LDIFException  If an error occurs while trying to determine

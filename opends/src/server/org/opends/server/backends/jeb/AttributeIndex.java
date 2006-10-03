@@ -79,9 +79,9 @@ public class AttributeIndex
        new DatabaseEntry("+".getBytes());
 
   /**
-   * The container in which this attribute index resides.
+   * The entryContainer in which this attribute index resides.
    */
-  Container container;
+  EntryContainer entryContainer;
 
   /**
    * The attribute index configuration.
@@ -110,13 +110,13 @@ public class AttributeIndex
 
   /**
    * Create a new attribute index object.
+   * @param entryContainer The entryContainer of this attribute index.
    * @param indexConfig The attribute index configuration.
-   * @param container The container of this attribute index.
    */
-  public AttributeIndex(IndexConfig indexConfig, Container container)
+  public AttributeIndex(EntryContainer entryContainer, IndexConfig indexConfig)
   {
+    this.entryContainer = entryContainer;
     this.indexConfig = indexConfig;
-    this.container = container;
 
     AttributeType attrType = indexConfig.getAttributeType();
     String name = attrType.getNameOrOID();
@@ -124,7 +124,7 @@ public class AttributeIndex
     if (indexConfig.isEqualityIndex())
     {
       Indexer equalityIndexer = new EqualityIndexer(indexConfig);
-      this.equalityIndex = new Index(container, name + ".equality",
+      this.equalityIndex = new Index(this.entryContainer, name + ".equality",
                                      equalityIndexer,
                                      indexConfig.getEqualityEntryLimit(),
                                      indexConfig.getCursorEntryLimit());
@@ -133,7 +133,7 @@ public class AttributeIndex
     if (indexConfig.isPresenceIndex())
     {
       Indexer presenceIndexer = new PresenceIndexer(indexConfig);
-      this.presenceIndex = new Index(container, name + ".presence",
+      this.presenceIndex = new Index(this.entryContainer, name + ".presence",
                                      presenceIndexer,
                                      indexConfig.getPresenceEntryLimit(),
                                      indexConfig.getCursorEntryLimit());
@@ -142,7 +142,7 @@ public class AttributeIndex
     if (indexConfig.isSubstringIndex())
     {
       Indexer substringIndexer = new SubstringIndexer(indexConfig);
-      this.substringIndex = new Index(container, name + ".substring",
+      this.substringIndex = new Index(this.entryContainer, name + ".substring",
                                      substringIndexer,
                                      indexConfig.getSubstringEntryLimit(),
                                      indexConfig.getCursorEntryLimit());
@@ -151,7 +151,7 @@ public class AttributeIndex
     if (indexConfig.isOrderingIndex())
     {
       Indexer orderingIndexer = new OrderingIndexer(indexConfig);
-      this.orderingIndex = new Index(container, name + ".ordering",
+      this.orderingIndex = new Index(this.entryContainer, name + ".ordering",
                                      orderingIndexer,
                                      indexConfig.getEqualityEntryLimit(),
                                      indexConfig.getCursorEntryLimit());
@@ -195,7 +195,7 @@ public class AttributeIndex
    */
   public void close()
   {
-    // The container is responsible for closing the JE databases.
+    // The entryContainer is responsible for closing the JE databases.
   }
 
   /**
@@ -791,19 +791,19 @@ public class AttributeIndex
     String name = attrType.getNameOrOID();
     if (indexConfig.isEqualityIndex())
     {
-      container.removeDatabase(name + ".equality");
+      entryContainer.removeDatabase(name + ".equality");
     }
     if (indexConfig.isPresenceIndex())
     {
-      container.removeDatabase(name + ".presence");
+      entryContainer.removeDatabase(name + ".presence");
     }
     if (indexConfig.isSubstringIndex())
     {
-      container.removeDatabase(name + ".substring");
+      entryContainer.removeDatabase(name + ".substring");
     }
     if (indexConfig.isOrderingIndex())
     {
-      container.removeDatabase(name + ".ordering");
+      entryContainer.removeDatabase(name + ".ordering");
     }
   }
 
