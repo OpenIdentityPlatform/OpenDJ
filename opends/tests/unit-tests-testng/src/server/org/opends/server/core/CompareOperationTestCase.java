@@ -29,10 +29,13 @@ package org.opends.server.core;
 
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.Control;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
@@ -41,9 +44,12 @@ import org.opends.server.plugins.InvocationCounterPlugin;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.net.Socket;
 
 public class CompareOperationTestCase extends OperationTestCase
 {
@@ -587,6 +593,69 @@ public class CompareOperationTestCase extends OperationTestCase
                  ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
 
     examineIncompleteOperation(compareOperation);
+  }
+
+  @Test(groups = "slow")
+  public void testCompareWriteLock() throws Exception
+  {
+    // We need the operation to be run in a separate thread because we are going
+    // to write lock the entry in the test case thread and check that the
+    // compare operation does not proceed.
+
+    // Establish a connection to the server.
+    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    try
+    {
+      ASN1Reader r = new ASN1Reader(s);
+      ASN1Writer w = new ASN1Writer(s);
+      r.setIOTimeout(15000);
+
+      BindRequestProtocolOp bindRequest =
+           new BindRequestProtocolOp(
+                new ASN1OctetString("cn=Directory Manager"),
+                3, new ASN1OctetString("password"));
+      LDAPMessage message = new LDAPMessage(1, bindRequest);
+      w.writeElement(message.encode());
+
+      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+
+
+      Lock writeLock = LockManager.lockWrite(entry.getDN());
+      assertNotNull(writeLock);
+
+      try
+      {
+        InvocationCounterPlugin.resetAllCounters();
+
+        CompareRequestProtocolOp compareRequest =
+          new CompareRequestProtocolOp(
+               new ASN1OctetString(entry.getDN().toString()),
+               "uid", new ASN1OctetString("rogasawara"));
+        message = new LDAPMessage(2, compareRequest);
+        w.writeElement(message.encode());
+
+        message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+        CompareResponseProtocolOp compareResponse =
+             message.getCompareResponseProtocolOp();
+
+        assertEquals(compareResponse.getResultCode(),
+                     DirectoryServer.getServerErrorResultCode().getIntValue());
+
+        assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
+        assertEquals(InvocationCounterPlugin.getPreOperationCount(), 0);
+        assertEquals(InvocationCounterPlugin.getPostOperationCount(), 0);
+        assertEquals(InvocationCounterPlugin.getPostResponseCount(), 1);
+      } finally
+      {
+        LockManager.unlock(entry.getDN(), writeLock);
+      }
+    } finally
+    {
+      s.close();
+    }
+
   }
 
 }
