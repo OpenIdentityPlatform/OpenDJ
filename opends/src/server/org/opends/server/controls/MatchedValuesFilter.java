@@ -268,9 +268,16 @@ public class MatchedValuesFilter
                       String.valueOf(assertionValue));
 
 
-    String          rawAttributeType  = attributeType.getNameOrOID();
-    ASN1OctetString rawAssertionValue =
-         assertionValue.getValue().toASN1OctetString();
+    String          rawAttributeType  = null ;
+    ASN1OctetString rawAssertionValue = null ;
+    if (attributeType != null)
+    {
+      rawAttributeType = attributeType.getNameOrOID();
+    }
+    if (assertionValue != null)
+    {
+      rawAssertionValue = assertionValue.getValue().toASN1OctetString();
+    }
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(EQUALITY_MATCH_TYPE, rawAttributeType,
