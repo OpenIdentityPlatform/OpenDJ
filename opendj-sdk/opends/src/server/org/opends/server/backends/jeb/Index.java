@@ -65,9 +65,9 @@ public class Index
 
 
   /**
-   * The database container holding this index database.
+   * The database entryContainer holding this index database.
    */
-  private Container container;
+  private EntryContainer entryContainer;
 
   /**
    * The JE database configuration.
@@ -75,7 +75,7 @@ public class Index
   private DatabaseConfig dbConfig;
 
   /**
-   * The name of the database within the container.
+   * The name of the database within the entryContainer.
    */
   private String name;
 
@@ -114,8 +114,8 @@ public class Index
 
   /**
    * Create a new index object.
-   * @param container The database container holding this index.
-   * @param name The name of the index database within the container.
+   * @param entryContainer The database entryContainer holding this index.
+   * @param name The name of the index database within the entryContainer.
    * @param indexer The indexer object to construct index keys from LDAP
    * attribute values.
    * @param indexEntryLimit The configured limit on the number of entry IDs
@@ -123,10 +123,10 @@ public class Index
    * @param cursorEntryLimit The configured limit on the number of entry IDs
    * that may be retrieved by cursoring through an index.
    */
-  public Index(Container container, String name, Indexer indexer,
+  public Index(EntryContainer entryContainer, String name, Indexer indexer,
                int indexEntryLimit, int cursorEntryLimit)
   {
-    this.container = container;
+    this.entryContainer = entryContainer;
     this.name = name;
     this.indexer = indexer;
     this.comparator = indexer.getComparator();
@@ -148,7 +148,7 @@ public class Index
 
   /**
    * Get a handle to the database. It returns a per-thread handle to avoid
-   * any thread contention on the database handle. The container is
+   * any thread contention on the database handle. The entryContainer is
    * responsible for closing all handles.
    *
    * @return A database handle.
@@ -160,7 +160,7 @@ public class Index
     Database database = threadLocalDatabase.get();
     if (database == null)
     {
-      database = container.openDatabase(dbConfig, name);
+      database = entryContainer.openDatabase(dbConfig, name);
       threadLocalDatabase.set(database);
     }
     return database;
@@ -182,7 +182,7 @@ public class Index
     DatabaseEntry entryIDData = entryID.getDatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
 
-    status = Container.read(getDatabase(), txn, key, data, lockMode);
+    status = EntryContainer.read(getDatabase(), txn, key, data, lockMode);
 
     if (status == OperationStatus.SUCCESS)
     {
@@ -202,12 +202,12 @@ public class Index
 
         byte[] after = entryIDList.toDatabase();
         data.setData(after);
-        Container.put(getDatabase(), txn, key, data);
+        EntryContainer.put(getDatabase(), txn, key, data);
       }
     }
     else
     {
-      Container.put(getDatabase(), txn, key, entryIDData);
+      EntryContainer.put(getDatabase(), txn, key, entryIDData);
     }
   }
 
@@ -226,7 +226,7 @@ public class Index
     LockMode lockMode = LockMode.RMW;
     DatabaseEntry data = new DatabaseEntry();
 
-    status = Container.read(getDatabase(), txn, key, data, lockMode);
+    status = EntryContainer.read(getDatabase(), txn, key, data, lockMode);
 
     if (status == OperationStatus.SUCCESS)
     {
@@ -244,12 +244,12 @@ public class Index
           if (after == null)
           {
             // No more IDs, so remove the key
-            Container.delete(getDatabase(), txn, key);
+            EntryContainer.delete(getDatabase(), txn, key);
           }
           else
           {
             data.setData(after);
-            Container.put(getDatabase(), txn, key, data);
+            EntryContainer.put(getDatabase(), txn, key, data);
           }
         }
       }
@@ -280,7 +280,7 @@ public class Index
     LockMode lockMode = LockMode.DEFAULT;
     DatabaseEntry data = new DatabaseEntry();
 
-    status = Container.read(getDatabase(), txn, key, data, lockMode);
+    status = EntryContainer.read(getDatabase(), txn, key, data, lockMode);
     if (status == OperationStatus.SUCCESS)
     {
       EntryIDSet entryIDList =
@@ -320,7 +320,7 @@ public class Index
     {
       OperationStatus status;
       DatabaseEntry data = new DatabaseEntry();
-      status = Container.read(getDatabase(), txn, key, data, lockMode);
+      status = EntryContainer.read(getDatabase(), txn, key, data, lockMode);
       if (status != OperationStatus.SUCCESS)
       {
         return new EntryIDSet(key.getData(), null);
@@ -351,7 +351,7 @@ public class Index
     if (after == null)
     {
       // No more IDs, so remove the key.
-      Container.delete(getDatabase(), txn, key);
+      EntryContainer.delete(getDatabase(), txn, key);
     }
     else
     {
@@ -360,7 +360,7 @@ public class Index
         entryLimitExceededCount++;
       }
       data.setData(after);
-      Container.put(getDatabase(), txn, key, data);
+      EntryContainer.put(getDatabase(), txn, key, data);
     }
   }
 

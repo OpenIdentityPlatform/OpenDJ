@@ -41,7 +41,7 @@ import java.util.ArrayList;
 public class ImportContext
 {
   /**
-   * The name of the container for the destination base DN.
+   * The name of the entryContainer for the destination base DN.
    */
   private String containerName;
 
@@ -66,7 +66,7 @@ public class ImportContext
   private LDIFReader ldifReader;
 
   /**
-   * The entry container for the destination base DN.
+   * The entry entryContainer for the destination base DN.
    */
   private EntryContainer entryContainer;
 
@@ -120,8 +120,8 @@ public class ImportContext
   }
 
   /**
-   * Set the name of the container for the destination base DN.
-   * @param containerName The container name.
+   * Set the name of the entryContainer for the destination base DN.
+   * @param containerName The entryContainer name.
    */
   public void setContainerName(String containerName)
   {
@@ -129,8 +129,8 @@ public class ImportContext
   }
 
   /**
-   * Get the name of the container for the destination base DN.
-   * @return The container name.
+   * Get the name of the entryContainer for the destination base DN.
+   * @return The entryContainer name.
    */
   public String getContainerName()
   {
@@ -210,8 +210,8 @@ public class ImportContext
   }
 
   /**
-   * Set the entry container for the destination base DN.
-   * @param entryContainer The entry container for the destination base DN.
+   * Set the entry entryContainer for the destination base DN.
+   * @param entryContainer The entry entryContainer for the destination base DN.
    */
   public void setEntryContainer(EntryContainer entryContainer)
   {
@@ -219,8 +219,8 @@ public class ImportContext
   }
 
   /**
-   * Get the entry container for the destination base DN.
-   * @return The entry container for the destination base DN.
+   * Get the entry entryContainer for the destination base DN.
+   * @return The entry entryContainer for the destination base DN.
    */
   public EntryContainer getEntryContainer()
   {
