@@ -101,7 +101,7 @@ public class ModifyConflictTest
     Map<AttributeType, List<Attribute>> operationalAttributes = entry
         .getOperationalAttributes();
     operationalAttributes.put(Historical.entryuuidAttrType, uuidList);
- 
+
     // Create the att values list of historicalAttr
     String stringVal =
       "ds-sync-hist:00000108b3a6cbb800000001:repl:00000108b3a6cbb800000002";
@@ -118,7 +118,7 @@ public class ModifyConflictTest
 
     //Add the historical att in the entry
     operationalAttributes.put(Historical.historicalAttrType,histList) ;
-    
+
     // load historical from the entry
     Historical hist = Historical.load(entry);
 
@@ -161,7 +161,7 @@ public class ModifyConflictTest
 
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
-    String uuid = hist.getEntryUuid(entry);
+    String uuid = Historical.getEntryUuid(entry);
 
     // Get the Entry uuid in String format
     List<Attribute> uuidAttrs = entry
@@ -177,18 +177,8 @@ public class ModifyConflictTest
         assertTrue(retrievedUuid.equals(uuid));
       }
     }
-    
-    try
-    {
-      Historical dup = hist.duplicate();
-      // TODO Check values
-    }
-    catch (RuntimeException e)
-    {
-      assertTrue(false) ;
-    }
-    
-    
+
+
     // Test FakeOperation
     try
     {
@@ -203,11 +193,11 @@ public class ModifyConflictTest
         {
           UpdateMessage new_name = (UpdateMessage) generatedMsg;
           assertEquals(new_name.getUniqueId(),uuid);
-          
+
         }
-        
+
       }
-      
+
     }
     catch (RuntimeException e)
     {
@@ -224,7 +214,7 @@ public class ModifyConflictTest
 
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
-    String uuid = hist.getEntryUuid(addOp);
+    String uuid = Historical.getEntryUuid(addOp);
 
     // Get the op uuid in String format
     List<Attribute> uuidAttrs = addOp.getOperationalAttributes().get(
@@ -284,7 +274,7 @@ public class ModifyConflictTest
         .getOperationalAttributes();
 
     operationalAttributes.put(Historical.entryuuidAttrType, uuidList);
-    
+
     // Create the att values list of historicalAttr
     String stringVal =
       "ds-sync-hist:00000108b3a6cbb800000001:del:00000108b3a6cbb800000002";
@@ -297,10 +287,11 @@ public class ModifyConflictTest
     ArrayList<Attribute> histList = new ArrayList<Attribute>(1);
     Attribute histAttr = new Attribute(Historical.historicalAttrType,
         "ds-sync-hist", valuesHist);
+    histList.add(0, histAttr);
 
     //Add the historical att in the entry
     entry.putAttribute(Historical.historicalAttrType,histList) ;
-    
+
     // load historical from the entry
 
     Historical hist = Historical.load(entry);
@@ -394,9 +385,9 @@ public class ModifyConflictTest
 
     //Add the historycal att in the entry
     entry.putAttribute(Historical.historicalAttrType,histList) ;
-    
+
     // load historical from the entry
-    
+
     Historical hist = Historical.load(entry);
 
     /*
@@ -449,7 +440,7 @@ public class ModifyConflictTest
     List<Modification> mods = new ArrayList<Modification>();
     Modification mod = new Modification(modType, attr);
     mods.add(mod);
-    
+
     ModifyOperation modOp = new ModifyOperation(connection, 1, 1, null,
         entry.getDN(), mods);
     ModifyContext ctx = new ModifyContext(t, "uniqueId");

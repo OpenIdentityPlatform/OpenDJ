@@ -244,13 +244,13 @@ public class ChangeNumberTest extends SynchronizationTestCase
 
     // Generate a changeNumber separates by 10 milliseconds
     // and check that they are differents
-    Thread.currentThread().sleep(10);
+    Thread.sleep(10);
     CN2 = cng.NewChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0);
 
     // Generate a changeNumber separates by 300 milliseconds
     // and check that they are differents
-    Thread.currentThread().sleep(300);
+    Thread.sleep(300);
     CN2 = cng.NewChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0);
 

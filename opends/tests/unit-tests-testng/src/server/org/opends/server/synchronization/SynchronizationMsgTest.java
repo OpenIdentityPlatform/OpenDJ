@@ -174,7 +174,6 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
          throws Exception
   {
     DN dn = DN.decode(rawdn);
-    InternalClientConnection connection = new InternalClientConnection();
     ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");;
 
     // Check uuid
