@@ -127,7 +127,7 @@ public class LockManager
    *          it was not possible to obtain a read lock for some
    *          reason.
    */
-  public static final Lock tryLockRead(DN entryDN)
+  public static Lock tryLockRead(DN entryDN)
   {
     assert debugEnter(CLASS_NAME, "tryLockRead",
                       String.valueOf(entryDN));
@@ -251,7 +251,7 @@ public class LockManager
    *          it was not possible to obtain a read lock for some
    *          reason.
    */
-  public static final Lock lockRead(DN entryDN)
+  public static Lock lockRead(DN entryDN)
   {
     assert debugEnter(CLASS_NAME, "lockRead",
                       String.valueOf(entryDN));
@@ -277,7 +277,7 @@ public class LockManager
    *          it was not possible to obtain a read lock for some
    *          reason.
    */
-  public static final Lock lockRead(DN entryDN, long timeout)
+  public static Lock lockRead(DN entryDN, long timeout)
   {
     assert debugEnter(CLASS_NAME, "lockRead", String.valueOf(entryDN),
                       String.valueOf(timeout));
@@ -416,7 +416,7 @@ public class LockManager
    *          if it was not possible to obtain a write lock for some
    *          reason.
    */
-  public static final Lock tryLockWrite(DN entryDN)
+  public static Lock tryLockWrite(DN entryDN)
   {
     assert debugEnter(CLASS_NAME, "lockWrite",
                       String.valueOf(entryDN));
@@ -536,12 +536,12 @@ public class LockManager
    *                  write lock.
    *
    * @return  The write lock that was acquired, or <CODE>null</CODE>
-   *          if it was not possible to obtain a read lock for some
+   *          if it was not possible to obtain a write lock for some
    *          reason.
    */
-  public static final Lock lockWrite(DN entryDN)
+  public static Lock lockWrite(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "lockRead",
+    assert debugEnter(CLASS_NAME, "lockWrite",
                       String.valueOf(entryDN));
 
     return lockWrite(entryDN, DEFAULT_TIMEOUT);
@@ -563,7 +563,7 @@ public class LockManager
    *          if it was not possible to obtain a read lock for some
    *          reason.
    */
-  public static final Lock lockWrite(DN entryDN, long timeout)
+  public static Lock lockWrite(DN entryDN, long timeout)
   {
     assert debugEnter(CLASS_NAME, "lockWrite",
                       String.valueOf(entryDN),
@@ -699,7 +699,7 @@ public class LockManager
    *                  lock.
    * @param  lock     The read or write lock held for the entry.
    */
-  public static final void unlock(DN entryDN, Lock lock)
+  public static void unlock(DN entryDN, Lock lock)
   {
     assert debugEnter(CLASS_NAME, "unlock", String.valueOf(entryDN));
 
@@ -772,8 +772,6 @@ public class LockManager
         // This lock isn't held so we can remove it from the table.
         entryLocks.remove(entryDN);
       }
-
-      return;
     }
     catch (Exception e)
     {
@@ -786,7 +784,6 @@ public class LockManager
                   "whether the lock for entry " + entryDN.toString() +
                   " can be removed:  " +
                   stackTraceToSingleLineString(e));
-      return;
     }
     finally
     {
@@ -810,7 +807,7 @@ public class LockManager
    *          specified entry.  If a lock object is returned, it may
    *          be possible to get information about who was holding it.
    */
-  public static final ReentrantReadWriteLock destroyLock(DN entryDN)
+  public static ReentrantReadWriteLock destroyLock(DN entryDN)
   {
     assert debugEnter(CLASS_NAME, "destroyLock",
                       String.valueOf(entryDN));
@@ -826,7 +823,7 @@ public class LockManager
    *
    * @return  The number of entries currently held in the lock table.
    */
-  public static final int lockTableSize()
+  public static int lockTableSize()
   {
     assert debugEnter(CLASS_NAME, "lockTableSize");
 
