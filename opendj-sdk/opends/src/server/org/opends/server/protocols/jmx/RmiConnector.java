@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.RMISocketFactory;
 import java.util.HashMap;
 
 import javax.net.ssl.SSLSocketFactory;
@@ -225,8 +224,7 @@ public class RmiConnector
       if (registry == null)
       {
         rmiSsf = new OpendsRmiServerSocketFactory();
-        registry = LocateRegistry.createRegistry(registryPort,
-            RMISocketFactory.getDefaultSocketFactory(), rmiSsf);
+        registry = LocateRegistry.createRegistry(registryPort, null, rmiSsf);
       }
     }
     catch (RemoteException re)
@@ -421,8 +419,10 @@ public class RmiConnector
    *            Indicates whether any established client connections
    *            associated with the connection handler should also be
    *            closed.
+   * @param stopRegistry Indicates if the RMI registry should be stopped
    */
-  public void finalizeConnectionHandler(boolean closeConnections)
+  public void finalizeConnectionHandler(
+      boolean closeConnections, boolean stopRegistry)
   {
     if (closeConnections)
     {
@@ -476,17 +476,21 @@ public class RmiConnector
       assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
     }
 
-    //
-    // Close the socket
-    try
+    if (stopRegistry)
     {
-      rmiSsf.close();
+      //
+      // Close the socket
+      try
+      {
+        rmiSsf.close();
+      }
+      catch (IOException e)
+      {
+        // TODO Log an error message
+        assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
+      }
+      registry = null;
     }
-    catch (IOException e)
-    {
-      // TODO Log an error message
-      assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
-    }
-    registry = null;
+
   }
 }

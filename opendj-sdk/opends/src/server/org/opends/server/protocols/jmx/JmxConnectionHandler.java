@@ -505,7 +505,9 @@ public class JmxConnectionHandler
       String finalizeReason, boolean closeConnections)
   {
     assert debugEnter(CLASS_NAME, "finalizeConnectionHandler");
-    rmiConnector.finalizeConnectionHandler(closeConnections);
+
+    // We should also close the RMI registry.
+    rmiConnector.finalizeConnectionHandler(closeConnections, true);
   }
 
   /**
@@ -552,7 +554,8 @@ public class JmxConnectionHandler
   public void processServerShutdown(String reason)
   {
     assert debugEnter(CLASS_NAME, "processServerShutdown");
-    rmiConnector.finalizeConnectionHandler(true);
+    //  We should also close the RMI registry.
+    rmiConnector.finalizeConnectionHandler(true, true);
 
   }
 
@@ -795,7 +798,8 @@ public class JmxConnectionHandler
     //
     // Stop the current connector
     // TODO Set Msg
-    this.finalizeConnectionHandler("new config", true);
+    this.rmiConnector.finalizeConnectionHandler(true,
+        (listenPort != newListenPort));
 
     //
     // set new params and update JMX attributes
