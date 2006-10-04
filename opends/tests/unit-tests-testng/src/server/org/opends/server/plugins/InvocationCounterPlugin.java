@@ -48,7 +48,6 @@ import org.opends.server.api.plugin.SearchEntryPluginResult;
 import org.opends.server.api.plugin.SearchReferencePluginResult;
 import org.opends.server.api.plugin.StartupPluginResult;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
@@ -120,8 +119,7 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public void initializePlugin(DirectoryServer directoryServer,
-                               Set<PluginType> pluginTypes,
+  public void initializePlugin(Set<PluginType> pluginTypes,
                                ConfigEntry configEntry)
   {
     // No implementation required.

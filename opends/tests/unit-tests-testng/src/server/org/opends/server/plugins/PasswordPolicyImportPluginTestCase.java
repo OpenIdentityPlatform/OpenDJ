@@ -54,6 +54,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -143,12 +144,11 @@ public class PasswordPolicyImportPluginTestCase
 
 
     ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
+         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
     PasswordPolicyImportPlugin plugin = new PasswordPolicyImportPlugin();
-    plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                            configEntry);
+    plugin.initializePlugin(pluginTypes, configEntry);
   }
 
 
@@ -220,12 +220,11 @@ public class PasswordPolicyImportPluginTestCase
 
 
     ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
+         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
     PasswordPolicyImportPlugin plugin = new PasswordPolicyImportPlugin();
-    plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                            configEntry);
+    plugin.initializePlugin(pluginTypes, configEntry);
   }
 
 

@@ -33,7 +33,6 @@ import java.util.Set;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -117,14 +116,10 @@ public abstract class DirectoryServerPlugin
    * be called as soon as the plugin has been loaded and before it is
    * registered with the server.
    *
-   * @param  directoryServer  The reference to the Directory Server
-   *                          instance in which the plugin will be
-   *                          running.
-   * @param  pluginTypes      The set of plugin types that indicate
-   *                          the ways in which this plugin will be
-   *                          invoked.
-   * @param  configEntry      The entry containing the configuration
-   *                          information for this plugin.
+   * @param  pluginTypes  The set of plugin types that indicate the
+   *                      ways in which this plugin will be invoked.
+   * @param  configEntry  The entry containing the configuration
+   *                      information for this plugin.
    *
    * @throws  ConfigException  If the provided entry does not contain
    *                           a valid configuration for this plugin.
@@ -134,10 +129,8 @@ public abstract class DirectoryServerPlugin
    *                                   not related to the server
    *                                   configuration.
    */
-  public abstract void initializePlugin(
-                            DirectoryServer directoryServer,
-                            Set<PluginType> pluginTypes,
-                            ConfigEntry configEntry)
+  public abstract void initializePlugin(Set<PluginType> pluginTypes,
+                                        ConfigEntry configEntry)
          throws ConfigException, InitializationException;
 
 

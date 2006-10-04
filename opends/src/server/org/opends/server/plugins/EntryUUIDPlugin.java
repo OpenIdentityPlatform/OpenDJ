@@ -42,12 +42,12 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.operation.PreOperationAddOperation;
@@ -106,12 +106,13 @@ public final class EntryUUIDPlugin
 
     // Get the entryUUID attribute type.  This needs to be done in the
     // constructor in order to make the associated variables "final".
-    AttributeType at = DirectoryServer.getAttributeType(ENTRYUUID);
+    AttributeType at = DirectoryConfig.getAttributeType(ENTRYUUID,
+                                                        false);
     if (at == null)
     {
       at = new AttributeType(ENTRYUUID, Collections.singleton(ENTRYUUID),
                              ENTRYUUID, null, null,
-                             DirectoryServer.getDefaultAttributeSyntax(),
+                             DirectoryConfig.getDefaultAttributeSyntax(),
                              AttributeUsage.DIRECTORY_OPERATION, false, true,
                              false, true);
     }
@@ -125,13 +126,11 @@ public final class EntryUUIDPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final void initializePlugin(DirectoryServer directoryServer,
-                                    Set<PluginType> pluginTypes,
-                                    ConfigEntry configEntry)
+  public final void initializePlugin(Set<PluginType> pluginTypes,
+                                     ConfigEntry configEntry)
          throws ConfigException
   {
     assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(directoryServer),
                       String.valueOf(pluginTypes),
                       String.valueOf(configEntry));
 

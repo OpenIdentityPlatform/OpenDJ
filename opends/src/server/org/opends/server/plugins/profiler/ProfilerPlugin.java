@@ -48,8 +48,8 @@ import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.MultiChoiceConfigAttribute;
 import org.opends.server.config.ReadOnlyConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
@@ -178,13 +178,11 @@ public final class ProfilerPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final void initializePlugin(DirectoryServer directoryServer,
-                               Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
+  public final void initializePlugin(Set<PluginType> pluginTypes,
+                                     ConfigEntry configEntry)
          throws ConfigException
   {
     assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(directoryServer),
                       String.valueOf(pluginTypes), String.valueOf(configEntry));
 
 
@@ -320,7 +318,7 @@ public final class ProfilerPlugin
 
 
     // Register with the Directory Server as a configurable component.
-    DirectoryServer.registerConfigurableComponent(this);
+    DirectoryConfig.registerConfigurableComponent(this);
   }
 
 
@@ -363,7 +361,7 @@ public final class ProfilerPlugin
     }
 
 
-    DirectoryServer.deregisterConfigurableComponent(this);
+    DirectoryConfig.deregisterConfigurableComponent(this);
   }
 
 
@@ -624,7 +622,7 @@ public final class ProfilerPlugin
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_UPDATE_INTERVAL;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
                               stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      resultCode = DirectoryConfig.getServerErrorResultCode();
     }
 
 
@@ -651,7 +649,7 @@ public final class ProfilerPlugin
             messages.add(getMessage(msgID, dirString,
                                     String.valueOf(configEntryDN)));
 
-            resultCode = DirectoryServer.getServerErrorResultCode();
+            resultCode = DirectoryConfig.getServerErrorResultCode();
           }
           else
           {
@@ -675,7 +673,7 @@ public final class ProfilerPlugin
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
                               stackTraceToSingleLineString(e)));
 
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      resultCode = DirectoryConfig.getServerErrorResultCode();
     }
 
 
@@ -772,7 +770,7 @@ public final class ProfilerPlugin
                                           filename,
                                           stackTraceToSingleLineString(e)));
 
-                  resultCode = DirectoryServer.getServerErrorResultCode();
+                  resultCode = DirectoryConfig.getServerErrorResultCode();
                 }
 
                 profilerThread = null;
@@ -812,7 +810,7 @@ public final class ProfilerPlugin
             messages.add(getMessage(msgID, String.valueOf(configEntryDN),
                                     action));
 
-            resultCode = DirectoryServer.getServerErrorResultCode();
+            resultCode = DirectoryConfig.getServerErrorResultCode();
           }
         }
         else
@@ -833,7 +831,7 @@ public final class ProfilerPlugin
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
                               stackTraceToSingleLineString(e)));
 
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      resultCode = DirectoryConfig.getServerErrorResultCode();
     }
 
 

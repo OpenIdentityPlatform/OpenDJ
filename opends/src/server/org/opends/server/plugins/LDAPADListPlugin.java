@@ -35,10 +35,10 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.operation.PreParseSearchOperation;
 
@@ -83,13 +83,11 @@ public final class LDAPADListPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final void initializePlugin(DirectoryServer directoryServer,
-                                     Set<PluginType> pluginTypes,
+  public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ConfigEntry configEntry)
          throws ConfigException
   {
     assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(directoryServer),
                       String.valueOf(pluginTypes), String.valueOf(configEntry));
 
 
@@ -117,7 +115,7 @@ public final class LDAPADListPlugin
 
 
     // Register the appropriate supported feature with the Directory Server.
-    DirectoryServer.registerSupportedFeature(OID_LDAP_ADLIST_FEATURE);
+    DirectoryConfig.registerSupportedFeature(OID_LDAP_ADLIST_FEATURE);
   }
 
 
@@ -155,7 +153,7 @@ public final class LDAPADListPlugin
         if (attrName.startsWith("@"))
         {
           String lowerName = toLowerCase(attrName.substring(1));
-          ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
+          ObjectClass oc = DirectoryConfig.getObjectClass(lowerName, false);
           if (oc == null)
           {
             debugMessage(DebugLogCategory.PLUGIN, DebugLogSeverity.WARNING,

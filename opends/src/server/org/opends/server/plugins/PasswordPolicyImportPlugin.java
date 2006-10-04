@@ -179,13 +179,11 @@ public final class PasswordPolicyImportPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final void initializePlugin(DirectoryServer directoryServer,
-                               Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
+  public final void initializePlugin(Set<PluginType> pluginTypes,
+                                     ConfigEntry configEntry)
          throws ConfigException
   {
     assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(directoryServer),
                       String.valueOf(pluginTypes),
                       String.valueOf(configEntry));
 

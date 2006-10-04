@@ -2795,7 +2795,7 @@ public class DirectoryServer
    *
    * @return  The objectclass type, or <CODE>null</CODE> if there is no
    *          objectclass with the specified name or OID defined in the server
-   *          schema a default class should not be returned.
+   *          schema and a default class should not be returned.
    */
   public static ObjectClass getObjectClass(String lowerName,
                                            boolean returnDefault)
@@ -5744,12 +5744,12 @@ public class DirectoryServer
    *          backends, or <CODE>false</CODE> if it does not.
    *
    * @throws  DirectoryException  If a problem occurs while attempting to
-   *                              retrieve the entry.
+   *                              make the determination.
    */
   public static boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
+    assert debugEnter(CLASS_NAME, "entryExists", String.valueOf(entryDN));
 
 
     // If the entry is the root DSE, then it will always exist.
@@ -5894,7 +5894,7 @@ public class DirectoryServer
    * the list of supported features.
    *
    * @param  featureOID  The OID of the feature to register as a supported
-   *                     control.
+   *                     feature.
    */
   public static void registerSupportedFeature(String featureOID)
   {

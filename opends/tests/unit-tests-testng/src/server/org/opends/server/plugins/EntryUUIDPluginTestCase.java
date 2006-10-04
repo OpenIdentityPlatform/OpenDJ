@@ -51,6 +51,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -154,12 +155,11 @@ public class EntryUUIDPluginTestCase
 
 
     ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
+         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
     EntryUUIDPlugin plugin = new EntryUUIDPlugin();
-    plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                            configEntry);
+    plugin.initializePlugin(pluginTypes, configEntry);
   }
 
 
@@ -176,7 +176,8 @@ public class EntryUUIDPluginTestCase
   public void testInitializeWithValidConfigsWithoutSchema(Entry e)
          throws Exception
   {
-    AttributeType entryUUIDType = DirectoryServer.getAttributeType("entryuuid");
+    AttributeType entryUUIDType = DirectoryConfig.getAttributeType("entryuuid",
+                                                                   false);
     DirectoryServer.deregisterAttributeType(entryUUIDType);
 
 
@@ -192,12 +193,11 @@ public class EntryUUIDPluginTestCase
 
 
     ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
+         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
     EntryUUIDPlugin plugin = new EntryUUIDPlugin();
-    plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                            configEntry);
+    plugin.initializePlugin(pluginTypes, configEntry);
 
 
     DirectoryServer.registerAttributeType(entryUUIDType, false);
@@ -270,12 +270,11 @@ public class EntryUUIDPluginTestCase
 
 
     ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
+         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
     EntryUUIDPlugin plugin = new EntryUUIDPlugin();
-    plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                            configEntry);
+    plugin.initializePlugin(pluginTypes, configEntry);
   }
 
 
@@ -380,7 +379,7 @@ public class EntryUUIDPluginTestCase
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    e = DirectoryServer.getEntry(e.getDN());
+    e = DirectoryConfig.getEntry(e.getDN());
     assertNotNull(e);
     assertNotNull(e.getAttribute("entryuuid"));
   }
@@ -412,7 +411,7 @@ public class EntryUUIDPluginTestCase
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    e = DirectoryServer.getEntry(e.getDN());
+    e = DirectoryConfig.getEntry(e.getDN());
     assertNotNull(e);
     assertNotNull(e.getAttribute("entryuuid"));
   }
