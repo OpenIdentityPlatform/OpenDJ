@@ -205,7 +205,7 @@ public class EntryContainer
     this.config = config;
     this.env = env;
 
-    // Instantiate database and cursor lists
+    // Instantiate the list of database handles.
     databases = new ArrayList<Database>();
 
     // Instantiate indexes for id2children and id2subtree.
@@ -3721,21 +3721,6 @@ public class EntryContainer
     buildDatabaseName(builder, name);
     String fullName = builder.toString();
     env.removeDatabase(null, fullName);
-  }
-
-  /**
-   * Remove from disk all the databases in this entryContainer.
-   *
-   * @throws DatabaseException If an error occurs while attempting to delete any
-   * database.
-   */
-  private void removeAllDatabases() throws DatabaseException
-  {
-    for(Database database : databases)
-    {
-      String name = database.getDatabaseName();
-      env.removeDatabase(null, name);
-    }
   }
 
   /**
