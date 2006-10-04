@@ -33,6 +33,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.types.Control;
 import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;
@@ -380,6 +381,27 @@ public abstract class OperationTestCase
   public void testToString(Operation operation)
   {
     assertNotNull(operation.toString());
+  }
+
+
+
+  /**
+   * Tests the <CODE>addResponseControl</CODE> and
+   * <CODE>removeResponseControl</CODE> methods.
+   *
+   * @param  operation  The operation to test.
+   */
+  @Test(dataProvider = "testOperations")
+  public void testAddAndRemoveResponseControl(Operation operation)
+  {
+    Control c = new Control("1.2.3.4", false);
+    operation.addResponseControl(c);
+    operation.removeResponseControl(c);
+
+    if (operation.getResponseControls() != null)
+    {
+      assertFalse(operation.getResponseControls().contains(c));
+    }
   }
 }
 
