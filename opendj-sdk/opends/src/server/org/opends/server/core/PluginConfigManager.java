@@ -498,8 +498,7 @@ parsePluginEntry:
       try
       {
         plugin.initializeInternal(entryDN, types);
-        plugin.initializePlugin(DirectoryServer.getInstance(), types,
-                                entry);
+        plugin.initializePlugin(types, entry);
       }
       catch (Exception e)
       {
@@ -987,8 +986,7 @@ parsePluginEntry:
       try
       {
         plugin.initializeInternal(configEntryDN, pluginTypes);
-        plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                                configEntry);
+        plugin.initializePlugin(pluginTypes, configEntry);
       }
       catch (Exception e)
       {

@@ -51,6 +51,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -162,12 +163,11 @@ public class LastModPluginTestCase
 
 
     ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
+         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
     LastModPlugin plugin = new LastModPlugin();
-    plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                            configEntry);
+    plugin.initializePlugin(pluginTypes, configEntry);
   }
 
 
@@ -184,10 +184,14 @@ public class LastModPluginTestCase
   public void testInitializeWithValidConfigsWithoutSchema(Entry e)
          throws Exception
   {
-    AttributeType ctType = DirectoryServer.getAttributeType("createtimestamp");
-    AttributeType cnType = DirectoryServer.getAttributeType("creatorsname");
-    AttributeType mtType = DirectoryServer.getAttributeType("modifytimestamp");
-    AttributeType mnType = DirectoryServer.getAttributeType("modifiersname");
+    AttributeType ctType = DirectoryConfig.getAttributeType("createtimestamp",
+                                                            false);
+    AttributeType cnType = DirectoryConfig.getAttributeType("creatorsname",
+                                                            false);
+    AttributeType mtType = DirectoryConfig.getAttributeType("modifytimestamp",
+                                                            false);
+    AttributeType mnType = DirectoryConfig.getAttributeType("modifiersname",
+                                                            false);
 
     DirectoryServer.deregisterAttributeType(ctType);
     DirectoryServer.deregisterAttributeType(cnType);
@@ -207,12 +211,11 @@ public class LastModPluginTestCase
 
 
     ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
+         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
     LastModPlugin plugin = new LastModPlugin();
-    plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                            configEntry);
+    plugin.initializePlugin(pluginTypes, configEntry);
 
 
     DirectoryServer.registerAttributeType(ctType, false);
@@ -289,12 +292,11 @@ public class LastModPluginTestCase
 
 
     ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
+         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
     LastModPlugin plugin = new LastModPlugin();
-    plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                            configEntry);
+    plugin.initializePlugin(pluginTypes, configEntry);
   }
 
 
@@ -322,7 +324,7 @@ public class LastModPluginTestCase
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    e = DirectoryServer.getEntry(e.getDN());
+    e = DirectoryConfig.getEntry(e.getDN());
     assertNotNull(e);
     assertNotNull(e.getAttribute("creatorsname"));
     assertNotNull(e.getAttribute("createtimestamp"));
@@ -351,7 +353,7 @@ public class LastModPluginTestCase
          conn.processModify(DN.decode("o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
+    Entry e = DirectoryConfig.getEntry(DN.decode("o=test"));
     assertNotNull(e);
     assertNotNull(e.getAttribute("modifiersname"));
     assertNotNull(e.getAttribute("modifytimestamp"));
@@ -387,7 +389,7 @@ public class LastModPluginTestCase
          conn.processModifyDN(e.getDN(), RDN.decode("cn=test2"), false);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
 
-    e = DirectoryServer.getEntry(DN.decode("cn=test2,o=test"));
+    e = DirectoryConfig.getEntry(DN.decode("cn=test2,o=test"));
     assertNotNull(e);
     assertNotNull(e.getAttribute("modifiersname"));
     assertNotNull(e.getAttribute("modifytimestamp"));

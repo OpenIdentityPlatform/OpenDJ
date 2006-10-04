@@ -38,7 +38,6 @@ import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Enumerated;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -86,8 +85,7 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public void initializePlugin(DirectoryServer directoryServer,
-                               Set<PluginType> pluginTypes,
+  public void initializePlugin(Set<PluginType> pluginTypes,
                                ConfigEntry configEntry)
          throws ConfigException
   {

@@ -41,12 +41,12 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
@@ -131,12 +131,11 @@ public class LDAPADListPluginTestCase
 
 
     ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
+         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
     LDAPADListPlugin plugin = new LDAPADListPlugin();
-    plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                            configEntry);
+    plugin.initializePlugin(pluginTypes, configEntry);
   }
 
 
@@ -216,12 +215,11 @@ public class LDAPADListPluginTestCase
 
 
     ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
+         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
     LDAPADListPlugin plugin = new LDAPADListPlugin();
-    plugin.initializePlugin(DirectoryServer.getInstance(), pluginTypes,
-                            configEntry);
+    plugin.initializePlugin(pluginTypes, configEntry);
   }
 
 

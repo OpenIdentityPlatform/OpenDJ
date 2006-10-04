@@ -37,11 +37,11 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
@@ -106,13 +106,13 @@ public final class LastModPlugin
     // to be done in the constructor in order to make the associated variables
     // "final".
     createTimestampType =
-         DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC, true);
+         DirectoryConfig.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC, true);
     creatorsNameType =
-         DirectoryServer.getAttributeType(OP_ATTR_CREATORS_NAME_LC, true);
+         DirectoryConfig.getAttributeType(OP_ATTR_CREATORS_NAME_LC, true);
     modifiersNameType =
-         DirectoryServer.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC, true);
+         DirectoryConfig.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC, true);
     modifyTimestampType =
-      DirectoryServer.getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC, true);
+         DirectoryConfig.getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC, true);
   }
 
 
@@ -121,13 +121,11 @@ public final class LastModPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final void initializePlugin(DirectoryServer directoryServer,
-                                     Set<PluginType> pluginTypes,
+  public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ConfigEntry configEntry)
          throws ConfigException
   {
     assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(directoryServer),
                       String.valueOf(pluginTypes),
                       String.valueOf(configEntry));
 
@@ -246,7 +244,7 @@ public final class LastModPlugin
       assert debugException(CLASS_NAME, "doPreOperation", de);
 
       // This should never happen.
-      modifyOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
+      modifyOperation.setResultCode(DirectoryConfig.getServerErrorResultCode());
       modifyOperation.appendErrorMessage(de.getErrorMessage());
       return new PreOperationPluginResult(false, false, true);
     }
@@ -270,7 +268,7 @@ public final class LastModPlugin
       assert debugException(CLASS_NAME, "doPreOperation", de);
 
       // This should never happen.
-      modifyOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
+      modifyOperation.setResultCode(DirectoryConfig.getServerErrorResultCode());
       modifyOperation.appendErrorMessage(de.getErrorMessage());
       return new PreOperationPluginResult(false, false, true);
     }
