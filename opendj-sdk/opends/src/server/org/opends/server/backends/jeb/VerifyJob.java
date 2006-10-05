@@ -177,6 +177,13 @@ public class VerifyJob
    * A list of the attribute indexes to be verified.
    */
   ArrayList<AttributeIndex> attrIndexList = new ArrayList<AttributeIndex>();
+/**
+ * The types of indexes that are verifiable.
+ */
+  enum IndexType
+  {
+      PRES, EQ, SUBSTRING, ORDERING;
+  }
 
   /**
    * Construct a VerifyJob.
@@ -286,34 +293,27 @@ public class VerifyJob
     // Make a note of the time we started.
     long startTime = System.currentTimeMillis();
 
+    // Start a timer for the progress report.
+    Timer timer = new Timer();
+    TimerTask progressTask = new ProgressTask();
+    timer.scheduleAtFixedRate(progressTask, progressInterval,
+            progressInterval);
+
+    // Iterate through the index keys.
     try
     {
-        // Start a timer for the progress report.
-        Timer timer = new Timer();
-        TimerTask progressTask = new ProgressTask();
-        timer.scheduleAtFixedRate(progressTask, progressInterval,
-                                  progressInterval);
-
-        // Iterate through the index keys.
-        try
+        if (cleanMode)
         {
-          if (cleanMode)
-          {
             iterateIndex();
-          }
-          else
-          {
-            iterateID2Entry();
-          }
         }
-        finally
+        else
         {
-          timer.cancel();
+            iterateID2Entry();
         }
     }
     finally
     {
-      entryContainer.close();
+        timer.cancel();
     }
 
     long finishTime = System.currentTimeMillis();
@@ -517,11 +517,14 @@ public class VerifyJob
     else
     {
       AttributeIndex attrIndex = attrIndexList.get(0);
-
-      iterateAttrIndex(attrIndex.getAttributeType(), attrIndex.equalityIndex);
-      iterateAttrIndex(attrIndex.getAttributeType(), attrIndex.presenceIndex);
-      iterateAttrIndex(attrIndex.getAttributeType(), attrIndex.substringIndex);
-      iterateAttrIndex(attrIndex.getAttributeType(), attrIndex.orderingIndex);
+      iterateAttrIndex(attrIndex.getAttributeType(),
+              attrIndex.equalityIndex, IndexType.EQ );
+      iterateAttrIndex(attrIndex.getAttributeType(),
+              attrIndex.presenceIndex, IndexType.PRES);
+      iterateAttrIndex(attrIndex.getAttributeType(),
+              attrIndex.substringIndex, IndexType.SUBSTRING);
+      iterateAttrIndex(attrIndex.getAttributeType(),
+              attrIndex.orderingIndex, IndexType.ORDERING);
     }
   }
 
@@ -917,7 +920,8 @@ public class VerifyJob
    * @throws JebException If an error occurs in the JE backend.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  private void iterateAttrIndex(AttributeType attrType, Index index)
+  private void iterateAttrIndex(AttributeType attrType,
+          Index index, IndexType indexType)
        throws JebException, DatabaseException
   {
     if (index == null)
@@ -962,31 +966,29 @@ public class VerifyJob
           byte[] bytes;
           SearchFilter sf;
 
-          switch (value[0])
+          switch (indexType)
           {
-            case '*':
-              bytes = new byte[value.length-1];
-              System.arraycopy(value, 1, bytes, 0, value.length-1);
-
+            case SUBSTRING:
               ArrayList<ByteString> subAnyElements =
                    new ArrayList<ByteString>(1);
-              subAnyElements.add(new ASN1OctetString(bytes));
+              subAnyElements.add(new ASN1OctetString(value));
 
               sf = SearchFilter.createSubstringFilter(attrType,null,
                                                       subAnyElements,null);
               break;
-
-            case '=':
-              bytes = new byte[value.length-1];
-              System.arraycopy(value, 1, bytes, 0, value.length-1);
-
+     /* TODO
+      * This ORDERING case needs further study
+      * about what type of SearchFilter should be created.
+      * case ORDERING:
+      * */
+            case EQ:
               AttributeValue assertionValue =
-                   new AttributeValue(attrType, new ASN1OctetString(bytes));
+                   new AttributeValue(attrType, new ASN1OctetString(value));
 
               sf = SearchFilter.createEqualityFilter(attrType,assertionValue);
               break;
 
-            case '+':
+            case PRES:
               sf = SearchFilter.createPresenceFilter(attrType);
               break;
 
