@@ -146,7 +146,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     {
       assert debugMessage(
           DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.WARNING,
+          DebugLogSeverity.VERBOSE,
           CLASS_NAME,
           "RmiAuthenticator",
           "User name is Null ");
@@ -157,7 +157,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     {
       assert debugMessage(
           DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.WARNING,
+          DebugLogSeverity.VERBOSE,
           CLASS_NAME,
           "RmiAuthenticator",
           "User password is Null ");
@@ -168,7 +168,7 @@ public class RmiAuthenticator implements JMXAuthenticator
 
     assert debugMessage(
         DebugLogCategory.CONNECTION_HANDLING,
-        DebugLogSeverity.WARNING,
+        DebugLogSeverity.VERBOSE,
         CLASS_NAME,
         "RmiAuthenticator",
         "UserName  =" + authcID);
