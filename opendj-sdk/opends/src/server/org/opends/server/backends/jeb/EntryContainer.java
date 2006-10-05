@@ -1412,7 +1412,7 @@ public class EntryContainer
     public AddEntryTransaction(Entry entry)
     {
       this.entry = entry;
-      this.parentDN = entry.getDN().getParent();
+      this.parentDN = getParentWithinBase(entry.getDN());
     }
 
     /**
@@ -1498,7 +1498,8 @@ public class EntryContainer
         id2subtree.insertID(txn, parentID.getDatabaseEntry(), entryID);
 
         // Iterate up through the superior entries, starting above the parent.
-        for (DN dn = parentDN.getParent(); dn != null; dn = dn.getParent())
+        for (DN dn = getParentWithinBase(parentDN); dn != null;
+             dn = getParentWithinBase(dn))
         {
           // Read the ID from dn2id.
           EntryID nodeID = dn2id.get(txn, dn);
@@ -1663,7 +1664,8 @@ public class EntryContainer
 
     // Iterate up through the superior entries.
     boolean isParent = true;
-    for (DN dn = leafDN.getParent(); dn != null; dn = dn.getParent())
+    for (DN dn = getParentWithinBase(leafDN); dn != null;
+         dn = getParentWithinBase(dn))
     {
       // Read the ID from dn2id.
       EntryID nodeID = dn2id.get(txn, dn);
@@ -1760,7 +1762,8 @@ public class EntryContainer
 
     // Iterate up through the superior entries.
     boolean isParent = true;
-    for (DN dn = leafDN.getParent(); dn != null; dn = dn.getParent())
+    for (DN dn = getParentWithinBase(leafDN); dn != null;
+         dn = getParentWithinBase(dn))
     {
       // Read the ID from dn2id.
       EntryID nodeID = dn2id.get(txn, dn);
@@ -2553,8 +2556,8 @@ public class EntryContainer
                                    ModifyDNOperation modifyDNOperation)
     {
       this.oldApexDN = currentDN;
-      this.oldSuperiorDN = currentDN.getParent();
-      this.newSuperiorDN = entry.getDN().getParent();
+      this.oldSuperiorDN = getParentWithinBase(currentDN);
+      this.newSuperiorDN = getParentWithinBase(entry.getDN());
       this.newApexEntry = entry;
       this.modifyDNOperation = modifyDNOperation;
     }
@@ -2766,7 +2769,7 @@ public class EntryContainer
     {
       DN oldDN = oldEntry.getDN();
       DN newDN = newEntry.getDN();
-      DN newParentDN = newDN.getParent();
+      DN newParentDN = getParentWithinBase(newDN);
 
       // Remove the old DN from dn2id.
       dn2id.remove(txn, oldDN);
@@ -2805,7 +2808,7 @@ public class EntryContainer
       id2entry.put(txn, newID, newEntry);
 
       // Remove the old parentID:ID from id2children.
-      DN oldParentDN = oldDN.getParent();
+      DN oldParentDN = getParentWithinBase(oldDN);
       if (oldParentDN != null)
       {
         EntryID currentParentID = dn2id.get(txn, oldParentDN);
@@ -2824,14 +2827,15 @@ public class EntryContainer
 
 
       // Remove the old nodeID:ID from id2subtree.
-      for (DN dn = oldDN.getParent(); dn != null; dn = dn.getParent())
+      for (DN dn = getParentWithinBase(oldDN); dn != null;
+           dn = getParentWithinBase(dn))
       {
         EntryID nodeID = dn2id.get(txn, dn);
         id2sBuffered.removeID(nodeID.getDatabaseEntry().getData(), oldID);
       }
 
       // Put the new nodeID:ID in id2subtree.
-      for (DN dn = newParentDN; dn != null; dn = dn.getParent())
+      for (DN dn = newParentDN; dn != null; dn = getParentWithinBase(dn))
       {
         EntryID nodeID = dn2id.get(txn, dn);
         id2sBuffered.insertID(config.getBackendIndexEntryLimit(),
@@ -2921,7 +2925,7 @@ public class EntryContainer
          throws JebException, DirectoryException, DatabaseException
     {
       DN oldDN = oldEntry.getDN();
-      DN newParentDN = newDN.getParent();
+      DN newParentDN = getParentWithinBase(newDN);
 
       // Remove the old DN from dn2id.
       dn2id.remove(txn, oldDN);
@@ -2979,7 +2983,7 @@ public class EntryContainer
       }
 
       // Remove the old nodeID:ID from id2subtree
-      for (DN dn = oldSuperiorDN; dn != null; dn = dn.getParent())
+      for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
       {
         EntryID nodeID = dn2id.get(txn, dn);
         id2sBuffered.removeID(nodeID.getDatabaseEntry().getData(),
@@ -2987,7 +2991,7 @@ public class EntryContainer
       }
 
       // Put the new nodeID:ID in id2subtree.
-      for (DN dn = newParentDN; dn != null; dn = dn.getParent())
+      for (DN dn = newParentDN; dn != null; dn = getParentWithinBase(dn))
       {
         if (!newID.equals(oldID) || dn.isAncestorOf(newSuperiorDN))
         {
@@ -3759,4 +3763,20 @@ public class EntryContainer
   {
     return baseDN;
   }
+
+  /**
+   * Get the parent of a DN in the scope of the base DN.
+   *
+   * @param dn A DN which is in the scope of the base DN.
+   * @return The parent DN, or null if the given DN is the base DN.
+   */
+  public DN getParentWithinBase(DN dn)
+  {
+    if (dn.equals(baseDN))
+    {
+      return null;
+    }
+    return dn.getParent();
+  }
+
 }

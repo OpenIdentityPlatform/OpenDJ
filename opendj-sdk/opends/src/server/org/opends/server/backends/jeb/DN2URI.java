@@ -514,7 +514,8 @@ public class DN2URI
         DatabaseEntry data = new DatabaseEntry();
 
         // Go up through the DIT hierarchy until we find a referral.
-        for (DN dn = targetDN.getParent(); dn != null; dn = dn.getParent())
+        for (DN dn = entryContainer.getParentWithinBase(targetDN); dn != null;
+             dn = entryContainer.getParentWithinBase(dn))
         {
           // Look for a record whose key matches the current DN.
           String normDN = dn.toNormalizedString();

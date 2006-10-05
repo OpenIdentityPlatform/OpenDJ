@@ -214,7 +214,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
 
     rootContainer.openEntryContainers(config.getBaseDNs());
 
-    // Create the import contextes for each base DN.
+    // Create the import contexts for each base DN.
     EntryID highestID = null;
     DN baseDN;
 
@@ -672,11 +672,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       {
         // Make sure the parent entry exists, unless this entry is a base DN.
         EntryID parentID = null;
-        DN parentDN = null;
-        if (!entryDN.equals(importContext.getBaseDN()))
-        {
-          parentDN = entryDN.getParent();
-        }
+        DN parentDN = importContext.getEntryContainer().
+             getParentWithinBase(entryDN);
         if (parentDN != null)
         {
           parentID = dn2id.get(txn, parentDN);
@@ -713,10 +710,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           if (parentID != null)
           {
             IDs.add(parentID);
-            DN baseDN = importContext.getBaseDN();
-            for (DN dn = parentDN.equals(baseDN) ? null : parentDN.getParent();
-                 dn != null;
-                 dn = dn.equals(baseDN) ? null : dn.getParent())
+            EntryContainer ec = importContext.getEntryContainer();
+            for (DN dn = ec.getParentWithinBase(parentDN); dn != null;
+                 dn = ec.getParentWithinBase(dn))
             {
               // Read the ID from dn2id.
               EntryID nodeID = dn2id.get(txn, dn);
