@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.core.DirectoryServer;
@@ -44,6 +45,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DNComparator;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -124,8 +126,10 @@ public class LDIFModify
          throws IOException, LDIFException
   {
     // Read the changes into memory.
-    HashMap<DN,AddChangeRecordEntry> adds =
-         new HashMap<DN,AddChangeRecordEntry>();
+      DNComparator comparator = new DNComparator();
+      TreeMap<DN,AddChangeRecordEntry> adds = 
+          new TreeMap<DN,AddChangeRecordEntry>(comparator);
+      
     HashMap<DN,DeleteChangeRecordEntry> deletes =
          new HashMap<DN,DeleteChangeRecordEntry>();
     HashMap<DN,LinkedList<Modification>> modifications =
