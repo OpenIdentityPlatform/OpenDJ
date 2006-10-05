@@ -6946,6 +6946,9 @@ public class ToolMessages
                     "Specifies the path to a file into which rejected " +
                     "entries may be written if they are not accepted during " +
                     "the import process.");
+    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_OVERWRITE_REJECTS,
+                    "Indicates that the import should overwrite an existing " +
+                    "reject file rather than appending to it.");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_RANDOM_SEED,
                     "Specifies the seed to use for the random number " +
                     "generator.  This  is only applicable when generating " +
