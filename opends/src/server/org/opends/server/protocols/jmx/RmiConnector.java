@@ -347,7 +347,7 @@ public class RmiConnector
       {
         assert debugMessage(
             DebugLogCategory.CONNECTION_HANDLING,
-            DebugLogSeverity.WARNING,
+            DebugLogSeverity.VERBOSE,
             CLASS_NAME,
             "startConnectorNoClientCertificate",
             "UNSECURE CONNECTION");
