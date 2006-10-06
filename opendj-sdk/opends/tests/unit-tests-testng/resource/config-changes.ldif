@@ -263,6 +263,16 @@ ds-cfg-plugin-type: preOperationModify
 ds-cfg-plugin-type: preOperationModifyDN
 ds-cfg-plugin-type: preOperationSearch
 
+dn: cn=Update PreOperation Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Delay PreOperation Plugin
+ds-cfg-plugin-class: org.opends.server.plugins.UpdatePreOpPlugin
+ds-cfg-plugin-enabled: true
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationModify
+
 dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
 changetype: add
 objectClass: top
