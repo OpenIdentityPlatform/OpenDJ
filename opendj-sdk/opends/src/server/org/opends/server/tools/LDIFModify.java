@@ -127,9 +127,9 @@ public class LDIFModify
   {
     // Read the changes into memory.
       DNComparator comparator = new DNComparator();
-      TreeMap<DN,AddChangeRecordEntry> adds = 
+      TreeMap<DN,AddChangeRecordEntry> adds =
           new TreeMap<DN,AddChangeRecordEntry>(comparator);
-      
+
     HashMap<DN,DeleteChangeRecordEntry> deletes =
          new HashMap<DN,DeleteChangeRecordEntry>();
     HashMap<DN,LinkedList<Modification>> modifications =
