@@ -99,6 +99,11 @@ public class JmxConnectionHandler
   protected boolean enabled;
 
   /**
+   * The attribute which  whether this connection handler is enabled.
+   */
+  BooleanConfigAttribute enabledAtt;
+
+  /**
    * Indicates whether to use SSL to communicate with the clients.
    */
   protected boolean useSSL;
@@ -398,9 +403,11 @@ public class JmxConnectionHandler
         .valueOf(configEntry));
 
     //
-    // This ConnectionHandler is always available.
-    // TODO: Do we really want to always enable the JMX connector?
-    enabled = true;
+    // If the initializeConnectionHandler method is called,
+    // it means that the "enabled" attribure was true.
+    enabledAtt = getEnabledAtt(configEntry);
+    configAttrs.add(enabledAtt);
+    enabled = enabledAtt.activeValue();
 
     //
     // Set the entry DN
@@ -902,7 +909,63 @@ public class JmxConnectionHandler
   }
 
   /**
-   * Retrieves the list port of the configuration entry with which this
+   * Retrieves the enabled attribure from the configuration entry with
+   * which this component is associated.
+   *
+   * @param configEntry
+   *        The configuration entry for which to make the determination.
+   * @return The enabled attribute
+   * @throws ConfigException
+   *         If there is a problem with the configuration for this
+   *         connection handler.
+   * @throws InitializationException
+   *         If a problem occurs while attempting to initialize this
+   *         connection handler.
+   */
+  private BooleanConfigAttribute getEnabledAtt(ConfigEntry configEntry)
+      throws InitializationException, ConfigException
+  {
+
+    int msgID = MSGID_CONFIG_CONNHANDLER_ATTR_DESCRIPTION_ENABLED;
+    BooleanConfigAttribute enabledStub =
+         new BooleanConfigAttribute(ATTR_CONNECTION_HANDLER_ENABLED,
+                                    getMessage(msgID), false);
+    BooleanConfigAttribute attr = null;
+    try
+    {
+      attr = (BooleanConfigAttribute) configEntry
+          .getConfigAttribute(enabledStub);
+      if (attr == null)
+      {
+        msgID = MSGID_CONFIG_CONNHANDLER_NO_ENABLED_ATTR;
+        String message = getMessage(msgID, String.valueOf(configEntryDN));
+        throw new ConfigException(msgID, message);
+      }
+
+    }
+    catch (ConfigException ce)
+    {
+      assert debugException(CLASS_NAME, "initializeConnectionHandler", ce);
+
+      throw ce;
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+
+      msgID = MSGID_CONFIG_CONNHANDLER_NO_ENABLED_ATTR;
+      String message = getMessage(
+          msgID,
+          String.valueOf(configEntryDN),
+          stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
+    }
+
+    return attr;
+  }
+
+  /**
+   * Retrieves the listen port of the configuration entry with which this
    * component is associated.
    *
    * @param configEntry
