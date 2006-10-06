@@ -21,6 +21,19 @@ changetype: modify
 replace: ds-cfg-suppress-internal-operations
 ds-cfg-suppress-internal-operations: false
 
+dn: cn=Test Password Validator,cn=Password Validators,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-password-validator
+cn: Test Password Validator
+ds-cfg-password-validator-class: org.opends.server.extensions.TestPasswordValidator
+ds-cfg-password-validator-enabled: true
+
+dn: cn=Default Password Policy,cn=Password Policies,cn=config
+changetype: modify
+add: ds-cfg-password-validator-dn
+ds-cfg-password-validator-dn: cn=Test Password Validator,cn=Password Validators,cn=config
+
 dn: cn=SSHA512 UserPassword Policy,cn=Password Policies,cn=config
 changetype: add
 objectClass: top
@@ -49,6 +62,7 @@ ds-cfg-password-change-requires-current-password: false
 ds-cfg-require-secure-authentication: false
 ds-cfg-require-secure-password-changes: false
 ds-cfg-skip-validation-for-administrators: false
+ds-cfg-password-validator-dn: cn=Test Password Validator,cn=Password Validators,cn=config
 
 dn: cn=SHA1 AuthPassword Policy,cn=Password Policies,cn=config
 changetype: add
@@ -78,6 +92,7 @@ ds-cfg-password-change-requires-current-password: false
 ds-cfg-require-secure-authentication: false
 ds-cfg-require-secure-password-changes: false
 ds-cfg-skip-validation-for-administrators: false
+ds-cfg-password-validator-dn: cn=Test Password Validator,cn=Password Validators,cn=config
 
 dn: cn=Clear UserPassword Policy,cn=Password Policies,cn=config
 changetype: add
@@ -107,6 +122,7 @@ ds-cfg-password-change-requires-current-password: false
 ds-cfg-require-secure-authentication: false
 ds-cfg-require-secure-password-changes: false
 ds-cfg-skip-validation-for-administrators: false
+ds-cfg-password-validator-dn: cn=Test Password Validator,cn=Password Validators,cn=config
 
 dn: cn=Delay PreOperation Plugin,cn=Plugins,cn=config
 changetype: add

@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
@@ -3758,17 +3759,22 @@ public class PasswordPolicyState
    * Indicates whether the provided password appears to be acceptable according
    * to the password validators.
    *
-   * @param  operation      The operation that provided the password.
-   * @param  userEntry      The user entry in which the password is used.
-   * @param  password       The password to be validated.
-   * @param  invalidReason  A buffer that may be used to hold the invalid reason
-   *                        if the password is rejected.
+   * @param  operation         The operation that provided the password.
+   * @param  userEntry         The user entry in which the password is used.
+   * @param  newPassword       The password to be validated.
+   * @param  currentPasswords  The set of clear-text current passwords for the
+   *                           user (this may be a subset if not all of them are
+   *                           available in the clear, or empty if none of them
+   *                           are available in the clear).
+   * @param  invalidReason     A buffer that may be used to hold the invalid
+   *                           reason if the password is rejected.
    *
    * @return  <CODE>true</CODE> if the password is acceptable for use, or
    *          <CODE>false</CODE> if it is not.
    */
   public boolean passwordIsAcceptable(Operation operation, Entry userEntry,
-                                      ByteString password,
+                                      ByteString newPassword,
+                                      Set<ByteString> currentPasswords,
                                       StringBuilder invalidReason)
   {
     assert debugEnter(CLASS_NAME, "passwordIsAcceptable",
@@ -3780,8 +3786,8 @@ public class PasswordPolicyState
       PasswordValidator validator =
            passwordPolicy.getPasswordValidators().get(validatorDN);
 
-      if (! validator.passwordIsValid(password, operation, userEntry,
-                                      invalidReason))
+      if (! validator.passwordIsAcceptable(newPassword, currentPasswords,
+                                           operation, userEntry, invalidReason))
       {
         if (debug)
         {

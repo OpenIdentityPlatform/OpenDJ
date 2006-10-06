@@ -28,6 +28,8 @@ package org.opends.server.api;
 
 
 
+import java.util.Set;
+
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.Operation;
@@ -98,22 +100,29 @@ public abstract class PasswordValidator
    * unacceptable, then a human-readable explanation should be
    * appended to the provided buffer.
    *
-   * @param  password       The proposed clear-text password that
-   *                        should be validated.
-   * @param  operation      The operation that is being used to set
-   *                        the password.  It may be an add, a
-   *                        modify, or a password modify operation.
-   * @param  userEntry      The entry for the user whose password is
-   *                        being changed.
-   * @param  invalidReason  The buffer to which the human-readable
-   *                        explanation should be appended if it is
-   *                        determined that the password is not
-   *                        acceptable.
+   * @param  newPassword       The proposed clear-text password that
+   *                           should be validated.
+   * @param  currentPasswords  The set of clear-text current passwords
+   *                           for the user (if available).  Note that
+   *                           the current passwords may not always be
+   *                           available, and this may not comprise
+   *                           entire set of passwords currently
+   *                           for the user.
+   * @param  operation         The operation that is being used to set
+   *                           the password.  It may be an add, a
+   *                           modify, or a password modify operation.
+   * @param  userEntry         The entry for the user whose password
+   *                           is being changed.
+   * @param  invalidReason     The buffer to which the human-readable
+   *                           explanation should be appended if it is
+   *                           determined that the password is not
+   *                           acceptable.
    *
    * @return  <CODE>true</CODE> if the password is acceptable, or
    *          <CODE>false</CODE> if not.
    */
-  public abstract boolean passwordIsValid(ByteString password,
+  public abstract boolean passwordIsAcceptable(ByteString newPassword,
+                               Set<ByteString> currentPasswords,
                                Operation operation,
                                Entry userEntry,
                                StringBuilder invalidReason);

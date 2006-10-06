@@ -29,9 +29,11 @@ package org.opends.server.extensions;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.HashSet;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.ClientConnection;
@@ -685,9 +687,29 @@ public class PasswordModifyExtendedOperation
         {
           if (selfChange || (! pwPolicyState.skipValidationForAdministrators()))
           {
+            HashSet<ByteString> clearPasswords;
+            if (oldPassword == null)
+            {
+              clearPasswords =
+                   new HashSet<ByteString>(pwPolicyState.getClearPasswords());
+            }
+            else
+            {
+              clearPasswords = new HashSet<ByteString>();
+              clearPasswords.add(oldPassword);
+              for (ByteString pw : pwPolicyState.getClearPasswords())
+              {
+                if (! Arrays.equals(pw.value(), oldPassword.value()))
+                {
+                  clearPasswords.add(pw);
+                }
+              }
+            }
+
             StringBuilder invalidReason = new StringBuilder();
             if (! pwPolicyState.passwordIsAcceptable(operation, userEntry,
                                                      newPassword,
+                                                     clearPasswords,
                                                      invalidReason))
             {
               if (oldPassword == null)

@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.testng.annotations.BeforeClass;
@@ -43,6 +44,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -312,13 +314,13 @@ public class LengthBasedPasswordValidatorTestCase
 
 
   /**
-   * Tests the <CODE>passwordIsValid</CODE> method with no constraints on
+   * Tests the <CODE>passwordIsAcceptable</CODE> method with no constraints on
    * password length.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testPasswordIsValidNoConstraints()
+  public void testPasswordIsAcceptableNoConstraints()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -374,8 +376,9 @@ public class LengthBasedPasswordValidatorTestCase
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
       StringBuilder invalidReason = new StringBuilder();
-      assertTrue(validator.passwordIsValid(password, op, userEntry,
-                                           invalidReason));
+      assertTrue(validator.passwordIsAcceptable(password,
+                                                new HashSet<ByteString>(0),
+                                                op, userEntry, invalidReason));
     }
 
     validator.finalizePasswordValidator();
@@ -384,13 +387,13 @@ public class LengthBasedPasswordValidatorTestCase
 
 
   /**
-   * Tests the <CODE>passwordIsValid</CODE> method with a constraint on the
+   * Tests the <CODE>passwordIsAcceptable</CODE> method with a constraint on the
    * minimum password length.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testPasswordIsValidMinLengthConstraint()
+  public void testPasswordIsAcceptableMinLengthConstraint()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -447,8 +450,10 @@ public class LengthBasedPasswordValidatorTestCase
 
       StringBuilder invalidReason = new StringBuilder();
       assertEquals((buffer.length() >= 10),
-                   validator.passwordIsValid(password, op, userEntry,
-                                             invalidReason));
+                   validator.passwordIsAcceptable(password,
+                                                  new HashSet<ByteString>(0),
+                                                  op, userEntry,
+                                                  invalidReason));
     }
 
     validator.finalizePasswordValidator();
@@ -457,13 +462,13 @@ public class LengthBasedPasswordValidatorTestCase
 
 
   /**
-   * Tests the <CODE>passwordIsValid</CODE> method with a constraint on the
+   * Tests the <CODE>passwordIsAcceptable</CODE> method with a constraint on the
    * maximum password length.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testPasswordIsValidMaxLengthConstraint()
+  public void testPasswordIsAcceptableMaxLengthConstraint()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -520,8 +525,10 @@ public class LengthBasedPasswordValidatorTestCase
 
       StringBuilder invalidReason = new StringBuilder();
       assertEquals((buffer.length() <= 10),
-                   validator.passwordIsValid(password, op, userEntry,
-                                             invalidReason));
+                   validator.passwordIsAcceptable(password,
+                                                  new HashSet<ByteString>(0),
+                                                  op, userEntry,
+                                                  invalidReason));
     }
 
     validator.finalizePasswordValidator();
@@ -530,13 +537,13 @@ public class LengthBasedPasswordValidatorTestCase
 
 
   /**
-   * Tests the <CODE>passwordIsValid</CODE> method with constraints on both the
-   * minimum and maximum password length.
+   * Tests the <CODE>passwordIsAcceptable</CODE> method with constraints on both
+   * the minimum and maximum password length.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testPasswordIsValidMinAndMaxLengthConstraints()
+  public void testPasswordIsAcceptableMinAndMaxLengthConstraints()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -593,8 +600,10 @@ public class LengthBasedPasswordValidatorTestCase
 
       StringBuilder invalidReason = new StringBuilder();
       assertEquals(((buffer.length() >= 6) && (buffer.length() <= 10)),
-                   validator.passwordIsValid(password, op, userEntry,
-                                             invalidReason));
+                   validator.passwordIsAcceptable(password,
+                                                  new HashSet<ByteString>(0),
+                                                  op, userEntry,
+                                                  invalidReason));
     }
 
     validator.finalizePasswordValidator();

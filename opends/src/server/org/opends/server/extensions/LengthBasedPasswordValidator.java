@@ -31,6 +31,7 @@ package org.opends.server.extensions;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.PasswordValidator;
@@ -98,19 +99,9 @@ public class LengthBasedPasswordValidator
 
 
   /**
-   * Initializes this password validator based on the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this password validator.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
+  @Override()
   public void initializePasswordValidator(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
@@ -190,9 +181,9 @@ public class LengthBasedPasswordValidator
 
 
   /**
-   * Performs any finalization that might be required when this password
-   * validator is unloaded.  No action is taken in the default implementation.
+   * {@inheritDoc}
    */
+  @Override()
   public void finalizePasswordValidator()
   {
     assert debugEnter(CLASS_NAME, "finalizePasswordValidator");
@@ -203,33 +194,21 @@ public class LengthBasedPasswordValidator
 
 
   /**
-   * Indicates whether the provided password is acceptable for use by the
-   * specified user.  If the password is determined to be unacceptable, then a
-   * human-readable explanation should be appended to the provided buffer.
-   *
-   * @param  password       The proposed clear-text password that should be
-   *                        validated.
-   * @param  operation      The operation that is being used to set the
-   *                        password.
-   * @param  userEntry      The entry for the user whose password is being
-   *                        changed.
-   * @param  invalidReason  The buffer to which the human-readable explanation
-   *                        should be appended if it is determined that the
-   *                        password is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the password is acceptable, or
-   *          <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
-  public boolean passwordIsValid(ByteString password, Operation operation,
-                                 Entry userEntry, StringBuilder invalidReason)
+  @Override()
+  public boolean passwordIsAcceptable(ByteString newPassword,
+                                      Set<ByteString> currentPasswords,
+                                      Operation operation, Entry userEntry,
+                                      StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "passwordIsValid",
+    assert debugEnter(CLASS_NAME, "passwordIsAcceptable",
                       "org.opends.server.protocols.asn1.ASN1OctetString",
                       String.valueOf(operation), String.valueOf(userEntry),
                       "java.lang.StringBuilder");
 
 
-    int numChars = password.stringValue().length();
+    int numChars = newPassword.stringValue().length();
 
     if ((minLength > 0) && (numChars < minLength))
     {
@@ -251,11 +230,7 @@ public class LengthBasedPasswordValidator
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
+   * {@inheritDoc}
    */
   public DN getConfigurableComponentEntryDN()
   {
@@ -267,11 +242,7 @@ public class LengthBasedPasswordValidator
 
 
   /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
+   * {@inheritDoc}
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
@@ -296,18 +267,7 @@ public class LengthBasedPasswordValidator
 
 
   /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
@@ -387,20 +347,7 @@ public class LengthBasedPasswordValidator
 
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
+   * {@inheritDoc}
    */
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)

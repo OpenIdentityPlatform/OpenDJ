@@ -2298,12 +2298,14 @@ addProcessing:
       // validation should be performed for administrators.
       if (! passwordPolicy.skipValidationForAdministrators())
       {
+        // There are never any current passwords for an add operation.
+        HashSet<ByteString> currentPasswords = new HashSet<ByteString>(0);
         StringBuilder invalidReason = new StringBuilder();
         for (PasswordValidator validator :
              passwordPolicy.getPasswordValidators().values())
         {
-          if (! validator.passwordIsValid(value, this, userEntry,
-                                          invalidReason))
+          if (! validator.passwordIsAcceptable(value, currentPasswords, this,
+                                               userEntry, invalidReason))
           {
             int    msgID   = MSGID_PWPOLICY_VALIDATION_FAILED;
             String message = getMessage(msgID, passwordAttribute.getNameOrOID(),
