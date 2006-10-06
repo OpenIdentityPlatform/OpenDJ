@@ -48,9 +48,13 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.JMXMBean;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -207,17 +211,66 @@ public class JmxConnectTest extends JmxTestCase
   @Test(enabled = true)
   public void disable() throws Exception
   {
-    OpendsJmxConnector connector = connect("cn=directory manager", "password",
-        TestCaseUtils.getServerJmxPort());
+    
+    // Create a new JMX connector for this test.
+    // This will allow to use the old one if this test fails.
+    //
+    ServerSocket serverJmxSocket = new ServerSocket();
+    serverJmxSocket.setReuseAddress(true);
+    serverJmxSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+    int serverJmxPort = serverJmxSocket.getLocalPort();
+    serverJmxSocket.close();
+    Entry newJmxConnectionJmx = TestCaseUtils.makeEntry(
+        "dn: cn= New JMX Connection Handler,cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-connection-handler",
+        "objectClass: ds-cfg-jmx-connection-handler",
+        "ds-cfg-ssl-cert-nickname: adm-server-cert",
+        "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
+        "ds-cfg-connection-handler-enabled: true",
+        "ds-cfg-use-ssl: false",
+        "ds-cfg-listen-port: " + serverJmxPort,
+        "cn: JMX Connection Handler"
+         );
+    InternalClientConnection connection = new InternalClientConnection();
+    AddOperation addOp = new AddOperation(connection,
+        InternalClientConnection.nextOperationID(), InternalClientConnection
+            .nextMessageID(), null, newJmxConnectionJmx.getDN(),
+        newJmxConnectionJmx.getObjectClasses(), newJmxConnectionJmx
+            .getUserAttributes(), newJmxConnectionJmx
+            .getOperationalAttributes());
+    addOp.run();
+    Thread.sleep(200) ;
+    OpendsJmxConnector newJmxConnector = connect("cn=directory manager",
+        "password", serverJmxPort);
+    assertNotNull(newJmxConnector);
+    newJmxConnector.close() ;
+    
+    // Get the "old" connector
+    OpendsJmxConnector connector = connect("cn=directory manager",
+        "password", TestCaseUtils.getServerJmxPort());
     MBeanServerConnection jmxc = connector.getMBeanServerConnection();
-    connector.close();
     assertNotNull(jmxc);
-    // This test can not pass at the moment
-    // because disabling JMX through JMX is not possible
-    // see Issue 620
-    // disableJmx(jmxc);
-    // JMXConnector jmxcDisabled = connect("cn=directory manager", "password");
-    // assertNull(jmxcDisabled);
+
+    // Disable the "new" connector
+    toggleEnableJmxConnector(connector, newJmxConnectionJmx.getDN(), false);
+    Thread.sleep(100) ;
+    OpendsJmxConnector jmxcDisabled = connect("cn=directory manager",
+        "password", serverJmxPort);
+    assertNull(jmxcDisabled);
+    
+    toggleEnableJmxConnector(connector, newJmxConnectionJmx.getDN(), true);
+    Thread.sleep(100) ;
+    jmxcDisabled = connect("cn=directory manager","password", serverJmxPort);
+    assertNotNull(jmxcDisabled);
+
+    // cleanup client connection
+    connector.close() ;
+    jmxcDisabled.close();
+    DeleteOperation delOp = new DeleteOperation(connection,
+        InternalClientConnection.nextOperationID(), InternalClientConnection
+            .nextMessageID(), null, newJmxConnectionJmx.getDN());
+    delOp.run();
   }
   
   /**
@@ -451,6 +504,10 @@ public class JmxConnectTest extends JmxTestCase
     {
       return null;
     }
+    catch (IOException e)
+    {
+      return null;
+    }
   }
 
   /**
@@ -496,6 +553,7 @@ public class JmxConnectTest extends JmxTestCase
       return opendsConnector ;
     } catch (Exception e)
     {
+      
       return null;
     }
    
@@ -511,29 +569,37 @@ public class JmxConnectTest extends JmxTestCase
   }
 
   /**
-   * disable the JMX front-end thorugh JMX operation.
-
-  private void disableJmx(JMXConnector jmxc)
-     throws Exception
+   * Set the enabled config attribute for a JMX connector thorugh JMX
+   * operation.
+   * 
+   * @param jmxc
+   *        connector to use for the interaction
+   * @param testedConnector
+   *        The DN of the connector the test
+   * @param enabled
+   *        the value of the enabled config attribute
+   */
+  private void toggleEnableJmxConnector(
+      OpendsJmxConnector jmxc, DN testedConnector,
+      boolean enabled) throws Exception
   {
     MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
 
     // Get status of the JMX connection handler
-    String jmxName = JMXMBean.getJmxName(
-      DN.decode("cn=JMX Connection Handler,cn=Connection Handlers,cn=config"));
+    String jmxName = JMXMBean.getJmxName(testedConnector);
     ObjectName name = ObjectName.getInstance(jmxName);
     Attribute status = (Attribute) mbsc.getAttribute(name,
                       "ds-cfg-connection-handler-enabled");
     if (status != null)
       status.getValue();
-    Attribute attr = new Attribute("ds-cfg-connection-handler-enabled", false);
+    Attribute attr = new Attribute("ds-cfg-connection-handler-enabled", enabled);
     mbsc.setAttribute(name, attr);
     status = (Attribute) mbsc.getAttribute(name,
          "ds-cfg-connection-handler-enabled");
 
     status = null;
   }
-  */
+
 
   /**
    * Get an attribute value through JMX.
