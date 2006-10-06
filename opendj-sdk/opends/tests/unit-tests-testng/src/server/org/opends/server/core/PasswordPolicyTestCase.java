@@ -2522,7 +2522,7 @@ public class PasswordPolicyTestCase
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getPasswordValidators());
-    assertTrue(p.getPasswordValidators().isEmpty());
+    assertFalse(p.getPasswordValidators().isEmpty());
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-password-validator-dn";
@@ -2567,7 +2567,7 @@ public class PasswordPolicyTestCase
                       "cn=config");
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getPasswordValidators());
-    assertTrue(p.getPasswordValidators().isEmpty());
+    assertFalse(p.getPasswordValidators().isEmpty());
 
     String attr  = "ds-cfg-password-validator-dn";
     String valDN = "cn=Length-Based Password Validator," +

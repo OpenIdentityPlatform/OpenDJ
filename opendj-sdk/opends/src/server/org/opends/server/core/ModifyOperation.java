@@ -29,6 +29,8 @@ package org.opends.server.core;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -2190,11 +2192,54 @@ modifyProcessing:
           {
             if (newPasswords != null)
             {
+              HashSet<ByteString> clearPasswords = new HashSet<ByteString>();
+              clearPasswords.addAll(pwPolicyState.getClearPasswords());
+
+              if (currentPasswords != null)
+              {
+                if (clearPasswords.isEmpty())
+                {
+                  for (AttributeValue v : currentPasswords)
+                  {
+                    clearPasswords.add(v.getValue());
+                  }
+                }
+                else
+                {
+                  // NOTE:  We can't rely on the fact that Set doesn't allow
+                  // duplicates because technically it's possible that the
+                  // values aren't duplicates if they are ASN.1 elements with
+                  // different types (like 0x04 for a standard universal octet
+                  // string type versus 0x80 for a simple password in a bind
+                  // operation).  So we have to manually check for duplicates.
+                  for (AttributeValue v : currentPasswords)
+                  {
+                    ByteString pw = v.getValue();
+
+                    boolean found = false;
+                    for (ByteString s : clearPasswords)
+                    {
+                      if (Arrays.equals(s.value(), pw.value()))
+                      {
+                        found = true;
+                        break;
+                      }
+                    }
+
+                    if (! found)
+                    {
+                      clearPasswords.add(pw);
+                    }
+                  }
+                }
+              }
+
               for (AttributeValue v : newPasswords)
               {
                 StringBuilder invalidReason = new StringBuilder();
                 if (! pwPolicyState.passwordIsAcceptable(this, modifiedEntry,
                                                          v.getValue(),
+                                                         clearPasswords,
                                                          invalidReason))
                 {
                   setResultCode(ResultCode.UNWILLING_TO_PERFORM);
