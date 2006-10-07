@@ -688,6 +688,8 @@
       <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/coverage.emma" />
       <jvmarg value="-Demma.coverage.out.merge=false" />
       <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}" />
+      <jvmarg value="-Xmx${MEM}" />
+      <jvmarg value="-Xms${MEM}" />
       <xmlfileset dir="${unittest.resource.dir}" includes="testng.xml" />
     </testng>
 
