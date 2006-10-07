@@ -1539,6 +1539,13 @@ public class Entry
 
     if (attribute.getAttributeType().isObjectClassType())
     {
+      LinkedHashSet<AttributeValue> valueSet = attribute.getValues();
+      if ((valueSet == null) || valueSet.isEmpty())
+      {
+        objectClasses.clear();
+        return true;
+      }
+
       boolean allSuccessful = true;
 
       for (AttributeValue v : attribute.getValues())
