@@ -34,7 +34,9 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 
 /**
  * This interface defines data type that is backed by a byte array but
- * may also have a string representation.
+ * may also have a string representation.  The preferred way to create
+ * a <CODE>ByteString</CODE> object is to use one of the
+ * <CODE>ByteStringFactory.create</CODE> methods.
  */
 public interface ByteString
 {

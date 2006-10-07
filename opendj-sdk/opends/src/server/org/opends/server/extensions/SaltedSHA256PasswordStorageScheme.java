@@ -37,8 +37,8 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
@@ -208,7 +208,7 @@ public class SaltedSHA256PasswordStorageScheme
     System.arraycopy(saltBytes, 0, hashPlusSalt, digestBytes.length,
                      NUM_SALT_BYTES);
 
-    return new ASN1OctetString(Base64.encode(hashPlusSalt));
+    return ByteStringFactory.create(Base64.encode(hashPlusSalt));
   }
 
 
@@ -272,7 +272,7 @@ public class SaltedSHA256PasswordStorageScheme
                      NUM_SALT_BYTES);
     buffer.append(Base64.encode(hashPlusSalt));
 
-    return new ASN1OctetString(buffer.toString());
+    return ByteStringFactory.create(buffer.toString());
   }
 
 
@@ -429,7 +429,7 @@ public class SaltedSHA256PasswordStorageScheme
     authPWValue.append('$');
     authPWValue.append(Base64.encode(digestBytes));
 
-    return new ASN1OctetString(authPWValue.toString());
+    return ByteStringFactory.create(authPWValue.toString());
   }
 
 

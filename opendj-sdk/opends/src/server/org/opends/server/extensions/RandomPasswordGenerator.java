@@ -42,7 +42,8 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -297,7 +298,7 @@ public class RandomPasswordGenerator
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              generate the password.
    */
-  public ASN1OctetString generatePassword(Entry userEntry)
+  public ByteString generatePassword(Entry userEntry)
          throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "generatePassword",
@@ -320,7 +321,7 @@ public class RandomPasswordGenerator
       generatorLock.unlock();
     }
 
-    return new ASN1OctetString(buffer.toString());
+    return ByteStringFactory.create(buffer.toString());
   }
 
 

@@ -42,11 +42,11 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -184,7 +184,7 @@ public final class EntryUUIDPlugin
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
     values.add(new AttributeValue(entryUUIDType,
-                                  new ASN1OctetString(uuid.toString())));
+                                  ByteStringFactory.create(uuid.toString())));
 
     uuidList = new ArrayList<Attribute>(1);
     Attribute uuidAttr = new Attribute(entryUUIDType, "entryUUID", values);
@@ -226,7 +226,7 @@ public final class EntryUUIDPlugin
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
     values.add(new AttributeValue(entryUUIDType,
-                                  new ASN1OctetString(uuid.toString())));
+                                  ByteStringFactory.create(uuid.toString())));
 
     uuidList = new ArrayList<Attribute>(1);
     Attribute uuidAttr = new Attribute(entryUUIDType, "entryUUID", values);
