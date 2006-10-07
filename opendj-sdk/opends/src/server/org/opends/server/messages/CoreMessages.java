@@ -5928,7 +5928,8 @@ public class CoreMessages
 
   /**
    * The message ID for the message that will be used if a modify operation does
-   * not contain any modifications.  This does not take any arguments.
+   * not contain any modifications.  This takes a single argument, which is the
+   * DN of the entry to modify.
    */
   public static final int MSGID_MODIFY_NO_MODIFICATIONS =
        CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 566;
