@@ -2067,6 +2067,7 @@ modifyProcessing:
                 int msgID = MSGID_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE;
                 appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
                                               a.getName()));
+                break modifyProcessing;
               }
 
               AttributeValue v = values.iterator().next();
