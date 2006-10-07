@@ -5927,6 +5927,15 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if a modify operation does
+   * not contain any modifications.  This does not take any arguments.
+   */
+  public static final int MSGID_MODIFY_NO_MODIFICATIONS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 566;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -7008,6 +7017,9 @@ public class CoreMessages
                     "persistent search has been terminated.");
 
 
+    registerMessage(MSGID_MODIFY_NO_MODIFICATIONS,
+                    "Entry %s cannot be updated because the request did not " +
+                    "contain any modifications.");
     registerMessage(MSGID_MODIFY_CANNOT_LOCK_ENTRY,
                     "Entry %s cannot be modified because the server failed " +
                     "to obtain a write lock for this entry after multiple " +
