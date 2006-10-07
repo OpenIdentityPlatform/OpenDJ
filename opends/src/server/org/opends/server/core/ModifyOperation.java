@@ -807,6 +807,14 @@ modifyProcessing:
         }
       }
 
+      if (modifications.isEmpty())
+      {
+        setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+        appendErrorMessage(getMessage(MSGID_MODIFY_NO_MODIFICATIONS,
+                                      String.valueOf(entryDN)));
+        break modifyProcessing;
+      }
+
 
       // Check for and handle a request to cancel this operation.
       if (cancelRequest != null)
