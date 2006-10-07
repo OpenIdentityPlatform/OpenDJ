@@ -42,6 +42,14 @@ import static org.opends.server.util.StaticUtils.*;
 /**
  * This class defines the data structures and methods to use when interacting
  * with ASN.1 octet string elements.
+ * <BR><BR>
+ * Note that this class also implements the <CODE>ByteString</CODE> interface,
+ * but in most cases whenever it is necessary to create an instance of a
+ * <CODE>ByteString</CODE> object, the caller should use one of the
+ * <CODE>ByteStringFactory.create</CODE> methods rather than creating an
+ * <CODE>ASN1OctetString</CODE> object directly.  In general, direct references
+ * to ASN.1 elements should be limited to cases in which ASN.1 is actually
+ * involved.
  */
 public class ASN1OctetString
        extends ASN1Element

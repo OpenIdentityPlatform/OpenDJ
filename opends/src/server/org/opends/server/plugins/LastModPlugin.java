@@ -37,10 +37,10 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -172,12 +172,12 @@ public final class LastModPlugin
       // This must mean that the operation was performed anonymously.  Even so,
       // we still need to update the creatorsName attribute.
       nameValues.add(new AttributeValue(creatorsNameType,
-                                        new ASN1OctetString()));
+                                        ByteStringFactory.create()));
     }
     else
     {
       nameValues.add(new AttributeValue(creatorsNameType,
-           new ASN1OctetString(creatorDN.toString())));
+           ByteStringFactory.create(creatorDN.toString())));
     }
     Attribute nameAttr = new Attribute(creatorsNameType, OP_ATTR_CREATORS_NAME,
                                        nameValues);
@@ -190,7 +190,7 @@ public final class LastModPlugin
     LinkedHashSet<AttributeValue> timeValues =
          new LinkedHashSet<AttributeValue>(1);
     timeValues.add(new AttributeValue(createTimestampType,
-                                      new ASN1OctetString(getUTCTime())));
+                                      ByteStringFactory.create(getUTCTime())));
 
     Attribute timeAttr = new Attribute(createTimestampType,
                                        OP_ATTR_CREATE_TIMESTAMP, timeValues);
@@ -225,12 +225,12 @@ public final class LastModPlugin
       // This must mean that the operation was performed anonymously.  Even so,
       // we still need to update the modifiersName attribute.
       nameValues.add(new AttributeValue(modifiersNameType,
-                                        new ASN1OctetString()));
+                                        ByteStringFactory.create()));
     }
     else
     {
       nameValues.add(new AttributeValue(modifiersNameType,
-           new ASN1OctetString(modifierDN.toString())));
+           ByteStringFactory.create(modifierDN.toString())));
     }
     Attribute nameAttr = new Attribute(modifiersNameType,
                                        OP_ATTR_MODIFIERS_NAME, nameValues);
@@ -254,7 +254,7 @@ public final class LastModPlugin
     LinkedHashSet<AttributeValue> timeValues =
          new LinkedHashSet<AttributeValue>(1);
     timeValues.add(new AttributeValue(modifyTimestampType,
-                                      new ASN1OctetString(getUTCTime())));
+                                      ByteStringFactory.create(getUTCTime())));
 
     Attribute timeAttr = new Attribute(modifyTimestampType,
                                        OP_ATTR_MODIFY_TIMESTAMP, timeValues);
@@ -300,12 +300,12 @@ public final class LastModPlugin
       // This must mean that the operation was performed anonymously.  Even so,
       // we still need to update the modifiersName attribute.
       nameValues.add(new AttributeValue(modifiersNameType,
-                                        new ASN1OctetString()));
+                                        ByteStringFactory.create()));
     }
     else
     {
       nameValues.add(new AttributeValue(modifiersNameType,
-           new ASN1OctetString(modifierDN.toString())));
+           ByteStringFactory.create(modifierDN.toString())));
     }
     Attribute nameAttr = new Attribute(modifiersNameType,
                                        OP_ATTR_MODIFIERS_NAME, nameValues);
@@ -317,7 +317,7 @@ public final class LastModPlugin
     LinkedHashSet<AttributeValue> timeValues =
          new LinkedHashSet<AttributeValue>(1);
     timeValues.add(new AttributeValue(modifyTimestampType,
-                                      new ASN1OctetString(getUTCTime())));
+                                      ByteStringFactory.create(getUTCTime())));
 
     Attribute timeAttr = new Attribute(modifyTimestampType,
                                        OP_ATTR_MODIFY_TIMESTAMP, timeValues);

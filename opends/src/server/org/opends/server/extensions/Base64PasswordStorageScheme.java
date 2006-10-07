@@ -31,8 +31,8 @@ package org.opends.server.extensions;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -114,7 +114,7 @@ public class Base64PasswordStorageScheme
   {
     assert debugEnter(CLASS_NAME, "encodePassword", "ByteString");
 
-    return new ASN1OctetString(Base64.encode(plaintext.value()));
+    return ByteStringFactory.create(Base64.encode(plaintext.value()));
   }
 
 
@@ -135,7 +135,7 @@ public class Base64PasswordStorageScheme
     buffer.append('}');
     buffer.append(Base64.encode(plaintext.value()));
 
-    return new ASN1OctetString(buffer.toString());
+    return ByteStringFactory.create(buffer.toString());
   }
 
 
@@ -184,7 +184,8 @@ public class Base64PasswordStorageScheme
 
     try
     {
-      return new ASN1OctetString(Base64.decode(storedPassword.stringValue()));
+      return ByteStringFactory.create(Base64.decode(
+                                           storedPassword.stringValue()));
     }
     catch (Exception e)
     {

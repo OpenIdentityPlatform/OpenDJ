@@ -203,7 +203,7 @@ public class LengthBasedPasswordValidator
                                       StringBuilder invalidReason)
   {
     assert debugEnter(CLASS_NAME, "passwordIsAcceptable",
-                      "org.opends.server.protocols.asn1.ASN1OctetString",
+                      "ByteString", "Set<ByteString>",
                       String.valueOf(operation), String.valueOf(userEntry),
                       "java.lang.StringBuilder");
 
