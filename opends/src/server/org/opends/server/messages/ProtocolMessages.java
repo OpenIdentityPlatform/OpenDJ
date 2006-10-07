@@ -4169,6 +4169,16 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used if an LDAP attribute
+   * contains duplicate values.  This takes a single argument, which is the name
+   * of the attribute.
+   */
+  public static final int MSGID_LDAP_ATTRIBUTE_DUPLICATE_VALUES =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 384;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -4661,6 +4671,9 @@ public class ProtocolMessages
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "attribute because the set of values could not be " +
                     "decoded:  %s.");
+    registerMessage(MSGID_LDAP_ATTRIBUTE_DUPLICATE_VALUES,
+                    "The provided LDAP attribute %s contains duplicate " +
+                    "values.");
 
 
     registerMessage(MSGID_LDAP_ADD_REQUEST_DECODE_SEQUENCE,

@@ -365,7 +365,13 @@ public class LDAPAttribute
          new LinkedHashSet<AttributeValue>(values.size());
     for (ASN1OctetString value : values)
     {
-      attributeValues.add(new AttributeValue(attrType, value));
+      if (! attributeValues.add(new AttributeValue(attrType, value)))
+      {
+        int    msgID   = MSGID_LDAP_ATTRIBUTE_DUPLICATE_VALUES;
+        String message = getMessage(msgID, attributeType);
+        throw new LDAPException(LDAPResultCode.ATTRIBUTE_OR_VALUE_EXISTS, msgID,
+                                message);
+      }
     }
 
 
