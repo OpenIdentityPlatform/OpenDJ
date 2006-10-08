@@ -6622,6 +6622,16 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to read the assertion value from a file.  This takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 674;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7203,6 +7213,9 @@ public class ToolMessages
     registerMessage(MSGID_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE,
                     "The assertion value was indicated to be base64-encoded, " +
                     "but an error occurred while trying to decode the value.");
+    registerMessage(MSGID_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE,
+                    "Unable to read the assertion value from the specified " +
+                    "file:  %s.");
     registerMessage(MSGID_SEARCH_DESCRIPTION_BASEDN,
                     "The base DN for the search.");
     registerMessage(MSGID_SEARCH_DESCRIPTION_SIZE_LIMIT,
