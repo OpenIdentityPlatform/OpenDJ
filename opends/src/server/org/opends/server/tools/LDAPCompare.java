@@ -423,7 +423,7 @@ public class LDAPCompare
       argParser.setUsageArgument(showUsage, out);
       controlStr = new StringArgument("controls", 'J', "controls", false,
                 false, true,
-                "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
+                "{controloid[:criticality[:value|::b64value|:<filePath]]}",
                 null, null, MSGID_DESCRIPTION_CONTROLS);
       argParser.addArgument(controlStr);
       verbose = new BooleanArgument("verbose", 'v', "verbose",
@@ -519,7 +519,7 @@ public class LDAPCompare
       err.println("Invalid attribute string:" + attributeString);
       err.println("Attribute string must be in one of the " +
       "following forms: attribute:value, attribute::base64value, " +
-      "attribute:<fileURL" );
+      "attribute:<filePath" );
       return 1;
     }
     attributeType = attributeString.substring(0, idx);
@@ -545,8 +545,8 @@ public class LDAPCompare
         }
       } else if(nextChar == '<')
       {
-        String fileURL = remainder.substring(1, remainder.length());
-        attributeVal = LDAPToolUtils.readBytesFromFile(fileURL);
+        String filePath = remainder.substring(1, remainder.length());
+        attributeVal = LDAPToolUtils.readBytesFromFile(filePath);
       } else
       {
         attributeVal = remainder.getBytes();
