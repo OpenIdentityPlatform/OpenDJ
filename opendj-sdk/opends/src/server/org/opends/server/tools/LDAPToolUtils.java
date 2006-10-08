@@ -132,17 +132,17 @@ public class LDAPToolUtils
   /**
    * Read the data from the specified file and return it in a byte array.
    *
-   * @param  fileURL  The URL to the file that should be read.
+   * @param  filePath  The path to the file that should be read.
    *
    * @return  A byte array containing the contents of the requested file.
    */
-  public static byte[] readBytesFromFile(String fileURL)
+  public static byte[] readBytesFromFile(String filePath)
   {
       byte[] val = null;
       FileInputStream fis = null;
       try
       {
-        File file = new File(fileURL);
+        File file = new File(filePath);
         fis = new FileInputStream (file);
         long length = file.length();
         val = new byte[(int)length];
@@ -157,14 +157,14 @@ public class LDAPToolUtils
         // Ensure all the bytes have been read in
         if (offset < val.length)
         {
-          System.err.println("Could not completely read file "+fileURL);
+          System.err.println("Could not completely read file "+filePath);
           return null;
         }
 
         return val;
       } catch(IOException ie)
       {
-        System.err.println("Could not completely read file "+fileURL);
+        System.err.println("Could not completely read file "+filePath);
         System.err.println(ie.getMessage());
         return null;
       } finally
