@@ -270,6 +270,7 @@ public class LDAPPasswordModify
 
       useStartTLS = new BooleanArgument("usestarttls", 'q', "useStartTLS",
                              MSGID_LDAPPWMOD_DESCRIPTION_USE_STARTTLS);
+      argParser.addArgument(useStartTLS);
 
 
       sslBlindTrust =
@@ -410,21 +411,22 @@ public class LDAPPasswordModify
     }
     else
     {
-      if (! (authzID.isPresent() && currentPW.isPresent()))
-      {
-        int    msgID   = MSGID_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW;
-        String message = getMessage(msgID);
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        err.println(argParser.getUsage());
-        return 1;
-      }
-
       if (provideDNForAuthzID.isPresent())
       {
         int    msgID   = MSGID_LDAPPWMOD_DEPENDENT_ARGS;
         String message = getMessage(msgID,
                                     provideDNForAuthzID.getLongIdentifier(),
                                     bindDN.getLongIdentifier());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        err.println(argParser.getUsage());
+        return 1;
+      }
+
+      if (! (authzID.isPresent() &&
+             (currentPW.isPresent() || currentPWFile.isPresent())))
+      {
+        int    msgID   = MSGID_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW;
+        String message = getMessage(msgID);
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         return 1;
