@@ -485,7 +485,7 @@ public class LDAPCompare
     // If we should just display usage information, then print it and exit.
     if (showUsage.isPresent())
     {
-      return 1;
+      return 0;
     }
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
