@@ -538,7 +538,10 @@ public class LDAPCompare
         catch (ParseException e)
         {
           assert debugException(CLASS_NAME, "main", e);
-          attributeVal = remainder.getBytes();
+
+          int msgID = MSGID_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE;
+          err.println(getMessage(msgID));
+          return 1;
         }
       } else if(nextChar == '<')
       {
