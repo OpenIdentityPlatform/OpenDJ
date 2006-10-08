@@ -545,8 +545,17 @@ public class LDAPCompare
         }
       } else if(nextChar == '<')
       {
-        String filePath = remainder.substring(1, remainder.length());
-        attributeVal = LDAPToolUtils.readBytesFromFile(filePath);
+        try
+        {
+          String filePath = remainder.substring(1, remainder.length());
+          attributeVal = LDAPToolUtils.readBytesFromFile(filePath);
+        }
+        catch (Exception e)
+        {
+          int msgID = MSGID_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE;
+          err.println(getMessage(msgID, String.valueOf(e)));
+          return 1;
+        }
       } else
       {
         attributeVal = remainder.getBytes();

@@ -57,7 +57,8 @@ public class LDAPToolUtils
    * @param  argString  The argument string containing the encoded control
    *                    information.
    *
-   * @return  The control decoded from the provided string.
+   * @return  The control decoded from the provided string, or <CODE>null</CODE>
+   *          if an error occurs while parsing the argument value.
    */
   public static LDAPControl getControl(String argString)
   {
@@ -117,8 +118,15 @@ public class LDAPToolUtils
     {
       // Read data from the file.
       String fileURL = valString.substring(1, valString.length());
-      byte[] val = readBytesFromFile(fileURL);
-      controlValue = new ASN1OctetString(val);
+      try
+      {
+        byte[] val = readBytesFromFile(fileURL);
+        controlValue = new ASN1OctetString(val);
+      }
+      catch (Exception e)
+      {
+        return null;
+      }
     } else
     {
       controlValue = new ASN1OctetString(valString);
@@ -135,8 +143,12 @@ public class LDAPToolUtils
    * @param  filePath  The path to the file that should be read.
    *
    * @return  A byte array containing the contents of the requested file.
+   *
+   * @throws  IOException  If a problem occurs while trying to read the
+   *                       specified file.
    */
   public static byte[] readBytesFromFile(String filePath)
+         throws IOException
   {
       byte[] val = null;
       FileInputStream fis = null;
@@ -162,18 +174,11 @@ public class LDAPToolUtils
         }
 
         return val;
-      } catch(IOException ie)
-      {
-        System.err.println("Could not completely read file "+filePath);
-        System.err.println(ie.getMessage());
-        return null;
       } finally
       {
-        try
+        if (fis != null)
         {
           fis.close();
-        } catch(IOException ioe)
-        {
         }
       }
   }
