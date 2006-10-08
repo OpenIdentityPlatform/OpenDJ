@@ -6612,6 +6612,16 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if an assertion value that
+   * is supposed to be base64-encoded can't be decoded.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 673;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7190,6 +7200,9 @@ public class ToolMessages
                     "Use the LDAP assertion control so that the compare is " +
                     "only processed if the target entry matches the provided " +
                     "assertion filter.");
+    registerMessage(MSGID_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE,
+                    "The assertion value was indicated to be base64-encoded, " +
+                    "but an error occurred while trying to decode the value.");
     registerMessage(MSGID_SEARCH_DESCRIPTION_BASEDN,
                     "The base DN for the search.");
     registerMessage(MSGID_SEARCH_DESCRIPTION_SIZE_LIMIT,
