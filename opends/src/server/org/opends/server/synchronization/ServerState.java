@@ -249,7 +249,7 @@ public class ServerState implements Serializable
       for (Short key  : list.keySet())
       {
         ChangeNumber change = list.get(key);
-        str += change.toString();
+        str += " " + change.toString();
       }
 
       return str;

@@ -297,9 +297,7 @@ public class JmxConnectTest extends JmxTestCase
     
     // change the configuration of the connection handler to use 
     // a free port
-    ServerSocket serverJmxSocket = new ServerSocket();
-    serverJmxSocket.setReuseAddress(true);
-    serverJmxSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+    ServerSocket serverJmxSocket = TestCaseUtils.bindFreePort();
     int serverJmxPort = serverJmxSocket.getLocalPort();
     
     ConfigEntry config = new ConfigEntry(TestCaseUtils.makeEntry(

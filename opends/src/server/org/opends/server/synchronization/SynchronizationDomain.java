@@ -34,6 +34,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.synchronization.OperationContext.SYNCHROCONTEXT;
 import static org.opends.server.synchronization.Historical.*;
 
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -290,10 +291,11 @@ public class SynchronizationDomain extends DirectoryThread
      */
     try
     {
-      broker = new ChangelogBroker(this);
+      broker = new ChangelogBroker(state, baseDN, serverId, maxReceiveQueue,
+          maxReceiveDelay, maxSendQueue, maxSendDelay);
       synchronized (broker)
       {
-        broker.start(serverId, changelogServers);
+        broker.start(changelogServers);
         if (!receiveStatus)
           broker.suspendReceive();
       }
@@ -379,7 +381,7 @@ public class SynchronizationDomain extends DirectoryThread
       {
         broker.stop();
         changelogServers = newChangelogServers;
-        broker.start(serverId, changelogServers);
+        broker.start(changelogServers);
       }
 
       /*
@@ -676,14 +678,22 @@ public class SynchronizationDomain extends DirectoryThread
       UpdateMessage update = null;
       while (update == null)
       {
-        SynchronizationMessage msg = broker.receive();
-        if (msg == null)
+        SynchronizationMessage msg;
+        try
         {
-          // The server is in the shutdown process
-          return null;
+          msg = broker.receive();
+          if (msg == null)
+          {
+            // The server is in the shutdown process
+            return null;
+          }
+
+          update = msg.processReceive(this);
+        } catch (SocketTimeoutException e)
+        {
+          // just retry
         }
 
-        update = msg.processReceive(this);
       }
       return update;
     }
@@ -1001,28 +1011,6 @@ public class SynchronizationDomain extends DirectoryThread
   }
 
   /**
-   * Get the largest ChangeNumber that has been processed locally.
-   *
-   * @return The largest ChangeNumber that has been processed locally.
-   */
-  public ChangeNumber getMaxChangeNumber()
-  {
-    return state.getMaxChangeNumber(serverId);
-  }
-
-  /**
-   * Create a new serverStartMessage suitable for this SynchronizationDomain.
-   *
-   * @return A new serverStartMessage suitable for this SynchronizationDomain.
-   */
-  public ServerStartMessage newServerStartMessage()
-  {
-    return new ServerStartMessage(serverId, baseDN, maxReceiveDelay,
-                                  maxReceiveQueue, maxSendDelay, maxSendQueue,
-                                  state);
-  }
-
-  /**
    * Create and replay a synchronized Operation from an UpdateMessage.
    *
    * @param msg The UpdateMessage to be replayed.
@@ -1073,6 +1061,13 @@ public class SynchronizationDomain extends DirectoryThread
           else
           {
             done = true;  // unknown type of operation ?!
+          }
+          if (done)
+          {
+            // the update became a dummy update and the result
+            // of the conflict resolution phase is to do nothing.
+            // however we still need to push this change to the serverState
+            updateError(changeNumber);
           }
         }
         else
@@ -1377,8 +1372,8 @@ public class SynchronizationDomain extends DirectoryThread
       }
       else
       {
-        RDN entryRdn = op.getEntryDN().getRDN();
-        msg.setDn(parentDn + "," + entryRdn);
+        RDN entryRdn = DN.decode(msg.getDn()).getRDN();
+        msg.setDn(entryRdn + "," + parentDn);
         return false;
       }
     }
@@ -1534,7 +1529,7 @@ public class SynchronizationDomain extends DirectoryThread
    */
   private String generateConflictDn(String entryUid, String dn)
   {
-    return dn + "entryuuid=" + entryUid;
+    return "entryuuid=" + entryUid + "+" + dn;
   }
 
   /**

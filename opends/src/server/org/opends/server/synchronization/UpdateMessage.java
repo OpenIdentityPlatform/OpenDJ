@@ -102,7 +102,7 @@ public abstract class UpdateMessage extends SynchronizationMessage
   /**
    * Generates an Update Message which the provided information.
    *
-   * @param op The operation fo which the message must be created.
+   * @param op The operation for which the message must be created.
    * @param isAssured flag indicating if the operation is an assured operation.
    * @return The generated message.
    */
