@@ -593,4 +593,29 @@ public final class TestCaseUtils {
   public static List<Entry> makeEntries(String... lines) throws Exception {
      return entriesFromLdifString(makeLdif(lines));
   }
+
+  /**
+   * Creates a temporary text file with the specified contents.  It will be
+   * marked for automatic deletion when the JVM exits.
+   *
+   * @return  The absolute path to the file that was created.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static String createTempFile(String... lines)
+          throws Exception
+  {
+    File f = File.createTempFile("LDAPModifyTestCase", ".txt");
+    f.deleteOnExit();
+
+    FileWriter w = new FileWriter(f);
+    for (String s : lines)
+    {
+      w.write(s + System.getProperty("line.separator"));
+    }
+
+    w.close();
+
+    return f.getAbsolutePath();
+  }
 }
