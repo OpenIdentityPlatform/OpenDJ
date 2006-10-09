@@ -35,7 +35,7 @@ import org.opends.server.DirectoryServerTestCase;
 
 
 /**
- * An abstract base class for all extensions test cases.
+ * An abstract base class for all API test cases.
  */
 @Test(groups = { "precommit", "api" })
 public abstract class APITestCase
