@@ -131,7 +131,7 @@ public abstract class MonitorProvider
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processServerShutdown", e);
+      assert debugException(CLASS_NAME, "finalizeMonitorProvider", e);
     }
   }
 
@@ -244,37 +244,6 @@ public abstract class MonitorProvider
              stopSleepTime - System.currentTimeMillis();
       }
     }
-  }
-
-
-
-  /**
-   * Retrieves the human-readable name for this shutdown listener.
-   *
-   * @return  The human-readable name for this shutdown listener.
-   */
-  public final String getShutdownListenerName()
-  {
-    assert debugEnter(CLASS_NAME, "getShutdownListenerName");
-
-    return "Monitor Provider " + getMonitorInstanceName();
-  }
-
-
-
-  /**
-   * Indicates that the Directory Server has received a request to
-   * stop running and that this shutdown listener should take any
-   * action necessary to prepare for it.
-   *
-   * @param  reason  The human-readable reason for the shutdown.
-   */
-  public final void processServerShutdown(String reason)
-  {
-    assert debugEnter(CLASS_NAME, "processServerShutdown",
-                      String.valueOf(reason));
-
-    finalizeMonitorProvider();
   }
 }
 

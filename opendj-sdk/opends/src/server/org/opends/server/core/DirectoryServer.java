@@ -6801,7 +6801,7 @@ public class DirectoryServer
     {
       try
       {
-        monitor.processServerShutdown(reason);
+        monitor.finalizeMonitorProvider();
       }
       catch (Exception e)
       {
