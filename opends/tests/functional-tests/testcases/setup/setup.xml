@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="main_setup"/>
+
+  <function name="main_setup">
+
+      <sequence>
+
+      <!--- Prepare data files for transportation-->
+      <message>
+          'Delete existing zip archive if it exists already.'
+      </message>
+      <call function="'deletefile'">
+          { 'filename' : '%s/ldifdata.zip' % TMPDIR ,
+            'hostname' : STAF_LOCAL_HOSTNAME }
+      </call>
+
+      <!---   Zip up contents of tests directory -->
+      <message>
+          'Zip up data directory.'
+      </message>
+      <call function="'zipfile'">
+          { 'zipfilename' : '%s/ldifdata.zip' % TMPDIR , 
+            'foldername'  : TESTS_DIR ,
+            'relativeto'  : TESTS_ROOT }
+      </call>
+
+      <!---   Copy data to remote host -->
+      <message>
+          'Copy tests to %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
+      </message>
+      <call function="'copyfile'">
+          { 'srcfile'    : '%s/ldifdata.zip' % TMPDIR,
+            'destfile'   : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR,
+            'remotehost' : STAF_REMOTE_HOSTNAME }
+      </call>
+
+      <!---   Unzip contents of tests data on remote host -->
+      <message>
+          'Extract contents of test data %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
+      </message>
+      <call function="'unzipfile'">
+          { 'zipfile'  : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR, 
+            'unzipdir' : '%s' % (DIRECTORY_INSTANCE_DIR),
+            'ziphost'  : STAF_REMOTE_HOSTNAME }
+      </call>
+
+      <!--- Install DS Copy zip file -->
+      <!--- XXX TODO XXX handle cases better -->
+      <message>
+          'Copy DS zip archive to %s on %s' % (DSTFILE,STAF_REMOTE_HOSTNAME)
+      </message>
+      <call function="'copyfile'">
+            { 'srcfile'    : SRCFILE, 
+            'destfile'   : DSTFILE,
+            'remotehost' : STAF_REMOTE_HOSTNAME }
+      </call>
+
+      <!--- Delete folder if it exists already-->
+      <message>
+          'Delete folder %s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+      </message>
+      <call function="'deletefolder'">
+          { 'foldername' : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
+            'hostname'   :  STAF_REMOTE_HOSTNAME }
+      </call>
+
+      <!--- Install DS Extract zip file -->
+      <!--- XXX TODO XXX handle cases better -->
+      <message>
+          'Extract DS zip archive to %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
+      </message>
+      <call function="'unzipfile'">
+          { 'zipfile'  : DSTFILE, 
+            'unzipdir' : '%s' % (DIRECTORY_INSTANCE_DIR),
+            'ziphost'  : STAF_REMOTE_HOSTNAME }
+      </call>
+
+      <!--- Test Case : Configure DS -->
+      <testcase name="'ConfigureDS'">
+        <sequence>
+          <message>
+             'Configure DS to run on port %s with base suffix %s' % (DIRECTORY_INSTANCE_PORT,DIRECTORY_INSTANCE_SFX)
+          </message>
+          <call function="'configureDS'">
+              { 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceSuffix' : DIRECTORY_INSTANCE_SFX }
+          </call>
+          <call function="'checktestRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
+          </call>
+        </sequence>
+      </testcase>
+
+     </sequence>
+
+  </function>
+
+</stax>

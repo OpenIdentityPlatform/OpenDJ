@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+    <function name="checkRC">
+
+    <function-prolog>
+        This function checks the STAF return code against an expected return code
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="returncode">
+            return code received from command
+        </function-required-arg>
+        <function-required-arg name="result">
+            the output of the result
+        </function-required-arg>
+        <function-optional-arg name="expected" default="0">
+            the expected return code
+        </function-optional-arg>
+
+    </function-map-args>
+
+      <sequence>
+
+        <if expr="returncode == expected">
+          <sequence>
+          <if expr="result == ''">
+              <message log="1">
+                'Success: RC=%s, Result=Ok' % (returncode)
+              </message>
+          <else>
+              <message log="1">
+                'Success: RC=%s, Result=%s' % (returncode,result)
+              </message>
+          </else>
+          </if>
+          </sequence>
+        <else>
+          <sequence>
+          <message log="1" level="'Error'">
+            'Error: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+          </message>
+          </sequence>
+        </else>
+        </if>
+
+
+      </sequence>
+
+    </function>
+
+    <function name="checktestRC">
+
+    <function-prolog>
+        This function checks the return code against an expected return code for a testcase
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="returncode">
+            return code received from command
+        </function-required-arg>
+        <function-required-arg name="result">
+            the output of the result
+        </function-required-arg>
+        <function-optional-arg name="expected" default="0">
+            the expected return code
+        </function-optional-arg>
+
+    </function-map-args>
+
+      <sequence>
+
+        <if expr="returncode == expected">
+          <sequence>
+          <tcstatus result="'pass'"/>
+          <message log="1">
+            'Success: RC=%s, Result=%s' % (returncode,result)
+          </message>
+          </sequence>
+        <else>
+          <sequence>
+          <tcstatus result="'fail'"/>
+          <message log="1" level="'Error'">
+            'Error: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+          </message>
+          </sequence>
+        </else>
+        </if>
+
+
+      </sequence>
+
+  </function>
+
+  <function name="isAlive">
+
+    <function-prolog>
+        Checks that the ldap server is running
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="noOfLoops">
+            Number of loops
+        </function-required-arg>
+        <function-required-arg name="noOfMilliSeconds">
+            Number of seconds
+        </function-required-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <script>ldapRC=9999</script>
+        <loop from="1" to="noOfLoops" while="ldapRC != 0">
+ 
+          <sequence>
+          <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'cn=config' ,
+		'dsFilter'	   : 'objectclass=*' ,
+                'extraParams'       : '-s "base"' }
+          </call>
+
+          <script>
+              ldapRC=RC
+          </script>
+
+          <call function="'Sleep'">
+              { 'sleepForMilliSeconds'  : noOfMilliSeconds }
+          </call>
+ 
+          </sequence>
+
+        </loop>
+
+      </sequence>
+
+  </function>
+
+  <function name="Sleep">
+
+    <function-prolog>
+        Sleep for number of milliseconds
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="sleepForMilliSeconds">
+            Number of milliseconds to sleep
+        </function-required-arg>
+    </function-map-args>
+
+    <sequence>
+
+    <stafcmd name="'STAF Command: Delay'">
+      <location>'%s' % (hostname)</location>
+      <service>'delay'</service>
+      <request>
+        'delay %i' % sleepForMilliSeconds
+      </request>
+    </stafcmd>
+
+    <call function="'checkRC'">
+      { 'returncode' : RC ,
+        'result'     : STAFResult }
+    </call>
+
+    </sequence>
+
+  </function>
+
+  <!--- XXX TODO XXX 
+       I am not sure this is best way, we could try directly
+       calling python modules os sys
+  -->
+  <function name="setOSvariables">
+
+    <function-prolog>
+        Set OS related variables
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="hostname">
+            Name of host
+        </function-required-arg>
+    </function-map-args>
+
+    <sequence>
+
+      <stafcmd name="'STAF Command: Get OS Name'">
+        <location>'%s' % (hostname)</location>
+        <service>'var'</service>
+        <request>
+          'get system var STAF/Config/OS/Name'
+        </request>
+      </stafcmd>
+
+      <message>
+        'OS Name= %s' % STAFResult
+      </message>
+
+      <return>STAFResult</return>
+    </sequence>
+
+  </function>
+
+</stax>

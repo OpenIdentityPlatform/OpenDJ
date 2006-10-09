@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+    <function name="copyfile">
+
+    <function-prolog>
+        This function copies a source file to destination file to a remote host
+    </function-prolog>
+
+    <function-map-args>
+        <function-arg-def name="srcfile" type="required">
+                <function-arg-description>
+                    The name of the source fule
+                </function-arg-description>
+                <function-arg-property name="type" value="filename"/>
+        </function-arg-def>
+
+        <function-arg-def name="destfile" type="required">
+                <function-arg-description>
+                    The name of the destination fule
+                </function-arg-description>
+                <function-arg-property name="type" value="filename"/>
+        </function-arg-def>
+
+        <function-arg-def name="remotehost" type="optional" default="local">
+                <function-arg-description>
+                    The name of remote host (default local)
+                </function-arg-description>
+                <function-arg-property name="type" value="hostname"/>
+        </function-arg-def>
+
+    </function-map-args>
+
+      <sequence>
+
+        <stafcmd name="'STAF Command: Copy Zip File'">
+          <location>'%s' % (STAF_LOCAL_HOSTNAME)</location>
+          <service>'fs'</service>
+          <request>'COPY FILE %s TOFILE %s TOMACHINE %s' % (srcfile,destfile,remotehost) </request>
+        </stafcmd>
+
+        <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAFResult }
+        </call>
+
+      </sequence>
+
+    </function>
+
+    <function name="zipfile">
+
+    <function-prolog>
+        This function zips a folder on remote machine
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="zipfilename">
+            name of zip file
+        </function-required-arg>
+        <function-required-arg name="foldername">
+            name of destination folder to place zip file contents
+        </function-required-arg>
+        <function-required-arg name="relativeto">
+            folder that the zip archive is relative to
+        </function-required-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <stafcmd name="'STAF Command: Zip Up Folder'">
+          <location>'%s' % (STAF_LOCAL_HOSTNAME)</location>
+          <service>'zip'</service>
+          <request>
+              'ADD ZIPFILE %s DIRECTORY %s RECURSE RELATIVETO %s' % (zipfilename,foldername,relativeto)
+          </request>
+        </stafcmd>
+
+        <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAFResult }
+        </call>
+
+      </sequence>
+
+    </function>
+
+    <function name="unzipfile">
+
+    <function-prolog>
+        This function unzips a compressed zip archive on remote machine
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="zipfile">
+            name of source zip file
+        </function-required-arg>
+        <function-required-arg name="unzipdir">
+            name of destination folder to place zip file contents
+        </function-required-arg>
+        <function-optional-arg name="ziphost" default="'local'">
+            name of host on which to unzip (default local)
+        </function-optional-arg>
+
+    </function-map-args>
+
+      <sequence>
+
+        <stafcmd name="'STAF Command: Unzip File'">
+          <location>'%s' % (ziphost)</location>
+          <service>'zip'</service>
+          <request>
+              'UNZIP ZIPFILE %s TODIRECTORY %s RESTOREPERMISSION REPLACE' % (zipfile,unzipdir)
+          </request>
+        </stafcmd>
+
+        <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAFResult }
+        </call>
+
+      </sequence>
+
+    </function>
+
+    <function name="deletefile">
+
+    <function-prolog>
+        This function recursively deletes a folder
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="filename">
+            name of file to be deleted
+        </function-required-arg>
+        <function-required-arg name="hostname">
+            name of target host
+        </function-required-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <stafcmd name="'STAF Command: Delete Existing File'">
+          <location>'%s' % (hostname)</location>
+          <service>'fs'</service>
+          <request>
+            'GET ENTRY %s TYPE' % (filename)
+          </request>
+        </stafcmd>
+
+        <if expr="RC == 48">
+          <sequence>
+            <message log="1">
+              'Success: File does not exist, dont delete it.'
+            </message>
+            <return>0</return>
+          </sequence>
+        <else>
+          <sequence>
+            <message log="1">
+              'Success: File does exists, will delete it'
+            </message>
+          </sequence>
+        </else>
+        </if>
+
+        <stafcmd name="'STAF Command: Delete Existing File'">
+          <location>'%s' % (hostname)</location>
+          <service>'fs'</service>
+          <request>
+            'DELETE ENTRY %s CONFIRM' % (filename)
+          </request>
+        </stafcmd>
+
+        <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAFResult }
+        </call>
+
+      </sequence>
+
+    </function>
+
+    <function name="deletefolder">
+
+    <function-prolog>
+        This function recursively deletes a folder
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="foldername">
+            name of folder to be deleted
+        </function-required-arg>
+        <function-required-arg name="hostname">
+            name of target host
+        </function-required-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <stafcmd name="'STAF Command: Recursively Delete Existing Folder'">
+          <location>'%s' % (hostname)</location>
+          <service>'fs'</service>
+          <request>
+            'DELETE ENTRY %s RECURSE IGNOREERRORS CONFIRM' % (foldername)
+          </request>
+        </stafcmd>
+
+        <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAFResult }
+        </call>
+      </sequence>
+
+    </function>
+
+</stax>
