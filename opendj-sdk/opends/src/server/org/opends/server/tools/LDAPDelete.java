@@ -449,10 +449,10 @@ public class LDAPDelete
       return 1;
     }
 
-    // If we should just display usage information, then print it and exit.
+    // If we should just display usage information, then it has already been
+    // done so just exit.
     if (showUsage.isPresent())
     {
-      out.println(argParser.getUsage());
       return 0;
     }
 
