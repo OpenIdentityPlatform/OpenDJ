@@ -28,8 +28,6 @@ package org.opends.server.plugins;
 
 
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -1064,6 +1062,27 @@ public class InvocationCounterPlugin
   public static void resetShutdownCalled()
   {
     shutdownCalled = false;
+  }
+
+
+
+  /**
+   * Waits up to five seconds until the post-response plugins have been called
+   * at least once since the last reset.
+   * @return The number of times that the post-response plugins have been
+   *         called since the last reset.  The return value may be zero if the
+   *         wait timed out.
+   * @throws InterruptedException If another thread interrupts this thread.
+   */
+  public static int waitForPostResponse() throws InterruptedException
+  {
+    long timeout = System.currentTimeMillis() + 5000;
+    while (postResponseCounter.get() == 0 &&
+         System.currentTimeMillis() < timeout)
+    {
+      Thread.sleep(10);
+    }
+    return postResponseCounter.get();
   }
 }
 

@@ -647,7 +647,7 @@ public class CompareOperationTestCase extends OperationTestCase
         assertEquals(InvocationCounterPlugin.getPreOperationCount(), 0);
         assertEquals(InvocationCounterPlugin.getPostOperationCount(), 0);
         // The post response might not have been called yet.
-//        assertEquals(InvocationCounterPlugin.getPostResponseCount(), 1);
+        assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
       } finally
       {
         LockManager.unlock(entry.getDN(), writeLock);
