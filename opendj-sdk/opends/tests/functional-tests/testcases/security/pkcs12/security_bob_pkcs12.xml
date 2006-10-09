@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="bob_pkcs12"/>
+
+  <function name="bob_pkcs12">
+
+      <sequence>
+
+        <testcase name="'AddEntriesThroughSSLPort'">
+          <sequence>
+            <message>
+               'Adding Entries Through SSL Port'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/security/pkcs12/pkcs12_startup.ldif' % LDIF_DATA_DIR,
+                'extraParams'      : '-Z -X' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Modify Entry through SSL port -->
+        <testcase name="'ModifyEntryThroughSSLPort'">
+          <sequence>
+            <message>
+               'Modifying Entry Through SSL Port'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pkcs12/modrdn/a1_modrdn.ldif' % LDIF_DATA_DIR ,
+                'extraParams'      : '-Z -X' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Add Attribute to Entry through SSL port -->
+        <testcase name="'AddAttrToEntryThroughSSLPort'">
+          <sequence>
+            <message>
+               'Adding Attr to Entry Through SSL Port'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pkcs12/add/bin_a1_in.ldif' % LDIF_DATA_DIR ,
+                'extraParams'      : '-Z -X' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Modify Attribute in Entry through SSL port -->
+        <testcase name="'ModAttrInEntryThroughSSLPort'">
+          <sequence>
+            <message>
+               'Modifying Attr in Entry Through SSL Port'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pkcs12/mod/bin_a1_mod.ldif' % LDIF_DATA_DIR ,
+                'extraParams'      : '-Z -X' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Delete Entry through SSL port -->
+        <testcase name="'DeleteEntryThroughSSLPort'">
+          <sequence>
+            <message>
+               'Deleting Entry Through SSL Port'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pkcs12/del/bin_a1_out.ldif' % LDIF_DATA_DIR ,
+                'extraParams'      : '-Z -X' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>
