@@ -29,6 +29,7 @@ package org.opends.server.tools;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -56,11 +57,13 @@ public class LDAPToolUtils
    *
    * @param  argString  The argument string containing the encoded control
    *                    information.
+   * @param  err        A print stream to which error messages should be
+   *                    written if a problem occurs.
    *
    * @return  The control decoded from the provided string, or <CODE>null</CODE>
    *          if an error occurs while parsing the argument value.
    */
-  public static LDAPControl getControl(String argString)
+  public static LDAPControl getControl(String argString, PrintStream err)
   {
     LDAPControl control = null;
     String controlOID = null;
@@ -88,7 +91,7 @@ public class LDAPToolUtils
         controlCriticality = false;
       } else
       {
-        System.err.println("Invalid format for criticality value:" + remainder);
+        err.println("Invalid format for criticality value:" + remainder);
         return null;
       }
       control = new LDAPControl(controlOID, controlCriticality);
@@ -105,7 +108,7 @@ public class LDAPToolUtils
       controlCriticality = false;
     } else
     {
-      System.err.println("Invalid format for criticality value:" + critical);
+      err.println("Invalid format for criticality value:" + critical);
       return null;
     }
 
@@ -117,10 +120,10 @@ public class LDAPToolUtils
     } else if(valString.charAt(0) == '<')
     {
       // Read data from the file.
-      String fileURL = valString.substring(1, valString.length());
+      String filePath = valString.substring(1, valString.length());
       try
       {
-        byte[] val = readBytesFromFile(fileURL);
+        byte[] val = readBytesFromFile(filePath, err);
         controlValue = new ASN1OctetString(val);
       }
       catch (Exception e)
@@ -140,14 +143,16 @@ public class LDAPToolUtils
   /**
    * Read the data from the specified file and return it in a byte array.
    *
-   * @param  filePath  The path to the file that should be read.
+   * @param  filePath   The path to the file that should be read.
+   * @param  err        A print stream to which error messages should be
+   *                    written if a problem occurs.
    *
    * @return  A byte array containing the contents of the requested file.
    *
    * @throws  IOException  If a problem occurs while trying to read the
    *                       specified file.
    */
-  public static byte[] readBytesFromFile(String filePath)
+  public static byte[] readBytesFromFile(String filePath, PrintStream err)
          throws IOException
   {
       byte[] val = null;
@@ -169,7 +174,7 @@ public class LDAPToolUtils
         // Ensure all the bytes have been read in
         if (offset < val.length)
         {
-          System.err.println("Could not completely read file "+filePath);
+          err.println("Could not completely read file "+filePath);
           return null;
         }
 

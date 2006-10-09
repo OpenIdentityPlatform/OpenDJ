@@ -839,12 +839,12 @@ public class LDAPSearch
       err.println(ex1.getMessage());
       return 1;
     }
-    boolean val = searchOptions.setSearchScope(searchScope.getValue());
+    boolean val = searchOptions.setSearchScope(searchScope.getValue(), err);
     if(val == false)
     {
       return 1;
     }
-    val = searchOptions.setDereferencePolicy(dereferencePolicy.getValue());
+    val = searchOptions.setDereferencePolicy(dereferencePolicy.getValue(), err);
     if(val == false)
     {
       return 1;
@@ -853,7 +853,7 @@ public class LDAPSearch
     if(controlStr.hasValue())
     {
       String ctrlString = controlStr.getValue();
-      LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString);
+      LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
       if(ctrl == null)
       {
         err.println("Invalid control specified:" + ctrlString);
