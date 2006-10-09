@@ -88,6 +88,11 @@ public class JmxClientConnection
    */
   private JmxConnectionHandler jmxConnectionHandler;
 
+  /**
+   * Indicate that the disconnect process is started.
+   */
+  private Boolean disconnectStarted = new Boolean(false);
+
 
   /**
    * Creates a new Jmx client connection that will be authenticated as
@@ -181,7 +186,7 @@ public class JmxClientConnection
 
     //
     // Ok, we can perform the unbind: call finalize
-    finalize();
+    disconnect(DisconnectReason.CLIENT_DISCONNECT, false, null, -1);
   }
 
 
@@ -884,7 +889,40 @@ public class JmxClientConnection
                       String.valueOf(sendNotification), String.valueOf(message),
                       String.valueOf(messageID));
 
-    // No implementation is required since there is nothing to disconnect.
+    // we are already performing a disconnect
+    if (disconnectStarted)
+    {
+      return;
+    }
+    disconnectStarted = true ;
+
+
+
+    // unbind the underlying connection
+    try
+    {
+      UnbindOperation unbindOp = new UnbindOperation((ClientConnection) this,
+          this.nextOperationID(), this.nextMessageID(), null);
+      unbindOp.run();
+    }
+    catch (Exception e)
+    {
+      // TODO print a message ?
+      assert debugException(CLASS_NAME, "disconnect", e);
+    }
+
+    // Call postDisconnectPlugins
+    try
+    {
+      PluginConfigManager pluginManager =
+           DirectoryServer.getPluginConfigManager();
+      pluginManager.invokePostDisconnectPlugins(this, disconnectReason,
+                                                messageID, message);
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "disconnect", e);
+    }
   }
 
 
@@ -1067,19 +1105,7 @@ public class JmxClientConnection
    */
   protected void finalize()
   {
-    try
-    {
-      ArrayList<Control> requestControls = new ArrayList<Control>(0);
-      UnbindOperation unbindOp = new UnbindOperation((ClientConnection) this,
-          this.nextOperationID(), this.nextMessageID(), requestControls);
-
-      unbindOp.run();
-    }
-    catch (Exception e)
-    {
-      // TODO print a message ?
-      assert debugException(CLASS_NAME, "bind", e);
-    }
+    disconnect(DisconnectReason.OTHER, false, null, -1);
   }
 }
 

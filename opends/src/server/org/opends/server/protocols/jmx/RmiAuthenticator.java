@@ -31,7 +31,10 @@ import java.util.*;
 import javax.management.remote.JMXAuthenticator;
 import javax.security.auth.Subject;
 
+import org.opends.server.api.plugin.PostConnectPluginResult;
 import org.opends.server.core.BindOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.PluginConfigManager;
 import org.opends.server.messages.CoreMessages;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPException;
@@ -195,7 +198,17 @@ public class RmiAuthenticator implements JMXAuthenticator
 
     //
     // If we've gotten here, then the authentication was
-    // successful.
+    // successful. We'll take the connection so
+    // invoke the post-connect plugins.
+    PluginConfigManager pluginManager = DirectoryServer
+        .getPluginConfigManager();
+    PostConnectPluginResult pluginResult = pluginManager
+        .invokePostConnectPlugins(jmxClientConnection);
+    if (pluginResult.connectionTerminated())
+    {
+      SecurityException se = new SecurityException(pluginResult.toString());
+      throw se;
+    }
 
     // initialize a subject
     Subject s = new Subject();
