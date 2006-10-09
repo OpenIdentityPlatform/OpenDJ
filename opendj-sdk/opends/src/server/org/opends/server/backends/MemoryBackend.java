@@ -61,6 +61,7 @@ import org.opends.server.util.LDIFWriter;
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -177,6 +178,8 @@ public class MemoryBackend
     childDNs = new HashMap<DN,HashSet<DN>>();
 
     supportedControls = new HashSet<String>();
+    supportedControls.add(OID_SUBTREE_DELETE_CONTROL);
+
     supportedFeatures = new HashSet<String>();
 
     for (DN dn : baseDNs)
@@ -337,15 +340,51 @@ public class MemoryBackend
     }
 
 
-    // Make sure the entry doesn't have any children.  If it does, then throw an
-    // exception.
-    HashSet<DN> children = childDNs.get(entryDN);
-    if ((children != null) && (! children.isEmpty()))
+    // Check to see if the entry contains a subtree delete control.
+    boolean subtreeDelete = false;
+    if (deleteOperation != null)
     {
-      int    msgID   = MSGID_MEMORYBACKEND_CANNOT_DELETE_ENTRY_WITH_CHILDREN;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF, message,
-                                   msgID);
+      for (Control c : deleteOperation.getRequestControls())
+      {
+        if (c.getOID().equals(OID_SUBTREE_DELETE_CONTROL))
+        {
+          subtreeDelete = true;
+        }
+      }
+    }
+
+    HashSet<DN> children = childDNs.get(entryDN);
+    if (subtreeDelete)
+    {
+      if (children != null)
+      {
+        HashSet<DN> childrenCopy = new HashSet<DN>(children);
+        for (DN childDN : childrenCopy)
+        {
+          try
+          {
+            deleteEntry(childDN, null);
+          }
+          catch (Exception e)
+          {
+            // This shouldn't happen, but we want the delete to continue anyway
+            // so just ignore it if it does for some reason.
+            assert debugException(CLASS_NAME, "deleteEntry", e);
+          }
+        }
+      }
+    }
+    else
+    {
+      // Make sure the entry doesn't have any children.  If it does, then throw
+      // an exception.
+      if ((children != null) && (! children.isEmpty()))
+      {
+        int    msgID   = MSGID_MEMORYBACKEND_CANNOT_DELETE_ENTRY_WITH_CHILDREN;
+        String message = getMessage(msgID, String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF, message,
+                                     msgID);
+      }
     }
 
 
