@@ -810,7 +810,7 @@ public class LDAPModify
     if(controlStr.hasValue())
     {
       String ctrlString = controlStr.getValue();
-      LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString);
+      LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
       if(ctrl == null)
       {
         err.println("Invalid control specified:" + ctrlString);

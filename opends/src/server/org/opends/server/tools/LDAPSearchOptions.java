@@ -26,6 +26,8 @@
  */
 package org.opends.server.tools;
 
+import java.io.PrintStream;
+
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.SearchScope;
 
@@ -112,12 +114,14 @@ public class LDAPSearchOptions extends LDAPToolOptions
    * Set the search scope .
    *
    * @param  scope  The search scope string.
+   * @param  err    A print stream to which error messages should be written if
+   *                a problem occurs.
    *
    * @return  <CODE>true</CODE> if the scope was set properly, or
    *          <CODE>false</CODE> if not.
    */
 
-  public boolean setSearchScope(String scope)
+  public boolean setSearchScope(String scope, PrintStream err)
   {
       if(scope == null)
       {
@@ -138,7 +142,7 @@ public class LDAPSearchOptions extends LDAPToolOptions
       } else
       {
         int msgID = MSGID_SEARCH_INVALID_SEARCH_SCOPE;
-        System.err.println(getMessage(msgID, scope));
+        err.println(getMessage(msgID, scope));
         return false;
       }
       return true;
@@ -157,13 +161,15 @@ public class LDAPSearchOptions extends LDAPToolOptions
   /**
    * Set the dereference policy.
    *
-   * @param policy    The dereference policy.
+   * @param policy  The dereference policy.
+   * @param  err    A print stream to which error messages should be written if
+   *                a problem occurs.
    *
    * @return  <CODE>true</CODE> if the dereference policy was set properly, or
    *          <CODE>false</CODE> if not.
    */
 
-  public boolean setDereferencePolicy(String policy)
+  public boolean setDereferencePolicy(String policy, PrintStream err)
   {
       if(policy == null)
       {
@@ -182,7 +188,7 @@ public class LDAPSearchOptions extends LDAPToolOptions
         dereferencePolicy = DEREF_FINDING_BASE_OBJECT;
       } else
       {
-        System.err.println("Invalid deref alias specified:" + policy);
+        err.println("Invalid deref alias specified:" + policy);
         return false;
       }
       return true;

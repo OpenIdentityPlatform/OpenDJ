@@ -548,7 +548,7 @@ public class LDAPCompare
         try
         {
           String filePath = remainder.substring(1, remainder.length());
-          attributeVal = LDAPToolUtils.readBytesFromFile(filePath);
+          attributeVal = LDAPToolUtils.readBytesFromFile(filePath, err);
         }
         catch (Exception e)
         {
@@ -631,7 +631,7 @@ public class LDAPCompare
     if(controlStr.hasValue())
     {
       String ctrlString = controlStr.getValue();
-      LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString);
+      LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
       if(ctrl == null)
       {
         err.println("Invalid control specified:" + ctrlString);
