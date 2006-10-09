@@ -111,4 +111,12 @@ public class SerializingProtocolSession implements ProtocolSession
   {
     return socket.getInetAddress().getHostAddress();
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void setSoTimeout(int timeout) throws SocketException
+  {
+    socket.setSoTimeout(timeout);
+  }
 }

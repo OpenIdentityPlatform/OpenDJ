@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.net.ServerSocket;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.config.ConfigException;
@@ -200,19 +201,13 @@ public final class TestCaseUtils {
     ServerSocket serverJmxSocket   = null;
     ServerSocket serverLdapsSocket = null;
 
-    serverLdapSocket = new ServerSocket();
-    serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+    serverLdapSocket = bindFreePort();
     serverLdapPort = serverLdapSocket.getLocalPort();
 
-    serverJmxSocket = new ServerSocket();
-    serverJmxSocket.setReuseAddress(true);
-    serverJmxSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+    serverJmxSocket = bindFreePort();
     serverJmxPort = serverJmxSocket.getLocalPort();
 
-    serverLdapsSocket = new ServerSocket();
-    serverLdapsSocket.setReuseAddress(true);
-    serverLdapsSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+    serverLdapsSocket = bindFreePort();
     serverLdapsPort = serverLdapsSocket.getLocalPort();
 
     BufferedReader reader = new BufferedReader(new FileReader(
@@ -261,6 +256,22 @@ public final class TestCaseUtils {
     assertTrue(InvocationCounterPlugin.startupCalled());
 
     SERVER_STARTED = true;
+  }
+
+  /**
+   * Find and binds to a free server socket port on the local host.
+   * @return the bounded Server socket.
+   *
+   * @throws IOException in case of underlying exception.
+   * @throws SocketExceptionin case of underlying exception.
+   */
+  public static ServerSocket bindFreePort() throws IOException, SocketException
+  {
+    ServerSocket serverLdapSocket;
+    serverLdapSocket = new ServerSocket();
+    serverLdapSocket.setReuseAddress(true);
+    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+    return serverLdapSocket;
   }
 
   /**

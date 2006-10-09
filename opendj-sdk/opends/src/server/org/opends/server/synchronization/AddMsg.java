@@ -55,8 +55,8 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 public class AddMsg extends UpdateMessage
 {
   private static final long serialVersionUID = -4905520652801395185L;
-  private byte[] encodedAttributes ;
-  private String parentUniqueId;
+  private final byte[] encodedAttributes;
+  private final String parentUniqueId;
 
   /**
    * Creates a new AddMessage.

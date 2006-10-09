@@ -27,15 +27,12 @@
 
 package org.opends.server.synchronization;
 
+import static org.testng.Assert.*;
+
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigEntry;
@@ -46,26 +43,26 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
-
 import org.opends.server.protocols.internal.InternalClientConnection;
-
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 /**
- * Test the contructors, encoders and decoders of the synchronization
- * AckMsg, ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
+ * Test the contructors, encoders and decoders of the synchronization AckMsg,
+ * ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
  */
-public class UpdateOperationTest
-    extends SynchronizationTestCase
+public class UpdateOperationTest extends SynchronizationTestCase
 {
 
   /**
@@ -87,18 +84,21 @@ public class UpdateOperationTest
    * The synchronization plugin entry
    */
   private String synchroPluginStringDN;
+
   private Entry synchroPluginEntry;
 
   /**
    * The Server synchro entry
    */
   private String synchroServerStringDN;
+
   private Entry synchroServerEntry;
 
   /**
    * The Change log entry
    */
   private String changeLogStringDN;
+
   private Entry changeLogEntry;
 
   /**
@@ -107,10 +107,15 @@ public class UpdateOperationTest
   private Entry personEntry;
 
   /**
+   * An entry with a entryUUID
+   */
+  private Entry personWithUUIDEntry;
+  private Entry personWithSecondUniqueID;
+
+  /**
    * schema check flag
    */
   private boolean schemaCheck;
-
 
   // WORKAROUND FOR BUG #639 - BEGIN -
   /**
@@ -118,15 +123,22 @@ public class UpdateOperationTest
    */
   MultimasterSynchronization mms;
 
-  // WORKAROUND FOR BUG #639 - END -
+  private String baseUUID;
 
+  private String user1dn;
+
+  private String user1entrysecondUUID;
+
+  private String user1entryUUID;
+
+  // WORKAROUND FOR BUG #639 - END -
 
   /**
    * Set up the environment for performing the tests in this Class.
    * synchronization
    *
    * @throws Exception
-   *         If the environment could not be set up.
+   *           If the environment could not be set up.
    */
   @BeforeClass
   @Override
@@ -146,21 +158,23 @@ public class UpdateOperationTest
     String[] topEntries = new String[2];
     topEntries[0] = "dn: dc=example,dc=com\n" + "objectClass: top\n"
         + "objectClass: domain\n";
-    topEntries[1] = "dn: ou=People,dc=example,dc=com\n"
-        + "objectClass: top\n" + "objectClass: organizationalUnit\n";
-    Entry entry ;
+    topEntries[1] = "dn: ou=People,dc=example,dc=com\n" + "objectClass: top\n"
+        + "objectClass: organizationalUnit\n"
+        + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
+    Entry entry;
     for (int i = 0; i < topEntries.length; i++)
     {
       entry = TestCaseUtils.entryFromLdifString(topEntries[i]);
       AddOperation addOp = new AddOperation(connection,
-          InternalClientConnection.nextOperationID(),
-          InternalClientConnection.nextMessageID(), null, entry.getDN(),
-          entry.getObjectClasses(), entry.getUserAttributes(), entry
-              .getOperationalAttributes());
+          InternalClientConnection.nextOperationID(), InternalClientConnection
+              .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
+          entry.getUserAttributes(), entry.getOperationalAttributes());
       addOp.setInternalOperation(true);
       addOp.run();
       entryList.add(entry);
     }
+    
+    baseUUID = getEntryUUID(DN.decode("ou=People,dc=example,dc=com"));
 
     // top level synchro provider
     synchroStringDN = "cn=Synchronization Providers,cn=config";
@@ -182,8 +196,7 @@ public class UpdateOperationTest
     String changeLogLdif = "dn: " + changeLogStringDN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-        + "cn: Changelog Server\n"
-        + "ds-cfg-changelog-port: 8989\n"
+        + "cn: Changelog Server\n" + "ds-cfg-changelog-port: 8989\n"
         + "ds-cfg-changelog-server-id: 1\n";
     changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
 
@@ -195,8 +208,7 @@ public class UpdateOperationTest
         + "cn: example\n"
         + "ds-cfg-synchronization-dn: ou=People,dc=example,dc=com\n"
         + "ds-cfg-changelog-server: localhost:8989\n"
-        + "ds-cfg-directory-server-id: 1\n"
-        + "ds-cfg-receive-status: true\n";
+        + "ds-cfg-directory-server-id: 1\n" + "ds-cfg-receive-status: true\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
     String personLdif = "dn: uid=user.1,ou=People,dc=example,dc=com\n"
@@ -204,8 +216,8 @@ public class UpdateOperationTest
         + "objectClass: organizationalPerson\n"
         + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
         + "homePhone: 951-245-7634\n"
-        + "description: This is the description for Aaccf Amar.\n"
-        + "st: NC\n" + "mobile: 027-085-0537\n"
+        + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
+        + "mobile: 027-085-0537\n"
         + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
         + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
         + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
@@ -214,48 +226,612 @@ public class UpdateOperationTest
         + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
         + "userPassword: password\n" + "initials: AA\n";
     personEntry = TestCaseUtils.entryFromLdifString(personLdif);
+
+    /*
+     * The 2 entries defined in the following code are used for the naming
+     * conflict resolution test (called namingConflicts)
+     * They must have the same DN but different entryUUID.
+     */
+    user1entryUUID = "33333333-3333-3333-3333-333333333333";
+    user1entrysecondUUID = "22222222-2222-2222-2222-222222222222";
+    user1dn = "uid=user1,ou=People,dc=example,dc=com";
+    String entryWithUUIDldif = "dn: "+ user1dn + "\n"
+      + "objectClass: top\n" + "objectClass: person\n"
+      + "objectClass: organizationalPerson\n"
+      + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
+      + "homePhone: 951-245-7634\n"
+      + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
+      + "mobile: 027-085-0537\n"
+      + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
+      + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
+      + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
+      + "street: 17984 Thirteenth Street\n"
+      + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
+      + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
+      + "userPassword: password\n" + "initials: AA\n"
+      + "entryUUID: " + user1entryUUID + "\n";
+    personWithUUIDEntry = TestCaseUtils.entryFromLdifString(entryWithUUIDldif);
+
+    String entryWithSecondUUID = "dn: "+ user1dn + "\n"
+      + "objectClass: top\n" + "objectClass: person\n"
+      + "objectClass: organizationalPerson\n"
+      + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
+      + "homePhone: 951-245-7634\n"
+      + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
+      + "mobile: 027-085-0537\n"
+      + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
+      + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
+      + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
+      + "street: 17984 Thirteenth Street\n"
+      + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
+      + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
+      + "userPassword: password\n" + "initials: AA\n"
+      + "entryUUID: "+ user1entrysecondUUID + "\n";
+    personWithSecondUniqueID =
+      TestCaseUtils.entryFromLdifString(entryWithSecondUUID);
+
+    configureSynchronization();
   }
 
   /**
    * Clean up the environment. return null;
    *
    * @throws Exception
-   *         If the environment could not be set up.
+   *           If the environment could not be set up.
    */
   @AfterClass
   public void classCleanUp() throws Exception
   {
 
     DirectoryServer.setCheckSchema(schemaCheck);
-    DeleteOperation op;
 
-    //  WORKAROUND FOR BUG #639 - BEGIN -
+    // WORKAROUND FOR BUG #639 - BEGIN -
     DirectoryServer.deregisterSynchronizationProvider(mms);
     mms.finalizeSynchronizationProvider();
-    //  WORKAROUND FOR BUG #639 - END -
+    // WORKAROUND FOR BUG #639 - END -
 
+    cleanEntries();
+  }
+
+  /**
+   * suppress all the entries created by the tests in this class
+   */
+  private void cleanEntries()
+  {
+    DeleteOperation op;
     // Delete entries
-    Entry entries[] = entryList.toArray(new Entry[0]) ;
-    for (int i = entries.length -1 ; i != 0 ; i--)
+    Entry entries[] = entryList.toArray(new Entry[0]);
+    for (int i = entries.length - 1; i != 0; i--)
     {
       try
       {
         op = new DeleteOperation(connection, InternalClientConnection
-            .nextOperationID(), InternalClientConnection.nextMessageID(),
-            null, entries[i].getDN());
+            .nextOperationID(), InternalClientConnection.nextMessageID(), null,
+            entries[i].getDN());
         op.run();
-      }
-      catch (Exception e)
+      } catch (Exception e)
       {
       }
     }
   }
 
   /**
-   * Tests that performed operation will generate synchronization messages
+   * Tests the naming conflict resolution code.
+   * In this test, the local server act both as an LDAP server and
+   * a changelog server that are inter-connected.
+   *
+   * The test creates an other session to the changelog server using
+   * directly the ChangelogBroker API.
+   * It then uses this session to siomulate conflicts and therefore
+   * test the naming conflict resolution code.
    */
-  @Test()
+  @Test(enabled=true)
+  public void namingConflicts() throws Exception
+  {
+    final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
+
+    /*
+     * Open a session to the changelog server using the Changelog broker API.
+     * This must use a serverId different from the LDAP server ID
+     */
+    ChangelogBroker broker = openChangelogSession(baseDn, (short) 2);
+
+    /*
+     * Create a Change number generator to generate new changenumbers
+     * when we need to send operations messages to the changelog server.
+     */
+    ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
+
+
+    /*
+     * Test that the conflict resolution code is able to find entries
+     * that have been renamed by an other master.
+     * To simulate this, create and entry with a given UUID and a given DN
+     * then send a modify operation using another DN but the same UUID.
+     * Finally check that the modify operation has been applied.
+     */
+    // create the entry with a given DN
+    AddMsg addMsg = new AddMsg(gen.NewChangeNumber(),
+        personWithUUIDEntry.getDN().toString(),
+        user1entryUUID,
+        baseUUID,
+        personWithUUIDEntry.getObjectClassAttribute(),
+        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+    broker.publish(addMsg);
+
+    // Check that the entry has been created in the local DS.
+    Entry resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000);
+    assertNotNull(resultEntry,
+        "The send ADD synchronization message was not applied");
+    entryList.add(resultEntry);
+
+    // send a modify operation with the correct unique ID but another DN
+    List<Modification> mods = generatemods("telephonenumber", "01 02 45");
+    ModifyMsg modMsg = new ModifyMsg(gen.NewChangeNumber(),
+        DN.decode("cn=something,ou=People,dc=example,dc=com"), mods,
+        user1entryUUID);
+    broker.publish(modMsg);
+
+    // check that the modify has been applied as if the entry had been renamed.
+    boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
+                           "telephonenumber", "01 02 45", 1000);
+    if (found == false)
+     fail("The modification has not been correctly replayed.");
+
+    /*
+     * Test that the conflict resolution code is able to detect
+     * that and entry have been renamed and that a new entry has
+     * been created with the same DN but another entry UUID
+     * To simulate this, create and entry with a given UUID and a given DN
+     * then send a modify operation using the same DN but another UUID.
+     * Finally check that the modify operation has not been applied to the
+     * entry with the given DN.
+     */
+
+    //  create the entry with a given DN and unique ID
+    addMsg = new AddMsg(gen.NewChangeNumber(),
+        personWithUUIDEntry.getDN().toString(),
+        user1entryUUID, baseUUID,
+        personWithUUIDEntry.getObjectClassAttribute(),
+        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+    broker.publish(addMsg);
+
+    // Check that the entry has been created in the local DS.
+    resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000);
+    assertNotNull(resultEntry,
+        "The ADD synchronization message was not applied");
+    entryList.add(resultEntry);
+
+    // send a modify operation with a wrong unique ID but the same DN
+    mods = generatemods("telephonenumber", "02 01 03 05");
+    modMsg = new ModifyMsg(gen.NewChangeNumber(),
+        DN.decode("cn=something,ou=People,dc=example,dc=com"), mods,
+        "10000000-9abc-def0-1234-1234567890ab");
+    broker.publish(modMsg);
+
+    // check that the modify has not been applied
+    found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
+                           "telephonenumber", "02 01 03 05", 1000);
+    if (found == true)
+     fail("The modification has been replayed while it should not.");
+
+
+    /*
+     * Test that the conflict resolution code is able to find entries
+     * that have been renamed by an other master.
+     * To simulate this, send a delete operation using another DN but
+     * the same UUID has the entry that has been used in the tests above.
+     * Finally check that the delete operation has been applied.
+     */
+    // send a delete operation with a wong dn but the unique ID of the entry
+    // used above
+    DeleteMsg delMsg =
+      new DeleteMsg("cn=anotherdn,ou=People,dc=example,dc=com",
+          gen.NewChangeNumber(), user1entryUUID);
+    broker.publish(delMsg);
+    
+    // check that the delete operation has been applied
+    resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000);
+
+    assertNull(resultEntry,
+        "The DELETE synchronization message was not replayed");
+
+    /*
+     * Test that two adds with the same DN but a different unique ID result
+     * cause a conflict and result in the second entry to be renamed.
+     */
+
+    //  create an entry with a given DN and unique ID
+    addMsg = new AddMsg(gen.NewChangeNumber(),
+        personWithUUIDEntry.getDN().toString(),
+        user1entryUUID, baseUUID,
+        personWithUUIDEntry.getObjectClassAttribute(),
+        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+    broker.publish(addMsg);
+
+    //  Check that the entry has been created in the local DS.
+    resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000);
+    assertNotNull(resultEntry,
+        "The ADD synchronization message was not applied");
+    entryList.add(resultEntry);
+
+    //  create an entry with the same DN and another unique ID
+    addMsg = new AddMsg(gen.NewChangeNumber(),
+        personWithSecondUniqueID.getDN().toString(),
+        user1entrysecondUUID, baseUUID,
+        personWithSecondUniqueID.getObjectClassAttribute(),
+        personWithSecondUniqueID.getAttributes(), new ArrayList<Attribute>());
+    broker.publish(addMsg);
+
+    //  Check that the entry has been renamed and created in the local DS.
+    resultEntry = getEntry(
+        DN.decode("entryuuid=" + user1entrysecondUUID +" + " + user1dn), 1000);
+    assertNotNull(resultEntry,
+        "The ADD synchronization message was not applied");
+
+    //  delete the entries to clean the database.
+    delMsg =
+      new DeleteMsg(personWithUUIDEntry.getDN().toString(),
+          gen.NewChangeNumber(), user1entryUUID);
+    broker.publish(delMsg);
+    delMsg =
+      new DeleteMsg(personWithSecondUniqueID.getDN().toString(),
+          gen.NewChangeNumber(), user1entrysecondUUID);
+    broker.publish(delMsg);
+    resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000);
+
+    // check that the delete operation has been applied
+    assertNull(resultEntry,
+        "The DELETE synchronization message was not replayed");
+    /*
+     * Check that and added entry is correctly added below it's
+     * parent entry when this parent entry has been renamed.
+     *
+     * Simulate this by trying to add an entry below a DN that does not
+     * exist but with a parent ID that exist.
+     */
+    addMsg = new AddMsg(gen.NewChangeNumber(),
+        "uid=new person,o=nothere,o=below,ou=People,dc=example,dc=com",
+        user1entryUUID,
+        baseUUID,
+        personWithUUIDEntry.getObjectClassAttribute(),
+        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+    broker.publish(addMsg);
+
+    //  Check that the entry has been renamed and created in the local DS.
+    resultEntry = getEntry(
+        DN.decode("uid=new person,ou=People,dc=example,dc=com"), 1000);
+    assertNotNull(resultEntry,
+        "The ADD synchronization message was not applied");
+
+    /*
+     * Check that when replaying delete the naming conflict code
+     * verify that the unique ID op the replayed operation is
+     * the same as the unique ID of the entry with the given DN
+     *
+     * To achieve this send a delete operation with a correct DN
+     * but a wrong unique ID.
+     */
+
+    //  delete the entry to clean the database
+    delMsg =
+      new DeleteMsg("uid=new person,ou=People,dc=example,dc=com",
+          gen.NewChangeNumber(), "11111111-9abc-def0-1234-1234567890ab");
+    broker.publish(delMsg);
+    resultEntry = getEntry(
+          DN.decode("uid=new person,ou=People,dc=example,dc=com"), 1000);
+
+    // check that the delete operation has not been applied
+    assertNotNull(resultEntry,
+        "The DELETE synchronization message was replayed when it should not");
+
+    // delete the entry to clean the database
+    delMsg =
+      new DeleteMsg("uid=new person,ou=People,dc=example,dc=com",
+          gen.NewChangeNumber(), user1entryUUID);
+    broker.publish(delMsg);
+    resultEntry = getEntry(
+          DN.decode("uid=new person,ou=People,dc=example,dc=com"), 1000);
+
+    // check that the delete operation has been applied
+    assertNull(resultEntry,
+        "The DELETE synchronization message was not replayed");
+
+    broker.stop();
+  }
+
+  /**
+   * Tests done using directly the ChangelogBroker interface.
+   */
+  @Test(enabled=true)
   public void updateOperations() throws Exception
+  {
+    final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
+
+    ChangelogBroker broker = openChangelogSession(baseDn, (short) 3);
+    ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 3, 0);
+
+    /*
+     * Test that operations done on this server are sent to the
+     * changelog server and forwarded to our changelog broker session.
+     */
+
+    // Create an Entry (add operation)
+    AddOperation addOp = new AddOperation(connection,
+        InternalClientConnection.nextOperationID(), InternalClientConnection
+        .nextMessageID(), null, personEntry.getDN(), personEntry
+        .getObjectClasses(), personEntry.getUserAttributes(), personEntry
+        .getOperationalAttributes());
+    addOp.run();
+    entryList.add(personEntry);
+    assertNotNull(DirectoryServer.getEntry(personEntry.getDN()),
+      "The Add Entry operation failed");
+
+    // Check if the client has received the msg
+    SynchronizationMessage msg = broker.receive();
+    assertTrue(msg instanceof AddMsg,
+      "The received synchronization message is not an ADD msg");
+    AddMsg addMsg =  (AddMsg) msg;
+
+    Operation receivedOp = addMsg.createOperation(connection);
+    assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
+      "The received synchronization message is not an ADD msg");
+
+    assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
+      "The received ADD synchronization message is not for the excepted DN");
+
+    // Modify the entry
+    List<Modification> mods = generatemods("telephonenumber", "01 02 45");
+
+    ModifyOperation modOp = new ModifyOperation(connection,
+        InternalClientConnection.nextOperationID(), InternalClientConnection
+            .nextMessageID(), null, personEntry.getDN(), mods);
+    modOp.setInternalOperation(true);
+    modOp.run();
+
+    // See if the client has received the msg
+    msg = broker.receive();
+    assertTrue(msg instanceof ModifyMsg,
+        "The received synchronization message is not a MODIFY msg");
+    ModifyMsg modMsg = (ModifyMsg) msg;
+
+    receivedOp = modMsg.createOperation(connection);
+    assertTrue(DN.decode(modMsg.getDn()).compareTo(personEntry.getDN()) == 0,
+    "The received MODIFY synchronization message is not for the excepted DN");
+
+    // Modify the entry DN
+    DN newDN = DN.decode("uid= new person,ou=People,dc=example,dc=com") ;
+    ModifyDNOperation modDNOp = new ModifyDNOperation(connection,
+        InternalClientConnection.nextOperationID(), InternalClientConnection
+            .nextMessageID(), null, personEntry.getDN(), RDN
+            .decode("uid=new person"), true, DN
+            .decode("ou=People,dc=example,dc=com"));
+    modDNOp.run();
+    assertNotNull(DirectoryServer.getEntry(newDN),
+        "The MOD_DN operation didn't create the new person entry");
+    assertNull(DirectoryServer.getEntry(personEntry.getDN()),
+        "The MOD_DN operation didn't delete the old person entry");
+    entryList.add(DirectoryServer.getEntry(newDN));
+
+    // See if the client has received the msg
+    msg = broker.receive();
+    assertTrue(msg instanceof ModifyDNMsg,
+        "The received synchronization message is not a MODIFY DN msg");
+    ModifyDNMsg moddnMsg = (ModifyDNMsg) msg;
+    receivedOp = moddnMsg.createOperation(connection);
+
+    assertTrue(DN.decode(moddnMsg.getDn()).compareTo(personEntry.getDN()) == 0,
+        "The received MODIFY_DN message is not for the excepted DN");
+
+    // Delete the entry
+    Entry newPersonEntry = DirectoryServer.getEntry(newDN) ;
+    DeleteOperation delOp = new DeleteOperation(connection,
+        InternalClientConnection.nextOperationID(), InternalClientConnection
+            .nextMessageID(), null, DN
+            .decode("uid= new person,ou=People,dc=example,dc=com"));
+    delOp.run();
+    assertNull(DirectoryServer.getEntry(newDN),
+        "Unable to delete the new person Entry");
+    entryList.remove(newPersonEntry);
+
+    // See if the client has received the msg
+    msg = broker.receive();
+    assertTrue(msg instanceof DeleteMsg,
+        "The received synchronization message is not a MODIFY DN msg");
+    DeleteMsg delMsg = (DeleteMsg) msg;
+    receivedOp = delMsg.createOperation(connection);
+    assertTrue(DN.decode(delMsg.getDn()).compareTo(DN
+        .decode("uid= new person,ou=People,dc=example,dc=com")) == 0,
+        "The received DELETE message is not for the excepted DN");
+
+    /*
+     * Now check that when we send message to the Changelog server
+     * and that they are received and correctly replayed by the server.
+     *
+     * Start by testing the Add message reception
+     */
+    addMsg = new AddMsg(gen.NewChangeNumber(),
+        personWithUUIDEntry.getDN().toString(),
+        user1entryUUID, baseUUID,
+        personWithUUIDEntry.getObjectClassAttribute(),
+        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+    broker.publish(addMsg);
+
+    /*
+     * Check that the entry has been created in the local DS.
+     */
+    Entry resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000);
+    assertNotNull(resultEntry,
+        "The send ADD synchronization message was not applied");
+    entryList.add(resultEntry);
+
+    /*
+     * Test the reception of Modify Msg
+     */
+    modMsg = new ModifyMsg(gen.NewChangeNumber(), personWithUUIDEntry.getDN(),
+                           mods, user1entryUUID);
+    broker.publish(modMsg);
+
+    boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
+                           "telephonenumber", "01 02 45", 1000);
+
+    if (found == false)
+     fail("The modification has not been correctly replayed.");
+
+    /*
+     * Test the Reception of Modify Dn Msg
+     */
+    moddnMsg = new ModifyDNMsg(personWithUUIDEntry.getDN().toString(),
+                           gen.NewChangeNumber(),
+                           user1entryUUID, null,
+                           true, null, "uid= new person");
+    broker.publish(moddnMsg);
+
+    resultEntry = getEntry(
+        DN.decode("uid= new person,ou=People,dc=example,dc=com"), 1000);
+
+    assertNotNull(resultEntry,
+        "The modify DN synchronization message was not applied");
+
+    /*
+     * Test the Reception of Delete Msg
+     */
+    delMsg = new DeleteMsg("uid= new person,ou=People,dc=example,dc=com",
+                           gen.NewChangeNumber(), user1entryUUID);
+    broker.publish(delMsg);
+    resultEntry = getEntry(
+          DN.decode("uid= new person,ou=People,dc=example,dc=com"), 1000);
+
+    assertNull(resultEntry,
+        "The DELETE synchronization message was not replayed");
+
+    broker.stop();
+  }
+
+  /**
+   * @return
+   */
+  private List<Modification> generatemods(String attrName, String attrValue)
+  {
+    AttributeType attrType =
+      DirectoryServer.getAttributeType(attrName.toLowerCase(), true);
+    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    values.add(new AttributeValue(attrType, attrValue));
+    Attribute attr = new Attribute(attrType, attrName, values);
+    List<Modification> mods = new ArrayList<Modification>();
+    Modification mod = new Modification(ModificationType.REPLACE, attr);
+    mods.add(mod);
+    return mods;
+  }
+
+  /**
+   * Open a changelog session to the local Changelog server.
+   *
+   */
+  private ChangelogBroker openChangelogSession(final DN baseDn, short serverId)
+          throws Exception, SocketException
+  {
+    ServerState state = new ServerState(baseDn);
+    state.loadState();
+    ChangelogBroker broker = new ChangelogBroker(state, baseDn,
+                                                 serverId, 0, 0, 0, 0);
+    ArrayList<String> servers = new ArrayList<String>(1);
+    servers.add("localhost:8989");
+    broker.start(servers);
+    broker.setSoTimeout(1000);
+    return broker;
+  }
+
+  /**
+   * Check that the entry with the given dn has the given valueString value
+   * for the given attrTypeStr attribute type.
+   */
+  private boolean checkEntryHasAttribute(DN dn, String attrTypeStr,
+      String valueString, int timeout) throws Exception
+  {
+    // Wait no more than 1 second (synchro operation has to be sent,
+    // received and replay)
+    int i = timeout/100;
+    if (i<1)
+      i=1;
+    boolean found = false;
+    while ((i> 0) && (!found))
+    {
+      Thread.sleep(100);
+      Entry newEntry = DirectoryServer.getEntry(personWithUUIDEntry.getDN());
+      if (newEntry == null)
+        fail("The entry " + personWithUUIDEntry.getDN() +
+             " has incorrectly been deleted from the database.");
+      List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
+      Attribute tmpAttr = tmpAttrList.get(0);
+
+      AttributeType attrType =
+        DirectoryServer.getAttributeType(attrTypeStr, true);
+      found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
+      i-- ;
+    }
+    return found;
+  }
+  
+  /**
+   * Check that the entry with the given dn has the given valueString value
+   * for the given attrTypeStr attribute type.
+   */
+  private String getEntryUUID(DN dn) throws Exception
+  {
+    // Wait no more than 1 second (synchro operation has to be sent,
+    // received and replay)
+    int i = 10;
+    if (i<1)
+      i=1;
+    String found = null;
+    while ((i> 0) && (found == null))
+    {
+      Thread.sleep(100);
+      Entry newEntry = DirectoryServer.getEntry(dn);
+      if (newEntry != null)
+      {
+        List<Attribute> tmpAttrList = newEntry.getAttribute("entryuuid");
+        Attribute tmpAttr = tmpAttrList.get(0);
+
+        LinkedHashSet<AttributeValue> vals = tmpAttr.getValues();
+        
+        for (AttributeValue val : vals)
+        {
+          found = val.getStringValue();
+          break;
+        }
+      }
+    }
+    return found;
+  }
+
+  /**
+   * Retrieves an entry from the local Directory Server.
+   *
+   * @throws InterruptedException
+   * @throws DirectoryException
+   */
+  private Entry getEntry(DN dn, int timeout)
+               throws InterruptedException, DirectoryException
+  {
+    Entry newEntry = null ;
+    int i = timeout/100;
+    if (i<1)
+      i=1;
+    while ((i> 0) && (newEntry == null))
+    {
+      Thread.sleep(100);
+      newEntry = DirectoryServer.getEntry(dn);
+      i--;
+    }
+    return newEntry;
+  }
+
+  /**
+   * Configure the Synchronization for this test.
+   */
+  private void configureSynchronization() throws Exception
   {
     //
     // Add the Multimaster synchronization plugin
@@ -294,200 +870,5 @@ public class UpdateOperationTest
     assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
         "Unable to add the syncrhonized server");
     entryList.add(synchroServerEntry);
-
-    //
-    // Check Server state
-    DN synchroServerDN = DN.decode("ou=People,dc=example,dc=com");
-    ServerState ss = MultimasterSynchronization
-        .getServerState(synchroServerDN);
-    // TODO Check server state field
-
-    //
-    // Be Client of the Change log
-    // We will check that the Chanlog server send us messages
-    // suffix synchronized
-    String synchroServerLdif2 = "dn: cn=example2, " + synchroPluginStringDN + "\n"
-        + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-provider-config\n"
-        + "cn: example\n"
-        + "ds-cfg-synchronization-dn: ou=People,dc=example,dc=com\n"
-        + "ds-cfg-changelog-server: localhost:8989\n"
-        + "ds-cfg-directory-server-id: 2\n"
-        + "ds-cfg-receive-status: true\n";
-    Entry synchroServerEntry2 = TestCaseUtils
-        .entryFromLdifString(synchroServerLdif2);
-    ConfigEntry newConfigEntry = new ConfigEntry(synchroServerEntry2,
-        DirectoryServer.getConfigEntry(DN.decode(synchroPluginStringDN)));
-    SynchronizationDomain syncDomain2 = new SynchronizationDomain(
-        newConfigEntry);
-
-    //
-    // Create an Entry (add operation)
-    AddOperation addOp = new AddOperation(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-            .nextMessageID(), null, personEntry.getDN(), personEntry
-            .getObjectClasses(), personEntry.getUserAttributes(), personEntry
-            .getOperationalAttributes());
-    addOp.run();
-    entryList.add(personEntry);
-    assertNotNull(DirectoryServer.getEntry(personEntry.getDN()),
-        "The Add Entry operation fails");
-
-    // Check if the client has receive the msg
-    UpdateMessage msg = syncDomain2.receive() ;
-    Operation receivedOp = msg.createOperation(connection);
-    assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
-        "The received synchronization message is not an ADD msg");
-    assertTrue(DN.decode(msg.getDn()).compareTo(personEntry.getDN()) == 0,
-        "The received ADD synchronization message is not for the excepted DN");
-
-
-    // Modify the entry
-    String attrName = "telephoneNumber";
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName, true);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(attrType, "01 02 45"));
-    Attribute attr = new Attribute(attrType, attrName, values);
-    List<Modification> mods = new ArrayList<Modification>();
-    Modification mod = new Modification(ModificationType.REPLACE, attr);
-    mods.add(mod);
-
-    ModifyOperation modOp = new ModifyOperation(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-            .nextMessageID(), null, personEntry.getDN(), mods);
-    modOp.setInternalOperation(true);
-    modOp.run();
-    // TODO Check the telephoneNumber attribute
-
-    //  See if the client has receive the msg
-    msg = syncDomain2.receive() ;
-    receivedOp = msg.createOperation(connection);
-    assertTrue(OperationType.MODIFY.compareTo(receivedOp.getOperationType()) == 0,
-        "The received synchronization message is not a MODIFY msg");
-    assertTrue(DN.decode(msg.getDn()).compareTo(personEntry.getDN()) == 0,
-    "The received MODIFY synchronization message is not for the excepted DN");
-
-    //
-    // Modify the entry DN
-    DN newDN = DN.decode("uid= new person,ou=People,dc=example,dc=com") ;
-    ModifyDNOperation modDNOp = new ModifyDNOperation(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-            .nextMessageID(), null, personEntry.getDN(), RDN
-            .decode("uid=new person"), true, DN
-            .decode("ou=People,dc=example,dc=com"));
-    modDNOp.run();
-    assertNotNull(DirectoryServer.getEntry(newDN),
-        "The MOD_DN operation didn't create the new person entry");
-    assertNull(DirectoryServer.getEntry(personEntry.getDN()),
-        "The MOD_DN operation didn't delete the old person entry");
-    entryList.add(DirectoryServer.getEntry(newDN));
-
-    //  See if the client has receive the msg
-    msg = syncDomain2.receive() ;
-    receivedOp = msg.createOperation(connection);
-    assertTrue(OperationType.MODIFY_DN.compareTo(receivedOp.getOperationType()) == 0,
-        "The received synchronization message is not a MODIFY_DN msg");
-    assertTrue(DN.decode(msg.getDn()).compareTo(personEntry.getDN()) == 0,
-        "The received MODIFY_DN synchronization message is not for the excepted DN");
-
-
-    // Delete the entry
-    Entry newPersonEntry = DirectoryServer.getEntry(newDN) ;
-    DeleteOperation delOp = new DeleteOperation(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-            .nextMessageID(), null, DN
-            .decode("uid= new person,ou=People,dc=example,dc=com"));
-    delOp.run();
-    assertNull(DirectoryServer.getEntry(newDN),
-        "Unable to delete the new person Entry");
-    entryList.remove(newPersonEntry);
-
-    //  See if the client has receive the msg
-    msg = syncDomain2.receive() ;
-    receivedOp = msg.createOperation(connection);
-    assertTrue(OperationType.DELETE.compareTo(receivedOp.getOperationType()) == 0,
-        "The received synchronization message is not a DELETE msg");
-    assertTrue(DN.decode(msg.getDn()).compareTo(DN
-        .decode("uid= new person,ou=People,dc=example,dc=com")) == 0,
-        "The received DELETE synchronization message is not for the excepted DN");
-
-    // Purge the client
-    syncDomain2.shutdown() ;
-
-    //
-    // Be new Client of the Change log
-    // We will check that when we send message to the Chanlog server
-    // the synchronization domain apply those changes.
-
-    // Create a new synchronization domain
-    String synchroServerLdif3 = "dn: cn=example3, " + synchroPluginStringDN + "\n"
-        + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-provider-config\n"
-        + "cn: example\n"
-        + "ds-cfg-synchronization-dn: ou=People,dc=example,dc=com\n"
-        + "ds-cfg-changelog-server: localhost:8989\n"
-        + "ds-cfg-directory-server-id: 3\n"
-        + "ds-cfg-receive-status: true\n";
-    Entry synchroServerEntry3 = TestCaseUtils
-        .entryFromLdifString(synchroServerLdif3);
-    newConfigEntry = new ConfigEntry(synchroServerEntry3, DirectoryServer
-        .getConfigEntry(DN.decode(synchroPluginStringDN)));
-    SynchronizationDomain syncDomain3 = new SynchronizationDomain(
-        newConfigEntry);
-
-    //
-    // Message to Create the Entry
-    addOp = new AddOperation(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-            .nextMessageID(), null, personEntry.getDN(), personEntry
-            .getObjectClasses(), personEntry.getUserAttributes(), personEntry
-            .getOperationalAttributes());
-    syncDomain3.doPreOperation(addOp);
-    addOp.setResultCode(ResultCode.SUCCESS) ;
-    syncDomain3.synchronize(addOp);
-
-    // Wait no more than 1 second (synchro operation has to be sent,
-    // received and replay)
-    Entry newEntry = null ;
-    int i = 10 ;
-    while ((i> 0) && (newEntry == null))
-    {
-      Thread.sleep(100);
-      newEntry = DirectoryServer.getEntry(personEntry.getDN());
-      i-- ;
-    }
-    newEntry = DirectoryServer.getEntry(personEntry.getDN());
-    assertNotNull(newEntry,
-        "The send ADD synchronization message was not applied");
-    entryList.add(newEntry);
-
-    // Message to Modify the new created entry
-
-    // Unable to test it: the doPreOperation operation use
-    // modifyOperation.getModifiedEntry() which cannot be set the
-    // the public level.
-    // Otherwise, code will look like:
-    /*
-    modOp = new ModifyOperation(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-            .nextMessageID(), null, personEntry.getDN(), mods);
-    modOp.setModifiedEntry(...);
-    mms.doPreOperation(modOp);
-    modOp.setResultCode(ResultCode.SUCCESS) ;
-    syncDomain3.synchronize(modOp);
-    //  TODO Check the telephoneNumber attribute
-     */
-
-    //  Purge the message sender
-    syncDomain3.shutdown() ;
-
-
-    // Check synchronization monitoring
-    SynchronizationDomain syncDomain = new SynchronizationDomain(
-        DirectoryServer.getConfigEntry(synchroServerEntry.getDN()));
-    SynchronizationMonitor mon = new SynchronizationMonitor(syncDomain);
-    ArrayList<Attribute> monData = mon.getMonitorData();
-    // TODO Check Monitoring Attributes
   }
 }

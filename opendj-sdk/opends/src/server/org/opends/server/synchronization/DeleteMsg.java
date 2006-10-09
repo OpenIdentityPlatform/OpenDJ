@@ -45,12 +45,26 @@ public class DeleteMsg extends UpdateMessage
 
   /**
    * Creates a new delete message.
+   *
    * @param op the Operation from which the message must be created.
    */
   public DeleteMsg(DeleteOperation op)
   {
     super((OperationContext) op.getAttachment(SYNCHROCONTEXT),
            op.getRawEntryDN().stringValue());
+  }
+
+  /**
+   * Creates a new delete message.
+   *
+   * @param dn The dn with which the message must be created.
+   * @param changeNumber The change number with which the message must be
+   *                     created.
+   * @param uid The unique id with which the message must be created.
+   */
+  public DeleteMsg(String dn, ChangeNumber changeNumber, String uid)
+  {
+    super(new DeleteContext(changeNumber, uid), dn);
   }
 
   /**

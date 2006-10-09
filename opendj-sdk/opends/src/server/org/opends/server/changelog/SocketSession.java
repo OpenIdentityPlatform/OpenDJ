@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.synchronization.SynchronizationMessage;
@@ -127,5 +128,13 @@ public class SocketSession implements ProtocolSession
   public String getRemoteAddress()
   {
     return socket.getInetAddress().getHostAddress();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void setSoTimeout(int timeout) throws SocketException
+  {
+    socket.setSoTimeout(timeout);
   }
 }

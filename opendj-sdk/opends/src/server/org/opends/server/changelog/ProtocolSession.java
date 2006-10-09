@@ -27,6 +27,7 @@
 package org.opends.server.changelog;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.synchronization.SynchronizationMessage;
@@ -90,4 +91,18 @@ public interface ProtocolSession
    * @return The IP address of the remote server.
    */
   public abstract String getRemoteAddress();
+
+
+  /**
+  * Set a timeout value.
+  * With this option set to a non-zero value, calls to the receive() method
+  * block for only this amount of time after which a
+  * java.net.SocketTimeoutException is raised.
+  * The Broker is valid and useable even after such an Exception is raised.
+  *
+  * @param timeout the specified timeout, in milliseconds.
+  * @throws SocketException if there is an error in the underlying protocol,
+  *         such as a TCP error.
+  */
+  public abstract void setSoTimeout(int timeout) throws SocketException;
 }

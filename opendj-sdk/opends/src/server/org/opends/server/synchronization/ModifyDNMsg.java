@@ -69,6 +69,32 @@ public class ModifyDNMsg extends UpdateMessage
   }
 
   /**
+   * construct a new Modify DN message.
+   *
+   * @param dn The dn to use for building the message.
+   * @param changeNumber The changeNumberto use for building the message.
+   * @param uid The unique id to use for building the message.
+   * @param newParentUid The new parent unique id to use for building
+   *                     the message.
+   * @param deleteOldRdn boolean indicating if old rdn must be deleted to use
+   *                     for building the message.
+   * @param newSuperior The new Superior entry to use for building the message.
+   * @param newRDN The new Rdn to use for building the message.
+   */
+  public ModifyDNMsg(String dn, ChangeNumber changeNumber, String uid,
+                     String newParentUid, boolean deleteOldRdn,
+                     String newSuperior, String newRDN)
+  {
+    super(new ModifyDnContext(changeNumber, uid, newParentUid), dn);
+
+    newSuperiorId = newParentUid;
+
+    this.deleteOldRdn = deleteOldRdn;
+    this.newSuperior = newSuperior;
+    this.newRDN = newRDN;
+  }
+
+  /**
    * Creates a new ModifyDN message from a byte[].
    *
    * @param in The byte[] from which the operation must be read.
