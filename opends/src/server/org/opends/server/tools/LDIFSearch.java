@@ -531,7 +531,7 @@ public class LDIFSearch
     {
       if (timeLimit.isPresent())
       {
-        timeLimitMillis = 1000 * timeLimit.getIntValue();
+        timeLimitMillis = 1000L * timeLimit.getIntValue();
       }
       else
       {
@@ -569,7 +569,7 @@ public class LDIFSearch
     }
 
 
-    // Create the LDIF import configuration that will be used to rad the source
+    // Create the LDIF import configuration that will be used to read the source
     // data.
     LDIFImportConfig importConfig;
     if (ldifFile.isPresent())

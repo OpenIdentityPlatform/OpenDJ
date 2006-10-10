@@ -39,6 +39,11 @@ import static org.opends.server.loggers.Debug.*;
  * This class defines a data structure for storing information about
  * an entry that matches a given set of search criteria and should be
  * returned to the client.
+ * When the search result entry contains attribute types only, the
+ * objectclass type (if requested) will be present in the user
+ * attributes.  When the search result entry contains both attribute
+ * types and values, the objectclass attribute will not be present in
+ * the user attributes.
  */
 public class SearchResultEntry
        extends Entry

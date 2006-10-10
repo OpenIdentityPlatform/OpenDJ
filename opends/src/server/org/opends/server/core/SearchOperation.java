@@ -944,9 +944,15 @@ public class SearchOperation
           {
             // First, add the objectclass attribute.
             Attribute ocAttr = entry.getObjectClassAttribute();
-            List<Attribute> ocList = new ArrayList<Attribute>(1);
-            ocList.add(ocAttr);
-            entryToReturn.putAttribute(ocAttr.getAttributeType(), ocList);
+            try
+            {
+              entryToReturn.setObjectClasses(ocAttr.getValues());
+            }
+            catch (DirectoryException e)
+            {
+              // We cannot get this exception because the object classes have
+              // already been validated in the entry they came from.
+            }
 
 
             // Next iterate through all the user attributes and include them.
@@ -1125,18 +1131,34 @@ public class SearchOperation
         }
         else
         {
-          List<Attribute> attrList = entry.getAttribute(attrType, options);
-          if (attrList != null)
+          if (attrType.isObjectClassType() && !typesOnly)
           {
-            if (typesOnly)
+            Attribute ocAttr = entry.getObjectClassAttribute();
+            try
             {
-              attrList = new ArrayList<Attribute>(1);
-              attrList.add(new Attribute(attrType));
-              entryToReturn.putAttribute(attrType, attrList);
+              entryToReturn.setObjectClasses(ocAttr.getValues());
             }
-            else
+            catch (DirectoryException e)
             {
-              entryToReturn.putAttribute(attrType, attrList);
+              // We cannot get this exception because the object classes have
+              // already been validated in the entry they came from.
+            }
+          }
+          else
+          {
+            List<Attribute> attrList = entry.getAttribute(attrType, options);
+            if (attrList != null)
+            {
+              if (typesOnly)
+              {
+                attrList = new ArrayList<Attribute>(1);
+                attrList.add(new Attribute(attrType));
+                entryToReturn.putAttribute(attrType, attrList);
+              }
+              else
+              {
+                entryToReturn.putAttribute(attrType, attrList);
+              }
             }
           }
         }
@@ -1564,7 +1586,7 @@ public class SearchOperation
     else
     {
       // FIXME -- Factor in the user's effective time limit.
-      timeLimitExpiration = processingStartTime + (1000 * timeLimit);
+      timeLimitExpiration = processingStartTime + (1000L * timeLimit);
     }
 
 
