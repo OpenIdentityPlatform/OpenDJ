@@ -46,13 +46,22 @@ public class LDIFPluginResult
 
 
 
+  /**
+   * An LDIF plugin result instance that indicates all processing was
+   * successful.
+   */
+  public static final LDIFPluginResult SUCCESS =
+       new LDIFPluginResult();
+
+
+
   // Indicates whether any further LDIF import/export plugins should
   // be invoked for the associated entry.
-  private boolean continuePluginProcessing;
+  private final boolean continuePluginProcessing;
 
   // Indicates whether the associated entry should still be
   // imported/exported.
-  private boolean continueEntryProcessing;
+  private final boolean continueEntryProcessing;
 
 
 
@@ -61,12 +70,9 @@ public class LDIFPluginResult
    * this case, it will indicate that all processing should continue
    * as normal.
    */
-  public LDIFPluginResult()
+  private LDIFPluginResult()
   {
-    assert debugConstructor(CLASS_NAME);
-
-    this.continuePluginProcessing = true;
-    this.continueEntryProcessing  = true;
+    this(true, true);
   }
 
 
@@ -114,26 +120,6 @@ public class LDIFPluginResult
 
 
   /**
-   * Specifies whether any further LDIF import/export plugins should
-   * be invoked for the associated entry.
-   *
-   * @param  continuePluginProcessing  Specifies whether any further
-   *                                   LDIF import/export plugins
-   *                                   should be invoked for the
-   *                                   associated entry.
-   */
-  public void setContinuePluginProcessing(
-                   boolean continuePluginProcessing)
-  {
-    assert debugEnter(CLASS_NAME, "setContinuePluginProcessing",
-                      String.valueOf(continuePluginProcessing));
-
-    this.continuePluginProcessing = continuePluginProcessing;
-  }
-
-
-
-  /**
    * Indicates whether the associated entry should still be
    * imported/exported.
    *
@@ -145,25 +131,6 @@ public class LDIFPluginResult
     assert debugEnter(CLASS_NAME, "continueEntryProcessing");
 
     return continueEntryProcessing;
-  }
-
-
-
-  /**
-   * Specifies whether the associated entry should still be
-   * imported/exported.
-   *
-   * @param  continueEntryProcessing  Specifies whether the associated
-   *                                  entry should still be
-   *                                  imported/exported.
-   */
-  public void setContinueEntryProcessing(
-                   boolean continueEntryProcessing)
-  {
-    assert debugEnter(CLASS_NAME, "setContinueEntryProcessing",
-                      String.valueOf(continueEntryProcessing));
-
-    this.continueEntryProcessing = continueEntryProcessing;
   }
 
 

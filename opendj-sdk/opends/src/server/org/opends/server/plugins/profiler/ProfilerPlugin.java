@@ -381,7 +381,7 @@ public final class ProfilerPlugin
       profilerThread.start();
     }
 
-    return new StartupPluginResult();
+    return StartupPluginResult.SUCCESS;
   }
 
 

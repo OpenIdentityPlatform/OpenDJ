@@ -1682,7 +1682,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no startup plugins registered,
       // which is fine.
-      result = new StartupPluginResult();
+      result = StartupPluginResult.SUCCESS;
     }
 
     return result;
@@ -1802,7 +1802,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-connect plugins
       // registered, which is fine.
-      result = new PostConnectPluginResult();
+      result = PostConnectPluginResult.SUCCESS;
     }
 
     return result;
@@ -1879,7 +1879,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-disconnect plugins
       // registered, which is fine.
-      result = new PostDisconnectPluginResult();
+      result = PostDisconnectPluginResult.SUCCESS;
     }
 
     return result;
@@ -1945,7 +1945,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no LDIF import plugins
       // registered, which is fine.
-      result = new LDIFPluginResult();
+      result = LDIFPluginResult.SUCCESS;
     }
 
     return result;
@@ -2011,7 +2011,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no LDIF export plugins
       // registered, which is fine.
-      result = new LDIFPluginResult();
+      result = LDIFPluginResult.SUCCESS;
     }
 
     return result;
@@ -2093,7 +2093,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-parse abandon plugins
       // registered, which is fine.
-      result = new PreParsePluginResult();
+      result = PreParsePluginResult.SUCCESS;
     }
 
     return result;
@@ -2173,7 +2173,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-parse add plugins
       // registered, which is fine.
-      result = new PreParsePluginResult();
+      result = PreParsePluginResult.SUCCESS;
     }
 
     return result;
@@ -2253,7 +2253,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-parse bind plugins
       // registered, which is fine.
-      result = new PreParsePluginResult();
+      result = PreParsePluginResult.SUCCESS;
     }
 
     return result;
@@ -2335,7 +2335,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-parse compare plugins
       // registered, which is fine.
-      result = new PreParsePluginResult();
+      result = PreParsePluginResult.SUCCESS;
     }
 
     return result;
@@ -2417,7 +2417,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-parse delete plugins
       // registered, which is fine.
-      result = new PreParsePluginResult();
+      result = PreParsePluginResult.SUCCESS;
     }
 
     return result;
@@ -2499,7 +2499,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-parse extended plugins
       // registered, which is fine.
-      result = new PreParsePluginResult();
+      result = PreParsePluginResult.SUCCESS;
     }
 
     return result;
@@ -2581,7 +2581,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-parse modify plugins
       // registered, which is fine.
-      result = new PreParsePluginResult();
+      result = PreParsePluginResult.SUCCESS;
     }
 
     return result;
@@ -2663,7 +2663,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-parse modify DN plugins
       // registered, which is fine.
-      result = new PreParsePluginResult();
+      result = PreParsePluginResult.SUCCESS;
     }
 
     return result;
@@ -2745,7 +2745,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-parse search plugins
       // registered, which is fine.
-      result = new PreParsePluginResult();
+      result = PreParsePluginResult.SUCCESS;
     }
 
     return result;
@@ -2827,7 +2827,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-parse unbind plugins
       // registered, which is fine.
-      result = new PreParsePluginResult();
+      result = PreParsePluginResult.SUCCESS;
     }
 
     return result;
@@ -2907,7 +2907,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-operation add plugins
       // registered, which is fine.
-      result = new PreOperationPluginResult();
+      result = PreOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -2987,7 +2987,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-operation bind plugins
       // registered, which is fine.
-      result = new PreOperationPluginResult();
+      result = PreOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3070,7 +3070,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-operation compare plugins
       // registered, which is fine.
-      result = new PreOperationPluginResult();
+      result = PreOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3152,7 +3152,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-operation delete plugins
       // registered, which is fine.
-      result = new PreOperationPluginResult();
+      result = PreOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3235,7 +3235,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-operation extended plugins
       // registered, which is fine.
-      result = new PreOperationPluginResult();
+      result = PreOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3317,7 +3317,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-operation modify plugins
       // registered, which is fine.
-      result = new PreOperationPluginResult();
+      result = PreOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3400,7 +3400,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-operation modify DN
       // plugins registered, which is fine.
-      result = new PreOperationPluginResult();
+      result = PreOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3483,7 +3483,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no pre-operation search plugins
       // registered, which is fine.
-      result = new PreOperationPluginResult();
+      result = PreOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3566,7 +3566,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-operation abandon plugins
       // registered, which is fine.
-      result = new PostOperationPluginResult();
+      result = PostOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3646,7 +3646,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-operation add plugins
       // registered, which is fine.
-      result = new PostOperationPluginResult();
+      result = PostOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3726,7 +3726,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-operation bind plugins
       // registered, which is fine.
-      result = new PostOperationPluginResult();
+      result = PostOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3809,7 +3809,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-operation compare plugins
       // registered, which is fine.
-      result = new PostOperationPluginResult();
+      result = PostOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3892,7 +3892,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-operation delete plugins
       // registered, which is fine.
-      result = new PostOperationPluginResult();
+      result = PostOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -3975,7 +3975,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-operation extended
       // plugins registered, which is fine.
-      result = new PostOperationPluginResult();
+      result = PostOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -4058,7 +4058,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-operation modify plugins
       // registered, which is fine.
-      result = new PostOperationPluginResult();
+      result = PostOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -4141,7 +4141,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-operation modify DN
       // plugins registered, which is fine.
-      result = new PostOperationPluginResult();
+      result = PostOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -4224,7 +4224,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-operation search plugins
       // registered, which is fine.
-      result = new PostOperationPluginResult();
+      result = PostOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -4307,7 +4307,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-operation unbind plugins
       // registered, which is fine.
-      result = new PostOperationPluginResult();
+      result = PostOperationPluginResult.SUCCESS;
     }
 
     return result;
@@ -4381,7 +4381,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-response add plugins
       // registered, which is fine.
-      result = new PostResponsePluginResult();
+      result = PostResponsePluginResult.SUCCESS;
     }
 
     return result;
@@ -4455,7 +4455,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-response bind plugins
       // registered, which is fine.
-      result = new PostResponsePluginResult();
+      result = PostResponsePluginResult.SUCCESS;
     }
 
     return result;
@@ -4530,7 +4530,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-response compare plugins
       // registered, which is fine.
-      result = new PostResponsePluginResult();
+      result = PostResponsePluginResult.SUCCESS;
     }
 
     return result;
@@ -4604,7 +4604,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-response delete plugins
       // registered, which is fine.
-      result = new PostResponsePluginResult();
+      result = PostResponsePluginResult.SUCCESS;
     }
 
     return result;
@@ -4679,7 +4679,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-response extended plugins
       // registered, which is fine.
-      result = new PostResponsePluginResult();
+      result = PostResponsePluginResult.SUCCESS;
     }
 
     return result;
@@ -4753,7 +4753,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-response modify plugins
       // registered, which is fine.
-      result = new PostResponsePluginResult();
+      result = PostResponsePluginResult.SUCCESS;
     }
 
     return result;
@@ -4828,7 +4828,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-response modify DN
       // plugins registered, which is fine.
-      result = new PostResponsePluginResult();
+      result = PostResponsePluginResult.SUCCESS;
     }
 
     return result;
@@ -4902,7 +4902,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no post-response search plugins
       // registered, which is fine.
-      result = new PostResponsePluginResult();
+      result = PostResponsePluginResult.SUCCESS;
     }
 
     return result;
@@ -4975,7 +4975,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no search result entry plugins
       // registered, which is fine.
-      result = new SearchEntryPluginResult();
+      result = SearchEntryPluginResult.SUCCESS;
     }
 
     return result;
@@ -5049,7 +5049,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no search result reference
       // plugins registered, which is fine.
-      result = new SearchReferencePluginResult();
+      result = SearchReferencePluginResult.SUCCESS;
     }
 
     return result;
@@ -5120,7 +5120,7 @@ parsePluginEntry:
     {
       // This should only happen if there were no intermediate response plugins
       // registered, which is fine.
-      result = new IntermediateResponsePluginResult();
+      result = IntermediateResponsePluginResult.SUCCESS;
     }
 
     return result;

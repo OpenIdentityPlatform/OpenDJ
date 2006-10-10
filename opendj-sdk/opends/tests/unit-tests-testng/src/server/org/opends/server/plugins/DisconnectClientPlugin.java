@@ -165,7 +165,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -184,7 +184,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -203,7 +203,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -223,7 +223,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -243,7 +243,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -263,7 +263,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -283,7 +283,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -303,7 +303,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -323,7 +323,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -343,7 +343,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -363,7 +363,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -383,7 +383,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -404,7 +404,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -425,7 +425,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -446,7 +446,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -467,7 +467,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -488,7 +488,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -509,7 +509,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -530,7 +530,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostOperationPluginResult();
+      return PostOperationPluginResult.SUCCESS;
     }
   }
 
@@ -550,7 +550,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostOperationPluginResult();
+      return PostOperationPluginResult.SUCCESS;
     }
   }
 
@@ -570,7 +570,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostOperationPluginResult();
+      return PostOperationPluginResult.SUCCESS;
     }
   }
 
@@ -591,7 +591,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostOperationPluginResult();
+      return PostOperationPluginResult.SUCCESS;
     }
   }
 
@@ -612,7 +612,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostOperationPluginResult();
+      return PostOperationPluginResult.SUCCESS;
     }
   }
 
@@ -633,7 +633,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostOperationPluginResult();
+      return PostOperationPluginResult.SUCCESS;
     }
   }
 
@@ -654,7 +654,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostOperationPluginResult();
+      return PostOperationPluginResult.SUCCESS;
     }
   }
 
@@ -675,7 +675,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostOperationPluginResult();
+      return PostOperationPluginResult.SUCCESS;
     }
   }
 
@@ -696,7 +696,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostOperationPluginResult();
+      return PostOperationPluginResult.SUCCESS;
     }
   }
 
@@ -717,7 +717,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostOperationPluginResult();
+      return PostOperationPluginResult.SUCCESS;
     }
   }
 
@@ -737,7 +737,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostResponsePluginResult();
+      return PostResponsePluginResult.SUCCESS;
     }
   }
 
@@ -757,7 +757,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostResponsePluginResult();
+      return PostResponsePluginResult.SUCCESS;
     }
   }
 
@@ -778,7 +778,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostResponsePluginResult();
+      return PostResponsePluginResult.SUCCESS;
     }
   }
 
@@ -799,7 +799,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostResponsePluginResult();
+      return PostResponsePluginResult.SUCCESS;
     }
   }
 
@@ -820,7 +820,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostResponsePluginResult();
+      return PostResponsePluginResult.SUCCESS;
     }
   }
 
@@ -841,7 +841,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostResponsePluginResult();
+      return PostResponsePluginResult.SUCCESS;
     }
   }
 
@@ -862,7 +862,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostResponsePluginResult();
+      return PostResponsePluginResult.SUCCESS;
     }
   }
 
@@ -883,7 +883,7 @@ public class DisconnectClientPlugin
     }
     else
     {
-      return new PostResponsePluginResult();
+      return PostResponsePluginResult.SUCCESS;
     }
   }
 

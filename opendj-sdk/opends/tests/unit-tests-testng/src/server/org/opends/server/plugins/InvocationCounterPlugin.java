@@ -133,7 +133,7 @@ public class InvocationCounterPlugin
        doPreParse(PreParseAbandonOperation abandonOperation)
   {
     preParseCounter.incrementAndGet();
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 
 
@@ -145,7 +145,7 @@ public class InvocationCounterPlugin
   public PreParsePluginResult doPreParse(PreParseAddOperation addOperation)
   {
     preParseCounter.incrementAndGet();
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 
 
@@ -157,7 +157,7 @@ public class InvocationCounterPlugin
   public PreParsePluginResult doPreParse(PreParseBindOperation bindOperation)
   {
     preParseCounter.incrementAndGet();
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 
 
@@ -170,7 +170,7 @@ public class InvocationCounterPlugin
        doPreParse(PreParseCompareOperation compareOperation)
   {
     preParseCounter.incrementAndGet();
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 
 
@@ -183,7 +183,7 @@ public class InvocationCounterPlugin
        doPreParse(PreParseDeleteOperation deleteOperation)
   {
     preParseCounter.incrementAndGet();
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 
 
@@ -196,7 +196,7 @@ public class InvocationCounterPlugin
        doPreParse(PreParseExtendedOperation extendedOperation)
   {
     preParseCounter.incrementAndGet();
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 
 
@@ -209,7 +209,7 @@ public class InvocationCounterPlugin
        doPreParse(PreParseModifyOperation modifyOperation)
   {
     preParseCounter.incrementAndGet();
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 
 
@@ -222,7 +222,7 @@ public class InvocationCounterPlugin
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
     preParseCounter.incrementAndGet();
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 
 
@@ -235,7 +235,7 @@ public class InvocationCounterPlugin
        doPreParse(PreParseSearchOperation searchOperation)
   {
     preParseCounter.incrementAndGet();
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 
 
@@ -248,7 +248,7 @@ public class InvocationCounterPlugin
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
     preParseCounter.incrementAndGet();
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 
 
@@ -287,7 +287,7 @@ public class InvocationCounterPlugin
        doPreOperation(PreOperationAddOperation addOperation)
   {
     preOperationCounter.incrementAndGet();
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -300,7 +300,7 @@ public class InvocationCounterPlugin
        doPreOperation(PreOperationBindOperation bindOperation)
   {
     preOperationCounter.incrementAndGet();
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -313,7 +313,7 @@ public class InvocationCounterPlugin
        doPreOperation(PreOperationCompareOperation compareOperation)
   {
     preOperationCounter.incrementAndGet();
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -326,7 +326,7 @@ public class InvocationCounterPlugin
        doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
     preOperationCounter.incrementAndGet();
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -339,7 +339,7 @@ public class InvocationCounterPlugin
        doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
     preOperationCounter.incrementAndGet();
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -352,7 +352,7 @@ public class InvocationCounterPlugin
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     preOperationCounter.incrementAndGet();
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -365,7 +365,7 @@ public class InvocationCounterPlugin
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     preOperationCounter.incrementAndGet();
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -378,7 +378,7 @@ public class InvocationCounterPlugin
        doPreOperation(PreOperationSearchOperation searchOperation)
   {
     preOperationCounter.incrementAndGet();
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -417,7 +417,7 @@ public class InvocationCounterPlugin
        doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
     postOperationCounter.incrementAndGet();
-    return new PostOperationPluginResult();
+    return PostOperationPluginResult.SUCCESS;
   }
 
 
@@ -430,7 +430,7 @@ public class InvocationCounterPlugin
        doPostOperation(PostOperationAddOperation addOperation)
   {
     postOperationCounter.incrementAndGet();
-    return new PostOperationPluginResult();
+    return PostOperationPluginResult.SUCCESS;
   }
 
 
@@ -443,7 +443,7 @@ public class InvocationCounterPlugin
        doPostOperation(PostOperationBindOperation bindOperation)
   {
     postOperationCounter.incrementAndGet();
-    return new PostOperationPluginResult();
+    return PostOperationPluginResult.SUCCESS;
   }
 
 
@@ -456,7 +456,7 @@ public class InvocationCounterPlugin
        doPostOperation(PostOperationCompareOperation compareOperation)
   {
     postOperationCounter.incrementAndGet();
-    return new PostOperationPluginResult();
+    return PostOperationPluginResult.SUCCESS;
   }
 
 
@@ -469,7 +469,7 @@ public class InvocationCounterPlugin
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
     postOperationCounter.incrementAndGet();
-    return new PostOperationPluginResult();
+    return PostOperationPluginResult.SUCCESS;
   }
 
 
@@ -482,7 +482,7 @@ public class InvocationCounterPlugin
        doPostOperation(PostOperationExtendedOperation extendedOperation)
   {
     postOperationCounter.incrementAndGet();
-    return new PostOperationPluginResult();
+    return PostOperationPluginResult.SUCCESS;
   }
 
 
@@ -495,7 +495,7 @@ public class InvocationCounterPlugin
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
     postOperationCounter.incrementAndGet();
-    return new PostOperationPluginResult();
+    return PostOperationPluginResult.SUCCESS;
   }
 
 
@@ -508,7 +508,7 @@ public class InvocationCounterPlugin
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {
     postOperationCounter.incrementAndGet();
-    return new PostOperationPluginResult();
+    return PostOperationPluginResult.SUCCESS;
   }
 
 
@@ -521,7 +521,7 @@ public class InvocationCounterPlugin
        doPostOperation(PostOperationSearchOperation searchOperation)
   {
     postOperationCounter.incrementAndGet();
-    return new PostOperationPluginResult();
+    return PostOperationPluginResult.SUCCESS;
   }
 
 
@@ -534,7 +534,7 @@ public class InvocationCounterPlugin
        doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
     postOperationCounter.incrementAndGet();
-    return new PostOperationPluginResult();
+    return PostOperationPluginResult.SUCCESS;
   }
 
 
@@ -573,7 +573,7 @@ public class InvocationCounterPlugin
        doPostResponse(PostResponseAddOperation addOperation)
   {
     postResponseCounter.incrementAndGet();
-    return new PostResponsePluginResult();
+    return PostResponsePluginResult.SUCCESS;
   }
 
 
@@ -586,7 +586,7 @@ public class InvocationCounterPlugin
        doPostResponse(PostResponseBindOperation bindOperation)
   {
     postResponseCounter.incrementAndGet();
-    return new PostResponsePluginResult();
+    return PostResponsePluginResult.SUCCESS;
   }
 
 
@@ -599,7 +599,7 @@ public class InvocationCounterPlugin
        doPostResponse(PostResponseCompareOperation compareOperation)
   {
     postResponseCounter.incrementAndGet();
-    return new PostResponsePluginResult();
+    return PostResponsePluginResult.SUCCESS;
   }
 
 
@@ -612,7 +612,7 @@ public class InvocationCounterPlugin
        doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
     postResponseCounter.incrementAndGet();
-    return new PostResponsePluginResult();
+    return PostResponsePluginResult.SUCCESS;
   }
 
 
@@ -625,7 +625,7 @@ public class InvocationCounterPlugin
        doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
     postResponseCounter.incrementAndGet();
-    return new PostResponsePluginResult();
+    return PostResponsePluginResult.SUCCESS;
   }
 
 
@@ -638,7 +638,7 @@ public class InvocationCounterPlugin
        doPostResponse(PostResponseModifyOperation modifyOperation)
   {
     postResponseCounter.incrementAndGet();
-    return new PostResponsePluginResult();
+    return PostResponsePluginResult.SUCCESS;
   }
 
 
@@ -651,7 +651,7 @@ public class InvocationCounterPlugin
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
     postResponseCounter.incrementAndGet();
-    return new PostResponsePluginResult();
+    return PostResponsePluginResult.SUCCESS;
   }
 
 
@@ -664,7 +664,7 @@ public class InvocationCounterPlugin
        doPostResponse(PostResponseSearchOperation searchOperation)
   {
     postResponseCounter.incrementAndGet();
-    return new PostResponsePluginResult();
+    return PostResponsePluginResult.SUCCESS;
   }
 
 
@@ -704,7 +704,7 @@ public class InvocationCounterPlugin
                           SearchResultEntry searchEntry)
   {
     searchEntryCounter.incrementAndGet();
-    return new SearchEntryPluginResult();
+    return SearchEntryPluginResult.SUCCESS;
   }
 
 
@@ -745,7 +745,7 @@ public class InvocationCounterPlugin
                               SearchResultReference searchReference)
   {
     searchReferenceCounter.incrementAndGet();
-    return new SearchReferencePluginResult();
+    return SearchReferencePluginResult.SUCCESS;
   }
 
 
@@ -785,7 +785,7 @@ public class InvocationCounterPlugin
               IntermediateResponse intermediateResponse)
   {
     intermediateResponseCounter.incrementAndGet();
-    return new IntermediateResponsePluginResult();
+    return IntermediateResponsePluginResult.SUCCESS;
   }
 
 
@@ -825,7 +825,7 @@ public class InvocationCounterPlugin
                                                     clientConnection)
   {
     postConnectCounter.incrementAndGet();
-    return new PostConnectPluginResult();
+    return PostConnectPluginResult.SUCCESS;
   }
 
 
@@ -865,7 +865,7 @@ public class InvocationCounterPlugin
        int msgID, String message)
   {
     postDisconnectCounter.incrementAndGet();
-    return new PostDisconnectPluginResult();
+    return PostDisconnectPluginResult.SUCCESS;
   }
 
 
@@ -904,7 +904,7 @@ public class InvocationCounterPlugin
                                        Entry entry)
   {
     ldifImportCounter.incrementAndGet();
-    return new LDIFPluginResult();
+    return LDIFPluginResult.SUCCESS;
   }
 
 
@@ -943,7 +943,7 @@ public class InvocationCounterPlugin
                                        Entry entry)
   {
     ldifExportCounter.incrementAndGet();
-    return new LDIFPluginResult();
+    return LDIFPluginResult.SUCCESS;
   }
 
 
@@ -1002,7 +1002,7 @@ public class InvocationCounterPlugin
   public StartupPluginResult doStartup()
   {
     startupCalled = true;
-    return new StartupPluginResult();
+    return StartupPluginResult.SUCCESS;
   }
 
 

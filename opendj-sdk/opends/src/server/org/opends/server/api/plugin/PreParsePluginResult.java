@@ -46,17 +46,26 @@ public class PreParsePluginResult
 
 
 
+  /**
+   * A pre-parse plugin result instance that indicates all processing
+   * was successful.
+   */
+  public static final PreParsePluginResult SUCCESS =
+       new PreParsePluginResult();
+
+
+
   // Indicates whether any further pre-operation plugins should be
   // invoked for this operation.
-  private boolean continuePluginProcessing;
+  private final boolean continuePluginProcessing;
 
   // Indicates whether the pre-operation plugin terminated the client
   // connection.
-  private boolean connectionTerminated;
+  private final boolean connectionTerminated;
 
   // Indicates whether the server should immediately send the response
   // from this plugin to the client with no further processing.
-  private boolean sendResponseImmediately;
+  private final boolean sendResponseImmediately;
 
 
 
@@ -68,13 +77,9 @@ public class PreParsePluginResult
    * that the pre-operation and post-operation plugin processing
    * should not be skipped.
    */
-  public PreParsePluginResult()
+  private PreParsePluginResult()
   {
-    assert debugConstructor(CLASS_NAME);
-
-    this.connectionTerminated     = false;
-    this.continuePluginProcessing = true;
-    this.sendResponseImmediately  = false;
+    this(false, true, false);
   }
 
 
@@ -128,24 +133,6 @@ public class PreParsePluginResult
 
 
   /**
-   * Specifies whether the post-response plugin terminated the client
-   * connection.
-   *
-   * @param  connectionTerminated  Specifies whether the post-response
-   *                               plugin terminated the client
-   *                               connection.
-   */
-  public void setConnectionTerminated(boolean connectionTerminated)
-  {
-    assert debugEnter(CLASS_NAME, "setConnectionTerminated",
-                      String.valueOf(connectionTerminated));
-
-    this.connectionTerminated = connectionTerminated;
-  }
-
-
-
-  /**
    * Indicates whether any further post-response plugins should be
    * invoked for this operation.
    *
@@ -158,25 +145,6 @@ public class PreParsePluginResult
     assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
-  }
-
-
-
-  /**
-   * Specifies whether any further post-response plugins should be
-   * invoked for this operation.
-   *
-   * @param  continuePluginProcessing  Specifies whether any further
-   *                                   post-response plugins should be
-   *                                   invoked for this operation.
-   */
-  public void setContinuePluginProcessing(
-                   boolean continuePluginProcessing)
-  {
-    assert debugEnter(CLASS_NAME, "setContinuePluginProcessing",
-                      String.valueOf(continuePluginProcessing));
-
-    this.continuePluginProcessing = continuePluginProcessing;
   }
 
 
@@ -196,28 +164,6 @@ public class PreParsePluginResult
     assert debugEnter(CLASS_NAME, "sendResponseImmediately");
 
     return sendResponseImmediately;
-  }
-
-
-
-  /**
-   * Specifies whether the server should send the response set by this
-   * plugin to the client immediately with no further processing on
-   * the operation.
-   *
-   * @param  sendResponseImmediately  Indicates whether the server
-   *                                  should send the response set by
-   *                                  this plugin to the client
-   *                                  immediately with no further
-   *                                  processing on the operation.
-   */
-  public void setSendResponseImmediately(
-                   boolean sendResponseImmediately)
-  {
-    assert debugEnter(CLASS_NAME, "setSendResponseImmediately",
-                      String.valueOf(sendResponseImmediately));
-
-    this.sendResponseImmediately = sendResponseImmediately;
   }
 
 

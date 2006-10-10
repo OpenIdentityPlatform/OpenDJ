@@ -46,13 +46,22 @@ public class PostOperationPluginResult
 
 
 
+  /**
+   * A post-operation plugin result instance that indicates all
+   * processing was  successful.
+   */
+  public static final PostOperationPluginResult SUCCESS =
+       new PostOperationPluginResult();
+
+
+
   // Indicates whether any further post-operation plugins should be
   // invoked for this operation.
-  private boolean continuePluginProcessing;
+  private final boolean continuePluginProcessing;
 
   // Indicates whether the post-operation plugin terminated the client
   // connection.
-  private boolean connectionTerminated;
+  private final boolean connectionTerminated;
 
 
 
@@ -62,12 +71,9 @@ public class PostOperationPluginResult
    * not been terminated and that further post-operation plugin
    * processing should be allowed.
    */
-  public PostOperationPluginResult()
+  private PostOperationPluginResult()
   {
-    assert debugConstructor(CLASS_NAME);
-
-    this.connectionTerminated     = false;
-    this.continuePluginProcessing = true;
+    this(false, true);
   }
 
 
@@ -115,24 +121,6 @@ public class PostOperationPluginResult
 
 
   /**
-   * Specifies whether the post-operation plugin terminated the client
-   * connection.
-   *
-   * @param  connectionTerminated  Specifies whether the
-   *                               post-operation plugin terminated
-   *                               the client connection.
-   */
-  public void setConnectionTerminated(boolean connectionTerminated)
-  {
-    assert debugEnter(CLASS_NAME, "setConnectionTerminated",
-                      String.valueOf(connectionTerminated));
-
-    this.connectionTerminated = connectionTerminated;
-  }
-
-
-
-  /**
    * Indicates whether any further post-operation plugins should be
    * invoked for this operation.
    *
@@ -145,25 +133,6 @@ public class PostOperationPluginResult
     assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
-  }
-
-
-
-  /**
-   * Specifies whether any further post-operation plugins should be
-   * invoked for this operation.
-   *
-   * @param  continuePluginProcessing  Specifies whether any further
-   *                                   post-operation plugins should
-   *                                   be invoked for this operation.
-   */
-  public void setContinuePluginProcessing(
-                   boolean continuePluginProcessing)
-  {
-    assert debugEnter(CLASS_NAME, "setContinuePluginProcessing",
-                      String.valueOf(continuePluginProcessing));
-
-    this.continuePluginProcessing = continuePluginProcessing;
   }
 
 

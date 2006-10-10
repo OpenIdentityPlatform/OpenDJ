@@ -172,7 +172,7 @@ public final class EntryUUIDPlugin
     List<Attribute> uuidList = entry.getAttribute(entryUUIDType);
     if (uuidList != null)
     {
-      return new LDIFPluginResult();
+      return LDIFPluginResult.SUCCESS;
     }
 
 
@@ -193,7 +193,7 @@ public final class EntryUUIDPlugin
 
 
     // We shouldn't ever need to return a non-success result.
-    return new LDIFPluginResult();
+    return LDIFPluginResult.SUCCESS;
   }
 
 
@@ -217,7 +217,7 @@ public final class EntryUUIDPlugin
     List<Attribute> uuidList = operationalAttributes.get(entryUUIDType);
     if (uuidList != null)
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
 
 
@@ -235,7 +235,7 @@ public final class EntryUUIDPlugin
 
     // Add the attribute to the entry and return.
     addOperation.setAttribute(entryUUIDType, uuidList);
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 }
 

@@ -140,7 +140,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -162,7 +162,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -184,7 +184,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -207,7 +207,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -230,7 +230,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -254,7 +254,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -277,7 +277,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -301,7 +301,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -324,7 +324,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -347,7 +347,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreParsePluginResult();
+      return PreParsePluginResult.SUCCESS;
     }
   }
 
@@ -370,7 +370,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -393,7 +393,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -416,7 +416,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -439,7 +439,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -463,7 +463,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -486,7 +486,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -510,7 +510,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
@@ -533,7 +533,7 @@ public class ShortCircuitPlugin
     }
     else
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
   }
 
