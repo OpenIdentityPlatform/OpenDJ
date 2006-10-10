@@ -246,4 +246,24 @@ public class ModifyDNMsg extends UpdateMessage
   {
     newSuperior = string;
   }
+
+  /**
+   * Get the new RDN of this operation.
+   *
+   * @return The new RDN of this operation.
+   */
+  public String getNewRDN()
+  {
+    return newRDN;
+  }
+
+  /**
+   * Set the new RDN of this operation.
+   * @param newRDN the new RDN of this operation.
+   */
+  public void setNewRDN(String newRDN)
+  {
+    this.newRDN = newRDN;
+  }
+
 }
