@@ -557,7 +557,8 @@ public class SynchronizationDomain extends DirectoryThread
          * parent is the same as when the operation was performed.
          */
         String newParentId = findEntryId(modifyDNOperation.getNewSuperior());
-        if (!newParentId.equals(ctx.getNewParentId()))
+        if ((newParentId != null) &&
+            (!newParentId.equals(ctx.getNewParentId())))
         {
           modifyDNOperation.setResultCode(ResultCode.NO_SUCH_OBJECT);
           return new SynchronizationProviderResult(false);
@@ -1270,8 +1271,14 @@ public class SynchronizationDomain extends DirectoryThread
        * search if the entry has been renamed, and return the new dn
        * of the entry.
        */
-      msg.setDn(findEntryDN(entryUid).toString());
-      return false;
+      DN newdn = findEntryDN(entryUid);
+      if (newdn != null)
+      {
+        msg.setDn(newdn.toString());
+        return false;
+      }
+      else
+        return true;
     }
     return true;
   }
@@ -1419,64 +1426,67 @@ public class SynchronizationDomain extends DirectoryThread
     String entryUid = ctx.getEntryUid();
     String newSuperiorID = ctx.getNewParentId();
 
+    /*
+     * four possible cases :
+     * - the modified entry has been renamed
+     * - the new parent has been renamed
+     * - the operation is replayed for the second time.
+     * - the entry has been deleted
+     * action :
+     *  - change the target dn and the new parent dn and
+     *        restart the operation,
+     *  - don't do anything if the operation is replayed.
+     */
+
+    // Construct the new DN to use for the entry.
+    DN entryDN = op.getEntryDN();
+    DN newSuperior = findEntryDN(newSuperiorID);
+    RDN newRDN = op.getNewRDN();
+    DN parentDN;
+
+    if (newSuperior == null)
+    {
+      parentDN = entryDN.getParent();
+    }
+    else
+    {
+      parentDN = newSuperior;
+    }
+
+    if ((parentDN == null) || parentDN.isNullDN())
+    {
+      /* this should never happen
+       * can't solve any conflict in this case.
+       */
+      throw new Exception("operation parameters are invalid");
+    }
+
+    RDN[] parentComponents = parentDN.getRDNComponents();
+    RDN[] newComponents    = new RDN[parentComponents.length+1];
+    System.arraycopy(parentComponents, 0, newComponents, 1,
+        parentComponents.length);
+    newComponents[0] = newRDN;
+
+    DN newDN = new DN(newComponents);
+
+    // get the current DN of this entry in the database.
+    DN currentDN = findEntryDN(entryUid);
+
+    // if the newDN and the current DN match then the operation
+    // is a no-op (this was probably a second replay)
+    // don't do anything.
+    if (newDN.equals(currentDN))
+    {
+      return true;
+    }
+
     if (result == ResultCode.NO_SUCH_OBJECT)
     {
-      ModifyDNMsg modifyDnMsg = (ModifyDNMsg) msg;
-
       /*
-       * four possible cases :
-       * - the modified entry has been renamed
-       * - the new parent has been renamed
-       * - the operation is replayed for the second time.
-       * - the entry has been deleted
-       * action :
-       *  - change the target dn and the new parent dn and
-       *        restart the operation,
-       *  - don't do anything if the operation is replayed.
+       * The entry or it's new parent has not been found
+       * reconstruct the operation with the DN we just built
        */
-
-      // Construct the new DN to use for the entry.
-      DN entryDN = op.getEntryDN();
-      DN newSuperior = findEntryDN(newSuperiorID);
-      RDN newRDN = op.getNewRDN();
-      DN parentDN;
-
-      if (newSuperior == null)
-      {
-        parentDN = entryDN.getParent();
-      }
-      else
-      {
-        parentDN = newSuperior;
-      }
-
-      if ((parentDN == null) || parentDN.isNullDN())
-      {
-        /* this should never happen
-         * can't solve any conflict in this case.
-         */
-        throw new Exception("operation parameters are invalid");
-      }
-
-      RDN[] parentComponents = parentDN.getRDNComponents();
-      RDN[] newComponents    = new RDN[parentComponents.length+1];
-      System.arraycopy(parentComponents, 0, newComponents, 1,
-          parentComponents.length);
-      newComponents[0] = newRDN;
-
-      DN newDN = new DN(newComponents);
-
-      // get the current DN of this entry in the database.
-      DN currentDN = findEntryDN(entryUid);
-
-      // if the newDN and the current DN match then the operation
-      // is a no-op (this was probably a second replay)
-      // don't do anything.
-      if (newDN.equals(currentDN))
-      {
-        return true;
-      }
-
+      ModifyDNMsg modifyDnMsg = (ModifyDNMsg) msg;
       msg.setDn(currentDN.toString());
       modifyDnMsg.setNewSuperior(newSuperior.toString());
       return false;
@@ -1489,8 +1499,11 @@ public class SynchronizationDomain extends DirectoryThread
        * add the conflict object class to the entry
        * and rename it using its entryuuid.
        */
+      ModifyDNMsg modifyDnMsg = (ModifyDNMsg) msg;
       generateAddConflictOp(op);
-      msg.setDn(generateConflictDn(entryUid, msg.getDn()));
+      modifyDnMsg.setNewRDN(generateConflictDn(entryUid,
+                            modifyDnMsg.getNewRDN()));
+      modifyDnMsg.setNewSuperior(newSuperior.toString());
       return false;
     }
     return true;
