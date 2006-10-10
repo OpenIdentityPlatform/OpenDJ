@@ -1583,6 +1583,14 @@ public class UtilityMessages
        CATEGORY_MASK_UTIL | SEVERITY_MASK_MILD_ERROR | 147;
 
 
+  /**
+   * The message ID for the message that will be used if a Validator check
+   * fails.  This signals that there is a method invocation that violates
+   * the pre-conditions of the method.
+   */
+  public static final int MSGID_VALIDATOR_PRECONDITION_NOT_MET =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 148;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -2108,6 +2116,11 @@ public class UtilityMessages
                     "file mode.  UNIX file modes must be a three-character " +
                     "string in which each character is a numeric digit " +
                     "between zero and seven.");
+
+    registerMessage(MSGID_VALIDATOR_PRECONDITION_NOT_MET,
+                    "A precondition of the invoked method was not met.  This " +
+                    "This usually means there is a defect somewhere in the " +
+                    "call stack.  Details: %s");
   }
 }
 
