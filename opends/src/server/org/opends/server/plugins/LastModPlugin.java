@@ -200,7 +200,7 @@ public final class LastModPlugin
 
 
     // We shouldn't ever need to return a non-success result.
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -275,7 +275,7 @@ public final class LastModPlugin
 
 
     // We shouldn't ever need to return a non-success result.
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -326,7 +326,7 @@ public final class LastModPlugin
 
 
     // We shouldn't ever need to return a non-success result.
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 }
 

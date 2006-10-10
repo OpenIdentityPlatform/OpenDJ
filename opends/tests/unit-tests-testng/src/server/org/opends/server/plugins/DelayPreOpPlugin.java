@@ -246,7 +246,7 @@ public class DelayPreOpPlugin
 
     if (delayDuration <= 0)
     {
-      return new PreOperationPluginResult();
+      return PreOperationPluginResult.SUCCESS;
     }
 
     long stopSleepTime = System.currentTimeMillis() + delayDuration;

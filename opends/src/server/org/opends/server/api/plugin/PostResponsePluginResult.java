@@ -46,13 +46,22 @@ public class PostResponsePluginResult
 
 
 
+  /**
+   * A post-response plugin result instance that indicates all
+   * processing was successful.
+   */
+  public static final PostResponsePluginResult SUCCESS =
+       new PostResponsePluginResult();
+
+
+
   // Indicates whether any further post-response plugins should be
   // invoked for this operation.
-  private boolean continuePluginProcessing;
+  private final boolean continuePluginProcessing;
 
   // Indicates whether the post-response plugin terminated the client
   // connection.
-  private boolean connectionTerminated;
+  private final boolean connectionTerminated;
 
 
 
@@ -62,12 +71,9 @@ public class PostResponsePluginResult
    * not been terminated and that further post-response plugin
    * processing should be allowed.
    */
-  public PostResponsePluginResult()
+  private PostResponsePluginResult()
   {
-    assert debugConstructor(CLASS_NAME);
-
-    this.connectionTerminated     = false;
-    this.continuePluginProcessing = true;
+    this(false, true);
   }
 
 
@@ -114,25 +120,6 @@ public class PostResponsePluginResult
 
 
   /**
-   * Specifies whether any further post-response plugins should be
-   * invoked for this operation.
-   *
-   * @param  continuePluginProcessing  Specifies whether any further
-   *                                   post-response plugins should be
-   *                                   invoked for this operation.
-   */
-  public void setContinuePluginProcessing(
-                   boolean continuePluginProcessing)
-  {
-    assert debugEnter(CLASS_NAME, "setContinuePluginProcessing",
-                      String.valueOf(continuePluginProcessing));
-
-    this.continuePluginProcessing = continuePluginProcessing;
-  }
-
-
-
-  /**
    * Indicates whether the post-response plugin terminated the client
    * connection.
    *
@@ -144,24 +131,6 @@ public class PostResponsePluginResult
     assert debugEnter(CLASS_NAME, "connectionTerminated");
 
     return connectionTerminated;
-  }
-
-
-
-  /**
-   * Specifies whether the post-response plugin terminated the client
-   * connection.
-   *
-   * @param  connectionTerminated  Specifies whether the post-response
-   *                               plugin terminated the client
-   *                               connection.
-   */
-  public void setConnectionTerminated(boolean connectionTerminated)
-  {
-    assert debugEnter(CLASS_NAME, "setConnectionTerminated",
-                      String.valueOf(connectionTerminated));
-
-    this.connectionTerminated = connectionTerminated;
   }
 
 

@@ -187,7 +187,7 @@ public final class LDAPADListPlugin
     }
 
 
-    return new PreParsePluginResult();
+    return PreParsePluginResult.SUCCESS;
   }
 }
 

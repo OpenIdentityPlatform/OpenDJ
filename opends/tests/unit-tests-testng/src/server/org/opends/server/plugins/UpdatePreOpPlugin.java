@@ -166,7 +166,7 @@ public class UpdatePreOpPlugin
       addOperation.addObjectClass(oc, oc.getPrimaryName());
     }
 
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 
@@ -191,7 +191,7 @@ public class UpdatePreOpPlugin
       }
     }
 
-    return new PreOperationPluginResult();
+    return PreOperationPluginResult.SUCCESS;
   }
 
 

@@ -339,7 +339,7 @@ public final class PasswordPolicyImportPlugin
     }
 
 
-    return new LDIFPluginResult();
+    return LDIFPluginResult.SUCCESS;
   }
 }
 

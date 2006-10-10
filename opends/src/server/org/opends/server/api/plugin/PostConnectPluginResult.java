@@ -46,13 +46,22 @@ public class PostConnectPluginResult
 
 
 
+  /**
+   * A post-connect plugin result instance that indicates all
+   * processing was  successful.
+   */
+  public static final PostConnectPluginResult SUCCESS =
+       new PostConnectPluginResult();
+
+
+
   // Indicates whether any further post-connect plugins should be
   // invoked for this connection.
-  private boolean continuePluginProcessing;
+  private final boolean continuePluginProcessing;
 
   // Indicates whether the post-connect plugin terminated the client
   // connection.
-  private boolean connectionTerminated;
+  private final boolean connectionTerminated;
 
 
 
@@ -62,12 +71,9 @@ public class PostConnectPluginResult
    * not been terminated and that further post-connect plugin
    * processing should be allowed.
    */
-  public PostConnectPluginResult()
+  private PostConnectPluginResult()
   {
-    assert debugConstructor(CLASS_NAME);
-
-    this.connectionTerminated     = false;
-    this.continuePluginProcessing = true;
+    this(false, true);
   }
 
 
@@ -113,24 +119,6 @@ public class PostConnectPluginResult
 
 
   /**
-   * Specifies whether the post-connect plugin terminated the client
-   * connection.
-   *
-   * @param  connectionTerminated  Specifies whether the post-connect
-   *                               plugin terminated the client
-   *                               connection.
-   */
-  public void setConnectionTerminated(boolean connectionTerminated)
-  {
-    assert debugEnter(CLASS_NAME, "setConnectionTerminated",
-                      String.valueOf(connectionTerminated));
-
-    this.connectionTerminated = connectionTerminated;
-  }
-
-
-
-  /**
    * Indicates whether any further post-connect plugins should be
    * invoked for this connection.
    *
@@ -143,25 +131,6 @@ public class PostConnectPluginResult
     assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
-  }
-
-
-
-  /**
-   * Specifies whether any further post-connect plugins should be
-   * invoked for this connection.
-   *
-   * @param  continuePluginProcessing  Specifies whether any further
-   *                                   post-connect plugins should be
-   *                                   invoked for this connection.
-   */
-  public void setContinuePluginProcessing(
-                   boolean continuePluginProcessing)
-  {
-    assert debugEnter(CLASS_NAME, "setContinuePluginProcessing",
-                      String.valueOf(continuePluginProcessing));
-
-    this.continuePluginProcessing = continuePluginProcessing;
   }
 
 

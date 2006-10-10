@@ -46,9 +46,18 @@ public class PostDisconnectPluginResult
 
 
 
+  /**
+   * A post-disconnect plugin result instance that indicates all
+   * processing was successful.
+   */
+  public static final PostDisconnectPluginResult SUCCESS =
+       new PostDisconnectPluginResult();
+
+
+
   // Indicates whether any further post-disconnect plugins should be
   // invoked for this connection.
-  private boolean continuePluginProcessing;
+  private final boolean continuePluginProcessing;
 
 
 
@@ -57,11 +66,9 @@ public class PostDisconnectPluginResult
    * settings.  In this case, it will indicate that the further
    * post-disconnect plugin processing should be allowed.
    */
-  public PostDisconnectPluginResult()
+  private PostDisconnectPluginResult()
   {
-    assert debugConstructor(CLASS_NAME);
-
-    this.continuePluginProcessing = true;
+    this(true);
   }
 
 
@@ -97,25 +104,6 @@ public class PostDisconnectPluginResult
     assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
-  }
-
-
-
-  /**
-   * Specifies whether any further post-disconnect plugins should be
-   * invoked for this connection.
-   *
-   * @param  continuePluginProcessing  Specifies whether any further
-   *                                   post-disconnect plugins should
-   *                                   be invoked for this connection.
-   */
-  public void setContinuePluginProcessing(
-                   boolean continuePluginProcessing)
-  {
-    assert debugEnter(CLASS_NAME, "setContinuePluginProcessing",
-                      String.valueOf(continuePluginProcessing));
-
-    this.continuePluginProcessing = continuePluginProcessing;
   }
 
 

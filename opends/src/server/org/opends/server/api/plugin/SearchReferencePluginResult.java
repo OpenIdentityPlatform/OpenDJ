@@ -46,21 +46,30 @@ public class SearchReferencePluginResult
 
 
 
+  /**
+   * A search reference plugin result instance that indicates all
+   * processing was successful.
+   */
+  public static final SearchReferencePluginResult SUCCESS =
+       new SearchReferencePluginResult();
+
+
+
   // Indicates whether any further search result reference plugins
   // should be invoked for this operation.
-  private boolean continuePluginProcessing;
+  private final boolean continuePluginProcessing;
 
   // Indicates whether processing should continue for the associated
   // search operation.
-  private boolean continueSearch;
+  private final boolean continueSearch;
 
   // Indicates whether the search result reference plugin terminated
   // the client connection.
-  private boolean connectionTerminated;
+  private final boolean connectionTerminated;
 
   // Indicates whether the associated reference should be sent to the
   // client.
-  private boolean sendReference;
+  private final boolean sendReference;
 
 
 
@@ -72,14 +81,9 @@ public class SearchReferencePluginResult
    * to the client, and that processing on the search operation should
    * continue.
    */
-  public SearchReferencePluginResult()
+  private SearchReferencePluginResult()
   {
-    assert debugConstructor(CLASS_NAME);
-
-    this.connectionTerminated     = false;
-    this.continuePluginProcessing = true;
-    this.sendReference            = true;
-    this.continueSearch           = true;
+    this(false, true, true, true);
   }
 
 
@@ -137,24 +141,6 @@ public class SearchReferencePluginResult
 
 
   /**
-   * Specifies whether the search result reference plugin terminated
-   * the client connection.
-   *
-   * @param  connectionTerminated  Specifies whether the search result
-   *                               reference plugin terminated the
-   *                               client connection.
-   */
-  public void setConnectionTerminated(boolean connectionTerminated)
-  {
-    assert debugEnter(CLASS_NAME, "setConnectionTerminated",
-                      String.valueOf(connectionTerminated));
-
-    this.connectionTerminated = connectionTerminated;
-  }
-
-
-
-  /**
    * Indicates whether any further search result reference plugins
    * should be invoked for this operation.
    *
@@ -167,26 +153,6 @@ public class SearchReferencePluginResult
     assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
-  }
-
-
-
-  /**
-   * Specifies whether any further search result reference plugins
-   * should be invoked for this operation.
-   *
-   * @param  continuePluginProcessing  Specifies whether any further
-   *                                   search result reference plugins
-   *                                   should be invoked for this
-   *                                   operation.
-   */
-  public void setContinuePluginProcessing(
-                   boolean continuePluginProcessing)
-  {
-    assert debugEnter(CLASS_NAME, "setContinuePluginProcessing",
-                      String.valueOf(continuePluginProcessing));
-
-    this.continuePluginProcessing = continuePluginProcessing;
   }
 
 
@@ -209,24 +175,6 @@ public class SearchReferencePluginResult
 
 
   /**
-   * Specifies whether the associated search result reference should
-   * be sent to the client.
-   *
-   * @param  sendReference  Specifies whether the associated search
-   *                        result reference should be sent to the
-   *                        client.
-   */
-  public void setSendReference(boolean sendReference)
-  {
-    assert debugEnter(CLASS_NAME, "setSendReference",
-                      String.valueOf(sendReference));
-
-    this.sendReference = sendReference;
-  }
-
-
-
-  /**
    * Indicates whether processing should continue for the associated
    * search operation (i.e., if it should continue looking for more
    * matching entries).
@@ -239,24 +187,6 @@ public class SearchReferencePluginResult
     assert debugEnter(CLASS_NAME, "continueSearch");
 
     return continueSearch;
-  }
-
-
-
-  /**
-   * Specifies whether processing should continue for the associated
-   * search operation.
-   *
-   * @param  continueSearch  Specifies whether processing should
-   *                         continue for the associated search
-   *                         operation.
-   */
-  public void setContinueSearch(boolean continueSearch)
-  {
-    assert debugEnter(CLASS_NAME, "setContinueSearch",
-                      String.valueOf(continueSearch));
-
-    this.continueSearch = continueSearch;
   }
 
 

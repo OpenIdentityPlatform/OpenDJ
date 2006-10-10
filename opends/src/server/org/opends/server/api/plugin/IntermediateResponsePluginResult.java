@@ -47,21 +47,30 @@ public class IntermediateResponsePluginResult
 
 
 
+  /**
+   * An intermediate response plugin result instance that indicates
+   * all processing was successful.
+   */
+  public static final IntermediateResponsePluginResult SUCCESS =
+       new IntermediateResponsePluginResult();
+
+
+
   // Indicates whether any further intermediate response plugins
   // should be invoked for this operation.
-  private boolean continuePluginProcessing;
+  private final boolean continuePluginProcessing;
 
   // Indicates whether processing should continue for the associated
   // operation.
-  private boolean continueOperation;
+  private final boolean continueOperation;
 
   // Indicates whether the intermediate response plugin terminated the
   // client connection.
-  private boolean connectionTerminated;
+  private final boolean connectionTerminated;
 
   // Indicates whether the associated intermediate response message
   // should be sent to the client.
-  private boolean sendIntermediateResponse;
+  private final boolean sendIntermediateResponse;
 
 
 
@@ -73,14 +82,9 @@ public class IntermediateResponsePluginResult
    * be returned to the client, and that processing on the associated
    * operation should continue.
    */
-  public IntermediateResponsePluginResult()
+  private IntermediateResponsePluginResult()
   {
-    assert debugConstructor(CLASS_NAME);
-
-    this.connectionTerminated     = false;
-    this.continuePluginProcessing = true;
-    this.sendIntermediateResponse = true;
-    this.continueOperation        = true;
+    this(false, true, true, true);
   }
 
 
@@ -142,24 +146,6 @@ public class IntermediateResponsePluginResult
 
 
   /**
-   * Specifies whether the intermediate response plugin terminated the
-   * client connection.
-   *
-   * @param  connectionTerminated  Specifies whether the intermediate
-   *                               response plugin terminated the
-   *                               client connection.
-   */
-  public void setConnectionTerminated(boolean connectionTerminated)
-  {
-    assert debugEnter(CLASS_NAME, "setConnectionTerminated",
-                      String.valueOf(connectionTerminated));
-
-    this.connectionTerminated = connectionTerminated;
-  }
-
-
-
-  /**
    * Indicates whether any further intermediate response plugins
    * should be invoked for this operation.
    *
@@ -172,26 +158,6 @@ public class IntermediateResponsePluginResult
     assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
-  }
-
-
-
-  /**
-   * Specifies whether any further intermediate response plugins
-   * should be invoked for this operation.
-   *
-   * @param  continuePluginProcessing  Specifies whether any further
-   *                                   intermediate response plugins
-   *                                   should be invoked for this
-   *                                   operation.
-   */
-  public void setContinuePluginProcessing(
-                   boolean continuePluginProcessing)
-  {
-    assert debugEnter(CLASS_NAME, "setContinuePluginProcessing",
-                      String.valueOf(continuePluginProcessing));
-
-    this.continuePluginProcessing = continuePluginProcessing;
   }
 
 
@@ -214,26 +180,6 @@ public class IntermediateResponsePluginResult
 
 
   /**
-   * Specifies whether the associated intermediate response message
-   * should be sent to the client.
-   *
-   * @param  sendIntermediateResponse  Specifies whether the
-   *                                   associated intermediate
-   *                                   response message should be sent
-   *                                   to the client.
-   */
-  public void setSendIntermediateResponse(
-                   boolean sendIntermediateResponse)
-  {
-    assert debugEnter(CLASS_NAME, "setSendIntermediateResponse",
-                      String.valueOf(sendIntermediateResponse));
-
-    this.sendIntermediateResponse = sendIntermediateResponse;
-  }
-
-
-
-  /**
    * Indicates whether processing should continue for the associated
    * operation.
    *
@@ -245,23 +191,6 @@ public class IntermediateResponsePluginResult
     assert debugEnter(CLASS_NAME, "continueOperation");
 
     return continueOperation;
-  }
-
-
-
-  /**
-   * Specifies whether processing should continue for the associated
-   * operation.
-   *
-   * @param  continueOperation  Specifies whether processing should
-   *                            continue for the associated operation.
-   */
-  public void setContinueOperation(boolean continueOperation)
-  {
-    assert debugEnter(CLASS_NAME, "setContinueOperation",
-                      String.valueOf(continueOperation));
-
-    this.continueOperation = continueOperation;
   }
 
 
