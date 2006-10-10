@@ -1366,7 +1366,7 @@ public class PasswordPolicyState
           LinkedHashSet<AttributeValue> values = null;
 
           long expirationTime = currentTime -
-                    (passwordPolicy.getLockoutFailureExpirationInterval()*1000);
+               (passwordPolicy.getLockoutFailureExpirationInterval()*1000L);
           Iterator<Long> iterator = authFailureTimes.iterator();
           while (iterator.hasNext())
           {
@@ -1715,7 +1715,7 @@ public class PasswordPolicyState
     if (passwordPolicy.getLockoutDuration() > 0)
     {
       long unlockTime = failureLockedTime +
-                        (1000*passwordPolicy.getLockoutDuration());
+           (1000L*passwordPolicy.getLockoutDuration());
       if (unlockTime > currentTime)
       {
         if (debug)
@@ -2141,7 +2141,7 @@ public class PasswordPolicyState
       }
 
       long lockTime = currentTime -
-                      (passwordPolicy.getIdleLockoutInterval()*1000);
+                      (passwordPolicy.getIdleLockoutInterval()*1000L);
       long lastLoginTime = getLastLoginTime();
       if (lastLoginTime > 0)
       {
@@ -2488,7 +2488,7 @@ public class PasswordPolicyState
     }
 
     long maxResetTime = passwordChangedTime +
-                        (1000 * passwordPolicy.getMaximumPasswordResetAge());
+                        (1000L * passwordPolicy.getMaximumPasswordResetAge());
     boolean locked = (maxResetTime < currentTime);
 
     if (debug)
@@ -2529,7 +2529,7 @@ public class PasswordPolicyState
       int maxAge = passwordPolicy.getMaximumPasswordAge();
       if (maxAge > 0)
       {
-        long expTime = passwordChangedTime + (1000*maxAge);
+        long expTime = passwordChangedTime + (1000L*maxAge);
         if (expTime < expirationTime)
         {
           expirationTime = expTime;
@@ -2540,7 +2540,7 @@ public class PasswordPolicyState
       int maxResetAge = passwordPolicy.getMaximumPasswordResetAge();
       if (mustChangePassword() && (maxResetAge > 0))
       {
-        long expTime = passwordChangedTime + (1000*maxResetAge);
+        long expTime = passwordChangedTime + (1000L*maxResetAge);
         if (expTime < expirationTime)
         {
           expirationTime = expTime;
@@ -2575,7 +2575,7 @@ public class PasswordPolicyState
         int warningInterval = passwordPolicy.getWarningInterval();
         if (warningInterval > 0)
         {
-          long shouldWarnTime = expirationTime - (warningInterval*1000);
+          long shouldWarnTime = expirationTime - (warningInterval*1000L);
           if (shouldWarnTime > currentTime)
           {
             // The warning time is in the future, so we know the password isn't
@@ -2603,7 +2603,7 @@ public class PasswordPolicyState
 
                 if (! passwordPolicy.expirePasswordsWithoutWarning())
                 {
-                  expirationTime = currentTime + (warningInterval*1000);
+                  expirationTime = currentTime + (warningInterval*1000L);
                 }
               }
               else
@@ -2612,7 +2612,7 @@ public class PasswordPolicyState
 
                 if (! passwordPolicy.expirePasswordsWithoutWarning())
                 {
-                  expirationTime = warnedTime + (warningInterval*1000);
+                  expirationTime = warnedTime + (warningInterval*1000L);
                 }
               }
             }
@@ -2628,7 +2628,7 @@ public class PasswordPolicyState
               }
               else if (warnedTime > 0)
               {
-                expirationTime = warnedTime + (warningInterval*1000);
+                expirationTime = warnedTime + (warningInterval*1000L);
                 if (expirationTime > currentTime)
                 {
                   shouldWarn        = ConditionResult.TRUE;
@@ -2647,7 +2647,7 @@ public class PasswordPolicyState
                 shouldWarn        = ConditionResult.TRUE;
                 isFirstWarning    = ConditionResult.TRUE;
                 isPasswordExpired = ConditionResult.FALSE;
-                expirationTime    = currentTime + (warningInterval*1000);
+                expirationTime    = currentTime + (warningInterval*1000L);
               }
             }
           }
@@ -2770,7 +2770,7 @@ public class PasswordPolicyState
 
       return false;
     }
-    else if ((passwordChangedTime + (minAge*1000)) < currentTime)
+    else if ((passwordChangedTime + (minAge*1000L)) < currentTime)
     {
       // It's been long enough since the user changed their password.
       if (debug)
