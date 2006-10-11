@@ -23,5 +23,12 @@
 #      Portions Copyright 2006 Sun Microsystems, Inc.
 #
 
-dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
-changetype: delete
+dn: cn=Trust Manager Provider,cn=SSL,cn=config
+objectClass: top
+objectClass: ds-cfg-trust-manager-provider
+objectClass: ds-cfg-file-based-trust-manager-provider
+ds-cfg-trust-store-file: config/truststore
+ds-cfg-trust-manager-provider-class: org.opends.server.extensions.FileBasedTrustManagerProvider
+cn: Trust Manager Provider
+ds-cfg-trust-manager-provider-enabled: false
+
