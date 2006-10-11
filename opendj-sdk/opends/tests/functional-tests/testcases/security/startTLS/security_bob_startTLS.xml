@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="bob_startTLS"/>
+
+  <function name="bob_startTLS">
+
+      <sequence>
+
+       <!--- Test Case : Add Entries through StartTLS port -->
+        <testcase name="'AddEntriesThroughStartTLSPort'">
+          <sequence>
+            <message>
+               'Adding Entries Through StartTLS Port'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/security/startTLS/starttls_startup.ldif' % LDIF_DATA_DIR,
+                'extraParams'      : '-q -X' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Add Attribute to Entry through StartTLS port -->
+        <testcase name="'AddAttrToEntryThroughStartTLSPort'">
+          <sequence>
+            <message>
+               'Adding Attr to Entry Through StartTLS Port'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/startTLS/add/bin_a1_tls_in.ldif' % LDIF_DATA_DIR ,
+                'extraParams'      : '-q -X' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Modify Attribute in Entry through StartTLS port -->
+        <testcase name="'ModAttrInEntryThroughStartTLSPort'">
+          <sequence>
+            <message>
+               'Modifying Attr in Entry Through StartTLS Port'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/startTLS/mod/bin_a1_tls_mod.ldif' % LDIF_DATA_DIR ,
+                'extraParams'      : '-q -X' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Delete Entry through StartTLS port -->
+        <testcase name="'DeleteEntryThroughStartTLSPort'">
+          <sequence>
+            <message>
+               'Deleting Entry Through StartTLS Port'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/startTLS/del/bin_a1_tls_out.ldif' % LDIF_DATA_DIR ,
+                'extraParams'      : '-q -X' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>

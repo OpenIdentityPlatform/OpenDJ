@@ -42,6 +42,10 @@
           file="'%s/testcases/security/pkcs12/security_pkcs12.xml' % (TESTS_DIR)"/>
 	<call function="'security_pkcs12'" />
 
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/startTLS/security_startTLS.xml' % (TESTS_DIR)"/>
+	<call function="'security_startTLS'" />
+
       </sequence>
 
   </function>
