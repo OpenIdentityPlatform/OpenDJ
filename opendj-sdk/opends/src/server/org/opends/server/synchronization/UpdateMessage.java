@@ -282,12 +282,13 @@ public abstract class UpdateMessage extends SynchronizationMessage
     byte[] byteEntryuuid = getUniqueId().getBytes("UTF-8");
 
     /* The message header is stored in the form :
-     * <operation type>changenumber><dn><entryuuid><change>
+     * <operation type>changenumber><dn><assured><entryuuid><change>
      * the length of result byte array is therefore :
-     *   1 + dn length + 1 + 24 + additional_length
+     *   1 + change number length + 1 + dn length + 1  + 1 +
+     *   uuid length + 1 + additional_length
      */
-    int length = 1 + changeNumberByte.length + 1 + byteDn.length + 1
-                 + byteEntryuuid.length + 1 + additionalLength;
+    int length = 5 + changeNumberByte.length + byteDn.length
+                 + byteEntryuuid.length + additionalLength;
 
     byte[] encodedMsg = new byte[length];
 
@@ -297,6 +298,9 @@ public abstract class UpdateMessage extends SynchronizationMessage
 
     /* put the ChangeNumber */
     pos = addByteArray(changeNumberByte, encodedMsg, pos);
+
+    /* put the assured information */
+    encodedMsg[pos++] = (assuredFlag ? (byte) 1 : 0);
 
     /* put the DN and a terminating 0 */
     pos = addByteArray(byteDn, encodedMsg, pos);
@@ -331,6 +335,12 @@ public abstract class UpdateMessage extends SynchronizationMessage
       String changenumberStr = new String(encodedMsg, pos, length, "UTF-8");
       pos += length + 1;
       changeNumber = new ChangeNumber(changenumberStr);
+
+      /* read the assured information */
+      if (encodedMsg[pos++] == 1)
+        assuredFlag = true;
+      else
+        assuredFlag = false;
 
       /* read the dn */
       length = getNextLength(encodedMsg, pos);
