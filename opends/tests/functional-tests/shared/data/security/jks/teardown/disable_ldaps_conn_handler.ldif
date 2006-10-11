@@ -23,8 +23,5 @@
 #      Portions Copyright 2006 Sun Microsystems, Inc.
 #
 
-dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config
-changetype: modify
-replace: ds-cfg-allow-start-tls
-ds-cfg-allow-start-tls: false
-
+dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
+changetype: delete
