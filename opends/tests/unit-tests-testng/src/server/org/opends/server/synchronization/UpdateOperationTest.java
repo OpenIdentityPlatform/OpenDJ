@@ -56,6 +56,7 @@ import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -173,7 +174,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       addOp.run();
       entryList.add(entry);
     }
-    
+
     baseUUID = getEntryUUID(DN.decode("ou=People,dc=example,dc=com"));
 
     // top level synchro provider
@@ -428,7 +429,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       new DeleteMsg("cn=anotherdn,ou=People,dc=example,dc=com",
           gen.NewChangeNumber(), user1entryUUID);
     broker.publish(delMsg);
-    
+
     // check that the delete operation has been applied
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000, false);
 
@@ -512,7 +513,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
      * To achieve this send a delete operation with a correct DN
      * but a wrong unique ID.
      */
-    
+
     delMsg =
       new DeleteMsg("uid=new person,ou=People,dc=example,dc=com",
           gen.NewChangeNumber(), "11111111-9abc-def0-1234-1234567890ab");
@@ -524,80 +525,80 @@ public class UpdateOperationTest extends SynchronizationTestCase
     assertNotNull(resultEntry,
         "The DELETE synchronization message was replayed when it should not");
 
-    
+
     /*
      * Check that when replaying modify dn operations, the conflict
      * resolution code is able to find the new DN of the parent entry
      * if it has been renamed on another master.
-     * 
+     *
      * To simulate this try to rename an entry below an entry that does
      * not exist but giving the unique ID of an existing entry.
      */
-    
+
     ModifyDNMsg  modDnMsg = new ModifyDNMsg(
         "uid=new person,ou=People,dc=example,dc=com", gen.NewChangeNumber(),
         user1entryUUID, baseUUID, false,
-        "uid=wrong, ou=people,dc=example,dc=com", 
+        "uid=wrong, ou=people,dc=example,dc=com",
         "uid=newrdn");
     broker.publish(modDnMsg);
-    
+
     resultEntry = getEntry(
         DN.decode("uid=newrdn,ou=People,dc=example,dc=com"), 1000, true);
 
     // check that the operation has been correctly relayed
     assertNotNull(resultEntry,
       "The modify dn was not or badly replayed");
-    
+
     /*
-     * same test but by giving a bad entry DN 
+     * same test but by giving a bad entry DN
      */
-    
+
      modDnMsg = new ModifyDNMsg(
         "uid=wrong,ou=People,dc=example,dc=com", gen.NewChangeNumber(),
         user1entryUUID, baseUUID, false, null, "uid=reallynewrdn");
     broker.publish(modDnMsg);
-    
+
     resultEntry = getEntry(
         DN.decode("uid=reallynewrdn,ou=People,dc=example,dc=com"), 1000, true);
 
     // check that the operation has been correctly relayed
     assertNotNull(resultEntry,
       "The modify dn was not or badly replayed");
-    
+
     /*
-     * Check that conflicting entries are renamed when a 
+     * Check that conflicting entries are renamed when a
      * modifyDN is done with the same DN as an entry added on another server.
      */
-    
+
     // add a second entry
     addMsg = new AddMsg(gen.NewChangeNumber(),
         user1dn,
         user1entrysecondUUID,
         baseUUID,
         personWithSecondUniqueID.getObjectClassAttribute(),
-        personWithSecondUniqueID.getAttributes(), new ArrayList<Attribute>());   
+        personWithSecondUniqueID.getAttributes(), new ArrayList<Attribute>());
     broker.publish(addMsg);
-    
+
     //  check that the second entry has been added
     resultEntry = getEntry(DN.decode(user1dn), 1000, true);
-  
+
     // check that the add operation has been applied
     assertNotNull(resultEntry, "The add operation was not replayed");
-    
+
     // try to rename the first entry
     modDnMsg = new ModifyDNMsg(user1dn, gen.NewChangeNumber(),
                                user1entrysecondUUID, baseUUID, false,
                                baseDn.toString(), "uid=reallynewrdn");
     broker.publish(modDnMsg);
-    
+
    // check that the second entry has been renamed
     resultEntry = getEntry(
         DN.decode("entryUUID = " + user1entrysecondUUID + "+uid=reallynewrdn," +
             "ou=People,dc=example,dc=com"), 1000, true);
-  
+
     // check that the delete operation has been applied
     assertNotNull(resultEntry, "The modifyDN was not or incorrectly replayed");
-    
+
     // delete the entries to clean the database
     delMsg =
       new DeleteMsg("uid=reallynewrdn,ou=People,dc=example,dc=com",
@@ -605,36 +606,43 @@ public class UpdateOperationTest extends SynchronizationTestCase
     broker.publish(delMsg);
     resultEntry = getEntry(
         DN.decode("uid=reallynewrdn,ou=People,dc=example,dc=com"), 1000, false);
-    
+
     //  check that the delete operation has been applied
     assertNull(resultEntry,
         "The DELETE synchronization message was not replayed");
-    
+
     delMsg =
-      new DeleteMsg("entryUUID = " + user1entrysecondUUID + "+" + 
+      new DeleteMsg("entryUUID = " + user1entrysecondUUID + "+" +
           DN.decode(user1dn).getRDN().toString() +
           "ou=People,dc=example,dc=com",
           gen.NewChangeNumber(), user1entrysecondUUID);
     broker.publish(delMsg);
     resultEntry = getEntry(
-          DN.decode("entryUUID = " + user1entrysecondUUID + "+" + 
+          DN.decode("entryUUID = " + user1entrysecondUUID + "+" +
               DN.decode(user1dn).getRDN().toString() +
               "ou=People,dc=example,dc=com"), 1000, false);
-    
+
     // check that the delete operation has been applied
     assertNull(resultEntry,
         "The DELETE synchronization message was not replayed");
     broker.stop();
   }
 
+  @DataProvider(name="assured")
+  public Object[][] getAssuredFlag()
+  {
+    return new Object[][] { { false }, {true} };
+  }
   /**
    * Tests done using directly the ChangelogBroker interface.
    */
-  @Test(enabled=true)
-  public void updateOperations() throws Exception
+  @Test(enabled=true, dataProvider="assured")
+  public void updateOperations(boolean assured) throws Exception
   {
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
+    cleanEntries();
+    
     ChangelogBroker broker = openChangelogSession(baseDn, (short) 3);
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 3, 0);
 
@@ -642,7 +650,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
      * loop receiving update until there is nothing left
      * to make sure that message from previous tests have been consumed.
      */
-    broker.setSoTimeout(100);
+    // broker.setSoTimeout(100);
     try
     {
       while (true)
@@ -652,7 +660,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
      }
     catch (Exception e)
     {
-      broker.setSoTimeout(1000);
+     // broker.setSoTimeout(1000);
     }
     /*
      * Test that operations done on this server are sent to the
@@ -660,11 +668,12 @@ public class UpdateOperationTest extends SynchronizationTestCase
      */
 
     // Create an Entry (add operation)
+    Entry tmp = personEntry.duplicate();
     AddOperation addOp = new AddOperation(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
-        .nextMessageID(), null, personEntry.getDN(), personEntry
-        .getObjectClasses(), personEntry.getUserAttributes(), personEntry
-        .getOperationalAttributes());
+        .nextMessageID(), null, tmp.getDN(),
+        tmp.getObjectClasses(), tmp.getUserAttributes(),
+        tmp.getOperationalAttributes());
     addOp.run();
     entryList.add(personEntry);
     assertNotNull(DirectoryServer.getEntry(personEntry.getDN()),
@@ -758,6 +767,8 @@ public class UpdateOperationTest extends SynchronizationTestCase
         user1entryUUID, baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),
         personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+    if (assured)
+      addMsg.setAssured();
     broker.publish(addMsg);
 
     /*
@@ -773,6 +784,8 @@ public class UpdateOperationTest extends SynchronizationTestCase
      */
     modMsg = new ModifyMsg(gen.NewChangeNumber(), personWithUUIDEntry.getDN(),
                            mods, user1entryUUID);
+    if (assured)
+      modMsg.setAssured();
     broker.publish(modMsg);
 
     boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
@@ -788,6 +801,8 @@ public class UpdateOperationTest extends SynchronizationTestCase
                            gen.NewChangeNumber(),
                            user1entryUUID, null,
                            true, null, "uid= new person");
+    if (assured)
+      moddnMsg.setAssured();
     broker.publish(moddnMsg);
 
     resultEntry = getEntry(
@@ -801,6 +816,8 @@ public class UpdateOperationTest extends SynchronizationTestCase
      */
     delMsg = new DeleteMsg("uid= new person,ou=People,dc=example,dc=com",
                            gen.NewChangeNumber(), user1entryUUID);
+    if (assured)
+      delMsg.setAssured();
     broker.publish(delMsg);
     resultEntry = getEntry(
           DN.decode("uid= new person,ou=People,dc=example,dc=com"), 1000, false);
@@ -875,7 +892,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     }
     return found;
   }
-  
+
   /**
    * Check that the entry with the given dn has the given valueString value
    * for the given attrTypeStr attribute type.
@@ -898,7 +915,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
         Attribute tmpAttr = tmpAttrList.get(0);
 
         LinkedHashSet<AttributeValue> vals = tmpAttr.getValues();
-        
+
         for (AttributeValue val : vals)
         {
           found = val.getStringValue();
