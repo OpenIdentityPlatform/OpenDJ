@@ -47,7 +47,7 @@ public final class TestChangeRecordEntry extends UtilTestCase {
 
     /**
      * Create a new test record.
-     * 
+     *
      * @param dn
      *          The test record's DN.
      */
@@ -67,7 +67,7 @@ public final class TestChangeRecordEntry extends UtilTestCase {
 
   /**
    * Once-only initialization.
-   * 
+   *
    * @throws Exception
    *           If an unexpected error occurred.
    */
@@ -80,20 +80,20 @@ public final class TestChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the constructor with null DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
+  @Test(expectedExceptions = { NullPointerException.class,
+                               AssertionError.class })
   public void testConstructorNullDN() throws Exception {
     MyChangeRecordEntry entry = new MyChangeRecordEntry(null);
-
-    Assert.assertEquals(entry.getDN(), new DN());
   }
+
 
   /**
    * Tests the constructor with empty DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -106,7 +106,7 @@ public final class TestChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the constructor with non-null DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */

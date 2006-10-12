@@ -31,6 +31,7 @@ package org.opends.server.util;
 import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.server.util.Validator.*;
 
 import java.nio.ByteBuffer;
 import java.text.ParseException;
@@ -69,13 +70,15 @@ public final class Base64
   /**
    * Encodes the provided raw data using base64.
    *
-   * @param  rawData  The raw data to encode.
+   * @param  rawData  The raw data to encode.  It must not be <CODE>null</CODE>.
    *
    * @return  The base64-encoded representation of the provided raw data.
    */
   public static String encode(byte[] rawData)
   {
     assert debugEnter(CLASS_NAME, "encode", String.valueOf(rawData));
+
+    ensureNotNull(rawData);
 
 
     StringBuilder buffer = new StringBuilder(4 * rawData.length / 3);
@@ -118,7 +121,8 @@ public final class Base64
   /**
    * Decodes the provided set of base64-encoded data.
    *
-   * @param  encodedData  The base64-encoded data to decode.
+   * @param  encodedData  The base64-encoded data to decode.  It must not be
+   *                      <CODE>null</CODE>.
    *
    * @return  The decoded raw data.
    *
@@ -129,6 +133,8 @@ public final class Base64
          throws ParseException
   {
     assert debugEnter(CLASS_NAME, "decode", String.valueOf(encodedData));
+
+    ensureNotNull(encodedData);
 
 
     // The encoded value must have  length that is a multiple of four bytes.

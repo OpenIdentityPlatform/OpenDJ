@@ -48,7 +48,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
 
   /**
    * Once-only initialization.
-   * 
+   *
    * @throws Exception
    *           If an unexpected error occurred.
    */
@@ -64,35 +64,34 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the constructor with null DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
+  @Test(expectedExceptions = { NullPointerException.class,
+                               AssertionError.class })
   public void testConstructorNullDN() throws Exception {
-    ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
-        newSuperiorDN, newRDN, false);
-
-    Assert.assertEquals(entry.getDN(), new DN());
+    ModifyDNChangeRecordEntry entry =
+         new ModifyDNChangeRecordEntry(null, newRDN, false, newSuperiorDN);
   }
 
   /**
    * Tests the constructor with empty DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
     ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(
-        new DN(), newSuperiorDN, newRDN, false);
+        new DN(), newRDN, false, newSuperiorDN);
 
     Assert.assertEquals(entry.getDN(), new DN());
   }
 
   /**
    * Tests the constructor with non-null DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -102,21 +101,21 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
     DN testDN2 = DN.decode("dc=hello, dc=world");
 
     ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(
-        testDN1, newSuperiorDN, newRDN, false);
+        testDN1, newRDN, false, newSuperiorDN);
 
     Assert.assertEquals(entry.getDN(), testDN2);
   }
 
   /**
    * Tests the change operation type is correct.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
-        newSuperiorDN, newRDN, false);
+    ModifyDNChangeRecordEntry entry =
+         new ModifyDNChangeRecordEntry(new DN(), newRDN, false, newSuperiorDN);
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.MODIFY_DN);
@@ -124,28 +123,28 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests getNewRDN method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testGetNewRDN() throws Exception {
-    ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
-        newSuperiorDN, newRDN, false);
+    ModifyDNChangeRecordEntry entry =
+         new ModifyDNChangeRecordEntry(new DN(), newRDN, false, newSuperiorDN);
 
     Assert.assertEquals(entry.getNewRDN(), newRDN.duplicate());
   }
 
   /**
    * Tests getNewSuperiorDN method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testGetNewSuperiorDN() throws Exception {
-    ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
-        newSuperiorDN, newRDN, false);
+    ModifyDNChangeRecordEntry entry =
+         new ModifyDNChangeRecordEntry(new DN(), newRDN, false, newSuperiorDN);
 
     Assert
         .assertEquals(entry.getNewSuperiorDN(), newSuperiorDN.duplicate());
@@ -153,28 +152,28 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests deleteOldRDN method when false.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testDeleteOldRDNFalse() throws Exception {
-    ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
-        newSuperiorDN, newRDN, false);
+    ModifyDNChangeRecordEntry entry =
+         new ModifyDNChangeRecordEntry(new DN(), newRDN, false, newSuperiorDN);
 
     Assert.assertEquals(entry.deleteOldRDN(), false);
   }
 
   /**
    * Tests deleteOldRDN method.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testDeleteOldRDNTrue() throws Exception {
-    ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(null,
-        newSuperiorDN, newRDN, true);
+    ModifyDNChangeRecordEntry entry =
+         new ModifyDNChangeRecordEntry(new DN(), newRDN, true, newSuperiorDN);
 
     Assert.assertEquals(entry.deleteOldRDN(), true);
   }

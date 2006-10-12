@@ -33,6 +33,7 @@ import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.Validator.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -127,7 +128,8 @@ public final class LDIFReader
    * Creates a new LDIF reader that will read information from the specified
    * file.
    *
-   * @param  importConfig  The import configuration for this LDIF reader.
+   * @param  importConfig  The import configuration for this LDIF reader.  It
+   *                       must not be <CODE>null</CODE>.
    *
    * @throws  IOException  If a problem occurs while opening the LDIF file for
    *                       reading.
@@ -137,6 +139,7 @@ public final class LDIFReader
   {
     assert debugConstructor(CLASS_NAME, String.valueOf(importConfig));
 
+    ensureNotNull(importConfig);
     this.importConfig = importConfig;
 
     reader               = importConfig.getReader();
@@ -1058,9 +1061,12 @@ public final class LDIFReader
     {
       try
       {
-        rejectWriter.write("# ");
-        rejectWriter.write(message);
-        rejectWriter.newLine();
+        if ((message != null) && (message.length() > 0))
+        {
+          rejectWriter.write("# ");
+          rejectWriter.write(message);
+          rejectWriter.newLine();
+        }
 
         for (StringBuilder sb : lastEntryHeaderLines)
         {
@@ -1308,8 +1314,8 @@ public final class LDIFReader
       }
     }
 
-    return new ModifyDNChangeRecordEntry(entryDN, newSuperiorDN,
-        newRDN, deleteOldRDN);
+    return new ModifyDNChangeRecordEntry(entryDN, newRDN, deleteOldRDN,
+                                         newSuperiorDN);
   }
 
 

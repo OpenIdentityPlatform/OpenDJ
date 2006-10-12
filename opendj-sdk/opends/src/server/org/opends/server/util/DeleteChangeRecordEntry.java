@@ -53,7 +53,8 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
   /**
    * Creates a new entry with the provided information.
    *
-   * @param  dn      The distinguished name for this entry.
+   * @param  dn  The distinguished name for this entry.  It must not be
+   *             <CODE>null</CODE>.
    */
   public DeleteChangeRecordEntry(DN dn)
   {

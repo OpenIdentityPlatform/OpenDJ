@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
 public final class TestDeleteChangeRecordEntry extends UtilTestCase {
   /**
    * Once-only initialization.
-   * 
+   *
    * @throws Exception
    *           If an unexpected error occurred.
    */
@@ -56,20 +56,19 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the constructor with null DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
+  @Test(expectedExceptions = { NullPointerException.class,
+                               AssertionError.class })
   public void testConstructorNullDN() throws Exception {
     DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(null);
-
-    Assert.assertEquals(entry.getDN(), new DN());
   }
 
   /**
    * Tests the constructor with empty DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -82,7 +81,7 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the constructor with non-null DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -98,13 +97,13 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the change operation type is correct.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(null);
+    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(new DN());
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.DELETE);

@@ -30,6 +30,7 @@ package org.opends.server.util;
 
 import static org.opends.server.loggers.Debug.debugConstructor;
 import static org.opends.server.loggers.Debug.debugEnter;
+import static org.opends.server.util.Validator.*;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
@@ -63,22 +64,26 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
    * Creates a new entry with the provided information.
    *
    * @param dn
-   *          The distinguished name for this entry.
-   * @param newSuperiorDN
-   *          The new superior DN.
+   *          The distinguished name for this entry.  It must not be
+   *          <CODE>null</CODE>.
    * @param newRDN
-   *          The new RDN.
+   *          The new RDN.  It must not be <CODE>null</CODE>.
    * @param deleteOldRDN
    *          Delete the old RDN?
+   * @param newSuperiorDN
+   *          The new superior DN.  It may be <CODE>null</CODE> if the entry is
+   *          not to be moved below a new parent.
    */
-  public ModifyDNChangeRecordEntry(DN dn, DN newSuperiorDN,
-      RDN newRDN, boolean deleteOldRDN)
+  public ModifyDNChangeRecordEntry(DN dn, RDN newRDN, boolean deleteOldRDN,
+                                   DN newSuperiorDN)
   {
     super(dn);
     assert debugConstructor(CLASS_NAME, String.valueOf(dn),
                             String.valueOf(newSuperiorDN),
                             String.valueOf(newRDN),
                             String.valueOf(deleteOldRDN));
+
+    ensureNotNull(newRDN);
 
     this.newSuperiorDN = newSuperiorDN;
     this.newRDN = newRDN;
@@ -102,7 +107,7 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
   /**
    * Get the new superior DN for the requested modify DN operation.
    *
-   * @return the new superior DN.
+   * @return the new superior DN, or <CODE>null</CODE> if there is none.
    *
    */
   public DN getNewSuperiorDN()

@@ -30,6 +30,7 @@ package org.opends.server.util;
 
 import static org.opends.server.loggers.Debug.debugConstructor;
 import static org.opends.server.loggers.Debug.debugEnter;
+import static org.opends.server.util.Validator.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,9 +68,11 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
    * Creates a new entry with the provided information.
    *
    * @param dn
-   *          The distinguished name for this entry.
+   *          The distinguished name for this entry.  It must not be
+   *          <CODE>null</CODE>.
    * @param attributes
-   *          The entry attributes for this operation.
+   *          The entry attributes for this operation.  It must not be
+   *          <CODE>null</CODE>.
    */
   public AddChangeRecordEntry(DN dn,
       Map<AttributeType,List<Attribute>> attributes)
@@ -78,6 +81,8 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
 
     assert debugConstructor(CLASS_NAME, String.valueOf(dn),
                             String.valueOf(attributes));
+
+    ensureNotNull(attributes);
 
 
     this.attributes = new ArrayList<Attribute>(attributes.size());
