@@ -129,7 +129,8 @@ public class LDIFModify
       DNComparator comparator = new DNComparator();
       TreeMap<DN,AddChangeRecordEntry> adds =
           new TreeMap<DN,AddChangeRecordEntry>(comparator);
-
+      TreeMap<DN,Entry> ldifEntries =
+          new TreeMap<DN,Entry>(comparator);
     HashMap<DN,DeleteChangeRecordEntry> deletes =
          new HashMap<DN,DeleteChangeRecordEntry>();
     HashMap<DN,LinkedList<Modification>> modifications =
@@ -306,8 +307,8 @@ public class LDIFModify
 
 
       // If we've gotten here, then the (possibly updated) entry should be
-      // written to the output LDIF.
-      targetWriter.writeEntry(entry);
+      // written to the LDIF entry Map.
+      ldifEntries.put(entry.getDN(),entry);
     }
 
 
@@ -358,7 +359,8 @@ public class LDIFModify
 
       Entry e = new Entry(add.getDN(), objectClasses, userAttributes,
                           operationalAttributes);
-      targetWriter.writeEntry(e);
+      //Put the entry to be added into the LDIF entry map.
+      ldifEntries.put(e.getDN(),e);
     }
 
 
@@ -381,8 +383,8 @@ public class LDIFModify
         errorList.add(getMessage(msgID, String.valueOf(dn)));
       }
     }
-
-    return errorList.isEmpty();
+    return targetWriter.writeEntries(ldifEntries.values()) &&
+            errorList.isEmpty();
   }
 
 

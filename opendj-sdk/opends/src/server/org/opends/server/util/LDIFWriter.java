@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.Collection;
 
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -204,6 +205,33 @@ outerLoop:
     }
   }
 
+  /**
+ * Iterates over each entry contained in the map and writes out the entry in
+ * LDIF format. The main benefit of this method is that the entries can be
+ * sorted by DN and output in sorted order.
+ *
+ * @param entries The Map containing the entries keyed by DN.
+ *
+ * @return <CODE>true</CODE>of all of the entries were
+ *                  written out, <CODE>false</CODE>if it was not
+ *                  because of the export configuration.
+ *
+ * @throws IOException  If a problem occurs while writing the entry to LDIF.
+ *
+ * @throws LDIFException If a problem occurs while trying to determine
+ *                         whether to include the entry in the export.
+ */
+public boolean writeEntries(Collection <Entry> entries)
+  throws IOException, LDIFException {
+      assert debugEnter(CLASS_NAME, "writeEntry", String.valueOf(entries));
+
+     boolean ret=true;
+     Iterator<Entry> i = entries.iterator();
+     while(ret && i.hasNext()) {
+         ret=writeEntry(i.next());
+     }
+      return ret;
+  }
 
 
   /**
