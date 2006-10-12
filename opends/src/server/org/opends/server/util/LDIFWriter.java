@@ -45,6 +45,7 @@ import org.opends.server.types.RDN;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -79,7 +80,8 @@ public final class LDIFWriter
   /**
    * Creates a new LDIF writer with the provided configuration.
    *
-   * @param  exportConfig  The configuration to use for the export.
+   * @param  exportConfig  The configuration to use for the export.  It must not
+   *                       be <CODE>null</CODE>.
    *
    * @throws  IOException  If a problem occurs while opening the writer.
    */
@@ -88,6 +90,7 @@ public final class LDIFWriter
   {
     assert debugConstructor(CLASS_NAME, String.valueOf(exportConfig));
 
+    ensureNotNull(exportConfig);
     this.exportConfig = exportConfig;
 
     writer = exportConfig.getWriter();
@@ -109,7 +112,8 @@ public final class LDIFWriter
    *
    * @param  comment     The comment to be written.  Any line breaks that it
    *                     contains will be honored, and potentially new line
-   *                     breaks may be introduced by the wrapping process.
+   *                     breaks may be introduced by the wrapping process.  It
+   *                     must not be <CODE>null</CODE>.
    * @param  wrapColumn  The column at which long lines should be wrapped, or
    *                     -1 to indicate that no additional wrapping should be
    *                     added.  This will override the wrap column setting
@@ -123,6 +127,8 @@ public final class LDIFWriter
   {
     assert debugEnter(CLASS_NAME, "writeComment", String.valueOf(comment),
                       String.valueOf(wrapColumn));
+
+    ensureNotNull(comment);
 
 
     // First, break up the comment into multiple lines to preserve the original
@@ -203,7 +209,7 @@ outerLoop:
   /**
    * Writes the provided entry to LDIF.
    *
-   * @param  entry  The entry to be written.
+   * @param  entry  The entry to be written.  It must not be <CODE>null</CODE>.
    *
    * @return  <CODE>true</CODE> if the entry was actually written, or
    *          <CODE>false</CODE> if it was not because of the export
@@ -219,6 +225,7 @@ outerLoop:
   {
     assert debugEnter(CLASS_NAME, "writeEntry", String.valueOf(entry));
 
+    ensureNotNull(entry);
     return entry.toLDIF(exportConfig);
   }
 
@@ -229,7 +236,8 @@ outerLoop:
    * performed for this entry, nor will any export plugins be invoked.  Further,
    * only the user attributes will be included.
    *
-   * @param  entry  The entry to include in the add change record.
+   * @param  entry  The entry to include in the add change record.  It must not
+   *                be <CODE>null</CODE>.
    *
    * @throws  IOException  If a problem occurs while writing the add record.
    */
@@ -238,6 +246,9 @@ outerLoop:
   {
     assert debugEnter(CLASS_NAME, "writeAddChangeRecord",
                       String.valueOf(entry));
+
+    ensureNotNull(entry);
+
 
     // Get the information necessary to write the LDIF.
     BufferedWriter writer     = exportConfig.getWriter();
@@ -303,7 +314,8 @@ outerLoop:
    * this entry, nor will any export plugins be invoked.  Further, only the user
    * attributes will be included.
    *
-   * @param  entry         The entry to include in the delete change record.
+   * @param  entry         The entry to include in the delete change record.  It
+   *                       must not be <CODE>null</CODE>.
    * @param  commentEntry  Indicates whether to include a comment with the
    *                       contents of the entry.
    *
@@ -314,6 +326,8 @@ outerLoop:
   {
     assert debugEnter(CLASS_NAME, "writeDeleteChangeRecord",
                       String.valueOf(entry), String.valueOf(commentEntry));
+
+    ensureNotNull(entry);
 
     // Get the information necessary to write the LDIF.
     BufferedWriter writer     = exportConfig.getWriter();
@@ -381,9 +395,10 @@ outerLoop:
    * Writes a modify change record with the provided information.  No filtering
    * will be performed, nor will any export plugins be invoked.
    *
-   * @param  dn             The DN of the entry being modified.
+   * @param  dn             The DN of the entry being modified.  It must not be
+   *                        <CODE>null</CODE>.
    * @param  modifications  The set of modifications to include in the change
-   *                        record.
+   *                        record.  It must not be <CODE>null</CODE>.
    *
    * @throws  IOException  If a problem occurs while writing the modify record.
    */
@@ -392,6 +407,8 @@ outerLoop:
   {
     assert debugEnter(CLASS_NAME, "writeModifyChangeRecord", String.valueOf(dn),
                       String.valueOf(modifications));
+
+    ensureNotNull(dn, modifications);
 
     // If there aren't any modifications, then there's nothing to do.
     if (modifications.isEmpty())
@@ -485,8 +502,10 @@ outerLoop:
    * Writes a modify DN change record with the provided information.  No
    * filtering will be performed, nor will any export plugins be invoked.
    *
-   * @param  dn            The DN of the entry before the rename.
-   * @param  newRDN        The new RDN for the entry.
+   * @param  dn            The DN of the entry before the rename.  It must not
+   *                       be <CODE>null</CODE>.
+   * @param  newRDN        The new RDN for the entry.  It must not be
+   *                       <CODE>null</CODE>.
    * @param  deleteOldRDN  Indicates whether the old RDN value should be removed
    *                       from the entry.
    * @param  newSuperior   The new superior DN for the entry, or
@@ -503,6 +522,8 @@ outerLoop:
                       String.valueOf(dn), String.valueOf(newRDN),
                       String.valueOf(deleteOldRDN),
                       String.valueOf(newSuperior));
+
+    ensureNotNull(dn, newRDN);
 
 
     // Get the information necessary to write the LDIF.
@@ -601,8 +622,9 @@ outerLoop:
    * space, and a base64-encoded form of the value will be appended.
    *
    * @param  buffer      The buffer to which the information should be
-   *                     appended.
-   * @param  valueBytes  The value to append to the buffer.
+   *                     appended.  It must not be <CODE>null</CODE>.
+   * @param  valueBytes  The value to append to the buffer.  It must not be
+   *                     <CODE>null</CODE>.
    */
   public static void appendLDIFSeparatorAndValue(StringBuilder buffer,
                                                  byte[] valueBytes)
@@ -610,6 +632,8 @@ outerLoop:
     assert debugEnter(CLASS_NAME, "appendLDIFSeparatorAndValue",
                       "java.lang.StringBuilder",
                       String.valueOf(valueBytes));
+
+    ensureNotNull(buffer, valueBytes);
 
 
     // If the value is empty, then just append a single colon and a single
@@ -648,8 +672,10 @@ outerLoop:
   /**
    * Writes the provided line to LDIF using the provided information.
    *
-   * @param  line        The line of information to write.
-   * @param  writer      The writer to which the data should be written.
+   * @param  line        The line of information to write.  It must not be
+   *                     <CODE>null</CODE>.
+   * @param  writer      The writer to which the data should be written.  It
+   *                     must not be <CODE>null</CODE>.
    * @param  wrapLines   Indicates whether to wrap long lines.
    * @param  wrapColumn  The column at which long lines should be wrapped.
    *
@@ -662,6 +688,8 @@ outerLoop:
     assert debugEnter(CLASS_NAME, "writeLDIFLine", String.valueOf(line),
                       String.valueOf(writer), String.valueOf(wrapLines),
                       String.valueOf(wrapColumn));
+
+    ensureNotNull(line, writer);
 
     int length = line.length();
     if (wrapLines && (length > wrapColumn))

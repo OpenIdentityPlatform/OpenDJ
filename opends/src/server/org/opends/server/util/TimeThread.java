@@ -50,7 +50,7 @@ import static org.opends.server.util.ServerConstants.*;
  * debugging will be performed in this class due to the frequency with which it
  * will be called.
  */
-public class TimeThread
+public final class TimeThread
        extends DirectoryThread
 {
   /**

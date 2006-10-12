@@ -36,7 +36,7 @@ import static org.opends.server.loggers.Debug.*;
  * This class defines an exception that may be thrown while attempting to parse
  * LDIF content.
  */
-public class LDIFException
+public final class LDIFException
        extends Exception
 {
   /**
@@ -60,13 +60,13 @@ public class LDIFException
 
   // Indicates whether this exception is severe enough that it is no longer
   // possible to keep reading.
-  private boolean canContinueReading;
+  private final boolean canContinueReading;
 
   // The line number of the last line read from the LDIF source.
-  private long lineNumber;
+  private final long lineNumber;
 
   // The unique message ID for the associated message.
-  private int messageID;
+  private final int messageID;
 
 
 

@@ -57,7 +57,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
 
   /**
    * Once-only initialization.
-   * 
+   *
    * @throws Exception
    *           If an unexpected error occurred.
    */
@@ -78,21 +78,20 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the constructor with null DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
+  @Test(expectedExceptions = { NullPointerException.class,
+                               AssertionError.class })
   public void testConstructorNullDN() throws Exception {
     ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null,
         modifications);
-
-    Assert.assertEquals(entry.getDN(), new DN());
   }
 
   /**
    * Tests the constructor with empty DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -106,7 +105,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the constructor with non-null DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -123,13 +122,13 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the change operation type is correct.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null,
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(new DN(),
         modifications);
 
     Assert.assertEquals(entry.getChangeOperationType(),
@@ -138,14 +137,15 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests getModifications method for empty modifications.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testGetModificationsEmpty() throws Exception {
     List<LDAPModification> empty = Collections.emptyList();
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null, empty);
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(new DN(),
+                                                                empty);
 
     List<LDAPModification> mods = entry.getModifications();
     Assert.assertEquals(mods.size(), 0);
@@ -153,13 +153,13 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests getModifications method for non-empty modifications.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testGetModificationsNonEmpty() throws Exception {
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null,
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(new DN(),
         modifications);
 
     List<LDAPModification> mods = entry.getModifications();

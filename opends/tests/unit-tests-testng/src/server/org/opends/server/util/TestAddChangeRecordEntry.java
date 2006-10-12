@@ -57,7 +57,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
 
   /**
    * Once-only initialization.
-   * 
+   *
    * @throws Exception
    *           If an unexpected error occurred.
    */
@@ -76,20 +76,19 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the constructor with null DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
+  @Test(expectedExceptions = { NullPointerException.class,
+                               AssertionError.class })
   public void testConstructorNullDN() throws Exception {
     AddChangeRecordEntry entry = new AddChangeRecordEntry(null, attributes);
-
-    Assert.assertEquals(entry.getDN(), new DN());
   }
 
   /**
    * Tests the constructor with empty DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -103,7 +102,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the constructor with non-null DN.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -120,13 +119,13 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests the change operation type is correct.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, attributes);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(new DN(), attributes);
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.ADD);
@@ -134,14 +133,14 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests getAttributes method for empty modifications.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testGetAttributesEmpty() throws Exception {
     Map<AttributeType, List<Attribute>> empty = Collections.emptyMap();
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, empty);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(new DN(), empty);
 
     List<Attribute> attrs = entry.getAttributes();
     Assert.assertEquals(attrs.size(), 0);
@@ -149,13 +148,13 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
 
   /**
    * Tests getAttributes method for non-empty modifications.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
   public void testGetAttributesNonEmpty() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, attributes);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(new DN(), attributes);
 
     List<Attribute> attrs = entry.getAttributes();
     Assert.assertEquals(attrs.size(), 1);

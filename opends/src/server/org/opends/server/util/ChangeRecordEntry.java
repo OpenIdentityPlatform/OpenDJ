@@ -30,6 +30,7 @@ package org.opends.server.util;
 
 import static org.opends.server.loggers.Debug.debugConstructor;
 import static org.opends.server.loggers.Debug.debugEnter;
+import static org.opends.server.util.Validator.*;
 
 import org.opends.server.types.DN;
 
@@ -56,20 +57,15 @@ public abstract class ChangeRecordEntry
   /**
    * Creates a new change record entry with the provided information.
    *
-   * @param  dn  The distinguished name for this change record entry.
+   * @param  dn  The distinguished name for this change record entry.  It must
+   *             not be <CODE>null</CODE>.
    */
   protected ChangeRecordEntry(DN dn)
   {
     assert debugConstructor(CLASS_NAME, String.valueOf(dn));
 
-    if (dn == null)
-    {
-      this.dn = new DN();
-    }
-    else
-    {
-      this.dn = dn;
-    }
+    ensureNotNull(dn);
+    this.dn = dn;
   }
 
 

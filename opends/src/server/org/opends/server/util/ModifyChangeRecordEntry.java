@@ -30,6 +30,7 @@ package org.opends.server.util;
 
 import static org.opends.server.loggers.Debug.debugConstructor;
 import static org.opends.server.loggers.Debug.debugEnter;
+import static org.opends.server.util.Validator.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,8 +66,10 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
   /**
    * Creates a new entry with the provided information.
    *
-   * @param  dn      The distinguished name for this entry.
-   * @param modifications The modifications for this change record.
+   * @param  dn             The distinguished name for this entry.  It must not
+   *                        be  <CODE>null</CODE>.
+   * @param  modifications  The modifications for this change record.  It must
+   *                        not be <CODE>null</CODE>.
    */
   public ModifyChangeRecordEntry(DN dn,
       Collection<LDAPModification> modifications)
@@ -75,6 +78,8 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
 
     assert debugConstructor(CLASS_NAME, String.valueOf(dn),
         String.valueOf(modifications));
+
+    ensureNotNull(modifications);
 
     this.modifications = new ArrayList<LDAPModification>(modifications);
   }
