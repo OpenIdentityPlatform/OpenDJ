@@ -836,6 +836,25 @@ public class Attribute
   {
     assert debugEnter(CLASS_NAME, "duplicate");
 
+    return duplicate(false);
+  }
+
+
+  /**
+   * Creates a duplicate of this attribute that can be modified
+   * without impacting this attribute.
+   *
+   * @param omitValues <CODE>true</CODE> if the values should be
+   *        omitted.
+   *
+   * @return  A duplicate of this attribute that can be modified
+   *          without impacting this attribute.
+   */
+  public Attribute duplicate(boolean omitValues)
+  {
+    assert debugEnter(CLASS_NAME, "duplicate",
+                      String.valueOf(omitValues));
+
     LinkedHashSet<String> optionsCopy =
          new LinkedHashSet<String>(options.size());
     for (String s : options)
@@ -843,17 +862,23 @@ public class Attribute
       optionsCopy.add(s);
     }
 
-    LinkedHashSet<AttributeValue> valuesCopy =
-         new LinkedHashSet<AttributeValue>(values.size());
-    for (AttributeValue v : values)
+    if (omitValues)
     {
-      valuesCopy.add(v);
+      return new Attribute(attributeType, name, optionsCopy, null);
     }
+    else
+    {
+      LinkedHashSet<AttributeValue> valuesCopy =
+           new LinkedHashSet<AttributeValue>(values.size());
+      for (AttributeValue v : values)
+      {
+        valuesCopy.add(v);
+      }
 
-    return new Attribute(attributeType, name, optionsCopy,
-                         valuesCopy);
+      return new Attribute(attributeType, name, optionsCopy,
+                           valuesCopy);
+    }
   }
-
 
 
   /**

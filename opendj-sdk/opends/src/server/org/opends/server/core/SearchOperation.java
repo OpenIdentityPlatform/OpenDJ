@@ -932,14 +932,6 @@ public class SearchOperation
             List<Attribute> ocList = new ArrayList<Attribute>(1);
             ocList.add(new Attribute(ocType));
             entryToReturn.putAttribute(ocType, ocList);
-
-            // Next, iterate through all the user attributes and include them.
-            for (AttributeType t : entry.getUserAttributes().keySet())
-            {
-              List<Attribute> attrList = new ArrayList<Attribute>(1);
-              attrList.add(new Attribute(t));
-              entryToReturn.putAttribute(t, attrList);
-            }
           }
           else
           {
@@ -954,13 +946,14 @@ public class SearchOperation
               // We cannot get this exception because the object classes have
               // already been validated in the entry they came from.
             }
+          }
 
-
-            // Next iterate through all the user attributes and include them.
-            for (AttributeType t : entry.getUserAttributes().keySet())
-            {
-              entryToReturn.putAttribute(t, entry.duplicateUserAttribute(t));
-            }
+          // Next iterate through all the user attributes and include them.
+          for (AttributeType t : entry.getUserAttributes().keySet())
+          {
+            List<Attribute> attrList =
+                 entry.duplicateUserAttribute(t, null, typesOnly);
+            entryToReturn.putAttribute(t, attrList);
           }
 
           continue;
@@ -971,17 +964,9 @@ public class SearchOperation
           // attributes should be returned.
           for (AttributeType t : entry.getOperationalAttributes().keySet())
           {
-            if (typesOnly)
-            {
-              List<Attribute> attrList = new ArrayList<Attribute>(1);
-              attrList.add(new Attribute(t));
-              entryToReturn.putAttribute(t, attrList);
-            }
-            else
-            {
-              entryToReturn.putAttribute(t,
-                                 entry.duplicateOperationalAttribute(t));
-            }
+            List<Attribute> attrList =
+                 entry.duplicateOperationalAttribute(t, null, typesOnly);
+            entryToReturn.putAttribute(t, attrList);
           }
 
           continue;
@@ -1020,52 +1005,14 @@ public class SearchOperation
           {
             if (t.hasNameOrOID(lowerName))
             {
-              if ((options == null) || options.isEmpty())
+              List<Attribute> attrList =
+                   entry.duplicateUserAttribute(t, options, typesOnly);
+              if (attrList != null)
               {
-                if (typesOnly)
-                {
-                  List<Attribute> attrList = new ArrayList<Attribute>(1);
-                  attrList.add(new Attribute(t));
-                  entryToReturn.putAttribute(t, attrList);
-                }
-                else
-                {
-                  entryToReturn.putAttribute(t,
-                                             entry.duplicateUserAttribute(t));
-                }
+                entryToReturn.putAttribute(t, attrList);
 
                 added = true;
                 break;
-              }
-              else
-              {
-                List<Attribute> attrList = entry.duplicateUserAttribute(t);
-                List<Attribute> includeAttrs =
-                     new ArrayList<Attribute>(attrList.size());
-                for (Attribute a : attrList)
-                {
-                  if (a.hasOptions(options))
-                  {
-                    includeAttrs.add(a);
-                  }
-                }
-
-                if (! includeAttrs.isEmpty())
-                {
-                  if (typesOnly)
-                  {
-                    attrList = new ArrayList<Attribute>(1);
-                    attrList.add(new Attribute(t));
-                    entryToReturn.putAttribute(t, attrList);
-                  }
-                  else
-                  {
-                    entryToReturn.putAttribute(t, includeAttrs);
-                  }
-
-                  added = true;
-                  break;
-                }
               }
             }
           }
@@ -1079,87 +1026,48 @@ public class SearchOperation
           {
             if (t.hasNameOrOID(lowerName))
             {
-              if ((options == null) || options.isEmpty())
+              List<Attribute> attrList =
+                   entry.duplicateOperationalAttribute(t, options, typesOnly);
+              if (attrList != null)
               {
-                if (typesOnly)
-                {
-                  List<Attribute> attrList = new ArrayList<Attribute>(1);
-                  attrList.add(new Attribute(t));
-                  entryToReturn.putAttribute(t, attrList);
-                }
-                else
-                {
-                  entryToReturn.putAttribute(t,
-                                     entry.duplicateOperationalAttribute(t));
-                }
+                entryToReturn.putAttribute(t, attrList);
 
-                added = true;
                 break;
-              }
-              else
-              {
-                List<Attribute> attrList =
-                     entry.duplicateOperationalAttribute(t);
-                List<Attribute> includeAttrs =
-                     new ArrayList<Attribute>(attrList.size());
-                for (Attribute a : attrList)
-                {
-                  if (a.hasOptions(options))
-                  {
-                    includeAttrs.add(a);
-                  }
-                }
-
-                if (! includeAttrs.isEmpty())
-                {
-                  if (typesOnly)
-                  {
-                    attrList = new ArrayList<Attribute>(1);
-                    attrList.add(new Attribute(t));
-                    entryToReturn.putAttribute(t, attrList);
-                  }
-                  else
-                  {
-                    entryToReturn.putAttribute(t, includeAttrs);
-                  }
-
-                  added = true;
-                  break;
-                }
               }
             }
           }
         }
         else
         {
-          if (attrType.isObjectClassType() && !typesOnly)
-          {
-            Attribute ocAttr = entry.getObjectClassAttribute();
-            try
+          if (attrType.isObjectClassType()) {
+            if (typesOnly)
             {
-              entryToReturn.setObjectClasses(ocAttr.getValues());
+              AttributeType ocType =
+                   DirectoryServer.getObjectClassAttributeType();
+              List<Attribute> ocList = new ArrayList<Attribute>(1);
+              ocList.add(new Attribute(ocType));
+              entryToReturn.putAttribute(ocType, ocList);
             }
-            catch (DirectoryException e)
+            else
             {
-              // We cannot get this exception because the object classes have
-              // already been validated in the entry they came from.
+              List<Attribute> attrList = new ArrayList<Attribute>(1);
+              attrList.add(entry.getObjectClassAttribute());
+              entryToReturn.putAttribute(attrType, attrList);
             }
           }
           else
           {
-            List<Attribute> attrList = entry.getAttribute(attrType, options);
+            List<Attribute> attrList =
+                 entry.duplicateOperationalAttribute(attrType, options,
+                                                     typesOnly);
+            if (attrList == null)
+            {
+              attrList = entry.duplicateUserAttribute(attrType, options,
+                                                      typesOnly);
+            }
             if (attrList != null)
             {
-              if (typesOnly)
-              {
-                attrList = new ArrayList<Attribute>(1);
-                attrList.add(new Attribute(attrType));
-                entryToReturn.putAttribute(attrType, attrList);
-              }
-              else
-              {
-                entryToReturn.putAttribute(attrType, attrList);
-              }
+              entryToReturn.putAttribute(attrType, attrList);
             }
           }
         }
