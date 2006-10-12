@@ -182,7 +182,7 @@ public class VerifyJob
  */
   enum IndexType
   {
-      PRES, EQ, SUBSTRING, ORDERING;
+      PRES, EQ, SUBSTRING, ORDERING
   }
 
   /**
@@ -917,6 +917,7 @@ public class VerifyJob
    * index cleanliness.
    * @param attrType The attribute type of the index to be checked.
    * @param index The index database to be checked.
+   * @param indexType Type of the index (ie, SUBSTRING, ORDERING)
    * @throws JebException If an error occurs in the JE backend.
    * @throws DatabaseException If an error occurs in the JE database.
    */
@@ -963,7 +964,6 @@ public class VerifyJob
         if (entryIDList.isDefined())
         {
           byte[] value = key.getData();
-          byte[] bytes;
           SearchFilter sf;
 
           switch (indexType)
