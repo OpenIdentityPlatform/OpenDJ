@@ -158,8 +158,7 @@ public class DisconnectClientPlugin
   public PreParsePluginResult
        doPreParse(PreParseAbandonOperation abandonOperation)
   {
-    if (disconnectInternal(abandonOperation.getClientConnection(),
-                           abandonOperation.getRequestControls(), "PreParse"))
+    if (disconnectInternal(abandonOperation, "PreParse"))
     {
       return new PreParsePluginResult(true, false, false);
     }
@@ -177,8 +176,7 @@ public class DisconnectClientPlugin
   @Override()
   public PreParsePluginResult doPreParse(PreParseAddOperation addOperation)
   {
-    if (disconnectInternal(addOperation.getClientConnection(),
-                           addOperation.getRequestControls(), "PreParse"))
+    if (disconnectInternal(addOperation, "PreParse"))
     {
       return new PreParsePluginResult(true, false, false);
     }
@@ -196,8 +194,7 @@ public class DisconnectClientPlugin
   @Override()
   public PreParsePluginResult doPreParse(PreParseBindOperation bindOperation)
   {
-    if (disconnectInternal(bindOperation.getClientConnection(),
-                           bindOperation.getRequestControls(), "PreParse"))
+    if (disconnectInternal(bindOperation, "PreParse"))
     {
       return new PreParsePluginResult(true, false, false);
     }
@@ -216,8 +213,7 @@ public class DisconnectClientPlugin
   public PreParsePluginResult
        doPreParse(PreParseCompareOperation compareOperation)
   {
-    if (disconnectInternal(compareOperation.getClientConnection(),
-                           compareOperation.getRequestControls(), "PreParse"))
+    if (disconnectInternal(compareOperation, "PreParse"))
     {
       return new PreParsePluginResult(true, false, false);
     }
@@ -236,8 +232,7 @@ public class DisconnectClientPlugin
   public PreParsePluginResult
        doPreParse(PreParseDeleteOperation deleteOperation)
   {
-    if (disconnectInternal(deleteOperation.getClientConnection(),
-                           deleteOperation.getRequestControls(), "PreParse"))
+    if (disconnectInternal(deleteOperation, "PreParse"))
     {
       return new PreParsePluginResult(true, false, false);
     }
@@ -256,8 +251,7 @@ public class DisconnectClientPlugin
   public PreParsePluginResult
        doPreParse(PreParseExtendedOperation extendedOperation)
   {
-    if (disconnectInternal(extendedOperation.getClientConnection(),
-                           extendedOperation.getRequestControls(), "PreParse"))
+    if (disconnectInternal(extendedOperation, "PreParse"))
     {
       return new PreParsePluginResult(true, false, false);
     }
@@ -276,8 +270,7 @@ public class DisconnectClientPlugin
   public PreParsePluginResult
        doPreParse(PreParseModifyOperation modifyOperation)
   {
-    if (disconnectInternal(modifyOperation.getClientConnection(),
-                           modifyOperation.getRequestControls(), "PreParse"))
+    if (disconnectInternal(modifyOperation, "PreParse"))
     {
       return new PreParsePluginResult(true, false, false);
     }
@@ -296,8 +289,7 @@ public class DisconnectClientPlugin
   public PreParsePluginResult
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
-    if (disconnectInternal(modifyDNOperation.getClientConnection(),
-                           modifyDNOperation.getRequestControls(), "PreParse"))
+    if (disconnectInternal(modifyDNOperation, "PreParse"))
     {
       return new PreParsePluginResult(true, false, false);
     }
@@ -316,8 +308,7 @@ public class DisconnectClientPlugin
   public PreParsePluginResult
        doPreParse(PreParseSearchOperation searchOperation)
   {
-    if (disconnectInternal(searchOperation.getClientConnection(),
-                           searchOperation.getRequestControls(), "PreParse"))
+    if (disconnectInternal(searchOperation, "PreParse"))
     {
       return new PreParsePluginResult(true, false, false);
     }
@@ -336,8 +327,7 @@ public class DisconnectClientPlugin
   public PreParsePluginResult
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
-    if (disconnectInternal(unbindOperation.getClientConnection(),
-                           unbindOperation.getRequestControls(), "PreParse"))
+    if (disconnectInternal(unbindOperation, "PreParse"))
     {
       return new PreParsePluginResult(true, false, false);
     }
@@ -356,8 +346,7 @@ public class DisconnectClientPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationAddOperation addOperation)
   {
-    if (disconnectInternal(addOperation.getClientConnection(),
-                           addOperation.getRequestControls(), "PreOperation"))
+    if (disconnectInternal(addOperation, "PreOperation"))
     {
       return new PreOperationPluginResult(true, false, false);
     }
@@ -376,8 +365,7 @@ public class DisconnectClientPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationBindOperation bindOperation)
   {
-    if (disconnectInternal(bindOperation.getClientConnection(),
-                           bindOperation.getRequestControls(), "PreOperation"))
+    if (disconnectInternal(bindOperation, "PreOperation"))
     {
       return new PreOperationPluginResult(true, false, false);
     }
@@ -396,9 +384,7 @@ public class DisconnectClientPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationCompareOperation compareOperation)
   {
-    if (disconnectInternal(compareOperation.getClientConnection(),
-                           compareOperation.getRequestControls(),
-                           "PreOperation"))
+    if (disconnectInternal(compareOperation, "PreOperation"))
     {
       return new PreOperationPluginResult(true, false, false);
     }
@@ -417,9 +403,7 @@ public class DisconnectClientPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
-    if (disconnectInternal(deleteOperation.getClientConnection(),
-                           deleteOperation.getRequestControls(),
-                           "PreOperation"))
+    if (disconnectInternal(deleteOperation, "PreOperation"))
     {
       return new PreOperationPluginResult(true, false, false);
     }
@@ -438,9 +422,7 @@ public class DisconnectClientPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
-    if (disconnectInternal(extendedOperation.getClientConnection(),
-                           extendedOperation.getRequestControls(),
-                           "PreOperation"))
+    if (disconnectInternal(extendedOperation, "PreOperation"))
     {
       return new PreOperationPluginResult(true, false, false);
     }
@@ -459,9 +441,7 @@ public class DisconnectClientPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
-    if (disconnectInternal(modifyOperation.getClientConnection(),
-                           modifyOperation.getRequestControls(),
-                           "PreOperation"))
+    if (disconnectInternal(modifyOperation, "PreOperation"))
     {
       return new PreOperationPluginResult(true, false, false);
     }
@@ -480,9 +460,7 @@ public class DisconnectClientPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
-    if (disconnectInternal(modifyDNOperation.getClientConnection(),
-                           modifyDNOperation.getRequestControls(),
-                           "PreOperation"))
+    if (disconnectInternal(modifyDNOperation, "PreOperation"))
     {
       return new PreOperationPluginResult(true, false, false);
     }
@@ -501,9 +479,7 @@ public class DisconnectClientPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationSearchOperation searchOperation)
   {
-    if (disconnectInternal(searchOperation.getClientConnection(),
-                           searchOperation.getRequestControls(),
-                           "PreOperation"))
+    if (disconnectInternal(searchOperation, "PreOperation"))
     {
       return new PreOperationPluginResult(true, false, false);
     }
@@ -522,9 +498,7 @@ public class DisconnectClientPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
-    if (disconnectInternal(abandonOperation.getClientConnection(),
-                           abandonOperation.getRequestControls(),
-                           "PreOperation"))
+    if (disconnectInternal(abandonOperation, "PreOperation"))
     {
       return new PostOperationPluginResult(true, false);
     }
@@ -543,8 +517,7 @@ public class DisconnectClientPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationAddOperation addOperation)
   {
-    if (disconnectInternal(addOperation.getClientConnection(),
-                           addOperation.getRequestControls(), "PostOperation"))
+    if (disconnectInternal(addOperation, "PostOperation"))
     {
       return new PostOperationPluginResult(true, false);
     }
@@ -563,8 +536,7 @@ public class DisconnectClientPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationBindOperation bindOperation)
   {
-    if (disconnectInternal(bindOperation.getClientConnection(),
-                           bindOperation.getRequestControls(), "PostOperation"))
+    if (disconnectInternal(bindOperation, "PostOperation"))
     {
       return new PostOperationPluginResult(true, false);
     }
@@ -583,9 +555,7 @@ public class DisconnectClientPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationCompareOperation compareOperation)
   {
-    if (disconnectInternal(compareOperation.getClientConnection(),
-                           compareOperation.getRequestControls(),
-                           "PostOperation"))
+    if (disconnectInternal(compareOperation, "PostOperation"))
     {
       return new PostOperationPluginResult(true, false);
     }
@@ -604,9 +574,7 @@ public class DisconnectClientPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
-    if (disconnectInternal(deleteOperation.getClientConnection(),
-                           deleteOperation.getRequestControls(),
-                           "PostOperation"))
+    if (disconnectInternal(deleteOperation, "PostOperation"))
     {
       return new PostOperationPluginResult(true, false);
     }
@@ -625,9 +593,7 @@ public class DisconnectClientPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationExtendedOperation extendedOperation)
   {
-    if (disconnectInternal(extendedOperation.getClientConnection(),
-                           extendedOperation.getRequestControls(),
-                           "PostOperation"))
+    if (disconnectInternal(extendedOperation, "PostOperation"))
     {
       return new PostOperationPluginResult(true, false);
     }
@@ -646,9 +612,7 @@ public class DisconnectClientPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
-    if (disconnectInternal(modifyOperation.getClientConnection(),
-                           modifyOperation.getRequestControls(),
-                           "PostOperation"))
+    if (disconnectInternal(modifyOperation, "PostOperation"))
     {
       return new PostOperationPluginResult(true, false);
     }
@@ -667,9 +631,7 @@ public class DisconnectClientPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {
-    if (disconnectInternal(modifyDNOperation.getClientConnection(),
-                           modifyDNOperation.getRequestControls(),
-                           "PostOperation"))
+    if (disconnectInternal(modifyDNOperation, "PostOperation"))
     {
       return new PostOperationPluginResult(true, false);
     }
@@ -688,9 +650,7 @@ public class DisconnectClientPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationSearchOperation searchOperation)
   {
-    if (disconnectInternal(searchOperation.getClientConnection(),
-                           searchOperation.getRequestControls(),
-                           "PostOperation"))
+    if (disconnectInternal(searchOperation, "PostOperation"))
     {
       return new PostOperationPluginResult(true, false);
     }
@@ -709,9 +669,7 @@ public class DisconnectClientPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
-    if (disconnectInternal(unbindOperation.getClientConnection(),
-                           unbindOperation.getRequestControls(),
-                           "PostOperation"))
+    if (disconnectInternal(unbindOperation, "PostOperation"))
     {
       return new PostOperationPluginResult(true, false);
     }
@@ -730,8 +688,7 @@ public class DisconnectClientPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseAddOperation addOperation)
   {
-    if (disconnectInternal(addOperation.getClientConnection(),
-                           addOperation.getRequestControls(), "PostResponse"))
+    if (disconnectInternal(addOperation, "PostResponse"))
     {
       return new PostResponsePluginResult(true, false);
     }
@@ -750,8 +707,7 @@ public class DisconnectClientPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseBindOperation bindOperation)
   {
-    if (disconnectInternal(bindOperation.getClientConnection(),
-                           bindOperation.getRequestControls(), "PostResponse"))
+    if (disconnectInternal(bindOperation, "PostResponse"))
     {
       return new PostResponsePluginResult(true, false);
     }
@@ -770,9 +726,7 @@ public class DisconnectClientPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseCompareOperation compareOperation)
   {
-    if (disconnectInternal(compareOperation.getClientConnection(),
-                           compareOperation.getRequestControls(),
-                           "PostResponse"))
+    if (disconnectInternal(compareOperation, "PostResponse"))
     {
       return new PostResponsePluginResult(true, false);
     }
@@ -791,9 +745,7 @@ public class DisconnectClientPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
-    if (disconnectInternal(deleteOperation.getClientConnection(),
-                           deleteOperation.getRequestControls(),
-                           "PostResponse"))
+    if (disconnectInternal(deleteOperation, "PostResponse"))
     {
       return new PostResponsePluginResult(true, false);
     }
@@ -812,9 +764,7 @@ public class DisconnectClientPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
-    if (disconnectInternal(extendedOperation.getClientConnection(),
-                           extendedOperation.getRequestControls(),
-                           "PostResponse"))
+    if (disconnectInternal(extendedOperation, "PostResponse"))
     {
       return new PostResponsePluginResult(true, false);
     }
@@ -833,9 +783,7 @@ public class DisconnectClientPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseModifyOperation modifyOperation)
   {
-    if (disconnectInternal(modifyOperation.getClientConnection(),
-                           modifyOperation.getRequestControls(),
-                           "PostResponse"))
+    if (disconnectInternal(modifyOperation, "PostResponse"))
     {
       return new PostResponsePluginResult(true, false);
     }
@@ -854,9 +802,7 @@ public class DisconnectClientPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
-    if (disconnectInternal(modifyDNOperation.getClientConnection(),
-                           modifyDNOperation.getRequestControls(),
-                           "PostResponse"))
+    if (disconnectInternal(modifyDNOperation, "PostResponse"))
     {
       return new PostResponsePluginResult(true, false);
     }
@@ -875,9 +821,7 @@ public class DisconnectClientPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseSearchOperation searchOperation)
   {
-    if (disconnectInternal(searchOperation.getClientConnection(),
-                           searchOperation.getRequestControls(),
-                           "PostResponse"))
+    if (disconnectInternal(searchOperation, "PostResponse"))
     {
       return new PostResponsePluginResult(true, false);
     }
@@ -899,10 +843,10 @@ public class DisconnectClientPlugin
    * @return  <CODE>true</CODE> if the client connection was terminated, or
    *          <CODE>false</CODE> if it was not.
    */
-  private boolean disconnectInternal(ClientConnection clientConnection,
-                                     List<Control> requestControls,
+  private boolean disconnectInternal(PluginOperation operation,
                                      String section)
   {
+    List<Control> requestControls = operation.getRequestControls();
     if (requestControls != null)
     {
       for (Control c : requestControls)
@@ -911,7 +855,7 @@ public class DisconnectClientPlugin
         {
           if (c.getValue().stringValue().equalsIgnoreCase(section))
           {
-            clientConnection.disconnect(DisconnectReason.CLOSED_BY_PLUGIN, true,
+            operation.disconnectClient(DisconnectReason.CLOSED_BY_PLUGIN, true,
                  "Closed by disconnect client plugin (section " + section + ")",
                  -1);
 

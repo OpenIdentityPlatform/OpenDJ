@@ -112,6 +112,22 @@ public class UnbindOperation
    * {@inheritDoc}
    */
   @Override()
+  public final void disconnectClient(DisconnectReason disconnectReason,
+                                     boolean sendNotification, String message,
+                                     int messageID)
+  {
+    // Since unbind operations can't be cancelled, we don't need to do anything
+    // but forward the request on to the client connection.
+    clientConnection.disconnect(disconnectReason, sendNotification, message,
+                                messageID);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
