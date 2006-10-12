@@ -36,6 +36,8 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.controls.MatchedValuesFilter;
+import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -181,7 +183,8 @@ public class SearchOperationTestCase extends OperationTestCase
   }
 
   private SearchResultEntryProtocolOp searchExternalForSingleEntry(
-       SearchRequestProtocolOp searchRequest)
+       SearchRequestProtocolOp searchRequest,
+       ArrayList<LDAPControl> controls)
        throws IOException, LDAPException, ASN1Exception, InterruptedException
   {
     // Establish a connection to the server.
@@ -197,7 +200,7 @@ public class SearchOperationTestCase extends OperationTestCase
       InvocationCounterPlugin.resetAllCounters();
 
       LDAPMessage message;
-      message = new LDAPMessage(2, searchRequest);
+      message = new LDAPMessage(2, searchRequest, controls);
       w.writeElement(message.encode());
 
       message = LDAPMessage.decode(r.readElement().decodeAsSequence());
@@ -297,7 +300,8 @@ public class SearchOperationTestCase extends OperationTestCase
   }
 
   @Test
-  public void testSearchInternalAllUserAttributesTypesOnly() throws Exception
+  public void testSearchInternalUnspecifiedAttributesOmitValues()
+       throws Exception
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -467,7 +471,7 @@ public class SearchOperationTestCase extends OperationTestCase
               LDAPFilter.decode("(objectclass=inetorgperson)"),
               null);
     SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest);
+         searchExternalForSingleEntry(searchRequest, null);
     assertEquals(searchResultEntry.getAttributes().size(), ldapAttrCount);
   }
 
@@ -487,12 +491,36 @@ public class SearchOperationTestCase extends OperationTestCase
               LDAPFilter.decode("(objectclass=inetorgperson)"),
               attributes);
     SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest);
+         searchExternalForSingleEntry(searchRequest, null);
     assertEquals(searchResultEntry.getAttributes().size(), ldapAttrCount);
   }
 
   @Test
-  public void testSearchExternalAllUserAttributesTypesOnly() throws Exception
+  public void testSearchExternalUnspecifiedAttributesOmitValues()
+       throws Exception
+  {
+    SearchRequestProtocolOp searchRequest =
+         new SearchRequestProtocolOp(
+              new ASN1OctetString("o=test"),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              true,
+              LDAPFilter.decode("(objectclass=inetorgperson)"),
+              null);
+    SearchResultEntryProtocolOp searchResultEntry =
+         searchExternalForSingleEntry(searchRequest, null);
+    // The attributes will include the objectclass type.
+    assertEquals(searchResultEntry.getAttributes().size(), ldapAttrCount);
+    for (LDAPAttribute a : searchResultEntry.getAttributes())
+    {
+      assertEquals(a.getValues().size(), 0);
+    }
+  }
+
+  @Test
+  public void testSearchExternalAllUserAttributesOmitValues() throws Exception
   {
     LinkedHashSet<String> attributes = new LinkedHashSet<String>();
     attributes.add("*");
@@ -507,10 +535,13 @@ public class SearchOperationTestCase extends OperationTestCase
               LDAPFilter.decode("(objectclass=inetorgperson)"),
               attributes);
     SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest);
+         searchExternalForSingleEntry(searchRequest, null);
     // The attributes will include the objectclass type.
-    assertEquals(searchResultEntry.getAttributes().size(),
-                 entry.getUserAttributes().size() + 1);
+    assertEquals(searchResultEntry.getAttributes().size(), ldapAttrCount);
+    for (LDAPAttribute a : searchResultEntry.getAttributes())
+    {
+      assertEquals(a.getValues().size(), 0);
+    }
   }
 
   @Test
@@ -530,11 +561,36 @@ public class SearchOperationTestCase extends OperationTestCase
               attributes);
 
     SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest);
+         searchExternalForSingleEntry(searchRequest, null);
 
     assertEquals(searchResultEntry.getAttributes().size(), 1);
     assertEquals(searchResultEntry.getAttributes().
          getFirst().getValues().size(), 4);
+  }
+
+  @Test
+  public void testSearchExternalObjectClassAttributeOmitValues()
+       throws Exception
+  {
+    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    attributes.add("objectclass");
+    SearchRequestProtocolOp searchRequest =
+         new SearchRequestProtocolOp(
+              new ASN1OctetString("o=test"),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              true,
+              LDAPFilter.decode("(objectclass=inetorgperson)"),
+              attributes);
+
+    SearchResultEntryProtocolOp searchResultEntry =
+         searchExternalForSingleEntry(searchRequest, null);
+
+    assertEquals(searchResultEntry.getAttributes().size(), 1);
+    assertEquals(searchResultEntry.getAttributes().
+         getFirst().getValues().size(), 0);
   }
 
   @Test
@@ -555,8 +611,119 @@ public class SearchOperationTestCase extends OperationTestCase
               attributes);
 
     SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest);
+         searchExternalForSingleEntry(searchRequest, null);
 
     assertEquals(searchResultEntry.getAttributes().size(), 2);
   }
+
+  @Test
+  public void testSearchExternalAttributeWithSubtypes() throws Exception
+  {
+    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    attributes.add("title");
+    SearchRequestProtocolOp searchRequest =
+         new SearchRequestProtocolOp(
+              new ASN1OctetString("o=test"),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(objectclass=inetorgperson)"),
+              attributes);
+
+    SearchResultEntryProtocolOp searchResultEntry =
+         searchExternalForSingleEntry(searchRequest, null);
+
+    assertEquals(searchResultEntry.getAttributes().size(), 4);
+  }
+
+  @Test
+  public void testSearchExternalAttributeWithSubtypesOmitValues()
+       throws Exception
+  {
+    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    attributes.add("title");
+    SearchRequestProtocolOp searchRequest =
+         new SearchRequestProtocolOp(
+              new ASN1OctetString("o=test"),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              true,
+              LDAPFilter.decode("(objectclass=inetorgperson)"),
+              attributes);
+
+    SearchResultEntryProtocolOp searchResultEntry =
+         searchExternalForSingleEntry(searchRequest, null);
+
+    assertEquals(searchResultEntry.getAttributes().size(), 4);
+    for (LDAPAttribute a : searchResultEntry.getAttributes())
+    {
+      assertEquals(a.getValues().size(), 0);
+    }
+  }
+
+  @Test
+  public void testSearchExternalAttributeWithOptions() throws Exception
+  {
+    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    attributes.add("title;lang-ja;phonetic");
+    SearchRequestProtocolOp searchRequest =
+         new SearchRequestProtocolOp(
+              new ASN1OctetString("o=test"),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(objectclass=inetorgperson)"),
+              attributes);
+
+    SearchResultEntryProtocolOp searchResultEntry =
+         searchExternalForSingleEntry(searchRequest, null);
+
+    assertEquals(searchResultEntry.getAttributes().size(), 1);
+  }
+
+  @Test
+  public void testSearchExternalMatchedValues() throws Exception
+  {
+    // Add a matched values control.
+    LDAPFilter ldapFilter = LDAPFilter.decode("(title=*director*)");
+    MatchedValuesFilter matchedValuesFilter =
+         MatchedValuesFilter.createFromLDAPFilter(ldapFilter);
+    ArrayList<MatchedValuesFilter> filters =
+         new ArrayList<MatchedValuesFilter>();
+    filters.add(matchedValuesFilter);
+    MatchedValuesControl mvc = new MatchedValuesControl(true, filters);
+    ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>();
+    controls.add(new LDAPControl(mvc));
+
+    SearchRequestProtocolOp searchRequest =
+         new SearchRequestProtocolOp(
+              new ASN1OctetString("o=test"),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(objectclass=inetorgperson)"),
+              null);
+
+    SearchResultEntryProtocolOp searchResultEntry =
+         searchExternalForSingleEntry(searchRequest, controls);
+
+    // Per RFC 3876, an attribute that has no values selected is returned
+    // with an empty set of values.  We should therefore expect all the
+    // attributes but only one value.
+    int valueCount = 0;
+    for (LDAPAttribute a : searchResultEntry.getAttributes())
+    {
+      valueCount += a.getValues().size();
+    }
+    assertEquals(valueCount, 1);
+  }
+
 }

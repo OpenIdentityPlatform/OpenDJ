@@ -1146,6 +1146,122 @@ public class Entry
 
 
   /**
+   * Makes a copy of attributes matching the specified options.
+   *
+   * @param  attrList       The attributes to be copied.
+   * @param  options        The set of attribute options to include in
+   *                        matching elements.
+   * @param  omitValues     <CODE>true</CODE> if the values are to be
+   *                        omitted.
+   *
+   * @return  A copy of the attributes matching the specified options,
+   *          or <CODE>null</CODE> if there is no such attribute with
+   *          the specified set of options.
+   */
+  private static List<Attribute> duplicateAttribute(
+       List<Attribute> attrList,
+       Set<String> options,
+       boolean omitValues)
+  {
+    assert debugEnter(CLASS_NAME, "duplicateAttribute",
+                      String.valueOf(attrList),
+                      String.valueOf(options),
+                      String.valueOf(omitValues));
+
+    if (attrList == null)
+    {
+      return null;
+    }
+
+    ArrayList<Attribute> duplicateList =
+         new ArrayList<Attribute>(attrList.size());
+    for (Attribute a : attrList)
+    {
+      if (a.hasOptions(options))
+      {
+        duplicateList.add(a.duplicate(omitValues));
+      }
+    }
+
+    if (duplicateList.isEmpty())
+    {
+      return null;
+    }
+    else
+    {
+      return duplicateList;
+    }
+  }
+
+
+
+  /**
+   * Retrieves a copy of the requested user attribute element(s) for
+   * the specified attribute type.  The list returned may include
+   * multiple elements if the same attribute exists in the entry
+   * multiple times with different sets of options.
+   *
+   * @param  attributeType  The attribute type to retrieve.
+   * @param  options        The set of attribute options to include in
+   *                        matching elements.
+   * @param  omitValues     <CODE>true</CODE> if the values are to be
+   *                        omitted.
+   *
+   * @return  A copy of the requested attribute element(s) for the
+   *          specified attribute type, or <CODE>null</CODE> if there
+   *          is no such user attribute with the specified set of
+   *          options.
+   */
+  public List<Attribute> duplicateUserAttribute(
+       AttributeType attributeType,
+       Set<String> options,
+       boolean omitValues)
+  {
+    assert debugEnter(CLASS_NAME, "duplicateUserAttribute",
+                      String.valueOf(attributeType),
+                      String.valueOf(options),
+                      String.valueOf(omitValues));
+
+    List<Attribute> currentList = userAttributes.get(attributeType);
+    return duplicateAttribute(currentList, options, omitValues);
+  }
+
+
+
+  /**
+   * Retrieves a copy of the requested operational attribute
+   * element(s) for the specified attribute type.  The list returned
+   * may include multiple elements if the same attribute exists in
+   * the entry multiple times with different sets of options.
+   *
+   * @param  attributeType  The attribute type to retrieve.
+   * @param  options        The set of attribute options to include in
+   *                        matching elements.
+   * @param  omitValues     <CODE>true</CODE> if the values are to be
+   *                        omitted.
+   *
+   * @return  A copy of the requested attribute element(s) for the
+   *          specified attribute type, or <CODE>null</CODE> if there
+   *          is no such user attribute with the specified set of
+   *          options.
+   */
+  public List<Attribute> duplicateOperationalAttribute(
+       AttributeType attributeType,
+       Set<String> options,
+       boolean omitValues)
+  {
+    assert debugEnter(CLASS_NAME, "duplicateOperationalAttribute",
+                      String.valueOf(attributeType),
+                      String.valueOf(options),
+                      String.valueOf(omitValues));
+
+    List<Attribute> currentList =
+         operationalAttributes.get(attributeType);
+    return duplicateAttribute(currentList, options, omitValues);
+  }
+
+
+  /**
    * Indicates whether this entry contains the specified operational
    * attribute.
    *
@@ -2660,12 +2776,12 @@ public class Entry
     HashMap<AttributeType,List<Attribute>> userAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(
               userAttributes.size());
-    deepCopy(userAttributes, userAttrsCopy);
+    deepCopy(userAttributes, userAttrsCopy, false);
 
     HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(
                   operationalAttributes.size());
-    deepCopy(operationalAttributes, operationalAttrsCopy);
+    deepCopy(operationalAttributes, operationalAttrsCopy, false);
 
     return new Entry(dnCopy, objectClassesCopy, userAttrsCopy,
                      operationalAttrsCopy);
@@ -2715,19 +2831,9 @@ public class Entry
       ArrayList<Attribute> ocList = new ArrayList<Attribute>(1);
       ocList.add(new Attribute(ocType));
       userAttrsCopy.put(ocType, ocList);
-
-
-      for (AttributeType t : userAttributes.keySet())
-      {
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(new Attribute(t));
-        userAttrsCopy.put(t, attrList);
-      }
     }
-    else
-    {
-      deepCopy(userAttributes, userAttrsCopy);
-    }
+
+    deepCopy(userAttributes, userAttrsCopy, typesOnly);
 
     HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(0);
@@ -2747,9 +2853,12 @@ public class Entry
    *                 information.
    * @param  target  The target map into which to place the copied
    *                 information.
+   * @param  omitValues <CODE>true</CODE> if the values should be
+   *                    omitted.
    */
   private void deepCopy(Map<AttributeType,List<Attribute>> source,
-                        Map<AttributeType,List<Attribute>> target)
+                        Map<AttributeType,List<Attribute>> target,
+                        boolean omitValues)
   {
     for (AttributeType t : source.keySet())
     {
@@ -2759,7 +2868,7 @@ public class Entry
 
       for (Attribute a : sourceList)
       {
-        targetList.add(a.duplicate());
+        targetList.add(a.duplicate(omitValues));
       }
 
       target.put(t, targetList);
