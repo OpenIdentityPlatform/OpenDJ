@@ -38,6 +38,7 @@ import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
@@ -192,6 +193,28 @@ public abstract class Operation
    * @return  The operation type for this operation.
    */
   public abstract OperationType getOperationType();
+
+
+
+  /**
+   * Terminates the client connection being used to process this operation.  The
+   * plugin must return a result indicating that the client connection has been
+   * teriminated.
+   *
+   * @param  disconnectReason  The disconnect reason that provides the generic
+   *                           cause for the disconnect.
+   * @param  sendNotification  Indicates whether to try to provide notification
+   *                           to the client that the connection will be closed.
+   * @param  message           The message to send to the client.  It may be
+   *                           <CODE>null</CODE> if no notification is to be
+   *                           sent.
+   * @param  messageID         The unique identifier associated with the message
+   *                           to send to the client.  It may be -1 if no
+   *                           notification is to be sent.
+   */
+  public abstract void disconnectClient(DisconnectReason disconnectReason,
+                                        boolean sendNotification,
+                                        String message, int messageID);
 
 
 

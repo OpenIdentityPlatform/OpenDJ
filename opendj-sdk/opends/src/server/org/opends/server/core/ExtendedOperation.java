@@ -41,6 +41,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
@@ -319,6 +320,25 @@ public class ExtendedOperation
     // candidate for being called by the logging subsystem.
 
     return OperationType.EXTENDED;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void disconnectClient(DisconnectReason disconnectReason,
+                                     boolean sendNotification, String message,
+                                     int messageID)
+  {
+    // Before calling clientConnection.disconnect, we need to mark this
+    // operation as cancelled so that the attempt to cancel it later won't cause
+    // an unnecessary delay.
+    setCancelResult(CancelResult.CANCELED);
+
+    clientConnection.disconnect(disconnectReason, sendNotification, message,
+                                messageID);
   }
 
 

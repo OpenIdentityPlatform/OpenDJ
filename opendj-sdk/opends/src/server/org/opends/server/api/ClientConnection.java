@@ -404,7 +404,11 @@ public abstract class ClientConnection
    * Closes the connection to the client, optionally sending it a
    * message indicating the reason for the closure.  Note that the
    * ability to send a notice of disconnection may not be available
-   * for all protocols or under all circumstances.
+   * for all protocols or under all circumstances.  Also note that
+   * when attempting to disconnect a client connection as a part of
+   * operation processing (e.g., within a plugin or other extension),
+   * the <CODE>disconnectClient</CODE> method within that operation
+   * should be called rather than invoking this method directly.
    *
    * @param  disconnectReason  The disconnect reason that provides the
    *                           generic cause for the disconnect.

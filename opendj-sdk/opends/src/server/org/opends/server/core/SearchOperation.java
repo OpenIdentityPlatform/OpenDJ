@@ -61,6 +61,7 @@ import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OperationType;
@@ -1406,6 +1407,25 @@ public class SearchOperation
     // candidate for being called by the logging subsystem.
 
     return OperationType.SEARCH;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void disconnectClient(DisconnectReason disconnectReason,
+                                     boolean sendNotification, String message,
+                                     int messageID)
+  {
+    // Before calling clientConnection.disconnect, we need to mark this
+    // operation as cancelled so that the attempt to cancel it later won't cause
+    // an unnecessary delay.
+    setCancelResult(CancelResult.CANCELED);
+
+    clientConnection.disconnect(disconnectReason, sendNotification, message,
+                                messageID);
   }
 
 

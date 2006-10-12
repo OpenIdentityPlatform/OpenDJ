@@ -211,8 +211,8 @@ public class TraditionalWorkerThread
                                       String.valueOf(operation),
                                       stackTraceToSingleLineString(e));
 
-          operation.getClientConnection().disconnect(
-            DisconnectReason.SERVER_ERROR, true, message, msgID);
+          operation.disconnectClient(DisconnectReason.SERVER_ERROR, true,
+                                     message, msgID);
         }
         catch (Exception e2)
         {

@@ -35,6 +35,7 @@ import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PostOperationAbandonOperation;
@@ -170,6 +171,22 @@ public class AbandonOperation
     // candidate for being called by the logging subsystem.
 
     return OperationType.ABANDON;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void disconnectClient(DisconnectReason disconnectReason,
+                                     boolean sendNotification, String message,
+                                     int messageID)
+  {
+    // Since abandon operations can't be cancelled, we don't need to do anything
+    // but forward the request on to the client connection.
+    clientConnection.disconnect(disconnectReason, sendNotification, message,
+                                messageID);
   }
 
 
