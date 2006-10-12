@@ -54,24 +54,19 @@ import java.net.Socket;
 public class TestModifyDNOperation extends OperationTestCase
 {
 
-  private Entry exampleCom;
-  private Entry people;
   private Entry entry;
-  private Entry entry1;
-  private Entry entry2;
-  private Object[][] parameters;
 
   @BeforeClass
   public void setUp() throws Exception
   {
     TestCaseUtils.startServer();
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(false);
 
     InternalClientConnection connection =
          InternalClientConnection.getRootConnection();
 
     // Add the example.com entry
-    exampleCom = TestCaseUtils.makeEntry(
+    Entry exampleCom = TestCaseUtils.makeEntry(
       "dn: dc=example,dc=com",
       "objectclass: top",
       "objectclass: domain",
@@ -79,7 +74,7 @@ public class TestModifyDNOperation extends OperationTestCase
     );
 
     // Add the people entry
-    people = TestCaseUtils.makeEntry(
+    Entry people = TestCaseUtils.makeEntry(
       "dn: ou=People,dc=example,dc=com",
       "objectclass: top",
       "objectclass: organizationalUnit",

@@ -33,9 +33,11 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.controls.MatchedValuesFilter;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
@@ -47,26 +49,58 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.net.Socket;
 import java.io.IOException;
 
 public class SearchOperationTestCase extends OperationTestCase
 {
-  private Entry entry;
+  private static final String SUFFIX = "dc=example,dc=com";
+  private static final String BASE = "o=Test Core Search,dc=example,dc=com";
+
+  private Entry testEntry;
   private int ldapAttrCount;
 
   @BeforeClass
   public void setUp() throws Exception
   {
     TestCaseUtils.startServer();
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true);
 
     InternalClientConnection connection =
          InternalClientConnection.getRootConnection();
 
+    // Add the suffix entry.
+    DN suffixDN = DN.decode(SUFFIX);
+    if (DirectoryServer.getEntry(suffixDN) == null)
+    {
+      Entry suffixEntry = StaticUtils.createEntry(suffixDN);
+      AddOperation addOperation =
+           connection.processAdd(suffixEntry.getDN(),
+                                 suffixEntry.getObjectClasses(),
+                                 suffixEntry.getUserAttributes(),
+                                 suffixEntry.getOperationalAttributes());
+      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+      assertNotNull(DirectoryServer.getEntry(suffixEntry.getDN()));
+    }
+
+    // Add a search base entry.
+    DN baseDN = DN.decode(BASE);
+    if (DirectoryServer.getEntry(baseDN) == null)
+    {
+      Entry baseEntry = StaticUtils.createEntry(baseDN);
+      AddOperation addOperation =
+           connection.processAdd(baseEntry.getDN(),
+                                 baseEntry.getObjectClasses(),
+                                 baseEntry.getUserAttributes(),
+                                 baseEntry.getOperationalAttributes());
+      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+      assertNotNull(DirectoryServer.getEntry(baseEntry.getDN()));
+    }
+
     // Add a test entry.
-    entry = TestCaseUtils.makeEntry(
-         "dn: uid=rogasawara,o=test",
+    testEntry = TestCaseUtils.makeEntry(
+         "dn: uid=rogasawara," + BASE,
          "userpassword: password",
          "objectclass: top",
          "objectclass: person",
@@ -96,13 +130,13 @@ public class SearchOperationTestCase extends OperationTestCase
 
     // Calculate the total number of LDAP attributes in this entry.
     ldapAttrCount = 1; // For the objectclass attribute.
-    for (Attribute a : entry.getAttributes())
+    for (Attribute a : testEntry.getAttributes())
     {
       ldapAttrCount += a.getValues().size();
     }
 
     // The add operation changes the attributes, so let's duplicate the entry.
-    Entry duplicateEntry = entry.duplicate();
+    Entry duplicateEntry = testEntry.duplicate();
 
     AddOperation addOperation =
          connection.processAdd(duplicateEntry.getDN(),
@@ -110,11 +144,11 @@ public class SearchOperationTestCase extends OperationTestCase
                                duplicateEntry.getUserAttributes(),
                                duplicateEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(entry.getDN()));
+    assertNotNull(DirectoryServer.getEntry(testEntry.getDN()));
 
     // Add a test ldapsubentry.
     Entry ldapSubentry = TestCaseUtils.makeEntry(
-         "dn: cn=subentry,o=test",
+         "dn: cn=subentry," + BASE,
          "objectclass: ldapsubentry");
     addOperation =
          connection.processAdd(ldapSubentry.getDN(),
@@ -123,6 +157,21 @@ public class SearchOperationTestCase extends OperationTestCase
                                ldapSubentry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(ldapSubentry.getDN()));
+
+    // Add a test referral entry.
+    Entry referralEntry = TestCaseUtils.makeEntry(
+         "dn: ou=People," + BASE,
+         "objectclass: extensibleobject",
+         "objectclass: referral",
+         "ref: ldap://hostb/OU=People,O=MNN,C=US",
+         "ref: ldap://hostc/OU=People,O=MNN,C=US");
+    addOperation =
+         connection.processAdd(referralEntry.getDN(),
+                               referralEntry.getObjectClasses(),
+                               referralEntry.getUserAttributes(),
+                               referralEntry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(referralEntry.getDN()));
   }
 
 
@@ -137,7 +186,7 @@ public class SearchOperationTestCase extends OperationTestCase
                              InternalClientConnection.nextOperationID(),
                              InternalClientConnection.nextMessageID(),
                              new ArrayList<Control>(),
-                             new ASN1OctetString("o=test"),
+                             new ASN1OctetString(BASE),
                              SearchScope.WHOLE_SUBTREE,
                              DereferencePolicy.NEVER_DEREF_ALIASES,
                              -1,
@@ -203,16 +252,29 @@ public class SearchOperationTestCase extends OperationTestCase
       message = new LDAPMessage(2, searchRequest, controls);
       w.writeElement(message.encode());
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
-      SearchResultEntryProtocolOp searchResultEntry =
-           message.getSearchResultEntryProtocolOp();
+      SearchResultEntryProtocolOp searchResultEntry = null;
+      SearchResultDoneProtocolOp searchResultDone = null;
+      ASN1Element element;
+      while (searchResultDone == null && (element = r.readElement()) != null)
+      {
+        message = LDAPMessage.decode(element.decodeAsSequence());
+        switch (message.getProtocolOpType())
+        {
+          case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
+            searchResultEntry = message.getSearchResultEntryProtocolOp();
+            break;
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
-      SearchResultDoneProtocolOp searchResultDone =
-           message.getSearchResultDoneProtocolOp();
+          case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
+            break;
 
-      assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
-      assertEquals(searchResultDone.getResultCode(), LDAPResultCode.SUCCESS);
+          case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
+            searchResultDone = message.getSearchResultDoneProtocolOp();
+            assertEquals(searchResultDone.getResultCode(),
+                         LDAPResultCode.SUCCESS);
+            assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
+            break;
+        }
+      }
 
       return searchResultEntry;
     }
@@ -253,7 +315,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -265,6 +327,7 @@ public class SearchOperationTestCase extends OperationTestCase
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 2);
+    assertEquals(searchOperation.getReferencesSent(), 1);
     assertEquals(searchOperation.getErrorMessage().length(), 0);
 
     examineCompletedOperation(searchOperation);
@@ -282,7 +345,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -293,9 +356,9 @@ public class SearchOperationTestCase extends OperationTestCase
 
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
-    assertEquals(resultEntry.getObjectClasses(), entry.getObjectClasses());
+    assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
     assertEquals(resultEntry.getUserAttributes().size(),
-                 entry.getUserAttributes().size());
+                 testEntry.getUserAttributes().size());
     assertEquals(resultEntry.getOperationalAttributes().size(), 0);
   }
 
@@ -312,7 +375,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -325,7 +388,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     assertEquals(resultEntry.getObjectClasses().size(), 0);
     assertEquals(resultEntry.getUserAttributes().size(),
-                 entry.getUserAttributes().size() + 1);
+                 testEntry.getUserAttributes().size() + 1);
     assertEquals(resultEntry.getOperationalAttributes().size(), 0);
   }
 
@@ -343,7 +406,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -375,7 +438,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -386,10 +449,10 @@ public class SearchOperationTestCase extends OperationTestCase
 
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
-    assertEquals(resultEntry.getObjectClasses(), entry.getObjectClasses());
+    assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
     assertTrue(resultEntry.getOperationalAttributes().size() > 0);
     assertEquals(resultEntry.getUserAttributes().size(),
-                 entry.getUserAttributes().size());
+                 testEntry.getUserAttributes().size());
   }
 
   @Test
@@ -408,7 +471,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -419,9 +482,9 @@ public class SearchOperationTestCase extends OperationTestCase
 
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
-    assertEquals(resultEntry.getObjectClasses(), entry.getObjectClasses());
+    assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
     assertEquals(resultEntry.getUserAttributes().size(),
-                 entry.getUserAttributes().size());
+                 testEntry.getUserAttributes().size());
     assertEquals(resultEntry.getOperationalAttributes().size(), 1);
   }
 
@@ -441,7 +504,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -462,7 +525,7 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -482,7 +545,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -501,7 +564,7 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -526,7 +589,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -551,7 +614,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -576,7 +639,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -601,7 +664,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("createtimestamp");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -623,7 +686,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -646,7 +709,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -672,7 +735,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("title;lang-ja;phonetic");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -703,7 +766,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString("o=test"),
+              new ASN1OctetString(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -726,4 +789,41 @@ public class SearchOperationTestCase extends OperationTestCase
     assertEquals(valueCount, 1);
   }
 
+  @Test
+  public void testSearchInternalReferences() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              new ASN1OctetString(BASE),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(objectclass=inetorgperson)"),
+              null, null);
+
+    searchOperation.run();
+
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getReferencesSent(), 1);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+    examineCompletedOperation(searchOperation);
+
+    List<SearchResultReference> references =
+         searchOperation.getSearchReferences();
+    assertEquals(references.size(), 1);
+
+    List<String> referrals = references.get(0).getReferralURLs();
+    assertEquals(referrals.size(), 2);
+  }
 }

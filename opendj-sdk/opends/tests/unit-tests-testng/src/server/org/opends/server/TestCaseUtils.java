@@ -38,9 +38,12 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 
 import org.opends.server.backends.MemoryBackend;
+import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigFileHandler;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.LockFileManager;
 import org.opends.server.loggers.Error;
 import org.opends.server.loggers.Debug;
 import org.opends.server.plugins.InvocationCounterPlugin;
@@ -53,6 +56,7 @@ import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.tasks.TaskUtils;
 
 /**
  * This class defines some utility functions which can be used by test
@@ -263,7 +267,7 @@ public final class TestCaseUtils {
    * @return the bounded Server socket.
    *
    * @throws IOException in case of underlying exception.
-   * @throws SocketExceptionin case of underlying exception.
+   * @throws SocketException in case of underlying exception.
    */
   public static ServerSocket bindFreePort() throws IOException, SocketException
   {
@@ -322,6 +326,56 @@ public final class TestCaseUtils {
     {
       Entry e = createEntry(baseDN);
       memoryBackend.addEntry(e, null);
+    }
+  }
+
+  /**
+   * Clears all the entries from the userRoot JE backend.
+
+   * @param  createBaseEntry  Indicate whether to automatically create the base
+   *                          entry and add it to the backend.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static void clearJEBackend(boolean createBaseEntry)
+       throws Exception
+  {
+    BackendImpl backend = (BackendImpl)DirectoryServer.getBackend("userRoot");
+    DN[] baseDNs = backend.getBaseDNs();
+    ConfigEntry configEntry = TaskUtils.getConfigEntry(backend);
+
+    TaskUtils.setBackendEnabled(configEntry, false);
+
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(backend);
+      StringBuilder failureReason = new StringBuilder();
+
+      if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+      {
+        throw new RuntimeException(failureReason.toString());
+      }
+
+      try
+      {
+        backend.clearBackend(configEntry, baseDNs);
+      }
+      finally
+      {
+        LockFileManager.releaseLock(lockFile, failureReason);
+      }
+    }
+    finally
+    {
+      TaskUtils.setBackendEnabled(configEntry, true);
+    }
+
+    if (createBaseEntry)
+    {
+      DN baseDN = DN.decode("dc=example,dc=com");
+      Entry e = createEntry(baseDN);
+      backend = (BackendImpl)DirectoryServer.getBackend("userRoot");
+      backend.addEntry(e, null);
     }
   }
 

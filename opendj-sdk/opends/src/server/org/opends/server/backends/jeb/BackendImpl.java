@@ -1452,4 +1452,26 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     assert debugEnter(CLASS_NAME, "getRootContainer");
     return rootContainer;
   }
+
+  /**
+   * Clears all the entries from the backend.  This method is for test cases
+   * that use the JE backend.
+   *
+   * @param  configEntry  The configuration entry that contains the information
+   *                      to use to initialize this backend.
+   * @param  baseDNs      The set of base DNs that have been configured for this
+   *                      backend.
+   *
+   * @throws  ConfigException  If an unrecoverable problem arises in the
+   *                           process of performing the initialization.
+   *
+   * @throws  JebException     If an error occurs while removing the data.
+   */
+  public void clearBackend(ConfigEntry configEntry, DN[] baseDNs)
+       throws ConfigException, JebException
+  {
+    Config config = new Config();
+    config.initializeConfig(configEntry, baseDNs);
+    EnvManager.removeFiles(config.getBackendDirectory().getPath());
+  }
 }
