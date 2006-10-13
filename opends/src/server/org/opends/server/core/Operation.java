@@ -928,6 +928,22 @@ public abstract class Operation
 
 
   /**
+   * Sets the cancel request for this operation, if applicable.  This should
+   * only be used for testing purposes (e.g., for ensuring a cancel request is
+   * submitted before processing begins on an operation, or to allow for
+   * cancelling an internal operation).
+   *
+   * @param  cancelRequest  The cancel request to set for this operation.
+   *
+   * @return  <CODE>true</CODE> if the cancel request was set, or
+   *          <CODE>false</CODE> if it was not for some reason (e.g., the
+   *          specified operation cannot be cancelled).
+   */
+  abstract boolean setCancelRequest(CancelRequest cancelRequest);
+
+
+
+  /**
    * Retrieves the cancel request that has been issued for this operation, if
    * there is one.  This method should not be called by post-operation or
    * post-response plugins.

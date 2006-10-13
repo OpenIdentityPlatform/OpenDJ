@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -50,9 +51,11 @@ import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.CancelRequest;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.WritabilityMode;
 
@@ -767,6 +770,64 @@ public class DeleteOperationTestCase
 
 
   /**
+   * Tests a delete operation that gets canceled before startup.
+   *
+   * @throws  Exception  If an unexpected probem occurs.
+   */
+  @Test()
+  public void testCancelBeforeStartup()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    DeleteOperation deleteOperation =
+         new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+                             null, new ASN1OctetString("o=test"));
+
+    CancelRequest cancelRequest = new CancelRequest(false,
+                                                    "testCancelBeforeStartup");
+    deleteOperation.setCancelRequest(cancelRequest);
+    deleteOperation.run();
+    assertEquals(deleteOperation.getResultCode(), ResultCode.CANCELED);
+  }
+
+
+
+  /**
+   * Tests a delete operation in which the server cannot obtain a lock on the
+   * target entry because there is already a read lock held on it.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(groups = { "slow" })
+  public void testCannotLockEntry()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Lock entryLock = LockManager.lockRead(DN.decode("o=test"));
+
+    try
+    {
+      InternalClientConnection conn =
+           InternalClientConnection.getRootConnection();
+
+      DeleteOperation deleteOperation =
+           conn.processDelete(new ASN1OctetString("o=test"));
+      assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    }
+    finally
+    {
+      LockManager.unlock(DN.decode("o=test"), entryLock);
+    }
+  }
+
+
+
+  /**
    * Tests a delete operation that should be disconnected in a pre-parse plugin.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -996,6 +1057,67 @@ responseLoop:
     {
       s.close();
     } catch (Exception e) {}
+  }
+
+
+
+  /**
+   * Tests to ensure that any registered notification listeners are invoked for
+   * a successful delete operation.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSuccessWithNotificationListener()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    TestChangeNotificationListener changeListener =
+         new TestChangeNotificationListener();
+    DirectoryServer.registerChangeNotificationListener(changeListener);
+    assertEquals(changeListener.getAddCount(), 0);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    DeleteOperation deleteOperation =
+         conn.processDelete(new ASN1OctetString("o=test"));
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    retrieveCompletedOperationElements(deleteOperation);
+
+    assertEquals(changeListener.getDeleteCount(), 1);
+    DirectoryServer.deregisterChangeNotificationListener(changeListener);
+  }
+
+
+
+  /**
+   * Tests to ensure that any registered notification listeners are not invoked
+   * for a failed delete operation.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testFailureWithNotificationListener()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    TestChangeNotificationListener changeListener =
+         new TestChangeNotificationListener();
+    DirectoryServer.registerChangeNotificationListener(changeListener);
+    assertEquals(changeListener.getAddCount(), 0);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    DeleteOperation deleteOperation =
+         conn.processDelete(new ASN1OctetString("cn=nonexistent,o=test"));
+    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+
+    assertEquals(changeListener.getDeleteCount(), 0);
+    DirectoryServer.deregisterChangeNotificationListener(changeListener);
   }
 }
 

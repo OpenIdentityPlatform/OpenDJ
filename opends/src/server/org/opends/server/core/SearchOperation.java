@@ -2179,6 +2179,21 @@ searchProcessing:
    * {@inheritDoc}
    */
   @Override()
+  boolean setCancelRequest(CancelRequest cancelRequest)
+  {
+    assert debugEnter(CLASS_NAME, "setCancelRequest",
+                      String.valueOf(cancelRequest));
+
+    this.cancelRequest = cancelRequest;
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public final void toString(StringBuilder buffer)
   {
     assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
