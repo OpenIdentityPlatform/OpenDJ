@@ -27,7 +27,6 @@
 package org.opends.server;
 
 import java.io.*;
-import junit.framework.*;
 
 /**
  * This class manages the redirection of the output.
