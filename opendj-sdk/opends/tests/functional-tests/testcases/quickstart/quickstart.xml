@@ -111,10 +111,10 @@
         </call>
 
         <!--- Test Case : Add Quickstart Entries -->
-        <testcase name="'AddQuickstartEntries'">
+        <testcase name="'Quickstart:AddQuickstartEntries'">
           <sequence>
             <message>
-               'Adding quickstart entries'
+               'Quickstart: Adding quickstart entries'
             </message>
 
             <call function="'addEntry'">
