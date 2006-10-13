@@ -31,13 +31,16 @@ package org.opends.server.core;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
+import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
+import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Sequence;
@@ -53,15 +56,18 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.CancelRequest;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.WritabilityMode;
 
 import static org.testng.Assert.*;
 
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -1884,6 +1890,358 @@ public class AddOperationTestCase
 
     assertEquals(changeListener.getAddCount(), 0);
     DirectoryServer.deregisterChangeNotificationListener(changeListener);
+  }
+
+
+
+  /**
+   * Tests an add operation that gets canceled before startup.
+   *
+   * @throws  Exception  If an unexpected probem occurs.
+   */
+  @Test()
+  public void testCancelBeforeStartup()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: ou=People,o=test",
+         "objectClass: top",
+         "objectClass: organizationalUnit",
+         "ou: People");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+                          null, entry.getDN(), entry.getObjectClasses(),
+                          entry.getUserAttributes(),
+                          entry.getOperationalAttributes());
+
+    CancelRequest cancelRequest = new CancelRequest(false,
+                                                    "testCancelBeforeStartup");
+    addOperation.setCancelRequest(cancelRequest);
+    addOperation.run();
+    assertEquals(addOperation.getResultCode(), ResultCode.CANCELED);
+  }
+
+
+
+  /**
+   * Tests an add operation in which the server cannot obtain a lock on the
+   * target entry because there is already a read lock held on it.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(groups = { "slow" })
+  public void testCannotLockEntry()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Lock entryLock = LockManager.lockRead(DN.decode("ou=People,o=test"));
+
+    try
+    {
+      Entry entry = TestCaseUtils.makeEntry(
+           "dn: ou=People,o=test",
+           "objectClass: top",
+           "objectClass: organizationalUnit",
+           "ou: People");
+
+      InternalClientConnection conn =
+           InternalClientConnection.getRootConnection();
+
+      AddOperation addOperation =
+           conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                           entry.getUserAttributes(),
+                           entry.getOperationalAttributes());
+      assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
+    }
+    finally
+    {
+      LockManager.unlock(DN.decode("ou=People,o=test"), entryLock);
+    }
+  }
+
+
+
+  /**
+   * Tests an add operation that should be disconnected in a pre-parse plugin.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDisconnectInPreParseAdd()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    ASN1Reader r = new ASN1Reader(s);
+    ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(5000);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
+                                   3, new ASN1OctetString("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeElement(message.encode());
+
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse =
+         message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), 0);
+
+
+    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("top"));
+    values.add(new ASN1OctetString("organizationalUnit"));
+    attrs.add(new LDAPAttribute("objectClass", values));
+
+    values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("People"));
+    attrs.add(new LDAPAttribute("ou", values));
+
+    AddRequestProtocolOp addRequest =
+         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+                                  attrs);
+    message = new LDAPMessage(2, addRequest,
+         DisconnectClientPlugin.createDisconnectLDAPControlList("PreParse"));
+    w.writeElement(message.encode());
+
+    ASN1Element element = r.readElement();
+    if (element != null)
+    {
+      // If we got an element back, then it must be a notice of disconnect
+      // unsolicited notification.
+      message = LDAPMessage.decode(element.decodeAsSequence());
+      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+    }
+
+    try
+    {
+      s.close();
+    } catch (Exception e) {}
+  }
+
+
+
+  /**
+   * Tests an add operation that should be disconnected in a pre-operation
+   * plugin.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDisconnectInPreOperationAdd()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    ASN1Reader r = new ASN1Reader(s);
+    ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(5000);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
+                                   3, new ASN1OctetString("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeElement(message.encode());
+
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse =
+         message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), 0);
+
+
+    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("top"));
+    values.add(new ASN1OctetString("organizationalUnit"));
+    attrs.add(new LDAPAttribute("objectClass", values));
+
+    values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("People"));
+    attrs.add(new LDAPAttribute("ou", values));
+
+    AddRequestProtocolOp addRequest =
+         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+                                  attrs);
+    message = new LDAPMessage(2, addRequest,
+         DisconnectClientPlugin.createDisconnectLDAPControlList(
+              "PreOperation"));
+    w.writeElement(message.encode());
+
+    ASN1Element element = r.readElement();
+    if (element != null)
+    {
+      // If we got an element back, then it must be a notice of disconnect
+      // unsolicited notification.
+      message = LDAPMessage.decode(element.decodeAsSequence());
+      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+    }
+
+    try
+    {
+      s.close();
+    } catch (Exception e) {}
+  }
+
+
+
+  /**
+   * Tests an add operation that should be disconnected in a post-operation
+   * plugin.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDisconnectInPostOperationAdd()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    ASN1Reader r = new ASN1Reader(s);
+    ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(5000);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
+                                   3, new ASN1OctetString("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeElement(message.encode());
+
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse =
+         message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), 0);
+
+
+    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("top"));
+    values.add(new ASN1OctetString("organizationalUnit"));
+    attrs.add(new LDAPAttribute("objectClass", values));
+
+    values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("People"));
+    attrs.add(new LDAPAttribute("ou", values));
+
+    AddRequestProtocolOp addRequest =
+         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+                                  attrs);
+    message = new LDAPMessage(2, addRequest,
+         DisconnectClientPlugin.createDisconnectLDAPControlList(
+              "PostOperation"));
+    w.writeElement(message.encode());
+
+    ASN1Element element = r.readElement();
+    if (element != null)
+    {
+      // If we got an element back, then it must be a notice of disconnect
+      // unsolicited notification.
+      message = LDAPMessage.decode(element.decodeAsSequence());
+      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+    }
+
+    try
+    {
+      s.close();
+    } catch (Exception e) {}
+  }
+
+
+
+  /**
+   * Tests an add operation that should be disconnected in a post-response
+   * plugin.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDisconnectInPostResponseAdd()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    ASN1Reader r = new ASN1Reader(s);
+    ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(5000);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
+                                   3, new ASN1OctetString("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeElement(message.encode());
+
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse =
+         message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), 0);
+
+
+    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("top"));
+    values.add(new ASN1OctetString("organizationalUnit"));
+    attrs.add(new LDAPAttribute("objectClass", values));
+
+    values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("People"));
+    attrs.add(new LDAPAttribute("ou", values));
+
+    AddRequestProtocolOp addRequest =
+         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+                                  attrs);
+    message = new LDAPMessage(2, addRequest,
+         DisconnectClientPlugin.createDisconnectLDAPControlList(
+              "PostResponse"));
+    w.writeElement(message.encode());
+
+responseLoop:
+    while (true)
+    {
+      ASN1Element element = r.readElement();
+      if (element == null)
+      {
+        // The connection has been closed.
+        break responseLoop;
+      }
+
+      message = LDAPMessage.decode(element.decodeAsSequence());
+      switch (message.getProtocolOpType())
+      {
+        case OP_TYPE_ADD_RESPONSE:
+          // This was expected.  The disconnect didn't happen until after the
+          // response was sent.
+          break;
+        case OP_TYPE_EXTENDED_RESPONSE:
+          // The server is notifying us that it will be closing the connection.
+          break responseLoop;
+        default:
+          // This is a problem.  It's an unexpected response.
+          try
+          {
+            s.close();
+          } catch (Exception e) {}
+
+          throw new Exception("Unexpected response message " + message +
+                              " encountered in " +
+                              "testDisconnectInPostResponseAdd");
+      }
+    }
+
+    try
+    {
+      s.close();
+    } catch (Exception e) {}
   }
 }
 
