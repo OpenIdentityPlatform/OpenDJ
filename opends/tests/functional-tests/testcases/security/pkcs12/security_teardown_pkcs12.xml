@@ -35,10 +35,10 @@
       <sequence>
 
         <!--- Test Case : Delete Branch through SSL port -->
-        <testcase name="'DeleteBranchThroughSSLPort'">
+        <testcase name="'Security:PKCS12:DeleteBranchThroughSSLPort'">
           <sequence>
             <message>
-               'Deleting Branch Through SSL Port'
+               'Security: PKCS12: Deleting Branch Through SSL Port'
             </message>
 
             <call function="'DeleteEntry'">
@@ -58,10 +58,10 @@
         </testcase>
 
         <!--- Test Case : Unconfigure PKCS12 Keystore -->
-        <testcase name="'UnconfigPKCS12Keystore'">
+        <testcase name="'Security:PKCS12:UnconfigPKCS12Keystore'">
           <sequence>
             <message>
-               'Unonfiguring PKCS12 Keystore'
+               'Security: PKCS12: Unconfiguring PKCS12 Keystore'
             </message>
 
             <call function="'unconfigureSSL'">
@@ -80,10 +80,10 @@
         </testcase>
 
         <!--- Test Case : Remove PKCS12 Keystore -->
-        <testcase name="'RemovePKCS12Keystore'">
+        <testcase name="'Security:PKCS12:RemovePKCS12Keystore'">
           <sequence>
             <message>
-               'Removing PKCS12 Keystore'
+               'Security: PKCS12: Removing PKCS12 Keystore'
             </message>
 
             <call function="'deletefile'">
@@ -99,10 +99,10 @@
         </testcase>
       
         <!--- Test Case : Search With Unsecure Port -->
-        <testcase name="'Search With Unsecure Port'">
+        <testcase name="'Security:PKCS12:Search With Unsecure Port'">
           <sequence>
             <message>
-               'Searching with Unsecure Connection'
+               'Security: PKCS12: Searching with Unsecure Connection'
             </message>
 
             <call function="'SearchObject'">

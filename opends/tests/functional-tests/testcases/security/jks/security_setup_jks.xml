@@ -35,10 +35,10 @@
       <sequence>
 
         <!--- Test Case : Generate Server Cert -->
-        <testcase name="'GenerateServerJKSCert'">
+        <testcase name="'Security:JKS:GenerateServerJKSCert'">
           <sequence>
             <message>
-               'Generating Server Certicate'
+               'Security: JKS: Generating Server Certicate'
             </message>
 
             <call function="'genServerJKSCert'">
@@ -52,10 +52,10 @@
         </testcase>
 
         <!--- Test Case : Self-Sign Server Cert -->
-        <testcase name="'SelfSignServerJKSCert'">
+        <testcase name="'Security:JKS:SelfSignServerJKSCert'">
           <sequence>
             <message>
-               'Self-Signing Server Certicate'
+               'Security: JKS: Self-Signing Server Certicate'
             </message>
 
             <call function="'selfSignServerJKSCert'">
@@ -69,10 +69,10 @@
         </testcase>
 
         <!--- Test Case : Configure JKS Keystore -->
-        <testcase name="'ConfigJKSKeystore'">
+        <testcase name="'Security:JKS:ConfigJKSKeystore'">
           <sequence>
             <message>
-               'Configuring JKS Keystore'
+               'Security: JKS: Configuring JKS Keystore'
             </message>
 
             <call function="'configureSSL'">
@@ -91,10 +91,10 @@
         </testcase>
 
         <!--- Test Case : Initial Search With SSL -->
-        <testcase name="'Initial Search With SSL'">
+        <testcase name="'Security:JKS:Initial Search With SSL'">
           <sequence>
             <message>
-               'Searching with SSL Connection'
+               'Security: JKS: Searching with SSL Connection'
             </message>
 
             <call function="'SearchObject'">

@@ -59,10 +59,10 @@
             #@TestPostamble
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'AddEntriesThroughSSLPort'">
+        <testcase name="'Security:JKS:AddEntriesThroughSSLPort'">
           <sequence>
             <message>
-               'Adding Entries Through SSL Port'
+               'Security: JKS: Adding Entries Through SSL Port'
             </message>
 
             <call function="'addEntry'">
@@ -96,10 +96,10 @@
             #@TestPostamble
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'ModifyEntryThroughSSLPort'">
+        <testcase name="'Security:JKS:ModifyEntryThroughSSLPort'">
           <sequence>
             <message>
-               'Modifying Entry Through SSL Port'
+               'Security: JKS: Modifying Entry Through SSL Port'
             </message>
 
             <call function="'modifyEntry'">
@@ -133,10 +133,10 @@
             #@TestPostamble
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'AddAttrToEntryThroughSSLPort'">
+        <testcase name="'Security:JKS:AddAttrToEntryThroughSSLPort'">
           <sequence>
             <message>
-               'Adding Attr to Entry Through SSL Port'
+               'Security: JKS: Adding Attr to Entry Through SSL Port'
             </message>
 
             <call function="'modifyEntry'">
@@ -170,10 +170,10 @@
             #@TestPostamble
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'ModAttrInEntryThroughSSLPort'">
+        <testcase name="'Security:JKS:ModAttrInEntryThroughSSLPort'">
           <sequence>
             <message>
-               'Modifying Attr in Entry Through SSL Port'
+               'Security: JKS: Modifying Attr in Entry Through SSL Port'
             </message>
 
             <call function="'modifyEntry'">
@@ -207,10 +207,10 @@
             #@TestPostamble
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'DeleteEntryThroughSSLPort'">
+        <testcase name="'Security:JKS:DeleteEntryThroughSSLPort'">
           <sequence>
             <message>
-               'Deleting Entry Through SSL Port'
+               'Security: JKS: Deleting Entry Through SSL Port'
             </message>
 
             <call function="'modifyEntry'">

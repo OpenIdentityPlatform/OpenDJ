@@ -35,10 +35,10 @@
       <sequence>
 
         <!--- Test Case : Delete Branch through StartTLS port -->
-        <testcase name="'DeleteBranchThroughStartTLSPort'">
+        <testcase name="'Security:TLS:DeleteBranchThroughStartTLSPort'">
           <sequence>
             <message>
-               'Deleting Branch Through StartTLS Port'
+               'Security: TLS: Deleting Branch Through StartTLS Port'
             </message>
 
             <call function="'DeleteEntry'">
@@ -58,10 +58,10 @@
         </testcase>
 
          <!--- Test Case : Unconfigure JKS Keystore -->
-        <testcase name="'UnconfigJKSKeystoreStartTLS'">
+        <testcase name="'Security:TLS:UnconfigJKSKeystoreStartTLS'">
           <sequence>
             <message>
-               'Unconfiguring JKS Keystore'
+               'Security: TLS: Unconfiguring JKS Keystore'
             </message>
 
             <call function="'unconfigureTLS'">
@@ -80,10 +80,10 @@
         </testcase>
 
         <!--- Test Case : Remove JKS Keystore -->
-        <testcase name="'RemoveJKSKeystore'">
+        <testcase name="'Security:TLS:RemoveJKSKeystore'">
           <sequence>
             <message>
-               'Removing JKS Keystore'
+               'Security: TLS: Removing JKS Keystore'
             </message>
 
             <call function="'deletefile'">
@@ -99,10 +99,10 @@
         </testcase>
       
         <!--- Test Case : Search With Unsecure Port -->
-        <testcase name="'Search With Unsecure Port'">
+        <testcase name="'Security:TLS:Search With Unsecure Port'">
           <sequence>
             <message>
-               'Searching with Unsecure Connection'
+               'Security: TLS: Searching with Unsecure Connection'
             </message>
 
             <call function="'SearchObject'">
