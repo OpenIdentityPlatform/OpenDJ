@@ -25,62 +25,240 @@
  !      Portions Copyright 2006 Sun Microsystems, Inc.
  ! -->
 
-<project name="Directory Server" basedir="." default="all">
+<project name="opends-tests-integration" basedir="." default="all">
   <description>
     This is the build script for the functional tests for the 
     OpenDS Directory Server.  See the
     BUILDING file in this directory for build instructions.
   </description>
+  
+  <!-- General build-wide properties                                        -->
+  <property name="opends.dir" location="../.."                               />
+  <property name="tests.src.dir"       location="src/server"                 />
+  <property name="tests.build.dir"     
+            location="${opends.dir}/build/integration-tests"                 />
+  <property name="lib.dir"          location="${opends.dir}/lib"             />
+  <property name="ext.dir"          location="${opends.dir}/ext"             />
+  <property name="testng.dir"       location="${ext.dir}/testng"             />
+  <property name="testng.lib.dir"   location="${testng.dir}/lib"             />
 
-  <!-- General server-wide properties                                     -->
-  <property name="opends.dir" location="../.."                          />
-  <property name="src.dir"       location="src/server"                  />
-  <property name="built.dir"     
-            location="${opends.dir}/build/integration-tests"            />
-  <property name="ds.classes"    location="${opends.dir}/build/classes" />
-  <property name="lib.dir"       location="${opends.dir}/lib"           />
-  <property name="ext.dir"       location="${opends.dir}/ext"           />
+  <property name="opends.build.dir"   location="${opends.dir}/build"         />
+  <property name="opends.package.dir" location="${opends.build.dir}/package" />
+  <property name="opends.classes"     location="${opends.build.dir}/classes" />
 
+  <!-- default configuration values for opends -->
+  <property name="install.dir.default" value="${basedir}/install"            />
+  <property name="product.version"     value="0.1"                           />
+  <property name="product.name"        value="OpenDS"                        />
 
+  <!-- generate the timestamp we'll use to tag/store the test results       -->
+  <tstamp>
+    <format property="run.time" pattern="yyyy.mm.dd-HH.mm.ss"                />
+  </tstamp>
+  
+  <!-- assertion to determine the operating system -->
+  <condition property="isWindows">
+    <os family="windows"/>
+  </condition>
+  <condition property="isUnix">
+    <not>
+      <os family="windows"/>
+    </not>
+  </condition>
+
+  <!-- edit or create this file if you need custom port or install path
+       it can have any of the following properties
+       port.ldap
+       install.dir
+  -->
+  <property file="integration-tests.properties"                              />
+  
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="clean,functests"
+       depends="uninstall,clean,tests,install,configure,start,run-tests,stop"
        description="Build using all defined targets." />
 
   <!-- Remove all dynamically-generated build files. -->
   <target name="clean"
        description="Clean up any files generated during the build process">
-
-    <delete dir="${built.dir}"           />
+    <delete dir="${tests.build.dir}"           />
   </target>
+  
+  <!-- Compile the functional tests source files. -->
+  <target name="tests" 
+       description="Compile the functional tests source files.">
 
+    <mkdir dir="${tests.build.dir}" />
 
-  <!-- Compile the Directory Server source files. -->
-  <target name="functests" 
-       description="Compile the functional test source files.">
-
-    <mkdir dir="${built.dir}" />
-
-    <javac srcdir="${src.dir}" destdir="${built.dir}" optimize="true"
+    <javac srcdir="${tests.src.dir}" destdir="${tests.build.dir}" optimize="true"
          debug="on" debuglevel="lines,source" source="1.5" target="1.5"
          deprecation="true" fork="true" >
       <compilerarg value="-Xlint:all" />
 
-    
       <classpath>
+        <!-- libraries required to build -->
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
         </fileset>
-
-        <fileset dir="${ext.dir}">
+        <!-- include the testng library to build the test cases -->
+        <fileset dir="${testng.lib.dir}">
           <include name="*.jar" />
         </fileset>
-
-        <pathelement location="${ds.classes}" />
+        <pathelement location="${opends.classes}" />
       </classpath>
     </javac>
   </target>
+  
+  <target name="run-tests" 
+          description="run the integration test suite" 
+          depends="set-default-install-props">
+    <taskdef resource="testngtasks">
+      <classpath>
+        <fileset dir="${testng.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+    
+    <property name="run.dir" value="${basedir}/run/${run.time}" />
+    <mkdir dir="${run.dir}"         />
+    <mkdir dir="${run.dir}/logs"    />
+    <mkdir dir="${run.dir}/backup"  />
+    <mkdir dir="${run.dir}/report"  />
 
+    <echo message="generating tests xml file ..."/>
+    <copy file="testng.xml.stubs"     
+          tofile="testng.xml"         
+          overwrite="true"           >
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
+    <fileset id="testng.xml" dir="${basedir}" >
+      <include name="testng.xml"  />
+    </fileset>
+    <testng outputdir="${run.dir}/report" 
+            haltonfailure="true"
+            enableAssert="false"
+            listener="org.opends.server.OpenDSTestListener"
+            dumpCommand="true">
+      <classpath>
+        <!-- where to get the testng library -->
+        <fileset dir="${testng.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <!-- where to get the test classes -->
+        <pathelement location="${tests.build.dir}" />
+        <!-- where to get the server classes -->
+        <pathelement  location="${opends.classes}"/>
+      </classpath>
+      
+      <!-- where to get the test suite definition -->
+      <xmlfileset dir="${basedir}" includes="testng.xml"/>
+    </testng>
+  </target>
+  
+  <target name="set-default-install-props"
+          description="defines the default values if no custom values were provided">
+    <property name="install.dir" value="${install.dir.default}"              />
+    <property name="port.ldap"   value="1389"                                />
+    <property name="port.ssl"    value="1636"                                />
+    <property name="host.name"   value="localhost"                           />
+    <property name="bindDN"      value="cn=Directory Manager"                />
+    <property name="password"    value="password"                            />
+    <property name="full.install.dir" 
+            value="${install.dir}/${product.name}-${product.version}"        />
+  </target>
+  
+  <target name="install" 
+          description="deploy the server bits"  
+          depends="set-default-install-props"  >
+    <property name="config.file"   
+              location="${full.install.dir}/config/config.ldif"/>
+    <!-- Set the defaults
+         Does not override the custom values provided in the 
+         integration-tests.properties file if any                           -->
+    <mkdir dir="${install.dir}"/>
+    <unzip dest="${install.dir}">
+      <fileset dir="${opends.package.dir}">
+        <include name="*.zip"/>
+      </fileset>
+    </unzip>
+  </target>
+  
+  <target name="configure"
+          description="configures opends to listen on the right port number"
+          depends="set-default-install-props"
+          >
+    <java classname="org.opends.server.tools.ConfigureDS">
+      <!-- building the classpath to run the configurator -->
+      <classpath>
+        <pathelement path="${full.install.dir}/classes"/>
+        <fileset dir="${full.install.dir}">
+          <include name="lib/*.jar"/>
+        </fileset>
+      </classpath>
+      
+      <!-- provide the arguments here -->
+      <arg value="--configClass" />
+      <arg value="org.opends.server.config.ConfigFileHandler"  />
+      <arg value="--configFile" />
+      <arg value="${full.install.dir}/config/config.ldif"       />
+      <arg line="-p ${port.ldap}" />
+    </java>
+  </target>
+  
+  <!-- Windows specific start / stop / configure commands -->
+  <target name="start-windows" if="isWindows">
+    <echo message="Starting in the background ..."/>
+    <exec 
+      executable="${full.install.dir}\bin\start-ds.bat"
+      spawn="true"                                                           />
+  </target>
+  <target name="stop-windows"  if="isWindows" >
+    <echo message="Stopping ..." />
+    <exec 
+      executable="${full.install.dir}\bin\stop-ds.bat">
+      <arg line="-h ${host.name}"/>
+      <arg line="-p ${port.ldap}"/>
+      <arg line="-w ${password}"/>
+      <arg value="-D"/>
+      <arg value="${bindDN}"/>
+    </exec>
+  </target>
 
+  <!-- Unix specific start / stop / configure commands -->
+  <target name="start-unix" if="isUnix" >
+    <echo message="Starting in the background ..."/>
+    <exec 
+      executable="${full.install.dir}/bin/start-ds.sh"
+      spawn="true"                                                           />
+  </target>
+  <target name="stop-unix" if="isUnix" >
+    <echo message="Stopping ..." />
+    <exec 
+      executable="${full.install.dir}/bin/stop-ds.sh" >
+      <arg line="-h ${host.name}"/>
+      <arg line="-p ${port.ldap}"/>
+      <arg line="-w ${password}"/>
+      <arg value="-D"/>
+      <arg value="${bindDN}"/>
+    </exec>
+  </target>
+  
+  <!-- platform independent start / stop targets -->
+  <target name="start" 
+          description="stop the server" 
+          depends="set-default-install-props,start-windows,start-unix" />
+  <target name="stop"
+          description="stop the server"
+          depends="set-default-install-props,stop-windows,stop-unix" />
+
+  <target name="uninstall"
+          description="Uninstalls the server"
+          depends="set-default-install-props" >
+    <delete dir="${install.dir}" />
+  </target>
+  
 </project>
 
