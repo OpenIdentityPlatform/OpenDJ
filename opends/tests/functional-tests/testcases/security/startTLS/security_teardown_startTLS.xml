@@ -57,86 +57,19 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Disable StartTLS -->
-        <testcase name="'DisableStartTLS'">
+         <!--- Test Case : Unconfigure JKS Keystore -->
+        <testcase name="'UnconfigJKSKeystoreStartTLS'">
           <sequence>
             <message>
-               'Disabling StartTLS'
+               'Unconfiguring JKS Keystore'
             </message>
 
-            <call function="'modifyEntry'">
+            <call function="'unconfigureTLS'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/teardown/disable_startTLS.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-
-        <!--- Test Case : Delete StartTLS Trust Manager Provider -->
-        <testcase name="'DeleteStartTLSTrustMgrProvider'">
-          <sequence>
-            <message>
-               'Deleting StartTLS Trust Manager Provider'
-            </message>
-
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/teardown/deleteTrustMgr.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Add Default Trust Manager Provider -->
-        <testcase name="'AddDefaultTrustMgrProvider'">
-          <sequence>
-            <message>
-               'Adding Default Trust Manager Provider'
-            </message>
-
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/startTLS/teardown/default_trust_mgr_provider.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Disable Key Manager Provider -->
-        <testcase name="'DisableKeyMgrProvider'">
-          <sequence>
-            <message>
-               'Disabling Key Manager Provider'
-            </message>
-
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/teardown/disable_key_mgr_provider.ldif' % LDIF_DATA_DIR }
+                'keystoreType'   : '%s' % 'startTLS' }
             </call>
 
             <call function="'checktestRC'">

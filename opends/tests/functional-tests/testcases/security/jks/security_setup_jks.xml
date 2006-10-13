@@ -68,85 +68,19 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Enable Key Manager Provider -->
-        <testcase name="'EnableKeyMgrProvider'">
+        <!--- Test Case : Configure JKS Keystore -->
+        <testcase name="'ConfigJKSKeystore'">
           <sequence>
             <message>
-               'Enabling Key Manager Provider'
+               'Configuring JKS Keystore'
             </message>
 
-            <call function="'addEntry'">
+            <call function="'configureSSL'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/jks/setup/enable_key_mgr_provider.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Delete Default Trust Manager Provider -->
-        <testcase name="'DeleteTrustMgrProvider'">
-          <sequence>
-            <message>
-               'Deleting Default Trust Manager Provider'
-            </message>
-
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/jks/setup/deleteTrustMgr.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Add Trust Manager Provider -->
-        <testcase name="'AddTrustMgrProvider'">
-          <sequence>
-            <message>
-               'Adding Trust Manager Provider'
-            </message>
-
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/jks/setup/enable_trust_mgr_provider.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Add LDAPS Connection Handler -->
-        <testcase name="'AddLDAPSConnHandler'">
-          <sequence>
-            <message>
-               'Adding LDAPS Connection Handler'
-            </message>
-
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/jks/setup/enable_ldaps_conn_handler.ldif' % LDIF_DATA_DIR }
+                'keystoreType'   : '%s' % 'jks' }
             </call>
 
             <call function="'checktestRC'">
