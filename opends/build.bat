@@ -41,7 +41,7 @@ goto end
 :runAnt
 set CLASSPATH=%DIR_HOME%\ext\junit.jar
 
-%DIR_HOME%\ext\ant\bin\ant %*
+"%DIR_HOME%\ext\ant\bin\ant" %*
 
 
 :end
