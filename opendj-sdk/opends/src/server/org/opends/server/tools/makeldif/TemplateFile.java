@@ -947,7 +947,7 @@ public class TemplateFile
         String[] templateLines = new String[lineList.size()];
         lineList.toArray(templateLines);
 
-        Template t = parseTemplateDefinition(templateLines, lineNumber,
+        Template t = parseTemplateDefinition(templateLines, startLineNumber,
                                              templateFileIncludeTags,
                                              templateFileConstants, warnings);
         String lowerName = toLowerCase(t.getName());
