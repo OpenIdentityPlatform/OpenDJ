@@ -49,6 +49,9 @@
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/ldap.xml' % (TESTS_FUNCTIONS_DIR)"/>
 
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/security.xml' % (TESTS_FUNCTIONS_DIR)"/>
+
       <script>
           STAXLogMessage = 1
           SRCFILE = '%s/%s' % (ZIPPATH,ZIPNAME)

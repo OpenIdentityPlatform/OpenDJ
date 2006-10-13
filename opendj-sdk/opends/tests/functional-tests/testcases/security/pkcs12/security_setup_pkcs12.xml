@@ -68,85 +68,19 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Enable Key Manager Provider -->
-        <testcase name="'EnableKeyMgrProvider'">
+        <!--- Test Case : Configure PKCS12 Keystore -->
+        <testcase name="'ConfigPKCS12Keystore'">
           <sequence>
             <message>
-               'Enabling Key Manager Provider'
+               'Configuring PKCS12 Keystore'
             </message>
 
-            <call function="'addEntry'">
+            <call function="'configureSSL'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pkcs12/setup/enable_key_mgr_provider.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Delete Default Trust Manager Provider -->
-        <testcase name="'DeleteTrustMgrProvider'">
-          <sequence>
-            <message>
-               'Deleting Default Trust Manager Provider'
-            </message>
-
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pkcs12/setup/deleteTrustMgr.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Add Trust Manager Provider -->
-        <testcase name="'AddTrustMgrProvider'">
-          <sequence>
-            <message>
-               'Adding Trust Manager Provider'
-            </message>
-
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pkcs12/setup/enable_trust_mgr_provider.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Add LDAPS Connection Handler -->
-        <testcase name="'AddLDAPSConnHandler'">
-          <sequence>
-            <message>
-               'Adding LDAPS Connection Handler'
-            </message>
-
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pkcs12/setup/enable_ldaps_conn_handler.ldif' % LDIF_DATA_DIR }
+                'keystoreType'   : '%s' % 'pkcs12' }
             </call>
 
             <call function="'checktestRC'">

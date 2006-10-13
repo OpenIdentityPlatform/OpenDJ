@@ -68,85 +68,19 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Enable Key Manager Provider -->
-        <testcase name="'EnableKeyMgrProvider'">
+        <!--- Test Case : Configure JKS Keystore -->
+        <testcase name="'ConfigJKSKeystoreStartTLS'">
           <sequence>
             <message>
-               'Enabling Key Manager Provider'
+               'Configuring JKS Keystore'
             </message>
 
-            <call function="'addEntry'">
+            <call function="'configureTLS'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/startTLS/setup/enable_key_mgr_provider.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Delete Default Trust Manager Provider -->
-        <testcase name="'DeleteTrustMgrProvider'">
-          <sequence>
-            <message>
-               'Deleting Default Trust Manager Provider'
-            </message>
-
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/setup/deleteTrustMgr.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Add Trust Manager Provider -->
-        <testcase name="'AddTrustMgrProvider'">
-          <sequence>
-            <message>
-               'Adding Trust Manager Provider'
-            </message>
-
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/startTLS/setup/enable_trust_mgr_provider.ldif' % LDIF_DATA_DIR }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Enable StartTLS -->
-        <testcase name="'EnableStartTLS'">
-          <sequence>
-            <message>
-               'Enabling StartTLS'
-            </message>
-
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/startTLS/setup/enable_startTLS.ldif' % LDIF_DATA_DIR }
+                'keystoreType'   : '%s' % 'startTLS' }
             </call>
 
             <call function="'checktestRC'">
