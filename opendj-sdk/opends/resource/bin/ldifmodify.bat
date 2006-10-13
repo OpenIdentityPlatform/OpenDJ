@@ -45,9 +45,9 @@ goto end
 
 
 :setClassPath
-FOR %%x in (%DIR_HOME%\lib\*.jar) DO call "%DIR_HOME%\bin\setcp.bat" %%x
+FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
 
-%JAVA_BIN% %JAVA_ARGS% -classpath "%CLASSPATH%" org.opends.server.tools.LDIFModify -c %DIR_HOME%\config\config.ldif %*
+%JAVA_BIN% %JAVA_ARGS% -classpath "%CLASSPATH%" org.opends.server.tools.LDIFModify -c "%DIR_HOME%\config\config.ldif" %*
 
 
 :end
