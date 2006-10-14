@@ -36,8 +36,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.types.DN;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;

@@ -83,7 +83,7 @@ public class BackupTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Backup Test 1");
     String datafile = backupDir + "/backup1";
-    String backup_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--backupDirectory", datafile};
+    String backup_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--backupDirectory", datafile};
 
     ds_output.redirectOutput(logDir, "BackupTest1.txt");
     int retCode = BackUpDB.mainBackUpDB(backup_args);
@@ -137,7 +137,7 @@ public class BackupTests extends BackendTests
     ds_output.resetOutput();
 
     datafile = backupDir + "/backup1";
-    String backup_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--backupDirectory", datafile, "--incremental"};
+    String backup_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--backupDirectory", datafile, "--incremental"};
 
     ds_output.redirectOutput(logDir, "BackupTest2.txt");
     int retCode = BackUpDB.mainBackUpDB(backup_args);
@@ -181,7 +181,7 @@ public class BackupTests extends BackendTests
     GregorianCalendar cal = new GregorianCalendar();
     backup_id = Integer.toString(cal.get(Calendar.MILLISECOND));
     String datafile = backupDir + "/backup2";
-    String backup_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--backupDirectory", datafile, "--backupID", backup_id};
+    String backup_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--backupDirectory", datafile, "--backupID", backup_id};
     
     ds_output.redirectOutput(logDir, "BackupTest3.txt");
     int retCode = BackUpDB.mainBackUpDB(backup_args);
@@ -238,7 +238,7 @@ public class BackupTests extends BackendTests
     ds_output.resetOutput();
 
     datafile = backupDir + "/backup2";
-    String backup_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--backupDirectory", datafile, "--incremental", "--incrementalBaseID", backup_id};
+    String backup_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--backupDirectory", datafile, "--incremental", "--incrementalBaseID", backup_id};
 
     ds_output.redirectOutput(logDir, "BackupTest4.txt");
     int retCode = BackUpDB.mainBackUpDB(backup_args);
@@ -280,7 +280,7 @@ public class BackupTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Backup Test 5");
     String datafile = backupDir + "/backup1";
-    String backup_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--backupDirectory", datafile, "--compress"};
+    String backup_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--backupDirectory", datafile, "--compress"};
  
     ds_output.redirectOutput(logDir, "BackupTest5.txt");
     int retCode = BackUpDB.mainBackUpDB(backup_args);

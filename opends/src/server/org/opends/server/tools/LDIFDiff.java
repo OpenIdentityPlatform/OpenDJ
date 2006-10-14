@@ -35,8 +35,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;

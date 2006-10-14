@@ -77,13 +77,13 @@ then
   shift
   ${JAVA_BIN} ${JAVA_ARGS} \
 	org.opends.server.core.DirectoryServer \
-	--configClass org.opends.server.config.ConfigFileHandler \
+	--configClass org.opends.server.extensions.ConfigFileHandler \
 	--configFile ${INSTANCE_ROOT}/config/config.ldif \
         "$@" 2>&1 | tee -i -a ${INSTANCE_ROOT}/logs/server.out
 else
   nohup ${JAVA_BIN} ${JAVA_ARGS} \
 	org.opends.server.core.DirectoryServer \
-	--configClass org.opends.server.config.ConfigFileHandler \
+	--configClass org.opends.server.extensions.ConfigFileHandler \
 	--configFile ${INSTANCE_ROOT}/config/config.ldif \
         "$@" >> ${INSTANCE_ROOT}/logs/server.out 2>&1 &
 fi

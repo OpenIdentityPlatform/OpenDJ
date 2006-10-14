@@ -49,7 +49,7 @@ FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
 
 cd %DIR_HOME%
 
-%JAVA_BIN% %JAVA_ARGS% -classpath "%CLASSPATH%" org.opends.server.tools.EncodePassword --configClass org.opends.server.config.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+%JAVA_BIN% %JAVA_ARGS% -classpath "%CLASSPATH%" org.opends.server.tools.EncodePassword --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
 
 
 :end

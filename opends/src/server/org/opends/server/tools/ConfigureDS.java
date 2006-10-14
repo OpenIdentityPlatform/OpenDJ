@@ -32,12 +32,12 @@ import java.util.LinkedList;
 
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.IntegerConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DirectoryException;

@@ -34,10 +34,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordStorageSchemeConfigManager;
+import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.types.ByteString;

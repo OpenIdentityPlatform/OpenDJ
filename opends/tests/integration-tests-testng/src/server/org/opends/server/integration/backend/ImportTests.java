@@ -81,7 +81,7 @@ public class ImportTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Import Test 1");
     String datafile = integration_test_home + "/backend/data/import.ldif.01";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile};
 
     stopOpenDS(dsee_home, port);
 
@@ -220,7 +220,7 @@ public class ImportTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Import Test 2");
     String datafile = integration_test_home + "/backend/data/import.ldif.02";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--append"};
     stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest2.txt");
@@ -359,7 +359,7 @@ public class ImportTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Import Test 3");
     String datafile = integration_test_home + "/backend/data/import.ldif.03";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeAttribute", "sn", "--includeAttribute", "cn", "--includeAttribute", "ou", "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeAttribute", "sn", "--includeAttribute", "cn", "--includeAttribute", "ou", "--append"};
 
     stopOpenDS(dsee_home, port);
 
@@ -499,7 +499,7 @@ public class ImportTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Import Test 4");
     String datafile = integration_test_home + "/backend/data/import.ldif.04";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeAttribute", "telephonenumber", "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeAttribute", "telephonenumber", "--append"};
 
     stopOpenDS(dsee_home, port);
 
@@ -639,7 +639,7 @@ public class ImportTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Import Test 5");
     String datafile = integration_test_home + "/backend/data/import.ldif.05";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeAttribute", "telephonenumber", "--excludeAttribute", "mail", "--excludeAttribute", "roomnumber", "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeAttribute", "telephonenumber", "--excludeAttribute", "mail", "--excludeAttribute", "roomnumber", "--append"};
 
     stopOpenDS(dsee_home, port);
 
@@ -779,7 +779,7 @@ public class ImportTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Import Test 6");
     String datafile = integration_test_home + "/backend/data/import.ldif.06";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeFilter", "(&(uid=prigden6)(telephonenumber=*))", "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeFilter", "(&(uid=prigden6)(telephonenumber=*))", "--append"};
 
     stopOpenDS(dsee_home, port);
 
@@ -920,7 +920,7 @@ public class ImportTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Import Test 7");
     String datafile = integration_test_home + "/backend/data/import.ldif.07";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeFilter", "(&(uid=prigden7)(telephonenumber=*))", "--includeFilter", "(&(uid=prigden7)(l=Sunnyvale))", "--includeFilter", "(&(uid=brigden7)(roomnumber=*))", "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeFilter", "(&(uid=prigden7)(telephonenumber=*))", "--includeFilter", "(&(uid=prigden7)(l=Sunnyvale))", "--includeFilter", "(&(uid=brigden7)(roomnumber=*))", "--append"};
 
     stopOpenDS(dsee_home, port);
 
@@ -1061,7 +1061,7 @@ public class ImportTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Import Test 8");
     String datafile = integration_test_home + "/backend/data/import.ldif.08";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeFilter", "(&(uid=prigden8)(telephonenumber=*))", "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeFilter", "(&(uid=prigden8)(telephonenumber=*))", "--append"};
 
     stopOpenDS(dsee_home, port);
 
@@ -1202,7 +1202,7 @@ public class ImportTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Import Test 9");
     String datafile = integration_test_home + "/backend/data/import.ldif.09";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeFilter", "(&(uid=prigden9)(telephonenumber=*))", "--excludeFilter", "(&(uid=prigden9)(l=Sunnyvale))", "--excludeFilter", "(&(uid=brigden9)(roomnumber=*))", "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeFilter", "(&(uid=prigden9)(telephonenumber=*))", "--excludeFilter", "(&(uid=prigden9)(l=Sunnyvale))", "--excludeFilter", "(&(uid=brigden9)(roomnumber=*))", "--append"};
 
     stopOpenDS(dsee_home, port);
 
@@ -1388,7 +1388,7 @@ public class ImportTests extends BackendTests
     System.out.println("Import Test 10");
     String datafile = integration_test_home + "/backend/data/import.ldif.10";
     String branch = "o=branch test two, o=import tests, dc=example,dc=com";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeBranch", branch, "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeBranch", branch, "--append"};
 
     stopOpenDS(dsee_home, port);
 
@@ -1530,7 +1530,7 @@ public class ImportTests extends BackendTests
     System.out.println("Import Test 11");
     String datafile = integration_test_home + "/backend/data/import.ldif.11";
     String branch = "o=branch test four, o=import tests, dc=example,dc=com";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeBranch", branch, "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeBranch", branch, "--append"};
 
     stopOpenDS(dsee_home, port);
 
@@ -1673,7 +1673,7 @@ public class ImportTests extends BackendTests
     System.out.println("Import Test 12");
     String datafile = integration_test_home + "/backend/data/import.ldif.12";
     String branch = "o=branch test six, o=import tests, dc=example,dc=com";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeFilter", "(&(uid=prigden)(roomnumber=*))", "--excludeAttribute", "telephonenumber", "--includeBranch", branch, "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--excludeFilter", "(&(uid=prigden)(roomnumber=*))", "--excludeAttribute", "telephonenumber", "--includeBranch", branch, "--append"};
 
     stopOpenDS(dsee_home, port);
 
@@ -1867,7 +1867,7 @@ public class ImportTests extends BackendTests
 
     datafile = integration_test_home + "/backend/data/import.ldif.13";
     String branch = "o=branch test eight, o=import tests, dc=example,dc=com";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeFilter", "(&(uid=prigden)(roomnumber=*))", "--excludeAttribute", "telephonenumber", "--excludeBranch", branch, "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--includeFilter", "(&(uid=prigden)(roomnumber=*))", "--excludeAttribute", "telephonenumber", "--excludeBranch", branch, "--append"};
     stopOpenDS(dsee_home, port);
 
     ds_output.redirectOutput(logDir, "ImportTest13.txt");
@@ -2050,7 +2050,7 @@ public class ImportTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Import Test 14");
     String datafile = integration_test_home + "/backend/data/import.compressed.ldif";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--isCompressed", "--append"};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile, "--isCompressed", "--append"};
 
     stopOpenDS(dsee_home, port);
 
