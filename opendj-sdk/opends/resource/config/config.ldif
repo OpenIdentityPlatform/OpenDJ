@@ -219,7 +219,7 @@ dn: ds-cfg-backend-id=config,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend
 ds-cfg-backend-enabled: true
-ds-cfg-backend-class: org.opends.server.config.ConfigFileHandler
+ds-cfg-backend-class: org.opends.server.extensions.ConfigFileHandler
 ds-cfg-backend-id: config
 ds-cfg-backend-writability-mode: enabled
 ds-cfg-backend-base-dn: cn=config

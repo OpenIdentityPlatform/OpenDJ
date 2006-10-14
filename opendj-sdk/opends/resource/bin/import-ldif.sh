@@ -70,5 +70,5 @@ export CLASSPATH
 
 
 ${JAVA_BIN} ${JAVA_ARGS} org.opends.server.tools.ImportLDIF \
-     --configClass org.opends.server.config.ConfigFileHandler \
+     --configClass org.opends.server.extensions.ConfigFileHandler \
      --configFile ${INSTANCE_ROOT}/config/config.ldif "${@}"

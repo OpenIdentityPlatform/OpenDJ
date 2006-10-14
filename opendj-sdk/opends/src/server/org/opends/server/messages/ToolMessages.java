@@ -28,7 +28,7 @@ package org.opends.server.messages;
 
 
 
-import org.opends.server.config.ConfigFileHandler;
+import org.opends.server.extensions.ConfigFileHandler;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.tools.ToolConstants.*;

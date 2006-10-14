@@ -33,8 +33,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
-import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;

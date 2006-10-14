@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.server.config;
+package org.opends.server.extensions;
 
 
 
@@ -61,6 +61,9 @@ import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ConfigurableComponent;
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
+import org.opends.server.config.JMXMBean;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -114,7 +117,7 @@ public class ConfigFileHandler
    * The fully-qualified name of this class for debugging purposes.
    */
   private static final String CLASS_NAME =
-       "org.opends.server.config.ConfigFileHandler";
+       "org.opends.server.extensions.ConfigFileHandler";
 
 
 

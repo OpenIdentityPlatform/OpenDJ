@@ -201,7 +201,7 @@
       
       <!-- provide the arguments here -->
       <arg value="--configClass" />
-      <arg value="org.opends.server.config.ConfigFileHandler"  />
+      <arg value="org.opends.server.extensions.ConfigFileHandler"  />
       <arg value="--configFile" />
       <arg value="${full.install.dir}/config/config.ldif"       />
       <arg line="-p ${port.ldap}" />

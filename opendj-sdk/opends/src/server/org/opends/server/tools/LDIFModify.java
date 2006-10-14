@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.opends.server.config.ConfigFileHandler;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPResultCode;

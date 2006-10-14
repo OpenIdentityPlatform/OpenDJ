@@ -83,7 +83,7 @@ public class RestoreTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Restore Test 1");
     String datafile = integration_test_home + "/backend/data/restore";
-    String restore_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backupDirectory", datafile};
+    String restore_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backupDirectory", datafile};
 
     stopOpenDS(dsee_home, port);
 
@@ -138,7 +138,7 @@ public class RestoreTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Restore Test 2");
     String datafile = integration_test_home + "/backend/data/restore.compressed";
-    String restore_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backupDirectory", datafile};
+    String restore_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backupDirectory", datafile};
 
     stopOpenDS(dsee_home, port);
 

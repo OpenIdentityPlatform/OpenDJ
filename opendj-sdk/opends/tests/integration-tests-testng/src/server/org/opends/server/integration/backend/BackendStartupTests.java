@@ -80,7 +80,7 @@ public class BackendStartupTests extends BackendTests
     System.out.println("*********************************************");
     System.out.println("Backend Startup test 1");
     String datafile = integration_test_home + "/backend/data/backend_start.ldif";
-    String import_args[] = {"--configClass", "org.opends.server.config.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile};
+    String import_args[] = {"--configClass", "org.opends.server.extensions.ConfigFileHandler", "--configFile", dsee_home + "/config/config.ldif", "--backendID", "userRoot", "--ldifFile", datafile};
 
     stopOpenDS(dsee_home, port);
 

@@ -70,6 +70,6 @@ export CLASSPATH
 
 
 ${JAVA_BIN} ${JAVA_ARGS} org.opends.server.tools.makeldif.MakeLDIF \
-     --configClass org.opends.server.config.ConfigFileHandler \
+     --configClass org.opends.server.extensions.ConfigFileHandler \
      --configFile ${INSTANCE_ROOT}/config/config.ldif \
      --resourcePath ${INSTANCE_ROOT}/config/MakeLDIF "${@}"
