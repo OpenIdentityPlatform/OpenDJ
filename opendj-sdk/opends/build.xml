@@ -77,12 +77,13 @@
   <property name="dsml.classes.dir" location="${build.dir}/dsml/classes" />
 
   <!-- Properties for code coverage testing.                            -->
-  <property name="coverage.dir"         location="build/coverage"         />
-  <property name="coverage.report.dir"  location="${coverage.dir}/report" />
+  <property name="coverage.dir"         location="build/coverage"            />
+  <property name="coverage.report.dir"  
+            location="${coverage.dir}/reports/unit"                          />
   <property name="coverage.instr.dir"
-       location="${coverage.dir}/instrumentedcode"                        />
+            location="${coverage.dir}/instrumentedcode"                      />
   <property name="coverage.data.dir"
-       location="${coverage.dir}/gathereddata"                            />
+            location="${coverage.dir}/gathereddata"                          />
 
   <!-- Properties for the EMMA code coverage tool.                 -->
   <property name="emma.dir" location="${ext.dir}/emma/lib"          />
@@ -685,7 +686,7 @@
           <include name="*.jar" />
         </fileset>
       </classpath>
-      <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/coverage.emma" />
+      <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/unit.emma" />
       <jvmarg value="-Demma.coverage.out.merge=false" />
       <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}" />
       <jvmarg value="-Xmx${MEM}" />
@@ -693,15 +694,17 @@
       <xmlfileset dir="${unittest.resource.dir}" includes="testng.xml" />
     </testng>
 
+    <echo message="Generating unit tests coverage report..."/>
     <emma enabled="${coverage.enabled}" >
       <report sourcepath="${src.dir}" >
-  	  <!-- <property name="verbosity.level" value="verbose" /> -->
-          <fileset dir="${coverage.data.dir}" >
-           <include name="*.emma" />
-  	  </fileset>
+        <!-- <property name="verbosity.level" value="verbose" /> -->
+        <fileset dir="${coverage.data.dir}" >
+           <include name="unit.emma"     />
+           <include name="metadata.emma" />
+        </fileset>
 
-  	  <txt outfile="${coverage.report.dir}/coverage.txt" />
-  	   <html outfile="${coverage.report.dir}/index.html" />
+        <txt outfile="${coverage.report.dir}/coverage.txt" />
+        <html outfile="${coverage.report.dir}/index.html" />
       </report>
     </emma>
 
@@ -736,7 +739,8 @@
 
 
     <target name="integration-tests"
-        description="Builds the integration tests">
+            description="Builds the integration tests"
+            depends="package">
         <ant dir="${functest.testng.dir}" />
     </target>
 
