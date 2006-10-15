@@ -31,12 +31,22 @@
     OpenDS Directory Server.  See the
     BUILDING file in this directory for build instructions.
   </description>
+
+  <!-- generate the timestamp we'll use to tag/store the test results       -->
+  <tstamp>
+    <format property="run.time" pattern="yyyy.MM.dd-HH.mm.ss"                />
+  </tstamp>
   
   <!-- General build-wide properties                                        -->
-  <property name="opends.dir" location="../.."                               />
-  <property name="tests.src.dir"       location="src/server"                 />
+  <property name="opends.dir"       location="../.."                         />
+  <property name="tests.src.dir"    location="src/server"                    />
   <property name="tests.build.dir"     
             location="${opends.dir}/build/integration-tests"                 />
+  <property name="tests.classes"
+            location="${tests.build.dir}/classes"                            />
+  <property name="tests.run.dir"    
+            location="${tests.build.dir}/run/${run.time}"                    />
+  
   <property name="lib.dir"          location="${opends.dir}/lib"             />
   <property name="ext.dir"          location="${opends.dir}/ext"             />
   <property name="testng.dir"       location="${ext.dir}/testng"             />
@@ -45,17 +55,27 @@
   <property name="opends.build.dir"   location="${opends.dir}/build"         />
   <property name="opends.package.dir" location="${opends.build.dir}/package" />
   <property name="opends.classes"     location="${opends.build.dir}/classes" />
+  <property name="opends.src"         location="${opends.dir}/src/server"    />
 
-  <!-- default configuration values for opends -->
-  <property name="install.dir.default" value="${basedir}/install"            />
+  <!-- product values for opends -->
   <property name="product.version"     value="0.1"                           />
   <property name="product.name"        value="OpenDS"                        />
-
-  <!-- generate the timestamp we'll use to tag/store the test results       -->
-  <tstamp>
-    <format property="run.time" pattern="yyyy.mm.dd-HH.mm.ss"                />
-  </tstamp>
   
+  <!-- Properties for code coverage -->
+  <property name="emma.lib.dir" value="${ext.dir}/emma/lib"                  />
+  <property name="opends.coverage.dir" 
+            location="${opends.build.dir}/coverage"                          />
+  <property name="coverage.instr.dir"
+       location="${opends.coverage.dir}/instrumentedcode"                    />
+  <property name="coverage.data.dir"
+       location="${opends.coverage.dir}/gathereddata"                        />
+  <property name="coverage.report.dir"
+            location="${opends.coverage.dir}/reports"                        />
+  <property name="integration.coverage.report.dir" 
+            location="${coverage.report.dir}/integration"                    />
+  <property name="global.coverage.report.dir"
+            location="${coverage.report.dir}/global"                         />
+
   <!-- assertion to determine the operating system -->
   <condition property="isWindows">
     <os family="windows"/>
@@ -65,32 +85,85 @@
       <os family="windows"/>
     </not>
   </condition>
-
-  <!-- edit or create this file if you need custom port or install path
+  
+  <!-- integration-tests.properties ...
+      edit or create this file if you need custom port or install path
        it can have any of the following properties
        port.ldap
+       port.ssl
        install.dir
+       host.name
+       bindDN
+       password
+       
+       see set-default-props target for default values
   -->
   <property file="integration-tests.properties"                              />
+
+  <target name="set-default-props"
+          description="defines the default values if no custom values were provided">
+    <property name="install.dir" value="${tests.build.dir}/install"          />
+    <property name="port.ldap"   value="1389"                                />
+    <property name="port.ssl"    value="1636"                                />
+    <property name="host.name"   value="localhost"                           />
+    <property name="bindDN"      value="cn=Directory Manager"                />
+    <property name="password"    value="password"                            />
+    <property name="full.install.dir" 
+            value="${install.dir}/${product.name}-${product.version}"        />
+    <property name="MEM" value="128M"                                        />
+  </target>
+  
+  <!-- this is a private target that checks for emma instrumented opends 
+       classes 
+  -->
+  <target name="check-opends-instrumentation">
+    <available file="${coverage.instr.dir}/org/opends/server" 
+              type="dir" 
+              property="is-opends-instrumented" 
+              value="true"                                     />
+  </target>
+  
+  <target name="coverage" 
+          if="is-opends-instrumented"
+          depends="check-opends-instrumentation"
+          description="initialize emma">
+    <echo message="Found opends emma instrumentation, configuring emma to gather code coverage during integration tests run"/>
+    <mkdir dir="${coverage.data.dir}"               />
+    <mkdir dir="${coverage.report.dir}"             />
+    <mkdir dir="${global.coverage.report.dir}"      />
+    <mkdir dir="${integration.coverage.report.dir}" />
+  </target>
+  
+  <target name="init"
+          description="initialize properties and create directories to allow for the integration tests to run succesfully"
+          depends="set-default-props">
+    <path id="emma.lib">
+      <pathelement location="${emma.lib.dir}/emma.jar" />
+      <pathelement location="${emma.lib.dir}/emma_ant.jar" />
+    </path>
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+  </target>
+    
   
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="uninstall,clean,tests,install,configure,start,run-tests,stop"
+       depends="init,clean,tests,bootstrap,run-tests,wipeout"
        description="Build using all defined targets." />
 
   <!-- Remove all dynamically-generated build files. -->
   <target name="clean"
-       description="Clean up any files generated during the build process">
-    <delete dir="${tests.build.dir}"           />
+       description="Clean up the compiled integration tests"
+       depends="set-default-props">
+    <delete dir="${tests.classes}"           />
   </target>
   
   <!-- Compile the functional tests source files. -->
   <target name="tests" 
        description="Compile the functional tests source files.">
 
-    <mkdir dir="${tests.build.dir}" />
+    <mkdir dir="${tests.classes}" />
 
-    <javac srcdir="${tests.src.dir}" destdir="${tests.build.dir}" optimize="true"
+    <javac srcdir="${tests.src.dir}" destdir="${tests.classes}" optimize="true"
          debug="on" debuglevel="lines,source" source="1.5" target="1.5"
          deprecation="true" fork="true" >
       <compilerarg value="-Xlint:all" />
@@ -111,7 +184,7 @@
   
   <target name="run-tests" 
           description="run the integration test suite" 
-          depends="set-default-install-props">
+          depends="init,coverage">
     <taskdef resource="testngtasks">
       <classpath>
         <fileset dir="${testng.lib.dir}">
@@ -120,64 +193,106 @@
       </classpath>
     </taskdef>
     
-    <property name="run.dir" value="${basedir}/run/${run.time}" />
-    <mkdir dir="${run.dir}"         />
-    <mkdir dir="${run.dir}/logs"    />
-    <mkdir dir="${run.dir}/backup"  />
-    <mkdir dir="${run.dir}/report"  />
-
+    <mkdir dir="${tests.run.dir}"        />
+    <mkdir dir="${tests.run.dir}/backup" />
+    <mkdir dir="${tests.run.dir}/logs/tests"   />
+    <mkdir dir="${tests.run.dir}/reports/testng" />
+    <mkdir dir="${tests.run.dir}/reports/junit" />
+    <mkdir dir="${tests.run.dir}/logs/server"/>
+    
     <echo message="generating tests xml file ..."/>
     <copy file="testng.xml.stubs"     
-          tofile="testng.xml"         
+          tofile="${tests.run.dir}/testng.xml"         
           overwrite="true"           >
       <filterchain>
         <expandproperties/>
       </filterchain>
     </copy>
-    <fileset id="testng.xml" dir="${basedir}" >
+    
+    <!-- where for testng to go pick the test suite definition -->
+    <fileset id="testng.xml" dir="${tests.run.dir}" >
       <include name="testng.xml"  />
     </fileset>
-    <testng outputdir="${run.dir}/report" 
+    
+    <testng outputdir="${tests.run.dir}/reports/testng" 
             haltonfailure="true"
             enableAssert="false"
-            listener="org.opends.server.OpenDSTestListener"
-            dumpCommand="true">
+            listener="org.opends.server.OpenDSTestListener">
       <classpath>
+        <!-- where to get the instrumented server classes (if built) -->
+        <pathelement location="${coverage.instr.dir}"/>
+        <!-- where to get the server classes -->
+        <pathelement  location="${opends.classes}" />
         <!-- where to get the testng library -->
         <fileset dir="${testng.lib.dir}">
           <include name="*.jar" />
         </fileset>
+        
         <!-- where to get the test classes -->
-        <pathelement location="${tests.build.dir}" />
-        <!-- where to get the server classes -->
-        <pathelement  location="${opends.classes}"/>
+        <pathelement location="${tests.classes}" />
+        <!-- last but not least, where to get the emma library -->
+        <path refid="emma.lib"/>
       </classpath>
       
+      <!-- coverage specific jvm options -->
+        <!-- where to store the run-time coverage data --> 
+      <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/integration.emma" />
+        <!-- do not keep previous run coverage data, start from scratch everytime -->
+      <jvmarg value="-Demma.coverage.out.merge=false" />
+      
+      <!-- give the jvm some extra room -->
+      <jvmarg value="-Xmx${MEM}" />
+      <jvmarg value="-Xms${MEM}" />
+      
       <!-- where to get the test suite definition -->
-      <xmlfileset dir="${basedir}" includes="testng.xml"/>
+      <xmlfileset dir="${tests.run.dir}" includes="testng.xml"/>
     </testng>
-  </target>
-  
-  <target name="set-default-install-props"
-          description="defines the default values if no custom values were provided">
-    <property name="install.dir" value="${install.dir.default}"              />
-    <property name="port.ldap"   value="1389"                                />
-    <property name="port.ssl"    value="1636"                                />
-    <property name="host.name"   value="localhost"                           />
-    <property name="bindDN"      value="cn=Directory Manager"                />
-    <property name="password"    value="password"                            />
-    <property name="full.install.dir" 
-            value="${install.dir}/${product.name}-${product.version}"        />
+    
+    <!-- convert the testng results to junit -->
+    <junitreport todir="${tests.run.dir}/reports/junit">
+      <fileset dir="${tests.run.dir}/reports/testng/${product.name}">
+        <include name="*.xml"/>
+      </fileset>
+    </junitreport>
+
+
+    <!-- some cleanup from the tests themselves-->
+    <delete dir="${tests.run.dir}/backup" />
+    <!-- save the server log files for issues investigation -->
+    <copy todir="${tests.run.dir}/logs/server">
+      <fileset dir="${full.install.dir}/logs"/>
+    </copy>
+    
+    
+    <emma enabled="${is-opends-instrumented}" >
+      <!-- generate the integration test coverage report -->
+      <report sourcepath="${opends.src}" >
+        <fileset dir="${coverage.data.dir}" >
+          <include name="integration.emma" />
+          <include name="metadata.emma" />
+        </fileset>
+        <txt outfile="${integration.coverage.report.dir}/coverage.txt" />
+        <html outfile="${integration.coverage.report.dir}/index.html" />
+      </report>
+    </emma>
+    
+    <emma enabled="${is-opends-instrumented}">
+      <!-- generate the global test coverage report -->
+      <report sourcepath="${opends.src}" >
+        <fileset dir="${coverage.data.dir}" >
+          <include name="*.emma" />
+        </fileset>
+        <txt outfile="${global.coverage.report.dir}/coverage.txt" />
+        <html outfile="${global.coverage.report.dir}/index.html" />
+      </report>
+    </emma>
   </target>
   
   <target name="install" 
-          description="deploy the server bits"  
-          depends="set-default-install-props"  >
+          description="deploy the opends bits"  
+          depends="set-default-props"  >
     <property name="config.file"   
               location="${full.install.dir}/config/config.ldif"/>
-    <!-- Set the defaults
-         Does not override the custom values provided in the 
-         integration-tests.properties file if any                           -->
     <mkdir dir="${install.dir}"/>
     <unzip dest="${install.dir}">
       <fileset dir="${opends.package.dir}">
@@ -185,17 +300,22 @@
       </fileset>
     </unzip>
   </target>
+
+  <target name="uninstall"
+          description="Uninstall opends"
+          depends="set-default-props" >
+    <delete dir="${install.dir}" />
+  </target>
   
   <target name="configure"
           description="configures opends to listen on the right port number"
-          depends="set-default-install-props"
+          depends="set-default-props"
           >
     <java classname="org.opends.server.tools.ConfigureDS">
       <!-- building the classpath to run the configurator -->
       <classpath>
-        <pathelement path="${full.install.dir}/classes"/>
-        <fileset dir="${full.install.dir}">
-          <include name="lib/*.jar"/>
+        <fileset dir="${full.install.dir}/lib">
+          <include name="*.jar"/>
         </fileset>
       </classpath>
       
@@ -205,10 +325,14 @@
       <arg value="--configFile" />
       <arg value="${full.install.dir}/config/config.ldif"       />
       <arg line="-p ${port.ldap}" />
+      <arg value="-D"/>
+      <arg value="${bindDN}"/>
+      <arg value="-w"/>
+      <arg value="${password}"/>
     </java>
   </target>
   
-  <!-- Windows specific start / stop / configure commands -->
+  <!-- Windows specific start / stop commands -->
   <target name="start-windows" if="isWindows">
     <echo message="Starting in the background ..."/>
     <exec 
@@ -227,7 +351,7 @@
     </exec>
   </target>
 
-  <!-- Unix specific start / stop / configure commands -->
+  <!-- Unix specific start / stop commands -->
   <target name="start-unix" if="isUnix" >
     <echo message="Starting in the background ..."/>
     <exec 
@@ -248,17 +372,33 @@
   
   <!-- platform independent start / stop targets -->
   <target name="start" 
-          description="stop the server" 
-          depends="set-default-install-props,start-windows,start-unix" />
+          description="start the server" 
+          depends="set-default-props,start-windows,start-unix" />
   <target name="stop"
           description="stop the server"
-          depends="set-default-install-props,stop-windows,stop-unix" />
+          depends="set-default-props,stop-windows,stop-unix" />
 
-  <target name="uninstall"
-          description="Uninstalls the server"
-          depends="set-default-install-props" >
-    <delete dir="${install.dir}" />
+
+  
+  <target name="sleep">
+    <!--
+      this is somewhat based on experience
+      before we can delete the installation directory
+      we have to wait for opends to exit gracefully and free all the locks on 
+      the various resources it uses.
+      this may need to be computed based on the tests execution time to try
+      to approximate the machine speed 
+      right now it's hardcoded to 15 seconds
+    -->
+    <sleep seconds="15"/>
   </target>
+  
+  <target name="bootstrap"
+          description="bootstrap opends"
+          depends="install,configure,start" />
+  <target name="wipeout"
+          description="stop and uninstall opends" 
+          depends="stop,sleep,uninstall"          />
   
 </project>
 
