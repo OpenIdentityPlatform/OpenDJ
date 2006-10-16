@@ -232,4 +232,40 @@
 
   </function>
 
+  <function name="testCaseStartBanner">
+  
+    <function-prolog>
+    Pretty prints a banner at the start of a test.
+    </function-prolog>
+    
+    <function-no-args/>
+    
+    <sequence>
+    
+      <message>
+        '### Starting test case %s. ###' % STAXCurrentTestcase
+      </message>
+      
+    </sequence>
+      
+  </function>
+        
+  <function name="testCaseEndBanner">
+        
+    <function-prolog>
+      Pretty prints a banner at the end of a test.
+    </function-prolog>
+        
+    <function-no-args/>
+      
+      <sequence>
+      
+      <message>
+        '### Ending test case %s. ###' % STAXCurrentTestcase
+      </message>
+    
+    </sequence>
+  
+  </function>
+
 </stax>
