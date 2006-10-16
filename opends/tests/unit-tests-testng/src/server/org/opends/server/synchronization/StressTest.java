@@ -224,10 +224,6 @@ public class StressTest extends MonitorProvider
       fail("some messages were lost : expected : " +TOTAL_MESSAGES +
            " received : " + rcvCount);
     }
-    System.out.println("Sent " + TOTAL_MESSAGES + " in " +
-                       (afterSendTime-startTime)/1000 + "seconds.\n");
-    System.out.println("Received " + TOTAL_MESSAGES + " in " +
-                       (afterReceiveTime-afterSendTime)/1000 + "seconds.\n");
 
     }
     finally {
