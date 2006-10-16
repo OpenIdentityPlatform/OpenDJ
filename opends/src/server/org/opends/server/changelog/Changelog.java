@@ -169,6 +169,9 @@ public class Changelog implements Runnable, ConfigurableComponent
    */
   public Changelog(ConfigEntry config) throws ConfigException
   {
+    shutdown = false;
+    runListen = true;
+
     IntegerConfigAttribute changelogPortAttr =
       (IntegerConfigAttribute) config.getConfigAttribute(changelogPortStub);
     /* if there is no changelog port configured, this process must not be a
