@@ -179,9 +179,10 @@ public class ChangelogBroker implements InternalSearchListener
 
           /*
            * Read the ChangelogStartMessage that should come back.
-           * TODO : should have a timeout here.
            */
+          session.setSoTimeout(1000);
           startMsg = (ChangelogStartMessage) session.receive();
+          session.setSoTimeout(0);
 
           /*
            * We must not publish changes to a changelog that has not
