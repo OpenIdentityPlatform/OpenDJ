@@ -60,7 +60,7 @@ public class TestModifyDNOperation extends OperationTestCase
   public void setUp() throws Exception
   {
     TestCaseUtils.startServer();
-    TestCaseUtils.clearJEBackend(false);
+    TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
 
     InternalClientConnection connection =
          InternalClientConnection.getRootConnection();
