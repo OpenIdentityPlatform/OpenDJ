@@ -52,7 +52,6 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -94,14 +93,14 @@ public class InstallDS
   /**
    * The version string for the server.
    */
-  private static String versionString = "OpenDS Directory Service";
+  private static String versionString;
 
 
 
   /**
    * The name of the program used to launch this installation process.
    */
-  private static String programName = "setup";
+  private static String programName;
 
 
 
@@ -142,15 +141,7 @@ public class InstallDS
 
 
     // Construct the product version string and the setup filename.
-    versionString = PRODUCT_NAME + " " + MAJOR_VERSION + "." + MINOR_VERSION;
-    if ((VERSION_QUALIFIER == null) || (VERSION_QUALIFIER.length() == 0))
-    {
-      versionString += "." + POINT_VERSION;
-    }
-    else
-    {
-      versionString += VERSION_QUALIFIER;
-    }
+    versionString = DirectoryServer.getVersionString();
 
     if (isWindows)
     {
