@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="core_search_timelimit"/>
+
+  <function name="core_search_timelimit">
+
+      <sequence>
+
+      <script>
+          STAXLogMessage = 1
+          SRCFILE = '%s/%s' % (ZIPPATH,ZIPNAME)
+          DSTFILE = '%s/%s' % (TMPDIR,ZIPNAME)
+          OPENDS_BINPATH = '%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+      </script>
+
+      <!--- Import all the shared libraries
+            may be we should have a loadlibs.xml to
+            load all the libs -->
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/utils.xml' % (TESTS_FUNCTIONS_DIR)"/>
+
+      <!--- Set OS related variables on remote host -->
+      <message>
+          'Set OS related variables on remote host.'
+      </message>
+      <call function="'setOSvariables'">
+          { 'hostname' : STAF_REMOTE_HOSTNAME }
+      </call>
+
+      <script>OSName= STAXResult</script>
+
+      <if expr="OSName == 'Win2003'">
+        <script>fileExt= 'bat'</script>
+      <else>
+        <script>fileExt= 'sh'</script>
+      </else>
+      </if>
+
+        <!--- Check that DS started -->
+        <call function="'isAlive'">
+          { 'noOfLoops'        : 5 ,
+            'noOfMilliSeconds' : 2000 }
+        </call>
+
+        <!--- Test Case : Search Time Limit 1 -->
+        <testcase name="'Core: Search Time Limit 1'">
+          <sequence>
+            <message>
+               'Core STmL1: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined in the command line and the search time is exceeeded'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
+		'dsFilter'         : 'objectclass=*' ,
+                'extraParams'	   : '-l 1' }
+                
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 3 }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Search Time Limit 2 -->
+        <testcase name="'Core: Search Time Limit 2'">
+          <sequence>
+            <message>
+               'Core STmL2: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined in the command line and the search time is not exceeed'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
+		'dsFilter'         : 'objectclass=*' ,
+                'extraParams'	   : '-l 100' }
+                
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+         <!--- Test Case : Search Time Limit 3 -->
+        <testcase name="'Core: Search Time Limit 3'">
+          <sequence>
+            <message>
+               'Core STmL3: Change the server-wide search time limit to 1'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/core/ldifs/mod_timelimit.ldif' % LDIF_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase> 
+      
+                <!--- Test Case : Search Time Limit 4 -->
+        <testcase name="'Core: Search Time Limit 4'">
+          <sequence>
+            <message>
+               'Core STmL4: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is exceeded'
+            </message>
+
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
+		'dsFilter'         : 'objectclass=*' ,
+                'extraParams'	   : '' }
+                
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 3 }
+            </call>
+          </sequence>
+        </testcase>
+        
+                 <!--- Test Case : Search Time Limit 5 -->
+        <testcase name="'Core: Search Time Limit 5'">
+          <sequence>
+            <message>
+               'Core STmL5: Change the server-wide search time limit to 60'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/core/ldifs/mod_timelimit2.ldif' % LDIF_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+                <!--- Test Case : Search Time Limit 6 -->
+        <testcase name="'Core: Search Time Limit 6'">
+          <sequence>
+            <message>
+               'Core STmL6: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is not exceeded'
+            </message>
+
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
+		'dsFilter'         : 'objectclass=*' ,
+                'extraParams'	   : '' }
+                
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+                         <!--- Test Case : Search Time Limit 7 -->
+        <testcase name="'Core: Search Time Limit 7'">
+          <sequence>
+            <message>
+               'Core STmL7: Change the search time limit for cn=Directory Manager to 1'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/core/ldifs/mod_timelimit3.ldif' % LDIF_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+                        <!--- Test Case : Search Time Limit 8 -->
+        <testcase name="'Core: Search Time Limit 8'">
+          <sequence>
+            <message>
+               'Core STmL8: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter, ds-rlim-time-limit, and the search time limit is exceeded'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
+		'dsFilter'         : 'objectclass=*' ,
+                'extraParams'	   : '' }
+                
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 3 }
+            </call>
+          </sequence>
+        </testcase>
+        
+                                <!--- Test Case : Search Time Limit 9 -->
+        <testcase name="'Core: Search Time Limit 9'">
+          <sequence>
+            <message>
+               'Core STmL9: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter, ds-rlim-time-limit, and the search is conducted as a bind to a different user'
+            </message>
+
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
+		'dsFilter'         : 'objectclass=*' ,
+                'extraParams'	   : '' }
+                
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+                                 <!--- Test Case : Search Time Limit 10 -->
+        <testcase name="'Core: Search Time Limit 10'">
+          <sequence>
+            <message>
+               'Core STmL10: Change the search time limit for cn=Directory Manager to 60'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/core/ldifs/mod_timelimit4.ldif' % LDIF_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+                                        <!--- Test Case : Search Time Limit 11 -->
+        <testcase name="'Core: Search Time Limit 11'">
+          <sequence>
+            <message>
+               'Core STmL11: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter ds-rlim-time-limit, equal to 60 and the search is conducted against 1150 entries'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
+		'dsFilter'         : 'objectclass=*' ,
+                'extraParams'	   : '' }
+                
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>
