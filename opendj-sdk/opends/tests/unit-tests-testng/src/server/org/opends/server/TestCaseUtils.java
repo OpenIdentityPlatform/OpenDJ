@@ -143,8 +143,8 @@ public final class TestCaseUtils {
     testRoot.mkdirs();
 
     String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
-                                "config", "db", "ldif", "lib", "locks",
-                                "logs" };
+                                "config", "db", "db_verify", "ldif", "lib", 
+                                "locks", "logs" };
     for (String s : subDirectories)
     {
       new File(testRoot, s).mkdir();
@@ -330,17 +330,23 @@ public final class TestCaseUtils {
   }
 
   /**
-   * Clears all the entries from the userRoot JE backend.
+   * Clears all the entries from the JE backend determined by the
+   * be id passed into the method.
 
    * @param  createBaseEntry  Indicate whether to automatically create the base
    *                          entry and add it to the backend.
-   *
+   *                          
+   * @param beID  The be id to clear.
+   * 
+   * @param dn   The suffix of the backend to create if the the createBaseEntry
+   *             boolean is true.
+   *             
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void clearJEBackend(boolean createBaseEntry)
+  public static void clearJEBackend(boolean createBaseEntry, String beID, String dn)
        throws Exception
   {
-    BackendImpl backend = (BackendImpl)DirectoryServer.getBackend("userRoot");
+    BackendImpl backend = (BackendImpl)DirectoryServer.getBackend(beID);
     DN[] baseDNs = backend.getBaseDNs();
     ConfigEntry configEntry = TaskUtils.getConfigEntry(backend);
 
@@ -372,9 +378,9 @@ public final class TestCaseUtils {
 
     if (createBaseEntry)
     {
-      DN baseDN = DN.decode("dc=example,dc=com");
+      DN baseDN = DN.decode(dn);
       Entry e = createEntry(baseDN);
-      backend = (BackendImpl)DirectoryServer.getBackend("userRoot");
+      backend = (BackendImpl)DirectoryServer.getBackend(beID);
       backend.addEntry(e, null);
     }
   }

@@ -65,7 +65,7 @@ public class SearchOperationTestCase extends OperationTestCase
   public void setUp() throws Exception
   {
     TestCaseUtils.startServer();
-    TestCaseUtils.clearJEBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot","dc=example,dc=com");
 
     InternalClientConnection connection =
          InternalClientConnection.getRootConnection();
