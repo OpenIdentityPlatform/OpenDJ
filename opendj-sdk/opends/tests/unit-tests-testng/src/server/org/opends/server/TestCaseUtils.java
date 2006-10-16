@@ -141,7 +141,7 @@ public final class TestCaseUtils {
       deleteDirectory(testRoot);
     }
     testRoot.mkdirs();
-
+    //db_verify is second jeb backend used by the jeb verify test cases
     String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
                                 "config", "db", "db_verify", "ldif", "lib", 
                                 "locks", "logs" };
