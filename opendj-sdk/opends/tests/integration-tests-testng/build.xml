@@ -299,6 +299,11 @@
         <include name="*.zip"/>
       </fileset>
     </unzip>
+    <chmod perm="755">
+      <fileset dir="${full.install.dir}/bin">
+        <include name="*.sh"/>
+      </fileset>
+    </chmod>
   </target>
 
   <target name="uninstall"
