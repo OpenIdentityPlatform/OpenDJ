@@ -228,6 +228,8 @@ public class Historical
      */
 
     Attribute modAttr = mod.getAttribute();
+    if (modAttr.getAttributeType().equals(historicalAttrType))
+      return;
     Set<String> options = modAttr.getOptions();
     if (options.isEmpty())
       options = null;
@@ -301,9 +303,8 @@ public class Historical
      */
     if (!modifyOperation.isSynchronizationOperation())
     {
-      for (Iterator modsIterator = mods.iterator(); modsIterator.hasNext();)
+      for (Modification mod : mods)
       {
-        Modification mod = (Modification) modsIterator.next();
         processLocalOrNonConflictModification(changeNumber, mod);
       }
       if (moreRecentChangenumber == null ||
