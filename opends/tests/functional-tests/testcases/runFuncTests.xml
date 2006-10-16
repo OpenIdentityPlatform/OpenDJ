@@ -83,6 +83,10 @@
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/security/security.xml' % (TESTS_DIR)"/>
 	<call function="'main_security'" />
+        
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/core/core.xml' % (TESTS_DIR)"/>
+	<call function="'main_core'" /> 
 
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/cleanup/cleanup.xml' % (TESTS_DIR)"/>
