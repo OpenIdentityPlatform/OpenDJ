@@ -740,10 +740,11 @@
 
     <target name="integration-tests"
             description="Builds the integration tests"
-            depends="package">
-        <ant dir="${functest.testng.dir}" />
+            >
+        <ant dir="${functest.testng.dir}" inheritall="false"/>
     </target>
 
+    
   <target name="buildtools"
         description="Builds the build tools">
 
