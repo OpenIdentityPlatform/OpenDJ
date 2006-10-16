@@ -7121,7 +7121,15 @@ public class DirectoryServer
     buffer.append(MAJOR_VERSION);
     buffer.append(".");
     buffer.append(MINOR_VERSION);
-    buffer.append(VERSION_QUALIFIER);
+    if ((VERSION_QUALIFIER == null) || (VERSION_QUALIFIER.length() == 0))
+    {
+      buffer.append(".");
+      buffer.append(POINT_VERSION);
+    }
+    else
+    {
+      buffer.append(VERSION_QUALIFIER);
+    }
     return buffer.toString();
   }
 
