@@ -44,16 +44,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.RDN;
+import org.opends.server.types.*;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -642,7 +633,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     cleanEntries();
-    
+
     ChangelogBroker broker = openChangelogSession(baseDn, (short) 3);
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 3, 0);
 
@@ -991,5 +982,22 @@ public class UpdateOperationTest extends SynchronizationTestCase
     assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
         "Unable to add the syncrhonized server");
     entryList.add(synchroServerEntry);
+  }
+
+  /**
+   * Test case for
+   * [Issue 635] NullPointerException when trying to access non existing entry.
+   */
+  @Test(enabled=true)
+  public void deleteNoSuchObject() throws Exception
+  {
+    DN dn = DN.decode("cn=No Such Object,ou=People,dc=example,dc=com");
+    Operation op =
+         new DeleteOperation(connection,
+                             InternalClientConnection.nextOperationID(),
+                             InternalClientConnection.nextMessageID(), null,
+                             dn);
+    op.run();
+    assertEquals(op.getResultCode(), ResultCode.NO_SUCH_OBJECT);
   }
 }

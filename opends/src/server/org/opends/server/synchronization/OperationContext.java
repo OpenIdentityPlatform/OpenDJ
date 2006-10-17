@@ -71,9 +71,9 @@ public abstract class OperationContext
   }
 
   /**
-   * Get the unique Identifier of the modiffied entry.
+   * Get the unique Identifier of the modified entry.
    *
-   * @return the unique Identifier of the modiffied entry.
+   * @return the unique Identifier of the modified entry.
    */
   public String getEntryUid()
   {
@@ -84,11 +84,16 @@ public abstract class OperationContext
    * Get the change number of an operation.
    *
    * @param op The operation.
-   * @return the change number of the provided operation.
+   * @return The change number of the provided operation, or null if there is
+   * no change number associated with the operation.
    */
   public static ChangeNumber getChangeNumber(Operation op)
   {
     OperationContext ctx = (OperationContext)op.getAttachment(SYNCHROCONTEXT);
+    if (ctx == null)
+    {
+      return null;
+    }
     return ctx.changeNumber;
   }
 
