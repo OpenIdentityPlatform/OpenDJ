@@ -97,7 +97,7 @@ public class ExportTasksTests extends BackendTests
       output_str += "ds-task-export-backend-id: userRoot\n";
       output_str += "ds-task-export-include-branch: o=backend tests,dc=example,dc=com\n";
 
-      String export_task_file = integration_test_home + "/backend/data/add_task_export.ldif";
+      String export_task_file = logDir + "/add_task_export.ldif";
       output = new BufferedWriter(new FileWriter(export_task_file));
       output.write(output_str);
     }
@@ -111,7 +111,7 @@ public class ExportTasksTests extends BackendTests
         output.close();
     }
 
-    String datafile = integration_test_home + "/backend/data/add_task_export.ldif";
+    String datafile = logDir + "/add_task_export.ldif";
     String mod_args[] = {"-a", "-h", hostname, "-p", port, "-D", bindDN, "-w", bindPW, "-f", datafile};
 
     ds_output.redirectOutput(logDir, "ExportTasksTests1.txt");

@@ -95,7 +95,7 @@ public class BackupTasksTests extends BackendTests
       output_str += "ds-task-backup-backend-id: userRoot\n";
       output_str += "ds-backup-directory-path: " + exportDir + "/backup_task\n";
 
-      String backup_task_file = integration_test_home + "/backend/data/add_task_backup.ldif";
+      String backup_task_file = logDir + "/add_task_backup.ldif";
       output = new BufferedWriter(new FileWriter(backup_task_file));
       output.write(output_str);
     }
@@ -109,7 +109,7 @@ public class BackupTasksTests extends BackendTests
         output.close();
     }
 
-    String datafile = integration_test_home + "/backend/data/add_task_backup.ldif";
+    String datafile = logDir + "/add_task_backup.ldif";
     String mod_args[] = {"-a", "-h", hostname, "-p", port, "-D", bindDN, "-w", bindPW, "-f", datafile};
 
     ds_output.redirectOutput(logDir, "BackupTasksTests1.txt");
