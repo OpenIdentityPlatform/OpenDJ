@@ -30,6 +30,7 @@ import java.io.*;
 import org.opends.server.OpenDSMgr;
 import org.opends.server.tools.StopDS;
 import org.opends.server.tools.LDAPSearch;
+import org.testng.Assert.*;
 
 /**
  * This class defines an abstract test case that should be subclassed by all
@@ -96,7 +97,7 @@ public abstract class OpenDSIntegrationTests {
       if (retCode == 999)
 	System.out.println("OpenDS could not restart");
       // throw a fail in the testng framework
-      assert retCode==expCode;
+      org.testng.Assert.assertEquals(retCode,expCode);
     }
   }
 
