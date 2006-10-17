@@ -99,7 +99,7 @@ public class ImportTasksTests extends BackendTests
       output_str += "ds-task-import-backend-id: userRoot\n";
       output_str += "ds-task-import-skip-schema-validation: FALSE\n";
 
-      String import_task_file = integration_test_home + "/backend/data/add_task_import.ldif";
+      String import_task_file = logDir + "/add_task_import.ldif";
       output = new BufferedWriter(new FileWriter(import_task_file));
       output.write(output_str);
     }
@@ -113,7 +113,7 @@ public class ImportTasksTests extends BackendTests
         output.close();
     }
 
-    String datafile = integration_test_home + "/backend/data/add_task_import.ldif";
+    String datafile = logDir + "/add_task_import.ldif";
     String mod_args[] = {"-a", "-h", hostname, "-p", port, "-D", bindDN, "-w", bindPW, "-f", datafile};
 
     ds_output.redirectOutput(logDir, "ImportTasksTests1.txt");

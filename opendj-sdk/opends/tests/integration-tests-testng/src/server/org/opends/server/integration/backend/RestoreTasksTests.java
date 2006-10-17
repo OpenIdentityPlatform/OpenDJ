@@ -97,7 +97,7 @@ public class RestoreTasksTests extends BackendTests
       output_str += "ds-task-class-name: org.opends.server.tasks.RestoreTask\n";
       output_str += "ds-backup-directory-path: " + integration_test_home + "/backend/data/restore.task\n";
 
-      String restore_task_file = integration_test_home + "/backend/data/add_task_restore.ldif";
+      String restore_task_file = logDir + "/add_task_restore.ldif";
       output = new BufferedWriter(new FileWriter(restore_task_file));
       output.write(output_str);
     }
@@ -111,7 +111,7 @@ public class RestoreTasksTests extends BackendTests
         output.close();
     }
 
-    String datafile = integration_test_home + "/backend/data/add_task_restore.ldif";
+    String datafile = logDir + "/add_task_restore.ldif";
     String mod_args[] = {"-a", "-h", hostname, "-p", port, "-D", bindDN, "-w", bindPW, "-f", datafile};
     ds_output.redirectOutput(logDir, "RestoreTasksTests1.txt");
     int retCode = LDAPModify.mainModify(mod_args);
