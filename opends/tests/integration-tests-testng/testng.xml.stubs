@@ -7,7 +7,7 @@
     <parameter name="bindDN"    value="${bindDN}"/>
     <parameter name="bindPW"    value="${password}"/>
     <parameter name="integration_test_home" 
-               value="${tests.classes}/org/opends/server/integration"/>
+               value="${tests.src.dir}/org/opends/server/integration"/>
     <parameter name="logDir"    value="${tests.run.dir}/logs/tests"/>
     <parameter name="dsee_home" value="${full.install.dir}"/>
     <parameter name="backupDir" value="${tests.run.dir}/backup"/>
