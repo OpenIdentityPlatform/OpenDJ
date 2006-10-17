@@ -95,7 +95,7 @@ public class SynchronizationDomain extends DirectoryThread
 
   private List<ListenerThread> synchroThreads =
     new ArrayList<ListenerThread>();
-  private SortedMap<ChangeNumber, PendingChange> pendingChanges =
+  private final SortedMap<ChangeNumber, PendingChange> pendingChanges =
     new TreeMap<ChangeNumber, PendingChange>();
   private SortedMap<ChangeNumber, UpdateMessage> waitingAckMsgs =
     new TreeMap<ChangeNumber, UpdateMessage>();
@@ -725,7 +725,7 @@ public class SynchronizationDomain extends DirectoryThread
   }
 
   /**
-   * Do the necessary processing when and AckMessage was received.
+   * Do the necessary processing when an AckMessage is received.
    *
    * @param ack The AckMessage that was received.
    */
@@ -755,15 +755,23 @@ public class SynchronizationDomain extends DirectoryThread
    */
   public void synchronize(Operation op)
   {
-    numReplayedPostOpCalled++;
+    ResultCode result = op.getResultCode();
+    if ((result == ResultCode.SUCCESS) && op.isSynchronizationOperation())
+    {
+      numReplayedPostOpCalled++;
+    }
     UpdateMessage msg = null;
+
+    // Note that a failed non-synchronization operation might not have a change
+    // number.
     ChangeNumber curChangeNumber = OperationContext.getChangeNumber(op);
 
-    ResultCode result = op.getResultCode();
     boolean isAssured = isAssured(op);
 
     if ((result == ResultCode.SUCCESS) && (!op.isSynchronizationOperation()))
     {
+      // Generate a synchronization message for a successful non-synchronization
+      // operation.
       msg = UpdateMessage.generateMsg(op, isAssured);
 
       if (msg == null)
@@ -808,19 +816,28 @@ public class SynchronizationDomain extends DirectoryThread
         else
           curChange.setMsg(msg);
 
-        if (!op.isSynchronizationOperation() && isAssured && (msg != null))
+        if (msg != null && isAssured)
         {
+          // Add the assured message to the list of those whose acknowledgements
+          // we are awaiting.
           waitingAckMsgs.put(curChangeNumber, msg);
         }
       }
       else if (!op.isSynchronizationOperation())
-        pendingChanges.remove(curChangeNumber);
+      {
+        // Remove an unsuccessful non-synchronization operation from the pending
+        // changes list.
+        if (curChangeNumber != null)
+        {
+          pendingChanges.remove(curChangeNumber);
+        }
+      }
 
       pushCommittedChanges();
     }
 
-    if ((!op.isSynchronizationOperation()) && msg.isAssured() && (msg != null)
-        && (result == ResultCode.SUCCESS))
+    // Wait for acknowledgement of an assured message.
+    if (msg != null && isAssured)
     {
       synchronized (msg)
       {
@@ -1110,7 +1127,7 @@ public class SynchronizationDomain extends DirectoryThread
       {
         /*
          * An Exception happened during the replay process.
-         * Continue with the next change but the servers will know start
+         * Continue with the next change but the servers will now start
          * to be inconsistent.
          * TODO : REPAIR : Should let the repair tool know about this
          */
@@ -1139,9 +1156,9 @@ public class SynchronizationDomain extends DirectoryThread
   }
 
   /**
-   * This methods is called when an error happends while replaying
-   * and operation.
-   * It is necessary because the postOPeration does not always get
+   * This method is called when an error happens while replaying
+   * an operation.
+   * It is necessary because the postOperation does not always get
    * called when error or Exceptions happen during the operation replay.
    *
    * @param changeNumber the ChangeNumber of the operation with error.
@@ -1536,7 +1553,8 @@ public class SynchronizationDomain extends DirectoryThread
   /**
    * Generate the Dn to use for a conflicting entry.
    *
-   * @param op Operation that generated the conflict
+   * @param entryUid The unique identifier of the entry involved in the
+   * conflict.
    * @param dn Original dn.
    * @return The generated Dn for a conflicting entry.
    */
