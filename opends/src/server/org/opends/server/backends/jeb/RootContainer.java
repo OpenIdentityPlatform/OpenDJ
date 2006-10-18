@@ -239,6 +239,12 @@ public class RootContainer
   public EntryContainer openEntryContainer(DN baseDN) throws DatabaseException
   {
     EntryContainer ec = new EntryContainer(baseDN, backend, config, env);
+    EntryContainer ec1=this.entryContainers.get(baseDN);
+    //If an entry container for this baseDN is already open we don't allow
+    //another to be opened.
+      if (ec1 != null)
+          throw new DatabaseException("Entry container for baseDN " +
+                  baseDN.toString() + " already is open.");
     if(env.getConfig().getReadOnly())
     {
       ec.openReadOnly();
