@@ -35,6 +35,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.plugins.ShortCircuitPlugin;
+import org.opends.server.schema.DirectoryStringSyntax;
+import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -44,6 +47,8 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -338,7 +343,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     /*
      * Test that the conflict resolution code is able to find entries
      * that have been renamed by an other master.
-     * To simulate this, create and entry with a given UUID and a given DN
+     * To simulate this, create an entry with a given UUID and a given DN
      * then send a modify operation using another DN but the same UUID.
      * Finally check that the modify operation has been applied.
      */
@@ -999,5 +1004,118 @@ public class UpdateOperationTest extends SynchronizationTestCase
                              dn);
     op.run();
     assertEquals(op.getResultCode(), ResultCode.NO_SUCH_OBJECT);
+  }
+
+  /**
+   * Test case for
+   * [Issue 798]  break infinite loop when problems with naming resolution
+   *              conflict.
+   */
+  @Test(enabled=false)
+  public void infiniteReplayLoop() throws Exception
+  {
+    final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
+
+    ChangelogBroker broker = openChangelogSession(baseDn, (short) 3);
+    try
+    {
+      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 3, 0);
+
+      // Create a test entry.
+      String personLdif = "dn: uid=user.2,ou=People,dc=example,dc=com\n"
+          + "objectClass: top\n" + "objectClass: person\n"
+          + "objectClass: organizationalPerson\n"
+          + "objectClass: inetOrgPerson\n" + "uid: user.2\n"
+          + "homePhone: 951-245-7634\n"
+          + "description: This is the description for Aaccf Amar.\n"
+          + "st: NC\n"
+          + "mobile: 027-085-0537\n"
+          + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
+          + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
+          + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
+          + "street: 17984 Thirteenth Street\n"
+          + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
+          + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
+          + "userPassword: password\n" + "initials: AA\n";
+      Entry tmp = TestCaseUtils.entryFromLdifString(personLdif);
+      AddOperation addOp =
+           new AddOperation(connection,
+                            InternalClientConnection.nextOperationID(),
+                            InternalClientConnection.nextMessageID(),
+                            null, tmp.getDN(), tmp.getObjectClasses(),
+                            tmp.getUserAttributes(),
+                            tmp.getOperationalAttributes());
+      addOp.run();
+      assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
+      entryList.add(tmp);
+
+      long initialCount = getReplayedUpdatesCount();
+
+      // Get the UUID of the test entry.
+      Entry resultEntry = DirectoryServer.getEntry(tmp.getDN());
+      AttributeType uuidType = DirectoryServer.getAttributeType("entryuuid");
+      String uuid =
+           resultEntry.getAttributeValue(uuidType,
+                                         DirectoryStringSyntax.DECODER);
+
+      // Register a short circuit that will fake a no-such-object result code
+      // on a delete.  This will cause a synchronization replay loop.
+      ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE,
+                                              "PreParse", 32);
+      try
+      {
+        // Publish a delete message for this test entry.
+        DeleteMsg delMsg = new DeleteMsg(tmp.getDN().toString(),
+                                         gen.NewChangeNumber(),
+                                         uuid);
+        broker.publish(delMsg);
+
+        // Wait for the operation to be replayed.
+        long endTime = System.currentTimeMillis() + 5000;
+        while (getReplayedUpdatesCount() == initialCount &&
+             System.currentTimeMillis() < endTime)
+        {
+          Thread.sleep(100);
+        }
+      }
+      finally
+      {
+        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE,
+                                                  "PreParse");
+      }
+
+      // If the synchronization replay loop was detected and broken then the
+      // counter will still be updated even though the replay was unsuccessful.
+      if (getReplayedUpdatesCount() == initialCount)
+      {
+        fail("Synchronization operation was not replayed");
+      }
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Retrieve the number of replayed updates from the monitor entry.
+   * @return The number of replayed updates.
+   * @throws Exception If an error occurs.
+   */
+  private long getReplayedUpdatesCount() throws Exception
+  {
+    String monitorFilter =
+         "(&(cn=synchronization*)(base-dn=ou=People,dc=example,dc=com))";
+
+    InternalSearchOperation op;
+    op = connection.processSearch(
+         ByteStringFactory.create("cn=monitor"),
+         SearchScope.SINGLE_LEVEL,
+         LDAPFilter.decode(monitorFilter));
+    SearchResultEntry entry = op.getSearchEntries().getFirst();
+
+    AttributeType attrType =
+         DirectoryServer.getDefaultAttributeType("replayed-updates");
+    return entry.getAttributeValue(attrType, IntegerSyntax.DECODER).longValue();
   }
 }
