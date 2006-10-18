@@ -73,7 +73,6 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -890,9 +889,7 @@ public class MonitorBackend
       for (MonitorProvider monitorProvider :
            DirectoryServer.getMonitorProviders().values())
       {
-        DN providerDN = DN.decode(ATTR_COMMON_NAME + "=" +
-                                  monitorProvider.getMonitorInstanceName() +
-                                  "," + DN_MONITOR_ROOT);
+        DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
         Entry monitorEntry = getMonitorEntry(providerDN, monitorProvider);
         if (filter.matchesEntry(monitorEntry))
         {
