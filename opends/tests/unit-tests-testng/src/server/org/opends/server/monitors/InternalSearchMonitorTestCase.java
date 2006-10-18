@@ -33,8 +33,11 @@ import java.util.ArrayList;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterClass;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.MonitorProvider;
+import static org.opends.server.util.ServerConstants.ATTR_COMMON_NAME;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -42,6 +45,10 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.RDN;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.SearchResultEntry;
 
 import static org.testng.Assert.*;
 
@@ -54,6 +61,8 @@ import static org.testng.Assert.*;
 public class InternalSearchMonitorTestCase
        extends MonitorTestCase
 {
+  static MonitorProvider testMonitorProvider = new TestMonitorProvider();
+
   /**
    * Ensures that the Directory Server is started.
    *
@@ -64,9 +73,17 @@ public class InternalSearchMonitorTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
+    DirectoryServer.registerMonitorProvider(testMonitorProvider);
   }
 
 
+
+  @AfterClass()
+  public void deregisterTestMonitor()
+  {
+    DirectoryServer.deregisterMonitorProvider(
+         testMonitorProvider.getMonitorInstanceName());
+  }
 
   /**
    * Uses an internal subtree search to retrieve the monitor entries.
@@ -122,13 +139,47 @@ public class InternalSearchMonitorTestCase
   public void testWithBaseObjectMonitorSearch(String monitorName)
          throws Exception
   {
+    AttributeType cnType = DirectoryServer.getAttributeType(ATTR_COMMON_NAME);
+    RDN[] components = new RDN[2];
+    components[0] = new RDN(cnType, new AttributeValue(cnType, monitorName));
+    components[1] = new RDN(cnType, new AttributeValue(cnType, "monitor"));
+    DN monitorDN = new DN(components);
+
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("cn=" + monitorName + ",cn=monitor"),
+         conn.processSearch(monitorDN,
               SearchScope.BASE_OBJECT,
               SearchFilter.createFilterFromString("(objectClass=*)"));
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
   }
+
+  /**
+   * Uses an internal subtree search to retrieve the monitor entries, then
+   * verifies that the resulting entry DNs can be used to get the same
+   * entries with a base object search.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public void testWithSubtreeAndBaseMonitorSearch()
+         throws Exception
+  {
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    InternalSearchOperation searchOperation =
+         conn.processSearch(DN.decode("cn=monitor"), SearchScope.WHOLE_SUBTREE,
+              SearchFilter.createFilterFromString("(objectClass=*)"));
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+
+    for (SearchResultEntry sre : searchOperation.getSearchEntries())
+    {
+      SearchFilter filter =
+           SearchFilter.createFilterFromString("(objectClass=*)");
+      searchOperation =
+           conn.processSearch(sre.getDN(), SearchScope.BASE_OBJECT, filter);
+      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    }
+  }
+
 }
 

@@ -4608,9 +4608,7 @@ public class DirectoryServer
     // Try to register this monitor provider with an appropriate JMX MBean.
     try
     {
-      DN monitorDN =
-           DN.decode("cn=" + monitorProvider.getMonitorInstanceName() +
-                     ",cn=monitor");
+      DN monitorDN = getMonitorProviderDN(monitorProvider);
       JMXMBean mBean = directoryServer.mBeans.get(monitorDN);
       if (mBean == null)
       {
@@ -4652,9 +4650,7 @@ public class DirectoryServer
     {
       try
       {
-        DN monitorDN =
-             DN.decode("cn=" + provider.getMonitorInstanceName() +
-                       ",cn=monitor");
+        DN monitorDN = getMonitorProviderDN(provider);
         JMXMBean mBean = directoryServer.mBeans.get(monitorDN);
         if (mBean != null)
         {
@@ -7630,6 +7626,32 @@ public class DirectoryServer
       System.err.println(message);
       System.exit(1);
     }
+  }
+
+  /**
+   * Construct the DN of a monitor provider entry.
+   * @param provider The monitor provider for which a DN is desired.
+   * @return The DN of the monitor provider entry.
+   */
+  public static DN getMonitorProviderDN(MonitorProvider provider)
+  {
+    String monitorName = provider.getMonitorInstanceName();
+    AttributeType cnType = getAttributeType(ATTR_COMMON_NAME);
+    DN monitorRootDN;
+    try
+    {
+      monitorRootDN = DN.decode(DN_MONITOR_ROOT);
+    }
+    catch (DirectoryException e)
+    {
+      // Cannot reach this point.
+      throw new RuntimeException();
+    }
+    RDN[] baseRDNs = monitorRootDN.getRDNComponents();
+    RDN[] rdns = new RDN[baseRDNs.length+1];
+    rdns[0] = new RDN(cnType, new AttributeValue(cnType, monitorName));
+    System.arraycopy(baseRDNs, 0, rdns, 1, baseRDNs.length);
+    return new DN(rdns);
   }
 }
 
