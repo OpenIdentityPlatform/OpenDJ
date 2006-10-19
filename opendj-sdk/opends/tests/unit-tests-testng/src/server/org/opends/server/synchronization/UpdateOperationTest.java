@@ -1011,7 +1011,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
    * [Issue 798]  break infinite loop when problems with naming resolution
    *              conflict.
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void infiniteReplayLoop() throws Exception
   {
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
