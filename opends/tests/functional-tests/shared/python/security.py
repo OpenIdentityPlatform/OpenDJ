@@ -1,7 +1,7 @@
 #! /usr/bin python
 
 def write_ldaps_ldif_file(path, port):
-    ldif_file = open("/tmp/ldaps_port.ldif","w")
+    ldif_file = open(path + "/ldaps_port.ldif","w")
 
     ldif_file.write("dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config\n")
     ldif_file.write("objectclass: top\n")
