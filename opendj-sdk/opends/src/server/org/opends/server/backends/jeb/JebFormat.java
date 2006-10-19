@@ -399,7 +399,7 @@ public class JebFormat
    * Decode an entry ID value from its database representation. Note that
    * this method will throw an ArrayIndexOutOfBoundsException if the bytes
    * array length is less than 8.
-   * 
+   *
    * @param bytes The database value of the entry ID.
    * @return The entry ID value.
    */
