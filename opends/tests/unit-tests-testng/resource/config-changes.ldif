@@ -324,3 +324,126 @@ changetype: modify
 replace: ds-cfg-override-severity
 ds-cfg-override-severity: EXCEPTION=INFO
 
+dn: ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-je-backend
+ds-cfg-backend-enabled: true
+ds-cfg-backend-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-backend-id: verifyRoot
+ds-cfg-backend-writability-mode: enabled
+ds-cfg-backend-base-dn: dc=verify, dc=jeb
+ds-cfg-backend-directory: db_verify
+ds-cfg-backend-mode: 700
+ds-cfg-backend-index-entry-limit: 10
+ds-cfg-backend-subtree-delete-size-limit: 100000
+ds-cfg-backend-preload-time-limit: 0 seconds
+ds-cfg-backend-import-temp-directory: importTmp
+ds-cfg-backend-import-buffer-size: 256 megabytes
+ds-cfg-backend-import-queue-size: 100
+ds-cfg-backend-import-pass-size: 0
+ds-cfg-backend-import-thread-count: 8
+ds-cfg-backend-entries-compressed: false
+ds-cfg-backend-deadlock-retry-limit: 10
+
+dn: cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Index
+
+dn: ds-cfg-index-attribute=cn,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: cn
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-index-attribute=givenName,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: givenName
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-index-attribute=mail,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: mail
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-index-attribute=member,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: member
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=sn,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: sn
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-index-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: telephoneNumber
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-index-attribute=uid,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: uid
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=ds-sync-hist,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-sync-hist
+ds-cfg-index-type: ordering
+
+dn: ds-cfg-index-attribute=entryuuid,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: entryuuid
+ds-cfg-index-type: equality
+
+dn: cn=JE Database,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-database
+cn: JE Database
+ds-cfg-database-cache-percent: 10
+ds-cfg-database-cache-size: 0 megabytes
+ds-cfg-database-txn-no-sync: false
+ds-cfg-database-txn-write-no-sync: true
+ds-cfg-database-run-cleaner: true
+ds-cfg-database-cleaner-num-threads: 1
+ds-cfg-database-cleaner-min-utilization: 75
+ds-cfg-database-evictor-lru-only: true
+ds-cfg-database-evictor-nodes-per-scan: 10
+ds-cfg-database-log-file-max: 50 megabytes
+ds-cfg-database-logging-file-handler-on: true
+ds-cfg-database-logging-level: CONFIG
+ds-cfg-database-checkpointer-bytes-interval: 20 megabytes
+ds-cfg-database-checkpointer-wakeup-interval: 30 seconds
+ds-cfg-database-lock-num-lock-tables: 19
+
