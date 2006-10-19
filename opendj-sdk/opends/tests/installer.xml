@@ -1,0 +1,252 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2006 Sun Microsystems, Inc.
+ ! -->
+
+<project name="opends-tests-installer" basedir="." default="usage">
+  <description>
+		Installer ant file for the server
+		This allows tests that need a running instance of the product to easily
+		get one.
+  </description>
+  <!-- this one has to be loaded first since it's used in
+    default.installer.properties
+  -->
+	<property file="product.properties"                       />
+	<!-- this is an optional file if you want to pass custom values  -->
+	<property file="installer.properties"                     />
+	<!-- this is the file where the default values are defined       -->
+	<property file="default.installer.properties"             />
+	<!-- Define default values for mandatory properties in case the
+		property files would not be found
+	-->
+	
+	<target name="usage">
+		<echo>Installer usage: 
+  status     : reports if product is installed and/or running
+main target=
+  bootstrap  : installs and configure the product
+  wipeout    : stops and uninstalls the product
+subtargets=
+  install    : installs the product
+  configure  : set the server up to listen on a given port
+  start      : start the product unless it is already running
+  stop       : stop the product if it is already running
+  stop.force : stop no matter what
+  uninstall  : uninstall the product if it is installed
+		</echo>
+	</target>
+	
+	<!-- Installation -->
+	<target name="install.do" 
+          description="deploy the product bits"
+					unless="product.installed"          >
+		<echo message="Installing ${product.name} ${product.version}..." />
+    <property name="config.file"   
+              location="${full.install.dir}/config/config.ldif"/>
+    <mkdir dir="${install.dir}"/>
+    <unzip dest="${install.dir}">
+      <fileset dir="${project.home}/build/package">
+        <include name="*.zip"/>
+      </fileset>
+    </unzip>
+    <chmod perm="755">
+      <fileset dir="${full.install.dir}/bin">
+        <include name="*.sh"/>
+      </fileset>
+    </chmod>
+  </target>
+	
+	<target name="install" >
+    <available file="${full.install.dir}" 
+              type="dir" 
+              property="product.installed" />
+		<antcall target="install.do"           />
+	</target>
+	<!-- end of install related targets -->
+	
+	<!-- Uninstallation -->
+  <target name="uninstall.do"
+          description="Uninstall the product"
+					if="product.installed"            >
+		<echo message="Uninstalling ${product.name} ${product.version}..." />
+    <delete dir="${install.dir}" />
+  </target>
+	<target name="uninstall">
+    <available file="${full.install.dir}" 
+              type="dir" 
+              property="product.installed" />
+		<antcall target="uninstall.do"         />
+	</target>
+	<!-- end of uninstall related targets -->
+	
+	<!-- configuration -->
+  <target name="configure.do"
+          description="configures product to listen on the right port number"
+					if="product.installed" >
+    <echo message="basedir=[${basedir}]" />
+		<echo message="configuring ${product.name} ${product.version}..." />
+    <java classname="org.opends.server.tools.ConfigureDS">
+      <!-- building the classpath to run the configurator -->
+      <classpath>
+        <fileset dir="${full.install.dir}/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+      
+      <!-- provide the arguments here -->
+      <arg value="--configClass" />
+      <arg value="org.opends.server.extensions.ConfigFileHandler"  />
+      <arg value="--configFile" />
+      <arg value="${full.install.dir}/config/config.ldif"       />
+      <arg line="-p ${port.ldap}" />
+      <arg value="-D"/>
+      <arg value="${bind.dn}"/>
+      <arg value="-w"/>
+      <arg value="${bind.pwd}"/>
+    </java>
+  </target>
+	
+	<target name="configure">
+    <available file="${full.install.dir}" 
+              type="dir" 
+              property="product.installed" />
+		<antcall target="configure.do" />
+	</target>
+	<!-- end of config related targets -->
+	
+	<!-- start -->
+  <target name="start.do" 
+          description="start the product" 
+          if="product.installed"
+          unless="product.running" >
+		<echo message="Starting ${product.name} ${product.version}... on ${os.name}" />
+    <exec
+		  os="Windows XP,windows,dos"
+      executable="${full.install.dir}\bin\start-ds.bat"
+     spawn="true"                                                           />
+    <exec
+      os="unix"
+      executable="${full.install.dir}/bin/start-ds.sh"
+      spawn="true"                                                           />
+  </target>
+	<target name="start">
+    <available file="${full.install.dir}" 
+              type="dir" 
+              property="product.installed" />
+    <condition property="product.running">
+      <socket port="${port.ldap}" server="${host.name}"/>
+    </condition>
+		<antcall target="start.do" />
+	</target>	
+	<!--  end of start related targets -->
+  
+  <!-- stop  -->
+  <target name="stop.force"
+          description="stop the server">
+		<echo message="Stopping ${product.name} ${product.version}..." />
+    <exec
+      os="Windows XP,windows,dos"
+      executable="${full.install.dir}\bin\stop-ds.bat"
+      spawn="true">
+      <arg line="-h ${host.name}"/>
+      <arg line="-p ${port.ldap}"/>
+      <arg line="-w ${bind.pwd}" />
+      <arg value="-D"            />
+      <arg value="${bind.dn}"    />
+    </exec>
+    <exec 
+      os="unix"
+      executable="${full.install.dir}/bin/stop-ds.sh" 
+      spawn="true"                                   >
+      <arg line="-h ${host.name}"/>
+      <arg line="-p ${port.ldap}"/>
+      <arg line="-w ${bind.pwd}" />
+      <arg value="-D"            />
+      <arg value="${bind.dn}"    />
+    </exec>
+  </target>
+	<target name="stop.do" if="product.running">
+		<antcall target="stop.force" />
+	</target>
+  <target name="stop" >
+    <condition property="product.running">
+      <socket port="${port.ldap}" server="${host.name}"/>
+    </condition>
+		<antcall target="stop.do" />
+	</target>
+	<!-- end of stop related targets -->
+	
+	<!-- status -->
+	  <!-- Installation status -->
+	<target name="is-product-installed?" if="product.installed">
+		<echo message="Found ${product.name} installed in [${full.install.dir}]" />
+	</target>
+	<target name="is-product-not-installed?" unless="product.installed">
+		<echo message="Could not find ${product.name} installation." />
+	</target>
+		<!-- end of installation status -->
+		
+		<!-- Running status -->
+  <target name="is-product-running?" if="product.running">
+    <echo message="${product.name} is listening on port [${port.ldap}]"/>
+  </target>  
+  <target name="is-product-not-running?" unless="product.running">
+    <echo message="${product.name} is NOT running"/>
+  </target>
+		<!-- end of running status -->
+	<target name="status">
+    <available file="${full.install.dir}" 
+              type="dir" 
+              property="product.installed" />
+    <condition property="product.running">
+      <socket port="${port.ldap}" server="${host.name}"/>
+    </condition>
+		<antcall target="is-product-installed?"     />
+		<antcall target="is-product-not-installed?" />
+		<antcall target="is-product-running?"       />
+		<antcall target="is-product-not-running?"   />
+	</target>
+	<!--  end of status related tasks -->
+
+	<!-- macros - chained operations -->
+	<target name="bootstrap">
+		<echo message="Bootstrap: wipe the plate clean in case there is a previous install"/>
+		<antcall target="wipeout" />
+		<echo message="Bootstrap: install the product" />
+		<antcall target="install"   />
+		<antcall target="configure" />
+		<antcall target="start"     />
+	</target>
+	
+	<target name="wipeout">
+	  <echo message="Wipeout: removing product" />
+		<antcall target="stop"      />
+    <echo message="Give the server some time to shut down and release locks..." />
+    <sleep seconds="10"         />
+		<antcall target="uninstall" />
+	</target>
+	<!--  end of macros related targets-->
+</project>
