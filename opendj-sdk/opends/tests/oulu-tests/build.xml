@@ -41,9 +41,9 @@
   <!-- oulu tests specific properties                        -->
   <property file="oulu.properties"                            />
   <tstamp>
-    <format property="run.time" pattern="yyyy.MM.dd-HH.mm.ss"                />
+    <format property="run.time" pattern="yyyy.MM.dd-HH.mm.ss" />
   </tstamp>
-
+  
   <target name="usage">
     <echo>Usage for oulu test suite:
     
@@ -55,6 +55,7 @@
     <delete dir="${oulu.build.dir}" />
     <mkdir dir="${oulu.build.dir}" />
     <echo message="Downloading oulu bits ..." />
+    <setproxy proxyhost="${proxy.host}" proxyport="${proxy.port}" />
     <get 
       src="${oulu.home.url}/${oulu.ber.jar}" 
       dest="${oulu.build.dir}/${oulu.ber.jar}"
