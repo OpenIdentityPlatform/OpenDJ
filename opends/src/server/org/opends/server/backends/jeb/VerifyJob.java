@@ -667,6 +667,7 @@ public class VerifyJob
         }
 
         EntryIDSet entryIDList;
+
         try
         {
           JebFormat.entryIDListFromDatabase(data.getData());
