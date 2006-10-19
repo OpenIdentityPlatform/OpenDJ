@@ -1038,10 +1038,11 @@ public class SynchronizationDomain extends DirectoryThread
     Operation op = null;
     boolean done = false;
     ChangeNumber changeNumber = null;
+    int retryCount = 10;
 
     try
     {
-      while (!done)
+      while (!done && retryCount-- > 0)
       {
         op = msg.createOperation(conn);
 
@@ -1092,6 +1093,18 @@ public class SynchronizationDomain extends DirectoryThread
         {
           done = true;
         }
+      }
+
+      if (!done)
+      {
+        // Continue with the next change but the servers could now become
+        // inconsistent.
+        // TODO : REPAIR : Should let the repair tool know about this
+        int msgID = MSGID_LOOP_REPLAYING_OPERATION;
+        String message = getMessage(msgID, op.toString());
+        logError(ErrorLogCategory.SYNCHRONIZATION,
+            ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+        updateError(changeNumber);
       }
     }
     catch (ASN1Exception e)

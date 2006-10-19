@@ -257,6 +257,14 @@ public class SynchMessages {
     CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 34;
 
   /**
+   * Loop detected while replaying an operation.  This message takes one
+   * string argument containing details of the operation that could not be
+   * replayed.
+   */
+  public static final int MSGID_LOOP_REPLAYING_OPERATION =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_MILD_ERROR | 35;
+
+  /**
    * Register the messages from this class in the core server.
    *
    */
@@ -345,5 +353,7 @@ public class SynchMessages {
     MessageHandler.registerMessage(
         MSGID_EXCEPTION_RECEIVING_SYNCHRONIZATION_MESSAGE,
         "An Exception was caught while receiving synchronization message : %s");
+    MessageHandler.registerMessage(MSGID_LOOP_REPLAYING_OPERATION,
+         "A loop was detected while replaying operation: %s");
   }
 }
