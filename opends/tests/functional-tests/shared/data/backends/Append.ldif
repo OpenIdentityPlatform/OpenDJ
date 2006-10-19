@@ -1,0 +1,145 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying * information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Portions Copyright 2006 Sun Microsystems, Inc.
+#
+#
+# dc=com sample LDIF file
+#
+# Notes:
+#     7 total entries.
+#     1 (objectclass=organizationalunit) entries.
+#     4 (objectclass=inetOrgPerson) entries (under ou=people,dc=example,dc=com).
+#     2 (objectclass=inetOrgPerson) entries (under ou=departed,ou=people,dc=example,dc=com).
+#
+
+dn: uid=mtyler, ou=People, dc=example,dc=com
+cn: Matthew Tyler
+sn: Tyler
+givenname: Matthew
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Human Resources
+ou: People
+l: Cupertino
+uid: mtyler
+mail: mtyler@example.com
+telephonenumber: +1 408 555 7907
+facsimiletelephonenumber: +1 408 555 4661
+roomnumber: 6666
+userpassword: instantiate
+
+dn: uid=elott, ou=People, dc=example,dc=com
+cn: Emanuel Lott
+sn: Lott
+givenname: Emanuel
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+l: Santa Clara
+uid: elott
+mail: elott@example.com
+telephonenumber: +1 408 555 0932
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 6667
+userpassword: holdout
+
+dn: uid=cnewport, ou=People, dc=example,dc=com
+cn: Christoph Newport
+sn: Newport
+givenname: Christoph
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Sunnyvale
+uid: cnewport
+mail: cnewport@example.com
+telephonenumber: +1 408 555 0066
+facsimiletelephonenumber: +1 408 555 9332
+roomnumber: 6668
+userpassword: expertise
+
+dn: uid=jvedder, ou=People, dc=example,dc=com
+cn: Jeff Vedder
+sn: Vedder
+givenname: Jeff
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: jvedder
+mail: jvedder@example.com
+telephonenumber: +1 408 555 4668
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 6669
+userpassword: befitting
+
+dn: ou=Departed, ou=People, dc=example,dc=com
+objectclass: organizationalUnit
+ou: Departed
+description: Ex-employees bucket
+
+dn: uid=fvinker, ou=Departed, ou=People, dc=example,dc=com
+cn: Frank Vinker
+sn: Vinker
+givenname: Frank
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Departed
+l: Santa Clara
+uid: fvinker
+mail: fvinker@example.com
+telephonenumber: +1 408 555 4667
+facsimiletelephonenumber: +1 408 555 0121
+roomnumber: 3445
+userpassword: expired
+
+dn: uid=brammage, ou=Departed, ou=People, dc=example,dc=com
+cn: Robert Rammage
+sn: Rammage
+givenname: Bob
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Departed
+l: Santa Clara
+uid: brammage
+mail: brammage@example.com
+telephonenumber: +1 408 555 4666
+facsimiletelephonenumber: +1 408 555 0121
+roomnumber: 3445
+userpassword: expired
+

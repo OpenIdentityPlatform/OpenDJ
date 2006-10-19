@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+
+  <defaultcall function="main"/>
+
+  <function name="main">
+
+    <sequence>
+
+      <!--- Test Suite information
+        #@TestSuiteName       Backend Import Tasks Tests
+        #@TestSuitePurpose    Verify that the basic import using the task based functionality is working in the Directory Server.
+        #@TestSuiteID         Import Tasks Tests
+        #@TestSuiteGroup      Import-Tasks
+        #@TestGroup           Backend
+        #@TestScript          import-tasks.xml
+        #@TestHTMLLink        http://opends.dev.java.net/
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: LDIF Default
+        #@TestID              LDIF Default
+        #@TestPurpose         Verify an import task of a LDIF file using the default backend.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: LDIF Non Default
+        #@TestID              LDIF Non Default
+        #@TestPurpose         Verify an import task of a LDIF file using a differrent backend to the default.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Include Branch
+        #@TestID              Fractional Include Branch
+        #@TestPurpose         Verify an import task of a LDIF file specifying a branch that should be included in the import.
+        #@TestPreamble
+        #@TestSteps
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Include Branches
+        #@TestID              Fractional Include Branches
+        #@TestPurpose         Verify an import task of a LDIF file specifying multiple branches that should be included in the import.
+        #@TestPreamble
+        #@TestSteps
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Exclude Branch
+        #@TestID              Fractional Exclude Branch
+        #@TestPurpose         Verify an import task of a LDIF file specifying a branch that should be excluded in the import.
+        #@TestPreamble
+        #@TestSteps
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Exclude Branches
+        #@TestID              Fractional Exclude Branches
+        #@TestPurpose         Verify an import task of a LDIF file specifying multiple branches that should be excluded in the import.
+        #@TestPreamble
+        #@TestSteps
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Branches Mix
+        #@TestID              Fractional Branches Mix
+        #@TestPurpose         Verify an import task of a LDIF file specifying a mix of include and exclude branches.
+        #@TestPreamble
+        #@TestSteps
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Include Attribute
+        #@TestID              Fractional Include Attribute
+        #@TestPurpose         Verify an import task of a LDIF file specifying an attribute that should be included in the import.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Include Attributes
+        #@TestID              Fractional Include Attributes
+        #@TestPurpose         Verify an import task of a LDIF file specifying multiple attributes that should be included in the import.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Exclude Attribute
+        #@TestID              Fractional Exclude Attribute
+        #@TestPurpose         Verify an import task of a LDIF file specifying an attribute that should be excluded in the import.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Exclude Attribute
+        #@TestID              Fractional Exclude Attributes
+        #@TestPurpose         Verify an import task of a LDIF file specifying multiple attribute that should be excluded in the import.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Mix
+        #@TestID              Fractional Mix
+        #@TestPurpose         Verify an import task of a LDIF file specifying a mix of fractional attributes and branches.
+        #@TestPreamble
+        #@TestSteps
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Filtered Include
+        #@TestID              Filtered Include
+        #@TestPurpose         Verify an import task of a LDIF file specifying a search filter control which entries are included in the import.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Filtered Exclude
+        #@TestID              Filtered Exclude
+        #@TestPurpose         Verify an import task of a LDIF file specifying a search filter control which entries are excluded in the import.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Filtered Includes
+        #@TestID              Filtered Includes
+        #@TestPurpose         Verify an import task of a LDIF file specifying multiple search filters control which entries are included in the import.
+        #@TestPreamble
+        #@TestSteps
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Filtered Excludes
+        #@TestID              Filtered Excludes
+        #@TestPurpose         Verify an import task of a LDIF file specifying multiple search filters control which entries are excluded in the import.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Filtered Includes Complex
+        #@TestID              Filtered Includes Complex
+        #@TestPurpose         Verify an import task of a LDIF file specifying complex search filters control which entries are included in the import.
+        #@TestPreamble
+        #@TestSteps
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Filtered Excludes Complex
+        #@TestID              Filtered Excludes Complex
+        #@TestPurpose         Verify an import task of a LDIF file specifying complex search filters control which entries are excluded in the import.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Fractional Filtered Mix
+        #@TestID              Fractional Filtered Mix
+        #@TestPurpose         Verify an import task of a LDIF file specifying a mix of fractional and filtered.
+        #@TestPreamble
+        #@TestSteps
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Append
+        #@TestID              Append
+        #@TestPurpose         Verify an import task of a LDIF file specifying that the import process should append to the existing database.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks:Append Replace Existing
+        #@TestID              Append Replace Existing
+        #@TestPurpose         Verify an import task of a LDIF file specifying that an existing entry should be replaced when appending to an existing database.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Compressed
+        #@TestID              Compressed
+        #@TestPurpose         Verify an import task of a LDIF file specifying the data to import is compressed.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Encrypted
+        #@TestID              Encrypted
+        #@TestPurpose         Verify an import task of a LDIF file specifying the data to import is encrypted.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Hashed Signed
+        #@TestID              Hashed Signed
+        #@TestPurpose         Verify an import task of a LDIF file specifying the data to import is hashed/signed.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Rejects File
+        #@TestID              Rejects File
+        #@TestPurpose         Verify an import task of a LDIF file specifying the a path to a file into which rejected entries may be written if they are not accepted during the import process, when the rejects file is not overwritten.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Rejects File Overwrite
+        #@TestID              Rejects File Overwrite
+        #@TestPurpose         Verify an import task of a LDIF file specifying the a path to a file into which rejected entries may be written if they are not accepted during the import process, when the rejects file is overwritten.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Skip Schema Validation Accept
+        #@TestID              Skip Schema Validation Accept
+        #@TestPurpose         Verify an import task of a LDIF file containing invalided schema is accepted when skip schema validation is specified
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+
+      <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Skip Schema Validation Reject
+        #@TestID              Skip Schema Validation Reject
+        #@TestPurpose         Verify an import task of a LDIF file containing invalided schema is rejected when skip schema validation is not specified
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+      
+       <!--- Test Case information
+        #@TestMarker          Backend Import Tasks Tests
+        #@TestName            Import Tasks: Error Codes
+        #@TestID              Error Codes
+        #@TestPurpose         Verify an import task fails with an error code.
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+      
+    </sequence>
+
+  </function>
+
+</stax>
