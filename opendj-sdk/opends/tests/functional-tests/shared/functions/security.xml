@@ -111,6 +111,9 @@
                   'result'     : STAXResult }
             </call>
 
+        <!--- Modify the SSL port to the user-defined value -->
+           <script>write_ldaps_ldif_file('%s' % (TMPDIR), '%s' % (DIRECTORY_INSTANCE_SSL_PORT));</script>
+      
         <!--- Add LDAPS Connection Handler -->
             <message>
                'Adding LDAPS Connection Handler'
@@ -121,14 +124,14 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/%s/setup/enable_ldaps_conn_handler.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeAdded'   : '%s/ldaps_port.ldif' % (TMPDIR) }
             </call>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-
+         
       </sequence>
 
     </function>
