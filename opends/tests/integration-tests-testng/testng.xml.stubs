@@ -4,8 +4,8 @@
     <parameter name="hostname"  value="${host.name}"/>
     <parameter name="port"      value="${port.ldap}"/>
     <parameter name="sport"     value="${port.ssl}"/>
-    <parameter name="bindDN"    value="${bindDN}"/>
-    <parameter name="bindPW"    value="${password}"/>
+    <parameter name="bindDN"    value="${bind.dn}"/>
+    <parameter name="bindPW"    value="${bind.pwd}"/>
     <parameter name="integration_test_home" 
                value="${tests.src.dir}/org/opends/server/integration"/>
     <parameter name="logDir"    value="${tests.run.dir}/logs/tests"/>
