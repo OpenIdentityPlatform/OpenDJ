@@ -119,6 +119,7 @@ public class CoreStartupTests extends CoreTests
   {
     System.out.println("*********************************************");
     System.out.println("Core Startup test 2");
+    System.out.println("Warning: This step may take a few minutes.");
     String datafile = integration_test_home + "/core/data/core_test_1K.ldif";
     String core_args[] = {"-a", "-h", hostname, "-p", port, "-D", bindDN, "-w", bindPW, "-f", datafile};
     
