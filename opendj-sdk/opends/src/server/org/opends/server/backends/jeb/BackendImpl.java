@@ -1120,6 +1120,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    * @param configEntry The backend instance configuration entry.
    * @param  baseDNs      The set of base DNs that have been configured for this
    *                      backend.
+   * @param statEntry Optional entry to save stats into.
    * @throws  ConfigException  If an unrecoverable problem arises during
    *                           initialization.
    * @throws  InitializationException  If a problem occurs during initialization
@@ -1128,7 +1129,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    * @throws DirectoryException If a Directory Server error occurs.
    */
   public void verifyBackend(VerifyConfig verifyConfig, ConfigEntry configEntry,
-                            DN[] baseDNs)
+                            DN[] baseDNs, Entry statEntry)
        throws InitializationException, ConfigException, DirectoryException
   {
     assert debugEnter(CLASS_NAME, "verifyBackend");
@@ -1154,7 +1155,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
 
       VerifyJob verifyJob = new VerifyJob(config, verifyConfig);
-      verifyJob.verifyBackend(rootContainer);
+      verifyJob.verifyBackend(rootContainer, statEntry);
     }
     catch (DatabaseException e)
     {
