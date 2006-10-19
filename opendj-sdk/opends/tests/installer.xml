@@ -144,11 +144,11 @@ subtargets=
           unless="product.running" >
 		<echo message="Starting ${product.name} ${product.version}... on ${os.name}" />
     <exec
-		  os="Windows XP,windows,dos"
+      os="${windows.list}"
       executable="${full.install.dir}\bin\start-ds.bat"
      spawn="true"                                                           />
     <exec
-      os="unix"
+      os="${unix.list}"
       executable="${full.install.dir}/bin/start-ds.sh"
       spawn="true"                                                           />
   </target>
@@ -168,7 +168,7 @@ subtargets=
           description="stop the server">
 		<echo message="Stopping ${product.name} ${product.version}..." />
     <exec
-      os="Windows XP,windows,dos"
+      os="${windows.list}"
       executable="${full.install.dir}\bin\stop-ds.bat"
       spawn="true">
       <arg line="-h ${host.name}"/>
@@ -178,7 +178,7 @@ subtargets=
       <arg value="${bind.dn}"    />
     </exec>
     <exec 
-      os="unix"
+      os="${unix.list}"
       executable="${full.install.dir}/bin/stop-ds.sh" 
       spawn="true"                                   >
       <arg line="-h ${host.name}"/>
@@ -197,6 +197,19 @@ subtargets=
     </condition>
 		<antcall target="stop.do" />
 	</target>
+  
+  <target name="sleep" if="product.running">
+    <echo message="Give the server some time to shut down and release locks..." />
+    <sleep seconds="10"         />  
+  </target>
+  <target name="stop.sleep" >
+    <condition property="product.running">
+      <socket port="${port.ldap}" server="${host.name}"/>
+    </condition>
+		<antcall target="stop.do" />
+    <antcall target="sleep" />
+	</target>
+
 	<!-- end of stop related targets -->
 	
 	<!-- status -->
@@ -243,10 +256,8 @@ subtargets=
 	
 	<target name="wipeout">
 	  <echo message="Wipeout: removing product" />
-		<antcall target="stop"      />
-    <echo message="Give the server some time to shut down and release locks..." />
-    <sleep seconds="10"         />
-		<antcall target="uninstall" />
+		<antcall target="stop.sleep"  />
+		<antcall target="uninstall"   />
 	</target>
 	<!--  end of macros related targets-->
 </project>
