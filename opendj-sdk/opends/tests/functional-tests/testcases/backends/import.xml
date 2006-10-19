@@ -1,0 +1,1187 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/functions/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+
+  <defaultcall function="main_import"/>
+
+  <function name="main_import">
+
+    <sequence>
+
+      <!--- Test Suite information
+      #@TestSuiteName       Backend Import Tests
+      #@TestSuitePurpose    Verify that the basic import functionality is working in the Directory Server.
+      #@TestSuiteID         Import Tests
+      #@TestSuiteGroup      Import
+      #@TestGroup           Backend
+      #@TestScript          import.xml
+      #@TestHTMLLink        http://opends.dev.java.net/
+      -->
+ 
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: LDIF Default
+      #@TestID              LDIF Default
+      #@TestPurpose         Verify an import of a LDIF file using the default backend.
+      #@TestPreamble
+      #@TestSteps           ./import-ldif.sh -l ../ldif/Example.ldif -n "userRoot"
+      #@TestPostamble
+      #@TestResult
+      -->
+        
+      <testcase name="'Import: LDIF Default'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller, ou=People, dc=example,dc=com',
+                                   'uid=rhunt, ou=People, dc=example,dc=com'] }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: LDIF Non Default
+      #@TestID              LDIF Non Default
+      #@TestPurpose         Verify an import of a LDIF file using a differrent backend to the default.
+      #@TestPreamble
+      #@TestSteps           ./import-ldif.sh -n "nonDefault" -l ../ldif/Example.ldif
+      #@TestPostamble
+      #@TestResult
+      -->
+
+<!--  Not clear how to create a second backend    
+      <testcase name="'Import: LDIF Non Default'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR,
+              'backEnd'     : 'nonDefault' }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com','uid=dmiller, ou=People, dc=example,dc=com','uid=rhunt, ou=People, dc=example,dc=com'] }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+-->
+
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Include Branch
+      #@TestID              Fractional Include Branch
+      #@TestPurpose         Verify an import of a LDIF file specifying a branch that should be included in the import.
+      #@TestPreamble
+      #@TestSteps
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Include Branch'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-b dc=com'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller, ou=People, dc=example,dc=com',
+                                   'uid=rhunt, ou=People, dc=example,dc=com'] }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Include Branches
+      #@TestID              Fractional Include Branches
+      #@TestPurpose         Verify an import of a LDIF file specifying multiple branches that should be included in the import.
+      #@TestPreamble
+      #@TestSteps
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Include Branches'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-b "dc=com" -b "dc=example,dc=com"'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller, ou=People, dc=example,dc=com',
+                                   'uid=rhunt, ou=People, dc=example,dc=com'] }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Exclude Branch
+      #@TestID              Fractional Exclude Branch
+      #@TestPurpose         Verify an import of a LDIF file specifying a branch that should be excluded in the import.
+      #@TestPreamble
+      #@TestSteps
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Exclude Branch'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-B "ou=Departed,ou=People,dc=example,dc=com"'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller, ou=People, dc=example,dc=com',
+                                   'uid=rhunt, ou=People, dc=example,dc=com'] ,
+               'missingEntries' : ['uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
+                                   'uid=brammage,ou=Departed,ou=People,dc=example,dc=com'] 
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Exclude Branches
+      #@TestID              Fractional Exclude Branches
+      #@TestPurpose         Verify an import of a LDIF file specifying multiple branches that should be excluded in the import.
+      #@TestPreamble
+      #@TestSteps
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Exclude Branches'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-B "ou=Departed,ou=People,dc=example,dc=com"'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller, ou=People, dc=example,dc=com',
+                                   'uid=rhunt, ou=People, dc=example,dc=com'] ,
+               'missingEntries' : ['uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
+                                   'uid=brammage,ou=Departed,ou=People,dc=example,dc=com'] 
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Branches Mix
+      #@TestID              Fractional Branches Mix
+      #@TestPurpose         Verify an import of a LDIF file specifying a mix of include and exclude branches.
+      #@TestPreamble
+      #@TestSteps
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Branches Mix'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-b dc=com -B "ou=Departed,ou=People,dc=example,dc=com"'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller, ou=People, dc=example,dc=com',
+                                   'uid=rhunt, ou=People, dc=example,dc=com'] ,
+               'missingEntries' : ['uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
+                                   'uid=brammage,ou=Departed,ou=People,dc=example,dc=com'] 
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Include Attribute
+      #@TestID              Fractional Include Attribute
+      #@TestPurpose         Verify an import of a LDIF file specifying an attribute that should be included in the import.
+      #@TestPreamble
+      #@TestSteps           ./import-ldif.sh -n "userRoot" -i dc -l Include.ldif
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Include Attribute'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-i dc'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['dc=com','dc=example,dc=com'],
+              'missingEntries'  : ['ou=People,dc=example,dc=com'] 
+            }
+          </call>
+
+          <call function="'testCaseEndBanner'"/>
+          
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Include Attributes
+      #@TestID              Fractional Include Attributes
+      #@TestPurpose         Verify an import of a LDIF file specifying multiple attributes that should be included in the import.
+      #@TestPreamble
+      #@TestSteps           ./import-ldif.sh -n "userRoot" -i cn -i dc -i ou -i sn -l Include.ldif
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Include Attributes'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-i dc -i cn -i ou -i sn'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller, ou=People, dc=example,dc=com',
+                                   'uid=rhunt, ou=People, dc=example,dc=com'] 
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Exclude Attribute
+      #@TestID              Fractional Exclude Attribute
+      #@TestPurpose         Verify an import of a LDIF file specifying an attribute that should be excluded in the import.
+      #@TestPreamble
+      #@TestSteps           ./import-ldif.sh -n "userRoot" -e userpassword -l Example.ldif
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Exclude Attribute'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-e userpassword'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries'   : ['uid=scarter,ou=People,dc=example,dc=com'],
+              'missingAttributes' : ['userpassword']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Exclude Attributes
+      #@TestID              Fractional Exclude Attributes
+      #@TestPurpose         Verify an import of a LDIF file specifying multiple attribute that should be excluded in the import.
+      #@TestPreamble
+      #@TestSteps           ./import-ldif.sh -n "userRoot" -e userpassword -e mail -e roomnumber -l Example.ldif
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Exclude Attributes'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-e userpassword -e mail -e roomnumber'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries'   : ['uid=scarter,ou=People,dc=example,dc=com'],
+              'missingAttributes' : ['userpassword']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Mix
+      #@TestID              Fractional Mix
+      #@TestPurpose         Verify an import of a LDIF file specifying a mix of fractional attributes and branches.
+      #@TestPreamble
+      #@TestSteps
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Mix'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-i dc -i cn -i ou -i sn -b "dc=com" -b "dc=example,dc=com" -b "ou=People,dc=example,dc=com" -B "ou=Departed,ou=People,dc=example,dc=com"'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller, ou=People, dc=example,dc=com',
+                                   'uid=rhunt, ou=People, dc=example,dc=com'],
+              'missingEntries'  : ['uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
+                                   'uid=brammage,ou=Departed,ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Filtered Include
+      #@TestID              Filtered Include
+      #@TestPurpose         Verify an import of a LDIF file specifying a search filter control which entries are included in the import.
+      #@TestPreamble
+      #@TestSteps           ./import-ldif.sh -n "userRoot" -I "objectclass=*" -l Include.ldif
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Filtered Include'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-I "objectclass=*'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller,ou=People,dc=example,dc=com',
+                                   'uid=rhunt,ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Filtered Exclude
+      #@TestID              Filtered Exclude
+      #@TestPurpose         Verify an import of a LDIF file specifying a search filter control which entries are excluded in the import.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Filtered Exclude'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-E "objectclass=person"'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['dc=example,dc=com',
+                                   'ou=People,dc=example,dc=com'],
+               'missingEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller,ou=People,dc=example,dc=com',
+                                   'uid=rhunt,ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Filtered Includes
+      #@TestID              Filtered Includes
+      #@TestPurpose         Verify an import of a LDIF file specifying multiple search filters control which entries are included in the import.
+      #@TestPreamble
+      #@TestSteps
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Filtered Includes'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-I "objectclass=domain" -I "objectclass=organizationalunit"'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['dc=example,dc=com',
+                                   'ou=People,dc=example,dc=com'],
+               'missingEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller,ou=People,dc=example,dc=com',
+                                   'uid=rhunt,ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Filtered Excludes
+      #@TestID              Filtered Excludes
+      #@TestPurpose         Verify an import of a LDIF file specifying multiple search filters control which entries are excluded in the import.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Filtered Excludes'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-E "objectclass=person" -E "objectclass=organizationalunit"'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['dc=example,dc=com'],
+              'missingEntries'  : ['ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Filtered Includes Complex
+      #@TestID              Filtered Includes Complex
+      #@TestPurpose         Verify an import of a LDIF file specifying complex search filters control which entries are included in the import.
+      #@TestPreamble
+      #@TestSteps
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Filtered Includes Complex'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-I "|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)"'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller,ou=People,dc=example,dc=com',
+                                   'uid=rhunt,ou=People,dc=example,dc=com']
+            }          
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Filtered Excludes Complex
+      #@TestID              Filtered Excludes Complex
+      #@TestPurpose         Verify an import of a LDIF file specifying complex search filters control which entries are excluded in the import.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+      
+      <testcase name="'Import: Filtered Excludes Complex'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-E "&amp;(objectclass=person)(ou=Departed)"'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=rhunt,ou=People,dc=example,dc=com'],
+              'missingEntries'  : ['uid=fvinker,ou=Departed,ou=People,dc=example,dc=com']
+            }          
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Fractional Filtered Mix
+      #@TestID              Fractional Filtered Mix
+      #@TestPurpose         Verify an import of a LDIF file specifying a mix of fractional and filtered.
+      #@TestPreamble
+      #@TestSteps
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Fractional Filtered Mix'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-E "&amp;(objectclass=person)(ou=Departed)" -b "dc=com" -e userpassword'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=rhunt,ou=People,dc=example,dc=com'],
+              'missingEntries'  : ['uid=fvinker,ou=Departed,ou=People,dc=example,dc=com']
+            }          
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Append
+      #@TestID              Append
+      #@TestPurpose         Verify an import of a LDIF file specifying that the import process should append to the existing database.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Append'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Append.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-a'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            {  'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
+                                    'uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
+                                    'uid=brammage,ou=Departed,ou=People,dc=example,dc=com']
+            }                        
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Append Replace Existing
+      #@TestID              Append Replace Existing
+      #@TestPurpose         Verify an import of a LDIF file specifying that an existing entry should be replaced when appending to an existing database.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Append Replace Existing'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Append.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-a -r'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            {  'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
+                                    'uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
+                                    'uid=brammage,ou=Departed,ou=People,dc=example,dc=com']
+            }                        
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Compressed
+      #@TestID              Compressed
+      #@TestPurpose         Verify an import of a LDIF file specifying the data to import is compressed.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Compressed'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Example.ldif.gz' % LDIF_DATA_DIR,
+              'extraParams' : '-c'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller,ou=People,dc=example,dc=com',
+                                   'uid=rhunt,ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Encrypted
+      #@TestID              Encrypted
+      #@TestPurpose         Verify an import of a LDIF file specifying the data to import is encrypted.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Encrypted'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-y'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller,ou=People,dc=example,dc=com',
+                                   'uid=rhunt,ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <!-- This test should fail. -->
+          <tcstatus result="'fail'"/>
+          <message log="1" level="'Error'">
+            'Error: Known bug. Issue 839: Encrypted LDIF export is not implemented'
+          </message>
+
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Hashed Signed
+      #@TestID              Hashed Signed
+      #@TestPurpose         Verify an import of a LDIF file specifying the data to import is hashed/signed.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <!-- Test Not Implemented. Feature not avaliable -->
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Rejects File
+      #@TestID              Rejects File
+      #@TestPurpose         Verify an import of a LDIF file specifying the a path to a file into which rejected entries may be written if they are not accepted during the import process, when the rejects file is not overwritten.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Rejects File'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-R %s/rejects.txt' % TMPDIR
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller,ou=People,dc=example,dc=com',
+                                   'uid=rhunt,ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Rejects File Overwrite
+      #@TestID              Rejects File Overwrite
+      #@TestPurpose         Verify an import of a LDIF file specifying the a path to a file into which rejected entries may be written if they are not accepted during the import process, when the rejects file is overwritten.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Rejects File Overwrite'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-R %s/rejects.txt -O' % TMPDIR
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller,ou=People,dc=example,dc=com',
+                                   'uid=rhunt,ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Skip Schema Validation Accept
+      #@TestID              Skip Schema Validation Accept
+      #@TestPurpose         Verify an import of a LDIF file containing invalided schema is accepted when skip schema validation is specified
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Skip Schema Validation Accept'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Schema.ldif' % LDIF_DATA_DIR,
+              'extraParams' : '-s'
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=dmiller,ou=People,dc=example,dc=com',
+                                   'uid=kwinters,ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Skip Schema Validation Reject
+      #@TestID              skip schema validation reject
+      #@TestPurpose         Verify an import of a LDIF file containing invalided schema is rejected when skip schema validation is not specified
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <testcase name="'Import: Skip Schema Validation Reject'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/Schema.ldif' % LDIF_DATA_DIR }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=dmiller,ou=People,dc=example,dc=com'],
+              'missingEntries'  : ['uid=scarter,ou=People,dc=example,dc=com',
+                                   'uid=kwinters,ou=People,dc=example,dc=com']
+            }
+          </call>
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+      <!--- Test Case information
+      #@TestMarker          Backend Import Tests
+      #@TestName            Import: Error Codes
+      #@TestID              Error Codes
+      #@TestPurpose         Verify an import fails with an error code.
+      #@TestPreamble
+      #@TestSteps           
+      #@TestPostamble
+      #@TestResult
+      -->
+
+      <!-- Need to know what the error codes are -->
+      
+    </sequence>
+
+  </function>
+
+</stax>

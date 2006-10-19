@@ -254,5 +254,160 @@
       </sequence>
 
     </function>
+    
+    <!-- Import Function -->
+    <function name="importLdif">
+
+    <function-prolog>
+        This function performs an offline import of an ldif file
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="ldifFile">
+            The name of the ldif file
+        </function-required-arg>
+        <function-optional-arg name="backEnd" default="'userRoot'">
+            The name of the database backend
+        </function-optional-arg>
+        <function-optional-arg name="extraParams" default="' '">
+            Optional extra parameters for specific test cases
+        </function-optional-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <message>
+          'import-ldif.%s -l %s -n %s %s' % (fileExt,ldifFile,backEnd,extraParams)
+        </message>
+        <process name="'Offline Import'">
+          <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+          <command>'%s/import-ldif.%s' % (OPENDS_BINPATH,fileExt)</command>
+          <parms>'-l %s -n %s %s' % (ldifFile,backEnd,extraParams)</parms>
+          <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+          <envs>
+                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          </envs>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+
+        <script>
+          importRC=RC
+          importResult=STAXResult
+        </script>
+
+        <call function="'checkRC'">
+            { 'returncode' : importRC ,
+              'result'     : importResult }
+        </call>
+
+        <return>importRC</return>
+
+      </sequence>
+
+    </function>
+
+    <!-- Check Import Function -->
+    <function name="checkImport">
+
+    <function-prolog>
+      This function verifies an import of an ldif file 
+    </function-prolog>
+    
+    <function-map-args>
+      <function-required-arg name="expectedEntries">
+        Entries expected to be present after import
+      </function-required-arg>
+      <function-optional-arg name="missingEntries" default="'NULL'">
+        Optional entries expected to be present after import
+      </function-optional-arg>
+      <function-optional-arg name="expectedAttributes" default="'NULL'">
+        Optional attributes expected to be present after import
+      </function-optional-arg>
+      <function-optional-arg name="missingAttributes" default="'NULL'">
+        Optional attributes expected to be present after import
+      </function-optional-arg>
+      <function-optional-arg name="suffix" default="'dc=com'">
+        Optional main suffix for the import
+      </function-optional-arg>
+      <function-optional-arg name="startDS" default="'yes'">
+        Optional start the Directory Server after import
+      </function-optional-arg>
+    </function-map-args>
+    
+    <sequence>
+      
+    <!-- StartDS -->
+    <call function="'startDS'">
+      { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+    </call>
+    
+    <!-- Wait for DS to start -->
+    <call function="'isAlive'">
+      { 'noOfLoops'        : 5 ,
+        'noOfMilliSeconds' : 2000 }
+    </call>
+        
+    <!-- Search for expected entries -->    
+    <iterate var="expectedEntry" in="expectedEntries">
+      
+    <sequence>
+
+      <call function="'SearchObject'">
+        { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+          'dsBaseDN'       : '%s' % expectedEntry ,
+          'dsFilter'       : 'objectclass=*' 
+        }
+      </call>
+  
+    <call function="'checktestRC'">
+       { 'returncode' : RC ,
+         'result'     : STAXResult }
+    </call>
+    
+    </sequence>
+    
+    </iterate>
+    
+    <!-- Search for missing entries -->
+    <iterate var="missingEntry" in="missingEntries">
+      
+    <sequence>
+      
+      <if expr="missingEntry == 'NULL'">
+        <break/>
+      </if>
+      
+      <call function="'SearchObject'">
+        { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+          'dsBaseDN'       : '%s' % missingEntry ,
+          'dsFilter'       : 'objectclass=*' 
+        }
+      </call>
+    
+      <call function="'checktestRC'">
+         { 'returncode' : RC ,
+           'result'     : STAXResult,
+           'expected'   : 32 }
+      </call>
+
+    </sequence>
+      
+    </iterate>
+    
+    <!-- StopDS -->
+    <call function="'stopDS'">
+      { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
+    </call>
+
+    </sequence>
+
+  </function>
 
 </stax>
