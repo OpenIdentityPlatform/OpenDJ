@@ -456,7 +456,7 @@ public class VerifyIndex
     try
     {
       BackendImpl jebBackend = (BackendImpl)backend;
-      jebBackend.verifyBackend(verifyConfig, configEntry, baseDNArray);
+      jebBackend.verifyBackend(verifyConfig, configEntry, baseDNArray, null);
     }
     catch (Exception e)
     {
