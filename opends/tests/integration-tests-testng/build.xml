@@ -216,7 +216,7 @@
             haltonfailure="true"
             enableAssert="false"
             listener="org.opends.server.OpenDSTestListener"
-            verbose="2">
+            verbose="0">
       <classpath>
         <!-- where to get the instrumented server classes (if built) -->
         <pathelement location="${coverage.instr.dir}"/>
