@@ -37,6 +37,12 @@
     <format property="run.time" pattern="yyyy.MM.dd-HH.mm.ss"                />
   </tstamp>
   
+  <property file="../product.properties"                      />
+  <!-- in case there's a custom installer properties file    -->
+  <property file="../installer.properties"         />
+  <!-- in case there isn't - load default values             -->
+  <property file="../default.installer.properties"            />
+
   <!-- General build-wide properties                                        -->
   <property name="opends.dir"       location="../.."                         />
   <property name="tests.src.dir"    location="${basedir}/src/server"                    />
@@ -57,10 +63,6 @@
   <property name="opends.classes"     location="${opends.build.dir}/classes" />
   <property name="opends.src"         location="${opends.dir}/src/server"    />
 
-  <!-- product values for opends -->
-  <property name="product.version"     value="0.1"                           />
-  <property name="product.name"        value="OpenDS"                        />
-  
   <!-- Properties for code coverage -->
   <property name="emma.lib.dir" value="${ext.dir}/emma/lib"                  />
   <property name="opends.coverage.dir" 
@@ -93,8 +95,8 @@
        port.ssl
        install.dir
        host.name
-       bindDN
-       password
+       bind.dn
+       bind.pwd
        
        see set-default-props target for default values
   -->
@@ -103,29 +105,25 @@
   <target name="set-default-props"
           description="defines the default values if no custom values were provided">
     <property name="install.dir" value="${tests.build.dir}/install"          />
-    <property name="port.ldap"   value="1389"                                />
     <property name="port.ssl"    value="1636"                                />
-    <property name="host.name"   value="localhost"                           />
-    <property name="bindDN"      value="cn=Directory Manager"                />
-    <property name="password"    value="password"                            />
-    <property name="full.install.dir" 
-            value="${install.dir}/${product.name}-${product.version}"        />
     <property name="MEM" value="128M"                                        />
   </target>
   
+  
+
   <!-- this is a private target that checks for emma instrumented opends 
        classes 
   -->
-  <target name="check-opends-instrumentation">
+  <target name="check-opends-instrumented">
     <available file="${coverage.instr.dir}/org/opends/server" 
               type="dir" 
-              property="is-opends-instrumented" 
+              property="opends.instrumented" 
               value="true"                                     />
   </target>
   
   <target name="coverage" 
-          if="is-opends-instrumented"
-          depends="check-opends-instrumentation"
+          if="opends.instrumented"
+          depends="check-opends-instrumented"
           description="initialize emma">
     <echo message="Found opends emma instrumentation, configuring emma to gather code coverage during integration tests run"/>
     <mkdir dir="${coverage.data.dir}"               />
@@ -217,7 +215,8 @@
     <testng outputdir="${tests.run.dir}/reports/testng" 
             haltonfailure="true"
             enableAssert="false"
-            listener="org.opends.server.OpenDSTestListener">
+            listener="org.opends.server.OpenDSTestListener"
+            verbose="2">
       <classpath>
         <!-- where to get the instrumented server classes (if built) -->
         <pathelement location="${coverage.instr.dir}"/>
@@ -233,7 +232,7 @@
         <!-- last but not least, where to get the emma library -->
         <path refid="emma.lib"/>
       </classpath>
-      
+      <!--<classfileset dir="${tests.classes}" includes="**/*.class" />-->
       <!-- coverage specific jvm options -->
         <!-- where to store the run-time coverage data --> 
       <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/integration.emma" />
@@ -264,7 +263,7 @@
     </copy>
     
     
-    <emma enabled="${is-opends-instrumented}" >
+    <emma enabled="${opends.instrumented}" >
       <!-- generate the integration test coverage report -->
       <report sourcepath="${opends.src}" >
         <fileset dir="${coverage.data.dir}" >
@@ -276,7 +275,7 @@
       </report>
     </emma>
     
-    <emma enabled="${is-opends-instrumented}">
+    <emma enabled="${opends.instrumented}">
       <!-- generate the global test coverage report -->
       <report sourcepath="${opends.src}" >
         <fileset dir="${coverage.data.dir}" >
@@ -288,122 +287,20 @@
     </emma>
   </target>
   
-  <target name="install" 
-          description="deploy the opends bits"  
-          depends="set-default-props"  >
-    <property name="config.file"   
-              location="${full.install.dir}/config/config.ldif"/>
-    <mkdir dir="${install.dir}"/>
-    <unzip dest="${install.dir}">
-      <fileset dir="${opends.package.dir}">
-        <include name="*.zip"/>
-      </fileset>
-    </unzip>
-    <chmod perm="755">
-      <fileset dir="${full.install.dir}/bin">
-        <include name="*.sh"/>
-      </fileset>
-    </chmod>
+  <target name="bootstrap" >
+    <ant 
+      antfile="installer.xml"
+      dir=".."
+      target="bootstrap"
+      inheritAll="false" /> 
   </target>
-
-  <target name="uninstall"
-          description="Uninstall opends"
-          depends="set-default-props" >
-    <delete dir="${install.dir}" />
+  <target name="wipeout">
+    <ant 
+      antfile="installer.xml" 
+      dir=".."
+      target="wipeout"
+      inheritAll="false" />
   </target>
-  
-  <target name="configure"
-          description="configures opends to listen on the right port number"
-          depends="set-default-props"
-          >
-    <java classname="org.opends.server.tools.ConfigureDS">
-      <!-- building the classpath to run the configurator -->
-      <classpath>
-        <fileset dir="${full.install.dir}/lib">
-          <include name="*.jar"/>
-        </fileset>
-      </classpath>
-      
-      <!-- provide the arguments here -->
-      <arg value="--configClass" />
-      <arg value="org.opends.server.extensions.ConfigFileHandler"  />
-      <arg value="--configFile" />
-      <arg value="${full.install.dir}/config/config.ldif"       />
-      <arg line="-p ${port.ldap}" />
-      <arg value="-D"/>
-      <arg value="${bindDN}"/>
-      <arg value="-w"/>
-      <arg value="${password}"/>
-    </java>
-  </target>
-  
-  <!-- Windows specific start / stop commands -->
-  <target name="start-windows" if="isWindows">
-    <echo message="Starting in the background ..."/>
-    <exec 
-      executable="${full.install.dir}\bin\start-ds.bat"
-      spawn="true"                                                           />
-  </target>
-  <target name="stop-windows"  if="isWindows" >
-    <echo message="Stopping ..." />
-    <exec 
-      executable="${full.install.dir}\bin\stop-ds.bat">
-      <arg line="-h ${host.name}"/>
-      <arg line="-p ${port.ldap}"/>
-      <arg line="-w ${password}"/>
-      <arg value="-D"/>
-      <arg value="${bindDN}"/>
-    </exec>
-  </target>
-
-  <!-- Unix specific start / stop commands -->
-  <target name="start-unix" if="isUnix" >
-    <echo message="Starting in the background ..."/>
-    <exec 
-      executable="${full.install.dir}/bin/start-ds.sh"
-      spawn="true"                                                           />
-  </target>
-  <target name="stop-unix" if="isUnix" >
-    <echo message="Stopping ..." />
-    <exec 
-      executable="${full.install.dir}/bin/stop-ds.sh" >
-      <arg line="-h ${host.name}"/>
-      <arg line="-p ${port.ldap}"/>
-      <arg line="-w ${password}"/>
-      <arg value="-D"/>
-      <arg value="${bindDN}"/>
-    </exec>
-  </target>
-  
-  <!-- platform independent start / stop targets -->
-  <target name="start" 
-          description="start the server" 
-          depends="set-default-props,start-windows,start-unix" />
-  <target name="stop"
-          description="stop the server"
-          depends="set-default-props,stop-windows,stop-unix" />
-
-
-  
-  <target name="sleep">
-    <!--
-      this is somewhat based on experience
-      before we can delete the installation directory
-      we have to wait for opends to exit gracefully and free all the locks on 
-      the various resources it uses.
-      this may need to be computed based on the tests execution time to try
-      to approximate the machine speed 
-      right now it's hardcoded to 15 seconds
-    -->
-    <sleep seconds="15"/>
-  </target>
-  
-  <target name="bootstrap"
-          description="bootstrap opends"
-          depends="install,configure,start" />
-  <target name="wipeout"
-          description="stop and uninstall opends" 
-          depends="stop,sleep,uninstall"          />
   
 </project>
 
