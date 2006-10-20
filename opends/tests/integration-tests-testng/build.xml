@@ -250,7 +250,7 @@
     <!-- convert the testng results to junit -->
     <junitreport todir="${tests.run.dir}/reports/junit">
       <fileset dir="${tests.run.dir}/reports/testng/${product.name}">
-        <include name="*.xml"/>
+        <include name="integration-tests.xml"/>
       </fileset>
     </junitreport>
 
