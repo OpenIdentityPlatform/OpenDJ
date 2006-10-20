@@ -149,7 +149,7 @@
 
         <process name="'Generate Server JKS Certificate'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'keytool'</command> 
+            <command>'%s/bin/keytool' % JAVA_HOME</command> 
             <parms>'-genkey -alias server-cert -keyalg rsa -dname "cn=client,O=Sun Microsystems,C=US" -keystore "keystore" -storepass "servercert" -keypass "servercert"'</parms>
             <workdir>'%s/../config' % (OPENDS_BINPATH)</workdir>
             <envs>
@@ -178,7 +178,7 @@
 
         <process name="'Generate Server PKCS12 Certificate'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'keytool'</command> 
+            <command>'%s/bin/keytool' % JAVA_HOME</command> 
             <parms>'-genkey -alias server-cert -keyalg rsa -dname "cn=client,O=Sun Microsystems,C=US" -keystore "keystore" -storepass "servercert" -keypass "servercert" -storetype "PKCS12"'</parms>
             <workdir>'%s/../config' % (OPENDS_BINPATH)</workdir>
             <envs>
@@ -207,7 +207,7 @@
 
         <process name="'Self-Signs Server JKS Certificate'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'keytool'</command> 
+            <command>'%s/bin/keytool' % JAVA_HOME</command> 
             <parms>'-selfcert -alias server-cert -keystore "keystore" -storepass "servercert"'</parms>
             <workdir>'%s/../config' % (OPENDS_BINPATH)</workdir>
             <envs>
@@ -236,7 +236,7 @@
 
         <process name="'Self-Signs Server PKCS12 Certificate'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'keytool'</command> 
+            <command>'%s/bin/keytool' % JAVA_HOME</command> 
             <parms>'-selfcert -alias server-cert -keystore "keystore" -storepass "servercert" -storetype "PKCS12"'</parms>
             <workdir>'%s/../config' % (OPENDS_BINPATH)</workdir>
             <envs>
