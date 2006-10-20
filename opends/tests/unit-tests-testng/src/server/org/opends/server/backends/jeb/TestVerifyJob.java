@@ -118,7 +118,7 @@ public class TestVerifyJob extends JebTestCase
         verifyConfig.setBaseDN(baseDNs[0]);
         ConfigEntry configEntry = DirectoryServer.getConfigEntry(configDN);
         BackendImpl be=(BackendImpl) DirectoryServer.getBackend(beID);
-        be.verifyBackend(verifyConfig, configEntry, baseDNs);
+        be.verifyBackend(verifyConfig, configEntry, baseDNs, null);
     }
     
     
@@ -139,6 +139,6 @@ public class TestVerifyJob extends JebTestCase
         verifyConfig.addCleanIndex(index);
         ConfigEntry configEntry = DirectoryServer.getConfigEntry(configDN);
         BackendImpl be=(BackendImpl) DirectoryServer.getBackend(beID);
-        be.verifyBackend(verifyConfig, configEntry, baseDNs);
+        be.verifyBackend(verifyConfig, configEntry, baseDNs, null);
     }
 }
