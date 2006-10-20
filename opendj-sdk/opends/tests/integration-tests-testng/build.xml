@@ -259,7 +259,7 @@
     <delete dir="${tests.run.dir}/backup" />
     <!-- save the server log files for issues investigation -->
     <copy todir="${tests.run.dir}/logs/server">
-      <fileset dir="${full.install.dir}/logs"/>
+      <fileset dir="${opends.dir}/build/install/${product.name}-${product.version}/logs"/>
     </copy>
     
     
