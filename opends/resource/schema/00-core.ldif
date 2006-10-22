@@ -365,6 +365,10 @@ attributeTypes: ( 2.16.840.1.113730.3.1.55 NAME 'aci'
   DESC 'Sun-defined access control information attribute type'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 USAGE directoryOperation
   X-ORIGIN 'Sun Java System Directory Server' )
+attributeTypes: ( 2.16.840.1.113730.3.1.542 NAME 'nsUniqueId'
+  DESC 'Sun-defined unique identifier' SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE NO-USER-MODIFICATION USAGE directoryOperation
+  X-ORIGIN 'Sun Java System Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.1466.101.120.1 NAME 'administratorsAddress'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 USAGE directoryOperation
   X-ORIGIN 'draft-wahl-ldap-adminaddr' )
