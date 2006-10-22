@@ -822,8 +822,7 @@ public class LDAPModify
 
     if (proxyAuthzID.isPresent())
     {
-      ASN1OctetString authzIDOS  = new ASN1OctetString(proxyAuthzID.getValue());
-      ASN1OctetString proxyValue = new ASN1OctetString(authzIDOS.encode());
+      ASN1OctetString proxyValue = new ASN1OctetString(proxyAuthzID.getValue());
 
       LDAPControl proxyControl =
         new LDAPControl(OID_PROXIED_AUTH_V2, true, proxyValue);

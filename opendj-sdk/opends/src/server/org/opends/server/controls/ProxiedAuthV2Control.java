@@ -132,11 +132,11 @@ public class ProxiedAuthV2Control
 
     if (authorizationID == null)
     {
-      return new ASN1OctetString(new ASN1OctetString().encode());
+      return new ASN1OctetString();
     }
     else
     {
-      return new ASN1OctetString(authorizationID.encode());
+      return authorizationID;
     }
   }
 
