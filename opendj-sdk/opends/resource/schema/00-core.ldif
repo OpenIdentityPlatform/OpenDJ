@@ -408,7 +408,7 @@ objectClasses: ( 2.5.6.8 NAME 'organizationalRole' SUP top STRUCTURAL MUST cn
   postalCode $ postalAddress $ physicalDeliveryOfficeName $ ou $ st $ l $
   description ) X-ORIGIN 'RFC 2256' )
 objectClasses: ( 2.5.6.9 NAME 'groupOfNames' SUP top STRUCTURAL
-  MUST ( member $ cn ) MAY ( businessCategory $ seeAlso $ owner $ ou $ o $
+  MUST cn MAY ( member $ businessCategory $ seeAlso $ owner $ ou $ o $
   description ) X-ORIGIN 'RFC 2256' )
 objectClasses: ( 2.5.6.10 NAME 'residentialPerson' SUP person STRUCTURAL MUST l
   MAY ( businessCategory $ x121Address $ registeredAddress $
@@ -435,7 +435,7 @@ objectClasses: ( 2.5.6.16.2 NAME 'certificationAuthority-V2'
   SUP certificationAuthority AUXILIARY MAY deltaRevocationList
   X-ORIGIN 'RFC 2256' )
 objectClasses: ( 2.5.6.17 NAME 'groupOfUniqueNames' SUP top STRUCTURAL
-  MUST ( uniqueMember $ cn ) MAY ( businessCategory $ seeAlso $ owner $ ou $ o $
+  MUST cn MAY ( uniqueMember $ businessCategory $ seeAlso $ owner $ ou $ o $
   description ) X-ORIGIN 'RFC 2256' )
 objectClasses: ( 2.5.6.18 NAME 'userSecurityInformation' SUP top AUXILIARY
   MAY ( supportedAlgorithms ) X-ORIGIN 'RFC 2256' )
