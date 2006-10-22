@@ -481,10 +481,13 @@ public final class LDIFReader
         // This is a comment.  Ignore it.
         continue;
       }
-      else if (line.charAt(0) == ' ')
+      else if ((line.charAt(0) == ' ') || (line.charAt(0) == '\t'))
       {
         // This is a continuation of the previous line.  If there is no
-        // previous line, then that's a problem.
+        // previous line, then that's a problem.  Note that while RFC 2849
+        // technically only allows a space in this position, both OpenLDAP and
+        // the Sun Java System Directory Server allow a tab as well, so we will
+        // too for compatibility reasons.  See issue #852 for details.
         if (lastLine >= 0)
         {
           lines.get(lastLine).append(line.substring(1));
