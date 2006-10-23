@@ -31,7 +31,7 @@
     <function name="copyfile">
 
     <function-prolog>
-        This function copies a source file to destination file to a remote host
+        This function copies a source file to destination file to host
     </function-prolog>
 
     <function-map-args>
@@ -49,9 +49,9 @@
                 <function-arg-property name="type" value="filename"/>
         </function-arg-def>
 
-        <function-arg-def name="remotehost" type="optional" default="local">
+        <function-arg-def name="remotehost" type="optional" default="localhost">
                 <function-arg-description>
-                    The name of remote host (default local)
+                    The name of remote host (default localhost)
                 </function-arg-description>
                 <function-arg-property name="type" value="hostname"/>
         </function-arg-def>
@@ -60,17 +60,85 @@
 
       <sequence>
 
-        <stafcmd name="'STAF Command: Copy Zip File'">
+        <stafcmd name="'STAF Command: Copy File'">
           <location>'%s' % (STAF_LOCAL_HOSTNAME)</location>
           <service>'fs'</service>
           <request>'COPY FILE %s TOFILE %s TOMACHINE %s' % (srcfile,destfile,remotehost) </request>
         </stafcmd>
 
+        <script>
+          cmdRC=RC
+          cmdResult=STAFResult
+        </script>
+        
         <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAFResult }
+            { 'returncode' : cmdRC ,
+              'result'     : cmdResult }
         </call>
 
+        <return>cmdRC</return>
+
+      </sequence>
+
+    </function>
+    
+    <function name="CopyFolderByExtension">
+
+    <function-prolog>
+        Copies files by extension from a source to destination folder on host
+    </function-prolog>
+
+    <function-map-args>
+        <function-arg-def name="srcfolder" type="required">
+                <function-arg-description>
+                    The name of the source folder
+                </function-arg-description>
+                <function-arg-property name="type" value="foldername"/>
+        </function-arg-def>
+
+        <function-arg-def name="destfolder" type="required">
+                <function-arg-description>
+                    The name of the destination fule
+                </function-arg-description>
+                <function-arg-property name="type" value="foldername"/>
+        </function-arg-def>
+
+        <function-arg-def name="extension" type="optional" default="'txt'">
+                <function-arg-description>
+                    The name of host (default txt)
+                </function-arg-description>
+                <function-arg-property name="type" value="hostname"/>
+        </function-arg-def>
+        
+        <function-arg-def name="hostname" type="optional" default="'localhost'">
+                <function-arg-description>
+                    The name of remote host (default localhost)
+                </function-arg-description>
+                <function-arg-property name="type" value="hostname"/>
+        </function-arg-def>
+
+    </function-map-args>
+
+      <sequence>
+
+        <stafcmd name="'STAF Command: Copy all %s Files.' % (extension)">
+          <location>'%s' % (STAF_LOCAL_HOSTNAME)</location>
+          <service>'fs'</service>
+          <request>'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s EXT %s RECURSE' % (srcfolder,destfolder,hostname,extension) </request>
+        </stafcmd>
+
+        <script>
+          cmdRC=RC
+          cmdResult=STAFResult
+        </script>
+        
+        <call function="'checkRC'">
+            { 'returncode' : cmdRC ,
+              'result'     : cmdResult }
+        </call>
+
+        <return>cmdRC</return>
+        
       </sequence>
 
     </function>
@@ -103,11 +171,18 @@
           </request>
         </stafcmd>
 
+        <script>
+          cmdRC=RC
+          cmdResult=STAFResult
+        </script>
+        
         <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAFResult }
+            { 'returncode' : cmdRC ,
+              'result'     : cmdResult }
         </call>
 
+        <return>cmdRC</return>
+        
       </sequence>
 
     </function>
@@ -125,8 +200,8 @@
         <function-required-arg name="unzipdir">
             name of destination folder to place zip file contents
         </function-required-arg>
-        <function-optional-arg name="ziphost" default="'local'">
-            name of host on which to unzip (default local)
+        <function-optional-arg name="ziphost" default="'localhost'">
+            name of host on which to unzip (default localhost)
         </function-optional-arg>
 
     </function-map-args>
@@ -141,10 +216,17 @@
           </request>
         </stafcmd>
 
+        <script>
+          cmdRC=RC
+          cmdResult=STAFResult
+        </script>
+        
         <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAFResult }
+            { 'returncode' : cmdRC ,
+              'result'     : cmdResult }
         </call>
+
+        <return>cmdRC</return>
 
       </sequence>
 
@@ -199,10 +281,17 @@
           </request>
         </stafcmd>
 
+        <script>
+          cmdRC=RC
+          cmdResult=STAFResult
+        </script>
+        
         <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAFResult }
+            { 'returncode' : cmdRC ,
+              'result'     : cmdResult }
         </call>
+
+        <return>cmdRC</return>
 
       </sequence>
 
@@ -225,7 +314,7 @@
 
       <sequence>
 
-        <stafcmd name="'STAF Command: Recursively Delete Existing Folder'">
+        <stafcmd name="'STAF Command: Recursively Delete Folder'">
           <location>'%s' % (hostname)</location>
           <service>'fs'</service>
           <request>
@@ -233,10 +322,18 @@
           </request>
         </stafcmd>
 
+        <script>
+          cmdRC=RC
+          cmdResult=STAFResult
+        </script>
+        
         <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAFResult }
+            { 'returncode' : cmdRC ,
+              'result'     : cmdResult }
         </call>
+
+        <return>cmdRC</return>
+        
       </sequence>
 
     </function>

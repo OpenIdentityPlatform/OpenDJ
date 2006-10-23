@@ -70,7 +70,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/jks/jks_startup.ldif' % LDIF_DATA_DIR,
+                'entryToBeAdded'   : '%s/security/jks/jks_startup.ldif' % STAGED_DATA_DIR,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -107,7 +107,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/jks/modrdn/a1_modrdn.ldif' % LDIF_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/jks/modrdn/a1_modrdn.ldif' % STAGED_DATA_DIR ,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -144,7 +144,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/jks/add/bin_a1_in.ldif' % LDIF_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/jks/add/bin_a1_in.ldif' % STAGED_DATA_DIR ,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -181,7 +181,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/jks/mod/bin_a1_mod.ldif' % LDIF_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/jks/mod/bin_a1_mod.ldif' % STAGED_DATA_DIR ,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -218,7 +218,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/jks/del/bin_a1_out.ldif' % LDIF_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/jks/del/bin_a1_out.ldif' % STAGED_DATA_DIR ,
                 'extraParams'      : '-Z -X' }
             </call>
 

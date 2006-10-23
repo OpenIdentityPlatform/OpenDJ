@@ -1,4 +1,4 @@
-#! /usr/bin python
+#!/usr/bin/python
 
 def write_ldaps_ldif_file(path, port):
     ldif_file = open(path + "/ldaps_port.ldif","w")

@@ -107,7 +107,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/core/ldifs/mod_entrycache2.ldif' % LDIF_DATA_DIR }
+                'entryToBeModified'   : '%s/core/ldifs/mod_entrycache2.ldif' % STAGED_DATA_DIR }
             </call>
 
             <call function="'checktestRC'">
@@ -129,7 +129,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/core/ldifs/mod_entrycache3.ldif' % LDIF_DATA_DIR }
+                'entryToBeModified'   : '%s/core/ldifs/mod_entrycache3.ldif' % STAGED_DATA_DIR }
             </call>
 
             <call function="'checktestRC'">
@@ -151,7 +151,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/core/ldifs/mod_entrycache4.ldif' % LDIF_DATA_DIR }
+                'entryToBeModified'   : '%s/core/ldifs/mod_entrycache4.ldif' % STAGED_DATA_DIR }
             </call>
 
             <call function="'checktestRC'">
@@ -173,7 +173,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/core/ldifs/mod_entrycache5.ldif' % LDIF_DATA_DIR }
+                'entryToBeAdded'   : '%s/core/ldifs/mod_entrycache5.ldif' % STAGED_DATA_DIR }
             </call>
             
             <call function="'checktestRC'">

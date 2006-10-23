@@ -122,7 +122,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/quickstart/quickstart.ldif' % LDIF_DATA_DIR }
+                'entryToBeAdded'   : '%s/quickstart/quickstart.ldif' % STAGED_DATA_DIR }
             </call>
 
             <call function="'checktestRC'">

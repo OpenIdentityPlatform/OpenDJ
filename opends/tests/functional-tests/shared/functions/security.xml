@@ -67,7 +67,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeAdded'   : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -85,7 +85,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/%s/setup/deleteTrustMgr.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeModified'   : '%s/security/%s/setup/deleteTrustMgr.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -103,7 +103,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeAdded'   : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -111,9 +111,6 @@
                   'result'     : STAXResult }
             </call>
 
-        <!--- Modify the SSL port to the user-defined value -->
-           <script>write_ldaps_ldif_file('%s' % (TMPDIR), '%s' % (DIRECTORY_INSTANCE_SSL_PORT));</script>
-      
         <!--- Add LDAPS Connection Handler -->
             <message>
                'Adding LDAPS Connection Handler'
@@ -175,7 +172,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeAdded'   : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -193,7 +190,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/%s/setup/deleteTrustMgr.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeModified'   : '%s/security/%s/setup/deleteTrustMgr.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -211,7 +208,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeAdded'   : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -229,7 +226,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/%s/setup/enable_startTLS.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeAdded'   : '%s/security/%s/setup/enable_startTLS.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -280,7 +277,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/%s/teardown/disable_ldaps_conn_handler.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeModified'   : '%s/security/%s/teardown/disable_ldaps_conn_handler.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -298,7 +295,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/%s/teardown/deleteTrustMgr.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeModified'   : '%s/security/%s/teardown/deleteTrustMgr.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -316,7 +313,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/%s/teardown/default_trust_mgr_provider.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeAdded'   : '%s/security/%s/teardown/default_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -334,7 +331,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeModified'   : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -385,7 +382,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/%s/teardown/disable_startTLS.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeModified'   : '%s/security/%s/teardown/disable_startTLS.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -403,7 +400,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/%s/teardown/deleteTrustMgr.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeModified'   : '%s/security/%s/teardown/deleteTrustMgr.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -421,7 +418,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/%s/teardown/default_trust_mgr_provider.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeAdded'   : '%s/security/%s/teardown/default_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
@@ -439,7 +436,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (LDIF_DATA_DIR,keystoreType) }
+                'entryToBeModified'   : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
             <call function="'checktestRC'">
