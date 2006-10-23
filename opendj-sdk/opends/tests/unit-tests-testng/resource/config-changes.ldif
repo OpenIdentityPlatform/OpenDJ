@@ -379,6 +379,7 @@ ds-cfg-index-attribute: mail
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
 
 dn: ds-cfg-index-attribute=member,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
@@ -404,6 +405,7 @@ ds-cfg-index-attribute: telephoneNumber
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
+
 
 dn: ds-cfg-index-attribute=uid,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
