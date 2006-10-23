@@ -34,31 +34,21 @@
 
       <sequence>
 
-      <!--- Prepare data files for transportation-->
+      <!--- Delete file if it exists already-->
       <message>
           'Delete folder %s/ldifdata.zip' % (DIRECTORY_INSTANCE_DIR)
-          'Delete existing zip archive if it exists already.'
       </message>
       <call function="'deletefile'">
-          { 'filename' : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR ,
-            'hostname' : STAF_LOCAL_HOSTNAME }
-      </call>
-
-      <!--- Delete folder if it exists already-->
-      <message>
-          'Delete folder %s/shared' % (DIRECTORY_INSTANCE_DIR)
-      </message>
-      <call function="'deletefolder'">
-          { 'foldername' : '%s/shared' % (DIRECTORY_INSTANCE_DIR),
+          { 'filename' : '%s/ldifdata.zip' % (DIRECTORY_INSTANCE_DIR),
             'hostname'   :  STAF_REMOTE_HOSTNAME }
       </call>
 
       <!--- Delete folder if it exists already-->
       <message>
-          'Delete folder %s/testcases' % (DIRECTORY_INSTANCE_DIR)
+          'Delete folder %s/functional-tests' % (DIRECTORY_INSTANCE_DIR)
       </message>
       <call function="'deletefolder'">
-          { 'foldername' : '%s/testcases' % (DIRECTORY_INSTANCE_DIR),
+          { 'foldername' : '%s/functional-tests' % (DIRECTORY_INSTANCE_DIR),
             'hostname'   :  STAF_REMOTE_HOSTNAME }
       </call>
 

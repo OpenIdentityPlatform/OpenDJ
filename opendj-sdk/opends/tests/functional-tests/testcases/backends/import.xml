@@ -62,7 +62,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR }
+            { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR }
           </call>
 
           <call function="'checktestRC'">
@@ -101,7 +101,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
               'backEnd'     : 'nonDefault' }
           </call>
 
@@ -139,7 +139,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-b dc=com'
             }
           </call>
@@ -179,7 +179,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-b "dc=com" -b "dc=example,dc=com"'
             }
           </call>
@@ -219,7 +219,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-B "ou=Departed,ou=People,dc=example,dc=com"'
             }
           </call>
@@ -262,7 +262,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-B "ou=Departed,ou=People,dc=example,dc=com"'
             }
           </call>
@@ -305,7 +305,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-b dc=com -B "ou=Departed,ou=People,dc=example,dc=com"'
             }
           </call>
@@ -348,7 +348,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-i dc'
             }
           </call>
@@ -388,7 +388,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-i dc -i cn -i ou -i sn'
             }
           </call>
@@ -429,7 +429,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-e userpassword'
             }
           </call>
@@ -469,7 +469,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-e userpassword -e mail -e roomnumber'
             }
           </call>
@@ -509,7 +509,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-i dc -i cn -i ou -i sn -b "dc=com" -b "dc=example,dc=com" -b "ou=People,dc=example,dc=com" -B "ou=Departed,ou=People,dc=example,dc=com"'
             }
           </call>
@@ -552,7 +552,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-I "objectclass=*'
             }
           </call>
@@ -593,7 +593,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-E "objectclass=person"'
             }
           </call>
@@ -636,7 +636,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-I "objectclass=domain" -I "objectclass=organizationalunit"'
             }
           </call>
@@ -679,7 +679,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-E "objectclass=person" -E "objectclass=organizationalunit"'
             }
           </call>
@@ -719,7 +719,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Include.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-I "|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)"'
             }
           </call>
@@ -760,7 +760,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-E "&amp;(objectclass=person)(ou=Departed)"'
             }
           </call>
@@ -800,7 +800,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Exclude.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-E "&amp;(objectclass=person)(ou=Departed)" -b "dc=com" -e userpassword'
             }
           </call>
@@ -840,7 +840,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Append.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Append.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-a'
             }
           </call>
@@ -881,7 +881,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Append.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Append.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-a -r'
             }
           </call>
@@ -922,7 +922,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Example.ldif.gz' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Example.ldif.gz' % STAGED_DATA_DIR,
               'extraParams' : '-c'
             }
           </call>
@@ -963,7 +963,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-y'
             }
           </call>
@@ -1023,7 +1023,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-R %s/rejects.txt' % TMPDIR
             }
           </call>
@@ -1064,7 +1064,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Example.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-R %s/rejects.txt -O' % TMPDIR
             }
           </call>
@@ -1105,7 +1105,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Schema.ldif' % LDIF_DATA_DIR,
+            { 'ldifFile'    : '%s/backends/Schema.ldif' % STAGED_DATA_DIR,
               'extraParams' : '-s'
             }
           </call>
@@ -1146,7 +1146,7 @@
           <call function="'testCaseStartBanner'"/>
 
           <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/Schema.ldif' % LDIF_DATA_DIR }
+            { 'ldifFile'    : '%s/backends/Schema.ldif' % STAGED_DATA_DIR }
           </call>
 
           <call function="'checktestRC'">

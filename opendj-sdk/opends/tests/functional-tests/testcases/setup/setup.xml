@@ -32,96 +32,125 @@
 
   <function name="main_setup">
 
-      <sequence>
+    <sequence>
 
-      <!--- Prepare data files for transportation-->
-      <message>
-          'Delete existing zip archive if it exists already.'
-      </message>
+      <!-- Delete any existing files -->
+      <message>'Delete temporary staging area'</message>
+      <call function="'deletefolder'">
+        { 'foldername' : '%s' % (TMP_DATA_DIR),
+          'hostname'   :  STAF_LOCAL_HOSTNAME }
+      </call>
+
+      <message>'Delete existing zip archive.'</message>
       <call function="'deletefile'">
           { 'filename' : '%s/ldifdata.zip' % TMPDIR ,
             'hostname' : STAF_LOCAL_HOSTNAME }
       </call>
 
-      <!---   Zip up contents of tests directory -->
+      <!-- Copy static data files to temporary staging area -->
+      <!-- LDIF files -->
+      <message>'Copy ldif data files'</message>
+      <call function="'CopyFolderByExtension'">
+          { 'srcfolder'  : TESTS_DIR,
+            'destfolder' : TMP_DATA_DIR,
+            'extension'  : 'ldif',
+            'hostname'   : STAF_LOCAL_HOSTNAME
+          }
+      </call>
+
+      <!-- Archive (gz) files -->
+      <message>'Copy gz data files'</message>
+      <call function="'CopyFolderByExtension'">
+          { 'srcfolder'  : TESTS_DIR,
+            'destfolder' : TMP_DATA_DIR,
+            'extension'  : 'gz',
+            'hostname'   : STAF_LOCAL_HOSTNAME
+          }
+      </call>
+
+      <!-- Dynamically create ldif files for staging -->
+      <!-- Modify SSL port to user-defined value -->
+      <script>
+        write_ldaps_ldif_file('%s' % (TMP_DATA_DIR), '%s' % (DIRECTORY_INSTANCE_SSL_PORT));
+      </script>
+    
+      <!--  Zip up contents of tests directory -->
       <message>
           'Zip up data directory.'
       </message>
       <call function="'zipfile'">
-          { 'zipfilename' : '%s/ldifdata.zip' % TMPDIR , 
-            'foldername'  : TESTS_DIR ,
-            'relativeto'  : TESTS_ROOT }
+        { 'zipfilename' : '%s/ldifdata.zip' % TMPDIR , 
+          'foldername'  : TMP_DATA_DIR ,
+          'relativeto'  : TMPDIR }
       </call>
 
       <!---   Copy data to remote host -->
       <message>
-          'Copy tests to %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
+        'Copy tests to %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
       </message>
       <call function="'copyfile'">
-          { 'srcfile'    : '%s/ldifdata.zip' % TMPDIR,
-            'destfile'   : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR,
-            'remotehost' : STAF_REMOTE_HOSTNAME }
+        { 'srcfile'    : '%s/ldifdata.zip' % TMPDIR,
+          'destfile'   : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR,
+          'remotehost' : STAF_REMOTE_HOSTNAME }
       </call>
 
       <!---   Unzip contents of tests data on remote host -->
       <message>
-          'Extract contents of test data %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
+        'Extract contents of test data %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
       </message>
       <call function="'unzipfile'">
-          { 'zipfile'  : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR, 
-            'unzipdir' : '%s' % (DIRECTORY_INSTANCE_DIR),
-            'ziphost'  : STAF_REMOTE_HOSTNAME }
+        { 'zipfile'  : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR, 
+          'unzipdir' : '%s' % (DIRECTORY_INSTANCE_DIR),
+          'ziphost'  : STAF_REMOTE_HOSTNAME }
       </call>
 
       <!--- Install DS Copy zip file -->
-      <!--- XXX TODO XXX handle cases better -->
       <message>
-          'Copy DS zip archive to %s on %s' % (DSTFILE,STAF_REMOTE_HOSTNAME)
+        'Copy DS zip archive to %s on %s' % (DSTFILE,STAF_REMOTE_HOSTNAME)
       </message>
       <call function="'copyfile'">
             { 'srcfile'    : SRCFILE, 
-            'destfile'   : DSTFILE,
-            'remotehost' : STAF_REMOTE_HOSTNAME }
+              'destfile'   : DSTFILE,
+              'remotehost' : STAF_REMOTE_HOSTNAME }
       </call>
 
       <!--- Delete folder if it exists already-->
       <message>
-          'Delete folder %s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        'Delete folder %s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
       </message>
       <call function="'deletefolder'">
-          { 'foldername' : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
-            'hostname'   :  STAF_REMOTE_HOSTNAME }
+        { 'foldername' : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
+          'hostname'   :  STAF_REMOTE_HOSTNAME }
       </call>
 
       <!--- Install DS Extract zip file -->
-      <!--- XXX TODO XXX handle cases better -->
       <message>
-          'Extract DS zip archive to %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
+        'Extract DS zip archive to %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
       </message>
       <call function="'unzipfile'">
-          { 'zipfile'  : DSTFILE, 
-            'unzipdir' : '%s' % (DIRECTORY_INSTANCE_DIR),
-            'ziphost'  : STAF_REMOTE_HOSTNAME }
+        { 'zipfile'  : DSTFILE, 
+          'unzipdir' : '%s' % (DIRECTORY_INSTANCE_DIR),
+          'ziphost'  : STAF_REMOTE_HOSTNAME }
       </call>
 
       <!--- Test Case : Configure DS -->
       <testcase name="'ConfigureDS'">
         <sequence>
           <message>
-             'Configure DS to run on port %s with base suffix %s' % (DIRECTORY_INSTANCE_PORT,DIRECTORY_INSTANCE_SFX)
+           'Configure DS to run on port %s with base suffix %s' % (DIRECTORY_INSTANCE_PORT,DIRECTORY_INSTANCE_SFX)
           </message>
           <call function="'configureDS'">
               { 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceSuffix' : DIRECTORY_INSTANCE_SFX }
           </call>
           <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
           </call>
         </sequence>
       </testcase>
 
-     </sequence>
+    </sequence>
 
   </function>
 
