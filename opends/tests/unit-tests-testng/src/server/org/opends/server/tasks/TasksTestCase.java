@@ -63,7 +63,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
   protected void testTask(Entry taskEntry, TaskState expectedState)
        throws Exception
   {
-    testTask(taskEntry, expectedState, 10);
+    testTask(taskEntry, expectedState, 30);
   }
 
   /**
@@ -107,7 +107,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
         resultEntry = searchOperation.getSearchEntries().getFirst();
       } catch (Exception e)
       {
-        // FIXME How is this possible?
+        // FIXME How is this possible?  Must be issue 858.
 //        fail("Task entry was not returned from the search.");
         continue;
       }
