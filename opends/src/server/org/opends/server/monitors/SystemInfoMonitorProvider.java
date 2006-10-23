@@ -172,6 +172,8 @@ public class SystemInfoMonitorProvider
                               System.getProperty("java.vm.version")));
     attrs.add(createAttribute("jvmVendor",
                               System.getProperty("java.vm.vendor")));
+    attrs.add(createAttribute("javaHome",
+                              System.getProperty("java.home")));
     attrs.add(createAttribute("classPath",
                               System.getProperty("java.class.path")));
     attrs.add(createAttribute("workingDirectory",
