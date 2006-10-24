@@ -88,7 +88,7 @@
 
             <call function="'deletefile'">
             { 'filename' : '%s/../config/keystore' % (OPENDS_BINPATH),
-            'hostname' : STAF_LOCAL_HOSTNAME }
+            'hostname' : STAF_REMOTE_HOSTNAME }
             </call>
             
             <call function="'checktestRC'">
