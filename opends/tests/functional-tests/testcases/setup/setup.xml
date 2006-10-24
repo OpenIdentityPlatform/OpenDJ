@@ -71,7 +71,7 @@
       <!-- Dynamically create ldif files for staging -->
       <!-- Modify SSL port to user-defined value -->
       <script>
-        write_ldaps_ldif_file('%s' % (TMP_DATA_DIR), '%s' % (DIRECTORY_INSTANCE_SSL_PORT));
+        write_ldaps_ldif_file('%s/shared/data' % (TMP_DATA_DIR), '%s' % (DIRECTORY_INSTANCE_SSL_PORT));
       </script>
     
       <!--  Zip up contents of tests directory -->
