@@ -46,7 +46,27 @@
   
   <target name="usage">
     <echo>Usage for oulu test suite:
+  [all]
+    bootstrap a fresh instance of ${product.name}
+    run the oulu tests
+    wipeout the {{product.name} instance
     
+  [get-bits]
+    Download the bits from oulu university server
+    NOTE: if you are behind a proxy, you need to edit oulu.properties
+    and set proxy.host and proxy.port to relfect that.
+    
+  [pdu-tests]
+    run the application exceptions robustness test suite
+    
+  [ber-tests]
+    run the encryption exceptions robustness test suite
+    
+  [bootstrap]
+    install, configure and start an ${product.name} instance
+    
+  [wipeout]
+    stop and uninstall a previously bootstraped ${product.name} instance
     </echo>
   </target>
 
@@ -55,7 +75,12 @@
     <delete dir="${oulu.build.dir}" />
     <mkdir dir="${oulu.build.dir}" />
     <echo message="Downloading oulu bits ..." />
-    <setproxy proxyhost="${proxy.host}" proxyport="${proxy.port}" />
+    <setproxy proxyhost="${proxy..http.host}" 
+              proxyport="${proxy.http.port}" 
+              proxyuser="${proxy.http.user}" 
+              proxypassword="${proxy.http.pwd}" 
+              socksproxyhost="${proxy.socks.host}" 
+              socksproxyport="${proxy.socks.port}"/>
     <get 
       src="${oulu.home.url}/${oulu.ber.jar}" 
       dest="${oulu.build.dir}/${oulu.ber.jar}"
@@ -90,7 +115,6 @@
   
   <!-- installer related targets -->
   <target name="bootstrap">
-    <echo message="basedir=[${basedir}]" />
     <ant 
       antfile="installer.xml" 
       dir=".."
@@ -120,6 +144,10 @@
       <arg value="15"           />
       <!-- <arg value="-showreply"    /> -->
     </java>
+    <mkdir dir="${oulu.build.dir}/server-logs/pdu-tests" />
+    <copy todir="${oulu.build.dir}/server-logs/pdu-tests">
+      <fileset dir="${project.home.dir}/build/install/${product.name}-${product.version}/logs"/>
+    </copy>
   </target>
   <target name="ber-tests">
     <java 
@@ -133,12 +161,16 @@
       <arg value="-delay"       />
       <arg value="15"           />
     </java>
+    <mkdir dir="${oulu.build.dir}/server-logs/ber-tests" />
+    <copy todir="${oulu.build.dir}/server-logs/ber-tests">
+      <fileset dir="${project.home.dir}/build/install/${product.name}-${product.version}/logs"/>
+    </copy>
   </target>
   <!-- end of test related targets -->
   
   <!-- macros - chained targets -->
   <target name="all" >
-    <antcall target="boostrap"  />
+    <antcall target="bootstrap"  />
     <antcall target="get-bits"  />
     <antcall target="pdu-tests" />
     <antcall target="ber-tests" />
