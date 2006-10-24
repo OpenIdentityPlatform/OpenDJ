@@ -121,7 +121,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/ldaps_port.ldif' % (TMP_DATA_DIR) }
+                'entryToBeAdded'   : '%s/ldaps_port.ldif' % (STAGED_DATA_DIR) }
             </call>
 
             <call function="'checktestRC'">
