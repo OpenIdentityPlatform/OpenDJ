@@ -29,7 +29,6 @@ package org.opends.server.schema;
 import static org.testng.Assert.*;
 
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -81,36 +80,21 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(
                         DN.decode("cn=Bit String,cn=Syntaxes,cn=config"));
     syntax.initializeSyntax(configEntry);
-    
+
     ByteString byteStringValue = new ASN1OctetString(value);
 
     StringBuilder reason = new StringBuilder();
     Boolean liveResult =
       syntax.valueIsAcceptable(byteStringValue, reason);
-    
+
     if (liveResult != result)
-      fail(syntax + ".valueIsAcceptable gave bad result for " + value + 
+      fail(syntax + ".valueIsAcceptable gave bad result for " + value +
           "reason : " + reason);
-    if (result == true)
-    {
-      byte[] decodedValue =
-        BitStringSyntax.decodeBitStringValue(byteStringValue);
-    
-      ByteString newValue =
-        BitStringSyntax.createBitStringValue(decodedValue).getNormalizedValue();
-      
-      EqualityMatchingRule matchingRule = syntax.getEqualityMatchingRule();
-     /* disabled because it currently fails
-      * see issue 726
-      * 
-      * assertTrue(matchingRule.areEqual(byteStringValue, newValue));
-      */
-    }
 
     // call the getters
     syntax.getApproximateMatchingRule();
     syntax.getDescription();
-    
+
     syntax.getOID();
     syntax.getOrderingMatchingRule();
     syntax.getSubstringMatchingRule();
