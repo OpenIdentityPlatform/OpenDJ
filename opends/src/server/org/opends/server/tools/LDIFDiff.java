@@ -510,16 +510,13 @@ public class LDIFDiff
             {
               // There are no more target entries so all of the remaining source
               // entries are deletes.
-              while (true)
+              writeDelete(writer, sourceEntry);
+              differenceFound = true;
+              while (sourceIterator.hasNext())
               {
+                sourceDN = sourceIterator.next();
+                sourceEntry = sourceMap.get(sourceDN);
                 writeDelete(writer, sourceEntry);
-                differenceFound = true;
-                while (sourceIterator.hasNext())
-                {
-                  sourceDN = sourceIterator.next();
-                  sourceEntry = sourceMap.get(sourceDN);
-                  writeDelete(writer, sourceEntry);
-                }
               }
             }
           }
