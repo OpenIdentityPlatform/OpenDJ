@@ -26,20 +26,6 @@
 #      Portions Copyright 2006 Sun Microsystems, Inc.
 
 
-# Capture the current working directory so that we can change to it later.
-# Then apture the location of this script and the Directory Server instance
-# root so that we can use them to create appropriate paths.
-WORKING_DIR=`pwd`
-
-cd `dirname $0`
-SCRIPT_DIR=`pwd`
-
-INSTANCE_ROOT=${SCRIPT_DIR}
-export INSTANCE_ROOT
-
-cd ${WORKING_DIR}
-
-
 # See if JAVA_HOME is set.  If not, then see if there is a java executable in
 # the path and try to figure it out.
 if test -z "${JAVA_BIN}"
@@ -47,7 +33,7 @@ then
   if test -z "${JAVA_HOME}"
   then
     JAVA_BIN=`which java 2> /dev/null`
-    if test $? -eq 0
+    if test ${?} -eq 0
     then
       export JAVA_BIN
     else
@@ -60,10 +46,39 @@ then
   fi
 fi
 
+
+# Explicitly set the PATH, LD_LIBRARY_PATH, LD_PRELOAD, and other important
+# system environment variables for security and compatibility reasons.
+PATH=/bin:/usr/bin
+LD_LIBRARY_PATH=
+LD_LIBRARY_PATH_32=
+LD_LIBRARY_PATH_64=
+LD_PRELOAD=
+LD_PRELOAD_32=
+LD_PRELOAD_64=
+export PATH LD_LIBRARY_PATH LD_LIBRARY_PATH_32 LD_LIBRARY_PATH_64 \
+       LD_PRELOAD LD_PRELOAD_32 LD_PRELOAD_34
+
+
+# Capture the current working directory so that we can change to it later.
+# Then capture the location of this script and the Directory Server instance
+# root so that we can use them to create appropriate paths.
+WORKING_DIR=`pwd`
+
+cd `dirname "${0}"`
+SCRIPT_DIR=`pwd`
+
+INSTANCE_ROOT=${SCRIPT_DIR}
+export INSTANCE_ROOT
+
+cd "${WORKING_DIR}"
+
+
+# Configure the appropriate CLASSPATH.
 CLASSPATH=${INSTANCE_ROOT}/classes
 for JAR in ${INSTANCE_ROOT}/lib/*.jar
 do
-    CLASSPATH=${CLASSPATH}:${JAR}
+  CLASSPATH=${CLASSPATH}:${JAR}
 done
 export CLASSPATH
 
@@ -71,13 +86,13 @@ export CLASSPATH
 # Determine whether the detected Java environment is acceptable for use.
 if test -z "${JAVA_ARGS}"
 then
-  ${JAVA_BIN} -client org.opends.server.tools.InstallDS -t 2> /dev/null
-  if test $? -eq 0
+  "${JAVA_BIN}" -client org.opends.server.tools.InstallDS -t 2> /dev/null
+  if test ${?} -eq 0
   then
     JAVA_ARGS="-client"
   else
-    ${JAVA_BIN} org.opends.server.tools.InstallDS -t 2> /dev/null
-    if test $? -ne 0
+    "${JAVA_BIN}" org.opends.server.tools.InstallDS -t 2> /dev/null
+    if test ${?} -ne 0
     then
       echo "ERROR:  The detected Java version could not be used.  Please set "
       echo "        JAVA_HOME to the root of a Java 5.0 installation."
@@ -85,8 +100,8 @@ then
     fi
   fi
 else
-  ${JAVA_BIN} ${JAVA_ARGS} org.opends.server.tools.InstallDS -t 2> /dev/null
-  if test $? -ne 0
+  "${JAVA_BIN}" ${JAVA_ARGS} org.opends.server.tools.InstallDS -t 2> /dev/null
+  if test ${?} -ne 0
   then
     echo "ERROR:  The detected Java version could not be used.  Please set "
     echo "        JAVA_HOME to the root of a Java 5.0 installation."
@@ -95,7 +110,8 @@ else
 fi
 
 
-${JAVA_BIN} ${JAVA_ARGS} org.opends.server.tools.InstallDS \
+# Launch the setup process.
+"${JAVA_BIN}" ${JAVA_ARGS} org.opends.server.tools.InstallDS \
      --configClass org.opends.server.extensions.ConfigFileHandler \
-     --configFile ${INSTANCE_ROOT}/config/config.ldif -P ${0} "${@}"
+     --configFile "${INSTANCE_ROOT}/config/config.ldif" -P "${0}" "${@}"
 

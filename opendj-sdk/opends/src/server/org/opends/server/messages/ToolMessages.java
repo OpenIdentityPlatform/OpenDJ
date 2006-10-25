@@ -6632,6 +6632,73 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * targetFile argument.  It does not take any arguments.
+   */
+  public static final int MSGID_WAIT4DEL_DESCRIPTION_TARGET_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 675;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * logFile argument.  It does not take any arguments.
+   */
+  public static final int MSGID_WAIT4DEL_DESCRIPTION_LOG_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 676;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * timeout argument.  It does not take any arguments.
+   */
+  public static final int MSGID_WAIT4DEL_DESCRIPTION_TIMEOUT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 677;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * help argument.  It does not take any arguments.
+   */
+  public static final int MSGID_WAIT4DEL_DESCRIPTION_HELP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 678;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to initialize the command-line argument parser.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_WAIT4DEL_CANNOT_INITIALIZE_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 679;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * parsing the provided command-line arguments.  This takes a single argument,
+   * which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_WAIT4DEL_ERROR_PARSING_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 680;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to open the log file for reading.  This takes two arguments, which
+   * are the path to the log file and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_WAIT4DEL_CANNOT_OPEN_LOG_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 681;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8794,6 +8861,26 @@ public class ToolMessages
     registerMessage(MSGID_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE,
                     "Unable to decode the password modify response value:  " +
                     "%s.");
+
+
+    registerMessage(MSGID_WAIT4DEL_DESCRIPTION_TARGET_FILE,
+                    "Specifies the path to the file to watch for deletion.");
+    registerMessage(MSGID_WAIT4DEL_DESCRIPTION_LOG_FILE,
+                    "Specifies the path to a file containing log output to " +
+                    "monitor.");
+    registerMessage(MSGID_WAIT4DEL_DESCRIPTION_TIMEOUT,
+                    "The maximum length of time in seconds to wait for the " +
+                    "target file to be deleted before exiting.");
+    registerMessage(MSGID_WAIT4DEL_DESCRIPTION_HELP,
+                    "Displays this usage information.");
+    registerMessage(MSGID_WAIT4DEL_CANNOT_INITIALIZE_ARGS,
+                    "An unexpected error occurred while attempting to " +
+                    "initialize the command-line arguments:  %s.");
+    registerMessage(MSGID_WAIT4DEL_ERROR_PARSING_ARGS,
+                    "An error occurred while parsing the command-line " +
+                    "arguments:  %s.");
+    registerMessage(MSGID_WAIT4DEL_CANNOT_OPEN_LOG_FILE,
+                    "WARNING:  Unable to open log file %s for reading:  %s.");
   }
 }
 

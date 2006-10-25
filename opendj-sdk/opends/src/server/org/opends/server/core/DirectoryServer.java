@@ -27,6 +27,9 @@
 package org.opends.server.core;
 
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -142,6 +145,7 @@ import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 import org.opends.server.types.WritabilityMode;
+import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -1041,6 +1045,16 @@ public class DirectoryServer
       // Deregister the startup-specific debug and error loggers.
       removeDebugLogger(startupDebugLogger);
       removeErrorLogger(startupErrorLogger);
+
+
+      // If a server.starting file exists, then remove it.
+      File serverStartingFile =
+                new File(configHandler.getServerRoot() + File.separator +
+                         "logs" + File.separator + "server.starting");
+      if (serverStartingFile.exists())
+      {
+        serverStartingFile.delete();
+      }
     }
   }
 
@@ -7408,6 +7422,7 @@ public class DirectoryServer
     BooleanArgument displayUsage = null;
     BooleanArgument dumpMessages = null;
     BooleanArgument fullVersion  = null;
+    BooleanArgument noDetach     = null;
     BooleanArgument systemInfo   = null;
     BooleanArgument version      = null;
     StringArgument  configClass  = null;
@@ -7458,6 +7473,12 @@ public class DirectoryServer
                                          MSGID_DSCORE_DESCRIPTION_DUMPMESSAGES);
       dumpMessages.setHidden(true);
       argParser.addArgument(dumpMessages);
+
+
+      noDetach = new BooleanArgument("nodetach", 'N', "noDetach",
+                                     MSGID_DSCORE_DESCRIPTION_NODETACH);
+      noDetach.setHidden(true);
+      argParser.addArgument(noDetach);
 
 
       displayUsage = new BooleanArgument("help", 'H', "help",
@@ -7539,6 +7560,8 @@ public class DirectoryServer
                          System.getProperty("java.vm.version"));
       System.out.println("JVM Vendor:             " +
                          System.getProperty("java.vm.vendor"));
+      System.out.println("Java Home:              " +
+                         System.getProperty("java.home"));
       System.out.println("Class Path:             " +
                          System.getProperty("java.class.path"));
       System.out.println("Current Directory:      " +
@@ -7578,6 +7601,75 @@ public class DirectoryServer
       }
 
       return;
+    }
+
+
+    // Redirect standard output and standard error to the server.out file.  If
+    // the server hasn't detached from the terminal, then also continue writing
+    // to the original standard output and standard error.  Also, configure the
+    // JVM to delete the PID file on exit, if it exists.
+    PrintStream serverOutStream;
+    try
+    {
+      // We need to figure out where to put the file.  See if the server root
+      // is available as an environment variable and if so then use it.
+      // Otherwise, try to figure it out from the location of the config file.
+      String serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
+      if (serverRoot == null)
+      {
+        serverRoot = new File(configFile.getValue()).getParentFile().
+                              getParentFile().getAbsolutePath();
+      }
+
+      if (serverRoot == null)
+      {
+        System.err.println("WARNING:  Unable to determine server root in " +
+                           "order to redirect standard output and standard " +
+                           "error.");
+      }
+      else
+      {
+        File logDir = new File(serverRoot + File.separator + "logs");
+        if (logDir.exists())
+        {
+          FileOutputStream fos =
+               new FileOutputStream(new File(logDir, "server.out"), true);
+          serverOutStream = new PrintStream(fos);
+
+          if (noDetach.isPresent())
+          {
+            MultiOutputStream multiStream =
+                 new MultiOutputStream(System.out, serverOutStream);
+            serverOutStream = new PrintStream(multiStream);
+          }
+
+          System.setOut(serverOutStream);
+          System.setErr(serverOutStream);
+
+          File f = new File(logDir, "server.pid");
+          if (f.exists())
+          {
+            f.deleteOnExit();
+          }
+
+          f = new File(logDir, "server.starting");
+          if (f.exists())
+          {
+            f.deleteOnExit();
+          }
+        }
+        else
+        {
+          System.err.println("WARNING:  Unable to redirect standard output " +
+                             "and standard error because the logs directory " +
+                             logDir.getAbsolutePath() + " does not exist.");
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      System.err.println("WARNING:  Unable to redirect standard output and " +
+                         "standard error:  " + stackTraceToSingleLineString(e));
     }
 
 
