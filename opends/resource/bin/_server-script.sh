@@ -26,6 +26,15 @@
 #      Portions Copyright 2006 Sun Microsystems, Inc.
 
 
+# This script is used to invoke various server-side processes.  It should not
+# be invoked directly by end users.
+if test -z "${OPENDS_INVOKE_CLASS}"
+then
+  echo "ERROR:  OPENDS_INVOKE_CLASS environment variable is not set."
+  exit 1
+fi
+
+
 # See if JAVA_HOME is set.  If not, then see if there is a java executable in
 # the path and try to figure it out.
 if test -z "${JAVA_BIN}"
@@ -84,34 +93,7 @@ done
 export CLASSPATH
 
 
-# Specify the locations of important files that may be used when the server
-# is starting.
-CONFIG_FILE=${INSTANCE_ROOT}/config/config.ldif
-PID_FILE=${INSTANCE_ROOT}/logs/server.pid
-LOG_FILE=${INSTANCE_ROOT}/logs/server.out
-STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
-
-
-# See if "-nodetach" was specified as the first command-line argument.  If it
-# was, then don't use nohup to send to the background, and send all output to
-# both the console and a log file.
-if test "${1}" = "-nodetach"
-then
-  shift
-  echo $$ > "${PID_FILE}"
-  rm -f "${PID_FILE}" "${LOG_FILE}"
-  exec "${JAVA_BIN}" ${JAVA_ARGS} \
-       org.opends.server.core.DirectoryServer \
-       --configClass org.opends.server.extensions.ConfigFileHandler \
-       --configFile "${CONFIG_FILE}" --noDetach "${@}"
-else
-  touch "${STARTING_FILE}"
-  nohup "${JAVA_BIN}" ${JAVA_ARGS} \
-       org.opends.server.core.DirectoryServer \
-       --configClass org.opends.server.extensions.ConfigFileHandler \
-       --configFile "${CONFIG_FILE}" "${@}" > "${LOG_FILE}" 2>&1 &
-  echo $! > "${PID_FILE}"
-  "${JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
-       --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}"
-  exit ${?}
-fi
+# Launch the appropriate server utility.
+"${JAVA_BIN}" ${JAVA_ARGS} "${OPENDS_INVOKE_CLASS}" \
+     --configClass org.opends.server.extensions.ConfigFileHandler \
+     --configFile "${INSTANCE_ROOT}/config/config.ldif" "${@}"

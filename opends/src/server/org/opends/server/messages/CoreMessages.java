@@ -5937,6 +5937,15 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * noDetach command-line argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DSCORE_DESCRIPTION_NODETACH =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 567;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -7208,6 +7217,9 @@ public class CoreMessages
     registerMessage(MSGID_DSCORE_DESCRIPTION_DUMPMESSAGES,
                     "Dumps a list of all messages that have been defined " +
                     "for use in the Directory Server.");
+    registerMessage(MSGID_DSCORE_DESCRIPTION_NODETACH,
+                    "Indicates that the Directory Server has not detached " +
+                    "from the terminal used to start it.");
     registerMessage(MSGID_DSCORE_DESCRIPTION_USAGE,
                     "Displays usage information for the Directory Server.");
     registerMessage(MSGID_DSCORE_CANNOT_INITIALIZE_ARGS,
