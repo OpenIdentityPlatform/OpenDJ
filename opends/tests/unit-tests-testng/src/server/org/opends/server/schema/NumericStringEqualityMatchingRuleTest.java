@@ -58,11 +58,8 @@ public class NumericStringEqualityMatchingRuleTest extends
     return new Object[][] {
         {"1234567890", "1234567890", true },
         {" 1234567890  ", "1234567890", true },
-        /* disabled because it is currently failing 
-         * see issue : 707
-        {" 123   4567890  ", "1234567890", false },
-        */
-        {"1234",       "5678",       false }, 
+        {" 123   4567890  ", "1234567890", true },
+        {"1234",       "5678",       false },
     };
 
   }
