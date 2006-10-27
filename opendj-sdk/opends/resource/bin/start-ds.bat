@@ -36,7 +36,7 @@ goto setClassPath
 :noJavaBin
 if "%JAVA_HOME%" == "" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
-set JAVA_BIN="%JAVA_HOME%\bin\java.exe"
+set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
 :noJavaHome
@@ -48,9 +48,12 @@ goto end
 :setClassPath
 FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
 
-cd %DIR_HOME%
+set PATH=%SystemRoot%
 
-%JAVA_BIN% %JAVA_ARGS% -classpath "%CLASSPATH%" org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
+if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
+start "OpenDS %DIR_HOME%" /B "%JAVA_BIN%" %JAVA_ARGS% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out"
 
 
 :end
