@@ -25,8 +25,44 @@ rem
 rem
 rem      Portions Copyright 2006 Sun Microsystems, Inc.
 
+rem This script is used to invoke various server-side processes.  It should not
+rem be invoked directly by end users.
+
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDAPCompare"
-call %~dP0\_client-script.bat %*
+set DIR_HOME=%~dP0..
+set INSTANCE_ROOT=%DIR_HOME%
+
+if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass
+goto checkJavaBin
+
+:noInvokeClass
+echo Error:  OPENDS_INVOKE_CLASS environment variable is not set.
+goto end
+
+:checkJavaBin
+if "%JAVA_BIN%" == "" goto noJavaBin
+goto setClassPath
+
+:noJavaBin
+if "%JAVA_HOME%" == "" goto noJavaHome
+if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
+set JAVA_BIN="%JAVA_HOME%\bin\java.exe"
+goto setClassPath
+
+:noJavaHome
+echo Error: JAVA_HOME environment variable is not set.
+echo        Please set it to a valid Java 5 installation.
+goto end
+
+
+:setClassPath
+FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
+
+set PATH=%SystemRoot%
+
+%JAVA_BIN% %JAVA_ARGS% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+
+
+:end
 
