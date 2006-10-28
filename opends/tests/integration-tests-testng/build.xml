@@ -37,15 +37,17 @@
     <format property="run.time" pattern="yyyy.MM.dd-HH.mm.ss"                />
   </tstamp>
   
-  <property file="../product.properties"                      />
+  <property file="../../PRODUCT"                                             />
+  <property name="product.version" 
+            value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}"    />
   <!-- in case there's a custom installer properties file    -->
-  <property file="../installer.properties"         />
+  <property file="../installer.properties"                    />
   <!-- in case there isn't - load default values             -->
   <property file="../default.installer.properties"            />
 
   <!-- General build-wide properties                                        -->
   <property name="opends.dir"       location="../.."                         />
-  <property name="tests.src.dir"    location="${basedir}/src/server"                    />
+  <property name="tests.src.dir"    location="${basedir}/src/server"         />
   <property name="tests.build.dir"     
             location="${opends.dir}/build/integration-tests"                 />
   <property name="tests.classes"
@@ -249,7 +251,7 @@
     
     <!-- convert the testng results to junit -->
     <junitreport todir="${tests.run.dir}/reports/junit">
-      <fileset dir="${tests.run.dir}/reports/testng/${product.name}">
+      <fileset dir="${tests.run.dir}/reports/testng/${SHORT_NAME}">
         <include name="integration-tests.xml"/>
       </fileset>
     </junitreport>
@@ -259,7 +261,7 @@
     <delete dir="${tests.run.dir}/backup" />
     <!-- save the server log files for issues investigation -->
     <copy todir="${tests.run.dir}/logs/server">
-      <fileset dir="${opends.dir}/build/install/${product.name}-${product.version}/logs"/>
+      <fileset dir="${opends.dir}/build/install/${SHORT_NAME}-${product.version}/logs"/>
     </copy>
     
     

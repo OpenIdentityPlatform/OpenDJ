@@ -34,11 +34,14 @@
   <!-- this one has to be loaded first since it's used in
     default.installer.properties
   -->
-	<property file="product.properties"                       />
-	<!-- this is an optional file if you want to pass custom values  -->
-	<property file="installer.properties"                     />
-	<!-- this is the file where the default values are defined       -->
-	<property file="default.installer.properties"             />
+	<property file="../PRODUCT"                                                />
+  <property name="product.name"    value="${SHORT_NAME}"                     />
+  <property name="product.version" 
+            value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}"    />
+	<!-- this is an optional file if you want to pass custom values           -->
+	<property file="installer.properties"                                      />
+	<!-- this is the file where the default values are defined                -->
+	<property file="default.installer.properties"                              />
 	<!-- Define default values for mandatory properties in case the
 		property files would not be found
 	-->
