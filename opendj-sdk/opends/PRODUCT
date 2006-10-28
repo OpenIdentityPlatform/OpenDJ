@@ -8,7 +8,7 @@ SHORT_NAME=OpenDS
 MAJOR_VERSION=0
 
 # The minor version number for the Directory Server.  It must be an integer.
-MINOR_VERSION=3
+MINOR_VERSION=1
 
 # The point version number for the Directory Server.  It must be an integer.
 # The point version will generally not be displayed to the end user but may be
@@ -21,7 +21,7 @@ POINT_VERSION=0
 # but may include additional text like "BETA1" or "SP2" for updates that do not
 # warrant incrementing the major or minor version.  However, the point version
 # should be incremented every time a new qualifier is used.
-VERSION_QUALIFIER=test
+VERSION_QUALIFIER=
 
 # A comma-delimited list of bug IDs for fixes included in this build.  This
 # should be set in any non-official build given to a customer to address a
