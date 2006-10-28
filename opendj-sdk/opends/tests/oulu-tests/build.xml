@@ -33,7 +33,10 @@
   </description>
   
   <property name="project.home.dir"  value="${basedir}/../.." />
-  <property file="../product.properties"                      />
+  <property file="../../PRODUCT"                              />
+  <property name="product.name"      value="${SHORT_NAME}"    />
+  <property name="product.version" 
+            value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}"    />
   <!-- in case there's a custom installer properties file    -->
   <property file="../installer.properties"                    />
   <!-- in case there isn't - load default values             -->
