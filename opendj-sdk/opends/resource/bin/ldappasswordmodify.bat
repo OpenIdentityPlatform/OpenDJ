@@ -28,5 +28,5 @@ rem      Portions Copyright 2006 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDAPPasswordModify"
-call %~dP0\_client-script.bat %*
+call "%~dP0\_client-script.bat" %*
 
