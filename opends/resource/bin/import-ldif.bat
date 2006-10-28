@@ -28,5 +28,5 @@ rem      Portions Copyright 2006 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.ImportLDIF"
-call %~dP0\_server-script.bat %*
+call "%~dP0\_server-script.bat" %*
 

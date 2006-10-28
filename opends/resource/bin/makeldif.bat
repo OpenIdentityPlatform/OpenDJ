@@ -28,5 +28,5 @@ rem      Portions Copyright 2006 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.makeldif.MakeLDIF"
-call %~dP0\_server-script.bat --resourcePath "%~dP0..\config\MakeLDIF" %*
+call "%~dP0\_server-script.bat" --resourcePath "%~dP0..\config\MakeLDIF" %*
 
