@@ -77,7 +77,7 @@ subtargets=
     </unzip>
     <chmod perm="755">
       <fileset dir="${full.install.dir}/bin">
-        <include name="*.sh"/>
+        <exclude name="*.bat"/>
       </fileset>
     </chmod>
   </target>
@@ -152,7 +152,7 @@ subtargets=
      spawn="true"                                                           />
     <exec
       os="${unix.list}"
-      executable="${full.install.dir}/bin/start-ds.sh"
+      executable="${full.install.dir}/bin/start-ds"
       spawn="true"                                                           />
   </target>
 	<target name="start">
@@ -182,7 +182,7 @@ subtargets=
     </exec>
     <exec 
       os="${unix.list}"
-      executable="${full.install.dir}/bin/stop-ds.sh" 
+      executable="${full.install.dir}/bin/stop-ds" 
       spawn="true"                                   >
       <arg line="-h ${host.name}"/>
       <arg line="-p ${port.ldap}"/>
