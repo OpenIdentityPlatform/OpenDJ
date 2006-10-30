@@ -836,6 +836,25 @@ modifyProcessing:
       }
 
 
+      // If the user must change their password before doing anything else, and
+      // if the target of the modify operation isn't the user's own entry, then
+      // reject the request.
+      if (clientConnection.mustChangePassword())
+      {
+        DN authzDN = getAuthorizationDN();
+        if ((authzDN != null) && (! authzDN.equals(entryDN)))
+        {
+          // The user will not be allowed to do anything else before
+          // the password gets changed.
+          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+          int msgID = MSGID_MODIFY_MUST_CHANGE_PASSWORD;
+          appendErrorMessage(getMessage(msgID));
+          break modifyProcessing;
+        }
+      }
+
+
       // Check for and handle a request to cancel this operation.
       if (cancelRequest != null)
       {
@@ -1283,7 +1302,8 @@ modifyProcessing:
             pwPolicyState.clearGraceLoginTimes();
             pwPolicyState.clearWarnedTime();
 
-            if (pwPolicyState.forceChangeOnReset())
+            if (pwPolicyState.forceChangeOnAdd() ||
+                pwPolicyState.forceChangeOnReset())
             {
               pwPolicyState.setMustChangePassword(! selfChange);
             }
