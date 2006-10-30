@@ -1,0 +1,174 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2006 Sun Microsystems, Inc.
+ ! -->
+
+<project name="opends-tests-functional" basedir="." default="usage">
+  <description>
+    the purpose of this ant file is to facilitate and automate the
+    functional testing of opends
+  </description>
+  
+  <property name="project.home.dir"  
+            value="${basedir}${file.separator}..${file.separator}.."         />
+  <property name="project.build.dir" value="${project.home.dir}${file.separator}build"       />
+  <property name="functional.home.dir" 
+            value="${project.build.dir}${file.separator}functional-tests"                    />
+  <property file="..${file.separator}..${file.separator}PRODUCT"             />
+  <property name="product.name"      value="${SHORT_NAME}"                   />
+  <property name="product.version" 
+            value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}"    />
+  <!-- in case there's a custom installer properties file                   -->
+  <property file="..${file.separator}installer.properties"                   />
+  <!-- in case there isn't - load default values                            -->
+  <property file="..${file.separator}default.installer.properties"           />
+  <!-- functional tests specific properties                                 -->
+  <property file="functional.properties"                                     />
+  <tstamp>
+    <format property="run.time" pattern="yyyy.MM.dd-HH.mm.ss"                />
+  </tstamp>
+  <condition property="isWindows" >
+    <os family="windows" />
+  </condition>
+  <condition property="staf.jar" value="STAF315-setup-win32.jar">
+    <os family="windows" />
+  </condition>
+  <property name="staf.lib.dir" 
+        value="${project.home.dir}${file.separator}ext${file.separator}staf" />
+  <property name="staf.install.dir" 
+            value="${functional.home.dir}${file.separator}staf"              />
+  <property name="staf.services.dir" 
+            value="${staf.install.dir}${file.separator}services"             />
+  
+  <target name="usage">
+    <echo>Usage for oulu test suite:
+  [all]
+    bootstrap a fresh instance of ${product.name}
+    run the functional tests
+    wipeout the {{product.name} instance
+  
+  [install]
+    
+  [run-tests]
+    run the functional tests
+    
+  [bootstrap]
+    install, configure and start an ${product.name} instance
+    
+  [wipeout]
+    stop and uninstall a previously bootstraped ${product.name} instance
+    </echo>
+  </target>
+
+  <!-- install the staf bits on the box -->
+  <target name="install.do" >
+    <java 
+      fork="true"
+      dir="${staf.lib.dir}"
+      jar="${staf.lib.dir}${file.separator}${staf.jar}" >
+      <arg value="-silent"                                                   />
+      <!-- argument switch for the staf installer -->
+      <arg value="-W"                                                        />
+      <!-- installation directory -->
+      <arg line='stafinstalldirectory.defaultInstallLocation="${staf.install.dir}"'/>
+      <!-- silent acceptance of the staf license -->
+      <arg line='license.selection="Accept"'                                 />
+      <arg line='stafOptions.updateEnvironmentVariables="None"'              />
+    </java>
+  </target>
+  
+  <target name="install" >
+    <mkdir dir="${func.build.dir}"    />
+    <antcall target="install.do"      />
+    <mkdir dir="${staf.services.dir}" />
+    <unzip dest="${staf.services.dir}"> 
+     <fileset dir="${staf.lib.dir}">
+       <include name="*.zip"/>
+     </fileset>
+    </unzip>
+    <delete 
+      file="${staf.install.dir}${file.separator}bin${file.separator}STAF.cfg"/>
+    <copy file="${basedir}/STAF.cfg.stubs"
+          tofile="${staf.install.dir}${file.separator}bin${file.separator}STAF.cfg"
+          overwrite="true"                 >
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
+  </target>
+  <!-- end of staf installation -->
+  
+  <!-- staf uninstallation -->
+  <target name="uninstall.do" >
+    <exec executable="${staf.install.dir}${file.separator}_uninst/uninstaller">
+      <arg value="-silent" />
+    </exec>
+  </target>
+  
+  <target name="uninstall">
+    <antcall target="uninstall.do"    />
+    <delete dir="${staf.install.dir}" />
+  </target>
+  <!-- end of staf uninstallation -->
+  
+  <!-- run the functional tests -->
+<!--  <taskdef name="staf" classpath="${staf.install.dir}\bin\STAFAnt.jar" classname="com.ibm.staf.ant.taskdef.STAF"  /> -->
+  <!-- end of run functional tests related targets -->
+  
+  <target name="pouet" >
+    <echo message="os.name=${os.name}" />
+    <echo message="os.arch=${os.arch}" />
+    <echo message="file.separator=${file.separator}" />
+    
+  </target>
+  
+ 
+  <!-- installer related targets -->
+  <target name="bootstrap">
+    <ant 
+      antfile="installer.xml" 
+      dir=".."
+      target="bootstrap"
+      inheritAll="false" />
+  </target>
+  <target name="wipeout">
+    <ant 
+      antfile="installer.xml" 
+      dir=".."
+      target="wipeout"
+      inheritAll="false" />
+  </target>
+  <!-- end of installer related targets -->
+
+  
+  <!-- macros - chained targets -->
+  <target name="all" >
+    <antcall target="bootstrap"  />
+    <antcall target="install"  />
+    <antcall target="run-tests" />
+    <antcall target="uninstall" />
+    <antcall target="wipeout"   />
+  </target>
+</project>
