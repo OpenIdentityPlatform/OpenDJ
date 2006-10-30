@@ -28,29 +28,37 @@
  -->
 <stax>
 
-  <defaultcall function="main_security"/>
+  <defaultcall function="setup_pwd_policy"/>
 
-  <function name="main_security">
+  <function name="setup_pwd_policy">
 
       <sequence>
-      
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-          file="'%s/testcases/security/jks/security_jks.xml' % (TESTS_DIR)"/>
-	<call function="'security_jks'" />
 
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-          file="'%s/testcases/security/pkcs12/security_pkcs12.xml' % (TESTS_DIR)"/>
-	<call function="'security_pkcs12'" />
+        <!--- Test Case : Add Entries for Password Policy Tests -->
+        <testcase name="'Security:Pwd Policy: Add Initial Entries'">
+          <sequence>
+            <message>
+               'Security: Pwd Policy: Adding Initial Entries'
+            </message>
 
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-          file="'%s/testcases/security/startTLS/security_startTLS.xml' % (TESTS_DIR)"/>
-	<call function="'security_startTLS'" />
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/security/pwd_policy/pwd_policy_startup.ldif' % STAGED_DATA_DIR }
+            </call>
 
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-          file="'%s/testcases/security/pwd_policy/security_pwd_policy.xml' % (TESTS_DIR)"/>
-	<call function="'security_pwd_policy'" />
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
 
-      </sequence>
+        <return>RC</return>
+
+     </sequence>
 
   </function>
 
