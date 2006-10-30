@@ -102,197 +102,222 @@ public class LDAPSearchTestCase
   @DataProvider(name = "invalidArgs")
   public Object[][] getInvalidArgumentLists()
   {
-    ArrayList<String[]> argLists = new ArrayList<String[]>();
+    ArrayList<String[]> argLists   = new ArrayList<String[]>();
+    ArrayList<String>   reasonList = new ArrayList<String>();
 
-    String[] args = {}; // No arguments
+    String[] args = {};
     argLists.add(args);
+    reasonList.add("No arguments");
 
-    args = new String[] // No value for '-b' argument
+    args = new String[]
     {
       "-b"
     };
     argLists.add(args);
+    reasonList.add("No value for '-b' argument");
 
-    args = new String[] // No value for '-D' argument
+    args = new String[]
     {
       "-D"
     };
     argLists.add(args);
+    reasonList.add("No value for '-D' argument");
 
-    args = new String[] // No value for '-w' argument
+    args = new String[]
     {
       "-w"
     };
     argLists.add(args);
+    reasonList.add("No value for '-w' argument");
 
-    args = new String[] // No value for '-j' argument
+    args = new String[]
     {
       "-j"
     };
     argLists.add(args);
+    reasonList.add("No value for '-j' argument");
 
-    args = new String[] // No value for '-Y' argument
+    args = new String[]
     {
       "-Y"
     };
     argLists.add(args);
+    reasonList.add("No value for '-Y' argument");
 
-    args = new String[] // No value for '-i' argument
+    args = new String[]
     {
       "-i"
     };
     argLists.add(args);
+    reasonList.add("No value for '-i' argument");
 
-    args = new String[] // No value for '-K' argument
+    args = new String[]
     {
       "-K"
     };
     argLists.add(args);
+    reasonList.add("No value for '-K' argument");
 
-    args = new String[] // No value for '-P' argument
+    args = new String[]
     {
       "-P"
     };
     argLists.add(args);
+    reasonList.add("No value for '-P' argument");
 
-    args = new String[] // No value for '-W' argument
+    args = new String[]
     {
       "-W"
     };
     argLists.add(args);
+    reasonList.add("No value for '-W' argument");
 
-    args = new String[] // No value for '-h' argument
+    args = new String[]
     {
       "-h"
     };
     argLists.add(args);
+    reasonList.add("No value for '-h' argument");
 
-    args = new String[] // No value for '-p' argument
+    args = new String[]
     {
       "-p"
     };
     argLists.add(args);
+    reasonList.add("No value for '-p' argument");
 
-    args = new String[] // No value for '-V' argument
+    args = new String[]
     {
       "-V"
     };
     argLists.add(args);
+    reasonList.add("No value for '-V' argument");
 
-    args = new String[] // No value for '-f' argument
+    args = new String[]
     {
       "-f"
     };
     argLists.add(args);
+    reasonList.add("No value for '-f' argument");
 
-    args = new String[] // No value for '-J' argument
+    args = new String[]
     {
       "-J"
     };
     argLists.add(args);
+    reasonList.add("No value for '-J' argument");
 
-    args = new String[] // No value for '-z' argument
+    args = new String[]
     {
       "-z"
     };
     argLists.add(args);
+    reasonList.add("No value for '-z' argument");
 
-    args = new String[] // No value for '-l' argument
+    args = new String[]
     {
       "-l"
     };
     argLists.add(args);
+    reasonList.add("No value for '-l' argument");
 
-    args = new String[] // No value for '-s' argument
+    args = new String[]
     {
       "-s"
     };
     argLists.add(args);
+    reasonList.add("No value for '-s' argument");
 
-    args = new String[] // No value for '-a' argument
+    args = new String[]
     {
       "-a"
     };
     argLists.add(args);
+    reasonList.add("No value for '-a' argument");
 
-    args = new String[] // No value for '-o' argument
+    args = new String[]
     {
       "-o"
     };
     argLists.add(args);
+    reasonList.add("No value for '-o' argument");
 
-    args = new String[] // No value for '-c' argument
+    args = new String[]
     {
       "-c"
     };
     argLists.add(args);
+    reasonList.add("No value for '-c' argument");
 
-    args = new String[] // No value for '--assertionFilter' argument
+    args = new String[]
     {
       "--assertionFilter"
     };
     argLists.add(args);
+    reasonList.add("No value for '--assertionFilter' argument");
 
-    args = new String[] // No value for '--matchedValuesFilter' argument
+    args = new String[]
     {
       "--matchedValuesFilter"
     };
     argLists.add(args);
+    reasonList.add("No value for '--matchedValuesFilter' argument");
 
-    args = new String[] // Invalid short argument
+    args = new String[]
     {
       "-I"
     };
     argLists.add(args);
+    reasonList.add("Invalid short argument");
 
-    args = new String[] // Invalid long argument
+    args = new String[]
     {
       "--invalidLongArgument"
     };
     argLists.add(args);
+    reasonList.add("Invalid long argument");
 
-    args = new String[] // No base DN
+    args = new String[]
     {
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("No base DN");
 
-    args = new String[] // Base DN with no value
-    {
-      "-b"
-    };
-    argLists.add(args);
-
-    args = new String[] // No filter
+    args = new String[]
     {
       "-b", ""
     };
     argLists.add(args);
+    reasonList.add("No filter");
 
-    args = new String[] // Invalid search filter
+    args = new String[]
     {
       "-b", "",
       "(invalidfilter)"
     };
     argLists.add(args);
+    reasonList.add("Invalid search filter");
 
-    args = new String[] // Invalid assertion filter
+    args = new String[]
     {
       "-b", "",
       "--assertionFilter", "(invalidfilter)",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid assertion filter");
 
-    args = new String[] // Invalid matched values filter
+    args = new String[]
     {
       "-b", "",
       "--matchedValuesFilter", "(invalidfilter)",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid matched values filter");
 
-    args = new String[] // Invalid bind password file path
+    args = new String[]
     {
       "-D", "cn=Directory Manager",
       "-j", "no.such.file",
@@ -300,8 +325,9 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid bind password file path");
 
-    args = new String[] // Both bind password and password file
+    args = new String[]
     {
       "-D", "cn=Directory Manager",
       "-w", "password",
@@ -310,143 +336,143 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Both bind password and bind password file");
 
-    args = new String[] // Non-numeric LDAP version.
+    args = new String[]
     {
       "-b", "",
       "-V", "nonnumeric",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Non-numeric LDAP version");
 
-    args = new String[] // Invalid LDAP version.
+    args = new String[]
     {
       "-b", "",
       "-V", "1",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid LDAP version");
 
-    args = new String[] // Invalid filter file path.
+    args = new String[]
     {
       "-b", "",
       "-f", "no.such.file"
     };
     argLists.add(args);
+    reasonList.add("Invalid filter file path");
 
-    args = new String[] // Invalid control criticality
+    args = new String[]
     {
       "-b", "",
       "-J", "1.2.3.4:invalidcriticality",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid control criticality");
 
-    args = new String[] // Invalid scope
+    args = new String[]
     {
       "-b", "",
       "-s", "invalid",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid scope");
 
-    args = new String[] // Invalid dereference policy
+    args = new String[]
     {
       "-b", "",
       "-a", "invalid",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid dereference policy");
 
-    args = new String[] // Invalid psearch descriptor
+    args = new String[]
     {
       "-b", "",
       "-C", "invalid",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid psearch descriptor");
 
-    args = new String[] // Invalid psearch changetype
+    args = new String[]
     {
       "-b", "",
       "-C", "ps:invalid",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid psearch changetype");
 
-    args = new String[] // Invalid psearch changetype in list
+    args = new String[]
     {
       "-b", "",
       "-C", "ps:add,delete,modify,modifydn,invalid",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid psearch changetype in list");
 
-    args = new String[] // Invalid psearch changesOnly
+    args = new String[]
     {
       "-b", "",
       "-C", "ps:all:invalid",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid psearch changesOnly");
 
-    args = new String[] // Invalid psearch entryChangeControls
+    args = new String[]
     {
       "-b", "",
       "-C", "ps:all:1:invalid",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Invalid psearch entryChangeControls");
 
-    args = new String[] // Non-numeric port
+    args = new String[]
     {
       "-p", "nonnumeric",
       "-b", "",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Non-numeric port");
 
-    args = new String[] // Port value out of range.
+    args = new String[]
     {
       "-p", "999999",
       "-b", "",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Port value out of range");
 
-    args = new String[] // Non-numeric size limit
+    args = new String[]
     {
       "-z", "nonnumeric",
       "-b", "",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Non-numeric size limit");
 
-    args = new String[] // Size limit out of range.
-    {
-      "-z", "-1",
-      "-b", "",
-      "(objectClass=*)"
-    };
-    argLists.add(args);
-
-    args = new String[] // Non-numeric time limit
+    args = new String[]
     {
       "-l", "nonnumeric",
       "-b", "",
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("Non-numeric time limit");
 
-    args = new String[] // Time limit out of range.
-    {
-      "-l", "-1",
-      "-b", "",
-      "(objectClass=*)"
-    };
-    argLists.add(args);
-
-    args = new String[] // SASL external without SSL or StartTLS
+    args = new String[]
     {
       "-r",
       "-b", "",
@@ -454,8 +480,9 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("SASL external without SSL or StartTLS");
 
-    args = new String[] // SASL external without keystore file
+    args = new String[]
     {
       "-Z",
       "-r",
@@ -463,12 +490,14 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
     argLists.add(args);
+    reasonList.add("SASL external without a keystore file");
 
 
-    Object[][] returnArray = new Object[argLists.size()][1];
+    Object[][] returnArray = new Object[argLists.size()][2];
     for (int i=0; i < argLists.size(); i++)
     {
       returnArray[i][0] = argLists.get(i);
+      returnArray[i][1] = reasonList.get(i);
     }
     return returnArray;
   }
@@ -478,12 +507,14 @@ public class LDAPSearchTestCase
   /**
    * Tests the LDAPSearch tool with sets of invalid arguments.
    *
-   * @param  args  The set of arguments to use for the LDAPSearch tool.
+   * @param  args           The set of arguments to use for the LDAPSearch tool.
+   * @param  invalidReason  The reason that the set of arguments is not valid.
    */
   @Test(dataProvider = "invalidArgs")
-  public void testInvalidArguments(String[] args)
+  public void testInvalidArguments(String[] args, String invalidReason)
   {
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0,
+                "Should have been invalid because:  " + invalidReason);
   }
 
 

@@ -110,187 +110,217 @@ public class LDAPModifyTestCase
   @DataProvider(name = "invalidArgs")
   public Object[][] getInvalidArgumentLists()
   {
-    ArrayList<String[]> argLists = new ArrayList<String[]>();
+    ArrayList<String[]> argLists   = new ArrayList<String[]>();
+    ArrayList<String>   reasonList = new ArrayList<String>();
 
     String[] args;
-    args = new String[] // Missing value for -D argument.
+    args = new String[]
     {
       "-D"
     };
     argLists.add(args);
+    reasonList.add("No value for '-D' argument");
 
-    args = new String[] // Missing value for -w argument.
+    args = new String[]
     {
       "-w"
     };
     argLists.add(args);
+    reasonList.add("No value for '-w' argument");
 
-    args = new String[] // Missing value for -j argument.
+    args = new String[]
     {
       "-j"
     };
     argLists.add(args);
+    reasonList.add("No value for '-j' argument");
 
-    args = new String[] // Missing value for -Y argument.
+    args = new String[]
     {
       "-Y"
     };
     argLists.add(args);
+    reasonList.add("No value for '-Y' argument");
 
-    args = new String[] // Missing value for -i argument.
+    args = new String[]
     {
       "-i"
     };
     argLists.add(args);
+    reasonList.add("No value for '-i' argument");
 
-    args = new String[] // Missing value for -K argument.
+    args = new String[]
     {
       "-K"
     };
     argLists.add(args);
+    reasonList.add("No value for '-K' argument");
 
-    args = new String[] // Missing value for -P argument.
+    args = new String[]
     {
       "-P"
     };
     argLists.add(args);
+    reasonList.add("No value for '-P' argument");
 
-    args = new String[] // Missing value for -W argument.
+    args = new String[]
     {
       "-W"
     };
     argLists.add(args);
+    reasonList.add("No value for '-W' argument");
 
-    args = new String[] // Missing value for -h argument.
+    args = new String[]
     {
       "-h"
     };
     argLists.add(args);
+    reasonList.add("No value for '-h' argument");
 
-    args = new String[] // Missing value for -p argument.
+    args = new String[]
     {
       "-p"
     };
     argLists.add(args);
+    reasonList.add("No value for '-p' argument");
 
-    args = new String[] // Missing value for -V argument.
+    args = new String[]
     {
       "-V"
     };
     argLists.add(args);
+    reasonList.add("No value for '-V' argument");
 
-    args = new String[] // Missing value for -f argument.
+    args = new String[]
     {
       "-f"
     };
     argLists.add(args);
+    reasonList.add("No value for '-f' argument");
 
-    args = new String[] // Missing value for -J argument.
+    args = new String[]
     {
       "-J"
     };
     argLists.add(args);
+    reasonList.add("No value for '-J' argument");
 
-    args = new String[] // Missing value for -o argument.
+    args = new String[]
     {
       "-o"
     };
     argLists.add(args);
+    reasonList.add("No value for '-o' argument");
 
-    args = new String[] // Missing value for --assertionFilter argument.
+    args = new String[]
     {
       "-assertionFilter"
     };
     argLists.add(args);
+    reasonList.add("No value for '--assertionFilter' argument");
 
-    args = new String[] // Missing value for --preReadAttributes argument.
+    args = new String[]
     {
       "--preReadAttributes"
     };
     argLists.add(args);
+    reasonList.add("No value for '--preReadAttributes' argument");
 
-    args = new String[] // Missing value for --postReadAttributes argument.
+    args = new String[]
     {
       "--postReadAttributes"
     };
     argLists.add(args);
+    reasonList.add("No value for '--postReadAttributes' argument");
 
-    args = new String[] // Invalid bind password file path
+    args = new String[]
     {
       "-D", "cn=Directory Manager",
       "-j", "no.such.file",
     };
     argLists.add(args);
+    reasonList.add("Invalid bind password file path");
 
-    args = new String[] // Both bind password and password file
+    args = new String[]
     {
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-j", validPasswordFile,
     };
     argLists.add(args);
+    reasonList.add("Both bind password and password file");
 
-    args = new String[] // Non-numeric LDAP version.
+    args = new String[]
     {
       "-V", "nonnumeric",
     };
     argLists.add(args);
+    reasonList.add("Non-numeric LDAP version");
 
-    args = new String[] // Invalid LDAP version.
+    args = new String[]
     {
       "-V", "1",
     };
     argLists.add(args);
+    reasonList.add("Invalid LDAP version");
 
-    args = new String[] // Invalid control criticality
+    args = new String[]
     {
       "-J", "1.2.3.4:invalidcriticality",
     };
     argLists.add(args);
+    reasonList.add("Invalid control criticality");
 
-    args = new String[] // Non-numeric port
+    args = new String[]
     {
       "-p", "nonnumeric",
     };
     argLists.add(args);
+    reasonList.add("Non-numeric port");
 
-    args = new String[] // Port value out of range.
+    args = new String[]
     {
       "-p", "999999",
     };
     argLists.add(args);
+    reasonList.add("Port value out of range");
 
-    args = new String[] // SASL external without SSL or StartTLS
+    args = new String[]
     {
       "-r",
       "-K", "key.store.file",
     };
     argLists.add(args);
+    reasonList.add("SASL external without SSL or StartTLS");
 
-    args = new String[] // SASL external without keystore file
+    args = new String[]
     {
       "-Z",
       "-r",
     };
     argLists.add(args);
+    reasonList.add("SASL external without keystore file");
 
-    args = new String[] // Invalid LDAP assertion filter
+    args = new String[]
     {
       "--assertionFilter", "(invalid)"
     };
     argLists.add(args);
+    reasonList.add("Invalid LDAP assertion filter");
 
-    args = new String[] // No such LDIF file
+    args = new String[]
     {
       "-f", "no.such.file"
     };
     argLists.add(args);
+    reasonList.add("No such LDIF file");
 
 
-    Object[][] returnArray = new Object[argLists.size()][1];
+    Object[][] returnArray = new Object[argLists.size()][2];
     for (int i=0; i < argLists.size(); i++)
     {
       returnArray[i][0] = argLists.get(i);
+      returnArray[i][1] = reasonList.get(i);
     }
     return returnArray;
   }
@@ -300,12 +330,14 @@ public class LDAPModifyTestCase
   /**
    * Tests the LDAPModify tool with sets of invalid arguments.
    *
-   * @param  args  The set of arguments to use for the LDAPModify tool.
+   * @param  args           The set of arguments to use for the LDAPModify tool.
+   * @param  invalidReason  The reason the provided arguments were invalid.
    */
   @Test(dataProvider = "invalidArgs")
-  public void testInvalidArguments(String[] args)
+  public void testInvalidArguments(String[] args, String invalidReason)
   {
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0,
+                "Should have been invalid because:  " + invalidReason);
   }
 
 
