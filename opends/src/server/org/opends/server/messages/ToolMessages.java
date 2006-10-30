@@ -6699,6 +6699,15 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt was made to
+   * use LDAPCompare without any entry DNs.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPCOMPARE_NO_DNS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 682;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8881,6 +8890,10 @@ public class ToolMessages
                     "arguments:  %s.");
     registerMessage(MSGID_WAIT4DEL_CANNOT_OPEN_LOG_FILE,
                     "WARNING:  Unable to open log file %s for reading:  %s.");
+
+
+    registerMessage(MSGID_LDAPCOMPARE_NO_DNS,
+                    "No entry DNs provided for the compare operation.");
   }
 }
 
