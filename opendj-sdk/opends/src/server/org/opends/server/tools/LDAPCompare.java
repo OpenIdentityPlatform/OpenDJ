@@ -512,6 +512,14 @@ public class LDAPCompare
       dnStrings.add(s);
     }
 
+    // If no DNs were provided, then exit with an error.
+    if (dnStrings.isEmpty())
+    {
+      int msgID = MSGID_LDAPCOMPARE_NO_DNS;
+      err.println(getMessage(msgID));
+      return 1;
+    }
+
     // parse the attribute string
     int idx = attributeString.indexOf(":");
     if(idx == -1)
