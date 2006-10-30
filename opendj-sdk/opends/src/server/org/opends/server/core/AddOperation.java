@@ -54,6 +54,7 @@ import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.schema.AuthPasswordSyntax;
+import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -2397,7 +2398,7 @@ addProcessing:
 
       LinkedHashSet<AttributeValue> resetValues = new
            LinkedHashSet<AttributeValue>(1);
-      resetValues.add(new AttributeValue(resetType, timeString));
+      resetValues.add(BooleanSyntax.createBooleanValue(true));
 
       ArrayList<Attribute> resetList = new ArrayList<Attribute>(1);
       resetList.add(new Attribute(resetType, OP_ATTR_PWPOLICY_RESET_REQUIRED,
