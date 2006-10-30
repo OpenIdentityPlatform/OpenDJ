@@ -307,6 +307,293 @@
 
     </function>
 
+    <!-- Import Task Function -->
+    <function name="importLdifTask">
+
+    <function-prolog>
+        This function performs an on line import task of an ldif file
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="dsInstanceHost">
+            Directory Server host name
+        </function-required-arg>
+        <function-required-arg name="dsInstancePort">
+            Directory Server port number
+        </function-required-arg>
+        <function-required-arg name="dsInstanceDn">
+            Directory Server Manager DN
+        </function-required-arg>
+        <function-required-arg name="dsInstancePswd">
+            Directory Server Manager Password
+        </function-required-arg>
+        <function-required-arg name="taskID">
+            The identifier for the task
+        </function-required-arg>
+        <function-required-arg name="ldifFile">
+            The name of the ldif file
+        </function-required-arg>
+        <function-optional-arg name="backEnd" default="'userRoot'">
+            Optional the name of the database backend
+        </function-optional-arg>
+        <function-optional-arg name="isCompressed" default="'FALSE'">
+            Optional imported ldif data file compressed
+        </function-optional-arg>
+        <function-optional-arg name="isEncrypted" default="'FALSE'">
+            Optional imported ldif data file encrypted
+        </function-optional-arg>
+        <function-optional-arg name="rejectsFile" default="' '">
+            Optional name of rejects file
+        </function-optional-arg>
+        <function-optional-arg name="overwriteRejectsFile" default="'FALSE'">
+            Optional name of rejects file
+        </function-optional-arg>
+        <function-optional-arg name="append" default="'FALSE'">
+            Optional append imported ldif data
+        </function-optional-arg>
+        <function-optional-arg name="skipSchemaValidation" default="'FALSE'">
+            Optional don't do schema validation on import
+        </function-optional-arg>
+        <function-optional-arg name="replaceExisting" default="'TRUE'">
+            Optional replace existing data
+        </function-optional-arg>
+        <function-optional-arg name="excludeBranches" default="' '">
+            Optional exclude branches
+        </function-optional-arg>
+        <function-optional-arg name="includeBranches" default="' '">
+            Optional include branches
+        </function-optional-arg>
+        <function-optional-arg name="excludeAttributes" default="' '">
+            Optional exclude attributes
+        </function-optional-arg>
+        <function-optional-arg name="includeAttributes" default="' '">
+            Optional include attributes
+        </function-optional-arg>
+        <function-optional-arg name="excludeFilters" default="' '">
+            Optional exclude filters
+        </function-optional-arg>
+        <function-optional-arg name="includeFilters" default="' '">
+            Optional include filters
+        </function-optional-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <script>
+          taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
+        </script>
+        
+        <!-- Build the import task configuration object -->
+        <script>
+          ldifLines=[]
+          ldifLines.append('dn: %s' % taskDN)
+          ldifLines.append('objectclass: top')
+          ldifLines.append('objectclass: ds-task')
+          ldifLines.append('objectclass: ds-task-import')
+          ldifLines.append('ds-task-class-name: org.opends.server.tasks.ImportTask')
+        </script>
+    
+        <script>
+          ldifLines.append('ds-task-import-backend-id: %s' % backEnd )
+          ldifLines.append('ds-task-import-ldif-file: %s' % ldifFile )
+          ldifLines.append('ds-task-import-is-compressed: %s' % isCompressed )
+          ldifLines.append('ds-task-import-is-encrypted: %s' % isEncrypted )
+        </script>
+        
+        <if expr="rejectsFile != ' '">
+          <script>
+            ldifLines.append('ds-task-import-reject-file: %s' % rejectsFile )
+          </script>
+        </if>
+        
+        <script>
+          ldifLines.append('ds-task-import-overwrite-rejects: %s' % overwriteRejectsFile )
+          ldifLines.append('ds-task-import-append: %s' % append )
+          ldifLines.append('ds-task-import-skip-schema-validation: %s' % skipSchemaValidation )
+          ldifLines.append('ds-task-import-replace-existing: %s' % replaceExisting )
+        </script>
+    
+        <iterate var="branch" in="excludeBranches">
+          <sequence>
+            <if expr="branch == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-import-exclude-branch: %s' % branch )
+            </script>
+          </sequence>
+        </iterate>
+    
+        <iterate var="branch" in="includeBranches">
+          <sequence>
+            <if expr="branch == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-import-include-branch: %s' % branch )
+            </script>
+          </sequence>
+        </iterate>
+    
+        <iterate var="attribute" in="excludeAttributes">
+          <sequence>
+            <if expr="attribute == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-import-exclude-attribute: %s' % attribute )
+            </script>
+          </sequence>
+        </iterate>
+    
+        <iterate var="attribute" in="includeAttributes">
+          <sequence>
+            <if expr="attribute == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-import-include-attribute: %s' % attribute )
+            </script>
+          </sequence>
+        </iterate>
+    
+        <iterate var="filter" in="excludeFilters">
+          <sequence>
+            <if expr="filter == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-import-exclude-filter: %s' % filter)
+            </script>
+          </sequence>
+        </iterate>
+    
+        <iterate var="filter" in="includeFilters">
+          <sequence>
+            <if expr="filter == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-import-include-filter: %s' % filter)
+            </script>
+          </sequence>
+        </iterate>
+
+        <!-- Write out the import-task ldif -->
+        <script>
+          outfile = open('%s/import-task.ldif' % TMP_DATA_DIR,"w")
+            
+          for line in ldifLines:
+            outfile.write("%s\n" % line)
+            
+          outfile.close()
+        </script>
+
+        
+        <!-- Copy the import-task ldif to remote host -->
+        <message>'Copy import task ldif file.'</message>
+        <call function="'copyfile'">
+          { 'srcfile'    : '%s/import-task.ldif' % TMP_DATA_DIR,
+            'destfile'   : '%s/import-task.ldif' % STAGED_DATA_DIR,
+            'remotehost' : STAF_REMOTE_HOSTNAME }
+        </call>
+
+        <!-- On line Import Task with ldapmodify -->
+        <message>
+          'ldapmodify.%s -a -h %s -p %s -D "%s" -w %s' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)
+        </message>
+        <process name="'On line Import Task'">
+          <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+          <command>'%s/ldapmodify.%s' % (OPENDS_BINPATH,fileExt)</command>
+          <parms>'-a -h %s -p %s -D "%s" -w %s' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)</parms>
+          <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+          <envs>
+                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          </envs>
+          <stdin>'%s/import-task.ldif' % STAGED_DATA_DIR</stdin>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+
+        <script>
+          importTaskRC=RC
+          importTaskResult=STAXResult
+        </script>
+
+        <call function="'checkRC'">
+          { 'returncode' : importTaskRC ,
+            'result'     : importTaskResult }
+        </call>
+          
+        <!-- Check that the task is completed -->
+        <script>
+          loopRC=1
+        </script>
+
+        <script> 
+          import re 
+          searchre = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY') 
+        </script> 
+
+        <!-- Wait for the task to be COMPLETED_SUCCESSFULLY -->
+        <loop from="1" to="5" while="loopRC != 0">
+
+          <sequence>
+          
+            <message>
+              'ldapsearch.%s -h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)
+            </message>
+            <process name="'Search On line Import Task'">
+              <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+              <command>'%s/ldapsearch.%s' % (OPENDS_BINPATH,fileExt)</command>
+              <parms>'-h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)</parms>
+              <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+              <envs>
+                    ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+              </envs>
+              <stderr mode="'stdout'"/>
+              <returnstdout/>
+            </process>
+            
+            <script>
+              searchRC=RC
+              searchResult=STAXResult
+            </script>
+    
+            <script> 
+              result = STAXResult[0][1]
+            </script> 
+    
+            <if expr='re.search(searchre, result) != None'>
+              <sequence>
+                <script>loopRC=0</script>
+              </sequence>
+            <else>
+              <message log="1" level="'Warning'">
+                'No match on ds-task-state.'
+              </message>
+            </else>
+            </if>
+            
+            <call function="'checkRC'">
+                { 'returncode' : searchRC ,
+                  'result'     : searchResult }
+            </call>
+          
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '2000' }
+            </call>
+            
+          </sequence>
+          
+        </loop>
+
+        <return>loopRC</return>
+
+      </sequence>
+
+    </function>
+
     <!-- Check Import Function -->
     <function name="checkImport">
 
@@ -336,18 +623,30 @@
     </function-map-args>
     
     <sequence>
-      
-    <!-- StartDS -->
-    <call function="'startDS'">
-      { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
-    </call>
+
+    <!-- If we don't want to start DS then we don't need to stop it -->
+    <script>stopDS=startDS</script>
     
-    <!-- Wait for DS to start -->
-    <call function="'isAlive'">
-      { 'noOfLoops'        : 5 ,
-        'noOfMilliSeconds' : 2000 }
-    </call>
-        
+    <!-- Do we need to start the DS -->
+    <if expr="startDS == 'yes'">
+    
+      <sequence>
+      
+      <!-- StartDS -->
+      <call function="'startDS'">
+        { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+      </call>
+      
+      <!-- Wait for DS to start -->
+      <call function="'isAlive'">
+        { 'noOfLoops'        : 5 ,
+          'noOfMilliSeconds' : 2000 }
+      </call>
+
+      </sequence>
+      
+    </if>
+    
     <!-- Search for expected entries -->    
     <iterate var="expectedEntry" in="expectedEntries">
       
@@ -400,12 +699,17 @@
     </sequence>
       
     </iterate>
-    
-    <!-- StopDS -->
-    <call function="'stopDS'">
-      { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
-    </call>
 
+    <!-- Do we need to stop the Directory Server -->
+    <if expr="stopDS == 'yes'">
+      
+      <!-- StopDS -->
+      <call function="'stopDS'">
+        { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
+      </call>  
+    
+    </if>
+    
     </sequence>
 
   </function>
