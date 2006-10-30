@@ -102,180 +102,209 @@ public class LDAPPasswordModifyTestCase
   @DataProvider(name = "invalidArgs")
   public Object[][] getInvalidArgumentLists()
   {
-    ArrayList<String[]> argLists = new ArrayList<String[]>();
+    ArrayList<String[]> argLists   = new ArrayList<String[]>();
+    ArrayList<String>   reasonList = new ArrayList<String>();
 
-    String[] args = {}; // No arguments.
+    String[] args = {};
     argLists.add(args);
+    reasonList.add("No arguments were provided");
 
-    args = new String[] // Missing value for -h argument.
+    args = new String[]
     {
       "-h"
     };
     argLists.add(args);
+    reasonList.add("No value for '-h' argument");
 
-    args = new String[] // Missing value for -p argument.
+    args = new String[]
     {
       "-p"
     };
     argLists.add(args);
+    reasonList.add("No value for '-p' argument");
 
-    args = new String[] // Missing value for -D argument.
+    args = new String[]
     {
       "-D"
     };
     argLists.add(args);
+    reasonList.add("No value for '-D' argument");
 
-    args = new String[] // Missing value for -w argument.
+    args = new String[]
     {
       "-w"
     };
     argLists.add(args);
+    reasonList.add("No value for '-w' argument");
 
-    args = new String[] // Missing value for -W argument.
+    args = new String[]
     {
       "-W"
     };
     argLists.add(args);
+    reasonList.add("No value for '-W' argument");
 
-    args = new String[] // Missing value for -a argument.
+    args = new String[]
     {
       "-a"
     };
     argLists.add(args);
+    reasonList.add("No value for '-a' argument");
 
-    args = new String[] // Missing value for -n argument.
+    args = new String[]
     {
       "-n"
     };
     argLists.add(args);
+    reasonList.add("No value for '-n' argument");
 
-    args = new String[] // Missing value for -N argument.
+    args = new String[]
     {
       "-N"
     };
     argLists.add(args);
+    reasonList.add("No value for '-N' argument");
 
-    args = new String[] // Missing value for -c argument.
+    args = new String[]
     {
       "-c"
     };
     argLists.add(args);
+    reasonList.add("No value for '-c' argument");
 
-    args = new String[] // Missing value for -C argument.
+    args = new String[]
     {
       "-C"
     };
     argLists.add(args);
+    reasonList.add("No value for '-C' argument");
 
-    args = new String[] // Missing value for -k argument.
+    args = new String[]
     {
       "-k"
     };
     argLists.add(args);
+    reasonList.add("No value for '-k' argument");
 
-    args = new String[] // Missing value for -K argument.
+    args = new String[]
     {
       "-K"
     };
     argLists.add(args);
+    reasonList.add("No value for '-K' argument");
 
-    args = new String[] // Missing value for -t argument.
+    args = new String[]
     {
       "-t"
     };
     argLists.add(args);
+    reasonList.add("No value for '-t' argument");
 
-    args = new String[] // Missing value for -T argument.
+    args = new String[]
     {
       "-T"
     };
     argLists.add(args);
+    reasonList.add("No value for '-T' argument");
 
-    args = new String[] // Invalid bind password file path
+    args = new String[]
     {
       "-D", "cn=Directory Manager",
       "-W", "no.such.file"
     };
     argLists.add(args);
+    reasonList.add("Invalid bind password file path");
 
-    args = new String[] // Both bind password and password file
+    args = new String[]
     {
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-W", currentPasswordFile
     };
     argLists.add(args);
+    reasonList.add("Both bind password and bind password file");
 
-    args = new String[] // Both current password and current password file
+    args = new String[]
     {
       "-D", "cn=Directory Manager",
       "-c", "password",
       "-C", currentPasswordFile
     };
     argLists.add(args);
+    reasonList.add("Both current password and current password file");
 
-    args = new String[] // Both new password and new password file
+    args = new String[]
     {
       "-D", "cn=Directory Manager",
       "-n", "password",
       "-N", newPasswordFile
     };
     argLists.add(args);
+    reasonList.add("Both new password and new password file");
 
-    args = new String[] // Both SSL and StartTLS
+    args = new String[]
     {
       "-Z",
       "-q"
     };
     argLists.add(args);
+    reasonList.add("Both SSL and StartTLS");
 
-    args = new String[] // Non-numeric port
+    args = new String[]
     {
       "-p", "nonnumeric"
     };
     argLists.add(args);
+    reasonList.add("Non-numeric port");
 
-    args = new String[] // Port value out of range.
+    args = new String[]
     {
       "-p", "999999"
     };
     argLists.add(args);
+    reasonList.add("Port value out of range");
 
-    args = new String[] // Bind DN without a password or password file
+    args = new String[]
     {
       "-D", "cn=Directory Manager"
     };
     argLists.add(args);
+    reasonList.add("Bind Dn without a password or password file");
 
-    args = new String[] // Bind password without a DN
+    args = new String[]
     {
       "-w", "password"
     };
     argLists.add(args);
+    reasonList.add("Bind password without a DN");
 
-    args = new String[] // Bind password file without a DN
+    args = new String[]
     {
       "-W", currentPasswordFile
     };
     argLists.add(args);
+    reasonList.add("Bind password file without a DN");
 
-    args = new String[] // No bind credentials, with authzID, no current PW
+    args = new String[]
     {
       "-a", "u:test.user"
     };
     argLists.add(args);
+    reasonList.add("No bind credentials, with authzID, no current PW");
 
-    args = new String[] // Provide DN for authzID without DN
+    args = new String[]
     {
       "-A"
     };
     argLists.add(args);
+    reasonList.add("Provide DN for authzID without DN");
 
 
-    Object[][] returnArray = new Object[argLists.size()][1];
+    Object[][] returnArray = new Object[argLists.size()][2];
     for (int i=0; i < argLists.size(); i++)
     {
       returnArray[i][0] = argLists.get(i);
+      returnArray[i][1] = reasonList.get(i);
     }
     return returnArray;
   }
@@ -285,13 +314,15 @@ public class LDAPPasswordModifyTestCase
   /**
    * Tests the LDAPModify tool with sets of invalid arguments.
    *
-   * @param  args  The set of arguments to use for the LDAPModify tool.
+   * @param  args           The set of arguments to use for the LDAPModify tool.
+   * @param  invalidReason  The reason the provided arguments were invalid.
    */
   @Test(dataProvider = "invalidArgs")
-  public void testInvalidArguments(String[] args)
+  public void testInvalidArguments(String[] args, String invalidReason)
   {
     assertFalse(LDAPPasswordModify.mainPasswordModify(args, false, null,
-                                                      null) == 0);
+                                                      null) == 0,
+                "Should have been invalid because:  " + invalidReason);
   }
 
 

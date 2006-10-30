@@ -104,108 +104,124 @@ public class LDAPDeleteTestCase
   @DataProvider(name = "invalidArgs")
   public Object[][] getInvalidArgumentLists()
   {
-    ArrayList<String[]> argLists = new ArrayList<String[]>();
+    ArrayList<String[]> argLists   = new ArrayList<String[]>();
+    ArrayList<String>   reasonList = new ArrayList<String>();
 
-    String[] args = {}; // No arguments
-    args = new String[] // No value for "-D" argument.
+    String[] args = new String[]
     {
       "-D",
     };
     argLists.add(args);
+    reasonList.add("No value for '-D' argument");
 
-    args = new String[] // No value for "-w" argument.
+    args = new String[]
     {
       "-w",
     };
     argLists.add(args);
+    reasonList.add("No value for '-w' argument");
 
-    args = new String[] // No value for "-j" argument.
+    args = new String[]
     {
       "-j",
     };
     argLists.add(args);
+    reasonList.add("No value for '-j' argument");
 
-    args = new String[] // No value for "-i" argument.
+    args = new String[]
     {
       "-i",
     };
     argLists.add(args);
+    reasonList.add("No value for '-i' argument");
 
-    args = new String[] // No value for "-K" argument.
+    args = new String[]
     {
       "-K",
     };
     argLists.add(args);
+    reasonList.add("No value for '-K' argument");
 
-    args = new String[] // No value for "-P" argument.
+    args = new String[]
     {
       "-P",
     };
     argLists.add(args);
+    reasonList.add("No value for '-P' argument");
 
-    args = new String[] // No value for "-W" argument.
+    args = new String[]
     {
       "-W",
     };
     argLists.add(args);
+    reasonList.add("No value for '-W' argument");
 
-    args = new String[] // No value for "-h" argument.
+    args = new String[]
     {
       "-h",
     };
     argLists.add(args);
+    reasonList.add("No value for '-h' argument");
 
-    args = new String[] // No value for "-p" argument.
+    args = new String[]
     {
       "-p",
     };
     argLists.add(args);
+    reasonList.add("No value for '-p' argument");
 
-    args = new String[] // No value for "-V" argument.
+    args = new String[]
     {
       "-V",
     };
     argLists.add(args);
+    reasonList.add("No value for '-V' argument");
 
-    args = new String[] // No value for "-f" argument.
+    args = new String[]
     {
       "-f",
     };
     argLists.add(args);
+    reasonList.add("No value for '-f' argument");
 
-    args = new String[] // No value for "-J" argument.
+    args = new String[]
     {
       "-J",
     };
     argLists.add(args);
+    reasonList.add("No value for '-J' argument");
 
-    args = new String[] // No value for "-o" argument.
+    args = new String[]
     {
       "-o",
     };
     argLists.add(args);
+    reasonList.add("No value for '-o' argument");
 
-    args = new String[] // Invalid short argument
+    args = new String[]
     {
       "-I"
     };
     argLists.add(args);
+    reasonList.add("Invalid short argument");
 
-    args = new String[] // Invalid long argument
+    args = new String[]
     {
       "--invalidLongArgument"
     };
     argLists.add(args);
+    reasonList.add("Invalid long argument");
 
-    args = new String[] // Invalid bind password file path
+    args = new String[]
     {
       "-D", "cn=Directory Manager",
       "-j", "no.such.file",
       "o=test"
     };
     argLists.add(args);
+    reasonList.add("Invalid bind password file path");
 
-    args = new String[] // Both bind password and password file
+    args = new String[]
     {
       "-D", "cn=Directory Manager",
       "-w", "password",
@@ -213,70 +229,80 @@ public class LDAPDeleteTestCase
       "o=test"
     };
     argLists.add(args);
+    reasonList.add("Both bind password and password file");
 
-    args = new String[] // Non-numeric LDAP version.
+    args = new String[]
     {
       "-V", "nonnumeric",
       "o=test"
     };
     argLists.add(args);
+    reasonList.add("Non-numeric LDAP version");
 
-    args = new String[] // Invalid LDAP version.
+    args = new String[]
     {
       "-V", "1",
       "o=test"
     };
     argLists.add(args);
+    reasonList.add("Invalid LDAP version");
 
-    args = new String[] // Invalid DN file path.
+    args = new String[]
     {
       "-f", "no.such.file",
       "o=test"
     };
     argLists.add(args);
+    reasonList.add("Invalid DN file path");
 
-    args = new String[] // Invalid control criticality
+    args = new String[]
     {
       "-J", "1.2.3.4:invalidcriticality",
       "o=test"
     };
     argLists.add(args);
+    reasonList.add("Invalid control criticality");
 
-    args = new String[] // Non-numeric port
+    args = new String[]
     {
       "-p", "nonnumeric",
       "o=test"
     };
     argLists.add(args);
+    reasonList.add("Non-numeric port");
 
-    args = new String[] // Port value out of range.
+    args = new String[]
     {
       "-p", "999999",
       "o=test"
     };
     argLists.add(args);
+    reasonList.add("Port value out of range");
 
-    args = new String[] // SASL external without SSL or StartTLS
+    args = new String[]
     {
       "-r",
       "-K", "key.store.file",
       "o=test"
     };
     argLists.add(args);
+    reasonList.add("SASL external without SSL or StartTLS");
 
-    args = new String[] // SASL external without keystore file
+    args = new String[]
     {
       "-Z",
       "-r",
       "o=test"
     };
     argLists.add(args);
+    reasonList.add("SASL external without keystore file");
 
 
-    Object[][] returnArray = new Object[argLists.size()][1];
+    Object[][] returnArray = new Object[argLists.size()][2];
     for (int i=0; i < argLists.size(); i++)
     {
       returnArray[i][0] = argLists.get(i);
+      returnArray[i][1] = reasonList.get(i);
     }
     return returnArray;
   }
@@ -286,12 +312,15 @@ public class LDAPDeleteTestCase
   /**
    * Tests the LDAPDelete tool with sets of invalid arguments.
    *
-   * @param  args  The set of arguments to use for the LDAPDelete tool.
+   * @param  args           The set of arguments to use for the LDAPDelete tool.
+   * @param  invalidReason  The reason the provided set of arguments was
+   *                        invalid.
    */
   @Test(dataProvider = "invalidArgs")
-  public void testInvalidArguments(String[] args)
+  public void testInvalidArguments(String[] args, String invalidReason)
   {
-    assertFalse(LDAPDelete.mainDelete(args, false, null, null) == 0);
+    assertFalse(LDAPDelete.mainDelete(args, false, null, null) == 0,
+                "Should have been invalid because:  " + invalidReason);
   }
 
 
