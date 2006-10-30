@@ -2860,6 +2860,22 @@ uniquemember: uid=abergin, ou=People, dc=example,dc=com
 uniquemember: uid=jwalker, ou=People, dc=example,dc=com
 description: People who can manage QA entries
 
+dn: uid=bbaret, cn=QA Managers,ou=groups,dc=example,dc=com
+cn: Bruno Baret
+sn: Baret
+givenname: Bruno
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Grenoble
+uid: bbaret
+mail: bbaret@example.com
+telephonenumber: +1 408 555 4666
+facsimiletelephonenumber: +1 408 555 0121
+roomnumber: 3445
+userpassword: picketer
+
 dn: cn=PD Managers,ou=groups,dc=example,dc=com
 objectclass: top
 objectclass: groupOfUniqueNames
