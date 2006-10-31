@@ -678,6 +678,14 @@
         <isset property="TESTASSERT" />
       </not>
     </condition>
+
+    <!-- This sets org.opends.test.suppressOutput if and only if it's not
+         already set. -->
+    <condition property="org.opends.test.suppressOutput" value="false">
+      <not>
+        <isset property="org.opends.test.suppressOutput" />
+      </not>
+    </condition>
     
     <testng outputdir="${unittest.report.dir}" haltonfailure="true"
             enableAssert="${TESTASSERT}">
@@ -700,6 +708,7 @@
       <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/unit.emma" />
       <jvmarg value="-Demma.coverage.out.merge=false" />
       <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}" />
+      <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
       <jvmarg value="-Xmx${MEM}" />
       <jvmarg value="-Xms${MEM}" />
       <xmlfileset dir="${unittest.resource.dir}" includes="testng.xml" />

@@ -27,8 +27,17 @@
 package org.opends.server;
 
 import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeSuite;
 
 import java.io.PrintStream;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
+import java.util.logging.LogManager;
+
+import org.opends.server.types.NullOutputStream;
 
 /**
  * This class defines a base test case that should be subclassed by all
@@ -38,12 +47,60 @@ import java.io.PrintStream;
  * have them include the class name.
  */
 public abstract class DirectoryServerTestCase {
+  // The set of loggers for which the console logger has been disabled.
+  private HashMap<Logger,Handler> disabledLogHandlers;
+
   // The print stream to use for printing error messages.
   private PrintStream errorStream;
+
+  // The original System.err print stream.
+  private PrintStream originalSystemErr;
+
+  // The original System.out print stream.
+  private PrintStream originalSystemOut;
+
+  @BeforeSuite
+  public final void suppressOutput() {
+    String suppressStr = System.getProperty("org.opends.test.suppressOutput");
+    if ((suppressStr != null) && suppressStr.equalsIgnoreCase("true"))
+    {
+      System.setOut(NullOutputStream.printStream());
+      System.setErr(NullOutputStream.printStream());
+      errorStream = NullOutputStream.printStream();
+
+      LogManager logManager = LogManager.getLogManager();
+      Enumeration<String> loggerNames = logManager.getLoggerNames();
+      while (loggerNames.hasMoreElements())
+      {
+        String loggerName = loggerNames.nextElement();
+        Logger logger = logManager.getLogger(loggerName);
+        for (Handler h : logger.getHandlers())
+        {
+          if (h instanceof ConsoleHandler)
+          {
+            disabledLogHandlers.put(logger, h);
+            logger.removeHandler(h);
+            break;
+          }
+        }
+      }
+    }
+  }
 
   @AfterSuite
   public final void shutdownServer() {
     TestCaseUtils.shutdownServer("The current test suite has finished.");
+
+    System.setOut(originalSystemOut);
+    System.setErr(originalSystemErr);
+    errorStream = originalSystemErr;
+
+    for (Logger l : disabledLogHandlers.keySet())
+    {
+      Handler h = disabledLogHandlers.get(l);
+      l.addHandler(h);
+    }
+    disabledLogHandlers.clear();
   }
 
   /**
@@ -51,6 +108,10 @@ public abstract class DirectoryServerTestCase {
    */
   protected DirectoryServerTestCase() {
     this.errorStream = System.err;
+
+    disabledLogHandlers = new HashMap<Logger,Handler>();
+    originalSystemOut   = System.out;
+    originalSystemErr   = System.err;
   }
 
   /**
