@@ -7418,6 +7418,43 @@ public class DirectoryServer
    */
   public static void main(String[] args)
   {
+    // Configure the JVM to delete the PID file on exit, if it exists.
+    boolean pidFileMarkedForDeletion      = false;
+    boolean startingFileMarkedForDeletion = false;
+    try
+    {
+      String pidFilePath;
+      String startingFilePath;
+      String serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
+      if (serverRoot == null)
+      {
+        pidFilePath      = "logs/server.pid";
+        startingFilePath = "logs/server.starting";
+      }
+      else
+      {
+        pidFilePath      = serverRoot + File.separator + "logs" +
+                           File.separator + "server.pid";
+        startingFilePath = serverRoot + File.separator + "logs" +
+                           File.separator + "server.starting";
+      }
+
+      File pidFile = new File(pidFilePath);
+      if (pidFile.exists())
+      {
+        pidFile.deleteOnExit();
+        pidFileMarkedForDeletion = true;
+      }
+
+      File startingFile = new File(startingFilePath);
+      if (startingFile.exists())
+      {
+        startingFile.deleteOnExit();
+        startingFileMarkedForDeletion = true;
+      }
+    } catch (Exception e) {}
+
+
     // Define the arguments that may be provided to the server.
     BooleanArgument displayUsage = null;
     BooleanArgument dumpMessages = null;
@@ -7607,7 +7644,7 @@ public class DirectoryServer
     // Redirect standard output and standard error to the server.out file.  If
     // the server hasn't detached from the terminal, then also continue writing
     // to the original standard output and standard error.  Also, configure the
-    // JVM to delete the PID file on exit, if it exists.
+    // JVM to delete the PID and server.starting files on exit, if they exist.
     PrintStream serverOutStream;
     try
     {
@@ -7646,16 +7683,22 @@ public class DirectoryServer
           System.setOut(serverOutStream);
           System.setErr(serverOutStream);
 
-          File f = new File(logDir, "server.pid");
-          if (f.exists())
+          if (! pidFileMarkedForDeletion)
           {
-            f.deleteOnExit();
+            File f = new File(logDir, "server.pid");
+            if (f.exists())
+            {
+              f.deleteOnExit();
+            }
           }
 
-          f = new File(logDir, "server.starting");
-          if (f.exists())
+          if (! startingFileMarkedForDeletion)
           {
-            f.deleteOnExit();
+            File f = new File(logDir, "server.starting");
+            if (f.exists())
+            {
+              f.deleteOnExit();
+            }
           }
         }
         else
