@@ -423,11 +423,16 @@
 
     <zip destfile="${package.dir}/OpenDS-${pkgversion}.zip">
       <zipfileset dir="${package.dir}" includes="**/*"
+           excludes="OpenDS-${pkgversion}/bin/*,OpenDS-${pkgversion}/setup.sh"
            filemode="644" dirmode="755" />
-      <zipfileset dir="${package.dir}" 
-                  includes="**/*.sh,**/backup,**/configure-ds,**/encode-password,**/export-ldif,**/import-ldif,**/ldapcompare,**/ldapdelete,**/ldapodify,**/ldappasswordmodify,**/ldapsearch,**/ldif-diff,**/ldifmodify,**/ldifsearch,**/makeldif,**/restore,**/start-ds,**/stop-ds,**/verify-index" 
-                  filemode="755"
-                  dirmode="755" />
+      <zipfileset dir="${package.dir}"
+           includes="OpenDS-${pkgversion}/bin/*.bat"
+           filemode="644" dirmode="755" />
+      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/bin/*"
+           excludes="OpenDS-${pkgversion}/bin/*.bat"
+           filemode="755" dirmode="755" />
+      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/setup.sh"
+           filemode="755" dirmode="755" />
     </zip>
   </target>
 
