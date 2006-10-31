@@ -79,6 +79,22 @@
           file="'%s/testcases/security/pwd_policy/security_user_pwd_policy.xml' % (TESTS_DIR)"/>
         <call function="'user_pwd_policy'" />
 
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_policy/security_force_pwd_change_all_users.xml' % (TESTS_DIR)"/>
+        <call function="'force_pwd_change_all_users'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_policy/security_enable_max_pwd_age.xml' % (TESTS_DIR)"/>
+        <call function="'enable_max_pwd_age'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_policy/security_force_pwd_change_all_users.xml' % (TESTS_DIR)"/>
+        <call function="'force_pwd_change_all_users'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_policy/security_disable_max_pwd_age.xml' % (TESTS_DIR)"/>
+        <call function="'disable_max_pwd_age'" />
+
         <!--- Test Case : Stop DS -->
         <testcase name="'StopDS'">
           <sequence>
