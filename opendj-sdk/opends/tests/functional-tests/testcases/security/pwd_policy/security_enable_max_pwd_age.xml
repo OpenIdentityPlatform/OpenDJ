@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="enable_max_pwd_age"/>
+
+  <function name="enable_max_pwd_age">
+
+      <sequence>
+
+        <!--- Test Case : Check Existence of ds-cfg-maximum-password-age -->
+        <testcase name="'Security:Pwd Change: Check Existence of ds-cfg-maximum-password-age'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: Checking existence of ds-cfg-maximum-password-age'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'   : 'ds-cfg-maximum-password-age:0 seconds',
+                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Change Max Pwd Age -->
+        <testcase name="'Security:Pwd Change: Admin Change Max Pwd Age'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: Admin Changing Max Pwd Age'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_max_pwd_age.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+       <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>
