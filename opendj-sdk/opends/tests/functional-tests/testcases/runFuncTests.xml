@@ -90,7 +90,11 @@
 
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/core/core.xml' % (TESTS_DIR)"/>
-	<call function="'main_core'" /> 
+	<call function="'main_core'" />
+        
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/schema/schema.xml' % (TESTS_DIR)"/>
+	<call function="'main_schema'" />
 
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/cleanup/cleanup.xml' % (TESTS_DIR)"/>
