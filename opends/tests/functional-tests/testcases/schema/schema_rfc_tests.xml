@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="schema_rfc_tests"/>
+
+  <function name="schema_rfc_tests">
+
+      <sequence>
+
+      <script>
+          STAXLogMessage = 1
+          SRCFILE = '%s/%s' % (ZIPPATH,ZIPNAME)
+          DSTFILE = '%s/%s' % (TMPDIR,ZIPNAME)
+          OPENDS_BINPATH = '%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+      </script>
+
+      <!--- Import all the shared libraries
+            may be we should have a loadlibs.xml to
+            load all the libs -->
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/utils.xml' % (TESTS_FUNCTIONS_DIR)"/>
+
+      <!--- Set OS related variables on remote host -->
+      <message>
+          'Set OS related variables on remote host.'
+      </message>
+      <call function="'setOSvariables'">
+          { 'hostname' : STAF_REMOTE_HOSTNAME }
+      </call>
+
+      <script>OSName= STAXResult</script>
+
+      <if expr="OSName == 'Win2003'">
+        <script>fileExt= 'bat'</script>
+      <else>
+        <script>fileExt= 'sh'</script>
+      </else>
+      </if>
+
+        <!--- Check that DS started -->
+        <call function="'isAlive'">
+          { 'noOfLoops'        : 5 ,
+            'noOfMilliSeconds' : 2000 }
+        </call>
+       
+        <!--- Test Case : Schema RFC Test 1 -->
+        <testcase name="'Schema: RFC Test 1'">
+          <sequence>
+            <message>
+               'Schema RFC1: Add an entry that is covered by rfc 2079'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2079.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase> 
+      
+        <!--- Test Case : Schema RFC Test 2 -->
+        <testcase name="'Schema: RFC Test 2'">
+          <sequence>
+            <message>
+               'Schema RFC2: Add an entry that is covered by rfc 2247'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_1.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 3 -->
+        <testcase name="'Schema: RFC Test 3'">
+          <sequence>
+            <message>
+               'Schema RFC3: Add an entry that is covered by rfc 2247'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 4 -->
+        <testcase name="'Schema: RFC Test 4'">
+          <sequence>
+            <message>
+               'Schema RFC4: Add an entry that is covered by rfc 2247'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_3.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 65 }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 5 -->
+        <testcase name="'Schema: RFC Test 5'">
+          <sequence>
+            <message>
+               'Schema RFC5: Add an entry that is covered by rfc 2247'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_4.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 65 }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 6 -->
+        <testcase name="'Schema: RFC Test 6'">
+          <sequence>
+            <message>
+               'Schema RFC6: Add an entry that is covered by rfc 2247'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_5.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 65 }
+            </call>
+          </sequence>
+        </testcase>   
+ 
+        <!--- Test Case : Schema RFC Test 7 -->
+        <testcase name="'Schema: RFC Test 7'">
+          <sequence>
+            <message>
+               'Schema RFC7: Add an entry that is covered by rfc 2377'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2377.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+          </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 8 -->
+        <testcase name="'Schema: RFC Test 8'">
+          <sequence>
+            <message>
+               'Schema RFC8: Add an entry that is covered by rfc 2798'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2798.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+          </call>
+          </sequence>
+        </testcase> 
+        
+        <!--- Test Case : Schema RFC Test 9 -->
+        <testcase name="'Schema: RFC Test 9'">
+          <sequence>
+            <message>
+               'Schema RFC9: Modify an entry that is covered by rfc 3045'
+            </message>
+            
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/schema/ldifs/rfc3045_1.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 53 }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 10 -->
+        <testcase name="'Schema: RFC Test 10'">
+          <sequence>
+            <message>
+               'Schema RFC10: Modify an entry that is covered by rfc 3045'
+            </message>
+            
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/schema/ldifs/rfc3045_2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 53 }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 11 -->
+        <testcase name="'Schema: RFC Test 11'">
+          <sequence>
+            <message>
+               'Schema RFC11: Add an entry that is covered by rfc 4403'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_1.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+          </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 12 -->
+        <testcase name="'Schema: RFC Test 12'">
+          <sequence>
+            <message>
+               'Schema RFC12: Add an entry that is covered by rfc 4403'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+          </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 13 -->
+        <testcase name="'Schema: RFC Test 13'">
+          <sequence>
+            <message>
+               'Schema RFC13: Add an entry that is covered by rfc 4403'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_3.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 65 }
+          </call>
+          </sequence>
+        </testcase>  
+ 
+        <!--- Test Case : Schema RFC Test 14 -->
+        <testcase name="'Schema: RFC Test 14'">
+          <sequence>
+            <message>
+               'Schema RFC14: Add an entry that is covered by rfc 4403'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_4.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+          </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 15 -->
+        <testcase name="'Schema: RFC Test 15'">
+          <sequence>
+            <message>
+               'Schema RFC15: Add an entry that is covered by rfc 4403'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_5.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 65 }
+          </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 16 -->
+        <testcase name="'Schema: RFC Test 16'">
+          <sequence>
+            <message>
+               'Schema RFC16: Add an entry that is covered by draft-howard-rfc2307bis'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_1.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+          </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 17 -->
+        <testcase name="'Schema: RFC Test 17'">
+          <sequence>
+            <message>
+               'Schema RFC17: Add an entry that is covered by draft-howard-rfc2307bis'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 65 }
+          </call>
+          </sequence>
+        </testcase>  
+    
+        <!--- Test Case : Schema RFC Test 18 -->
+        <testcase name="'Schema: RFC Test 18'">
+          <sequence>
+            <message>
+               'Schema RFC18: Add an entry that is covered by draft-howard-rfc2307bis'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_3.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 19 -->
+        <testcase name="'Schema: RFC Test 19'">
+          <sequence>
+            <message>
+               'Schema RFC19: Add an entry that is covered by draft-howard-rfc2307bis'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_4.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 65 }
+           </call>
+          </sequence>
+        </testcase>  
+   
+        <!--- Test Case : Schema RFC Test 20 -->
+        <testcase name="'Schema: RFC Test 20'">
+          <sequence>
+            <message>
+               'Schema RFC20: Add an entry that is covered by draft-furseth-ldap-untypedobject'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/untypedobject.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase> 
+       
+        <!--- Test Case : Schema RFC Test 21 -->
+        <testcase name="'Schema: RFC Test 21'">
+          <sequence>
+            <message>
+               'Schema RFC21: Add an entry that is covered by draft-good-ldap-changelog'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/changelog_1.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 22 -->
+        <testcase name="'Schema: RFC Test 22'">
+          <sequence>
+            <message>
+               'Schema RFC22: Add an entry that is covered by draft-good-ldap-changelog'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/changelog_2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase>  
+    
+        <!--- Test Case : Schema RFC Test 23 -->
+        <testcase name="'Schema: RFC Test 23'">
+          <sequence>
+            <message>
+               'Schema RFC23: Add an entry that is covered by draft-good-ldap-changelog'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/changelog_3.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase> 
+  
+        <!--- Test Case : Schema RFC Test 24 -->
+        <testcase name="'Schema: RFC Test 24'">
+          <sequence>
+            <message>
+               'Schema RFC24: Add an entry that is covered by draft-howard-namedobject'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/namedobject_1.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase>  
+      
+        <!--- Test Case : Schema RFC Test 25 -->
+        <testcase name="'Schema: RFC Test 25'">
+          <sequence>
+            <message>
+               'Schema RFC25: Add an entry that is covered by draft-howard-namedobject'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/namedobject_2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase>  
+    
+        <!--- Test Case : Schema RFC Test 26 -->
+        <testcase name="'Schema: RFC Test 26'">
+          <sequence>
+            <message>
+               'Schema RFC26: Add an entry that is covered by draft-ietf-ldup-subentry'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/ldup_subentry_1.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase> 
+        
+        <!--- Test Case : Schema RFC Test 27 -->
+        <testcase name="'Schema: RFC Test 27'">
+          <sequence>
+            <message>
+               'Schema RFC27: Add an entry that is covered by draft-ietf-ldup-subentry'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/ldup_subentry_2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase>
+   
+        <!--- Test Case : Schema RFC Test 28 -->
+        <testcase name="'Schema: RFC Test 28'">
+          <sequence>
+            <message>
+               'Schema RFC28: Add an entry that is covered by draft-ietf-ldup-subentry'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/ldup_subentry_3.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult  ,
+                  'expected'   : 53 }
+           </call>
+          </sequence>
+        </testcase>  
+   
+        <!--- Test Case : Schema RFC Test 29 -->
+        <testcase name="'Schema: RFC Test 29'">
+          <sequence>
+            <message>
+               'Schema RFC29: Disable schema checking'
+            </message>
+            
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/schema/ldifs/disable_schema_checking.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 30 -->
+        <testcase name="'Schema: RFC Test 30'">
+          <sequence>
+            <message>
+               'Schema RFC30: Enable schema checking'
+            </message>
+            
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/schema/ldifs/enable_schema_checking.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+                
+        <!--- Test Case : Schema RFC Test 31 -->
+        <testcase name="'Schema: RFC Test 31'">
+          <sequence>
+            <message>
+               'Schema RFC31: Disable schema checking'
+            </message>
+            
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/schema/ldifs/disable_syntax_checking.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 32 -->
+        <testcase name="'Schema: RFC Test 32'">
+          <sequence>
+            <message>
+               'Schema RFC32:  Enable schema checking'
+            </message>
+            
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/schema/ldifs/enable_syntax_checking.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 33 -->
+        <testcase name="'Schema: RFC Test 33'">
+          <sequence>
+            <message>
+               'Schema RFC33: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/ldap_cosine_1.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult } 
+           </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 34 -->
+        <testcase name="'Schema: RFC Test 34'">
+          <sequence>
+            <message>
+               'Schema RFC34: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/ldap_cosine_2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult } 
+           </call>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case : Schema RFC Test 35 -->
+        <testcase name="'Schema: RFC Test 35'">
+          <sequence>
+            <message>
+               'Schema RFC35: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/ldap_cosine_3.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 65 } 
+           </call>
+          </sequence>
+        </testcase>
+        
+        <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>
