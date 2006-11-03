@@ -524,7 +524,7 @@ public class RootContainer
       ec = entryContainers.get(nodeDN);
       if (ec == null)
       {
-        nodeDN = nodeDN.getParent();
+        nodeDN = nodeDN.getParentDNInSuffix();
       }
     }
 

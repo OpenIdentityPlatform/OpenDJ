@@ -617,7 +617,7 @@ deleteProcessing:
 
             try
             {
-              DN parentDN = entryDN.getParent();
+              DN parentDN = entryDN.getParentDNInSuffix();
               while (parentDN != null)
               {
                 if (DirectoryServer.entryExists(parentDN))
@@ -626,7 +626,7 @@ deleteProcessing:
                   break;
                 }
 
-                parentDN = parentDN.getParent();
+                parentDN = parentDN.getParentDNInSuffix();
               }
             }
             catch (Exception e)

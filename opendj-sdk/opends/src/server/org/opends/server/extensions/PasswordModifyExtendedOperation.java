@@ -1015,7 +1015,7 @@ public class PasswordModifyExtendedOperation
                                                 String.valueOf(entryDN)));
 
         // See if one of the entry's ancestors exists.
-        DN parentDN = entryDN.getParent();
+        DN parentDN = entryDN.getParentDNInSuffix();
         while (parentDN != null)
         {
           try
@@ -1032,7 +1032,7 @@ public class PasswordModifyExtendedOperation
             break;
           }
 
-          parentDN = parentDN.getParent();
+          parentDN = parentDN.getParentDNInSuffix();
         }
 
         return null;

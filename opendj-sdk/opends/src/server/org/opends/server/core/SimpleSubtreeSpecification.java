@@ -390,7 +390,7 @@ public abstract class SimpleSubtreeSpecification extends
       this.chopBefore = new TreeMap<DN, DN>();
 
       for (DN localName : chopBefore) {
-        this.chopBefore.put(new DN(baseDN, localName), localName);
+        this.chopBefore.put(baseDN.concat(localName), localName);
       }
     } else {
       // No chop before specifications.
@@ -402,7 +402,7 @@ public abstract class SimpleSubtreeSpecification extends
       this.chopAfter = new TreeMap<DN, DN>();
 
       for (DN localName : chopAfter) {
-        this.chopAfter.put(new DN(baseDN, localName), localName);
+        this.chopAfter.put(baseDN.concat(localName), localName);
       }
     } else {
       // No chop after specifications.
@@ -428,10 +428,10 @@ public abstract class SimpleSubtreeSpecification extends
     }
 
     // Check minimum and maximum depths.
-    int baseRDNCount = baseDN.getRDNComponents().length;
+    int baseRDNCount = baseDN.getNumComponents();
 
     if (minimumDepth > 0) {
-      int entryRDNCount = dn.getRDNComponents().length;
+      int entryRDNCount = dn.getNumComponents();
 
       if (entryRDNCount - baseRDNCount < minimumDepth) {
         return false;
@@ -439,7 +439,7 @@ public abstract class SimpleSubtreeSpecification extends
     }
 
     if (maximumDepth >= 0) {
-      int entryRDNCount = dn.getRDNComponents().length;
+      int entryRDNCount = dn.getNumComponents();
 
       if (entryRDNCount - baseRDNCount > maximumDepth) {
         return false;

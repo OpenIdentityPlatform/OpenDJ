@@ -266,7 +266,7 @@ public class ProxiedAuthV2Control
     // Check for a zero-length value, which would be for an anonymous user.
     if (authorizationID.value().length == 0)
     {
-      return new DN();
+      return DN.nullDN();
     }
 
 
@@ -346,7 +346,7 @@ public class ProxiedAuthV2Control
       // If the authorization ID is just "u:", then it's an anonymous request.
       if (lowerAuthzID.length() == 2)
       {
-        return new DN();
+        return DN.nullDN();
       }
 
 

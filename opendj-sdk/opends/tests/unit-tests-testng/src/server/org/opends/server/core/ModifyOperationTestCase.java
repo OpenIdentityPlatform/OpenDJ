@@ -196,9 +196,9 @@ public class ModifyOperationTestCase
                               new Attribute("description", "foo")));
 
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null, new DN(), mods));
+                                   conn.nextMessageID(), null, DN.nullDN(), mods));
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls, new DN(),
+                                   conn.nextMessageID(), noControls, DN.nullDN(),
                                    mods));
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
@@ -212,9 +212,9 @@ public class ModifyOperationTestCase
                               new Attribute("description", "foo")));
 
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null, new DN(), mods));
+                                   conn.nextMessageID(), null, DN.nullDN(), mods));
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls, new DN(),
+                                   conn.nextMessageID(), noControls, DN.nullDN(),
                                    mods));
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
@@ -228,9 +228,9 @@ public class ModifyOperationTestCase
                               new Attribute("description", "foo")));
 
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null, new DN(), mods));
+                                   conn.nextMessageID(), null, DN.nullDN(), mods));
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls, new DN(),
+                                   conn.nextMessageID(), noControls, DN.nullDN(),
                                    mods));
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
@@ -246,9 +246,9 @@ public class ModifyOperationTestCase
                               new Attribute("description", "bar")));
 
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null, new DN(), mods));
+                                   conn.nextMessageID(), null, DN.nullDN(), mods));
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls, new DN(),
+                                   conn.nextMessageID(), noControls, DN.nullDN(),
                                    mods));
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
@@ -264,9 +264,9 @@ public class ModifyOperationTestCase
                               new Attribute("cn", "bar")));
 
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), null, new DN(), mods));
+                                   conn.nextMessageID(), null, DN.nullDN(), mods));
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
-                                   conn.nextMessageID(), noControls, new DN(),
+                                   conn.nextMessageID(), noControls, DN.nullDN(),
                                    mods));
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
@@ -375,7 +375,7 @@ public class ModifyOperationTestCase
                               new Attribute("description", "foo")));
     ModifyOperation modifyOperation =
          new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             null, new DN(), mods);
+                             null, DN.nullDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
   }
 
@@ -400,7 +400,7 @@ public class ModifyOperationTestCase
                               new Attribute("description", "foo")));
     ModifyOperation modifyOperation =
          new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             null, new DN(), mods);
+                             null, DN.nullDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
 
     modifyOperation.setRawEntryDN(new ASN1OctetString("ou=Users,o=test"));

@@ -1754,10 +1754,11 @@ public class CoreMessages
 
 
   /**
-   * The message ID for the string that will be used if an attempt is made to
-   * decode a string as an RDN but that string contained an unexpected comma or
-   * semicolon.  This takes two arguments, which are the RDN string to decode
-   * and the position of the illegal comma or semicolon.
+   * The message ID for the string that will be used if an attempt is
+   * made to decode a string as an RDN but that string contained an
+   * unexpected plus, comma, or semicolon. This takes two arguments,
+   * which are the RDN string to decode and the position of the
+   * illegal plus, comma, or semicolon.
    */
   public static final int MSGID_RDN_UNEXPECTED_COMMA =
        CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 174;
@@ -6572,8 +6573,8 @@ public class CoreMessages
     registerMessage(MSGID_RDN_UNEXPECTED_COMMA,
                     "Unable to decode the provided string \"%s\" as a " +
                     "relative distinguished name because it contained an " +
-                    "unexpected comma or semicolon at position %d, which is " +
-                    "not allowed in an RDN.");
+                    "unexpected plus, comma, or semicolon at position %d, "+
+                    "which is not allowed in an RDN.");
     registerMessage(MSGID_RDN_ILLEGAL_CHARACTER,
                     "Unable to decode the provided string \"%s\" as a " +
                     "relative distinguished name because an illegal " +

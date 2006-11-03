@@ -688,7 +688,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), SASL_MECHANISM_CRAM_MD5,
+         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5,
                               new ASN1OctetString("invalid"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
@@ -708,12 +708,12 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), SASL_MECHANISM_CRAM_MD5, null);
+         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, null);
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
     bindOperation =
-         conn.processSASLBind(new DN(), SASL_MECHANISM_CRAM_MD5,
+         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5,
                               new ASN1OctetString("malformed"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
@@ -733,14 +733,14 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), SASL_MECHANISM_CRAM_MD5, null);
+         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, null);
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
     ASN1OctetString creds =
          new ASN1OctetString("dn:cn=Directory Manager malformeddigest");
     bindOperation =
-         conn.processSASLBind(new DN(), SASL_MECHANISM_CRAM_MD5, creds);
+         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, creds);
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -760,7 +760,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), SASL_MECHANISM_CRAM_MD5, null);
+         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, null);
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
@@ -768,7 +768,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          new ASN1OctetString("dn:cn=Directory Manager " +
                           "malformedcredswiththerightlength");
     bindOperation =
-         conn.processSASLBind(new DN(), SASL_MECHANISM_CRAM_MD5, creds);
+         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, creds);
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
 }

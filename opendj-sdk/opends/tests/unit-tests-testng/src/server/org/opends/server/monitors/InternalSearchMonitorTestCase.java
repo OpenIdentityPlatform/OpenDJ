@@ -140,10 +140,10 @@ public class InternalSearchMonitorTestCase
          throws Exception
   {
     AttributeType cnType = DirectoryServer.getAttributeType(ATTR_COMMON_NAME);
-    RDN[] components = new RDN[2];
-    components[0] = new RDN(cnType, new AttributeValue(cnType, monitorName));
-    components[1] = new RDN(cnType, new AttributeValue(cnType, "monitor"));
-    DN monitorDN = new DN(components);
+    
+    RDN rdn0 = RDN.create(cnType, new AttributeValue(cnType, monitorName));
+    RDN rdn1 = RDN.create(cnType, new AttributeValue(cnType, "monitor"));
+    DN monitorDN = DN.create(rdn0, rdn1);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

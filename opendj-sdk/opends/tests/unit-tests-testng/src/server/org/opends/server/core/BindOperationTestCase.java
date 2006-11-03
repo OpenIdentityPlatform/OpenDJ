@@ -116,17 +116,17 @@ public class BindOperationTestCase
                         noControls, new ASN1OctetString("cn=Directory Manager"),
                         new ASN1OctetString("password")),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, new DN(), new ASN1OctetString()),
+                        null, DN.nullDN(), new ASN1OctetString()),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, new DN(), new ASN1OctetString()),
+                        noControls, DN.nullDN(), new ASN1OctetString()),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, nullDN, new ASN1OctetString()),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, nullDN, new ASN1OctetString()),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, new DN(), nullOS),
+                        null, DN.nullDN(), nullOS),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, new DN(), nullOS),
+                        noControls, DN.nullDN(), nullOS),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, nullDN, nullOS),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
@@ -187,18 +187,18 @@ public class BindOperationTestCase
                         noControls, nullOS, "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password")),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, new DN(), "EXTERNAL", null),
+                        null, DN.nullDN(), "EXTERNAL", null),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, new DN(), "EXTERNAL", null),
+                        noControls, DN.nullDN(), "EXTERNAL", null),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, nullDN, "EXTERNAL", null),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, nullDN, "EXTERNAL", null),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, new DN(), "PLAIN",
+                        null, DN.nullDN(), "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password")),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, new DN(), "PLAIN",
+                        noControls, DN.nullDN(), "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password")),
       new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, nullDN, "PLAIN",
@@ -608,7 +608,7 @@ public class BindOperationTestCase
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-                       conn.processSASLBind(new DN(), "PLAIN", saslCreds);
+                       conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getSASLAuthUserEntry());
   }
@@ -676,7 +676,7 @@ public class BindOperationTestCase
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), "PLAIN", saslCreds);
+         conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getUserEntryDN());
   }
@@ -721,7 +721,7 @@ public class BindOperationTestCase
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), "PLAIN", saslCreds);
+         conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(bindOperation.getProcessingStartTime() > 0);
     assertTrue(bindOperation.getProcessingStopTime() >=
@@ -793,7 +793,7 @@ public class BindOperationTestCase
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), "PLAIN", saslCreds);
+         conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getResponseLogElements());
     assertTrue(bindOperation.getResponseLogElements().length > 0);
@@ -867,7 +867,7 @@ public class BindOperationTestCase
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), "PLAIN", saslCreds);
+         conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
     assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
@@ -1636,7 +1636,7 @@ public class BindOperationTestCase
 
     BindOperation bindOperation =
          new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                           requestControls, new DN(), new ASN1OctetString());
+                           requestControls, DN.nullDN(), new ASN1OctetString());
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
@@ -1662,7 +1662,7 @@ public class BindOperationTestCase
 
     BindOperation bindOperation =
          new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                           requestControls, new DN(), "PLAIN", saslCreds);
+                           requestControls, DN.nullDN(), "PLAIN", saslCreds);
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
@@ -1685,7 +1685,7 @@ public class BindOperationTestCase
 
     BindOperation bindOperation =
          new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                           requestControls, new DN(), new ASN1OctetString());
+                           requestControls, DN.nullDN(), new ASN1OctetString());
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1710,7 +1710,7 @@ public class BindOperationTestCase
 
     BindOperation bindOperation =
          new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                           requestControls, new DN(), "PLAIN", saslCreds);
+                           requestControls, DN.nullDN(), "PLAIN", saslCreds);
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }

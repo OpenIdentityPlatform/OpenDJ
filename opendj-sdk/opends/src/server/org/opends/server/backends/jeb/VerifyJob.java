@@ -734,8 +734,8 @@ public class VerifyJob
             }
 
             if (!childEntry.getDN().isDescendantOf(entry.getDN()) ||
-                 childEntry.getDN().getRDNComponents().length !=
-                 entry.getDN().getRDNComponents().length + 1)
+                 childEntry.getDN().getNumComponents() !=
+                 entry.getDN().getNumComponents() + 1)
             {
               errorCount++;
               System.err.printf("File id2children has ID %d with DN <%s> " +
@@ -1512,7 +1512,7 @@ public class VerifyJob
     {
       return null;
     }
-    return dn.getParent();
+    return dn.getParentDNInSuffix();
   }
 
   /**

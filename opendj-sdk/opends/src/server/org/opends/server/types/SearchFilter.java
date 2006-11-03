@@ -3558,21 +3558,23 @@ public class SearchFilter
     // attributes, then do so.
     if (dnAttributes)
     {
-      for (RDN rdn : entry.getDN().getRDNComponents())
+      DN entryDN = entry.getDN();
+      int count = entryDN.getNumComponents();
+      for (int rdnIndex = 0; rdnIndex < count; rdnIndex++)
       {
-        AttributeType[]  types  = rdn.getAttributeTypes();
-        AttributeValue[] values = rdn.getAttributeValues();
-
-        for (int i=0; i < types.length; i++)
+        RDN rdn = entryDN.getRDN(rdnIndex);
+        int numAVAs = rdn.getNumValues();
+        for (int i=0; i < numAVAs; i++)
         {
           try
           {
             if ((attributeType == null) ||
-                attributeType.equals(types[i]))
+                attributeType.equals(rdn.getAttributeType(i)))
             {
 
+              AttributeValue v = rdn.getAttributeValue(i);
               ByteString nv =
-                   matchingRule.normalizeValue(values[i].getValue());
+                   matchingRule.normalizeValue(v.getValue());
               ConditionResult r =
                    matchingRule.valuesMatch(nv, normalizedValue);
               switch (r)

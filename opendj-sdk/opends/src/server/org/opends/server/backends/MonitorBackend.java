@@ -371,7 +371,7 @@ public class MonitorBackend
 
     // See if the monitor base entry is the immediate parent for the requested
     // entry.  If not, then throw an exception.
-    DN parentDN = entryDN.getParent();
+    DN parentDN = entryDN.getParentDNInSuffix();
     if ((parentDN == null) || (! parentDN.equals(baseMonitorDN)))
     {
       if (baseMonitorDN.isAncestorOf(entryDN))
@@ -405,7 +405,7 @@ public class MonitorBackend
 
     // Get the RDN value and see if it matches the instance name for one of
     // the directory server monitor providers.
-    String rdnValue = entryRDN.getAttributeValues()[0].getStringValue();
+    String rdnValue = entryRDN.getAttributeValue(0).getStringValue();
     MonitorProvider monitorProvider =
          DirectoryServer.getMonitorProvider(rdnValue.toLowerCase());
     if (monitorProvider == null)
@@ -448,7 +448,7 @@ public class MonitorBackend
       return true;
     }
 
-    DN parentDN = entryDN.getParent();
+    DN parentDN = entryDN.getParentDNInSuffix();
     if ((parentDN == null) || (! parentDN.equals(baseMonitorDN)))
     {
       return false;
@@ -460,7 +460,7 @@ public class MonitorBackend
       return false;
     }
 
-    String rdnValue = rdn.getAttributeValues()[0].getStringValue();
+    String rdnValue = rdn.getAttributeValue(0).getStringValue();
     MonitorProvider monitorProvider =
          DirectoryServer.getMonitorProvider(toLowerCase(rdnValue));
     return (monitorProvider != null);
@@ -654,14 +654,14 @@ public class MonitorBackend
 
     // Make sure to include the RDN attribute.
     RDN            entryRDN = entryDN.getRDN();
-    AttributeType  rdnType  = entryRDN.getAttributeTypes()[0];
-    AttributeValue rdnValue = entryRDN.getAttributeValues()[0];
+    AttributeType  rdnType  = entryRDN.getAttributeType(0);
+    AttributeValue rdnValue = entryRDN.getAttributeValue(0);
 
     LinkedHashSet<AttributeValue> rdnValues =
          new LinkedHashSet<AttributeValue>(1);
     rdnValues.add(rdnValue);
 
-    Attribute rdnAttr = new Attribute(rdnType, entryRDN.getAttributeNames()[0],
+    Attribute rdnAttr = new Attribute(rdnType, entryRDN.getAttributeName(0),
                                       rdnValues);
     ArrayList<Attribute> rdnList = new ArrayList<Attribute>(1);
     rdnList.add(rdnAttr);

@@ -705,7 +705,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         }
         else
         {
-          IDs = new ArrayList<EntryID>(entryDN.getRDNComponents().length);
+          IDs = new ArrayList<EntryID>(entryDN.getNumComponents());
           IDs.add(entryID);
           if (parentID != null)
           {
@@ -838,7 +838,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       importContext = importMap.get(nodeDN);
       if (importContext == null)
       {
-        nodeDN = nodeDN.getParent();
+        nodeDN = nodeDN.getParentDNInSuffix();
       }
     }
 

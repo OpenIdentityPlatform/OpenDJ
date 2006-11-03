@@ -241,8 +241,10 @@ public class TestModifyDNOperation extends OperationTestCase
     Entry newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.test0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    RDN rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -264,8 +266,10 @@ public class TestModifyDNOperation extends OperationTestCase
     newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -296,8 +300,10 @@ public class TestModifyDNOperation extends OperationTestCase
     Entry newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.test0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    RDN rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -319,8 +325,10 @@ public class TestModifyDNOperation extends OperationTestCase
     newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -351,8 +359,10 @@ public class TestModifyDNOperation extends OperationTestCase
     Entry newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.test0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    RDN rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -374,8 +384,10 @@ public class TestModifyDNOperation extends OperationTestCase
     newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -406,8 +418,10 @@ public class TestModifyDNOperation extends OperationTestCase
     Entry newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.test0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    RDN rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -429,8 +443,10 @@ public class TestModifyDNOperation extends OperationTestCase
     newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -461,8 +477,10 @@ public class TestModifyDNOperation extends OperationTestCase
     Entry newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.test0,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    RDN rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -484,8 +502,10 @@ public class TestModifyDNOperation extends OperationTestCase
     newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -516,8 +536,10 @@ public class TestModifyDNOperation extends OperationTestCase
     Entry newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.test0,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    RDN rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -539,8 +561,10 @@ public class TestModifyDNOperation extends OperationTestCase
     newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -798,8 +822,10 @@ public class TestModifyDNOperation extends OperationTestCase
     Entry newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.test0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    RDN rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -821,8 +847,10 @@ public class TestModifyDNOperation extends OperationTestCase
     newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -856,8 +884,10 @@ public class TestModifyDNOperation extends OperationTestCase
     Entry newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.test0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    RDN rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -879,8 +909,10 @@ public class TestModifyDNOperation extends OperationTestCase
     newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -941,8 +973,10 @@ public class TestModifyDNOperation extends OperationTestCase
     Entry newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.test0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    RDN rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
@@ -964,8 +998,10 @@ public class TestModifyDNOperation extends OperationTestCase
     newEntry = DirectoryServer.getEntry(DN.decode(
         "uid=user.0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
-    for(AttributeType attribute : newEntry.getDN().getRDN().getAttributeTypes())
+    rdn = newEntry.getDN().getRDN();
+    for (int i = 0; i < rdn.getNumValues(); i++)
     {
+      AttributeType attribute = rdn.getAttributeType(i);
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }

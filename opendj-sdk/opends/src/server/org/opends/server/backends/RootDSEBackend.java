@@ -72,7 +72,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RDN;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -230,7 +229,7 @@ public class RootDSEBackend
 
     // Create the set of base DNs that we will handle.  In this case, it's just
     // the root DSE.
-    rootDSEDN    = new DN(new ArrayList<RDN>(0));
+    rootDSEDN    = DN.nullDN();
     this.baseDNs = new DN[] { rootDSEDN };
 
 

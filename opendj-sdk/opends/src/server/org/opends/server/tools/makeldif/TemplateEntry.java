@@ -155,33 +155,22 @@ public class TemplateEntry
    */
   public DN getDN()
   {
-    if (dn == null)
-    {
-      AttributeType[]  rdnAttributes = template.getRDNAttributes();
-      String[]         rdnNames      = new String[rdnAttributes.length];
-      AttributeValue[] rdnValues     = new AttributeValue[rdnAttributes.length];
+    if (dn == null) {
+      RDN.Builder builder = RDN.createBuilder();
 
-      for (int i=0; i < rdnAttributes.length; i++)
-      {
-        TemplateValue v = getValue(rdnAttributes[i]);
-        if (v == null)
-        {
+      for (AttributeType type : template.getRDNAttributes()) {
+        TemplateValue v = getValue(type);
+        if (v == null) {
           return null;
         }
 
-        rdnNames[i]  = rdnAttributes[i].getNameOrOID();
-        rdnValues[i] = new AttributeValue(rdnAttributes[i],
-                                          v.getValue().toString());
+        AttributeValue value = new AttributeValue(type,
+            v.getValue().toString());
+
+        builder.append(type, value);
       }
 
-      RDN[] parentComponents = parentDN.getRDNComponents();
-      RDN[] dnComponents = new RDN[parentComponents.length+1];
-
-      dnComponents[0] = new RDN(rdnAttributes, rdnNames, rdnValues);
-      System.arraycopy(parentComponents, 0, dnComponents, 1,
-                       parentComponents.length);
-
-      dn = new DN(dnComponents);
+      dn = parentDN.concat(builder.getInstance());
     }
 
     return dn;

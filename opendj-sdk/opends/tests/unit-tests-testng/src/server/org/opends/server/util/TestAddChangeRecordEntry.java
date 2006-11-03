@@ -83,7 +83,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
   @Test(expectedExceptions = { NullPointerException.class,
                                AssertionError.class })
   public void testConstructorNullDN() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(null, attributes);
+    new AddChangeRecordEntry(null, attributes);
   }
 
   /**
@@ -94,10 +94,10 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(new DN(),
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.nullDN(),
         attributes);
 
-    Assert.assertEquals(entry.getDN(), new DN());
+    Assert.assertEquals(entry.getDN(), DN.nullDN());
   }
 
   /**
@@ -125,7 +125,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(new DN(), attributes);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.nullDN(), attributes);
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.ADD);
@@ -140,7 +140,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
   @Test
   public void testGetAttributesEmpty() throws Exception {
     Map<AttributeType, List<Attribute>> empty = Collections.emptyMap();
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(new DN(), empty);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.nullDN(), empty);
 
     List<Attribute> attrs = entry.getAttributes();
     Assert.assertEquals(attrs.size(), 0);
@@ -154,7 +154,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testGetAttributesNonEmpty() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(new DN(), attributes);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.nullDN(), attributes);
 
     List<Attribute> attrs = entry.getAttributes();
     Assert.assertEquals(attrs.size(), 1);

@@ -63,7 +63,7 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
   @Test(expectedExceptions = { NullPointerException.class,
                                AssertionError.class })
   public void testConstructorNullDN() throws Exception {
-    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(null);
+    new DeleteChangeRecordEntry(null);
   }
 
   /**
@@ -74,9 +74,9 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
-    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(new DN());
+    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(DN.nullDN());
 
-    Assert.assertEquals(entry.getDN(), new DN());
+    Assert.assertEquals(entry.getDN(), DN.nullDN());
   }
 
   /**
@@ -103,7 +103,7 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(new DN());
+    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(DN.nullDN());
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.DELETE);

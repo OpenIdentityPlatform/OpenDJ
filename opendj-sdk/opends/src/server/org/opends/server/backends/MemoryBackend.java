@@ -292,7 +292,7 @@ public class MemoryBackend
 
 
     // Get the parent DN and ensure that it exists in the backend.
-    DN parentDN = entryDN.getParent();
+    DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
       int    msgID   = MSGID_MEMORYBACKEND_ENTRY_DOESNT_BELONG;
@@ -393,7 +393,7 @@ public class MemoryBackend
     childDNs.remove(entryDN);
     entryMap.remove(entryDN);
 
-    DN parentDN = entryDN.getParent();
+    DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN != null)
     {
       HashSet<DN> parentsChildren = childDNs.get(parentDN);
@@ -505,7 +505,7 @@ public class MemoryBackend
 
 
     // Make sure that the parent of the new entry exists.
-    DN parentDN = entry.getDN().getParent();
+    DN parentDN = entry.getDN().getParentDNInSuffix();
     if ((parentDN == null) || (! entryMap.containsKey(parentDN)))
     {
       int    msgID   = MSGID_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST;

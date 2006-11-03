@@ -143,8 +143,8 @@ public class KeyManagerProviderConfigManager
 
       try
       {
-        ConfigEntry parentEntry =
-             DirectoryServer.getConfigEntry(configEntryDN.getParent());
+        ConfigEntry parentEntry = DirectoryServer
+            .getConfigEntry(configEntryDN.getParentDNInSuffix());
         if (parentEntry != null)
         {
           parentEntry.registerAddListener(this);
@@ -170,7 +170,7 @@ public class KeyManagerProviderConfigManager
     configEntry.registerChangeListener(this);
     try
     {
-      DN parentDN = configEntryDN.getParent();
+      DN parentDN = configEntryDN.getParentDNInSuffix();
       ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
       if (parentEntry != null)
       {
@@ -857,7 +857,7 @@ public class KeyManagerProviderConfigManager
     configEntry.registerChangeListener(this);
     try
     {
-      DN parentDN = configEntry.getDN().getParent();
+      DN parentDN = configEntry.getDN().getParentDNInSuffix();
       ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
       if (parentEntry != null)
       {

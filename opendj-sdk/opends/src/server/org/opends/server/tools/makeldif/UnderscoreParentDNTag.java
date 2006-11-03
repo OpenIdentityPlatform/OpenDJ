@@ -32,7 +32,6 @@ import java.util.List;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.RDN;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
@@ -132,12 +131,11 @@ public class UnderscoreParentDNTag
       return TagResult.SUCCESS_RESULT;
     }
 
-    RDN[] rdnComps = parentDN.getRDNComponents();
-    rdnComps[0].toString(templateValue.getValue());
-    for (int i=1; i < rdnComps.length; i++)
+    parentDN.getRDN(0).toString(templateValue.getValue());
+    for (int i=1; i < parentDN.getNumComponents(); i++)
     {
       templateValue.append("_");
-      rdnComps[i].toString(templateValue.getValue());
+      parentDN.getRDN(i).toString(templateValue.getValue());
     }
 
     return TagResult.SUCCESS_RESULT;

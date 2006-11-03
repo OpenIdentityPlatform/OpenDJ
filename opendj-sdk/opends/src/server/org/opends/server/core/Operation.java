@@ -42,7 +42,6 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OperationType;
-import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PostOperationOperation;
 import org.opends.server.types.operation.PostResponseOperation;
@@ -752,7 +751,7 @@ public abstract class Operation
       AuthenticationInfo authInfo = clientConnection.getAuthenticationInfo();
       if (authInfo == null)
       {
-        return new DN(new RDN[0]);
+        return DN.nullDN();
       }
       else
       {

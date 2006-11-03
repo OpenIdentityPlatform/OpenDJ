@@ -76,7 +76,7 @@ public class LDAPURL
   /**
    * The default base DN that will be used if none is provided.
    */
-  public static final DN DEFAULT_BASE_DN = new DN();
+  public static final DN DEFAULT_BASE_DN = DN.nullDN();
 
 
 

@@ -697,7 +697,7 @@ compareProcessing:
                                           String.valueOf(entryDN)));
 
             // See if one of the entry's ancestors exists.
-            DN parentDN = entryDN.getParent();
+            DN parentDN = entryDN.getParentDNInSuffix();
             while (parentDN != null)
             {
               try
@@ -714,7 +714,7 @@ compareProcessing:
                 break;
               }
 
-              parentDN = parentDN.getParent();
+              parentDN = parentDN.getParentDNInSuffix();
             }
 
             break compareProcessing;

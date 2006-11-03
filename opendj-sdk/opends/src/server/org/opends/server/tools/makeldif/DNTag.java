@@ -32,7 +32,6 @@ import java.util.List;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.RDN;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
@@ -205,26 +204,25 @@ public class DNTag
     }
     else if (numComponents > 0)
     {
-      RDN[] rdnComps = dn.getRDNComponents();
-      int count = Math.min(numComponents, rdnComps.length);
+      int count = Math.min(numComponents, dn.getNumComponents());
 
-      rdnComps[0].toString(templateValue.getValue());
-      for (int i=1; i < count; i++)
+      dn.getRDN(0).toString(templateValue.getValue());
+      for (int i = 1; i < count; i++)
       {
         templateValue.append(",");
-        rdnComps[i].toString(templateValue.getValue());
+        dn.getRDN(i).toString(templateValue.getValue());
       }
     }
     else
     {
-      RDN[] rdnComps = dn.getRDNComponents();
-      int count = Math.min(Math.abs(numComponents), rdnComps.length);
+      int sz = dn.getNumComponents();
+      int count = Math.min(Math.abs(numComponents), sz);
 
-      rdnComps[rdnComps.length-count].toString(templateValue.getValue());
-      for (int i=1; i < count; i++)
+      dn.getRDN(sz - count).toString(templateValue.getValue());
+      for (int i = 1; i < count; i++)
       {
         templateValue.append(",");
-        rdnComps[rdnComps.length-count+i].toString(templateValue.getValue());
+        dn.getRDN(sz - count + i).toString(templateValue.getValue());
       }
     }
 

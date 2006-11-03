@@ -245,19 +245,20 @@ public class BackupBackend
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>(1);
 
-    AttributeType[]  attrTypes  = backupBaseDN.getRDN().getAttributeTypes();
-    AttributeValue[] attrValues = backupBaseDN.getRDN().getAttributeValues();
-    for (int i=0; i < attrTypes.length; i++)
+    RDN rdn = backupBaseDN.getRDN();
+    int numAVAs = rdn.getNumValues();
+    for (int i=0; i < numAVAs; i++)
     {
       LinkedHashSet<AttributeValue> valueSet =
            new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(attrValues[i]);
+      valueSet.add(rdn.getAttributeValue(i));
 
+      AttributeType attrType = rdn.getAttributeType(i);
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(attrTypes[i], attrTypes[i].getNameOrOID(),
+      attrList.add(new Attribute(attrType, attrType.getNameOrOID(),
                                  valueSet));
 
-      userAttrs.put(attrTypes[i], attrList);
+      userAttrs.put(attrType, attrList);
     }
 
     backupBaseEntry = new Entry(backupBaseDN, objectClasses, userAttrs,
@@ -370,7 +371,7 @@ public class BackupBackend
     // If so, then it must point to a backup directory.  Otherwise, it must be
     // two levels below the backup base entry and must point to a specific
     // backup.
-    DN parentDN = entryDN.getParent();
+    DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
       int    msgID   = MSGID_BACKUP_INVALID_BASE;
@@ -381,7 +382,7 @@ public class BackupBackend
     {
       return getBackupDirectoryEntry(entryDN);
     }
-    else if (backupBaseDN.equals(parentDN.getParent()))
+    else if (backupBaseDN.equals(parentDN.getParentDNInSuffix()))
     {
       return getBackupEntry(entryDN);
     }
@@ -528,7 +529,7 @@ public class BackupBackend
 
 
     // Next, get the backup directory from the parent DN.
-    DN parentDN = entryDN.getParent();
+    DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
       int    msgID   = MSGID_BACKUP_NO_BACKUP_PARENT_DN;
@@ -929,7 +930,7 @@ public class BackupBackend
         }
       }
     }
-    else if (backupBaseDN.equals(parentDN = baseDN.getParent()))
+    else if (backupBaseDN.equals(parentDN = baseDN.getParentDNInSuffix()))
     {
       Entry backupDirEntry = getBackupDirectoryEntry(baseDN);
 
@@ -983,7 +984,8 @@ public class BackupBackend
     }
     else
     {
-      if ((parentDN == null) || (! backupBaseDN.equals(parentDN.getParent())))
+      if ((parentDN == null)
+          || (! backupBaseDN.equals(parentDN.getParentDNInSuffix())))
       {
         int    msgID   = MSGID_BACKUP_NO_SUCH_ENTRY;
         String message = getMessage(msgID);
@@ -1475,13 +1477,9 @@ public class BackupBackend
   public static DN makeChildDN(DN parentDN, AttributeType rdnAttrType,
                                String rdnStringValue)
   {
-    RDN[] baseComponents = parentDN.getRDNComponents();
-    RDN[] components = new RDN[baseComponents.length+1];
     AttributeValue attrValue =
          new AttributeValue(rdnAttrType, rdnStringValue);
-    components[0] = new RDN(rdnAttrType, attrValue);
-    System.arraycopy(baseComponents, 0, components, 1, baseComponents.length);
-    return new DN(components);
+    return parentDN.concat(RDN.create(rdnAttrType, attrValue));
   }
 }
 

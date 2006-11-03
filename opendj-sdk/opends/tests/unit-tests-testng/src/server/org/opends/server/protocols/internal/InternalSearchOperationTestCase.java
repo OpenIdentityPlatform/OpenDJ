@@ -133,7 +133,7 @@ public class InternalSearchOperationTestCase
          InternalClientConnection.getRootConnection();
     new InternalSearchOperation(conn, conn.nextOperationID(),
                                 conn.nextMessageID(), new ArrayList<Control>(),
-                                new DN(), SearchScope.BASE_OBJECT,
+                                DN.nullDN(), SearchScope.BASE_OBJECT,
                                 DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                                 false, searchFilter,
                                 new LinkedHashSet<String>(), null);
@@ -158,7 +158,7 @@ public class InternalSearchOperationTestCase
          InternalClientConnection.getRootConnection();
     new InternalSearchOperation(conn, conn.nextOperationID(),
                                 conn.nextMessageID(), new ArrayList<Control>(),
-                                new DN(), SearchScope.BASE_OBJECT,
+                                DN.nullDN(), SearchScope.BASE_OBJECT,
                                 DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                                 false, searchFilter,
                                 new LinkedHashSet<String>(),

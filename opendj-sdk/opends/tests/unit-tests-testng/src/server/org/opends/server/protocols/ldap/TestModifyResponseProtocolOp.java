@@ -84,11 +84,8 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
 
     AttributeValue attributeValue = new AttributeValue(attribute, "testValue");
 
-    RDN rdn = new RDN(attribute, attributeValue);
-
-    RDN[] rdns = {rdn};
-
-    dn = new DN(rdns);
+    RDN rdn = RDN.create(attribute, attributeValue);
+    dn = DN.create(rdn);
   }
 
   /**
@@ -303,7 +300,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
 
 
     //Test case for a full encode decode operation with an empty DN params.
-    modifyEncoded = new ModifyResponseProtocolOp(resultCode, resultMsg, new DN(),
+    modifyEncoded = new ModifyResponseProtocolOp(resultCode, resultMsg, DN.nullDN(),
                                                  referralURLs);
     element = modifyEncoded.encode();
     modifyDecoded = (ModifyResponseProtocolOp)ModifyResponseProtocolOp.decode(

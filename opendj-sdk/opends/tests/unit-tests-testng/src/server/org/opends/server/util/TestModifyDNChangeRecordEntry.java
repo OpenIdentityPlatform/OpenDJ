@@ -71,8 +71,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test(expectedExceptions = { NullPointerException.class,
                                AssertionError.class })
   public void testConstructorNullDN() throws Exception {
-    ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(null, newRDN, false, newSuperiorDN);
+    new ModifyDNChangeRecordEntry(null, newRDN, false, newSuperiorDN);
   }
 
   /**
@@ -84,9 +83,9 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testConstructorEmptyDN() throws Exception {
     ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(
-        new DN(), newRDN, false, newSuperiorDN);
+        DN.nullDN(), newRDN, false, newSuperiorDN);
 
-    Assert.assertEquals(entry.getDN(), new DN());
+    Assert.assertEquals(entry.getDN(), DN.nullDN());
   }
 
   /**
@@ -115,7 +114,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testChangeOperationType() throws Exception {
     ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(new DN(), newRDN, false, newSuperiorDN);
+         new ModifyDNChangeRecordEntry(DN.nullDN(), newRDN, false, newSuperiorDN);
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.MODIFY_DN);
@@ -130,9 +129,9 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testGetNewRDN() throws Exception {
     ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(new DN(), newRDN, false, newSuperiorDN);
+         new ModifyDNChangeRecordEntry(DN.nullDN(), newRDN, false, newSuperiorDN);
 
-    Assert.assertEquals(entry.getNewRDN(), newRDN.duplicate());
+    Assert.assertEquals(entry.getNewRDN(), newRDN);
   }
 
   /**
@@ -144,10 +143,10 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testGetNewSuperiorDN() throws Exception {
     ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(new DN(), newRDN, false, newSuperiorDN);
+         new ModifyDNChangeRecordEntry(DN.nullDN(), newRDN, false, newSuperiorDN);
 
     Assert
-        .assertEquals(entry.getNewSuperiorDN(), newSuperiorDN.duplicate());
+        .assertEquals(entry.getNewSuperiorDN(), newSuperiorDN);
   }
 
   /**
@@ -159,7 +158,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testDeleteOldRDNFalse() throws Exception {
     ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(new DN(), newRDN, false, newSuperiorDN);
+         new ModifyDNChangeRecordEntry(DN.nullDN(), newRDN, false, newSuperiorDN);
 
     Assert.assertEquals(entry.deleteOldRDN(), false);
   }
@@ -173,7 +172,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testDeleteOldRDNTrue() throws Exception {
     ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(new DN(), newRDN, true, newSuperiorDN);
+         new ModifyDNChangeRecordEntry(DN.nullDN(), newRDN, true, newSuperiorDN);
 
     Assert.assertEquals(entry.deleteOldRDN(), true);
   }

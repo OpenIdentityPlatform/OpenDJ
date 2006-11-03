@@ -42,7 +42,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
-import org.opends.server.types.DNComparator;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFImportConfig;
@@ -277,8 +276,7 @@ public class LDIFDiff
       return 1;
     }
 
-    DNComparator comparator = new DNComparator();
-    TreeMap<DN,Entry> sourceMap = new TreeMap<DN,Entry>(comparator);
+    TreeMap<DN,Entry> sourceMap = new TreeMap<DN,Entry>();
     try
     {
       while (true)
@@ -324,7 +322,7 @@ public class LDIFDiff
       return 1;
     }
 
-    TreeMap<DN,Entry> targetMap = new TreeMap<DN,Entry>(comparator);
+    TreeMap<DN,Entry> targetMap = new TreeMap<DN,Entry>();
     try
     {
       while (true)
@@ -437,9 +435,9 @@ public class LDIFDiff
 
         while (true)
         {
-          // Use the DN comparator to determine the relative order of the
+          // Compare the DNs to determine the relative order of the
           // entries.
-          int comparatorValue = comparator.compare(sourceDN, targetDN);
+          int comparatorValue = sourceDN.compareTo(targetDN);
           if (comparatorValue < 0)
           {
             // The source entry should be before the target entry, which means

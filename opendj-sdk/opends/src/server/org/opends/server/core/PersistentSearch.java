@@ -221,7 +221,7 @@ public class PersistentSearch
         }
         break;
       case SINGLE_LEVEL:
-        if (! baseDN.equals(entry.getDN().getParent()))
+        if (! baseDN.equals(entry.getDN().getParentDNInSuffix()))
         {
           return;
         }
@@ -331,7 +331,7 @@ public class PersistentSearch
         }
         break;
       case SINGLE_LEVEL:
-        if (! baseDN.equals(entry.getDN().getParent()))
+        if (! baseDN.equals(entry.getDN().getParentDNInSuffix()))
         {
           return;
         }
@@ -444,7 +444,7 @@ public class PersistentSearch
         }
         break;
       case SINGLE_LEVEL:
-        if (! baseDN.equals(oldEntry.getDN().getParent()))
+        if (! baseDN.equals(oldEntry.getDN().getParentDNInSuffix()))
         {
           return;
         }
@@ -567,8 +567,8 @@ public class PersistentSearch
 
         break;
       case SINGLE_LEVEL:
-        oldMatches = baseDN.equals(oldEntry.getDN().getParent());
-        newMatches = baseDN.equals(newEntry.getDN().getParent());
+        oldMatches = baseDN.equals(oldEntry.getDN().getParentDNInSuffix());
+        newMatches = baseDN.equals(newEntry.getDN().getParentDNInSuffix());
 
         if (! (oldMatches || newMatches))
         {

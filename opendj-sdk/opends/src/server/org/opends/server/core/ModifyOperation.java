@@ -923,7 +923,7 @@ modifyProcessing:
                                         String.valueOf(entryDN)));
 
           // See if one of the entry's ancestors exists.
-          DN parentDN = entryDN.getParent();
+          DN parentDN = entryDN.getParentDNInSuffix();
           while (parentDN != null)
           {
             try
@@ -940,7 +940,7 @@ modifyProcessing:
               break;
             }
 
-            parentDN = parentDN.getParent();
+            parentDN = parentDN.getParentDNInSuffix();
           }
 
           break modifyProcessing;

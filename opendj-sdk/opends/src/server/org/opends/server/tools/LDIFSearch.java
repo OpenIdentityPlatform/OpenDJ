@@ -521,7 +521,7 @@ public class LDIFSearch
     }
     else
     {
-      baseDNs.add(new DN());
+      baseDNs.add(DN.nullDN());
     }
 
 

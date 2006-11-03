@@ -449,7 +449,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), "PLAIN", creds);
+         conn.processSASLBind(DN.nullDN(), "PLAIN", creds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -902,7 +902,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(new DN(), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.nullDN(), SearchScope.BASE_OBJECT,
               SearchFilter.createFilterFromString("(objectClass=*)"));
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -924,7 +924,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(new DN(), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.nullDN(), SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
               new LinkedHashSet<String>());
@@ -952,7 +952,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(new DN(), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.nullDN(), SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
               new LinkedHashSet<String>(), searchListener);

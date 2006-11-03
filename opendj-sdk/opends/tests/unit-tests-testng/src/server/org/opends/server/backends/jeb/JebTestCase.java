@@ -39,7 +39,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.makeldif.MakeLDIFInputStream;
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.types.DN;
-import org.opends.server.types.DNComparator;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.DirectoryServerTestCase;
@@ -53,8 +52,7 @@ import org.testng.annotations.Test;
  */
 @Test(groups = { "precommit", "jeb" })
 public abstract class JebTestCase extends DirectoryServerTestCase {
-    private DNComparator comparator = new DNComparator();
-    private TreeMap<DN,Entry> entryTreeMap = new TreeMap<DN,Entry>(comparator);
+    private TreeMap<DN,Entry> entryTreeMap = new TreeMap<DN,Entry>();
     int numEntries;
     
     /**
