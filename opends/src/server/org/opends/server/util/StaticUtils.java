@@ -1273,15 +1273,59 @@ public final class StaticUtils
 
 
   /**
-   * Indicates whether the two array lists are equal.  They will be considered
-   * equal if they have the same number of elements, and the corresponding
-   * elements between them are equal (in the same order).
+   * Compare two byte arrays for order. Returns a negative integer,
+   * zero, or a positive integer as the first argument is less than,
+   * equal to, or greater than the second.
    *
-   * @param  list1  The first list for which to make the determination.
-   * @param  list2  The second list for which to make the determination.
+   * @param a
+   *          The first byte array to be compared.
+   * @param a2
+   *          The second byte array to be compared.
+   * @return Returns a negative integer, zero, or a positive integer
+   *         if the first byte array is less than, equal to, or greater
+   *         than the second.
+   */
+  public static int compare(byte[] a, byte[] a2) {
+    if (a == a2) {
+      return 0;
+    }
+
+    if (a == null) {
+      return -1;
+    }
+
+    if (a2 == null) {
+      return 1;
+    }
+
+    int minLength = Math.min(a.length, a2.length);
+    for (int i = 0; i < minLength; i++) {
+      if (a[i] != a2[i]) {
+        if (a[i] < a2[i]) {
+          return -1;
+        } else if (a[i] > a2[i]) {
+          return 1;
+        }
+      }
+    }
+
+    return (a.length - a2.length);
+  }
+
+
+
+  /**
+   * Indicates whether the two array lists are equal. They will be
+   * considered equal if they have the same number of elements, and
+   * the corresponding elements between them are equal (in the same
+   * order).
    *
-   * @return  <CODE>true</CODE> if the two array lists are equal, or
-   *          <CODE>false</CODE> if they are not.
+   * @param list1
+   *          The first list for which to make the determination.
+   * @param list2
+   *          The second list for which to make the determination.
+   * @return <CODE>true</CODE> if the two array lists are equal, or
+   *         <CODE>false</CODE> if they are not.
    */
   public static boolean listsAreEqual(List list1, List list2)
   {
@@ -3259,29 +3303,28 @@ public final class StaticUtils
 
     // Get the information about the RDN attributes.
     RDN rdn = dn.getRDN();
-    AttributeType[]  rdnTypes  = rdn.getAttributeTypes();
-    String[]         rdnNames  = rdn.getAttributeNames();
-    AttributeValue[] rdnValues = rdn.getAttributeValues();
-
+    int numAVAs = rdn.getNumValues();
 
     // If there is only one RDN attribute, then see which objectclass we should
     // use.
     ObjectClass structuralClass;
-    if (rdnTypes.length == 1)
+    if (numAVAs == 1)
     {
-      if (rdnTypes[0].hasName(ATTR_C))
+      AttributeType attrType = rdn.getAttributeType(0);
+
+      if (attrType.hasName(ATTR_C))
       {
         structuralClass = DirectoryServer.getObjectClass(OC_COUNTRY, true);
       }
-      else if (rdnTypes[0].hasName(ATTR_DC))
+      else if (attrType.hasName(ATTR_DC))
       {
         structuralClass = DirectoryServer.getObjectClass(OC_DOMAIN, true);
       }
-      else if (rdnTypes[0].hasName(ATTR_O))
+      else if (attrType.hasName(ATTR_O))
       {
         structuralClass = DirectoryServer.getObjectClass(OC_ORGANIZATION, true);
       }
-      else if (rdnTypes[0].hasName(ATTR_OU))
+      else if (attrType.hasName(ATTR_OU))
       {
         structuralClass =
              DirectoryServer.getObjectClass(OC_ORGANIZATIONAL_UNIT_LC, true);
@@ -3315,11 +3358,15 @@ public final class StaticUtils
          new LinkedHashMap<AttributeType,List<Attribute>>();
 
     boolean extensibleObjectAdded = false;
-    for (int i=0; i < rdnTypes.length; i++)
+    for (int i=0; i < numAVAs; i++)
     {
+      AttributeType attrType = rdn.getAttributeType(i);
+      AttributeValue attrValue = rdn.getAttributeValue(i);
+      String attrName = rdn.getAttributeName(i);
+
       // First, see if this type is allowed by the untypedObject class.  If not,
       // then we'll need to include the extensibleObject class.
-      if ((! structuralClass.isRequiredOrOptional(rdnTypes[i])) &&
+      if ((! structuralClass.isRequiredOrOptional(attrType)) &&
           (! extensibleObjectAdded))
       {
         ObjectClass extensibleObjectOC =
@@ -3337,36 +3384,36 @@ public final class StaticUtils
       // Create the attribute and add it to the appropriate map.
       LinkedHashSet<AttributeValue> valueSet =
            new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(rdnValues[i]);
+      valueSet.add(attrValue);
 
-      if (rdnTypes[i].isOperational())
+      if (attrType.isOperational())
       {
-        List<Attribute> attrList = operationalAttributes.get(rdnTypes[i]);
+        List<Attribute> attrList = operationalAttributes.get(attrType);
         if ((attrList == null) || attrList.isEmpty())
         {
           attrList = new ArrayList<Attribute>(1);
-          attrList.add(new Attribute(rdnTypes[i], rdnNames[i], valueSet));
-          operationalAttributes.put(rdnTypes[i], attrList);
+          attrList.add(new Attribute(attrType, attrName, valueSet));
+          operationalAttributes.put(attrType, attrList);
         }
         else
         {
           Attribute attr = attrList.get(0);
-          attr.getValues().add(rdnValues[i]);
+          attr.getValues().add(attrValue);
         }
       }
       else
       {
-        List<Attribute> attrList = userAttributes.get(rdnTypes[i]);
+        List<Attribute> attrList = userAttributes.get(attrType);
         if ((attrList == null) || attrList.isEmpty())
         {
           attrList = new ArrayList<Attribute>(1);
-          attrList.add(new Attribute(rdnTypes[i], rdnNames[i], valueSet));
-          userAttributes.put(rdnTypes[i], attrList);
+          attrList.add(new Attribute(attrType, attrName, valueSet));
+          userAttributes.put(attrType, attrList);
         }
         else
         {
           Attribute attr = attrList.get(0);
-          attr.getValues().add(rdnValues[i]);
+          attr.getValues().add(attrValue);
         }
       }
     }

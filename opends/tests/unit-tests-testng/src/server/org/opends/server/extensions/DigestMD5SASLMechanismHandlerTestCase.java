@@ -823,7 +823,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), SASL_MECHANISM_DIGEST_MD5,
+         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_DIGEST_MD5,
                               new ASN1OctetString("invalid"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
@@ -843,12 +843,12 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(new DN(), SASL_MECHANISM_DIGEST_MD5, null);
+         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_DIGEST_MD5, null);
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
     bindOperation =
-         conn.processSASLBind(new DN(), SASL_MECHANISM_DIGEST_MD5,
+         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_DIGEST_MD5,
                               new ASN1OctetString("malformed"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }

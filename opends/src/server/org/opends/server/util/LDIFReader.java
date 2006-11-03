@@ -580,7 +580,7 @@ public final class LDIFReader
     int length = line.length();
     if (colonPos == (length-1))
     {
-      return new DN(new ArrayList<RDN>(0));
+      return DN.nullDN();
     }
 
     if (line.charAt(colonPos+1) == ':')

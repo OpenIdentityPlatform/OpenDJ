@@ -87,9 +87,8 @@ public final class TestChangeRecordEntry extends UtilTestCase {
   @Test(expectedExceptions = { NullPointerException.class,
                                AssertionError.class })
   public void testConstructorNullDN() throws Exception {
-    MyChangeRecordEntry entry = new MyChangeRecordEntry(null);
+    new MyChangeRecordEntry(null);
   }
-
 
   /**
    * Tests the constructor with empty DN.
@@ -99,9 +98,9 @@ public final class TestChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
-    MyChangeRecordEntry entry = new MyChangeRecordEntry(new DN());
+    MyChangeRecordEntry entry = new MyChangeRecordEntry(DN.nullDN());
 
-    Assert.assertEquals(entry.getDN(), new DN());
+    Assert.assertEquals(entry.getDN(), DN.nullDN());
   }
 
   /**

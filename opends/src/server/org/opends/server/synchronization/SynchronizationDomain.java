@@ -662,7 +662,7 @@ public class SynchronizationDomain extends DirectoryThread
   {
     AddContext ctx = new AddContext(generateChangeNumber(addOperation),
         Historical.getEntryUuid(addOperation),
-        findEntryId(addOperation.getEntryDN().getParent()));
+        findEntryId(addOperation.getEntryDN().getParentDNInSuffix()));
 
     addOperation.setAttachment(SYNCHROCONTEXT, ctx);
   }
@@ -1491,13 +1491,7 @@ public class SynchronizationDomain extends DirectoryThread
       throw new Exception("operation parameters are invalid");
     }
 
-    RDN[] parentComponents = parentDN.getRDNComponents();
-    RDN[] newComponents    = new RDN[parentComponents.length+1];
-    System.arraycopy(parentComponents, 0, newComponents, 1,
-        parentComponents.length);
-    newComponents[0] = newRDN;
-
-    DN newDN = new DN(newComponents);
+    DN newDN = parentDN.concat(newRDN);
 
     // get the current DN of this entry in the database.
     DN currentDN = findEntryDN(entryUid);

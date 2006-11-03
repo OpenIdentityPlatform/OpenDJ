@@ -337,7 +337,7 @@ public class JmxConnectionHandler
     // in the current entry.
     // Always return true as the check will be performed by the
     // hasAcceptableConfiguration call
-    if (configEntry.getDN().compareTo(configEntryDN) == 0)
+    if (configEntry.getDN().equals(configEntryDN))
     {
       return true;
     }
@@ -370,7 +370,7 @@ public class JmxConnectionHandler
     //
     // We are checking first if we are dealing with a change
     // in the current entry.
-    if (configEntry.getDN().compareTo(configEntryDN) == 0)
+    if (configEntry.getDN().equals(configEntryDN))
     {
       ArrayList<String> messages = new ArrayList<String>();
       return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);

@@ -85,8 +85,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
   @Test(expectedExceptions = { NullPointerException.class,
                                AssertionError.class })
   public void testConstructorNullDN() throws Exception {
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(null,
-        modifications);
+    new ModifyChangeRecordEntry(null, modifications);
   }
 
   /**
@@ -97,10 +96,10 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(new DN(),
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.nullDN(),
         modifications);
 
-    Assert.assertEquals(entry.getDN(), new DN());
+    Assert.assertEquals(entry.getDN(), DN.nullDN());
   }
 
   /**
@@ -128,7 +127,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(new DN(),
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.nullDN(),
         modifications);
 
     Assert.assertEquals(entry.getChangeOperationType(),
@@ -144,7 +143,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
   @Test
   public void testGetModificationsEmpty() throws Exception {
     List<LDAPModification> empty = Collections.emptyList();
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(new DN(),
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.nullDN(),
                                                                 empty);
 
     List<LDAPModification> mods = entry.getModifications();
@@ -159,7 +158,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testGetModificationsNonEmpty() throws Exception {
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(new DN(),
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.nullDN(),
         modifications);
 
     List<LDAPModification> mods = entry.getModifications();

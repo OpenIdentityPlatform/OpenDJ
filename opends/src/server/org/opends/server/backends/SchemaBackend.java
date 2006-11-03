@@ -399,19 +399,16 @@ public class SchemaBackend
     RDN rdn = entryDN.getRDN();
     if (rdn != null)
     {
-      String[]         rdnNames  = rdn.getAttributeNames();
-      AttributeType[]  rdnTypes  = rdn.getAttributeTypes();
-      AttributeValue[] rdnValues = rdn.getAttributeValues();
-
-      int numRDNs = rdnTypes.length;
-      for (int i=0; i < numRDNs; i++)
+      int numAVAs = rdn.getNumValues();
+      for (int i=0; i < numAVAs; i++)
       {
         LinkedHashSet<AttributeValue> valueSet =
              new LinkedHashSet<AttributeValue>(1);
-        valueSet.add(rdnValues[i]);
+        valueSet.add(rdn.getAttributeValue(i));
 
-        AttributeType attrType = rdnTypes[i];
-        Attribute a = new Attribute(attrType, rdnNames[i], valueSet);
+        AttributeType attrType = rdn.getAttributeType(i);
+        String attrName = rdn.getAttributeName(i);
+        Attribute a = new Attribute(attrType, attrName, valueSet);
         ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
         attrList.add(a);
 

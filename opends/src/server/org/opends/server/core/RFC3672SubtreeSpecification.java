@@ -689,7 +689,7 @@ public final class RFC3672SubtreeSpecification extends
   public RFC3672SubtreeSpecification(DN rootDN, DN relativeBaseDN,
       int minimumDepth, int maximumDepth, Iterable<DN> chopBefore,
       Iterable<DN> chopAfter, Refinement refinements) {
-    super(relativeBaseDN == null ? rootDN : new DN(rootDN, relativeBaseDN),
+    super(relativeBaseDN == null ? rootDN : rootDN.concat(relativeBaseDN),
         minimumDepth, maximumDepth, chopBefore, chopAfter);
 
     assert debugConstructor(CLASS_NAME);

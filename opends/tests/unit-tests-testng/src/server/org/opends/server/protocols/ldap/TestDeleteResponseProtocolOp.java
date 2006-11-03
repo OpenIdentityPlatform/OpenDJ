@@ -82,11 +82,8 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
 
     AttributeValue attributeValue = new AttributeValue(attribute, "testValue");
 
-    RDN rdn = new RDN(attribute, attributeValue);
-
-    RDN[] rdns = {rdn};
-
-    dn = new DN(rdns);
+    RDN rdn = RDN.create(attribute, attributeValue);
+    dn = DN.create(rdn);
   }
 
   /**
@@ -301,7 +298,7 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
 
 
     //Test case for a full encode decode operation with an empty DN params.
-    deleteEncoded = new DeleteResponseProtocolOp(resultCode, resultMsg, new DN(),
+    deleteEncoded = new DeleteResponseProtocolOp(resultCode, resultMsg, DN.nullDN(),
                                            referralURLs);
     element = deleteEncoded.encode();
     deleteDecoded = (DeleteResponseProtocolOp)DeleteResponseProtocolOp.decode(

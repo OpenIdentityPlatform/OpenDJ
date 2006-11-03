@@ -141,8 +141,8 @@ public class EntryCacheConfigManager
 
       try
       {
-        ConfigEntry parentEntry =
-             DirectoryServer.getConfigEntry(configEntryDN.getParent());
+        ConfigEntry parentEntry = DirectoryServer
+            .getConfigEntry(configEntryDN.getParentDNInSuffix());
         if (parentEntry != null)
         {
           parentEntry.registerAddListener(this);
@@ -168,7 +168,7 @@ public class EntryCacheConfigManager
     configEntry.registerChangeListener(this);
     try
     {
-      DN parentDN = configEntryDN.getParent();
+      DN parentDN = configEntryDN.getParentDNInSuffix();
       ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
       if (parentEntry != null)
       {

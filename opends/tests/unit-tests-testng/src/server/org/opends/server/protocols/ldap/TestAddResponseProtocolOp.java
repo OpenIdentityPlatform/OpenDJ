@@ -82,11 +82,9 @@ public class TestAddResponseProtocolOp
 
     AttributeValue attributeValue = new AttributeValue(attribute, "testValue");
 
-    RDN rdn = new RDN(attribute, attributeValue);
-
-    RDN[] rdns = {rdn};
-
-    dn = new DN(rdns);
+    RDN rdn = RDN.create(attribute, attributeValue);
+    
+    dn = DN.create(rdn);
   }
 
   /**
@@ -295,7 +293,7 @@ public class TestAddResponseProtocolOp
 
 
     //Test case for a full encode decode operation with an empty DN params.
-    addEncoded = new AddResponseProtocolOp(resultCode, resultMsg, new DN(),
+    addEncoded = new AddResponseProtocolOp(resultCode, resultMsg, DN.nullDN(),
                                            referralURLs);
     element = addEncoded.encode();
     addDecoded = (AddResponseProtocolOp)AddResponseProtocolOp.decode(element);

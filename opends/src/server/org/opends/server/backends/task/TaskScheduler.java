@@ -1009,7 +1009,7 @@ public class TaskScheduler
         }
         else
         {
-          DN parentDN = entryDN.getParent();
+          DN parentDN = entryDN.getParentDNInSuffix();
           if (parentDN == null)
           {
             int    msgID   = MSGID_TASKSCHED_ENTRY_HAS_NO_PARENT;

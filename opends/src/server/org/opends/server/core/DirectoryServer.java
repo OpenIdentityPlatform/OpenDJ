@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -1926,7 +1925,7 @@ public class DirectoryServer
       throw new InitializationException(msgID, message, e);
     }
 
-    DN[] baseDNs   = { new DN(new RDN[0]) };
+    DN[] baseDNs   = { DN.nullDN() };
     rootDSEBackend = new RootDSEBackend();
     rootDSEBackend.initializeBackend(rootDSEConfigEntry, baseDNs);
   }
@@ -5372,7 +5371,7 @@ public class DirectoryServer
 
     while (backend == null)
     {
-      dn = dn.getParent();
+      dn = dn.getParentDNInSuffix();
       if (dn == null)
       {
         break;
@@ -5422,7 +5421,7 @@ public class DirectoryServer
       }
 
       boolean found = false;
-      DN parentDN = suffixDN.getParent();
+      DN parentDN = suffixDN.getParentDNInSuffix();
       while (parentDN != null)
       {
         b = directoryServer.suffixes.get(suffixDN);
@@ -5444,7 +5443,7 @@ public class DirectoryServer
           }
         }
 
-        parentDN = parentDN.getParent();
+        parentDN = parentDN.getParentDNInSuffix();
       }
 
 
@@ -5513,7 +5512,7 @@ public class DirectoryServer
           throw new ConfigException(msgID, message);
         }
 
-        DN parentDN = suffixDN.getParent();
+        DN parentDN = suffixDN.getParentDNInSuffix();
         while (parentDN != null)
         {
           b = directoryServer.suffixes.get(suffixDN);
@@ -5525,7 +5524,7 @@ public class DirectoryServer
             throw new ConfigException(msgID, message);
           }
 
-          parentDN = suffixDN.getParent();
+          parentDN = suffixDN.getParentDNInSuffix();
         }
       }
 
@@ -5542,7 +5541,7 @@ public class DirectoryServer
         throw new ConfigException(msgID, message);
       }
 
-      DN parentDN = suffixDN.getParent();
+      DN parentDN = suffixDN.getParentDNInSuffix();
       while (parentDN != null)
       {
         b = directoryServer.privateSuffixes.get(suffixDN);
@@ -5563,7 +5562,7 @@ public class DirectoryServer
           }
         }
 
-        parentDN = suffixDN.getParent();
+        parentDN = suffixDN.getParentDNInSuffix();
       }
 
 
@@ -5599,7 +5598,7 @@ public class DirectoryServer
         return;
       }
 
-      DN parentDN = suffixDN.getParent();
+      DN parentDN = suffixDN.getParentDNInSuffix();
       while (parentDN != null)
       {
         b = directoryServer.suffixes.get(parentDN);
@@ -5625,7 +5624,7 @@ public class DirectoryServer
         return;
       }
 
-      DN parentDN = suffixDN.getParent();
+      DN parentDN = suffixDN.getParentDNInSuffix();
       while (parentDN != null)
       {
         b = directoryServer.privateSuffixes.get(parentDN);
@@ -7328,7 +7327,7 @@ public class DirectoryServer
       {
         // The config handler hasn't been initialized yet.  Just return the DN
         // of the root DSE.
-        return new DN(new ArrayList<RDN>(0));
+        return DN.nullDN();
       }
 
       return configHandler.getConfigRootEntry().getDN();
@@ -7339,7 +7338,7 @@ public class DirectoryServer
 
       // This could theoretically happen if an alert needs to be sent before the
       // configuration is initialized.  In that case, just return an empty DN.
-      return new DN(new ArrayList<RDN>(0));
+      return DN.nullDN();
     }
   }
 
@@ -7782,11 +7781,9 @@ public class DirectoryServer
       // Cannot reach this point.
       throw new RuntimeException();
     }
-    RDN[] baseRDNs = monitorRootDN.getRDNComponents();
-    RDN[] rdns = new RDN[baseRDNs.length+1];
-    rdns[0] = new RDN(cnType, new AttributeValue(cnType, monitorName));
-    System.arraycopy(baseRDNs, 0, rdns, 1, baseRDNs.length);
-    return new DN(rdns);
+
+    RDN rdn = RDN.create(cnType, new AttributeValue(cnType, monitorName));
+    return monitorRootDN.concat(rdn);
   }
 }
 

@@ -143,7 +143,7 @@ public class Entry
 
     if (dn == null)
     {
-      this.dn = new DN(new ArrayList<RDN>(0));
+      this.dn = DN.nullDN();
     }
     else
     {
@@ -207,7 +207,7 @@ public class Entry
 
     if (dn == null)
     {
-      this.dn = new DN(new ArrayList<RDN>(0));
+      this.dn = DN.nullDN();
     }
     else
     {
@@ -2352,8 +2352,10 @@ public class Entry
             }
 
             // Make sure that all attributes in the RDN are allowed.
-            for (AttributeType t : rdn.getAttributeTypes())
+            int numAVAs = rdn.getNumValues();
+            for (int i = 0; i < numAVAs; i++)
             {
+              AttributeType t = rdn.getAttributeType(i);
               if (! nameForm.isRequiredOrOptional(t))
               {
                 int msgID = MSGID_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR;
@@ -2408,7 +2410,7 @@ public class Entry
             else
             {
               // Get the DN of the parent entry if possible.
-              DN parentDN = dn.getParent();
+              DN parentDN = dn.getParentDNInSuffix();
               if (parentDN != null)
               {
                 // Get the parent entry and check its structural
@@ -2768,8 +2770,6 @@ public class Entry
   {
     assert debugEnter(CLASS_NAME, "duplicate");
 
-    DN dnCopy = dn.duplicate();
-
     HashMap<ObjectClass,String> objectClassesCopy =
          new HashMap<ObjectClass,String>(objectClasses);
 
@@ -2783,7 +2783,7 @@ public class Entry
                   operationalAttributes.size());
     deepCopy(operationalAttributes, operationalAttrsCopy, false);
 
-    return new Entry(dnCopy, objectClassesCopy, userAttrsCopy,
+    return new Entry(dn, objectClassesCopy, userAttrsCopy,
                      operationalAttrsCopy);
   }
 
@@ -2805,8 +2805,6 @@ public class Entry
                     boolean typesOnly)
   {
     assert debugEnter(CLASS_NAME, "duplicate");
-
-    DN dnCopy = dn.duplicate();
 
     HashMap<ObjectClass,String> objectClassesCopy;
     if (typesOnly)
@@ -2838,7 +2836,7 @@ public class Entry
     HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(0);
 
-    return new Entry(dnCopy, objectClassesCopy, userAttrsCopy,
+    return new Entry(dn, objectClassesCopy, userAttrsCopy,
                      operationalAttrsCopy);
   }
 
@@ -2890,8 +2888,6 @@ public class Entry
   {
     assert debugEnter(CLASS_NAME, "duplicate");
 
-    DN dnCopy = dn.duplicate();
-
     HashMap<ObjectClass,String> objectClassesCopy =
          new HashMap<ObjectClass,String>(objectClasses.size());
 
@@ -2903,7 +2899,7 @@ public class Entry
          new HashMap<AttributeType,List<Attribute>>(
                   operationalAttributes.size());
 
-    return new Entry(dnCopy, objectClassesCopy, userAttrsCopy,
+    return new Entry(dn, objectClassesCopy, userAttrsCopy,
                      operationalAttrsCopy);
   }
 
@@ -3216,7 +3212,7 @@ public class Entry
 
       case SINGLE_LEVEL:
         // The parent DN for this entry must equal the base DN.
-        return baseDN.equals(dn.getParent());
+        return baseDN.equals(dn.getParentDNInSuffix());
 
       case WHOLE_SUBTREE:
         // The base DN must be an ancestor of the entry DN.

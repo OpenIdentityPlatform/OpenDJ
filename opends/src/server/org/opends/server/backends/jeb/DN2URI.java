@@ -445,7 +445,7 @@ public class DN2URI
           {
             urlBaseDN =
                  EntryContainer.modDN(targetDN,
-                                      referralDN.getRDNComponents().length,
+                                      referralDN.getNumComponents(),
                                       ldapurl.getBaseDN());
           }
           ldapurl.setBaseDN(urlBaseDN);
@@ -616,8 +616,8 @@ public class DN2URI
           // Make sure the referral is within scope.
           if (searchOp.getScope() == SearchScope.SINGLE_LEVEL)
           {
-            if ((dn.getRDNComponents().length !=
-                 baseDN.getRDNComponents().length + 1))
+            if ((dn.getNumComponents() !=
+                 baseDN.getNumComponents() + 1))
             {
               continue;
             }

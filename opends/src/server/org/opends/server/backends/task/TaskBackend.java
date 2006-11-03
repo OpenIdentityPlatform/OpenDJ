@@ -453,7 +453,7 @@ public class TaskBackend
       return taskScheduler.getRecurringTaskParentEntry();
     }
 
-    DN parentDN = entryDN.getParent();
+    DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
       return null;
@@ -509,7 +509,7 @@ public class TaskBackend
       return true;
     }
 
-    DN parentDN = entryDN.getParent();
+    DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
       return false;
@@ -553,7 +553,7 @@ public class TaskBackend
 
     // Get the DN for the entry and then get its parent.
     DN entryDN = entry.getDN();
-    DN parentDN = entryDN.getParent();
+    DN parentDN = entryDN.getParentDNInSuffix();
 
     if (parentDN == null)
     {
@@ -618,7 +618,7 @@ public class TaskBackend
 
     // Get the parent for the provided entry DN.  It must be either the
     // scheduled or recurring task parent DN.
-    DN parentDN = entryDN.getParent();
+    DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
       int    msgID   = MSGID_TASKBE_DELETE_INVALID_ENTRY;
@@ -841,7 +841,7 @@ public class TaskBackend
     }
     else
     {
-      DN parentDN = baseDN.getParent();
+      DN parentDN = baseDN.getParentDNInSuffix();
       if (parentDN == null)
       {
         int    msgID   = MSGID_TASKBE_SEARCH_INVALID_BASE;

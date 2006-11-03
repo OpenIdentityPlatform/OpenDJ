@@ -293,6 +293,65 @@ public final class TestStaticUtils extends UtilTestCase {
   }
 
   /**
+   * Create test data for {@link StaticUtils#compare(byte[], byte[])}.
+   * 
+   * @return Returns an array of test data.
+   */
+  @DataProvider(name = "compareBytesTestData")
+  public Object[][] createCompareBytesTestData() {
+    return new Object[][] {
+        { null, null, 0 },
+        { null, new byte[0], -1 },
+        { new byte[0], null, 1 },
+        { new byte[0], new byte[0], 0 },
+        { new byte[] { 0x00 }, new byte[] { 0x00 }, 0 },
+        { new byte[] { 0x01 }, new byte[] { 0x00 }, 1 },
+        { new byte[] { 0x7f }, new byte[] { 0x00 }, 1 },
+        { new byte[] { (byte) 0x80 }, new byte[] { 0x00 }, -1 },
+        { new byte[] { (byte) 0xff }, new byte[] { 0x00 }, -1 },
+        { new byte[] { 0x00 }, new byte[] { 0x01 }, -1 },
+        { new byte[] { 0x00 }, new byte[] { 0x7f }, -1 },
+        { new byte[] { 0x00 }, new byte[] { (byte) 0x80 }, 1 },
+        { new byte[] { 0x00 }, new byte[] { (byte) 0xff }, 1 },
+        { new byte[] { 0x00, 0x01, 0x02 },
+            new byte[] { 0x00, 0x01, 0x02 }, 0 },
+        { new byte[] { 0x00, 0x01 }, new byte[] { 0x00, 0x01, 0x02 },
+            -1 },
+        { new byte[] { 0x00, 0x01, 0x02 }, new byte[] { 0x00, 0x01 },
+            1 }, };
+  }
+
+  /**
+   * Tests the {@link StaticUtils#compare(byte[], byte[])} method.
+   * 
+   * @param a
+   *          The first byte array.
+   * @param a2
+   *          The second byte array.
+   * @param expected
+   *          The expected result.
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test(dataProvider = "compareBytesTestData")
+  public void testCompareBytes(byte[] a, byte[] a2, int expected)
+      throws Exception {
+    int rc = StaticUtils.compare(a, a2);
+
+    if (expected < 0 && rc >= 0) {
+      Assert.fail("Expected negative result but got " + rc);
+    }
+
+    if (expected > 0 && rc <= 0) {
+      Assert.fail("Expected positive result but got " + rc);
+    }
+
+    if (expected == 0 && rc != 0) {
+      Assert.fail("Expected zero result but got " + rc);
+    }
+  }
+
+  /**
    * Create test strings for the {@link StaticUtils#isDigit(char)}.
    *
    * @return Returns an array of test data.

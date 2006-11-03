@@ -53,7 +53,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockType;
 import org.opends.server.types.Modification;
-import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.StaticUtils;
@@ -903,8 +902,8 @@ public class EntryContainer
           if (searchScope == SearchScope.SINGLE_LEVEL)
           {
             // Check if this entry is an immediate child.
-            if ((dn.getRDNComponents().length !=
-                 baseDN.getRDNComponents().length + 1))
+            if ((dn.getNumComponents() !=
+                 baseDN.getNumComponents() + 1))
             {
               isInScope = false;
             }
@@ -1131,8 +1130,8 @@ public class EntryContainer
             else if (searchScope == SearchScope.SINGLE_LEVEL)
             {
               // Check if this entry is an immediate child.
-              if ((entryDN.getRDNComponents().length ==
-                   baseDN.getRDNComponents().length + 1) &&
+              if ((entryDN.getNumComponents() ==
+                   baseDN.getNumComponents() + 1) &&
                    entryDN.isDescendantOf(baseDN))
               {
                 isInScope = true;
@@ -1147,8 +1146,8 @@ public class EntryContainer
             }
             else if (searchScope == SearchScope.SUBORDINATE_SUBTREE)
             {
-              if ((entryDN.getRDNComponents().length >
-                   baseDN.getRDNComponents().length) &&
+              if ((entryDN.getNumComponents() >
+                   baseDN.getNumComponents()) &&
                    entryDN.isDescendantOf(baseDN))
               {
                 isInScope = true;
@@ -2702,7 +2701,7 @@ public class EntryContainer
 
           // Construct the new DN of the entry.
           DN newDN = modDN(oldEntry.getDN(),
-                           oldApexDN.getRDNComponents().length,
+                           oldApexDN.getNumComponents(),
                            newApexEntry.getDN());
 
           if (requestedNewSuperiorDN != null)
@@ -3078,23 +3077,8 @@ public class EntryContainer
    */
   public static DN modDN(DN oldDN, int oldSuffixLen, DN newSuffixDN)
   {
-    RDN[] oldRDNs = oldDN.getRDNComponents();
-    RDN[] suffixRDNs = newSuffixDN.getRDNComponents();
-
-    int prefixLen = oldRDNs.length - oldSuffixLen;
-    RDN[] newRDNs = new RDN[prefixLen + suffixRDNs.length];
-
-    // Copy the unchanged prefix.
-    System.arraycopy(oldRDNs, 0,
-                     newRDNs, 0,
-                     prefixLen);
-
-    // Copy the new suffix.
-    System.arraycopy(suffixRDNs, 0,
-                     newRDNs, prefixLen,
-                     suffixRDNs.length);
-
-    return new DN(newRDNs);
+    DN localName = oldDN.getLocalName(oldSuffixLen);
+    return newSuffixDN.concat(localName);
   }
 
   /**

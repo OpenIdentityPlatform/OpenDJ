@@ -284,7 +284,7 @@ public final class TestEntry extends TypesTestCase {
         "{ base \"dc=example, dc=com\", maximum 2 }" };
 
     // Relative to the root DN.
-    DN rootDN = new DN();
+    DN rootDN = DN.nullDN();
 
     SubtreeSpecificationSet expected = new SubtreeSpecificationSet();
     for (String value : values) {

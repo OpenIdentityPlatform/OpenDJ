@@ -927,7 +927,7 @@ modifyDNProcessing:
       DN parentDN;
       if (newSuperior == null)
       {
-        parentDN = entryDN.getParent();
+        parentDN = entryDN.getParentDNInSuffix();
       }
       else
       {
@@ -942,14 +942,7 @@ modifyDNProcessing:
         break modifyDNProcessing;
       }
 
-      RDN[] parentComponents = parentDN.getRDNComponents();
-      RDN[] newComponents    = new RDN[parentComponents.length+1];
-      System.arraycopy(parentComponents, 0, newComponents, 1,
-                       parentComponents.length);
-      newComponents[0] = newRDN;
-
-      DN newDN = new DN(newComponents);
-
+      DN newDN = parentDN.concat(newRDN);
 
       // Get the backend for the current entry, and the backend for the new
       // entry.  If either is null, or if they are different, then fail.
@@ -1092,7 +1085,7 @@ modifyDNProcessing:
         if (currentEntry == null)
         {
           // See if one of the entry's ancestors exists.
-          parentDN = entryDN.getParent();
+          parentDN = entryDN.getParentDNInSuffix();
           while (parentDN != null)
           {
             try
@@ -1109,7 +1102,7 @@ modifyDNProcessing:
               break;
             }
 
-            parentDN = parentDN.getParent();
+            parentDN = parentDN.getParentDNInSuffix();
           }
 
           setResultCode(ResultCode.NO_SUCH_OBJECT);
@@ -1416,10 +1409,10 @@ modifyDNProcessing:
           {
             LinkedHashSet<AttributeValue> valueSet =
                  new LinkedHashSet<AttributeValue>(1);
-            valueSet.add(currentRDN.getAttributeValues()[i]);
+            valueSet.add(currentRDN.getAttributeValue(i));
 
-            Attribute a = new Attribute(currentRDN.getAttributeTypes()[i],
-                                        currentRDN.getAttributeNames()[i],
+            Attribute a = new Attribute(currentRDN.getAttributeType(i),
+                                        currentRDN.getAttributeName(i),
                                         valueSet);
 
             // If the associated attribute type is marked NO-USER-MODIFICATION,
@@ -1455,10 +1448,10 @@ modifyDNProcessing:
         {
           LinkedHashSet<AttributeValue> valueSet =
                new LinkedHashSet<AttributeValue>(1);
-          valueSet.add(newRDN.getAttributeValues()[i]);
+          valueSet.add(newRDN.getAttributeValue(i));
 
-          Attribute a = new Attribute(newRDN.getAttributeTypes()[i],
-                                      newRDN.getAttributeNames()[i],
+          Attribute a = new Attribute(newRDN.getAttributeType(i),
+                                      newRDN.getAttributeName(i),
                                       valueSet);
 
           LinkedList<AttributeValue> duplicateValues =

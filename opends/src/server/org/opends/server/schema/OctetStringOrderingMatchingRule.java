@@ -35,12 +35,10 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.StaticUtils;
 
 import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -229,36 +227,7 @@ public class OctetStringOrderingMatchingRule
     assert debugEnter(CLASS_NAME, "compareValues", String.valueOf(b1),
                       String.valueOf(b2));
 
-    int minLength = Math.min(b1.length, b2.length);
-
-    for (int i=0; i < minLength; i++)
-    {
-      if (b1[i] == b2[i])
-      {
-        continue;
-      }
-      else if (b1[i] < b2[i])
-      {
-        return -1;
-      }
-      else if (b1[i] > b2[i])
-      {
-        return 1;
-      }
-    }
-
-    if (b1.length == b2.length)
-    {
-      return 0;
-    }
-    else if (b1.length < b2.length)
-    {
-      return -1;
-    }
-    else
-    {
-      return 1;
-    }
+    return StaticUtils.compare(b1, b2);
   }
 }
 

@@ -277,7 +277,7 @@ public final class RFC3672SubtreeSpecificationSyntax extends
 
     // Use the subtree specification code to make this determination.
     try {
-      RFC3672SubtreeSpecification.valueOf(new DN(), value.stringValue());
+      RFC3672SubtreeSpecification.valueOf(DN.nullDN(), value.stringValue());
 
       return true;
     } catch (DirectoryException e) {

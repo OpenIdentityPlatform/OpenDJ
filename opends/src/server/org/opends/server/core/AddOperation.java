@@ -1014,11 +1014,11 @@ addProcessing:
       Lock parentLock = null;
       Lock entryLock  = null;
 
-      DN parentDN = entryDN.getParent();
+      DN parentDN = entryDN.getParentDNInSuffix();
       if (parentDN == null)
       {
         // Either this entry is a suffix or doesn't belong in the directory.
-        if (entryDN.isSuffix())
+        if (DirectoryServer.isSuffix(entryDN))
         {
           // This is fine.  This entry is one of the configured suffixes.
           parentLock = null;
@@ -1166,7 +1166,7 @@ addProcessing:
 
             if (parentEntry == null)
             {
-              DN matchedDN = parentDN.getParent();
+              DN matchedDN = parentDN.getParentDNInSuffix();
               while (matchedDN != null)
               {
                 try
@@ -1183,7 +1183,7 @@ addProcessing:
                   break;
                 }
 
-                matchedDN = matchedDN.getParent();
+                matchedDN = matchedDN.getParentDNInSuffix();
               }
 
 
@@ -1211,15 +1211,12 @@ addProcessing:
         // Check to make sure that all of the RDN attributes are included as
         // attribute values.  If not, then either add them or report an error.
         RDN rdn = entryDN.getRDN();
-        AttributeType[]  rdnTypes  = rdn.getAttributeTypes();
-        AttributeValue[] rdnValues = rdn.getAttributeValues();
-        String[]         rdnNames  = rdn.getAttributeNames();
-
-        for (int i=0; i < rdnTypes.length; i++)
+        int numAVAs = rdn.getNumValues();
+        for (int i=0; i < numAVAs; i++)
         {
-          AttributeType  t = rdnTypes[i];
-          AttributeValue v = rdnValues[i];
-
+          AttributeType  t = rdn.getAttributeType(i);
+          AttributeValue v = rdn.getAttributeValue(i);
+          String         n = rdn.getAttributeName(i);
           if (t.isOperational())
           {
             List<Attribute> attrList = operationalAttributes.get(t);
@@ -1233,7 +1230,7 @@ addProcessing:
                 valueList.add(v);
 
                 attrList = new ArrayList<Attribute>();
-                attrList.add(new Attribute(t, rdnNames[i], valueList));
+                attrList.add(new Attribute(t, n, valueList));
 
                 operationalAttributes.put(t, attrList);
               }
@@ -1243,7 +1240,7 @@ addProcessing:
 
                 int msgID = MSGID_ADD_MISSING_RDN_ATTRIBUTE;
                 appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
-                                              rdnNames[i]));
+                                              n));
 
                 break addProcessing;
               }
@@ -1277,7 +1274,7 @@ addProcessing:
                   LinkedHashSet<AttributeValue> valueList =
                        new LinkedHashSet<AttributeValue>(1);
                   valueList.add(v);
-                  attrList.add(new Attribute(t, rdnNames[i], valueList));
+                  attrList.add(new Attribute(t, n, valueList));
                 }
                 else
                 {
@@ -1285,7 +1282,7 @@ addProcessing:
 
                   int msgID = MSGID_ADD_MISSING_RDN_ATTRIBUTE;
                   appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
-                                                rdnNames[i]));
+                                                n));
 
                   break addProcessing;
                 }
@@ -1305,7 +1302,7 @@ addProcessing:
                 valueList.add(v);
 
                 attrList = new ArrayList<Attribute>();
-                attrList.add(new Attribute(t, rdnNames[i], valueList));
+                attrList.add(new Attribute(t, n, valueList));
 
                 userAttributes.put(t, attrList);
               }
@@ -1315,7 +1312,7 @@ addProcessing:
 
                 int msgID = MSGID_ADD_MISSING_RDN_ATTRIBUTE;
                 appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
-                                              rdnNames[i]));
+                                              n));
 
                 break addProcessing;
               }
@@ -1349,7 +1346,7 @@ addProcessing:
                   LinkedHashSet<AttributeValue> valueList =
                        new LinkedHashSet<AttributeValue>(1);
                   valueList.add(v);
-                  attrList.add(new Attribute(t, rdnNames[i], valueList));
+                  attrList.add(new Attribute(t, n, valueList));
                 }
                 else
                 {
@@ -1357,7 +1354,7 @@ addProcessing:
 
                   int msgID = MSGID_ADD_MISSING_RDN_ATTRIBUTE;
                   appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
-                                                rdnNames[i]));
+                                                n));
 
                   break addProcessing;
                 }

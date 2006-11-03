@@ -40,7 +40,7 @@ public final class TestRFC3672SubtreeSpecification extends
     SubtreeSpecificationTestCase {
 
   // Cached root DN.
-  private DN rootDN = new DN();
+  private DN rootDN = DN.nullDN();
 
   /**
    * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}

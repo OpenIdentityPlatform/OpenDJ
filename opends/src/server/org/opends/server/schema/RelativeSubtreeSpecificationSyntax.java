@@ -278,7 +278,7 @@ public final class RelativeSubtreeSpecificationSyntax extends
 
     // Use the subtree specification code to make this determination.
     try {
-      RelativeSubtreeSpecification.valueOf(new DN(), value.stringValue());
+      RelativeSubtreeSpecification.valueOf(DN.nullDN(), value.stringValue());
 
       return true;
     } catch (DirectoryException e) {

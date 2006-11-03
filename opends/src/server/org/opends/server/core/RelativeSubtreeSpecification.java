@@ -248,7 +248,7 @@ public final class RelativeSubtreeSpecification extends
   public RelativeSubtreeSpecification(DN rootDN, DN relativeBaseDN,
       int minimumDepth, int maximumDepth, Iterable<DN> chopBefore,
       Iterable<DN> chopAfter, SearchFilter filter) {
-    super(relativeBaseDN == null ? rootDN : new DN(rootDN, relativeBaseDN),
+    super(relativeBaseDN == null ? rootDN : rootDN.concat(relativeBaseDN),
         minimumDepth, maximumDepth, chopBefore, chopAfter);
 
     assert debugConstructor(CLASS_NAME);

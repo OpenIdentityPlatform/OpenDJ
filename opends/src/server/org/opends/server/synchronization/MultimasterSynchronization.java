@@ -462,7 +462,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
     do
     {
       domain = domains.get(temp);
-      temp = temp.getParent();
+      temp = temp.getParentDNInSuffix();
       if (temp == null)
       {
         break;

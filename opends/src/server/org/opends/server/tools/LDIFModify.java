@@ -45,7 +45,6 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DNComparator;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -126,11 +125,10 @@ public class LDIFModify
          throws IOException, LDIFException
   {
     // Read the changes into memory.
-      DNComparator comparator = new DNComparator();
-      TreeMap<DN,AddChangeRecordEntry> adds =
-          new TreeMap<DN,AddChangeRecordEntry>(comparator);
-      TreeMap<DN,Entry> ldifEntries =
-          new TreeMap<DN,Entry>(comparator);
+    TreeMap<DN,AddChangeRecordEntry> adds =
+          new TreeMap<DN,AddChangeRecordEntry>();
+    TreeMap<DN,Entry> ldifEntries =
+          new TreeMap<DN,Entry>();
     HashMap<DN,DeleteChangeRecordEntry> deletes =
          new HashMap<DN,DeleteChangeRecordEntry>();
     HashMap<DN,LinkedList<Modification>> modifications =
