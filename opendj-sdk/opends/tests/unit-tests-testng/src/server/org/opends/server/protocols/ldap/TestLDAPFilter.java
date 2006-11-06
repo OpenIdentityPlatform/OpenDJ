@@ -244,20 +244,19 @@ public class TestLDAPFilter extends LdapTestCase
     LDAPFilter filter = LDAPFilter.decode(
         "(&" +
           "(cn>=*)" +
-          "(:1.2.3.4:=Bob)" +
+          "(:2.5.13.2:=Bob)" +
           "(cn:=Jane)" +
           "(|" +
             "(sn<=gh*sh*sl)" +
-            "(!(cn:dn:2.4.6.8.19:=Sally))" +
+            "(!(cn:dn:2.5.13.5:=Sally))" +
             "(cn~=blvd)" +
             "(cn=*)" +
           ")" +
           "(cn=*n)" +
           "(cn=n*)" +
           "(cn=n*n)" +
-          "(:dn:=Sally)" +
-          "(:dn:1.2.3.4:=Doe)" +
-          "(cn:2.4.6.8.10:=)" +
+          "(:dn:1.3.6.1.4.1.1466.109.114.1:=Doe)" +
+          "(cn:2.5.13.2:=)" +
         ")");
 
     SearchFilter searchFilter = filter.toSearchFilter();

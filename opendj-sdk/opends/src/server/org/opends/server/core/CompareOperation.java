@@ -784,11 +784,11 @@ compareProcessing:
                 }
               }
 
-              SearchFilter filter = assertControl.getSearchFilter();
               try
               {
                 // FIXME -- We need to determine whether the current user has
                 //          permission to make this determination.
+                SearchFilter filter = assertControl.getSearchFilter();
                 if (! filter.matchesEntry(entry))
                 {
                   setResultCode(ResultCode.ASSERTION_FAILED);

@@ -1592,9 +1592,23 @@ searchProcessing:
         break searchProcessing;
       }
 
-      if (filter == null)
+      try
       {
-        filter = rawFilter.toSearchFilter();
+        if (filter == null)
+        {
+          filter = rawFilter.toSearchFilter();
+        }
+      }
+      catch (DirectoryException de)
+      {
+        assert debugException(CLASS_NAME, "run", de);
+
+        setResultCode(de.getResultCode());
+        appendErrorMessage(de.getErrorMessage());
+        setMatchedDN(de.getMatchedDN());
+        setReferralURLs(de.getReferralURLs());
+
+        break searchProcessing;
       }
 
       // Check to see if the client has permission to perform the
@@ -1650,12 +1664,11 @@ searchProcessing:
               }
             }
 
-            SearchFilter assertionFilter = assertControl.getSearchFilter();
             try
             {
               // FIXME -- We need to determine whether the current user has
               //          permission to make this determination.
-
+              SearchFilter assertionFilter = assertControl.getSearchFilter();
               Entry entry;
               try
               {

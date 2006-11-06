@@ -78,9 +78,10 @@ public class ValueInfoTest extends SynchronizationTestCase
       ChangeNumber CNdelete)
          throws Exception
   {
+    AttributeType type = DirectoryServer.getAttributeType("description");
     ValueInfo valInfo1 = new ValueInfo(value,CNupdate,CNdelete);
     ValueInfo valInfo2 = new ValueInfo(value,CNupdate,CNupdate);
-    ValueInfo valInfo3 = new ValueInfo(new AttributeValue(null,"Test"),
+    ValueInfo valInfo3 = new ValueInfo(new AttributeValue(type,"Test"),
         CNupdate,CNupdate);
 
     // Check equals

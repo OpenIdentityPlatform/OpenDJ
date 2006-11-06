@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Boolean;
 import org.opends.server.protocols.asn1.ASN1Element;
@@ -46,7 +47,9 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilterType;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.loggers.Debug.*;
@@ -2826,8 +2829,12 @@ public class LDAPFilter
    * Directory Server's core processing.
    *
    * @return  The generated search filter.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to
+   *                              construct the search filter.
    */
   public SearchFilter toSearchFilter()
+         throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "toSearchFilter");
 
@@ -2898,7 +2905,42 @@ public class LDAPFilter
     }
 
 
-    AttributeValue value = new AttributeValue(attrType, assertionValue);
+    AttributeValue value;
+    if (assertionValue == null)
+    {
+      value = null;
+    }
+    else if (attrType == null)
+    {
+      if (matchingRuleID == null)
+      {
+        int    msgID   = MSGID_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR;
+        String message = getMessage(msgID);
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, msgID);
+      }
+      else
+      {
+        MatchingRule mr =
+             DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
+        if (mr == null)
+        {
+          int    msgID   = MSGID_LDAP_FILTER_UNKNOWN_MATCHING_RULE;
+          String message = getMessage(msgID, matchingRuleID);
+          throw new DirectoryException(ResultCode.INAPPROPRIATE_MATCHING,
+                                       message, msgID);
+        }
+        else
+        {
+          ByteString normalizedValue = mr.normalizeValue(assertionValue);
+          value = new AttributeValue(assertionValue, normalizedValue);
+        }
+      }
+    }
+    else
+    {
+      value = new AttributeValue(attrType, assertionValue);
+    }
+
 
     ArrayList<ByteString> subAnyComps;
     if (subAnyElements == null)
