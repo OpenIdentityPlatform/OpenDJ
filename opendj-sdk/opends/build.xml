@@ -127,7 +127,7 @@
 
   <!-- The build target that should be used for nightly builds. -->
   <target name="nightly"
-       depends="checkstyle,dsml,javadoc,coverage,test"
+       depends="checkstyle,dsml,javadoc,coverage,testall"
        description="Perform all processing needed for nightly builds." />
 
 
