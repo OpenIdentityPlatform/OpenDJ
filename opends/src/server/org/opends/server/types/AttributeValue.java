@@ -32,6 +32,7 @@ import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -69,14 +70,17 @@ public class AttributeValue
    * Creates a new attribute value with the provided information.
    *
    * @param  attributeType  The attribute type for this attribute
-   *                        value.
+   *                        value.  It must not be {@code null}.
    * @param  value          The value in user-provided form for this
-   *                        attribute value.
+   *                        attribute value.  It must not be
+   *                        {@code null}.
    */
   public AttributeValue(AttributeType attributeType, ByteString value)
   {
     assert debugConstructor(CLASS_NAME, String.valueOf(attributeType),
                             String.valueOf(value));
+
+    ensureNotNull(attributeType, value);
 
     this.attributeType = attributeType;
     this.value         = value;
@@ -89,14 +93,17 @@ public class AttributeValue
    * Creates a new attribute value with the provided information.
    *
    * @param  attributeType  The attribute type for this attribute
-   *                        value.
+   *                        value.  It must not be {@code null}.
    * @param  value          The value in user-provided form for this
-   *                        attribute value.
+   *                        attribute value.  It must not be
+   *                        {@code null}.
    */
   public AttributeValue(AttributeType attributeType, String value)
   {
     assert debugConstructor(CLASS_NAME, String.valueOf(attributeType),
                             String.valueOf(value));
+
+    ensureNotNull(attributeType, value);
 
     this.attributeType = attributeType;
     this.value         = new ASN1OctetString(value);
@@ -112,12 +119,16 @@ public class AttributeValue
    * byte-for-byte comparison of normalized values.
    *
    * @param  value            The user-provided form of this value.
-   * @param  normalizedValue  The normalized form of this value.
+   *                          It must not be {@code null}.
+   * @param  normalizedValue  The normalized form of this value.  It
+   *                          must not be {@code null}.
    */
   public AttributeValue(ByteString value, ByteString normalizedValue)
   {
     assert debugConstructor(CLASS_NAME, String.valueOf(value),
                             String.valueOf(normalizedValue));
+
+    ensureNotNull(value, normalizedValue);
 
     this.value           = value;
     this.normalizedValue = normalizedValue;
@@ -386,7 +397,7 @@ public class AttributeValue
     assert debugEnter(CLASS_NAME, "toString",
                       "java.lang.StringBuilder");
 
-    value.toString(buffer);
+    buffer.append(value.toString());
   }
 }
 

@@ -53,7 +53,7 @@ public class AttrInfoTest
 
     AttributeValue att1 = new AttributeValue(type, "string");
     AttributeValue att2 = new AttributeValue(type, "value");
-    AttributeValue att3 = new AttributeValue(null, "again");
+    AttributeValue att3 = new AttributeValue(type, "again");
 
     ChangeNumber del1 = new ChangeNumber(1, (short) 0, (short) 1);
     ChangeNumber del2 = new ChangeNumber(1, (short) 1, (short) 1);

@@ -4179,6 +4179,26 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used if an LDAP search filter
+   * references an unsupported matching rule.  It takes a single argument, which
+   * is the unrecognized matching rule OID.
+   */
+  public static final int MSGID_LDAP_FILTER_UNKNOWN_MATCHING_RULE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 385;
+
+
+
+  /**
+   * The message ID for the message that will be used if an LDAP search filter
+   * has an assertion value without either an attribute type or a matching rule
+   * OID.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 386;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -4908,6 +4928,13 @@ public class ProtocolMessages
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because a problem occurred while trying " +
                     "to parse the extensible match sequence elements:  %s.");
+    registerMessage(MSGID_LDAP_FILTER_UNKNOWN_MATCHING_RULE,
+                    "The provided LDAP search filter references unknown " +
+                    "matching rule %s.");
+    registerMessage(MSGID_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR,
+                    "The provided LDAP search filter has an assertion value " +
+                    "but does not include either an attribute type or a " +
+                    "matching rule ID.");
     registerMessage(MSGID_LDAP_FILTER_STRING_NULL,
                     "Cannot decode the provided string as an LDAP search " +
                     "filter because the string was null.");

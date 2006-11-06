@@ -35,6 +35,7 @@ import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.loggers.Debug.*;
@@ -234,8 +235,12 @@ public class LDAPAssertionRequestControl
    * Retrieves the processed search filter for this control.
    *
    * @return  The processed search filter for this control.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to
+   *                              process the search filter.
    */
   public SearchFilter getSearchFilter()
+         throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "getSearchFilter");
 
