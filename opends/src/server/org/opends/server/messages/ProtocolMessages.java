@@ -4199,6 +4199,17 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used if the server detects that
+   * the underlying JVM suffers from the issue described in CR 6322825.  This
+   * takes a single argument, which is a string representation of the exception
+   * that was caught.
+   */
+  public static final int MSGID_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825 =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_FATAL_ERROR | 387;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5447,6 +5458,18 @@ public class ProtocolMessages
                     "%s was unable to open a selector to multiplex reads " +
                     "from clients:  %s.  This request handler cannot " +
                     "continue processing.");
+    registerMessage(MSGID_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825,
+                    "Unable to call select() in the LDAP connection " +
+                    "handler:  %s.  It appears that your JVM may be " +
+                    "susceptible to the issue described at " +
+                    "http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=" +
+                    "6322825, and it is unable to handle LDAP requests in " +
+                    "its current configuration.  Please upgrade to a newer " +
+                    "JVM that does not exhibit this behavior (Java 5.0 " +
+                    "Update 8 or higher) or set the number of available " +
+                    "file descriptors to a value greater than or equal to " +
+                    "8193 (e.g., by issuing the command 'ulimit -n 8193') " +
+                    "before starting the Directory Server.");
     registerMessage(MSGID_LDAP_REQHANDLER_CANNOT_REGISTER,
                     "%s was unable to register this client connection with " +
                     "the selector:  %s.");

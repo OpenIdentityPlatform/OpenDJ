@@ -28,6 +28,7 @@ package org.opends.server.protocols.ldap;
 
 
 
+import java.io.IOException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -136,6 +137,30 @@ public class LDAPRequestHandler
       int msgID = MSGID_LDAP_REQHANDLER_OPEN_SELECTOR_FAILED;
       String message = getMessage(msgID, handlerName, String.valueOf(e));
       throw new InitializationException(msgID, message, e);
+    }
+
+    try
+    {
+      // Check to see if we get an error while trying to perform a select.  If
+      // we do, then it's likely CR 6322825 and the server won't be able to
+      // handle LDAP requests in its current state.
+      selector.selectNow();
+    }
+    catch (IOException ioe)
+    {
+      StackTraceElement[] stackElements = ioe.getStackTrace();
+      if ((stackElements != null) && (stackElements.length > 0))
+      {
+        StackTraceElement ste = stackElements[0];
+        if (ste.getClassName().equals("sun.nio.ch.DevPollArrayWrapper") &&
+            (ste.getMethodName().indexOf("poll") >= 0) &&
+            ioe.getMessage().equalsIgnoreCase("Invalid argument"))
+        {
+          int    msgID   = MSGID_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825;
+          String message = getMessage(msgID, String.valueOf(ioe));
+          throw new InitializationException(msgID, message, ioe);
+        }
+      }
     }
   }
 
