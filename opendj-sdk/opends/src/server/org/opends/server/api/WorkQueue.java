@@ -34,6 +34,8 @@ import org.opends.server.core.Operation;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
+import static org.opends.server.loggers.Debug.*;
+
 
 
 /**
@@ -48,6 +50,14 @@ import org.opends.server.types.InitializationException;
  */
 public abstract class WorkQueue
 {
+  /**
+   * The fully-qualified name of this class for debugging purposes.
+   */
+  private static final String CLASS_NAME =
+       "org.opends.server.api.WorkQueue";
+
+
+
   /**
    * Initializes this work queue based on the information in the
    * provided configuration entry.
@@ -96,5 +106,70 @@ public abstract class WorkQueue
    */
   public abstract void submitOperation(Operation operation)
          throws DirectoryException;
+
+
+
+  /**
+   * Indicates whether the work queue is currently processing any
+   * requests.  Note that this is a point-in-time determination, and
+   * if any component of the server wishes to depend on a quiescent
+   * state then it should use some external mechanism to ensure that
+   * no other requests are submitted to the queue.
+   *
+   * @return  {@code true} if the work queue is currently idle, or
+   *          {@code false} if it is being used to process one or more
+   *          operations.
+   */
+  public abstract boolean isIdle();
+
+
+
+  /**
+   * Waits for the work queue to become idle before returning.  Note
+   * that this is a point-in-time determination, and if any component
+   * of the server wishes to depend on a quiescent state then it
+   * should use some external mechanism to ensure that no other
+   * requests are submitted to the queue.
+   *
+   * @param  timeLimit  The maximum length of time in milliseconds
+   *                    that this method should wait for the queue to
+   *                    become idle before giving up.  A time limit
+   *                    that is less than or equal to zero indicates
+   *                    that there should not be a time limit.
+   *
+   * @return  {@code true} if the work queue is idle at the time that
+   *          this method returns, or {@code false} if the wait time
+   *          limit was reached before the server became idle.
+   */
+  public boolean waitUntilIdle(long timeLimit)
+  {
+    assert debugEnter(CLASS_NAME, "waitUntilIdle",
+                      String.valueOf(timeLimit));
+
+    long stopWaitingTime;
+    if (timeLimit <= 0)
+    {
+      stopWaitingTime = Long.MAX_VALUE;
+    }
+    else
+    {
+      stopWaitingTime = System.currentTimeMillis() + timeLimit;
+    }
+
+    while (System.currentTimeMillis() < stopWaitingTime)
+    {
+      if (isIdle())
+      {
+        return true;
+      }
+
+      try
+      {
+        Thread.sleep(1);
+      } catch (InterruptedException ie) {}
+    }
+
+    return false;
+  }
 }
 
