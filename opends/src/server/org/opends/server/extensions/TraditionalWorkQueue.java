@@ -142,18 +142,7 @@ public class TraditionalWorkQueue
 
 
   /**
-   * Initializes this work queue based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this work queue.
-   *
-   * @throws  ConfigException  If the provided configuration entry does not have
-   *                           a valid work queue configuration.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
   public void initializeWorkQueue(ConfigEntry configEntry)
          throws ConfigException, InitializationException
@@ -315,13 +304,7 @@ public class TraditionalWorkQueue
 
 
   /**
-   * Performs any necessary finalization for this work queue,
-   * including ensuring that all active operations are interrupted or
-   * will be allowed to complete, and that all pending operations will
-   * be cancelled.
-   *
-   * @param  reason  The human-readable reason that the work queue is being
-   *                 shut down.
+   * {@inheritDoc}
    */
   public void finalizeWorkQueue(String reason)
   {
@@ -1088,6 +1071,40 @@ public class TraditionalWorkQueue
 
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false, resultMessages);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isIdle()
+  {
+    assert debugEnter(CLASS_NAME, "isIdle");
+
+    if (opQueue.size() > 0)
+    {
+      return false;
+    }
+
+    queueLock.lock();
+
+    try
+    {
+      for (TraditionalWorkerThread t : workerThreads)
+      {
+        if (t.isActive())
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+    finally
+    {
+      queueLock.unlock();
+    }
   }
 }
 

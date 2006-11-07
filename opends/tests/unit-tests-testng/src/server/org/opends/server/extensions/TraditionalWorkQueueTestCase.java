@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.testng.annotations.BeforeClass;
@@ -39,13 +40,19 @@ import org.opends.server.api.WorkQueue;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
+import org.opends.server.types.Control;
+import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
 import org.opends.server.tools.LDAPSearch;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
 
 import static org.testng.Assert.*;
 
@@ -127,6 +134,118 @@ public class TraditionalWorkQueueTestCase
     {
       assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
     }
+  }
+
+
+
+  /**
+   * Tests the {@code WorkQueue.waitUntilIdle()} method for a case in which the
+   * work queue should already be idle.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(groups = { "slow" })
+  public void testWaitUntilIdleNoOpsInProgress()
+         throws Exception
+  {
+    Thread.sleep(5000);
+
+    long startTime = System.currentTimeMillis();
+    assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
+    long stopTime = System.currentTimeMillis();
+    assertTrue((stopTime - startTime) <= 1000);
+  }
+
+
+
+  /**
+   * Tests the {@code WorkQueue.waitUntilIdle()} method for a case in which the
+   * work queue should already be idle and no timeout is given.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(groups = { "slow" }, timeOut=10000)
+  public void testWaitUntilIdleNoOpsInProgressNoTimeout()
+         throws Exception
+  {
+    Thread.sleep(5000);
+
+    long startTime = System.currentTimeMillis();
+    assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(0));
+    long stopTime = System.currentTimeMillis();
+    assertTrue((stopTime - startTime) <= 1000);
+  }
+
+
+
+  /**
+   * Tests the {@code WorkQueue.waitUntilIdle()} method for a case in which the
+   * work queue should not be idle for several seconds.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(groups = { "slow" })
+  public void testWaitUntilIdleSlowOpInProgress()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    List<Control> requestControls =
+         DelayPreOpPlugin.createDelayControlList(5000);
+    SearchFilter filter =
+         SearchFilter.createFilterFromString("(objectClass=*)");
+    LinkedHashSet<String> attrs = new LinkedHashSet<String>();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    SearchOperation searchOperation =
+         new SearchOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+                             requestControls, DN.decode("o=test"),
+                             SearchScope.BASE_OBJECT,
+                             DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                             filter, attrs);
+    DirectoryServer.getWorkQueue().submitOperation(searchOperation);
+
+    long startTime = System.currentTimeMillis();
+    assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
+    long stopTime = System.currentTimeMillis();
+    assertTrue((stopTime - startTime) >= 4000);
+  }
+
+
+
+  /**
+   * Tests the {@code WorkQueue.waitUntilIdle()} method for a case in which the
+   * work queue should not be idle for several seconds.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(groups = { "slow" })
+  public void testWaitUntilTimeoutWithIdleSlowOpInProgress()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    List<Control> requestControls =
+         DelayPreOpPlugin.createDelayControlList(5000);
+    SearchFilter filter =
+         SearchFilter.createFilterFromString("(objectClass=*)");
+    LinkedHashSet<String> attrs = new LinkedHashSet<String>();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    SearchOperation searchOperation =
+         new SearchOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+                             requestControls, DN.decode("o=test"),
+                             SearchScope.BASE_OBJECT,
+                             DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                             filter, attrs);
+    DirectoryServer.getWorkQueue().submitOperation(searchOperation);
+
+    long startTime = System.currentTimeMillis();
+    assertFalse(DirectoryServer.getWorkQueue().waitUntilIdle(1000));
+    long stopTime = System.currentTimeMillis();
+    assertTrue((stopTime - startTime) <= 2000);
   }
 }
 

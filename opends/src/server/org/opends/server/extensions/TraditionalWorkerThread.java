@@ -125,6 +125,24 @@ public class TraditionalWorkerThread
 
 
   /**
+   * Indicates whether this worker thread is actively processing a request.
+   * Note that this is a point-in-time determination and if a reliable answer is
+   * expected then the server should impose some external constraint to ensure
+   * that no new requests are enqueued.
+   *
+   * @return  {@code true} if this worker thread is actively processing a
+   *          request, or {@code false} if it is idle.
+   */
+  public boolean isActive()
+  {
+    assert debugEnter(CLASS_NAME, "isActive");
+
+    return (isAlive() && (operation != null));
+  }
+
+
+
+  /**
    * Operates in a loop, retrieving the next request from the work queue,
    * processing it, and then going back to the queue for more.
    */
