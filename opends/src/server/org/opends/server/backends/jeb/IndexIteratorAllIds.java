@@ -35,9 +35,12 @@ public class IndexIteratorAllIds extends IndexIteratorRange
 {
   /**
    * Create a new iterator over all the entry IDs in the backend.
+   *
+   * @param rootContainer The root container where IDs from this
+   *                     iterator will cover.
    */
-  public IndexIteratorAllIds()
+  public IndexIteratorAllIds(RootContainer rootContainer)
   {
-    super(EntryID.getLowest(), EntryID.getHighest());
+    super(rootContainer.getLowestEntryID(), rootContainer.getHighestEntryID());
   }
 }

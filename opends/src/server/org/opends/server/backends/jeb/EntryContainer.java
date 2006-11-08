@@ -125,6 +125,11 @@ public class EntryContainer
   private Backend backend;
 
   /**
+   * The root container in which this entryContainer belongs.
+   */
+  private RootContainer rootContainer;
+
+  /**
    * The baseDN this entry container is responsible for.
    */
   private DN baseDN;
@@ -194,15 +199,17 @@ public class EntryContainer
    *                container. It is needed by the Directory Server entry cache
    *                methods.
    * @param config The configuration of the JE backend.
-   * @param env The JE environment to create this entryContainer in
+   * @param env The JE environment to create this entryContainer in.
+   * @param rootContainer The root container this entry container is in.
    */
   public EntryContainer(DN baseDN, Backend backend, Config config,
-                        Environment env)
+                        Environment env, RootContainer rootContainer)
   {
     this.backend = backend;
     this.baseDN = baseDN;
     this.config = config;
     this.env = env;
+    this.rootContainer = rootContainer;
 
     // Instantiate the list of database handles.
     databases = new ArrayList<Database>();
@@ -493,10 +500,9 @@ public class EntryContainer
    * The entryContainer must already be open.
    *
    * @return The highest entry ID.
-   * @throws JebException If an error occurs in the JE backend.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public EntryID getHighestEntryID() throws JebException, DatabaseException
+  public EntryID getHighestEntryID() throws DatabaseException
   {
     EntryID entryID = new EntryID(0);
     Cursor cursor = id2entry.openCursor(null, null);
@@ -1455,7 +1461,7 @@ public class EntryContainer
       // First time through, assign the next entryID.
       if (entryID == null)
       {
-        entryID = EntryID.assignNext();
+        entryID = rootContainer.getNextEntryID();
       }
 
       // Insert into dn2id.
@@ -2573,7 +2579,12 @@ public class EntryContainer
                                                         DirectoryException,
                                                         JebException
     {
-      DN requestedNewSuperiorDN = modifyDNOperation.getNewSuperior();
+      DN requestedNewSuperiorDN = null;
+
+      if(modifyDNOperation != null)
+      {
+        requestedNewSuperiorDN = modifyDNOperation.getNewSuperior();
+      }
 
       // Check whether the renamed entry already exists.
       if (dn2id.get(txn, newApexEntry.getDN()) != null)
@@ -2634,7 +2645,7 @@ public class EntryContainer
           // renumber every entry that moves. This is even more
           // expensive since every entry has to be deleted from
           // and added back into the attribute indexes.
-          newApexID = EntryID.assignNext();
+          newApexID = rootContainer.getNextEntryID();
         }
       }
 
@@ -2710,7 +2721,7 @@ public class EntryContainer
             EntryID newID = oldID;
             if (!newApexID.equals(oldApexID))
             {
-              newID = EntryID.assignNext();
+              newID = rootContainer.getNextEntryID();
             }
 
             // Move this entry.
@@ -2786,7 +2797,7 @@ public class EntryContainer
       dn2uri.replaceEntry(txn, oldEntry, newEntry);
 
       // Remove the old ID from id2entry.
-      if (!newID.equals(oldID))
+      if (!newID.equals(oldID) || modifyDNOperation == null)
       {
         id2entry.remove(txn, oldID);
 
@@ -2866,10 +2877,11 @@ public class EntryContainer
      * @param newEntry The new contents of the target entry.
      * @throws DirectoryException If a Directory Server error occurs.
      * @throws DatabaseException If an error occurs in the JE database.
+     * @throws JebException if an error occurs in the JE database.
      */
     private void renameApexEntry(Transaction txn, EntryID entryID,
                                  Entry oldEntry, Entry newEntry)
-         throws DirectoryException, DatabaseException
+         throws DirectoryException, DatabaseException, JebException
     {
       DN oldDN = oldEntry.getDN();
       DN newDN = newEntry.getDN();
@@ -2892,9 +2904,20 @@ public class EntryContainer
       // Replace the entry in id2entry.
       id2entry.put(txn, entryID, newEntry);
 
-      // Update indexes only for those attributes that changed.
-      indexModifications(txn, oldEntry, newEntry, entryID,
-                         modifyDNOperation.getModifications());
+      if(modifyDNOperation == null)
+      {
+        // Remove the old ID from the indexes.
+        indexRemoveEntry(txn, oldEntry, entryID);
+
+        // Insert the new ID into the indexes.
+        indexInsertEntry(txn, newEntry, entryID);
+      }
+      else
+      {
+        // Update indexes only for those attributes that changed.
+        indexModifications(txn, oldEntry, newEntry, entryID,
+                           modifyDNOperation.getModifications());
+      }
 
       // Remove the entry from the entry cache.
       EntryCache entryCache = DirectoryServer.getEntryCache();
@@ -3326,14 +3349,17 @@ public class EntryContainer
    */
   public static boolean isManageDsaITOperation(Operation operation)
   {
-    List<Control> controls = operation.getRequestControls();
-    if (controls != null)
+    if(operation != null)
     {
-      for (Control control : controls)
+      List<Control> controls = operation.getRequestControls();
+      if (controls != null)
       {
-        if (control.getOID().equals(ServerConstants.OID_MANAGE_DSAIT_CONTROL))
+        for (Control control : controls)
         {
-          return true;
+          if (control.getOID().equals(ServerConstants.OID_MANAGE_DSAIT_CONTROL))
+          {
+            return true;
+          }
         }
       }
     }
