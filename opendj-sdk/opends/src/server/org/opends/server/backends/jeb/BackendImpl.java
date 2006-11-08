@@ -344,35 +344,23 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     // Preload the database cache.
     rootContainer.preload();
 
-    // Determine the next entry ID and the total number of entries.
-    EntryID highestID = null;
-    long entryCount = 0;
-    for (EntryContainer ec : rootContainer.getEntryContainers())
+    try
     {
-      try
-      {
-        EntryID id = ec.getHighestEntryID();
-        if (highestID == null || id.compareTo(highestID) > 0)
-        {
-          highestID = id;
-        }
-        entryCount += ec.getEntryCount();
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeBackend", e);
-        String message = getMessage(MSGID_JEB_HIGHEST_ID_FAIL);
-        throw new InitializationException(MSGID_JEB_HIGHEST_ID_FAIL,
-                                          message, e);
-      }
+      // Log an informational message about the number of entries.
+      int msgID = MSGID_JEB_BACKEND_STARTED;
+      String message = getMessage(msgID, rootContainer.getEntryCount());
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
+               msgID);
     }
-    EntryID.initialize(highestID);
-
-    // Log an informational message about the number of entries.
-    int msgID = MSGID_JEB_BACKEND_STARTED;
-    String message = getMessage(msgID, entryCount);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-             msgID);
+    catch(DatabaseException databaseException)
+    {
+      assert debugException(CLASS_NAME, "initializeBackend",
+                            databaseException);
+      String message = getMessage(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
+                                  databaseException.getMessage());
+      throw new InitializationException(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
+                                        message, databaseException);
+    }
 
     // Register this backend as a configurable component.
     DirectoryServer.registerConfigurableComponent(this);
@@ -400,6 +388,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     assert debugEnter(CLASS_NAME, "finalizeBackend");
 
     // Deregister our configurable components.
+    // TODO: configurableEnv is always null and will not be deregistered.
     if (configurableEnv != null)
     {
       DirectoryServer.deregisterConfigurableComponent(configurableEnv);

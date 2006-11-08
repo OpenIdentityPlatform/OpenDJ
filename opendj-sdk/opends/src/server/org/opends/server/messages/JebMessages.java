@@ -1249,6 +1249,13 @@ public class JebMessages
       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 128;
 
   /**
+   * The message ID of an error indicating the entry count of a container can
+   * not be determined.
+   */
+  public static final int MSGID_JEB_GET_ENTRY_COUNT_FAILED =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 129;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1743,5 +1750,8 @@ public class JebMessages
     registerMessage(MSGID_JEB_SET_PERMISSIONS_FAILED,
                     "Unable to set file permissions for the backend database " +
                     "directory %s.");
+    registerMessage(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
+                    "Unable to determine the total number of entries in the " +
+                    "container: %s");
   }
 }

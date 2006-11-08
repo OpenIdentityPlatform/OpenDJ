@@ -598,7 +598,7 @@ public class EntryIDSet implements Iterable<EntryID>
   }
 
   /**
-   * Create an iterator over the set, or over the entire database
+   * Create an iterator over the set or an empty iterator
    * if the set is not defined.
    *
    * @return An EntryID iterator.
@@ -608,7 +608,7 @@ public class EntryIDSet implements Iterable<EntryID>
     if (values == null)
     {
       // The set is not defined.
-      return new IndexIteratorAllIds();
+      return new IDSetIterator(new long[0]);
     }
     else
     {

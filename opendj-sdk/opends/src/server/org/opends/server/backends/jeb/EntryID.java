@@ -28,8 +28,6 @@ package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.DatabaseEntry;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * An integer identifier assigned to each entry in the JE backend.
  * An entry ID is implemented by this class as a long.
@@ -38,11 +36,6 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class EntryID implements Comparable<EntryID>
 {
-  /**
-   * The cached value of the next identifier to be assigned.
-   */
-  private static AtomicLong nextid = new AtomicLong(1);
-
   /**
    * The identifier integer value.
    */
@@ -102,42 +95,6 @@ public class EntryID implements Comparable<EntryID>
       data.setData(JebFormat.entryIDToDatabase(id));
     }
     return data;
-  }
-
-  /**
-   * Initialize the next ID counter from the previous highest value.
-   * @param highestID The previous highest entry ID.
-   */
-  public static void initialize(EntryID highestID)
-  {
-    nextid = new AtomicLong(highestID.id + 1);
-  }
-
-  /**
-   * Assign the next entry ID.
-   * @return The assigned entry ID.
-   */
-  public static EntryID assignNext()
-  {
-    return new EntryID(nextid.getAndIncrement());
-  }
-
-  /**
-   * Return the lowest entry ID assigned.
-   * @return The lowest entry ID assigned.
-   */
-  public static Long getLowest()
-  {
-    return 1L;
-  }
-
-  /**
-   * Return the highest entry ID assigned.
-   * @return The highest entry ID assigned.
-   */
-  public static Long getHighest()
-  {
-    return (nextid.get() - 1);
   }
 
   /**

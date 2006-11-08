@@ -215,19 +215,11 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     rootContainer.openEntryContainers(config.getBaseDNs());
 
     // Create the import contexts for each base DN.
-    EntryID highestID = null;
     DN baseDN;
 
     for (EntryContainer entryContainer : rootContainer.getEntryContainers())
     {
       baseDN = entryContainer.getBaseDN();
-
-      // Keep track of the highest entry ID.
-      EntryID id = entryContainer.getHighestEntryID();
-      if (highestID == null || id.compareTo(highestID) > 0)
-      {
-        highestID = id;
-      }
 
       // Create an import context.
       ImportContext importContext = new ImportContext();
@@ -247,9 +239,6 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
 
       importMap.put(baseDN, importContext);
     }
-
-    // Initialize the entry ID generator.
-    EntryID.initialize(highestID);
 
     // Make a note of the time we started.
     long startTime = System.currentTimeMillis();
@@ -691,7 +680,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         }
 
         // Assign a new entry identifier and write the new DN.
-        entryID = EntryID.assignNext();
+        entryID = rootContainer.getNextEntryID();
         dn2id.insert(txn, entryDN, entryID);
 
         // Construct a list of IDs up the DIT.

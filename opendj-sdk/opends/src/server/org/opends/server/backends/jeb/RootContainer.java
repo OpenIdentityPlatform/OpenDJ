@@ -40,6 +40,7 @@ import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.CheckpointConfig;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.*;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -106,6 +107,11 @@ public class RootContainer
    * The base DNs contained in this entryContainer.
    */
   private ConcurrentHashMap<DN, EntryContainer> entryContainers;
+
+  /**
+   * The cached value of the next entry identifier to be assigned.
+   */
+  private AtomicLong nextid = new AtomicLong(1);
 
   /**
    * Creates a new RootContainer object. Each root container represents a JE
@@ -238,7 +244,7 @@ public class RootContainer
    */
   public EntryContainer openEntryContainer(DN baseDN) throws DatabaseException
   {
-    EntryContainer ec = new EntryContainer(baseDN, backend, config, env);
+    EntryContainer ec = new EntryContainer(baseDN, backend, config, env, this);
     EntryContainer ec1=this.entryContainers.get(baseDN);
     //If an entry container for this baseDN is already open we don't allow
     //another to be opened.
@@ -271,10 +277,19 @@ public class RootContainer
    */
   public void openEntryContainers(DN[] baseDNs) throws DatabaseException
   {
+    EntryID id = null;
+    EntryID highestID = null;
     for(DN baseDN : baseDNs)
     {
-      openEntryContainer(baseDN);
+      EntryContainer ec = openEntryContainer(baseDN);
+      id = ec.getHighestEntryID();
+      if(highestID == null || id.compareTo(highestID) > 0)
+      {
+        highestID = id;
+      }
     }
+
+    nextid = new AtomicLong(highestID.longValue() + 1);
   }
 
   /**
@@ -624,5 +639,53 @@ public class RootContainer
   public EnvironmentConfig getEnvironmentConfig() throws DatabaseException
   {
     return env.getConfig();
+  }
+
+  /**
+   * Get the total number of entries in this root container.
+   *
+   * @return The number of entries in this root container
+   * @throws DatabaseException If an error occurs while retriving the entry
+   *                           count.
+   */
+  public long getEntryCount() throws DatabaseException
+  {
+    long entryCount = 0;
+    for(EntryContainer ec : this.entryContainers.values())
+    {
+      entryCount += ec.getEntryCount();
+    }
+
+    return entryCount;
+  }
+
+  /**
+   * Assign the next entry ID.
+   *
+   * @return The assigned entry ID.
+   */
+  public EntryID getNextEntryID()
+  {
+    return new EntryID(nextid.getAndIncrement());
+  }
+
+  /**
+   * Return the lowest entry ID assigned.
+   *
+   * @return The lowest entry ID assigned.
+   */
+  public Long getLowestEntryID()
+  {
+    return 1L;
+  }
+
+  /**
+   * Return the highest entry ID assigned.
+   *
+   * @return The highest entry ID assigned.
+   */
+  public Long getHighestEntryID()
+  {
+    return (nextid.get() - 1);
   }
 }
