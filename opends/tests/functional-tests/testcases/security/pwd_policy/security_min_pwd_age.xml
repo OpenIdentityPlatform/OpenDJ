@@ -34,10 +34,11 @@
 
       <sequence>
 
-        <testcase name="'Security:Min Pwd Age: Check Existence of ds-cfg-minimum-password-age'">
+        <!--- Test Case : Pre-test Check -->
+        <testcase name="'Security:Min Pwd Age: Pre-test Check'">
           <sequence>
             <message>
-               'Security: Min Pwd Age: Checking existence of ds-cfg-minimum-password-age'
+               'Security: Min Pwd Age: Pre-test Check: Checking existence of ds-cfg-minimum-password-age'
             </message>
 
             <call function="'compareEntry'">
@@ -57,11 +58,11 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin Enable Minimum Pwd Age -->
-        <testcase name="'Security:Min Pwd Age: Admin Enable Minimum Pwd Age'">
+        <!--- Test Case : Test -->
+        <testcase name="'Security:Min Pwd Age: Test'">
           <sequence>
             <message>
-               'Security: Min Pwd Age: Admin Enabling Minimum Pwd Age'
+               'Security: Min Pwd Age: Test: Step 1. Admin Enabling Minimum Pwd Age'
             </message>
 
             <call function="'modifyEntry'">
@@ -72,18 +73,9 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_min_pwd_age.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : User Change Password -->
-        <testcase name="'Security:Min Pwd Age: User Change Password'">
-          <sequence>
+            <!--- User Change Password -->
             <message>
-               'Security: Min Pwd Age: User Changing Password'
+               '####Security: Min Pwd Age: Test: Step 2. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -94,19 +86,9 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd4.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 53  }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Min Pwd Age: User Search With Password'">
-          <sequence>
+            <!--- User Search With Password -->
             <message>
-               'Security: Min Pwd Age: User Searching With Password'
+               'Security: Min Pwd Age: Test: Step 3. User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -127,11 +109,11 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin Disable Minimum Pwd Age -->
-        <testcase name="'Security:Min Pwd Age: Admin Disable Minimum Pwd Age'">
+        <!--- Test Case : Post-test Reset -->
+        <testcase name="'Security:Min Pwd Age: Post-test Reset'">
           <sequence>
             <message>
-               'Security: Min Pwd Age: Admin Disabling Minimum Pwd Age'
+               'Security: Min Pwd Age: Post-test Reset: Step 1. Admin Disabling Minimum Pwd Age'
             </message>
 
             <call function="'modifyEntry'">
@@ -142,18 +124,9 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_min_pwd_age.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : User Change Password -->
-        <testcase name="'Security:Min Pwd Age: User Change Password'">
-          <sequence>
-            <message>
-               'Security: Min Pwd Age: User Changing Password'
+            <!--- User Change Password -->
+           <message>
+               'Security: Min Pwd Age: Post-test Reset: Step 2. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -164,18 +137,9 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd4.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Min Pwd Age: User Search With Password'">
-          <sequence>
+            <!--- User Search With Password -->
             <message>
-               'Security: Min Pwd Age: User Searching With Password'
+               'Security: Min Pwd Age: Post-test Reset: Step 3. User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -188,18 +152,14 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : User Change Password -->
-        <testcase name="'Security:Min Pwd Age: User Change Password'">
-          <sequence>
+            <!--- User Change Password -->
             <message>
-               'Security: Min Pwd Age: User Changing Password'
+               'Security: Min Pwd Age: Post-test Reset: Step 4. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -210,18 +170,9 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_reset_pwd4.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Min Pwd Age: User Search With Password'">
-          <sequence>
+            <!--- User Search With Password -->
             <message>
-               'Security: Min Pwd Age: User Searching With Password'
+               'Security: Min Pwd Age: Post-test Reset: Step 5. User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
