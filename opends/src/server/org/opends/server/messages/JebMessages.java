@@ -155,7 +155,7 @@ public class JebMessages
    * the attribute type of an attribute index.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_INDEX_ATTRIBUTE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 16;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 16;
 
 
   /**
@@ -163,7 +163,7 @@ public class JebMessages
    * the type of indexing for an attribute index.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_INDEX_TYPE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 17;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 17;
 
 
   /**
@@ -171,7 +171,7 @@ public class JebMessages
    * the entry limit for an attribute index.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_INDEX_ENTRY_LIMIT =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 18;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 18;
 
 
   /**
@@ -179,7 +179,7 @@ public class JebMessages
    * the database cache size as a percentage of Java VM heap size.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_CACHE_PERCENT =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 19;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 19;
 
 
   /**
@@ -187,7 +187,7 @@ public class JebMessages
    * the database cache size as an approximate number of bytes.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_CACHE_SIZE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 20;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 20;
 
 
   /**
@@ -195,7 +195,7 @@ public class JebMessages
    * whether data updated by a database transaction is forced to disk.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_TXN_NO_SYNC =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 21;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 21;
 
 
   /**
@@ -204,7 +204,7 @@ public class JebMessages
    * from the Java VM to the O/S.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_TXN_WRITE_NO_SYNC =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 22;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 22;
 
 
   /**
@@ -212,7 +212,7 @@ public class JebMessages
    * whether the database background cleaner thread runs.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_RUN_CLEANER =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 23;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 23;
 
 
   /**
@@ -220,7 +220,7 @@ public class JebMessages
    * the backend entry limit for indexing.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_BACKEND_INDEX_ENTRY_LIMIT =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 24;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 24;
 
 
   /**
@@ -228,7 +228,7 @@ public class JebMessages
    * the substring length for an attribute index.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_INDEX_SUBSTRING_LENGTH =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 25;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 25;
 
 
   /**
@@ -239,7 +239,7 @@ public class JebMessages
    * and the second argument is the type of indexing requested.
    */
   public static final int MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 26;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 26;
 
 /*
   public static final int MSGID_JEB_CANNOT_ACQUIRE_LOCK =
@@ -301,14 +301,14 @@ public class JebMessages
    * the minimum percentage of log space that must be used in log files.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_CLEANER_MIN_UTILIZATION =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 34;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 34;
 
   /**
    * The message ID used to describe the attribute which configures
    * the subtree delete size limit.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_SUBTREE_DELETE_SIZE_LIMIT =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 35;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 35;
 
 
   /**
@@ -320,7 +320,7 @@ public class JebMessages
    * object class.
    */
   public static final int MSGID_JEB_DUPLICATE_CONFIG_ENTRY =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 36;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 36;
 
 
   /**
@@ -330,7 +330,7 @@ public class JebMessages
    * be ignored.
    */
   public static final int MSGID_JEB_CONFIG_ENTRY_NOT_RECOGNIZED =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 37;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 37;
 
 
   /**
@@ -341,7 +341,7 @@ public class JebMessages
    * second argument is the unknown attribute type name.
    */
   public static final int MSGID_JEB_INDEX_ATTRIBUTE_TYPE_NOT_FOUND =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 38;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 38;
 
 
   /**
@@ -352,7 +352,7 @@ public class JebMessages
    * will be ignored and the second argument is the attribute type name.
    */
   public static final int MSGID_JEB_DUPLICATE_INDEX_CONFIG =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 39;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 39;
 
 
   /**
@@ -405,7 +405,7 @@ public class JebMessages
    * attribute type name.
    */
   public static final int MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 45;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 45;
 
 
   /**
@@ -497,7 +497,7 @@ public class JebMessages
    * the pathname of the directory for import temporary files.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_IMPORT_TEMP_DIRECTORY =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 55;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 55;
 
 
   /**
@@ -505,7 +505,7 @@ public class JebMessages
    * the amount of memory available for import buffering.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_IMPORT_BUFFER_SIZE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 56;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 56;
 
 
   /**
@@ -513,7 +513,7 @@ public class JebMessages
    * the import queue size.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_IMPORT_QUEUE_SIZE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 57;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 57;
 
 
   /**
@@ -521,7 +521,7 @@ public class JebMessages
    * the number of import worker threads.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_IMPORT_THREAD_COUNT =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 58;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 58;
 
 
 
@@ -530,7 +530,7 @@ public class JebMessages
    * the database cache eviction algorithm.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_EVICTOR_LRU_ONLY =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 59;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 59;
 
 
 
@@ -539,7 +539,7 @@ public class JebMessages
    * the number of nodes in one scan of the database cache evictor.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_EVICTOR_NODES_PER_SCAN =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 60;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 60;
 
 
 
@@ -556,7 +556,7 @@ public class JebMessages
    * the maximum time to spend preloading the database cache.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_PRELOAD_TIME_LIMIT =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 62;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 62;
 
 
 
@@ -567,7 +567,7 @@ public class JebMessages
    * representation of the exception that was caught.
    */
   public static final int MSGID_JEB_BACKUP_CANNOT_GET_MAC =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 63;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 63;
 
 
 
@@ -578,7 +578,7 @@ public class JebMessages
    * string representation of the exception that was caught.
    */
   public static final int MSGID_JEB_BACKUP_CANNOT_GET_DIGEST =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 64;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 64;
 
 
 
@@ -590,7 +590,7 @@ public class JebMessages
    * caught.
    */
   public static final int MSGID_JEB_BACKUP_CANNOT_CREATE_ARCHIVE_FILE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 65;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 65;
 
 
 
@@ -601,7 +601,7 @@ public class JebMessages
    * representation of the exception that was caught.
    */
   public static final int MSGID_JEB_BACKUP_CANNOT_GET_CIPHER =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 66;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 66;
 
 
 
@@ -612,7 +612,7 @@ public class JebMessages
    * and the backend ID.
    */
   public static final int MSGID_JEB_BACKUP_ZIP_COMMENT =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 67;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 67;
 
 
 
@@ -624,7 +624,7 @@ public class JebMessages
    * caught.
    */
   public static final int MSGID_JEB_BACKUP_CANNOT_LIST_LOG_FILES =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 68;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 68;
 
 
 
@@ -635,7 +635,7 @@ public class JebMessages
    * the exception that was caught.
    */
   public static final int MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 69;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 69;
 
 
 
@@ -647,7 +647,7 @@ public class JebMessages
    * exception that was caught.
    */
   public static final int MSGID_JEB_BACKUP_CANNOT_CLOSE_ZIP_STREAM =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 70;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 70;
 
 
 
@@ -659,7 +659,7 @@ public class JebMessages
    * caught.
    */
   public static final int MSGID_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 71;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 71;
 
 
 
@@ -669,7 +669,7 @@ public class JebMessages
    * is the backup ID containing the hash verification error.
    */
   public static final int MSGID_JEB_BACKUP_UNSIGNED_HASH_ERROR =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 72;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 72;
 
 
 
@@ -679,7 +679,7 @@ public class JebMessages
    * is the backup ID containing the signed hash verification error.
    */
   public static final int MSGID_JEB_BACKUP_SIGNED_HASH_ERROR =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 73;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 73;
 
 
 
@@ -688,7 +688,7 @@ public class JebMessages
    * backup is attempted when there has been no previous backup.
    */
   public static final int MSGID_JEB_INCR_BACKUP_REQUIRES_FULL =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 74;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 74;
 
 
 
@@ -700,7 +700,7 @@ public class JebMessages
    * directory.
    */
   public static final int MSGID_JEB_CANNOT_RENAME_RESTORE_DIRECTORY =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 75;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 75;
 
 
 
@@ -711,7 +711,7 @@ public class JebMessages
    * of IDs of suitable base backups.
    */
   public static final int MSGID_JEB_INCR_BACKUP_FROM_WRONG_BASE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 76;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 76;
 
 
 
@@ -721,7 +721,7 @@ public class JebMessages
    * This takes two arguments, the name of the file and the directory.
    */
   public static final int MSGID_JEB_CANNOT_CREATE_BACKUP_TAG_FILE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 77;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 77;
 
 
 
@@ -731,7 +731,7 @@ public class JebMessages
    * representation of the exception that was caught.
    */
   public static final int MSGID_JEB_BACKUP_CANNOT_RESTORE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 78;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 78;
 
 
 
@@ -741,7 +741,7 @@ public class JebMessages
    * This takes two arguments, the backup directory, and the required backup ID.
    */
   public static final int MSGID_JEB_BACKUP_MISSING_BACKUPID =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 79;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 79;
 
 
 
@@ -750,7 +750,7 @@ public class JebMessages
    * whether entries should be compressed in the database.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_ENTRIES_COMPRESSED =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 80;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 80;
 
 
 
@@ -759,7 +759,7 @@ public class JebMessages
    * the maximum size of each individual JE log file, in bytes.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_LOG_FILE_MAX =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 81;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 81;
 
 
 
@@ -1104,7 +1104,7 @@ public class JebMessages
    * whether the logging file handler will be on or off.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_LOGGING_FILE_HANDLER_ON =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 113;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 113;
 
 
 
@@ -1113,7 +1113,7 @@ public class JebMessages
    * the trace log message level.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_LOGGING_LEVEL =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 114;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 114;
 
 
 
@@ -1122,7 +1122,7 @@ public class JebMessages
    * how many bytes are written to the log before the checkpointer runs.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_CHECKPOINT_BYTES_INTERVAL =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 115;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 115;
 
 
 
@@ -1131,7 +1131,7 @@ public class JebMessages
    * the amount of time between runs of the checkpointer.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_CHECKPOINT_WAKEUP_INTERVAL =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 116;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 116;
 
 
 
@@ -1141,7 +1141,7 @@ public class JebMessages
    * aborted due to deadlock with another thread.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_DEADLOCK_RETRY_LIMIT =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 117;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 117;
 
 
 
@@ -1150,7 +1150,7 @@ public class JebMessages
    * the number of database lock tables.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_NUM_LOCK_TABLES =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 118;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 118;
 
 
 
@@ -1168,7 +1168,7 @@ public class JebMessages
    * the import pass size.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_IMPORT_PASS_SIZE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 120;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 120;
 
 
 
@@ -1218,7 +1218,7 @@ public class JebMessages
    * the number of threads allocated by the cleaner for log file processing.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_NUM_CLEANER_THREADS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 125;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 125;
 
 
 
@@ -1237,7 +1237,7 @@ public class JebMessages
    *  limit was exceeded.
    */
   public static final int MSGID_JEB_LOOKTHROUGH_LIMIT_EXCEEDED =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 127;
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 127;
 
 
 
