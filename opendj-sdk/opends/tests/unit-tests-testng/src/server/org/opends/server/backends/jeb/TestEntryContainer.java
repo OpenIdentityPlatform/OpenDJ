@@ -195,7 +195,6 @@ public class TestEntryContainer extends JebTestCase {
     EntryID actualHighestID = entryContainer.getHighestEntryID();
     assertTrue(actualHighestID.equals(new EntryID(0)));
 
-    EntryID.initialize(actualHighestID);
     for (Entry entry : entryList) {
       entryContainer.addEntry(entry, null);
       Entry afterEntry = entryContainer.getEntry(entry.getDN());
@@ -203,6 +202,7 @@ public class TestEntryContainer extends JebTestCase {
     }
     actualHighestID = entryContainer.getHighestEntryID();
     assertTrue(actualHighestID.equals(new EntryID(calculatedHighestID)));
+
 
     rootContainer.close();
     EnvManager.removeFiles(homeDirName);
