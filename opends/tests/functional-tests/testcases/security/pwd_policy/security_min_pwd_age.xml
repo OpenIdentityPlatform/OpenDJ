@@ -75,7 +75,7 @@
 
             <!--- User Change Password -->
             <message>
-               '####Security: Min Pwd Age: Test: Step 2. User Changing Password'
+               'Security: Min Pwd Age: Test: Step 2. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
