@@ -34,11 +34,11 @@
 
       <sequence>
 
-        <!--- Test Case : Pre-test Check -->
-        <testcase name="'Security:Min Pwd Age: Pre-test Check'">
+        <!--- Test Case : Preamble Check -->
+        <testcase name="'Security:Min Pwd Age: Preamble Check'">
           <sequence>
             <message>
-               'Security: Min Pwd Age: Pre-test Check: Checking existence of ds-cfg-minimum-password-age'
+               'Security: Min Pwd Age: Preamble Check: Checking existence of ds-cfg-minimum-password-age'
             </message>
 
             <call function="'compareEntry'">
@@ -109,11 +109,11 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Post-test Reset -->
-        <testcase name="'Security:Min Pwd Age: Post-test Reset'">
+        <!--- Test Case : Postamble Reset -->
+        <testcase name="'Security:Min Pwd Age: Postamble Reset'">
           <sequence>
             <message>
-               'Security: Min Pwd Age: Post-test Reset: Step 1. Admin Disabling Minimum Pwd Age'
+               'Security: Min Pwd Age: Postamble Reset: Step 1. Admin Disabling Minimum Pwd Age'
             </message>
 
             <call function="'modifyEntry'">
@@ -126,7 +126,7 @@
 
             <!--- User Change Password -->
            <message>
-               'Security: Min Pwd Age: Post-test Reset: Step 2. User Changing Password'
+               'Security: Min Pwd Age: Postamble Reset: Step 2. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -139,7 +139,7 @@
 
             <!--- User Search With Password -->
             <message>
-               'Security: Min Pwd Age: Post-test Reset: Step 3. User Searching With Password'
+               'Security: Min Pwd Age: Postamble Reset: Step 3. User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -159,7 +159,7 @@
 
             <!--- User Change Password -->
             <message>
-               'Security: Min Pwd Age: Post-test Reset: Step 4. User Changing Password'
+               'Security: Min Pwd Age: Postamble Reset: Step 4. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -172,7 +172,7 @@
 
             <!--- User Search With Password -->
             <message>
-               'Security: Min Pwd Age: Post-test Reset: Step 5. User Searching With Password'
+               'Security: Min Pwd Age: Postamble Reset: Step 5. User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
