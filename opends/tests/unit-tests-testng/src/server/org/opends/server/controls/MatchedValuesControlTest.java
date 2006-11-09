@@ -361,11 +361,11 @@ public class MatchedValuesControlTest
           }
         }
       }
-      catch (Exception e)
+      catch (Throwable t)
       {
         if ( ! exceptionExpected)
         {
-          assertTrue(false, "Exception not excepted: " + e.getMessage());
+          assertTrue(false, "Exception not excepted: " + t.getMessage());
         }
       }
     }
@@ -933,11 +933,11 @@ public class MatchedValuesControlTest
           assertEquals(attValueTestCurrent, mvf.getAssertionValue());
         }
       }
-      catch (Exception e)
+      catch (Throwable t)
       {
         if ( ! exceptionExpected)
         {
-          assertTrue(false, "Exception not excepted" + e.getMessage());
+          assertTrue(false, "Exception not excepted" + t.getMessage());
         }
       }
     }
