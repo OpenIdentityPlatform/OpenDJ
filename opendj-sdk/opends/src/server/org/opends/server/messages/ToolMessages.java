@@ -7093,7 +7093,7 @@ public class ToolMessages
     registerMessage(MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY,
                     "An error occurred while attempting to initialize the " +
                     "password policy components:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS,
+    registerMessage(MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS,
                     "An error occurred while attempting to initialize the " +
                     "LDIF import plugins:  %s.");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER,
@@ -7213,6 +7213,8 @@ public class ToolMessages
                     "# Your password has expired.");
     registerMessage(MSGID_BIND_PASSWORD_EXPIRING,
                     "# Your password will expire in %s.");
+    registerMessage(MSGID_BIND_ACCOUNT_LOCKED,
+                    "# Your account has been locked.");
     registerMessage(MSGID_BIND_MUST_CHANGE_PASSWORD,
                     "# You must change your password before any other " +
                     "operations will be allowed.");
@@ -8585,7 +8587,7 @@ public class ToolMessages
                     "Line %d of the template file contains an incomplete " +
                     "tag that starts with either '<' or '{' but does get " +
                     "closed.");
-    registerMessage(MSGID_MAKELDIF_NO_COLON_IN_BRANCH_EXTRA_LINE,
+    registerMessage(MSGID_MAKELDIF_NO_COLON_IN_TEMPLATE_LINE,
                     "There is no colon to separate the attribute name from " +
                     "the value pattern on line %s of the template file in " +
                     "the definition for template %s.");

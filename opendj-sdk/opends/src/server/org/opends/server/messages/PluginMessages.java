@@ -879,7 +879,7 @@ public class PluginMessages
                     ATTR_PROFILE_DIR + " of configuration entry %s is " +
                     "invalid because the specified path does not exist or " +
                     "is not a directory.");
-    registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_INTERVAL,
+    registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_ACTION,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_PROFILE_ACTION +
                     " attribute in the %s entry:  %s.  No action will be " +

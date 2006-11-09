@@ -4192,7 +4192,7 @@ public class ExtensionsMessages
     registerMessage(MSGID_FIFOCACHE_UPDATED_INCLUDE_FILTERS,
                     "The set of search filters that will control which " +
                     "entries may be included in the cache has been updated.");
-    registerMessage(MSGID_FIFOCACHE_UPDATED_INCLUDE_FILTERS,
+    registerMessage(MSGID_FIFOCACHE_UPDATED_EXCLUDE_FILTERS,
                     "The set of search filters that will control which " +
                     "entries should be be excluded from the cache has been " +
                     "updated.");
@@ -5675,7 +5675,7 @@ public class ExtensionsMessages
     registerMessage(MSGID_SOFTREFCACHE_UPDATED_INCLUDE_FILTERS,
                     "The set of search filters that will control which " +
                     "entries may be included in the cache has been updated.");
-    registerMessage(MSGID_SOFTREFCACHE_UPDATED_INCLUDE_FILTERS,
+    registerMessage(MSGID_SOFTREFCACHE_UPDATED_EXCLUDE_FILTERS,
                     "The set of search filters that will control which " +
                     "entries should be be excluded from the cache has been " +
                     "updated.");

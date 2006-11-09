@@ -2797,35 +2797,6 @@ public class SchemaMessages
 
 
   /**
-   * The message ID for the message that will be used if an authPassword value
-   * has an invalid character in the authValue element.  This takes a single
-   * argument, which is the position of the invalid character.
-   */
-  public static final int MSGID_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR =
-       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_ERROR | 246;
-
-
-
-  /**
-   * The message ID for the message that will be used if an authPassword value
-   * has an empty authValue element.  This does not take any arguments.
-   */
-  public static final int MSGID_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE =
-       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_ERROR | 247;
-
-
-
-  /**
-   * The message ID for the message that will be used if an authPassword value
-   * has an invalid character after the authValue element.  This takes a single
-   * argument, which is the position of the invalid character.
-   */
-  public static final int MSGID_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR =
-       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_ERROR | 248;
-
-
-
-  /**
    * The message ID for the message that will be used if a value does not start
    * with an opening parenthesis.  This takes a single argument, which is the
    * provided value string.
@@ -2944,6 +2915,35 @@ public class SchemaMessages
    */
   public static final int MSGID_ATTR_SYNTAX_ILLEGAL_INTEGER =
        CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 260;
+
+
+
+  /**
+   * The message ID for the message that will be used if an authPassword value
+   * has an invalid character in the authValue element.  This takes a single
+   * argument, which is the position of the invalid character.
+   */
+  public static final int MSGID_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR =
+       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_ERROR | 261;
+
+
+
+  /**
+   * The message ID for the message that will be used if an authPassword value
+   * has an empty authValue element.  This does not take any arguments.
+   */
+  public static final int MSGID_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE =
+       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_ERROR | 262;
+
+
+
+  /**
+   * The message ID for the message that will be used if an authPassword value
+   * has an invalid character after the authValue element.  This takes a single
+   * argument, which is the position of the invalid character.
+   */
+  public static final int MSGID_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR =
+       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_ERROR | 263;
 
 
 
@@ -3631,6 +3631,18 @@ public class SchemaMessages
                     "objectclass with OID %s (%s).  This objectclass exists " +
                     "in the server schema but is defined as %s rather than " +
                     "structural.");
+    registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR,
+                    "The definition for the name form with OID %s declared " +
+                    "that it should include required attribute \"%s\".  No " +
+                    "attribute type matching this name or OID exists in the " +
+                    "server schema, so a default attribute type with the " +
+                    "directory string syntax will be used.");
+    registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR,
+                    "The definition for the name form with OID %s declared " +
+                    "that it should include optional attribute \"%s\".  No " +
+                    "attribute type matching this name or OID exists in the " +
+                    "server schema, so a default attribute type with the " +
+                    "directory string syntax will be used.");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because it does not specify the " +

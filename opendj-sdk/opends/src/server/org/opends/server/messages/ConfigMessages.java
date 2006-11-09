@@ -4889,26 +4889,6 @@ public class ConfigMessages
 
 
   /**
-   * The message ID for the description of the server time limit configuration
-   * attribute.  This does not take any arguments.
-   */
-  public static final int MSGID_CONFIG_CORE_DESCRIPTION_TIME_LIMIT =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 450;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to process the server time limit.  This takes two arguments, which
-   * are the DN of the configuration entry and a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_CORE_INVALID_TIME_LIMIT =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 451;
-
-
-
-  /**
    * The message ID for the message that will be used if an error occurs while
    * attempting to retrieve the configuration base entry for the Directory
    * Server synchronization providers.  This takes a single argument, which is
@@ -5575,15 +5555,6 @@ public class ConfigMessages
 
 
   /**
-   * The message ID for the message that will be used if no default password
-   * policy has been defined.  This does not take any arguments.
-   */
-  public static final int MSGID_CONFIG_PWPOLICY_NO_DEFAULT_POLICY =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 514;
-
-
-
-  /**
    * The message ID for the message that will be used if a password policy
    * configuration entry is invalid.  This takes two arguments, which are the DN
    * of the invalid password policy configuration entry and a message that
@@ -6149,6 +6120,35 @@ public class ConfigMessages
    */
   public static final int MSGID_CONFIG_BACKEND_INSANE_MODE =
       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 568;
+
+
+
+  /**
+   * The message ID for the description of the server time limit configuration
+   * attribute.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_CORE_DESCRIPTION_TIME_LIMIT =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 569;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to process the server time limit.  This takes two arguments, which
+   * are the DN of the configuration entry and a string representation of the
+   * exception that was caught.
+   */
+  public static final int MSGID_CONFIG_CORE_INVALID_TIME_LIMIT =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 570;
+
+
+
+  /**
+   * The message ID for the message that will be used if no default password
+   * policy has been defined.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_PWPOLICY_NO_DEFAULT_POLICY =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 571;
 
 
 
@@ -7607,7 +7607,7 @@ public class ConfigMessages
                     "determine whether the plugin associated with " +
                     "configuration entry %s should be enabled or disabled:  " +
                     "%s.  It will be disabled.");
-    registerMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_CLASS,
+    registerMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_PLUGIN_TYPE,
                     "Specifies the plugin type(s) for this plugin, which "+
                     "control the times when this plugin will be invoked " +
                     "during processing.  This value is only read when " +
@@ -7814,6 +7814,9 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_SUPPRESS_INT_OPERATION_VALUE,
         "Invalid value specified for attribute %s. " +
         "Allowed values are true or false.");
+    registerMessage(MSGID_CONFIG_LOGGER_SUPPRESS_INTERNAL_OPERATIONS,
+                    "Indicates whether messages for internal operations " +
+                    "should be excluded from the access log file.");
 
 
     registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_INSTALL_NULL_PROVIDER,
