@@ -47,6 +47,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
+import org.opends.server.util.Validator;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -244,6 +245,7 @@ public class MatchedValuesFilter
                       String.valueOf(rawAttributeType),
                       String.valueOf(rawAssertionValue));
 
+    Validator.ensureNotNull(rawAttributeType,rawAssertionValue);
 
     return new MatchedValuesFilter(EQUALITY_MATCH_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null, null);
@@ -268,16 +270,10 @@ public class MatchedValuesFilter
                       String.valueOf(assertionValue));
 
 
-    String          rawAttributeType  = null ;
-    ASN1OctetString rawAssertionValue = null ;
-    if (attributeType != null)
-    {
-      rawAttributeType = attributeType.getNameOrOID();
-    }
-    if (assertionValue != null)
-    {
-      rawAssertionValue = assertionValue.getValue().toASN1OctetString();
-    }
+    Validator.ensureNotNull(attributeType, assertionValue);
+    String rawAttributeType = attributeType.getNameOrOID();
+    ASN1OctetString rawAssertionValue = assertionValue.getValue()
+        .toASN1OctetString();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(EQUALITY_MATCH_TYPE, rawAttributeType,
@@ -312,6 +308,7 @@ public class MatchedValuesFilter
                       String.valueOf(subFinal));
 
 
+    Validator.ensureNotNull(rawAttributeType);
     return new MatchedValuesFilter(SUBSTRINGS_TYPE, rawAttributeType, null,
                                    subInitial, subAny, subFinal, null);
   }
@@ -339,6 +336,7 @@ public class MatchedValuesFilter
                       String.valueOf(subAny), String.valueOf(subFinal));
 
 
+    Validator.ensureNotNull(attributeType);
     String rawAttributeType = attributeType.getNameOrOID();
 
     MatchedValuesFilter filter =
@@ -367,6 +365,7 @@ public class MatchedValuesFilter
                       String.valueOf(rawAttributeType),
                       String.valueOf(rawAssertionValue));
 
+   Validator.ensureNotNull(rawAttributeType, rawAssertionValue);
 
     return new MatchedValuesFilter(GREATER_OR_EQUAL_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null, null);
@@ -390,6 +389,7 @@ public class MatchedValuesFilter
                       String.valueOf(attributeType),
                       String.valueOf(assertionValue));
 
+    Validator.ensureNotNull(attributeType, assertionValue);
 
     String          rawAttributeType  = attributeType.getNameOrOID();
     ASN1OctetString rawAssertionValue =
@@ -423,6 +423,7 @@ public class MatchedValuesFilter
                       String.valueOf(rawAssertionValue));
 
 
+    Validator.ensureNotNull(rawAttributeType, rawAssertionValue);
     return new MatchedValuesFilter(LESS_OR_EQUAL_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null, null);
   }
@@ -445,6 +446,7 @@ public class MatchedValuesFilter
                       String.valueOf(attributeType),
                       String.valueOf(assertionValue));
 
+    Validator.ensureNotNull(attributeType, assertionValue);
 
     String          rawAttributeType = attributeType.getNameOrOID();
     ASN1OctetString rawAssertionValue =
@@ -473,7 +475,7 @@ public class MatchedValuesFilter
     assert debugEnter(CLASS_NAME, "createPresentFilter",
                       String.valueOf(rawAttributeType));
 
-
+    Validator.ensureNotNull(rawAttributeType) ;
     return new MatchedValuesFilter(PRESENT_TYPE, rawAttributeType, null, null,
                                    null, null, null);
   }
@@ -493,7 +495,7 @@ public class MatchedValuesFilter
     assert debugEnter(CLASS_NAME, "createPresentFilter",
                       String.valueOf(attributeType));
 
-
+    Validator.ensureNotNull(attributeType);
     String rawAttributeType = attributeType.getNameOrOID();
 
     MatchedValuesFilter filter =
@@ -522,6 +524,7 @@ public class MatchedValuesFilter
                       String.valueOf(rawAttributeType),
                       String.valueOf(rawAssertionValue));
 
+    Validator.ensureNotNull(rawAttributeType,rawAssertionValue);
 
     return new MatchedValuesFilter(APPROXIMATE_MATCH_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null, null);
@@ -546,6 +549,7 @@ public class MatchedValuesFilter
                       String.valueOf(assertionValue));
 
 
+    Validator.ensureNotNull(attributeType,assertionValue);
     String          rawAttributeType  = attributeType.getNameOrOID();
     ASN1OctetString rawAssertionValue =
          assertionValue.getValue().toASN1OctetString();
@@ -580,7 +584,8 @@ public class MatchedValuesFilter
                       String.valueOf(matchingRuleID),
                       String.valueOf(rawAssertionValue));
 
-
+    Validator
+        .ensureNotNull(rawAttributeType, matchingRuleID, rawAssertionValue);
     return new MatchedValuesFilter(EXTENSIBLE_MATCH_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null,
                                    matchingRuleID);
@@ -608,31 +613,14 @@ public class MatchedValuesFilter
                       String.valueOf(assertionValue));
 
 
-    String rawAttributeType;
-    if (attributeType == null)
-    {
-      rawAttributeType = null;
-    }
-    else
-    {
-      rawAttributeType = attributeType.getNameOrOID();
-    }
-
-    String matchingRuleID;
-    if (matchingRule == null)
-    {
-      matchingRuleID = null;
-    }
-    else
-    {
-      matchingRuleID = matchingRule.getOID();
-    }
-
+    Validator.ensureNotNull(attributeType, matchingRule, assertionValue);
+    String rawAttributeType = attributeType.getNameOrOID();
+    String matchingRuleID = matchingRule.getOID();
     ASN1OctetString rawAssertionValue =
          assertionValue.getValue().toASN1OctetString();
 
     MatchedValuesFilter filter =
-         new MatchedValuesFilter(APPROXIMATE_MATCH_TYPE, rawAttributeType,
+         new MatchedValuesFilter(EXTENSIBLE_MATCH_TYPE, rawAttributeType,
                                  rawAssertionValue, null, null, null,
                                  matchingRuleID);
     filter.attributeType  = attributeType;
