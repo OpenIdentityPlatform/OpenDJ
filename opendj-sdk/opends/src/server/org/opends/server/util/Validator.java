@@ -128,8 +128,7 @@ public class Validator {
 
   /**
    * This method validates that the specified parameter is not null.  It
-   * throws a RuntimeException or AssertionError if it is null after logging
-   * this error.
+   * throws an AssertionError if it is null after logging this error.
    * <p>
    * This should be used like an assert, except it is not turned
    * off at runtime.  That is, it should only be used in situations where
@@ -141,12 +140,11 @@ public class Validator {
    * overhead from the calling code.  This idiom should only be used when
    * performance testing proves that it is necessary.
    *
-   * @throws NullPointerException if and only if param is null
-   * @throws AssertionError this is thrown instead of NullPointerException
+   * @throws AssertionError if and only if param is null
    * if assertions are enabled
    */
   public static boolean ensureNotNull(Object param)
-          throws NullPointerException, AssertionError {
+          throws AssertionError {
     if (ENABLE_CHECKS) {
       if (param == null) throwNull("");
     }
@@ -157,10 +155,9 @@ public class Validator {
 
   /**
    * This method validates that the specified parameters are not null.  It
-   * throws a RuntimeException or AssertionError if one of them are null
-   * after logging this error.  It's similar to the ensureNotNull(Object)
-   * call except it provides the convenience of checking two parameters
-   * at once.
+   * throws an AssertionError if one of them are null after logging this error.
+   * It's similar to the ensureNotNull(Object) call except it provides the
+   * convenience of checking two parameters at once.
    * <p>
    * This should be used like an assert, except it is not turned
    * off at runtime.  That is, it should only be used in situations where
@@ -176,12 +173,10 @@ public class Validator {
    * overhead from the calling code.  This idiom should only be used when
    * performance testing proves that it is necessary.
    *
-   * @throws NullPointerException if and only if one of the parameters is null
-   * @throws AssertionError this is thrown instead of NullPointerException
-   * if assertions are enabled
+   * @throws AssertionError if and only if any of the parameters is null
    */
   public static boolean ensureNotNull(Object param1, Object param2)
-          throws NullPointerException, AssertionError {
+          throws AssertionError {
     if (ENABLE_CHECKS) {
       if (param1 == null) throwNull(PARAM_DESCRIPTIONS[1]);
       if (param2 == null) throwNull(PARAM_DESCRIPTIONS[2]);
@@ -193,10 +188,9 @@ public class Validator {
 
   /**
    * This method validates that the specified parameters are not null.  It
-   * throws a RuntimeException or AssertionError if one of them are null
-   * after logging this error.  It's similar to the ensureNotNull(Object)
-   * call except it provides the convenience of checking three parameters
-   * at once.
+   * throws an AssertionError if one of them are null after logging this error.
+   * It's similar to the ensureNotNull(Object) call except it provides the
+   * convenience of checking three parameters at once.
    * <p>
    * This should be used like an assert, except it is not turned
    * off at runtime.  That is, it should only be used in situations where
@@ -213,13 +207,11 @@ public class Validator {
    * overhead from the calling code.  This idiom should only be used when
    * performance testing proves that it is necessary.
    *
-   * @throws NullPointerException if and only if one of the parameters is null
-   * @throws AssertionError this is thrown instead of NullPointerException
-   * if assertions are enabled
+   * @throws AssertionError if and only if one of the parameters is null
    */
   public static boolean ensureNotNull(Object param1, Object param2,
                                       Object param3)
-          throws NullPointerException, AssertionError {
+          throws AssertionError {
     if (ENABLE_CHECKS) {
       if (param1 == null) throwNull(PARAM_DESCRIPTIONS[1]);
       if (param2 == null) throwNull(PARAM_DESCRIPTIONS[2]);
@@ -232,10 +224,9 @@ public class Validator {
 
   /**
    * This method validates that the specified parameters are not null.  It
-   * throws a RuntimeException or AssertionError if one of them are null
-   * after logging this error.  It's similar to the ensureNotNull(Object)
-   * call except it provides the convenience of checking three parameters
-   * at once.
+   * throws an AssertionError if one of them are null after logging this error.
+   * It's similar to the ensureNotNull(Object) call except it provides the
+   * convenience of checking four parameters at once.
    * <p>
    * This should be used like an assert, except it is not turned
    * off at runtime.  That is, it should only be used in situations where
@@ -253,13 +244,11 @@ public class Validator {
    * overhead from the calling code.  This idiom should only be used when
    * performance testing proves that it is necessary.
    *
-   * @throws NullPointerException if and only if one of the parameters is null
-   * @throws AssertionError this is thrown instead of NullPointerException
-   * if assertions are enabled
+   * @throws AssertionError if and only if one of the parameters is null
    */
   public static boolean ensureNotNull(Object param1, Object param2,
                                       Object param3, Object param4)
-          throws NullPointerException, AssertionError {
+          throws AssertionError {
     if (ENABLE_CHECKS) {
       if (param1 == null) throwNull(PARAM_DESCRIPTIONS[1]);
       if (param2 == null) throwNull(PARAM_DESCRIPTIONS[2]);
@@ -272,7 +261,7 @@ public class Validator {
 
   /**
    * This method validates that the specified parameter is true.  It
-   * throws a RuntimeException or AssertionError if it is not true.
+   * throws an AssertionError if it is not true.
    * <p>
    * This should be used like an assert, except it is not turned
    * off at runtime.  That is, it should only be used in situations where
@@ -286,12 +275,10 @@ public class Validator {
    * overhead from the calling code.  This idiom should only be used when
    * performance testing proves that it is necessary.
    *
-   * @throws AssertionError if condition is false and assertions are enabled
-   * @throws IllegalArgumentException if condition is false and assertions are
-   * not enabled
+   * @throws AssertionError if condition is false
    */
   public static boolean ensureTrue(boolean condition)
-          throws IllegalArgumentException, AssertionError {
+          throws AssertionError {
     if (ENABLE_CHECKS) {
       if (!condition) {
         ensureTrue(condition, "");
@@ -304,8 +291,8 @@ public class Validator {
 
   /**
    * This method validates that the specified parameter is true.  It
-   * throws a RuntimeException or AssertionError if it is not true.
-   * The supplied message is included in the error message.
+   * throws an AssertionError if it is not true.  The supplied message is
+   * included in the error message.
    * <p>
    * This should be used like an assert, except it is not turned
    * off at runtime.  That is, it should only be used in situations where
@@ -320,12 +307,10 @@ public class Validator {
    * overhead from the calling code.  This idiom should only be used when
    * performance testing proves that it is necessary.
    *
-   * @throws AssertionError if condition is false and assertions are enabled
-   * @throws IllegalArgumentException if condition is false and assertions are
-   * not enabled
+   * @throws AssertionError if condition is false
    */
   public static boolean ensureTrue(boolean condition, String message)
-          throws IllegalArgumentException, AssertionError {
+          throws AssertionError {
     if (ENABLE_CHECKS) {
       if (!condition) {
         String fullMessage = generateLineSpecificErrorMessage(
@@ -333,10 +318,7 @@ public class Validator {
 
         logError(fullMessage);
 
-        // Prefer throwing an assertion if they are enabled.
-        assert condition : fullMessage;
-
-        throw new IllegalArgumentException(fullMessage);
+        throw new AssertionError(fullMessage);
       }
     }
     return true;
@@ -391,16 +373,13 @@ public class Validator {
 
 
   private static void throwNull(String message)
-          throws NullPointerException, AssertionError {
+          throws AssertionError {
     String fullMessage = generateLineSpecificErrorMessage(
             "The specified parameter must not be null. " + message);
 
     logError(fullMessage);
 
-    // Prefer throwing an assertion if they are enabled.
-    assert false : fullMessage;
-
-    throw new NullPointerException(fullMessage);
+    throw new AssertionError(fullMessage);
   }
 
 
