@@ -7118,29 +7118,6 @@ public class DirectoryServer
 
 
   /**
-   * Retrieves a compact version string for the Directory Server, which may be
-   * used in elements like path names.
-   *
-   * @return  A compact version string for the Directory Server.
-   */
-  public static String getCompactVersionString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(SHORT_NAME);
-    buffer.append("-");
-    buffer.append(MAJOR_VERSION);
-    buffer.append(".");
-    buffer.append(MINOR_VERSION);
-    if ((VERSION_QUALIFIER != null) && (VERSION_QUALIFIER.length() > 0))
-    {
-      buffer.append(VERSION_QUALIFIER);
-    }
-    return buffer.toString();
-  }
-
-
-
-  /**
    * Retrieves the full version string for the Directory Server.
    *
    * @return  The full version string for the Directory Server.

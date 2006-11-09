@@ -110,4 +110,23 @@ public class DynamicConstants
    * versions.
    */
   public static final boolean DEBUG_BUILD = ${DEBUG_BUILD};
+
+  /**
+   * A compact version string for this product, suitable for use in path
+   * names and similar cases.
+   */
+  public static final String COMPACT_VERSION_STRING =
+       SHORT_NAME + "-" + MAJOR_VERSION + "." + MINOR_VERSION +
+       (((VERSION_QUALIFIER != null) && (VERSION_QUALIFIER.length() > 0))
+        ? VERSION_QUALIFIER
+        : "");
+
+  /**
+   * A full version string for this product.
+   */
+  public static final String FULL_VERSION_STRING =
+       PRODUCT_NAME + " " + MAJOR_VERSION + "." + MINOR_VERSION +
+       (((VERSION_QUALIFIER != null) && (VERSION_QUALIFIER.length() > 0))
+        ? VERSION_QUALIFIER
+        : "." + POINT_VERSION);
 }
