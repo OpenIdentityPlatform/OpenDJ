@@ -34,11 +34,12 @@
 
       <sequence>
 
-        <!--- Test Case : Delete Branch through SSL port -->
-        <testcase name="'Security:PKCS12:DeleteBranchThroughSSLPort'">
+        <!--- Test Case : PKCS12 Teardown -->
+        <!--- Delete Branch through SSL port -->
+        <testcase name="'Security: PKCS12: Postamble Reset'">
           <sequence>
             <message>
-               'Security: PKCS12: Deleting Branch Through SSL Port'
+               'Security: PKCS12: Postamble Step 1. Deleting Branch Through SSL Port'
             </message>
 
             <call function="'DeleteEntry'">
@@ -50,18 +51,14 @@
                 'extraParams'      : '-Z -X -x' }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Unconfigure PKCS12 Keystore -->
-        <testcase name="'Security:PKCS12:UnconfigPKCS12Keystore'">
-          <sequence>
+            <!--- Unconfigure PKCS12 Keystore -->
             <message>
-               'Security: PKCS12: Unconfiguring PKCS12 Keystore'
+               'Security: PKCS12: Postamble Step 2. Unconfiguring PKCS12 Keystore'
             </message>
 
             <call function="'unconfigureSSL'">
@@ -72,18 +69,14 @@
                 'keystoreType'   : '%s' % 'pkcs12' }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Remove PKCS12 Keystore -->
-        <testcase name="'Security:PKCS12:RemovePKCS12Keystore'">
-          <sequence>
+        
+            <!--- Remove PKCS12 Keystore -->
             <message>
-               'Security: PKCS12: Removing PKCS12 Keystore'
+               'Security: PKCS12: Postamble Step 3. Removing PKCS12 Keystore'
             </message>
 
             <call function="'deletefile'">
@@ -91,18 +84,14 @@
             'hostname' : STAF_REMOTE_HOSTNAME }
             </call>
             
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
       
-        <!--- Test Case : Search With Unsecure Port -->
-        <testcase name="'Security:PKCS12:Search With Unsecure Port'">
-          <sequence>
+            <!--- Search With Unsecure Port -->
             <message>
-               'Security: PKCS12: Searching with Unsecure Connection'
+               'Security: PKCS12: Postamble Step 4. Searching with Unsecure Connection'
             </message>
 
             <call function="'SearchObject'">

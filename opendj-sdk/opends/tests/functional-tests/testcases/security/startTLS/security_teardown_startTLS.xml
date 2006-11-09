@@ -34,11 +34,12 @@
 
       <sequence>
 
-        <!--- Test Case : Delete Branch through StartTLS port -->
-        <testcase name="'Security:TLS:DeleteBranchThroughStartTLSPort'">
+        <!--- Test Case : startTLS Teardown -->
+        <!--- Delete Branch through StartTLS port -->
+        <testcase name="'Security: TLS: Postamble Reset'">
           <sequence>
             <message>
-               'Security: TLS: Deleting Branch Through StartTLS Port'
+               'Security: TLS: Postamble Step 1. Deleting Branch Through StartTLS Port'
             </message>
 
             <call function="'DeleteEntry'">
@@ -50,18 +51,14 @@
                 'extraParams'      : '-q -X -x' }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-         <!--- Test Case : Unconfigure JKS Keystore -->
-        <testcase name="'Security:TLS:UnconfigJKSKeystoreStartTLS'">
-          <sequence>
+            <!--- Unconfigure JKS Keystore -->
             <message>
-               'Security: TLS: Unconfiguring JKS Keystore'
+               'Security: TLS: Postamble Step 2. Unconfiguring JKS Keystore'
             </message>
 
             <call function="'unconfigureTLS'">
@@ -72,18 +69,14 @@
                 'keystoreType'   : '%s' % 'startTLS' }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Remove JKS Keystore -->
-        <testcase name="'Security:TLS:RemoveJKSKeystore'">
-          <sequence>
+            <!--- Remove JKS Keystore -->
             <message>
-               'Security: TLS: Removing JKS Keystore'
+               'Security: TLS: Postamble Step 3. Removing JKS Keystore'
             </message>
 
             <call function="'deletefile'">
@@ -91,18 +84,14 @@
             'hostname' : STAF_REMOTE_HOSTNAME }
             </call>
             
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
-      
-        <!--- Test Case : Search With Unsecure Port -->
-        <testcase name="'Security:TLS:Search With Unsecure Port'">
-          <sequence>
+     
+            <!--- Search With Unsecure Port -->
             <message>
-               'Security: TLS: Searching with Unsecure Connection'
+               'Security: TLS: Postamble Step 4. Searching with Unsecure Connection'
             </message>
 
             <call function="'SearchObject'">

@@ -59,7 +59,7 @@
             #@TestPostamble
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security:JKS:AddEntriesThroughSSLPort'">
+        <testcase name="'Security: JKS: Add Entries'">
           <sequence>
             <message>
                'Security: JKS: Adding Entries Through SSL Port'
@@ -96,7 +96,7 @@
             #@TestPostamble
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security:JKS:ModifyEntryThroughSSLPort'">
+        <testcase name="'Security: JKS: Modify Entry'">
           <sequence>
             <message>
                'Security: JKS: Modifying Entry Through SSL Port'
@@ -133,7 +133,7 @@
             #@TestPostamble
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security:JKS:AddAttrToEntryThroughSSLPort'">
+        <testcase name="'Security: JKS: Add Attr to Entry'">
           <sequence>
             <message>
                'Security: JKS: Adding Attr to Entry Through SSL Port'
@@ -170,7 +170,7 @@
             #@TestPostamble
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security:JKS:ModAttrInEntryThroughSSLPort'">
+        <testcase name="'Security: JKS: Modify Attr in Entry'">
           <sequence>
             <message>
                'Security: JKS: Modifying Attr in Entry Through SSL Port'
@@ -207,7 +207,7 @@
             #@TestPostamble
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security:JKS:DeleteEntryThroughSSLPort'">
+        <testcase name="'Security: JKS: Delete Entry'">
           <sequence>
             <message>
                'Security: JKS: Deleting Entry Through SSL Port'

@@ -34,45 +34,38 @@
 
       <sequence>
 
-        <!--- Test Case : Generate Server Cert -->
-        <testcase name="'Security:PKCS12:GenerateServerPKCS12Cert'">
+        <!--- Test Case : PKCS12 Setup -->
+        <!--- Generate Server Cert -->
+        <testcase name="'Security: PKCS12: Preamble Setup'">
           <sequence>
             <message>
-               'Security: PKCS12: Generating Server PKCS12 Certicate'
+               'Security: PKCS12: Preamble Step 1. Generating Server PKCS12 Certicate'
             </message>
 
             <call function="'genServerPKCS12Cert'">
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Self-Sign Server Cert -->
-        <testcase name="'Security:PKCS12:SelfSignServerPKCS12Cert'">
-          <sequence>
+            <!--- Self-Sign Server Cert -->
             <message>
-               'Security: PKCS12: Self-Signing Server PKCS12 Certicate'
+               'Security: PKCS12: Preamble Step 2. Self-Signing Server PKCS12 Certicate'
             </message>
 
             <call function="'selfSignServerPKCS12Cert'">
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Configure PKCS12 Keystore -->
-        <testcase name="'Security:PKCS12:ConfigPKCS12Keystore'">
-          <sequence>
+            <!--- Configure PKCS12 Keystore -->
             <message>
-               'Security: PKCS12: Configuring PKCS12 Keystore'
+               'Security: PKCS12: Preamble Step 3. Configuring PKCS12 Keystore'
             </message>
 
             <call function="'configureSSL'">
@@ -83,18 +76,14 @@
                 'keystoreType'   : '%s' % 'pkcs12' }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Initial Search With SSL -->
-        <testcase name="'Security:PKCS12:Initial Search With SSL'">
-          <sequence>
+            <!--- Initial Search With SSL -->
             <message>
-               'Security: PKCS12: Searching with SSL Connection'
+               'Security: PKCS12: Preamble Step 4. Searching with SSL Connection'
             </message>
 
             <call function="'SearchObject'">
