@@ -372,6 +372,8 @@ public class CRAMMD5SASLMechanismHandler
     {
       assert debugException(CLASS_NAME, "processSASLBind", pe);
 
+      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
       int    msgID   = MSGID_SASLCRAMMD5_INVALID_DIGEST_CONTENT;
       String message = getMessage(msgID, pe.getMessage());
       bindOperation.setAuthFailureReason(msgID, message);
