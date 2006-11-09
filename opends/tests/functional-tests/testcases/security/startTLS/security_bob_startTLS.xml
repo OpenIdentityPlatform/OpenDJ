@@ -35,7 +35,7 @@
       <sequence>
 
        <!--- Test Case : Add Entries through StartTLS port -->
-        <testcase name="'Security:TLS:AddEntriesThroughStartTLSPort'">
+        <testcase name="'Security: TLS: Add Entries'">
           <sequence>
             <message>
                'Security: TLS: Adding Entries Through StartTLS Port'
@@ -58,7 +58,7 @@
         </testcase>
 
         <!--- Test Case : Add Attribute to Entry through StartTLS port -->
-        <testcase name="'Security:TLS:AddAttrToEntryThroughStartTLSPort'">
+        <testcase name="'Security: TLS: Add Attr To Entry'">
           <sequence>
             <message>
                'Security: TLS: Adding Attr to Entry Through StartTLS Port'
@@ -81,7 +81,7 @@
         </testcase>
 
         <!--- Test Case : Modify Attribute in Entry through StartTLS port -->
-        <testcase name="'Security:TLS:ModAttrInEntryThroughStartTLSPort'">
+        <testcase name="'Security: TLS: Modify Attr In Entry'">
           <sequence>
             <message>
                'Security: TLS: Modifying Attr in Entry Through StartTLS Port'
@@ -104,7 +104,7 @@
         </testcase>
 
         <!--- Test Case : Delete Entry through StartTLS port -->
-        <testcase name="'Security:TLS:DeleteEntryThroughStartTLSPort'">
+        <testcase name="'Security: TLS: Delete Entry'">
           <sequence>
             <message>
                'Security: TLS: Deleting Entry Through StartTLS Port'

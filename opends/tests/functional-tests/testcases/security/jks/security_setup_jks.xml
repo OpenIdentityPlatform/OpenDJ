@@ -34,45 +34,38 @@
 
       <sequence>
 
-        <!--- Test Case : Generate Server Cert -->
-        <testcase name="'Security:JKS:GenerateServerJKSCert'">
+        <!--- Test Case : JKS Setup -->
+        <!--- Generate Server Cert -->
+        <testcase name="'Security: JKS: Preamble Setup'">
           <sequence>
             <message>
-               'Security: JKS: Generating Server Certicate'
+               'Security: JKS: Preamble Step 1. Generating Server Certicate'
             </message>
 
             <call function="'genServerJKSCert'">
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Self-Sign Server Cert -->
-        <testcase name="'Security:JKS:SelfSignServerJKSCert'">
-          <sequence>
+            <!--- Self-Sign Server Cert -->
             <message>
-               'Security: JKS: Self-Signing Server Certicate'
+               'Security: JKS: Preamble Step 2. Self-Signing Server Certicate'
             </message>
 
             <call function="'selfSignServerJKSCert'">
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Configure JKS Keystore -->
-        <testcase name="'Security:JKS:ConfigJKSKeystore'">
-          <sequence>
+            <!--- Configure JKS Keystore -->
             <message>
-               'Security: JKS: Configuring JKS Keystore'
+               'Security: JKS: Preamble Step 3. Configuring JKS Keystore'
             </message>
 
             <call function="'configureSSL'">
@@ -83,18 +76,14 @@
                 'keystoreType'   : '%s' % 'jks' }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Initial Search With SSL -->
-        <testcase name="'Security:JKS:Initial Search With SSL'">
-          <sequence>
+            <!--- Initial Search With SSL -->
             <message>
-               'Security: JKS: Searching with SSL Connection'
+               'Security: JKS: Preamble Step 4. Searching with SSL Connection'
             </message>
 
             <call function="'SearchObject'">

@@ -34,45 +34,38 @@
 
       <sequence>
 
-        <!--- Test Case : Generate Server Cert -->
-        <testcase name="'Security:TLS:GenerateServerJKSCert'">
+        <!--- Test Case : startTLS Setup -->
+        <!--- Generate Server Cert -->
+        <testcase name="'Security: TLS: Preamble Setup'">
           <sequence>
             <message>
-               'Security: TLS: Generating Server Certicate'
+               'Security: TLS: Preamble Step 1. Generating Server Certicate'
             </message>
 
             <call function="'genServerJKSCert'">
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Self-Sign Server Cert -->
-        <testcase name="'Security:TLS:SelfSignServerJKSCert'">
-          <sequence>
+            <!--- Self-Sign Server Cert -->
             <message>
-               'Security: TLS: Self-Signing Server Certicate'
+               'Security: TLS: Preamble Step 2. Self-Signing Server Certicate'
             </message>
 
             <call function="'selfSignServerJKSCert'">
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Configure JKS Keystore -->
-        <testcase name="'Security:TLS:ConfigJKSKeystoreStartTLS'">
-          <sequence>
+            <!--- Configure JKS Keystore -->
             <message>
-               'Security: TLS: Configuring JKS Keystore'
+               'Security: TLS: Preamble Step 3. Configuring JKS Keystore'
             </message>
 
             <call function="'configureTLS'">
@@ -83,18 +76,14 @@
                 'keystoreType'   : '%s' % 'startTLS' }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-          </sequence>
-        </testcase>
 
-        <!--- Test Case : Initial Search With StartTLS -->
-        <testcase name="'Security:TLS:Initial Search With StartTLS'">
-          <sequence>
-            <message>
-               'Security: TLS: Searching with StartTLS Connection'
+           <!--- Initial Search With StartTLS -->
+           <message>
+               'Security: TLS: Preamble Step 4. Searching with StartTLS Connection'
             </message>
 
             <call function="'SearchObject'">

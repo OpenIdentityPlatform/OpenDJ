@@ -31,7 +31,7 @@
     <function name="configureSSL">
 
     <function-prolog>
-        This function makes the configuration chnanges for SSL
+        This function makes the configuration changes for SSL
     </function-prolog>
 
     <function-map-args>
@@ -70,7 +70,7 @@
                 'entryToBeAdded'   : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -88,7 +88,7 @@
                 'entryToBeModified'   : '%s/security/%s/setup/deleteTrustMgr.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -106,7 +106,7 @@
                 'entryToBeAdded'   : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -124,7 +124,7 @@
                 'entryToBeAdded'   : '%s/ldaps_port.ldif' % (STAGED_DATA_DIR) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -175,7 +175,7 @@
                 'entryToBeAdded'   : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -193,7 +193,7 @@
                 'entryToBeModified'   : '%s/security/%s/setup/deleteTrustMgr.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -211,7 +211,7 @@
                 'entryToBeAdded'   : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -229,7 +229,7 @@
                 'entryToBeAdded'   : '%s/security/%s/setup/enable_startTLS.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -280,7 +280,7 @@
                 'entryToBeModified'   : '%s/security/%s/teardown/disable_ldaps_conn_handler.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -298,7 +298,7 @@
                 'entryToBeModified'   : '%s/security/%s/teardown/deleteTrustMgr.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -316,7 +316,7 @@
                 'entryToBeAdded'   : '%s/security/%s/teardown/default_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -334,7 +334,7 @@
                 'entryToBeModified'   : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -385,7 +385,7 @@
                 'entryToBeModified'   : '%s/security/%s/teardown/disable_startTLS.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -403,7 +403,7 @@
                 'entryToBeModified'   : '%s/security/%s/teardown/deleteTrustMgr.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -421,7 +421,7 @@
                 'entryToBeAdded'   : '%s/security/%s/teardown/default_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -439,7 +439,7 @@
                 'entryToBeModified'   : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
