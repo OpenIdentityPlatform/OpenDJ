@@ -5887,16 +5887,6 @@ public class CoreMessages
 
   /**
    * The message ID for the message that will be used if an attempt is made to
-   * increment an attribute that does not exist.  This takes a single argument,
-   * which is the name of the attribute.
-   */
-  public static final int MSGID_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 562;
-
-
-
-  /**
-   * The message ID for the message that will be used if an attempt is made to
    * increment an attribute that has multiple values.  This takes a single
    * argument, which is the name of the attribute.
    */
@@ -5943,6 +5933,16 @@ public class CoreMessages
    */
   public static final int MSGID_DSCORE_DESCRIPTION_NODETACH =
        CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 567;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * increment an attribute that does not exist.  This takes a single argument,
+   * which is the name of the attribute.
+   */
+  public static final int MSGID_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 568;
 
 
 

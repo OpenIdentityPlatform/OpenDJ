@@ -2603,7 +2603,7 @@ public class BackendMessages
     registerMessage(MSGID_TASK_CANNOT_PARSE_ACTUAL_START_TIME,
                     "An error occurred while trying to parse the actual " +
                     "start time value %s from task entry %s.");
-    registerMessage(MSGID_TASK_CANNOT_PARSE_SCHEDULED_START_TIME,
+    registerMessage(MSGID_TASK_CANNOT_PARSE_COMPLETION_TIME,
                     "An error occurred while trying to parse the completion " +
                     "time value %s from task entry %s.");
     registerMessage(MSGID_TASK_MISSING_ATTR,
