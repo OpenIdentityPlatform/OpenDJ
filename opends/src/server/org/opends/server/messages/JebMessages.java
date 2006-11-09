@@ -1057,16 +1057,6 @@ public class JebMessages
 
 
   /**
-   * The message ID used to indicate that a configuration attribute change
-   * will not take effect until the backend is restarted.  This message
-   * takes one argument, the name of the configuration attribute.
-   */
-  public static final int MSGID_JEB_CONFIG_ATTR_REQUIRES_RESTART =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 110;
-
-
-
-  /**
    * The message ID used to log an informational message in the verify index
    * process. This message takes two arguments, the current amount of free heap
    * memory in megabytes, and the floating point number of database cache misses
@@ -1254,6 +1244,16 @@ public class JebMessages
    */
   public static final int MSGID_JEB_GET_ENTRY_COUNT_FAILED =
       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 129;
+
+
+
+  /**
+   * The message ID used to indicate that a configuration attribute change
+   * will not take effect until the backend is restarted.  This message
+   * takes one argument, the name of the configuration attribute.
+   */
+  public static final int MSGID_JEB_CONFIG_ATTR_REQUIRES_RESTART =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 130;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
