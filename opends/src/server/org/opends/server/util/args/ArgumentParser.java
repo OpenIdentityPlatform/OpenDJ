@@ -94,6 +94,10 @@ public class ArgumentParser
   // the program with which this argument parser is associated.
   private String mainClassName;
 
+  // A human-readable description for the tool, which will be included when
+  // displaying usage information.
+  private String toolDescription;
+
   // The display name that will be used for the trailing arguments in the usage
   // information.
   private String trailingArgsDisplayName;
@@ -111,13 +115,17 @@ public class ArgumentParser
    *                                     class that should be invoked to launch
    *                                     the program with which this argument
    *                                     parser is associated.
+   * @param  toolDescription             A human-readable description for the
+   *                                     tool, which will be included when
+   *                                     displaying usage information.
    * @param  longArgumentsCaseSensitive  Indicates whether long arguments should
    *                                     be treated in a case-sensitive manner.
    */
-  public ArgumentParser(String mainClassName,
+  public ArgumentParser(String mainClassName, String toolDescription,
                         boolean longArgumentsCaseSensitive)
   {
     this.mainClassName              = mainClassName;
+    this.toolDescription            = toolDescription;
     this.longArgumentsCaseSensitive = longArgumentsCaseSensitive;
 
     argumentList            = new LinkedList<Argument>();
@@ -144,6 +152,9 @@ public class ArgumentParser
    *                                     class that should be invoked to launch
    *                                     the program with which this argument
    *                                     parser is associated.
+   * @param  toolDescription             A human-readable description for the
+   *                                     tool, which will be included when
+   *                                     displaying usage information.
    * @param  longArgumentsCaseSensitive  Indicates whether long arguments should
    *                                     be treated in a case-sensitive manner.
    * @param  allowsTrailingArguments     Indicates whether this parser allows
@@ -164,13 +175,14 @@ public class ArgumentParser
    *                                     arguments in the generated usage
    *                                     information.
    */
-  public ArgumentParser(String mainClassName,
+  public ArgumentParser(String mainClassName, String toolDescription,
                         boolean longArgumentsCaseSensitive,
                         boolean allowsTrailingArguments,
                         int minTrailingArguments, int maxTrailingArguments,
                         String trailingArgsDisplayName)
   {
     this.mainClassName              = mainClassName;
+    this.toolDescription            = toolDescription;
     this.longArgumentsCaseSensitive = longArgumentsCaseSensitive;
     this.allowsTrailingArguments    = allowsTrailingArguments;
     this.minTrailingArguments       = minTrailingArguments;
@@ -200,6 +212,20 @@ public class ArgumentParser
   public String getMainClassName()
   {
     return mainClassName;
+  }
+
+
+
+  /**
+   * Retrieves a human-readable description for this tool, which should be
+   * included at the top of the command-line usage information.
+   *
+   * @return  A human-readable description for this tool, or {@code null} if
+   *          none is available.
+   */
+  public String getToolDescription()
+  {
+    return toolDescription;
   }
 
 
@@ -912,8 +938,24 @@ public class ArgumentParser
    */
   public void getUsage(StringBuilder buffer)
   {
-    buffer.append("Usage:  java ");
-    buffer.append(mainClassName);
+    if ((toolDescription != null) && (toolDescription.length() > 0))
+    {
+      buffer.append(wrapText(toolDescription, 79));
+      buffer.append(EOL);
+    }
+
+    String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+    if ((scriptName == null) || (scriptName.length() == 0))
+    {
+      buffer.append("Usage:  java ");
+      buffer.append(mainClassName);
+    }
+    else
+    {
+      buffer.append("Usage:  ");
+      buffer.append(scriptName);
+    }
+
     buffer.append(" {options}");
 
     if (allowsTrailingArguments)
@@ -1010,21 +1052,21 @@ public class ArgumentParser
       // indent the description five characters and try our best to wrap at or
       // before column 79 so it will be friendly to 80-column displays.
       String description = a.getDescription();
-      if (description.length() <= 74)
+      if (description.length() <= 75)
       {
-        buffer.append("     ");
+        buffer.append("    ");
         buffer.append(description);
         buffer.append(EOL);
       }
       else
       {
         String s = description;
-        while (s.length() > 74)
+        while (s.length() > 75)
         {
-          int spacePos = s.lastIndexOf(' ', 74);
+          int spacePos = s.lastIndexOf(' ', 75);
           if (spacePos > 0)
           {
-            buffer.append("     ");
+            buffer.append("    ");
             buffer.append(s.substring(0, spacePos).trim());
             s = s.substring(spacePos+1).trim();
             buffer.append(EOL);
@@ -1037,14 +1079,14 @@ public class ArgumentParser
             spacePos = s.indexOf(' ');
             if (spacePos > 0)
             {
-              buffer.append("     ");
+              buffer.append("    ");
               buffer.append(s.substring(0, spacePos).trim());
               s = s.substring(spacePos+1).trim();
               buffer.append(EOL);
             }
             else
             {
-              buffer.append("     ");
+              buffer.append("    ");
               buffer.append(s);
               s = "";
               buffer.append(EOL);
@@ -1054,13 +1096,11 @@ public class ArgumentParser
 
         if (s.length() > 0)
         {
-          buffer.append("     ");
+          buffer.append("    ");
           buffer.append(s);
           buffer.append(EOL);
         }
       }
-
-      buffer.append(EOL);
     }
   }
 

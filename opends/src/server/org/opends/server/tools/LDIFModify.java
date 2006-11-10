@@ -422,7 +422,9 @@ public class LDIFModify
     StringArgument  sourceFile;
     StringArgument  targetFile;
 
-    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, false);
+    String toolDescription = getMessage(MSGID_LDIFMODIFY_TOOL_DESCRIPTION);
+    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
+                                                  false);
 
     try
     {

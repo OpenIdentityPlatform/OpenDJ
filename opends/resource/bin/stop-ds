@@ -93,6 +93,11 @@ done
 export CLASSPATH
 
 
+# Specify the script name so that it may be provided in command-line usage.
+SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
+export SCRIPT_NAME_ARG
+
+
 # See if any arguments were provided and if a local PID file exists.  If there
 # were no arguments and there is a PID file, then try to stop the server with
 # a kill command.
@@ -115,4 +120,5 @@ fi
 
 
 # If we've gotten here, then we should try to stop the server over LDAP.
-"${JAVA_BIN}" ${JAVA_ARGS} org.opends.server.tools.StopDS "${@}"
+"${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+     org.opends.server.tools.StopDS "${@}"

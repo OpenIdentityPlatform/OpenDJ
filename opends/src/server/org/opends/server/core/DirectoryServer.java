@@ -7466,8 +7466,10 @@ public class DirectoryServer
 
 
     // Create the command-line argument parser for use with this program.
+    String toolDescription = getMessage(MSGID_DSCORE_TOOL_DESCRIPTION);
     ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.core.DirectoryServer", false);
+         new ArgumentParser("org.opends.server.core.DirectoryServer",
+                            toolDescription, false);
 
 
     // Initialize all the command-line argument types and register them with the
@@ -7503,7 +7505,6 @@ public class DirectoryServer
 
       systemInfo = new BooleanArgument("systeminfo", 's', "systemInfo",
                                        MSGID_DSCORE_DESCRIPTION_SYSINFO);
-      systemInfo.setHidden(true);
       argParser.addArgument(systemInfo);
 
 

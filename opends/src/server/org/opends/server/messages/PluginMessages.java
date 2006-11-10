@@ -780,6 +780,15 @@ public class PluginMessages
 
 
   /**
+   * The message ID for the message that will be used for the description of the
+   * profile viewer tool.  It does not take any arguments.
+   */
+  public static final int MSGID_PROFILEVIEWER_TOOL_DESCRIPTION =
+       CATEGORY_MASK_PLUGIN | SEVERITY_MASK_INFORMATIONAL | 68;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1096,6 +1105,9 @@ public class PluginMessages
                     "allowed for this plugin.");
 
 
+    registerMessage(MSGID_PROFILEVIEWER_TOOL_DESCRIPTION,
+                    "This utility may be used to view information in data " +
+                    "files captured by the Directory Server profiler.");
     registerMessage(MSGID_PROFILEVIEWER_DESCRIPTION_FILENAMES,
                     "Specifies the path to a profile data file.  This  " +
                     "argument may be provided more than once to analyze data " +

@@ -52,6 +52,7 @@ import org.opends.server.util.args.StringArgument;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -87,8 +88,10 @@ public class EncodePassword
 
 
     // Create the command-line argument parser for use with this program.
+    String toolDescription = getMessage(MSGID_ENCPW_TOOL_DESCRIPTION);
     ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.tools.EncodePassword", false);
+         new ArgumentParser("org.opends.server.tools.EncodePassword",
+                            toolDescription, false);
 
 
     // Initialize all the command-line argument types and register them with the
@@ -165,7 +168,7 @@ public class EncodePassword
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -180,7 +183,7 @@ public class EncodePassword
       int    msgID   = MSGID_ENCPW_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
       System.exit(1);
     }
@@ -211,7 +214,7 @@ public class EncodePassword
         int    msgID = MSGID_ENCPW_NO_CLEAR_PW;
         String message = getMessage(msgID, clearPassword.getLongIdentifier(),
                                     clearPasswordFile.getLongIdentifier());
-        System.err.println(message);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         System.err.println(argParser.getUsage());
         System.exit(1);
       }
@@ -220,7 +223,7 @@ public class EncodePassword
       {
         int    msgID   = MSGID_ENCPW_NO_SCHEME;
         String message = getMessage(msgID, schemeName.getLongIdentifier());
-        System.err.println(message);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         System.err.println(argParser.getUsage());
         System.exit(1);
       }
@@ -255,7 +258,7 @@ public class EncodePassword
     {
       int msgID = MSGID_ENCPW_SERVER_BOOTSTRAP_ERROR;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -268,14 +271,14 @@ public class EncodePassword
     {
       int    msgID   = MSGID_ENCPW_CANNOT_LOAD_CONFIG;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_ENCPW_CANNOT_LOAD_CONFIG;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -290,21 +293,21 @@ public class EncodePassword
     {
       int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -319,21 +322,21 @@ public class EncodePassword
     {
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -349,21 +352,21 @@ public class EncodePassword
     {
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -379,7 +382,7 @@ public class EncodePassword
         {
           int msgID = MSGID_ENCPW_NO_STORAGE_SCHEMES;
           String message = getMessage(msgID);
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
@@ -411,7 +414,7 @@ public class EncodePassword
         {
           int msgID = MSGID_ENCPW_NO_STORAGE_SCHEMES;
           String message = getMessage(msgID);
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
@@ -448,7 +451,7 @@ public class EncodePassword
       {
         int    msgID   = MSGID_ENCPW_NO_SUCH_AUTH_SCHEME;
         String message = getMessage(msgID, scheme);
-        System.err.println(message);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         System.exit(1);
       }
     }
@@ -460,7 +463,7 @@ public class EncodePassword
       {
         int    msgID   = MSGID_ENCPW_NO_SUCH_SCHEME;
         String message = getMessage(msgID, scheme);
-        System.err.println(message);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         System.exit(1);
       }
     }
@@ -486,14 +489,14 @@ public class EncodePassword
         {
           int    msgID   = MSGID_ENCPW_INVALID_ENCODED_AUTHPW;
           String message = getMessage(msgID, de.getErrorMessage());
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           System.exit(1);
         }
         catch (Exception e)
         {
           int    msgID   = MSGID_ENCPW_INVALID_ENCODED_AUTHPW;
           String message = getMessage(msgID, e);
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           System.exit(1);
         }
 
@@ -501,13 +504,13 @@ public class EncodePassword
         {
           int    msgID   = MSGID_ENCPW_PASSWORDS_MATCH;
           String message = getMessage(msgID);
-          System.out.println(message);
+          System.out.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
           int    msgID   = MSGID_ENCPW_PASSWORDS_DO_NOT_MATCH;
           String message = getMessage(msgID);
-          System.out.println(message);
+          System.out.println(wrapText(message, MAX_LINE_WIDTH));
         }
       }
       else
@@ -516,13 +519,13 @@ public class EncodePassword
         {
           int    msgID   = MSGID_ENCPW_PASSWORDS_MATCH;
           String message = getMessage(msgID);
-          System.out.println(message);
+          System.out.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
           int    msgID   = MSGID_ENCPW_PASSWORDS_DO_NOT_MATCH;
           String message = getMessage(msgID);
-          System.out.println(message);
+          System.out.println(wrapText(message, MAX_LINE_WIDTH));
         }
       }
     }
@@ -542,14 +545,14 @@ public class EncodePassword
         {
           int msgID = MSGID_ENCPW_CANNOT_ENCODE;
           String message = getMessage(msgID, de.getErrorMessage());
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           System.exit(1);
         }
         catch (Exception e)
         {
           int msgID = MSGID_ENCPW_CANNOT_ENCODE;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           System.exit(1);
         }
       }
@@ -567,14 +570,14 @@ public class EncodePassword
         {
           int msgID = MSGID_ENCPW_CANNOT_ENCODE;
           String message = getMessage(msgID, de.getErrorMessage());
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           System.exit(1);
         }
         catch (Exception e)
         {
           int msgID = MSGID_ENCPW_CANNOT_ENCODE;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           System.exit(1);
         }
       }

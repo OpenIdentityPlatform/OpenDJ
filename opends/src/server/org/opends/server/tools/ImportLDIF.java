@@ -66,6 +66,7 @@ import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -136,8 +137,10 @@ public class ImportLDIF
 
 
     // Create the command-line argument parser for use with this program.
+    String toolDescription = getMessage(MSGID_LDIFIMPORT_TOOL_DESCRIPTION);
     ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.tools.ImportLDIF", false);
+         new ArgumentParser("org.opends.server.tools.ImportLDIF",
+                            toolDescription, false);
 
 
     // Initialize all the command-line argument types and register them with the
@@ -290,7 +293,7 @@ public class ImportLDIF
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -305,7 +308,7 @@ public class ImportLDIF
       int    msgID   = MSGID_LDIFIMPORT_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
       return 1;
     }
@@ -327,7 +330,7 @@ public class ImportLDIF
         int    msgID   = MSGID_LDIFIMPORT_CONFLICTING_OPTIONS;
         String message = getMessage(msgID, ldifFiles.getLongIdentifier(),
                                     templateFile.getLongIdentifier());
-        System.err.println(message);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }
@@ -336,7 +339,7 @@ public class ImportLDIF
       int    msgID   = MSGID_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT;
       String message = getMessage(msgID, ldifFiles.getLongIdentifier(),
                                   templateFile.getLongIdentifier());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -354,7 +357,7 @@ public class ImportLDIF
     {
       int    msgID   = MSGID_LDIFIMPORT_SERVER_BOOTSTRAP_ERROR;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -367,14 +370,14 @@ public class ImportLDIF
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOAD_CONFIG;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOAD_CONFIG;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -389,21 +392,21 @@ public class ImportLDIF
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -418,21 +421,21 @@ public class ImportLDIF
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -446,21 +449,21 @@ public class ImportLDIF
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -484,21 +487,21 @@ public class ImportLDIF
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -514,21 +517,21 @@ public class ImportLDIF
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 

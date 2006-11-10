@@ -28,5 +28,6 @@ rem      Portions Copyright 2006 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.BackUpDB"
+set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=backup"
 call "%~dP0\_server-script.bat" %*
 

@@ -92,6 +92,11 @@ LOG_FILE=${INSTANCE_ROOT}/logs/server.out
 STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 
 
+# Specify the script name so that it may be provided in command-line usage.
+SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=start-ds"
+export SCRIPT_NAME_ARG
+
+
 # See if an "-N" or a "--nodetach" argument was provided as a command-line
 # argument.  If it was, then don't use nohup to send to the  background, and
 # send all output to both the console and a lot file.
@@ -114,13 +119,13 @@ if test ${NODETACH} -eq 1
 then
   echo $$ > "${PID_FILE}"
   rm -f "${PID_FILE}" "${LOG_FILE}"
-  exec "${JAVA_BIN}" ${JAVA_ARGS} \
+  exec "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
        org.opends.server.core.DirectoryServer \
        --configClass org.opends.server.extensions.ConfigFileHandler \
        --configFile "${CONFIG_FILE}" "${@}"
 else
   touch "${STARTING_FILE}"
-  nohup "${JAVA_BIN}" ${JAVA_ARGS} \
+  nohup "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
        org.opends.server.core.DirectoryServer \
        --configClass org.opends.server.extensions.ConfigFileHandler \
        --configFile "${CONFIG_FILE}" "${@}" > "${LOG_FILE}" 2>&1 &

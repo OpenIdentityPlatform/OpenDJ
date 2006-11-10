@@ -52,6 +52,7 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -73,13 +74,6 @@ public class InstallDS
    * The fully-qualified name of this class for debugging purposes.
    */
   private static final String CLASS_NAME = "org.opends.server.tools.InstallDS";
-
-
-
-  /**
-   * The position at which to wrap long lines.
-   */
-  public static final int MAX_LINE_WIDTH = 79;
 
 
 
@@ -154,7 +148,9 @@ public class InstallDS
 
 
     // Create and initialize the argument parser for this program.
-    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, false);
+    String toolDescription = getMessage(MSGID_INSTALLDS_TOOL_DESCRIPTION);
+    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
+                                                  false);
     BooleanArgument   addBaseEntry;
     BooleanArgument   testOnly;
     BooleanArgument   showUsage;

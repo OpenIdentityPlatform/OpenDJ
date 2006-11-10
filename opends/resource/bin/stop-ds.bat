@@ -28,4 +28,5 @@ rem      Portions Copyright 2006 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.StopDS"
+set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
 call "%~dP0\_client-script.bat" %*

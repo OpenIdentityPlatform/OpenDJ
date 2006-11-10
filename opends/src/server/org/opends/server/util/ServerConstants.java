@@ -2019,10 +2019,25 @@ public class ServerConstants
 
 
   /**
+   * The name of a command-line script used to launch an administrative tool.
+   */
+  public static final String PROPERTY_SCRIPT_NAME =
+       "org.opends.server.scriptName";
+
+
+
+  /**
    * The name of the system property that can be used to specify the path to the
    * server root.
    */
   public static final String PROPERTY_SERVER_ROOT =
        "org.opends.server.ServerRoot";
+
+
+
+  /**
+   * The column at which to wrap long lines of output in the command-line tools.
+   */
+  public static final int MAX_LINE_WIDTH = 79;
 }
 
