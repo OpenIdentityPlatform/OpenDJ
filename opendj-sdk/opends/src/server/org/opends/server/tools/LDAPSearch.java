@@ -159,8 +159,7 @@ public class LDAPSearch
         LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
                                               protocolOp,
                                               searchOptions.getControls());
-        int numBytes =
-            connection.getASN1Writer().writeElement(message.encode());
+        connection.getASN1Writer().writeElement(message.encode());
 
         byte opType;
         do
@@ -186,13 +185,14 @@ public class LDAPSearch
                     EntryChangeNotificationControl ecn =
                          EntryChangeNotificationControl.decodeControl(
                               c.getControl());
-                    out.println("# Persistent Search Change Type:  " +
-                                ecn.getChangeType().toString());
+                    int msgID = MSGID_LDAPSEARCH_PSEARCH_CHANGE_TYPE;
+                    out.println(getMessage(msgID,
+                                           ecn.getChangeType().toString()));
                     DN previousDN = ecn.getPreviousDN();
                     if (previousDN != null)
                     {
-                      out.println("# Persistent Search Previous DN:  " +
-                                  previousDN.toString());
+                      msgID = MSGID_LDAPSEARCH_PSEARCH_PREVIOUS_DN;
+                      out.println(getMessage(msgID, previousDN.toString()));
                     }
                   } catch (Exception e) {}
                 }
@@ -203,49 +203,58 @@ public class LDAPSearch
                     AccountUsableResponseControl acrc =
                          AccountUsableResponseControl.decodeControl(
                               c.getControl());
-                    out.println("# Account Usable Response Control");
+                    int msgID = MSGID_LDAPSEARCH_ACCTUSABLE_HEADER;
+                    out.println(getMessage(msgID));
                     if (acrc.isUsable())
                     {
-                      out.println("#   Account is usable");
+                      msgID = MSGID_LDAPSEARCH_ACCTUSABLE_IS_USABLE;
+                      out.println(getMessage(msgID));
                       if (acrc.getSecondsBeforeExpiration() > 0)
                       {
                         int    timeToExp    = acrc.getSecondsBeforeExpiration();
                         String timeToExpStr = secondsToTimeString(timeToExp);
-                        out.println("#   Time until expiration:  " +
-                                    timeToExpStr);
+                        msgID =
+                             MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION;
+                        out.println(getMessage(msgID, timeToExpStr));
                       }
                     }
                     else
                     {
-                      out.println("#   Account is not usable");
+                      msgID = MSGID_LDAPSEARCH_ACCTUSABLE_NOT_USABLE;
+                      out.println(getMessage(msgID));
                       if (acrc.isInactive())
                       {
-                        out.println("#   Account is inactive");
+                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_ACCT_INACTIVE;
+                        out.println(getMessage(msgID));
                       }
                       if (acrc.isReset())
                       {
-                        out.println("#   Password has been reset");
+                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_PW_RESET;
+                        out.println(getMessage(msgID));
                       }
                       if (acrc.isExpired())
                       {
-                        out.println("#   Password is expired");
+                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_PW_EXPIRED;
+                        out.println(getMessage(msgID));
 
                         if (acrc.getRemainingGraceLogins() > 0)
                         {
-                          out.println("#   Grace logins remaining:  " +
-                                      acrc.getRemainingGraceLogins());
+                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE;
+                          out.println(getMessage(msgID,
+                                           acrc.getRemainingGraceLogins()));
                         }
                       }
                       if (acrc.isLocked())
                       {
-                        out.println("#   Account is locked");
+                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_LOCKED;
+                        out.println(getMessage(msgID));
                         if (acrc.getSecondsBeforeUnlock() > 0)
                         {
                           int timeToUnlock = acrc.getSecondsBeforeUnlock();
                           String timeToUnlockStr =
                                       secondsToTimeString(timeToUnlock);
-                          out.println("#   Time until automatic unlock:  " +
-                                      timeToUnlockStr);
+                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK;
+                          out.println(getMessage(msgID, timeToUnlockStr));
                         }
                       }
                     }
@@ -276,7 +285,7 @@ public class LDAPSearch
               // FIXME - throw exception?
               int msgID = MSGID_SEARCH_OPERATION_INVALID_PROTOCOL;
               String msg = getMessage(msgID, opType);
-              err.println(msg);
+              err.println(wrapText(msg, MAX_LINE_WIDTH));
               break;
           }
 
@@ -292,7 +301,7 @@ public class LDAPSearch
           else if (errorMessage != null)
           {
             out.println();
-            out.println(errorMessage);
+            out.println(wrapText(errorMessage, MAX_LINE_WIDTH));
           }
 
         } while(opType != OP_TYPE_SEARCH_RESULT_DONE);
@@ -512,199 +521,248 @@ public class LDAPSearch
     ArrayList<LDAPFilter> filters = new ArrayList<LDAPFilter>();
     LinkedHashSet<String> attributes = new LinkedHashSet<String>();
 
-    BooleanArgument trustAll = null;
-    BooleanArgument noop = null;
-    StringArgument assertionFilter = null;
-    StringArgument baseDN = null;
-    StringArgument bindDN = null;
-    StringArgument bindPassword = null;
-    FileBasedArgument bindPasswordFile = null;
-    StringArgument proxyAuthzID = null;
-    BooleanArgument reportAuthzID = null;
-    BooleanArgument usePasswordPolicyControl = null;
-    StringArgument encodingStr = null;
-    StringArgument keyStorePath = null;
-    StringArgument keyStorePassword = null;
-    StringArgument trustStorePath = null;
-    StringArgument trustStorePassword = null;
-    StringArgument hostName = null;
-    IntegerArgument port = null;
-    IntegerArgument version = null;
-    BooleanArgument showUsage = null;
-    StringArgument controlStr = null;
-    BooleanArgument verbose = null;
-    BooleanArgument continueOnError = null;
-    BooleanArgument useSSL = null;
-    BooleanArgument startTLS = null;
-    BooleanArgument saslExternal = null;
-    StringArgument filename = null;
-    IntegerArgument sizeLimit = null;
-    IntegerArgument timeLimit = null;
-    StringArgument searchScope = null;
-    StringArgument dereferencePolicy = null;
-    StringArgument saslOptions = null;
-    BooleanArgument dontWrap = null;
-    BooleanArgument typesOnly = null;
-    StringArgument pSearchInfo = null;
-    StringArgument matchedValuesFilter = null;
+    BooleanArgument   continueOnError          = null;
+    BooleanArgument   dontWrap                 = null;
+    BooleanArgument   noop                     = null;
+    BooleanArgument   reportAuthzID            = null;
+    BooleanArgument   saslExternal             = null;
+    BooleanArgument   showUsage                = null;
+    BooleanArgument   trustAll                 = null;
+    BooleanArgument   usePasswordPolicyControl = null;
+    BooleanArgument   useSSL                   = null;
+    BooleanArgument   startTLS                 = null;
+    BooleanArgument   typesOnly                = null;
+    BooleanArgument   verbose                  = null;
+    FileBasedArgument bindPasswordFile         = null;
+    FileBasedArgument keyStorePasswordFile     = null;
+    FileBasedArgument trustStorePasswordFile   = null;
+    IntegerArgument   port                     = null;
+    IntegerArgument   sizeLimit                = null;
+    IntegerArgument   timeLimit                = null;
+    IntegerArgument   version                  = null;
+    StringArgument    assertionFilter          = null;
+    StringArgument    baseDN                   = null;
+    StringArgument    bindDN                   = null;
+    StringArgument    bindPassword             = null;
+    StringArgument    controlStr               = null;
+    StringArgument    dereferencePolicy        = null;
+    StringArgument    encodingStr              = null;
+    StringArgument    filename                 = null;
+    StringArgument    hostName                 = null;
+    StringArgument    keyStorePath             = null;
+    StringArgument    keyStorePassword         = null;
+    StringArgument    matchedValuesFilter      = null;
+    StringArgument    proxyAuthzID             = null;
+    StringArgument    pSearchInfo              = null;
+    StringArgument    saslOptions              = null;
+    StringArgument    searchScope              = null;
+    StringArgument    trustStorePath           = null;
+    StringArgument    trustStorePassword       = null;
 
 
     // Create the command-line argument parser for use with this program.
-    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, false, true, 0, 0,
+    String toolDescription = getMessage(MSGID_LDAPSEARCH_TOOL_DESCRIPTION);
+    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
+                                                  false, true, 0, 0,
                                                   "[filter] [attributes ...]");
 
     try
     {
+      hostName = new StringArgument("host", 'h', "host", false, false, true,
+                                    "{host}", "localhost", null,
+                                    MSGID_DESCRIPTION_HOST);
+      argParser.addArgument(hostName);
+
+      port = new IntegerArgument("port", 'p', "port", false, false, true,
+                                 "{port}", 389, null, MSGID_DESCRIPTION_PORT);
+      argParser.addArgument(port);
+
+      useSSL = new BooleanArgument("useSSL", 'Z', "useSSL",
+                                   MSGID_DESCRIPTION_USE_SSL);
+      argParser.addArgument(useSSL);
+
+      startTLS = new BooleanArgument("startTLS", 'q', "startTLS",
+                                    MSGID_DESCRIPTION_START_TLS);
+      argParser.addArgument(startTLS);
+
+      bindDN = new StringArgument("bindDN", 'D', "bindDN", false, false, true,
+                                  "{bindDN}", null, null,
+                                  MSGID_DESCRIPTION_BINDDN);
+      argParser.addArgument(bindDN);
+
+      bindPassword = new StringArgument("bindPassword", 'w', "bindPassword",
+                                        false, false, true, "{bindPassword}",
+                                        null, null,
+                                        MSGID_DESCRIPTION_BINDPASSWORD);
+      argParser.addArgument(bindPassword);
+
+      bindPasswordFile =
+           new FileBasedArgument("bindPasswordFile", 'j', "bindPasswordFile",
+                                 false, false, "{bindPasswordFilename}", null,
+                                 null, MSGID_DESCRIPTION_BINDPASSWORDFILE);
+      argParser.addArgument(bindPasswordFile);
+
+      baseDN = new StringArgument("baseDN", 'b', "baseDN", true, false, true,
+                                  "{baseDN}", null, null,
+                                  MSGID_SEARCH_DESCRIPTION_BASEDN);
+      argParser.addArgument(baseDN);
+
+      searchScope = new StringArgument("searchScope", 's', "searchScope", false,
+                                       false, true, "{searchScope}", null, null,
+                                       MSGID_SEARCH_DESCRIPTION_SEARCH_SCOPE);
+      argParser.addArgument(searchScope);
+
+      filename = new StringArgument("filename", 'f', "filename", false, false,
+                                    true, "{filename}", null, null,
+                                    MSGID_SEARCH_DESCRIPTION_FILENAME);
+      argParser.addArgument(filename);
+
+      saslExternal = new BooleanArgument("useSASLExternal", 'r',
+                                         "useSASLExternal",
+                                         MSGID_DESCRIPTION_USE_SASL_EXTERNAL);
+      argParser.addArgument(saslExternal);
+
+      saslOptions = new StringArgument("saslOptions", 'o', "saslOptions", false,
+                                       true, true, "{name=value}", null, null,
+                                       MSGID_DESCRIPTION_SASL_PROPERTIES);
+      argParser.addArgument(saslOptions);
+
       trustAll = new BooleanArgument("trustAll", 'X', "trustAll",
                                     MSGID_DESCRIPTION_TRUSTALL);
       argParser.addArgument(trustAll);
-      baseDN = new StringArgument("baseDN", 'b', "baseDN", true, false,
-                                  true, "{baseDN}", null, null,
-                                  MSGID_SEARCH_DESCRIPTION_BASEDN);
-      argParser.addArgument(baseDN);
-      bindDN = new StringArgument("bindDN", 'D', "bindDN", false, false,
-                                  true, "{bindDN}", null, null,
-                                  MSGID_DESCRIPTION_BINDDN);
-      argParser.addArgument(bindDN);
-      bindPassword = new StringArgument("bindPassword", 'w', "bindPassword",
-                                  false, false,
-                                  true, "{bindPassword}", null, null,
-                                  MSGID_DESCRIPTION_BINDPASSWORD);
-      argParser.addArgument(bindPassword);
-      bindPasswordFile = new FileBasedArgument("bindPasswordFile", 'j',
-                                  "bindPasswordFile", false, false,
-                                  "{bindPasswordFilename}", null, null,
-                                  MSGID_DESCRIPTION_BINDPASSWORDFILE);
-      argParser.addArgument(bindPasswordFile);
-      proxyAuthzID = new StringArgument("proxy_authzid", 'Y', "proxyAs", false,
-                                        false, true, "{authzID}", null, null,
-                                        MSGID_DESCRIPTION_PROXY_AUTHZID);
-      argParser.addArgument(proxyAuthzID);
-      reportAuthzID = new BooleanArgument("reportauthzid", 'E',
-                                          "reportAuthzID",
-                                          MSGID_DESCRIPTION_REPORT_AUTHZID);
-      argParser.addArgument(reportAuthzID);
-      usePasswordPolicyControl = new BooleanArgument("usepwpolicycontrol", null,
-                                          "usePasswordPolicyControl",
-                                          MSGID_DESCRIPTION_USE_PWP_CONTROL);
-      argParser.addArgument(usePasswordPolicyControl);
-      encodingStr = new StringArgument("encoding", 'i', "encoding",
-                                      false, false,
-                                      true, "{encoding}", null, null,
-                                      MSGID_DESCRIPTION_ENCODING);
-      argParser.addArgument(encodingStr);
+
       keyStorePath = new StringArgument("keyStorePath", 'K',
                                   "keyStorePath", false, false, true,
                                   "{keyStorePath}", null, null,
                                   MSGID_DESCRIPTION_KEYSTOREPATH);
       argParser.addArgument(keyStorePath);
-      trustStorePath = new StringArgument("trustStorePath", 'P',
-                                  "trustStorePath", false, false, true,
-                                  "{trustStorePath}", null, null,
-                                  MSGID_DESCRIPTION_TRUSTSTOREPATH);
-      argParser.addArgument(trustStorePath);
+
       keyStorePassword = new StringArgument("keyStorePassword", 'W',
                                   "keyStorePassword", false, false,
                                   true, "{keyStorePassword}", null, null,
                                   MSGID_DESCRIPTION_KEYSTOREPASSWORD);
       argParser.addArgument(keyStorePassword);
-      hostName = new StringArgument("host", 'h', "host",
-                                      false, false,
-                                      true, "{host}", "localhost", null,
-                                      MSGID_DESCRIPTION_HOST);
-      argParser.addArgument(hostName);
-      port = new IntegerArgument("port", 'p', "port",
-                              false, false, true, "{port}", 389, null,
-                              MSGID_DESCRIPTION_PORT);
-      argParser.addArgument(port);
-      version = new IntegerArgument("version", 'V', "version",
-                              false, false, true, "{version}", 3, null,
-                              MSGID_DESCRIPTION_VERSION);
-      argParser.addArgument(version);
-      filename = new StringArgument("filename", 'f',
-                                  "filename", false, false, true,
-                                  "{filename}", null, null,
-                                  MSGID_SEARCH_DESCRIPTION_FILENAME);
-      argParser.addArgument(filename);
-      showUsage = new BooleanArgument("showUsage", 'H', "help",
-                                    MSGID_DESCRIPTION_SHOWUSAGE);
-      argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage, out);
-      controlStr = new StringArgument("controls", 'J', "controls", false,
-                false, true,
-                "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
-                null, null, MSGID_DESCRIPTION_CONTROLS);
-      argParser.addArgument(controlStr);
-      verbose = new BooleanArgument("verbose", 'v', "verbose",
-                                    MSGID_DESCRIPTION_VERBOSE);
-      argParser.addArgument(verbose);
-      continueOnError = new BooleanArgument("continueOnError", 'c',
-                                    "continueOnError",
-                                    MSGID_DESCRIPTION_CONTINUE_ON_ERROR);
-      argParser.addArgument(continueOnError);
-      useSSL = new BooleanArgument("useSSL", 'Z',
-                                    "useSSL",
-                                    MSGID_DESCRIPTION_USE_SSL);
-      argParser.addArgument(useSSL);
-      startTLS = new BooleanArgument("startTLS", 'q',
-                                    "startTLS",
-                                    MSGID_DESCRIPTION_START_TLS);
-      argParser.addArgument(startTLS);
-      saslExternal = new BooleanArgument("useSASLExternal", 'r',
-                                    "useSASLExternal",
-                                    MSGID_DESCRIPTION_USE_SASL_EXTERNAL);
-      argParser.addArgument(saslExternal);
-      sizeLimit = new IntegerArgument("sizeLimit", 'z', "sizeLimit",
-                              false, false, true, "{sizeLimit}", 0, null,
-                              MSGID_SEARCH_DESCRIPTION_SIZE_LIMIT);
-      argParser.addArgument(sizeLimit);
-      timeLimit = new IntegerArgument("timeLimit", 'l', "timeLimit",
-                              false, false, true, "{timeLimit}", 0, null,
-                              MSGID_SEARCH_DESCRIPTION_TIME_LIMIT);
-      argParser.addArgument(timeLimit);
-      searchScope = new StringArgument("searchScope", 's',
-                                  "searchScope", false, false, true,
-                                  "{searchScope}", null, null,
-                                  MSGID_SEARCH_DESCRIPTION_SEARCH_SCOPE);
-      argParser.addArgument(searchScope);
-      dereferencePolicy = new StringArgument("dereferencePolicy", 'a',
-                                  "dereferencePolicy", false, false, true,
-                                  "{dereferencePolicy}", null, null,
-                                  MSGID_SEARCH_DESCRIPTION_DEREFERENCE_POLICY);
-      argParser.addArgument(dereferencePolicy);
-      saslOptions = new StringArgument("saslOptions", 'o', "saslOptions", false,
-                                       true, true, "{name=value}", null, null,
-                                       MSGID_DESCRIPTION_SASL_PROPERTIES);
-      argParser.addArgument(saslOptions);
+
+      keyStorePasswordFile =
+           new FileBasedArgument("keystorepasswordfile", null,
+                                 "keyStorePasswordFile", false, false, "{path}",
+                                 null, null,
+                                 MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
+      argParser.addArgument(keyStorePasswordFile);
+
+      trustStorePath = new StringArgument("trustStorePath", 'P',
+                                  "trustStorePath", false, false, true,
+                                  "{trustStorePath}", null, null,
+                                  MSGID_DESCRIPTION_TRUSTSTOREPATH);
+      argParser.addArgument(trustStorePath);
+
+      trustStorePassword =
+           new StringArgument("trustStorePassword", null, "trustStorePassword",
+                              false, false, true, "{trustStorePassword}", null,
+                              null, MSGID_DESCRIPTION_TRUSTSTOREPASSWORD);
+      argParser.addArgument(trustStorePassword);
+
+      trustStorePasswordFile =
+           new FileBasedArgument("truststorepasswordfile", null,
+                                 "trustStorePasswordFile", false, false,
+                                 "{path}", null, null,
+                                 MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE);
+      argParser.addArgument(trustStorePasswordFile);
+
+      proxyAuthzID = new StringArgument("proxy_authzid", 'Y', "proxyAs", false,
+                                        false, true, "{authzID}", null, null,
+                                        MSGID_DESCRIPTION_PROXY_AUTHZID);
+      argParser.addArgument(proxyAuthzID);
+
+      reportAuthzID = new BooleanArgument("reportauthzid", 'E', "reportAuthzID",
+                                          MSGID_DESCRIPTION_REPORT_AUTHZID);
+      argParser.addArgument(reportAuthzID);
+
+      usePasswordPolicyControl = new BooleanArgument("usepwpolicycontrol", null,
+                                          "usePasswordPolicyControl",
+                                          MSGID_DESCRIPTION_USE_PWP_CONTROL);
+      argParser.addArgument(usePasswordPolicyControl);
+
       pSearchInfo = new StringArgument("psearchinfo", 'C', "persistentSearch",
                              false, false, true,
                              "ps[:changetype[:changesonly[:entrychgcontrols]]]",
                               null, null, MSGID_DESCRIPTION_PSEARCH_INFO);
       argParser.addArgument(pSearchInfo);
-      dontWrap = new BooleanArgument("dontwrap", 'T', "dontWrap",
-                                     MSGID_DESCRIPTION_DONT_WRAP);
-      argParser.addArgument(dontWrap);
-      noop = new BooleanArgument("no-op", 'n', "noop", MSGID_DESCRIPTION_NOOP);
-      argParser.addArgument(noop);
-      typesOnly = new BooleanArgument("typesOnly", 'A', "typesOnly",
-                                      MSGID_DESCRIPTION_TYPES_ONLY);
-      argParser.addArgument(typesOnly);
+
       assertionFilter = new StringArgument("assertionfilter", null,
-                                 "assertionFilter", false, false, true,
-                                 "{filter}", null, null,
-                                 MSGID_DESCRIPTION_SEARCH_ASSERTION_FILTER);
+                                           "assertionFilter", false, false,
+                                           true, "{filter}", null, null,
+                                           MSGID_DESCRIPTION_ASSERTION_FILTER);
       argParser.addArgument(assertionFilter);
+
       matchedValuesFilter = new StringArgument("matchedvalues", null,
                                      "matchedValuesFilter", false, true, true,
                                      "{filter}", null, null,
                                      MSGID_DESCRIPTION_MATCHED_VALUES_FILTER);
       argParser.addArgument(matchedValuesFilter);
+
+      controlStr =
+           new StringArgument("controls", 'J', "controls", false, false, true,
+                    "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
+                    null, null, MSGID_DESCRIPTION_CONTROLS);
+      argParser.addArgument(controlStr);
+
+      version = new IntegerArgument("version", 'V', "version", false, false,
+                                    true, "{version}", 3, null,
+                                    MSGID_DESCRIPTION_VERSION);
+      argParser.addArgument(version);
+
+      encodingStr = new StringArgument("encoding", 'i', "encoding", false,
+                                       false, true, "{encoding}", null, null,
+                                       MSGID_DESCRIPTION_ENCODING);
+      argParser.addArgument(encodingStr);
+
+      dereferencePolicy =
+           new StringArgument("derefpolicy", 'a', "dereferencePolicy", false,
+                              false, true, "{dereferencePolicy}", null,  null,
+                              MSGID_SEARCH_DESCRIPTION_DEREFERENCE_POLICY);
+      argParser.addArgument(dereferencePolicy);
+
+      typesOnly = new BooleanArgument("typesOnly", 'A', "typesOnly",
+                                      MSGID_DESCRIPTION_TYPES_ONLY);
+      argParser.addArgument(typesOnly);
+
+      sizeLimit = new IntegerArgument("sizeLimit", 'z', "sizeLimit", false,
+                                      false, true, "{sizeLimit}", 0, null,
+                                      MSGID_SEARCH_DESCRIPTION_SIZE_LIMIT);
+      argParser.addArgument(sizeLimit);
+
+      timeLimit = new IntegerArgument("timeLimit", 'l', "timeLimit", false,
+                                      false, true, "{timeLimit}", 0, null,
+                                      MSGID_SEARCH_DESCRIPTION_TIME_LIMIT);
+      argParser.addArgument(timeLimit);
+
+      dontWrap = new BooleanArgument("dontwrap", 'T', "dontWrap",
+                                     MSGID_DESCRIPTION_DONT_WRAP);
+      argParser.addArgument(dontWrap);
+
+      continueOnError =
+           new BooleanArgument("continueOnError", 'c', "continueOnError",
+                               MSGID_DESCRIPTION_CONTINUE_ON_ERROR);
+      argParser.addArgument(continueOnError);
+
+      noop = new BooleanArgument("noop", 'n', "noop", MSGID_DESCRIPTION_NOOP);
+      argParser.addArgument(noop);
+
+      verbose = new BooleanArgument("verbose", 'v', "verbose",
+                                    MSGID_DESCRIPTION_VERBOSE);
+      argParser.addArgument(verbose);
+
+      showUsage = new BooleanArgument("showUsage", 'H', "help",
+                                    MSGID_DESCRIPTION_SHOWUSAGE);
+      argParser.addArgument(showUsage);
+      argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      err.println(message);
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -718,7 +776,7 @@ public class LDAPSearch
       int    msgID   = MSGID_ENCPW_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      err.println(message);
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
       return 1;
     }
@@ -740,7 +798,7 @@ public class LDAPSearch
       } catch(LDAPException le)
       {
         assert debugException(CLASS_NAME, "main", le);
-        err.println(le.getMessage());
+        err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
         return 1;
       }
       // The rest are attributes
@@ -753,8 +811,37 @@ public class LDAPSearch
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      err.println("ERROR: Both -w and -j flags specified. " +
-                  "Please specify one.");
+      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, bindPassword.getLongIdentifier(),
+                                  bindPasswordFile.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    if (useSSL.isPresent() && startTLS.isPresent())
+    {
+      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, useSSL.getLongIdentifier(),
+                                  startTLS.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    if (keyStorePassword.isPresent() && keyStorePasswordFile.isPresent())
+    {
+      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, keyStorePassword.getLongIdentifier(),
+                                  keyStorePasswordFile.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    if (trustStorePassword.isPresent() && trustStorePasswordFile.isPresent())
+    {
+      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, trustStorePassword.getLongIdentifier(),
+                                  trustStorePasswordFile.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -766,7 +853,7 @@ public class LDAPSearch
     } catch(ArgumentException ae)
     {
       assert debugException(CLASS_NAME, "main", ae);
-      err.println(ae.getMessage());
+      err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -777,14 +864,14 @@ public class LDAPSearch
       if(versionNumber != 2 && versionNumber != 3)
       {
         int msgID = MSGID_DESCRIPTION_INVALID_VERSION;
-        err.println(getMessage(msgID, versionNumber));
+        err.println(wrapText(getMessage(msgID, versionNumber), MAX_LINE_WIDTH));
         return 1;
       }
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
       assert debugException(CLASS_NAME, "main", ae);
-      err.println(ae.getMessage());
+      err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -811,7 +898,7 @@ public class LDAPSearch
       } catch(Exception ex)
       {
         assert debugException(CLASS_NAME, "main", ex);
-        err.println(ex.getMessage());
+        err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
         return 1;
       }
     } else if(bindPasswordValue == null)
@@ -821,9 +908,27 @@ public class LDAPSearch
     }
 
     String keyStorePathValue = keyStorePath.getValue();
-    String keyStorePasswordValue = keyStorePassword.getValue();
     String trustStorePathValue = trustStorePath.getValue();
+
+    String keyStorePasswordValue = null;
+    if (keyStorePassword.isPresent())
+    {
+      keyStorePasswordValue = keyStorePassword.getValue();
+    }
+    else if (keyStorePasswordFile.isPresent())
+    {
+      keyStorePasswordValue = keyStorePasswordFile.getValue();
+    }
+
     String trustStorePasswordValue = null;
+    if (trustStorePassword.isPresent())
+    {
+      trustStorePasswordValue = trustStorePassword.getValue();
+    }
+    else if (trustStorePasswordFile.isPresent())
+    {
+      trustStorePasswordValue = trustStorePasswordFile.getValue();
+    }
 
     searchOptions.setTypesOnly(typesOnly.isPresent());
     searchOptions.setShowOperations(noop.isPresent());
@@ -836,7 +941,7 @@ public class LDAPSearch
       searchOptions.setSizeLimit(sizeLimit.getIntValue());
     } catch(ArgumentException ex1)
     {
-      err.println(ex1.getMessage());
+      err.println(wrapText(ex1.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
     boolean val = searchOptions.setSearchScope(searchScope.getValue(), err);
@@ -856,7 +961,9 @@ public class LDAPSearch
       LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
       if(ctrl == null)
       {
-        err.println("Invalid control specified:" + ctrlString);
+        int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
+        String message = getMessage(msgID, ctrlString);
+        err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         return 1;
       }
@@ -886,7 +993,7 @@ public class LDAPSearch
       {
         int    msgID   = MSGID_PSEARCH_MISSING_DESCRIPTOR;
         String message = getMessage(msgID);
-        err.println(message);
+        err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       else
@@ -896,7 +1003,7 @@ public class LDAPSearch
         {
           int    msgID   = MSGID_PSEARCH_DOESNT_START_WITH_PS;
           String message = getMessage(msgID, String.valueOf(infoString));
-          err.println(message);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -935,7 +1042,7 @@ public class LDAPSearch
           {
             int    msgID   = MSGID_PSEARCH_INVALID_CHANGE_TYPE;
             String message = getMessage(msgID, String.valueOf(token));
-            err.println(message);
+            err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
         }
@@ -965,7 +1072,7 @@ public class LDAPSearch
         {
           int    msgID   = MSGID_PSEARCH_INVALID_CHANGESONLY;
           String message = getMessage(msgID, String.valueOf(token));
-          err.println(message);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -986,7 +1093,7 @@ public class LDAPSearch
         {
           int    msgID   = MSGID_PSEARCH_INVALID_RETURN_ECS;
           String message = getMessage(msgID, String.valueOf(token));
-          err.println(message);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -1013,8 +1120,9 @@ public class LDAPSearch
       }
       catch (LDAPException le)
       {
-        err.println(getMessage(MSGID_LDAP_ASSERTION_INVALID_FILTER,
-                               le.getMessage()));
+        int    msgID   = MSGID_LDAP_ASSERTION_INVALID_FILTER;
+        String message = getMessage(msgID, le.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }
@@ -1033,8 +1141,9 @@ public class LDAPSearch
         }
         catch (LDAPException le)
         {
-          err.println(getMessage(MSGID_LDAP_MATCHEDVALUES_INVALID_FILTER,
-                                 le.getMessage()));
+          int    msgID   = MSGID_LDAP_MATCHEDVALUES_INVALID_FILTER;
+          String message = getMessage(msgID, le.getMessage());
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -1074,14 +1183,16 @@ public class LDAPSearch
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        err.println("SASL External requires either SSL or StartTLS " +
-                    "options to be requested.");
+        int    msgID   = MSGID_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS;
+        String message = getMessage(msgID);
+        err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       if(keyStorePathValue == null)
       {
-        err.println("SASL External requires a path to the SSL " +
-                    "client certificate keystore.");
+        int    msgID   = MSGID_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE;
+        String message = getMessage(msgID);
+        err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }
@@ -1108,7 +1219,7 @@ public class LDAPSearch
       } catch(Exception e)
       {
         assert debugException(CLASS_NAME, "main", e);
-        err.println(e.getMessage());
+        err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
         return 1;
       }
       finally
@@ -1127,7 +1238,7 @@ public class LDAPSearch
     if(filters.isEmpty())
     {
       int msgid = MSGID_SEARCH_NO_FILTERS;
-      err.println(getMessage(msgid));
+      err.println(wrapText(getMessage(msgid), MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
       return 1;
     }
@@ -1169,19 +1280,19 @@ public class LDAPSearch
     } catch(LDAPException le)
     {
       assert debugException(CLASS_NAME, "main", le);
-      err.println(le.getMessage());
+      err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
     {
         assert debugException(CLASS_NAME, "main", lce);
-        err.println(lce.getMessage());
+        err.println(wrapText(lce.getMessage(), MAX_LINE_WIDTH));
         int code = lce.getErrorCode();
         return code;
     } catch(Exception e)
     {
       assert debugException(CLASS_NAME, "main", e);
-      err.println(e.getMessage());
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return 1;
     } finally
     {

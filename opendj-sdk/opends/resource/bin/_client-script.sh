@@ -94,4 +94,4 @@ export CLASSPATH
 
 
 # Launch the appropriate server utility.
-"${JAVA_BIN}" ${JAVA_ARGS} "${OPENDS_INVOKE_CLASS}" "${@}"
+"${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" "${@}"

@@ -157,7 +157,9 @@ public class LDIFSearch
     StringArgument      outputFile;
 
 
-    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, false, true, 0, 0,
+    String toolDescription = getMessage(MSGID_LDIFSEARCH_TOOL_DESCRIPTION);
+    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
+                                                  false, true, 0, 0,
                                                   "[filter] [attributes ...]");
 
     try

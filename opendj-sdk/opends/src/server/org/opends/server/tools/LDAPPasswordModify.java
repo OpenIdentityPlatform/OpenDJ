@@ -85,13 +85,6 @@ public class LDAPPasswordModify
 
 
 
-  /**
-   * The position at which to wrap long lines.
-   */
-  public static final int MAX_LINE_WIDTH = 79;
-
-
-
 
   /**
    * Parses the command-line arguments, establishes a connection to the
@@ -190,7 +183,9 @@ public class LDAPPasswordModify
 
 
     // Initialize the argument parser.
-    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, false);
+    String toolDescription = getMessage(MSGID_LDAPPWMOD_TOOL_DESCRIPTION);
+    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
+                                                  false);
 
     try
     {
@@ -204,6 +199,16 @@ public class LDAPPasswordModify
                                      true, "{port}", 389, null, true, 1, true,
                                      65535, MSGID_LDAPPWMOD_DESCRIPTION_PORT);
       argParser.addArgument(ldapPort);
+
+
+      useSSL = new BooleanArgument("usessl", 'Z', "useSSL",
+                                   MSGID_LDAPPWMOD_DESCRIPTION_USE_SSL);
+      argParser.addArgument(useSSL);
+
+
+      useStartTLS = new BooleanArgument("usestarttls", 'q', "useStartTLS",
+                             MSGID_LDAPPWMOD_DESCRIPTION_USE_STARTTLS);
+      argParser.addArgument(useStartTLS);
 
 
       bindDN = new StringArgument("binddn", 'D', "bindDN", false, false, true,
@@ -261,16 +266,6 @@ public class LDAPPasswordModify
                                  false, false, "{file}", null, null,
                                  MSGID_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE);
       argParser.addArgument(currentPWFile);
-
-
-      useSSL = new BooleanArgument("usessl", 'Z', "useSSL",
-                                   MSGID_LDAPPWMOD_DESCRIPTION_USE_SSL);
-      argParser.addArgument(useSSL);
-
-
-      useStartTLS = new BooleanArgument("usestarttls", 'q', "useStartTLS",
-                             MSGID_LDAPPWMOD_DESCRIPTION_USE_STARTTLS);
-      argParser.addArgument(useStartTLS);
 
 
       sslBlindTrust =

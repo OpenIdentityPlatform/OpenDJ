@@ -39,6 +39,7 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -79,13 +80,6 @@ public class WaitForFileDelete
    * the file to be removed.
    */
   public static final int EXIT_CODE_TIMEOUT = 2;
-
-
-
-  /**
-   * The position at which to wrap long lines.
-   */
-  public static final int MAX_LINE_WIDTH = 79;
 
 
 
@@ -131,7 +125,9 @@ public class WaitForFileDelete
     StringArgument  logFilePath    = null;
     StringArgument  targetFilePath = null;
 
-    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, false);
+    String toolDescription = getMessage(MSGID_WAIT4DEL_TOOL_DESCRIPTION);
+    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
+                                                  false);
 
     try
     {

@@ -108,9 +108,10 @@ public class ProfileViewer
 
 
     // Create the command-line argument parser for use with this program.
+    String toolDescription = getMessage(MSGID_PROFILEVIEWER_TOOL_DESCRIPTION);
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.plugins.profiler.ProfileViewer",
-                            false);
+                            toolDescription, false);
 
 
     // Initialize all the command-line argument types and register them with the

@@ -46,6 +46,7 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -62,13 +63,6 @@ public class MakeLDIF
    */
   private static final String CLASS_NAME =
        "org.opends.server.tools.makeldif.MakeLDIF";
-
-
-
-  /**
-   * The position at which to wrap long lines of console output.
-   */
-  public static final int MAX_LINE_WIDTH = 79;
 
 
 
@@ -122,7 +116,9 @@ public class MakeLDIF
   public int makeLDIFMain(String[] args)
   {
     // Create and initialize the argument parser for this program.
-    ArgumentParser  argParser = new ArgumentParser(CLASS_NAME, false);
+    String toolDescription = getMessage(MSGID_MAKELDIF_TOOL_DESCRIPTION);
+    ArgumentParser  argParser = new ArgumentParser(CLASS_NAME, toolDescription,
+                                                   false);
     BooleanArgument showUsage;
     IntegerArgument randomSeed;
     StringArgument  configClass;

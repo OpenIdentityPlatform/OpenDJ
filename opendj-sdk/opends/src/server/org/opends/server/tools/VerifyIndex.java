@@ -54,11 +54,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -87,8 +88,10 @@ public class VerifyIndex
 
 
     // Create the command-line argument parser for use with this program.
+    String toolDescription = getMessage(MSGID_VERIFYINDEX_TOOL_DESCRIPTION);
     ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.tools.VerifyIndex", false);
+         new ArgumentParser("org.opends.server.tools.VerifyIndex",
+                            toolDescription, false);
 
 
     // Initialize all the command-line argument types and register them with the
@@ -143,7 +146,7 @@ public class VerifyIndex
       int    msgID   = MSGID_VERIFYINDEX_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -158,7 +161,7 @@ public class VerifyIndex
       int    msgID   = MSGID_VERIFYINDEX_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
       System.exit(1);
     }
@@ -187,7 +190,7 @@ public class VerifyIndex
       int    msgID   = MSGID_VERIFYINDEX_VERIFY_CLEAN_REQUIRES_SINGLE_INDEX;
       String message = getMessage(msgID);
 
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.out.println(argParser.getUsage());
       System.exit(1);
     }
@@ -205,7 +208,7 @@ public class VerifyIndex
     {
       int    msgID   = MSGID_VERIFYINDEX_SERVER_BOOTSTRAP_ERROR;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -218,14 +221,14 @@ public class VerifyIndex
     {
       int    msgID   = MSGID_VERIFYINDEX_CANNOT_LOAD_CONFIG;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_VERIFYINDEX_CANNOT_LOAD_CONFIG;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -240,21 +243,21 @@ public class VerifyIndex
     {
       int    msgID   = MSGID_VERIFYINDEX_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_VERIFYINDEX_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_VERIFYINDEX_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -269,21 +272,21 @@ public class VerifyIndex
     {
       int    msgID   = MSGID_VERIFYINDEX_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_VERIFYINDEX_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_VERIFYINDEX_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 
@@ -297,21 +300,21 @@ public class VerifyIndex
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.exit(1);
     }
 

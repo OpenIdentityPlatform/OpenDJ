@@ -5947,6 +5947,15 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * start-ds tool.  This does not take any arguments.
+   */
+  public static final int MSGID_DSCORE_TOOL_DESCRIPTION =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 569;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -7201,6 +7210,10 @@ public class CoreMessages
                     "has been removed from the server.");
 
 
+    registerMessage(MSGID_DSCORE_TOOL_DESCRIPTION,
+                    "This utility may be used to start the Directory Server, " +
+                    "as well as to obtain the server version and other forms " +
+                    "of general server information.");
     registerMessage(MSGID_DSCORE_DESCRIPTION_CONFIG_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "to use as the Directory Server configuration handler.");
@@ -7209,20 +7222,18 @@ public class CoreMessages
                     "information needed by the configuration handler to " +
                     "obtain the Directory Server configuration.");
     registerMessage(MSGID_DSCORE_DESCRIPTION_VERSION,
-                    "Displays the Directory Server version information.");
+                    "Display Directory Server version information");
     registerMessage(MSGID_DSCORE_DESCRIPTION_FULLVERSION,
-                    "Displays extended Directory Server version information.");
+                    "Display extended Directory Server version information");
     registerMessage(MSGID_DSCORE_DESCRIPTION_SYSINFO,
-                    "Displays a basic set of information about the system " +
-                    "on which the Directory Server is installed.");
+                    "Display general system information");
     registerMessage(MSGID_DSCORE_DESCRIPTION_DUMPMESSAGES,
-                    "Dumps a list of all messages that have been defined " +
-                    "for use in the Directory Server.");
+                    "Dump a list of all defined messages");
     registerMessage(MSGID_DSCORE_DESCRIPTION_NODETACH,
-                    "Indicates that the Directory Server has not detached " +
-                    "from the terminal used to start it.");
+                    "Do not detach from the terminal and continue running in " +
+                    "the foreground");
     registerMessage(MSGID_DSCORE_DESCRIPTION_USAGE,
-                    "Displays usage information for the Directory Server.");
+                    "Display this usage information");
     registerMessage(MSGID_DSCORE_CANNOT_INITIALIZE_ARGS,
                     "An error occurred while attempting to initialize the " +
                     "command-line arguments:  %s.");

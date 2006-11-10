@@ -3424,26 +3424,6 @@ public class ToolMessages
 
   /**
    * The message ID for the message that will be used as the description of the
-   * assertionFilter option for the ldapsearch tool.  It does not take any
-   * arguments.
-   */
-  public static final int MSGID_DESCRIPTION_SEARCH_ASSERTION_FILTER =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 344;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * assertionFilter option for the ldapcompare tool.  It does not take any
-   * arguments.
-   */
-  public static final int MSGID_DESCRIPTION_COMPARE_ASSERTION_FILTER =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 345;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
    * preReadAttributes option.  It does not take any arguments.
    */
   public static final int MSGID_DESCRIPTION_PREREAD_ATTRS =
@@ -6708,6 +6688,378 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * backup tool.  This does not take any arguments.
+   */
+  public static final int MSGID_BACKUPDB_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 683;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * configure-ds tool.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIGDS_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 684;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * encode-password tool.  This does not take any arguments.
+   */
+  public static final int MSGID_ENCPW_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 685;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * export-ldif tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFEXPORT_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 686;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * import-ldif tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFIMPORT_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 687;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * setup tool.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 688;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * ldapcompare tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPCOMPARE_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 689;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * ldapdelete tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPDELETE_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 690;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * ldapmodify tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPMODIFY_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 691;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * ldappasswordmodify tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 692;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * ldapsearch tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPSEARCH_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 693;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * ldif-diff tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFDIFF_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 694;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * ldifmodify tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFMODIFY_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 695;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * ldifsearch tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFSEARCH_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 696;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * makeldif tool.  This does not take any arguments.
+   */
+  public static final int MSGID_MAKELDIF_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 697;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * restore tool.  This does not take any arguments.
+   */
+  public static final int MSGID_RESTOREDB_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 698;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * stop-ds tool.  This does not take any arguments.
+   */
+  public static final int MSGID_STOPDS_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 699;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * verify-index tool.  This does not take any arguments.
+   */
+  public static final int MSGID_VERIFYINDEX_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 700;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * wait-for-delete tool.  This does not take any arguments.
+   */
+  public static final int MSGID_WAIT4DEL_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 701;
+
+
+
+  /**
+   * The message ID for the message that will be used if two conflicting
+   * command-line arguments were provided.  This takes two arguments, which are
+   * the long names for the conflicting arguments.
+   */
+  public static final int MSGID_TOOL_CONFLICTING_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 702;
+
+
+
+  /**
+   * The message ID for the message that will be used if no compare attribute
+   * was provided.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPCOMPARE_NO_ATTR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 703;
+
+
+
+  /**
+   * The message ID for the message that will be used if the attribute string
+   * had an invalid format.  This takes a single argument, which is the invalid
+   * attribute string.
+   */
+  public static final int MSGID_LDAPCOMPARE_INVALID_ATTR_STRING =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 704;
+
+
+
+  /**
+   * The message ID for the message that will be used if the control string
+   * had an invalid format.  This takes a single argument, which is the invalid
+   * control string.
+   */
+  public static final int MSGID_TOOL_INVALID_CONTROL_STRING =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 705;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user requested SASL
+   * EXTERNAL authentication but is not using SSL or StartTLS.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 706;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user requested SASL
+   * EXTERNAL authentication but did not specify a keystore path.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 707;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide the persistent
+   * search change type.  This takes a single argument, which is the change type
+   * string.
+   */
+  public static final int MSGID_LDAPSEARCH_PSEARCH_CHANGE_TYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 708;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide the persistent
+   * previous entry DN.  This takes a single argument, which is the previous DN
+   * string.
+   */
+  public static final int MSGID_LDAPSEARCH_PSEARCH_PREVIOUS_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 709;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide the header for
+   * the account usability control output.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPSEARCH_ACCTUSABLE_HEADER =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 710;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that an
+   * account is usable.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPSEARCH_ACCTUSABLE_IS_USABLE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 711;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate the length of
+   * time before the password expires.  This takes a single argument, which is a
+   * human-readable string representation of the remaining time.
+   */
+  public static final int MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 712;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * account is not usable.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPSEARCH_ACCTUSABLE_NOT_USABLE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 713;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * account has been deactivated.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPSEARCH_ACCTUSABLE_ACCT_INACTIVE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 714;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * user's password has been reset and must be changed before anything else can
+   * be done.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPSEARCH_ACCTUSABLE_PW_RESET =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 715;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * user's password has expired.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPSEARCH_ACCTUSABLE_PW_EXPIRED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 716;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide the number of
+   * grace logins remaining for the user.  This takes a single argument, which
+   * is the number of remaining grace logins.
+   */
+  public static final int MSGID_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 717;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * account has been locked.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPSEARCH_ACCTUSABLE_LOCKED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 718;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide the length of
+   * time until the account is automatically unlocked.  This takes a single
+   * argument, which is a human-readable string representation of the time
+   * remaining.
+   */
+  public static final int MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 719;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * keystorePasswordFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 720;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * truststorePassword argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_TRUSTSTOREPASSWORD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 721;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * truststorePasswordFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 722;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6731,22 +7083,17 @@ public class ToolMessages
 
 
     registerMessage(MSGID_ENCPW_DESCRIPTION_LISTSCHEMES,
-                    "Lists the available password storage schemes configured " +
-                    "in the Directory Server.");
+                    "List available password storage schemes");
     registerMessage(MSGID_ENCPW_DESCRIPTION_CLEAR_PW,
-                    "Specifies the clear-text password to be encoded and/or " +
-                    "compared against an encoded password.");
+                    "Clear-text password to encode or to compare against an " +
+                    "encoded password");
     registerMessage(MSGID_ENCPW_DESCRIPTION_CLEAR_PW_FILE,
-                    "Specifies the path to a file containing the clear-text " +
-                    "password to be encoded and/or compared against an " +
-                    "encoded password.");
+                    "Clear-text password file");
     registerMessage(MSGID_ENCPW_DESCRIPTION_ENCODED_PW,
-                    "Specifies the encoded password to be compared against " +
-                    "the provided clear-text password.");
+                    "Encoded password to compare against the clear-text " +
+                    "password");
     registerMessage(MSGID_ENCPW_DESCRIPTION_ENCODED_PW_FILE,
-                    "Specifies the path to a file containing the encoded " +
-                    "password to be compared against the provided clear-text " +
-                    "password.");
+                    "Encoded password file");
     registerMessage(MSGID_ENCPW_DESCRIPTION_CONFIG_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that serves as the configuration handler for the " +
@@ -6755,13 +7102,10 @@ public class ToolMessages
                     "Specifies the path to the Directory Server " +
                     "configuration file.");
     registerMessage(MSGID_ENCPW_DESCRIPTION_SCHEME,
-                    "Specifies the name of the password storage scheme that " +
-                    "should be used to encode the provided clear-text " +
-                    "password.");
+                    "Scheme to use for the encoded password");
     registerMessage(MSGID_ENCPW_DESCRIPTION_AUTHPW,
-                    "Indicates that the authentication password syntax " +
-                    "should be used to encode the password, rather than the " +
-                    "default user password syntax.");
+                    "Use the authentication password syntax rather than the " +
+                    "user password syntax");
     registerMessage(MSGID_ENCPW_DESCRIPTION_USAGE,
                     "Displays this usage information.");
     registerMessage(MSGID_ENCPW_CANNOT_INITIALIZE_ARGS,
@@ -6826,61 +7170,34 @@ public class ToolMessages
                     "Specifies the path to the Directory Server " +
                     "configuration file.");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_LDIF_FILE,
-                    "Specifies the path to the file to which the LDIF data " +
-                    "should be written.");
+                    "Path to the LDIF file to be written");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_APPEND_TO_LDIF,
-                    "Indicates that the export process should append to an " +
-                    "existing LDIF file rather than overwrite it.");
+                    "Append an existing LDIF file rather than overwriting it");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_BACKEND_ID,
-                    "Specifies the backend ID for the backend from which the " +
-                    "data should be exported.");
+                    "Backend ID for the backend to export");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_INCLUDE_BRANCH,
-                    "Specifies the base DN of a branch that should be " +
-                    "included in the LDIF export.  This argument may be " +
-                    "provided more than once to specify multiple include " +
-                    "branches.");
+                    "Base DN of a branch to include in the LDIF export");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_BRANCH,
-                    "Specifies the base DN of a branch that should be " +
-                    "excluded from the LDIF export.  This argument may be " +
-                    "provided more than once to specify multiple exclude " +
-                    "branches.");
+                    "Base DN of a branch to exclude from the LDIF export");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_INCLUDE_ATTRIBUTE,
-                    "Specifies an attribute that should be included in the " +
-                    "LDIF export.  This argument may be provided more than " +
-                    "once to specify multiple include attributes.  If this " +
-                    "is used, then only the listed include attributes will " +
-                    "be included in the LDIF export.");
+                    "Attribute to include in the LDIF export");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_ATTRIBUTE,
-                    "Specifies an attribute that should be excluded from the " +
-                    "LDIF export.  This argument may be provided more than " +
-                    "once to specify multiple exclude attributes.");
+                    "Attribute to exclude from the LDIF export");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_INCLUDE_FILTER,
-                    "Specifies a search filter that may be used to control " +
-                    "which entries are included in the export.  Only entries " +
-                    "matching the specified filter will be included.  This " +
-                    "argument may be provided more than once to specify " +
-                    "multiple include filters.");
+                    "Filter to identify entries to include in the LDIF export");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_FILTER,
-                    "Specifies a search filter that may be used to control " +
-                    "which entries are excluded from the export.  Any entry " +
-                    "matching the specified filter will be excluded.  This " +
-                    "argument may be provided more than once to specify " +
-                    "multiple exclude filters.");
+                    "Filter to identify entries to exclude from the LDIF " +
+                    "export");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_WRAP_COLUMN,
-                    "Specifies the column at which long lines should be " +
-                    "wrapped.  A value of zero indicates that long lines " +
-                    "should not be wrapped.");
+                    "Column at which to wrap long lines (0 for no wrapping)");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_COMPRESS_LDIF,
-                    "Indicates that the LDIF data should be compressed as it " +
-                    "is exported.");
+                    "Compress the LDIF data as it is exported");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_ENCRYPT_LDIF,
-                    "Indicates that the LDIF data should be encrypted as it " +
-                    "is exported.");
+                    "Encrypt the LDIF data as it is exported");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_SIGN_HASH,
-                    "Indicates that a signed hash of the export data " +
-                    "should be appended to the LDIF file.");
+                    "Generate a signed hash of the export data");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_USAGE,
-                    "Displays this usage information.");
+                    "Display this usage information");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -6987,81 +7304,47 @@ public class ToolMessages
                     "Specifies the path to the Directory Server " +
                     "configuration file.");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_LDIF_FILE,
-                    "Specifies the path to the file containing the LDIF data " +
-                    "to import.  This argument may be provided more than " +
-                    "once to import from multiple LDIF files (the files " +
-                    "will be processed in the order they are provided in " +
-                    "the arguments).");
+                    "Path to the LDIF file to be imported");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE,
-                    "Specifies the path to the MakeLDIF template file " +
-                    "defining the data to be generated for the import.  This " +
-                    "may not be used in conjunction with the --ldifFile " +
-                    "option.");
+                    "Path to a MakeLDIF template to use to generate the " +
+                    "import data");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_APPEND,
-                    "Indicates that the import process should append to the " +
-                    "existing database rather than overwriting it.");
+                    "Append to an existing database rather than overwriting " +
+                    "it");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_REPLACE_EXISTING,
-                    "Indicates whether an existing entry should be replaced " +
-                    "when appending to an existing database.");
+                    "Replace existing entries when appending to the database");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_BACKEND_ID,
-                    "Specifies the backend ID for the backend into which the " +
-                    "data should be imported.");
+                    "Backend ID for the backend to import");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_INCLUDE_BRANCH,
-                    "Specifies the base DN of a branch that should be " +
-                    "included in the LDIF import.  This argument may be " +
-                    "provided more than once to specify multiple include " +
-                    "branches.");
+                    "Base DN of a branch to include in the LDIF import");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_EXCLUDE_BRANCH,
-                    "Specifies the base DN of a branch that should be " +
-                    "excluded from the LDIF import.  This argument may be " +
-                    "provided more than once to specify multiple exclude " +
-                    "branches.");
+                    "Base DN of a branch to exclude from the LDIF import");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_INCLUDE_ATTRIBUTE,
-                    "Specifies an attribute that should be included in the " +
-                    "LDIF import.  This argument may be provided more than " +
-                    "once to specify multiple include attributes.  If this " +
-                    "is used, then only the listed include attributes will " +
-                    "be included in the LDIF import.");
+                    "Attribute to include in the LDIF import");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_EXCLUDE_ATTRIBUTE,
-                    "Specifies an attribute that should be excluded from the " +
-                    "LDIF import.  This argument may be provided more than " +
-                    "once to specify multiple exclude attributes.");
+                    "Attribute to exclude from the LDIF import");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_INCLUDE_FILTER,
-                    "Specifies a search filter that may be used to control " +
-                    "which entries are included in the import.  Only entries " +
-                    "matching the specified filter will be included.  This " +
-                    "argument may be provided more than once to specify " +
-                    "multiple include filters.");
+                    "Filter to identify entries to include in the LDIF import");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_EXCLUDE_FILTER,
-                    "Specifies a search filter that may be used to control " +
-                    "which entries are excluded from the import.  Any entry " +
-                    "matching the specified filter will be excluded.  This " +
-                    "argument may be provided more than once to specify " +
-                    "multiple exclude filters.");
+                    "Filter to identify entries to exclude from the LDIF " +
+                    "import");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_REJECT_FILE,
-                    "Specifies the path to a file into which rejected " +
-                    "entries may be written if they are not accepted during " +
-                    "the import process.");
+                    "Write rejected entries to the specified file");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_OVERWRITE_REJECTS,
-                    "Indicates that the import should overwrite an existing " +
-                    "reject file rather than appending to it.");
+                    "Overwrite an existing rejects file rather than " +
+                    "appending to it");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_RANDOM_SEED,
-                    "Specifies the seed to use for the random number " +
-                    "generator.  This  is only applicable when generating " +
-                    "entries from a template.");
+                    "Seed for the MakeLDIF random number generator");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_SKIP_SCHEMA_VALIDATION,
-                    "Indicates whether to skip schema validation during the " +
-                    "import.");
+                    "Skip schema validation during the LDIF import");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_IS_COMPRESSED,
-                    "Indicates whether the LDIF file containing the data to " +
-                    "import is compressed.");
+                    "LDIF file is compressed");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_IS_ENCRYPTED,
-                    "Indicates whether the LDIF file containing the data to " +
-                    "import is encrypted.");
+                    "LDIF file is encrypted");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_QUIET,
-                    "Use quiet mode (no output).");
+                    "Use quiet mode (no output)");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_USAGE,
-                    "Displays this usage information.");
+                    "Display this usage information.");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -7188,25 +7471,22 @@ public class ToolMessages
     registerMessage(MSGID_SEARCH_OPERATION_INVALID_PROTOCOL,
                     "Invalid operation type returned in search result %s.");
     registerMessage(MSGID_DESCRIPTION_TRUSTALL,
-                    "Blindly trust the server SSL certificate.");
+                    "Trust all server SSL certificates");
     registerMessage(MSGID_DESCRIPTION_BINDDN,
-                    "Bind DN.");
+                    "Bind DN");
     registerMessage(MSGID_DESCRIPTION_BINDPASSWORD,
-                    "Bind password (used for simple authentication).");
+                    "Bind password");
     registerMessage(MSGID_DESCRIPTION_BINDPASSWORDFILE,
-                    "Read bind passwd (for simple authentication) from file");
+                    "Bind password file");
     registerMessage(MSGID_DESCRIPTION_PROXY_AUTHZID,
-                    "Specifies that the proxied authorization control should " +
-                    "be used with the given authorization ID.");
+                    "Use the proxied authorization control with the given " +
+                    "authorization ID");
     registerMessage(MSGID_DESCRIPTION_PSEARCH_INFO,
-                    "Use the persistent search control to be notified of " +
-                    "changes to data matching the search criteria.");
+                    "Use the persistent search control");
     registerMessage(MSGID_DESCRIPTION_REPORT_AUTHZID,
-                    "Use the authorization identity control to request that " +
-                    "the server provide the authorization ID in the bind " +
-                    "response.");
+                    "Use the authorization identity control");
     registerMessage(MSGID_DESCRIPTION_USE_PWP_CONTROL,
-                    "Use the password policy control in the bind request.");
+                    "Use the password policy request control");
     registerMessage(MSGID_BIND_AUTHZID_RETURNED,
                     "# Bound with authorization ID %s.");
     registerMessage(MSGID_BIND_PASSWORD_EXPIRED,
@@ -7221,73 +7501,58 @@ public class ToolMessages
     registerMessage(MSGID_BIND_GRACE_LOGINS_REMAINING,
                     "# You have %d grace logins remaining.");
     registerMessage(MSGID_DESCRIPTION_VERBOSE,
-                    "Run in verbose mode.");
+                    "Use verbose mode");
     registerMessage(MSGID_DESCRIPTION_KEYSTOREPATH,
-                    "Path to key database to use for SSL client " +
-        "authentication.");
+                    "Certificate keystore path");
     registerMessage(MSGID_DESCRIPTION_TRUSTSTOREPATH,
-                    "Path to the SSL certificate database.");
+                    "Certificate trust store path");
     registerMessage(MSGID_DESCRIPTION_KEYSTOREPASSWORD,
-                    "SSL key password.");
+                    "Certificate keystore PIN");
+    registerMessage(MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE,
+                    "Certificate keystore PIN file");
+    registerMessage(MSGID_DESCRIPTION_TRUSTSTOREPASSWORD,
+                    "Certificate trust store PIN");
+    registerMessage(MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE,
+                    "Certificate trust store PIN file");
     registerMessage(MSGID_DESCRIPTION_HOST,
-                    "LDAP server name or IP address (default: localhost).");
+                    "Directory server hostname or IP address");
     registerMessage(MSGID_DESCRIPTION_PORT,
-                    "LDAP server TCP port number(default: 389).");
+                    "Directory server port number");
     registerMessage(MSGID_DESCRIPTION_VERSION,
-                    "LDAP version number(default: 3).");
+                    "LDAP protocol version number");
     registerMessage(MSGID_DESCRIPTION_SHOWUSAGE,
-                    "Display usage information.");
+                    "Display this usage information");
     registerMessage(MSGID_DESCRIPTION_CONTROLS,
-                    "The OID, criticality and value of the control to apply.");
+                    "Use a request control with the provided information");
     registerMessage(MSGID_DESCRIPTION_CONTINUE_ON_ERROR,
-                    "Continue processing even if there are errors.");
+                    "Continue processing even if there are errors");
     registerMessage(MSGID_DESCRIPTION_USE_SSL,
-                    "Make an SSL connection to the server.");
+                    "Use SSL for secure communication with the server");
     registerMessage(MSGID_DESCRIPTION_START_TLS,
-                    "Use a TLS connection to the server.");
+                    "Use StartTLS to secure communication with the server");
     registerMessage(MSGID_DESCRIPTION_USE_SASL_EXTERNAL,
-                    "Use the SASL EXTERNAL authentication mechanism.");
+                    "Use the SASL EXTERNAL authentication mechanism");
     registerMessage(MSGID_DESCRIPTION_ENCODING,
-                    "Character set for command line input " +
-                    "(default taken from locale)");
+                    "Use the specified character set for command-line input");
     registerMessage(MSGID_DELETE_DESCRIPTION_FILENAME,
-                    "The name of the file that contains a list of the DNs of " +
-                    "the entries to delete.");
+                    "File containing the DNs of the entries to delete");
     registerMessage(MSGID_SEARCH_DESCRIPTION_FILENAME,
-                    "The name of the file that contains a list of filter " +
-                    "strings.");
+                    "File containing a list of search filter strings");
     registerMessage(MSGID_COMPARE_DESCRIPTION_FILENAME,
-                    "The name of the file that contains a list of the DNs of " +
-                    "the entries to compare.");
+                    "File containing the DNs of the entries to compare");
     registerMessage(MSGID_DELETE_DESCRIPTION_DELETE_SUBTREE,
-                    "Delete the specified entry and all entries below it.");
+                    "Delete the specified entry and all entries below it");
     registerMessage(MSGID_MODIFY_DESCRIPTION_DEFAULT_ADD,
-                    "Add entries as the default action.");
+                    "Treat records with no changetype as add operations");
     registerMessage(MSGID_DESCRIPTION_ASSERTION_FILTER,
-                    "Use the LDAP assertion control so that the operation is " +
-                    "only processed if the target entry matches the provided " +
-                    "assertion filter.");
+                    "Use the LDAP assertion control with the provided filter");
     registerMessage(MSGID_DESCRIPTION_PREREAD_ATTRS,
-                    "Use the LDAP ReadEntry pre-read control to retrieve " +
-                    "a copy of the entry immediately before a delete, " +
-                    "modify, or modify DN operation.");
+                    "Use the LDAP ReadEntry pre-read control");
     registerMessage(MSGID_DESCRIPTION_POSTREAD_ATTRS,
-                    "Use the LDAP ReadEntry post-read control to retrieve " +
-                    "a copy of the entry immediately after an add, modify, " +
-                    "or modify DN operation.");
-    registerMessage(MSGID_DESCRIPTION_SEARCH_ASSERTION_FILTER,
-                    "Use the LDAP assertion control so that the search is " +
-                    "only processed if the base entry matches the provided " +
-                    "assertion filter.");
+                    "Use the LDAP ReadEntry post-read control");
     registerMessage(MSGID_DESCRIPTION_MATCHED_VALUES_FILTER,
-                    "Use the matched values control to only return " +
-                    "attribute values matching the specified filter.  " +
-                    "This option may be provided multiple times to specify " +
-                    "multiple filters.");
-    registerMessage(MSGID_DESCRIPTION_COMPARE_ASSERTION_FILTER,
-                    "Use the LDAP assertion control so that the compare is " +
-                    "only processed if the target entry matches the provided " +
-                    "assertion filter.");
+                    "Use the LDAP matched values control with the provided " +
+                    "filter");
     registerMessage(MSGID_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE,
                     "The assertion value was indicated to be base64-encoded, " +
                     "but an error occurred while trying to decode the value.");
@@ -7295,19 +7560,17 @@ public class ToolMessages
                     "Unable to read the assertion value from the specified " +
                     "file:  %s.");
     registerMessage(MSGID_SEARCH_DESCRIPTION_BASEDN,
-                    "The base DN for the search.");
+                    "Search base DN");
     registerMessage(MSGID_SEARCH_DESCRIPTION_SIZE_LIMIT,
-                    "The size limit (in entries) for search " +
-                    "(default is no limit)");
+                    "Maximum number of entries to return from the search");
     registerMessage(MSGID_SEARCH_DESCRIPTION_TIME_LIMIT,
-                    "The time limit (in seconds) for search " +
-                    "(default is no limit)");
+                    "Maximum length of time in seconds to allow for the " +
+                    "search");
     registerMessage(MSGID_SEARCH_DESCRIPTION_SEARCH_SCOPE,
-                    "The scope for the search which is one of " +
-                    "base, one, sub, or subordinate. (default is sub)");
+                    "Search scope ('base', 'one', 'sub', or 'subordinate')");
     registerMessage(MSGID_SEARCH_DESCRIPTION_DEREFERENCE_POLICY,
-                    "Alias dereferencing policy. The value is one of never, " +
-                    "always, search, or find (default is never).");
+                    "Alias dereference policy ('never', 'always', 'search', " +
+                    "or 'find')");
 
 
     registerMessage(MSGID_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND,
@@ -7464,9 +7727,9 @@ public class ToolMessages
     registerMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHZID,
                     "Specifies the authorization ID to use for the bind.");
     registerMessage(MSGID_DESCRIPTION_SASL_PROPERTIES,
-                    "Specifies the SASL properties to use for the bind.");
+                    "SASL bind options");
     registerMessage(MSGID_DESCRIPTION_DONT_WRAP,
-                    "Indicates that long lines should not be wrapped.");
+                    "Do not wrap long lines");
     registerMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_KDC,
                     "Specifies the KDC to use for the Kerberos " +
                     "authentication.");
@@ -7695,42 +7958,28 @@ public class ToolMessages
                     "Specifies the path to the Directory Server " +
                     "configuration file.");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_BACKEND_ID,
-                    "Specifies the backend ID for the backend that should " +
-                    "be archived.  Multiple backends may be archived by " +
-                    "providing this argument multiple times.");
+                    "Backend ID for the backend to archive");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_BACKUP_ALL,
-                    "Indicates that all backends defined in the server " +
-                    "should be backed up.");
+                    "Back up all backends in the server");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_BACKUP_ID,
-                    "Specifies the backup ID that will be used to identify " +
-                    "the backup that is created.");
+                    "Use the provided identifier for the backup");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_BACKUP_DIR,
-                    "Specifies the path to the directory in which the " +
-                    "backup file(s) should be placed.");
+                    "Path to the target directory for the backup file(s)");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_INCREMENTAL,
-                    "Indicates whether to generate an incremental backup " +
-                    "or a full backup.");
+                    "Perform an incremental backup rather than a full backup");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_INCREMENTAL_BASE_ID,
-                    "Specifies the backup ID of the backup against which an " +
-                    "incremental backup should be taken.  If none is " +
-                    "provided, then the backend will automatically choose an " +
-                    "appropriate backup on which to base the incremental " +
-                    "backup.");
+                    "Backup ID of the source archive for an incremental " +
+                    "backup");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_COMPRESS,
-                    "Indicates whether the backup file(s) should be " +
-                    "compressed.");
+                    "Compress the backup contents");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_ENCRYPT,
-                    "Indicates whether the backup file(s) should be " +
-                    "encrypted.");
+                    "Encrypt the backup contents");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_HASH,
-                    "Indicates whether to generate a hash of the backup " +
-                    "file(s) so that their integrity can be verified on " +
-                    "restore.");
+                    "Generate a hash of the backup contents");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_SIGN_HASH,
-                    "Indicates whether the hash of the archive file(s) " +
-                    "should be digitally signed to provide tamper detection.");
+                    "Sign the hash of the backup contents");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_USAGE,
-                    "Displays this usage information.");
+                    "Display this usage information");
     registerMessage(MSGID_BACKUPDB_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -7851,25 +8100,17 @@ public class ToolMessages
                     "Specifies the path to the Directory Server " +
                     "configuration file.");
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_BACKEND_ID,
-                    "Specifies the backend ID for the backend that should " +
-                    "be restored.");
+                    "Backend ID for the backend to restore");
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_BACKUP_ID,
-                    "Specifies the backup ID that will be used to identify " +
-                    "which backup should be restored.  If this is not " +
-                    "provided, then the latest backup in the directory will " +
-                    "be restored.");
+                    "Backup ID of the backup to restore");
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_BACKUP_DIR,
-                    "Specifies the path to the directory in which the " +
-                    "backup file(s) are located.");
+                    "Path to the directory containing the backup file(s)");
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_LIST_BACKUPS,
-                    "Indicates that this utility should display a list of " +
-                    "the available backups and exit.");
+                    "List available backups in the backup directory");
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_VERIFY_ONLY,
-                    "Indicates that the contents of the specified backup " +
-                    "should be verified to the best of the backend's ability " +
-                    "but should not be restored.");
+                    "Verify the contents of the backup but do not restore it");
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_USAGE,
-                    "Displays this usage information.");
+                    "Display this usage information");
     registerMessage(MSGID_RESTOREDB_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -7966,11 +8207,9 @@ public class ToolMessages
                     "Cannot determine the backend ID for the backend defined " +
                     "in configuration entry %s:  %s.");
     registerMessage(MSGID_DESCRIPTION_NOOP,
-                    "No-op mode used to show what the tool would do with the " +
-                    "given input but not perform any operations.");
+                    "Show what would be done but do not perform any operation");
     registerMessage(MSGID_DESCRIPTION_TYPES_ONLY,
-                    "Specify that the search retrieve only attribute names, " +
-                    "not the attribute values.");
+                    "Only retrieve attribute names but not their values");
     registerMessage(MSGID_LDIF_FILE_CANNOT_OPEN_FOR_READ,
                     "An error occurred while attempting to open the " +
                     "LDIF file %s for reading:  %s.");
@@ -7982,57 +8221,46 @@ public class ToolMessages
 
 
     registerMessage(MSGID_STOPDS_DESCRIPTION_HOST,
-                    "The address of the Directory Server to shut down.");
+                    "Directory server hostname or IP address");
     registerMessage(MSGID_STOPDS_DESCRIPTION_PORT,
-                    "The port of the Directory Server to shut down.");
+                    "Directory server port number");
     registerMessage(MSGID_STOPDS_DESCRIPTION_USESSL,
-                    "Use SSL to communicate with the Directory Server.");
+                    "Use SSL for secure communication with the server");
     registerMessage(MSGID_STOPDS_DESCRIPTION_USESTARTTLS,
-                    "Use StartTLS to communicate with the Directory Server.");
+                    "Use StartTLS for secure communication with the server");
     registerMessage(MSGID_STOPDS_DESCRIPTION_BINDDN,
-                    "The DN to use when performing a simple bind to the " +
-                    "Directory Server.");
+                    "Bind DN");
     registerMessage(MSGID_STOPDS_DESCRIPTION_BINDPW,
-                    "The password to use to bind to the Directory Server.");
+                    "Bind password");
     registerMessage(MSGID_STOPDS_DESCRIPTION_BINDPWFILE,
-                    "The path to a file containing the password to use to " +
-                    "bind to the Directory Server.");
+                    "Bind password file");
     registerMessage(MSGID_STOPDS_DESCRIPTION_SASLOPTIONS,
-                    "A SASL option to use for authentication in the form " +
-                    "name=value.  At least one SASL option must be given " +
-                    "with a name of mech to specify which SASL mechanism to " +
-                    "use.  Multiple SASL options may be provided by using " +
-                    "multiple instances of this argument.");
+                    "SASL bind options");
     registerMessage(MSGID_STOPDS_DESCRIPTION_PROXYAUTHZID,
-                    "Use the proxied authorization control with the provided " +
-                    "authorization ID.");
+                    "Use the proxied authorization control with the given " +
+                    "authorization ID");
     registerMessage(MSGID_STOPDS_DESCRIPTION_STOP_REASON,
-                    "A human-readable reason explaining why the Directory " +
-                    "Server is being stopped.");
+                    "Reason the server is being stopped or restarted");
     registerMessage(MSGID_STOPDS_DESCRIPTION_RESTART,
                     "Attempt to automatically restart the server once it has " +
-                    "stopped.");
+                    "stopped");
     registerMessage(MSGID_STOPDS_DESCRIPTION_STOP_TIME,
-                    "The time that the Directory Server should be stopped if " +
-                    "it should be some time in the future.  The value should " +
-                    "be in the form YYYYMMDDhhmmssZ for UTC time or " +
-                    "YYYYMMDDhhmmss for local time.");
+                    "Time to begin the shutdown in YYYYMMDDhhmmss format " +
+                    "(local time)");
     registerMessage(MSGID_STOPDS_DESCRIPTION_TRUST_ALL,
-                    "Blindly trust all server certificates.");
+                    "Trust all server SSL certificates");
     registerMessage(MSGID_STOPDS_DESCRIPTION_KSFILE,
-                    "The path to the SSL key store file.");
+                    "Certificate keystore path");
     registerMessage(MSGID_STOPDS_DESCRIPTION_KSPW,
-                    "The password needed to access the key store content.");
+                    "Certificate keystore PIN");
     registerMessage(MSGID_STOPDS_DESCRIPTION_KSPWFILE,
-                    "The path to the file containing the password needed to " +
-                    "access the key store content.");
+                    "Certificate keystore PIN file");
     registerMessage(MSGID_STOPDS_DESCRIPTION_TSFILE,
-                    "The path to the SSL trust store file.");
+                    "Certificate trust store path");
     registerMessage(MSGID_STOPDS_DESCRIPTION_TSPW,
-                    "The password needed to access the trust store content.");
+                    "Certificate trust store PIN");
     registerMessage(MSGID_STOPDS_DESCRIPTION_TSPWFILE,
-                    "The path to the file containing the password needed to " +
-                    "access the trust store content.");
+                    "Certificate trust store PIN file");
     registerMessage(MSGID_STOPDS_DESCRIPTION_SHOWUSAGE,
                     "Display this usage information.");
     registerMessage(MSGID_STOPDS_CANNOT_INITIALIZE_ARGS,
@@ -8064,9 +8292,10 @@ public class ToolMessages
                     "ERROR:  Cannot establish a connection to the " +
                     "Directory Server:  %s.");
     registerMessage(MSGID_STOPDS_UNEXPECTED_CONNECTION_CLOSURE,
-                    "ERROR:  The connection to the Directory Server was " +
-                    "unexpectedly closed while waiting for a response to the " +
-                    "shutdown request.");
+                    "NOTICE:  The connection to the Directory Server was " +
+                    "closed while waiting for a response to the shutdown " +
+                    "request.  This likely means that the server has started " +
+                    "the shudown process.");
     registerMessage(MSGID_STOPDS_IO_ERROR,
                     "ERROR:  An I/O error occurred while attempting to " +
                     "communicate with the Directory Server:  %s.");
@@ -8896,6 +9125,116 @@ public class ToolMessages
 
     registerMessage(MSGID_LDAPCOMPARE_NO_DNS,
                     "No entry DNs provided for the compare operation.");
+    registerMessage(MSGID_LDAPCOMPARE_NO_ATTR,
+                    "No attribute was specified to use as the target for " +
+                    "the comparison.");
+    registerMessage(MSGID_LDAPCOMPARE_INVALID_ATTR_STRING,
+                    "Invalid attribute string '%s'.  The attribute string " +
+                    "must be in one of the following forms:  " +
+                    "'attribute:value', 'attribute::base64value', or " +
+                    "'attribute:<valueFilePath'");
+
+
+    registerMessage(MSGID_LDAPSEARCH_PSEARCH_CHANGE_TYPE,
+                    "# Persistent search change type:  %s");
+    registerMessage(MSGID_LDAPSEARCH_PSEARCH_PREVIOUS_DN,
+                    "# Persistent search previous entry DN:  %s");
+    registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_HEADER,
+                    "# Account Usability Response Control");
+    registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_IS_USABLE,
+                    "#   The account is usable.");
+    registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION,
+                    "#   Time until password expiration:  %s.");
+    registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_NOT_USABLE,
+                    "#   The account is not usable.");
+    registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_ACCT_INACTIVE,
+                    "#   The account has been deactivated.");
+    registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_PW_RESET,
+                    "#   The password has been reset.");
+    registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_PW_EXPIRED,
+                    "#   The password has expired.");
+    registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE,
+                    "#   Number of grace logins remaining:  %d.");
+    registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_LOCKED,
+                    "#   The account is locked.");
+    registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK,
+                    "#   Time until the account is unlocked:  %s.");
+
+
+    registerMessage(MSGID_TOOL_CONFLICTING_ARGS,
+                    "You may not provide both the --%s and the --%s " +
+                    "arguments.");
+    registerMessage(MSGID_TOOL_INVALID_CONTROL_STRING,
+                    "Invalid control specification '%s'.");
+    registerMessage(MSGID_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS,
+                    "SASL EXTERNAL authentication may only be requested if " +
+                    "SSL or StartTLS is used.");
+    registerMessage(MSGID_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE,
+                    "SASL EXTERNAL authentication may only be used if a " +
+                    "client certificate keystore is specified.");
+
+
+    registerMessage(MSGID_BACKUPDB_TOOL_DESCRIPTION,
+                    "This utility may be used to back up one or more " +
+                    "Directory Server backends.");
+    registerMessage(MSGID_CONFIGDS_TOOL_DESCRIPTION,
+                    "This utility may be used to define a base configuration " +
+                    "for the Directory Server.");
+    registerMessage(MSGID_ENCPW_TOOL_DESCRIPTION,
+                    "This utility may be used to encode user passwords with " +
+                    "a specified storage scheme, or to determine whether a " +
+                    "given clear-text value matches a provided encoded " +
+                    "password.");
+    registerMessage(MSGID_LDIFEXPORT_TOOL_DESCRIPTION,
+                    "This utility may be used to export data from a " +
+                    "Directory Server backend in LDIF form.");
+    registerMessage(MSGID_LDIFIMPORT_TOOL_DESCRIPTION,
+                    "This utility may be used to import LDIF data into a " +
+                    "Directory Server backend.");
+    registerMessage(MSGID_INSTALLDS_TOOL_DESCRIPTION,
+                    "This utility may be used to define a base configuration " +
+                    "for the Directory Server.");
+    registerMessage(MSGID_LDAPCOMPARE_TOOL_DESCRIPTION,
+                    "This utility may be used to perform LDAP compare " +
+                    "operations in the Directory Server.");
+    registerMessage(MSGID_LDAPDELETE_TOOL_DESCRIPTION,
+                    "This utility may be used to perform LDAP delete " +
+                    "operations in the Directory Server.");
+    registerMessage(MSGID_LDAPMODIFY_TOOL_DESCRIPTION,
+                    "This utility may be used to perform LDAP modify, add, " +
+                    "delete, and modify DN operations in the Directory " +
+                    "Server.");
+    registerMessage(MSGID_LDAPPWMOD_TOOL_DESCRIPTION,
+                    "This utility may be used to perform LDAP password " +
+                    "modify operations in the Directory Server.");
+    registerMessage(MSGID_LDAPSEARCH_TOOL_DESCRIPTION,
+                    "This utility may be used to perform LDAP search " +
+                    "operations in the Directory Server.");
+    registerMessage(MSGID_LDIFDIFF_TOOL_DESCRIPTION,
+                    "This utility may be used to compare two LDIF files " +
+                    "and report the differences in LDIF format.");
+    registerMessage(MSGID_LDIFMODIFY_TOOL_DESCRIPTION,
+                    "This utility may be used to apply a set of modify, add, " +
+                    "and delete operations against data in an LDIF file.");
+    registerMessage(MSGID_LDIFSEARCH_TOOL_DESCRIPTION,
+                    "This utility may be used to perform search operations " +
+                    "against data in an LDIF file.");
+    registerMessage(MSGID_MAKELDIF_TOOL_DESCRIPTION,
+                    "This utility may be used to generate LDIF data based on " +
+                    "a definition in a template file.");
+    registerMessage(MSGID_RESTOREDB_TOOL_DESCRIPTION,
+                    "This utility may be used to restore a backup of a " +
+                    "Directory Server backend.");
+    registerMessage(MSGID_STOPDS_TOOL_DESCRIPTION,
+                    "This utility may be used to request that the Directory " +
+                    "Server stop running or perform a restart.");
+    registerMessage(MSGID_VERIFYINDEX_TOOL_DESCRIPTION,
+                    "This utility may be used to ensure that index data is " +
+                    "consistent within a backend based on the Berkeley DB " +
+                    "Java Edition.");
+    registerMessage(MSGID_WAIT4DEL_TOOL_DESCRIPTION,
+                    "This utility may be used to wait for a file to be " +
+                    "removed from the filesystem.");
   }
 }
 

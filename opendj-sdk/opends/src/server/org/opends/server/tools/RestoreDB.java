@@ -112,8 +112,10 @@ public class RestoreDB
 
 
     // Create the command-line argument parser for use with this program.
+    String toolDescription = getMessage(MSGID_RESTOREDB_TOOL_DESCRIPTION);
     ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.tools.RestoreDB", false);
+         new ArgumentParser("org.opends.server.tools.RestoreDB",
+                            toolDescription, false);
 
 
     // Initialize all the command-line argument types and register them with the
@@ -172,7 +174,7 @@ public class RestoreDB
       int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -187,7 +189,7 @@ public class RestoreDB
       int    msgID   = MSGID_RESTOREDB_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
       return 1;
     }
@@ -213,7 +215,7 @@ public class RestoreDB
     {
       int    msgID   = MSGID_RESTOREDB_SERVER_BOOTSTRAP_ERROR;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -226,14 +228,14 @@ public class RestoreDB
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_CONFIG;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_CONFIG;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -248,21 +250,21 @@ public class RestoreDB
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -277,21 +279,21 @@ public class RestoreDB
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -305,21 +307,21 @@ public class RestoreDB
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, ce.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 

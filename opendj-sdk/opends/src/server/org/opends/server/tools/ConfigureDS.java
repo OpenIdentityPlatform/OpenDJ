@@ -147,7 +147,9 @@ public class ConfigureDS
     StringArgument    rootPassword;
 
 
-    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, false);
+    String toolDescription = getMessage(MSGID_CONFIGDS_TOOL_DESCRIPTION);
+    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
+                                                  false);
     try
     {
       configFile = new StringArgument("configfile", 'c', "configFile", true,
@@ -201,7 +203,7 @@ public class ConfigureDS
     {
       int    msgID   = MSGID_CONFIGDS_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -216,7 +218,7 @@ public class ConfigureDS
       int    msgID   = MSGID_CONFIGDS_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
@@ -235,7 +237,7 @@ public class ConfigureDS
     {
       int    msgID   = MSGID_CONFIGDS_NO_CONFIG_CHANGES;
       String message = getMessage(msgID);
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
       return 1;
     }
@@ -256,7 +258,7 @@ public class ConfigureDS
       String message = getMessage(msgID,
                                   String.valueOf(configFile.getValue()),
                                   e.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -271,7 +273,7 @@ public class ConfigureDS
       String message = getMessage(msgID,
                                   String.valueOf(configFile.getValue()),
                                   e.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -285,7 +287,7 @@ public class ConfigureDS
       String message = getMessage(msgID,
                                   String.valueOf(configFile.getValue()),
                                   e.getMessage());
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -300,7 +302,7 @@ public class ConfigureDS
       int    msgID   = MSGID_CONFIGDS_CANNOT_ACQUIRE_SERVER_LOCK;
       String message = getMessage(msgID, String.valueOf(serverLockFileName),
                                   String.valueOf(failureReason));
-      System.err.println(message);
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -324,7 +326,7 @@ public class ConfigureDS
             int    msgID   = MSGID_CONFIGDS_CANNOT_PARSE_BASE_DN;
             String message = getMessage(msgID, String.valueOf(dnString),
                                         de.getErrorMessage());
-            System.err.println(message);
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
         }
@@ -347,7 +349,7 @@ public class ConfigureDS
           String message = getMessage(msgID,
                                       String.valueOf(rootDNString.getValue()),
                                       de.getErrorMessage());
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
 
@@ -363,7 +365,7 @@ public class ConfigureDS
         {
           int    msgID   = MSGID_CONFIGDS_NO_ROOT_PW;
           String message = getMessage(msgID);
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -393,7 +395,7 @@ public class ConfigureDS
         {
           int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_BASE_DN;
           String message = getMessage(msgID, String.valueOf(e));
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -419,7 +421,7 @@ public class ConfigureDS
         {
           int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_LDAP_PORT;
           String message = getMessage(msgID, String.valueOf(e));
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -453,7 +455,7 @@ public class ConfigureDS
         {
           int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_ROOT_USER;
           String message = getMessage(msgID, String.valueOf(e));
-          System.err.println(message);
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -466,13 +468,13 @@ public class ConfigureDS
 
         int    msgID   = MSGID_CONFIGDS_WROTE_UPDATED_CONFIG;
         String message = getMessage(msgID);
-        System.out.println(message);
+        System.out.println(wrapText(message, MAX_LINE_WIDTH));
       }
       catch (DirectoryException de)
       {
         int    msgID   = MSGID_CONFIGDS_CANNOT_WRITE_UPDATED_CONFIG;
         String message = getMessage(msgID, de.getErrorMessage());
-        System.err.println(message);
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }

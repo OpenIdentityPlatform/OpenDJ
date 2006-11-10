@@ -30,5 +30,8 @@
 OPENDS_INVOKE_CLASS="org.opends.server.tools.ImportLDIF"
 export OPENDS_INVOKE_CLASS
 
+SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=import-ldif"
+export SCRIPT_NAME_ARG
+
 SCRIPT_DIR=`dirname "${0}"`
 "${SCRIPT_DIR}/_server-script.sh" "${@}"

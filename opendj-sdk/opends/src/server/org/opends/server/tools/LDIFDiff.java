@@ -133,7 +133,9 @@ public class LDIFDiff
     StringArgument  targetLDIF;
 
 
-    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, false);
+    String toolDescription = getMessage(MSGID_LDIFDIFF_TOOL_DESCRIPTION);
+    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
+                                                  false);
     try
     {
       sourceLDIF = new StringArgument("sourceldif", 's', "sourceLDIF", true,

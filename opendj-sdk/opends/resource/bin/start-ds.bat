@@ -50,6 +50,8 @@ FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
 
 set PATH=%SystemRoot%
 
+set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=start-ds"
+
 set NODETACH=0
 for %%x in (%*) DO if "%%x" == "-N" set NODETACH=1
 for %%x in (%*) DO if "%%x" == "--nodetach" set NODETACH=1

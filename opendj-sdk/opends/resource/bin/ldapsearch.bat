@@ -28,5 +28,6 @@ rem      Portions Copyright 2006 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDAPSearch"
+set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=ldapsearch"
 call "%~dP0\_client-script.bat" %*
 
