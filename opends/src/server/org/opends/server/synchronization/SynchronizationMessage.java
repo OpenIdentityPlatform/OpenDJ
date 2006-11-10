@@ -46,6 +46,7 @@ public abstract class SynchronizationMessage implements Serializable
   static final byte MSG_TYPE_ACK = 5;
   static final byte MSG_TYPE_SERVER_START = 6;
   static final byte MSG_TYPE_CHANGELOG_START = 7;
+  static final byte MSG_TYPE_WINDOW = 8;
 
   /**
    * Do the processing necessary when the message is received.
@@ -105,6 +106,9 @@ public abstract class SynchronizationMessage implements Serializable
       break;
       case MSG_TYPE_CHANGELOG_START:
         msg = new ChangelogStartMessage(buffer);
+      break;
+      case MSG_TYPE_WINDOW:
+        msg = new WindowMessage(buffer);
       break;
       default:
         throw new DataFormatException("received message with unknown type");

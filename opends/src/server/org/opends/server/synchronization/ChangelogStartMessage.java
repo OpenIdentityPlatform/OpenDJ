@@ -46,15 +46,19 @@ public class ChangelogStartMessage extends SynchronizationMessage implements
   private String serverURL;
   private ServerState serverState;
 
+  private int windowSize;
+
   /**
    * Create a ChangelogStartMessage.
    *
    * @param serverId changelog server id
    * @param serverURL changelog server URL
    * @param baseDn base DN for which the ChangelogStartMessage is created.
+   * @param windowSize The window size.
    * @param serverState our ServerState for this baseDn.
    */
   public ChangelogStartMessage(short serverId, String serverURL, DN baseDn,
+                               int windowSize,
                                ServerState serverState)
   {
     this.serverId = serverId;
@@ -63,6 +67,7 @@ public class ChangelogStartMessage extends SynchronizationMessage implements
       this.baseDn = baseDn.toNormalizedString();
     else
       this.baseDn = null;
+    this.windowSize = windowSize;
     this.serverState = serverState;
   }
 
@@ -76,7 +81,7 @@ public class ChangelogStartMessage extends SynchronizationMessage implements
   public ChangelogStartMessage(byte[] in) throws DataFormatException
   {
     /* The ChangelogStartMessage is encoded in the form :
-     * <baseDn><ServerId><ServerUrl><ServerState>
+     * <baseDn><ServerId><ServerUrl><windowsize><ServerState>
      */
     try
     {
@@ -105,6 +110,13 @@ public class ChangelogStartMessage extends SynchronizationMessage implements
        */
       length = getNextLength(in, pos);
       serverURL = new String(in, pos, length, "UTF-8");
+      pos += length +1;
+
+      /*
+       * read the window size
+       */
+      length = getNextLength(in, pos);
+      windowSize = Integer.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       /*
@@ -179,16 +191,18 @@ public class ChangelogStartMessage extends SynchronizationMessage implements
   public byte[] getBytes()
   {
     /* The ChangelogStartMessage is stored in the form :
-     * <operation type><basedn><serverid><serverURL><serverState>
+     * <operation type><basedn><serverid><serverURL><windowsize><serverState>
      */
     try {
       byte[] byteDn = baseDn.getBytes("UTF-8");
       byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
       byte[] byteServerUrl = serverURL.getBytes("UTF-8");
       byte[] byteServerState = serverState.getBytes();
+      byte[] byteWindowSize = String.valueOf(windowSize).getBytes("UTF-8");
 
       int length = 1 + byteDn.length + 1 + byteServerId.length + 1 +
-      byteServerUrl.length + 1 + byteServerState.length + 1;
+          byteServerUrl.length + 1 + byteWindowSize.length + 1 +
+          byteServerState.length + 1;
 
       byte[] resultByteArray = new byte[length];
 
@@ -205,6 +219,9 @@ public class ChangelogStartMessage extends SynchronizationMessage implements
       /* put the ServerURL */
       pos = addByteArray(byteServerUrl, resultByteArray, pos);
 
+      /* put the window size */
+      pos = addByteArray(byteWindowSize, resultByteArray, pos);
+
       /* put the ServerState */
       pos = addByteArray(byteServerState, resultByteArray, pos);
 
@@ -214,5 +231,15 @@ public class ChangelogStartMessage extends SynchronizationMessage implements
     {
       return null;
     }
+  }
+
+  /**
+   * get the window size for the server that created this message.
+   *
+   * @return The window size for the server that created this message.
+   */
+  public int getWindowSize()
+  {
+    return windowSize;
   }
 }

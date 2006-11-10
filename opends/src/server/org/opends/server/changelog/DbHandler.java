@@ -87,13 +87,17 @@ public class DbHandler implements Runnable
    *
    * @param id Identifier of the DB.
    * @param baseDn of the DB.
+   * @param changelog the Changelog that creates this dbHandler.
+   * @param dbenv the Database Env to use to create the Changelog DB.
    * @throws DatabaseException If a database problem happened
    */
-  public DbHandler(short id, DN baseDn) throws DatabaseException
+  public DbHandler(short id, DN baseDn, Changelog changelog,
+      ChangelogDbEnv dbenv)
+         throws DatabaseException
   {
     this.serverId = id;
     this.baseDn = baseDn;
-    db = new ChangelogDB(id, baseDn);
+    db = new ChangelogDB(id, baseDn, changelog, dbenv);
     firstChange = db.readFirstChange();
     lastChange = db.readLastChange();
     thread = new DirectoryThread(this, "changelog db " + id + " " +  baseDn);
@@ -245,6 +249,10 @@ public class DbHandler implements Runnable
         {}
       }
     }
+
+    while (msgQueue.size() != 0)
+      flush();
+
     db.shutdown();
   }
 

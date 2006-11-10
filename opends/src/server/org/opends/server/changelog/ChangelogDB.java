@@ -32,10 +32,8 @@ import static org.opends.server.synchronization.SynchMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.List;
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
@@ -45,10 +43,7 @@ import org.opends.server.synchronization.UpdateMessage;
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
@@ -60,141 +55,32 @@ import com.sleepycat.je.Transaction;
  */
 public class ChangelogDB
 {
-  private static Environment dbEnvironment = null;
   private Database db = null;
-  private static Database stateDb = null;
-  private String stringId = null;
+  private ChangelogDbEnv dbenv = null;
+  private Changelog changelog;
+  private Short serverId;
+  private DN baseDn;
 
   /**
    * Creates a new database or open existing database that will be used
    * to store and retrieve changes from an LDAP server.
    * @param serverId Identifier of the LDAP server.
    * @param baseDn baseDn of the LDAP server.
+   * @param changelog the Changelog that needs to be shutdown
+   * @param dbenv the Db encironemnet to use to create the db
    * @throws DatabaseException if a database problem happened
    */
-  public ChangelogDB(Short serverId, DN baseDn)
+  public ChangelogDB(Short serverId, DN baseDn, Changelog changelog,
+                     ChangelogDbEnv dbenv)
                      throws DatabaseException
   {
-    try {
-      stringId = serverId.toString() + " " + baseDn.toNormalizedString();
-      byte[] byteId = stringId.getBytes("UTF-8");
+    this.serverId = serverId;
+    this.baseDn = baseDn;
+    this.dbenv = dbenv;
+    this.changelog = changelog;
+    db = dbenv.getOrAddDb(serverId, baseDn);
 
-      // Open the database. Create it if it does not already exist.
-      DatabaseConfig dbConfig = new DatabaseConfig();
-      dbConfig.setAllowCreate(true);
-      dbConfig.setTransactional(true);
-
-      db = dbEnvironment.openDatabase(null, stringId, dbConfig);
-
-      DatabaseEntry key = new DatabaseEntry();
-      key.setData(byteId);
-      DatabaseEntry data = new DatabaseEntry();
-      OperationStatus status = stateDb.get(null, key, data, LockMode.DEFAULT);
-      if (status == OperationStatus.NOTFOUND)
-      {
-        Transaction txn = dbEnvironment.beginTransaction(null, null);
-        try {
-          data.setData(byteId);
-          stateDb.put(txn, key, data);
-          txn.commitWriteNoSync();
-        } catch (DatabaseException dbe)
-        {
-          // Abort the txn and propagate the Exception to the caller
-          txn.abort();
-          throw dbe;
-        }
-      }
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      // never happens
-    }
   }
-
-  /**
-   * Initialize this class.
-   * Creates Db environment that will be used to create databases.
-   * It also reads the currently known databases from the "changelogstate"
-   * database.
-   * @param path Path where the backing files must be created.
-   * @throws DatabaseException If a DatabaseException occured that prevented
-   *                           the initialization to happen.
-   * @throws ChangelogDBException If a changelog internal error caused
-   *                              a failure of the changelog processing.
-   */
-  public static void initialize(String path) throws DatabaseException,
-                                                    ChangelogDBException
-  {
-    EnvironmentConfig envConfig = new EnvironmentConfig();
-
-    /* Create the DB Environment that will be used for all
-     * the Changelog activities related to the db
-     */
-    envConfig.setAllowCreate(true);
-    envConfig.setTransactional(true);
-    envConfig.setConfigParam("je.cleaner.expunge", "true");
-    // TODO : the DB cache size should be configurable
-    // For now set 5M is OK for being efficient in 64M total for the JVM
-    envConfig.setConfigParam("je.maxMemory", "5000000");
-    dbEnvironment = new Environment(new File(path), envConfig);
-
-    /*
-     * One database is created to store the update from each LDAP
-     * server in the topology.
-     * The database "changelogstate" is used to store the list of all
-     * the servers that have been seen in the past.
-     */
-    DatabaseConfig dbConfig = new DatabaseConfig();
-    dbConfig.setAllowCreate(true);
-    dbConfig.setTransactional(true);
-
-    stateDb = dbEnvironment.openDatabase(null, "changelogstate", dbConfig);
-    Cursor cursor = stateDb.openCursor(null, null);
-    DatabaseEntry key = new DatabaseEntry();
-    DatabaseEntry data = new DatabaseEntry();
-    try
-    {
-      OperationStatus status = cursor.getFirst(key, data, LockMode.DEFAULT);
-      while (status == OperationStatus.SUCCESS)
-      {
-        try
-        {
-          String stringData = new String(data.getData(), "UTF-8");
-          String[] str = stringData.split(" ", 2);
-          short serverId = new Short(str[0]);
-          DN baseDn = null;
-          try
-          {
-            baseDn = DN.decode(str[1]);
-          } catch (DirectoryException e)
-          {
-            int    msgID   = MSGID_IGNORE_BAD_DN_IN_DATABASE_IDENTIFIER;
-            String message = getMessage(msgID, str[1]);
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
-          }
-          Changelog.getChangelogCache(baseDn).newDb(serverId, baseDn);
-        } catch (NumberFormatException e)
-        {
-          // should never happen
-          throw new ChangelogDBException(0,
-              "changelog state database has a wrong format");
-        } catch (UnsupportedEncodingException e)
-        {
-          // should never happens
-          throw new ChangelogDBException(0, "need UTF-8 support");
-        }
-        status = cursor.getNext(key, data, LockMode.DEFAULT);
-      }
-      cursor.close();
-
-    } catch (DatabaseException dbe) {
-      cursor.close();
-      throw dbe;
-    }
-  }
-
 
   /**
    * add a list of changes to the underlying db.
@@ -207,7 +93,7 @@ public class ChangelogDB
 
     try
     {
-      txn = dbEnvironment.beginTransaction(null, null);
+      txn = dbenv.beginTransaction();
 
       for (UpdateMessage change : changes)
       {
@@ -224,7 +110,7 @@ public class ChangelogDB
           logError(ErrorLogCategory.SYNCHRONIZATION,
                    ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
-          Changelog.shutdown();
+          changelog.shutdown();
         }
       }
 
@@ -238,7 +124,7 @@ public class ChangelogDB
       logError(ErrorLogCategory.SYNCHRONIZATION,
                ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
-      Changelog.shutdown();
+      changelog.shutdown();
       if (txn != null)
       {
         try
@@ -264,7 +150,7 @@ public class ChangelogDB
     } catch (DatabaseException e)
     {
       int    msgID   = MSGID_EXCEPTION_CLOSING_DATABASE;
-      String message = getMessage(msgID, stringId)  +
+      String message = getMessage(msgID, this.toString())  +
                                  stackTraceToSingleLineString(e);
       logError(ErrorLogCategory.SYNCHRONIZATION,
                ErrorLogSeverity.NOTICE,
@@ -355,7 +241,7 @@ public class ChangelogDB
       logError(ErrorLogCategory.SYNCHRONIZATION,
                ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
-      Changelog.shutdown();
+      changelog.shutdown();
       return null;
     }
   }
@@ -396,28 +282,18 @@ public class ChangelogDB
       logError(ErrorLogCategory.SYNCHRONIZATION,
                ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
-      Changelog.shutdown();
+      changelog.shutdown();
       return null;
     }
   }
 
   /**
-   * Shutdown the Db environment.
+   * {@inheritDoc}
    */
-  public static void shutdownDbEnvironment()
+  @Override
+  public String toString()
   {
-    try
-    {
-      stateDb.close();
-      dbEnvironment.close();
-    } catch (DatabaseException e)
-    {
-      int    msgID   = MSGID_ERROR_CLOSING_CHANGELOG_ENV;
-      String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
-    }
+    return serverId.toString() + baseDn.toString();
   }
 
   /**
@@ -455,7 +331,7 @@ public class ChangelogDB
 
     private ChangelogCursor() throws DatabaseException
     {
-      txn = dbEnvironment.beginTransaction(null, null);
+      txn = dbenv.beginTransaction();
       cursor = db.openCursor(txn, null);
     }
 
@@ -477,7 +353,7 @@ public class ChangelogDB
         logError(ErrorLogCategory.SYNCHRONIZATION,
                  ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        Changelog.shutdown();
+        changelog.shutdown();
       }
       if (txn != null)
       {
@@ -491,7 +367,7 @@ public class ChangelogDB
           logError(ErrorLogCategory.SYNCHRONIZATION,
                    ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
-          Changelog.shutdown();
+          changelog.shutdown();
         }
       }
     }

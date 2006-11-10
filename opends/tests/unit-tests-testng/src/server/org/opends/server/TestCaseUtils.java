@@ -70,6 +70,14 @@ public final class TestCaseUtils {
        "org.opends.server.BuildRoot";
 
   /**
+   * The name of the system property that specifies the ldap port.
+   * Set this prtoperty when running the server if you want to use a given
+   * port number, otherwise a port is choosed randomly at test startup time.
+   */
+  public static final String PROPERTY_LDAP_PORT =
+       "org.opends.server.LdapPort";
+  
+  /**
    * The string representation of the DN that will be used as the base entry for
    * the test backend.  This must not be changed, as there are a number of test
    * cases that depend on this specific value of "o=test".
@@ -205,8 +213,17 @@ public final class TestCaseUtils {
     ServerSocket serverJmxSocket   = null;
     ServerSocket serverLdapsSocket = null;
 
-    serverLdapSocket = bindFreePort();
-    serverLdapPort = serverLdapSocket.getLocalPort();
+    String ldapPort = System.getProperty(PROPERTY_LDAP_PORT);
+    if (ldapPort == null)
+    {
+      serverLdapSocket = bindFreePort();
+      serverLdapPort = serverLdapSocket.getLocalPort();
+    }
+    else
+    {
+      serverLdapPort = Integer.valueOf(ldapPort);
+      serverLdapSocket = bindPort(serverLdapPort);
+    }
 
     serverJmxSocket = bindFreePort();
     serverJmxPort = serverJmxSocket.getLocalPort();
@@ -260,6 +277,23 @@ public final class TestCaseUtils {
     assertTrue(InvocationCounterPlugin.startupCalled());
 
     SERVER_STARTED = true;
+  }
+
+  /**
+   * Binds to the given socket port on the local host.
+   * @return the bounded Server socket.
+   *
+   * @throws IOException in case of underlying exception.
+   * @throws SocketException in case of underlying exception.
+   */
+  private static ServerSocket bindPort(int port)
+          throws IOException, SocketException
+  {
+    ServerSocket serverLdapSocket;
+    serverLdapSocket = new ServerSocket();
+    serverLdapSocket.setReuseAddress(true);
+    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", port));
+    return serverLdapSocket;
   }
 
   /**

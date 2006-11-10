@@ -27,6 +27,7 @@
 
 package org.opends.server.synchronization;
 
+import static org.opends.server.loggers.Error.logError;
 import static org.testng.Assert.*;
 
 import java.net.SocketException;
@@ -325,6 +326,10 @@ public class UpdateOperationTest extends SynchronizationTestCase
   @Test(enabled=true)
   public void namingConflicts() throws Exception
   {
+    logError(ErrorLogCategory.SYNCHRONIZATION,
+        ErrorLogSeverity.NOTICE,
+        "Starting synchronization test : namingConflicts" , 1);
+    
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     /*
@@ -635,193 +640,198 @@ public class UpdateOperationTest extends SynchronizationTestCase
   @Test(enabled=true, dataProvider="assured")
   public void updateOperations(boolean assured) throws Exception
   {
+    logError(ErrorLogCategory.SYNCHRONIZATION,
+        ErrorLogSeverity.NOTICE,
+        "Starting synchronization test : updateOperations " + assured , 1);
+    
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     cleanEntries();
+    
+    ChangelogBroker broker = openChangelogSession(baseDn, (short) 27);
+    try {
+      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
 
-    ChangelogBroker broker = openChangelogSession(baseDn, (short) 3);
-    ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 3, 0);
-
-    /*
-     * loop receiving update until there is nothing left
-     * to make sure that message from previous tests have been consumed.
-     */
-    // broker.setSoTimeout(100);
-    try
-    {
-      while (true)
+      /*
+       * loop receiving update until there is nothing left
+       * to make sure that message from previous tests have been consumed.
+       */
+      try
       {
-        broker.receive();
+        while (true)
+        {
+          broker.receive();
+        }
       }
-     }
-    catch (Exception e)
-    {
-     // broker.setSoTimeout(1000);
-    }
-    /*
-     * Test that operations done on this server are sent to the
-     * changelog server and forwarded to our changelog broker session.
-     */
+      catch (Exception e)
+      {}
+      /*
+       * Test that operations done on this server are sent to the
+       * changelog server and forwarded to our changelog broker session.
+       */
 
-    // Create an Entry (add operation)
-    Entry tmp = personEntry.duplicate();
-    AddOperation addOp = new AddOperation(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-        .nextMessageID(), null, tmp.getDN(),
-        tmp.getObjectClasses(), tmp.getUserAttributes(),
-        tmp.getOperationalAttributes());
-    addOp.run();
-    entryList.add(personEntry);
-    assertNotNull(DirectoryServer.getEntry(personEntry.getDN()),
+      // Create an Entry (add operation)
+      Entry tmp = personEntry.duplicate();
+      AddOperation addOp = new AddOperation(connection,
+          InternalClientConnection.nextOperationID(), InternalClientConnection
+          .nextMessageID(), null, tmp.getDN(),
+          tmp.getObjectClasses(), tmp.getUserAttributes(),
+          tmp.getOperationalAttributes());
+      addOp.run();
+      entryList.add(personEntry);
+      assertNotNull(DirectoryServer.getEntry(personEntry.getDN()),
       "The Add Entry operation failed");
 
-    // Check if the client has received the msg
-    SynchronizationMessage msg = broker.receive();
-    assertTrue(msg instanceof AddMsg,
+      // Check if the client has received the msg
+      SynchronizationMessage msg = broker.receive();
+      assertTrue(msg instanceof AddMsg,
       "The received synchronization message is not an ADD msg");
-    AddMsg addMsg =  (AddMsg) msg;
+      AddMsg addMsg =  (AddMsg) msg;
 
-    Operation receivedOp = addMsg.createOperation(connection);
-    assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
+      Operation receivedOp = addMsg.createOperation(connection);
+      assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
       "The received synchronization message is not an ADD msg");
 
-    assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
+      assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
       "The received ADD synchronization message is not for the excepted DN");
 
-    // Modify the entry
-    List<Modification> mods = generatemods("telephonenumber", "01 02 45");
+      // Modify the entry
+      List<Modification> mods = generatemods("telephonenumber", "01 02 45");
 
-    ModifyOperation modOp = new ModifyOperation(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-            .nextMessageID(), null, personEntry.getDN(), mods);
-    modOp.setInternalOperation(true);
-    modOp.run();
+      ModifyOperation modOp = new ModifyOperation(connection,
+          InternalClientConnection.nextOperationID(), InternalClientConnection
+          .nextMessageID(), null, personEntry.getDN(), mods);
+      modOp.setInternalOperation(true);
+      modOp.run();
 
-    // See if the client has received the msg
-    msg = broker.receive();
-    assertTrue(msg instanceof ModifyMsg,
-        "The received synchronization message is not a MODIFY msg");
-    ModifyMsg modMsg = (ModifyMsg) msg;
+      // See if the client has received the msg
+      msg = broker.receive();
+      assertTrue(msg instanceof ModifyMsg,
+      "The received synchronization message is not a MODIFY msg");
+      ModifyMsg modMsg = (ModifyMsg) msg;
 
-    receivedOp = modMsg.createOperation(connection);
-    assertTrue(DN.decode(modMsg.getDn()).compareTo(personEntry.getDN()) == 0,
-    "The received MODIFY synchronization message is not for the excepted DN");
+      receivedOp = modMsg.createOperation(connection);
+      assertTrue(DN.decode(modMsg.getDn()).compareTo(personEntry.getDN()) == 0,
+      "The received MODIFY synchronization message is not for the excepted DN");
 
-    // Modify the entry DN
-    DN newDN = DN.decode("uid= new person,ou=People,dc=example,dc=com") ;
-    ModifyDNOperation modDNOp = new ModifyDNOperation(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-            .nextMessageID(), null, personEntry.getDN(), RDN
-            .decode("uid=new person"), true, DN
-            .decode("ou=People,dc=example,dc=com"));
-    modDNOp.run();
-    assertNotNull(DirectoryServer.getEntry(newDN),
-        "The MOD_DN operation didn't create the new person entry");
-    assertNull(DirectoryServer.getEntry(personEntry.getDN()),
-        "The MOD_DN operation didn't delete the old person entry");
-    entryList.add(DirectoryServer.getEntry(newDN));
+      // Modify the entry DN
+      DN newDN = DN.decode("uid= new person,ou=People,dc=example,dc=com") ;
+      ModifyDNOperation modDNOp = new ModifyDNOperation(connection,
+          InternalClientConnection.nextOperationID(), InternalClientConnection
+          .nextMessageID(), null, personEntry.getDN(), RDN
+          .decode("uid=new person"), true, DN
+          .decode("ou=People,dc=example,dc=com"));
+      modDNOp.run();
+      assertNotNull(DirectoryServer.getEntry(newDN),
+      "The MOD_DN operation didn't create the new person entry");
+      assertNull(DirectoryServer.getEntry(personEntry.getDN()),
+      "The MOD_DN operation didn't delete the old person entry");
+      entryList.add(DirectoryServer.getEntry(newDN));
 
-    // See if the client has received the msg
-    msg = broker.receive();
-    assertTrue(msg instanceof ModifyDNMsg,
-        "The received synchronization message is not a MODIFY DN msg");
-    ModifyDNMsg moddnMsg = (ModifyDNMsg) msg;
-    receivedOp = moddnMsg.createOperation(connection);
+      // See if the client has received the msg
+      msg = broker.receive();
+      assertTrue(msg instanceof ModifyDNMsg,
+      "The received synchronization message is not a MODIFY DN msg");
+      ModifyDNMsg moddnMsg = (ModifyDNMsg) msg;
+      receivedOp = moddnMsg.createOperation(connection);
 
-    assertTrue(DN.decode(moddnMsg.getDn()).compareTo(personEntry.getDN()) == 0,
-        "The received MODIFY_DN message is not for the excepted DN");
+      assertTrue(DN.decode(moddnMsg.getDn()).compareTo(personEntry.getDN()) == 0,
+      "The received MODIFY_DN message is not for the excepted DN");
 
-    // Delete the entry
-    Entry newPersonEntry = DirectoryServer.getEntry(newDN) ;
-    DeleteOperation delOp = new DeleteOperation(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-            .nextMessageID(), null, DN
-            .decode("uid= new person,ou=People,dc=example,dc=com"));
-    delOp.run();
-    assertNull(DirectoryServer.getEntry(newDN),
-        "Unable to delete the new person Entry");
-    entryList.remove(newPersonEntry);
+      // Delete the entry
+      Entry newPersonEntry = DirectoryServer.getEntry(newDN) ;
+      DeleteOperation delOp = new DeleteOperation(connection,
+          InternalClientConnection.nextOperationID(), InternalClientConnection
+          .nextMessageID(), null, DN
+          .decode("uid= new person,ou=People,dc=example,dc=com"));
+      delOp.run();
+      assertNull(DirectoryServer.getEntry(newDN),
+      "Unable to delete the new person Entry");
+      entryList.remove(newPersonEntry);
 
-    // See if the client has received the msg
-    msg = broker.receive();
-    assertTrue(msg instanceof DeleteMsg,
-        "The received synchronization message is not a MODIFY DN msg");
-    DeleteMsg delMsg = (DeleteMsg) msg;
-    receivedOp = delMsg.createOperation(connection);
-    assertTrue(DN.decode(delMsg.getDn()).compareTo(DN
-        .decode("uid= new person,ou=People,dc=example,dc=com")) == 0,
-        "The received DELETE message is not for the excepted DN");
+      // See if the client has received the msg
+      msg = broker.receive();
+      assertTrue(msg instanceof DeleteMsg,
+      "The received synchronization message is not a MODIFY DN msg");
+      DeleteMsg delMsg = (DeleteMsg) msg;
+      receivedOp = delMsg.createOperation(connection);
+      assertTrue(DN.decode(delMsg.getDn()).compareTo(DN
+          .decode("uid= new person,ou=People,dc=example,dc=com")) == 0,
+      "The received DELETE message is not for the excepted DN");
 
-    /*
-     * Now check that when we send message to the Changelog server
-     * and that they are received and correctly replayed by the server.
-     *
-     * Start by testing the Add message reception
-     */
-    addMsg = new AddMsg(gen.NewChangeNumber(),
-        personWithUUIDEntry.getDN().toString(),
-        user1entryUUID, baseUUID,
-        personWithUUIDEntry.getObjectClassAttribute(),
-        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
-    if (assured)
-      addMsg.setAssured();
-    broker.publish(addMsg);
+      /*
+       * Now check that when we send message to the Changelog server
+       * and that they are received and correctly replayed by the server.
+       *
+       * Start by testing the Add message reception
+       */
+      addMsg = new AddMsg(gen.NewChangeNumber(),
+          personWithUUIDEntry.getDN().toString(),
+          user1entryUUID, baseUUID,
+          personWithUUIDEntry.getObjectClassAttribute(),
+          personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+      if (assured)
+        addMsg.setAssured();
+      broker.publish(addMsg);
 
-    /*
-     * Check that the entry has been created in the local DS.
-     */
-    Entry resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000, true);
-    assertNotNull(resultEntry,
-        "The send ADD synchronization message was not applied");
-    entryList.add(resultEntry);
+      /*
+       * Check that the entry has been created in the local DS.
+       */
+      Entry resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000, true);
+      assertNotNull(resultEntry,
+      "The send ADD synchronization message was not applied");
+      entryList.add(resultEntry);
 
-    /*
-     * Test the reception of Modify Msg
-     */
-    modMsg = new ModifyMsg(gen.NewChangeNumber(), personWithUUIDEntry.getDN(),
-                           mods, user1entryUUID);
-    if (assured)
-      modMsg.setAssured();
-    broker.publish(modMsg);
+      /*
+       * Test the reception of Modify Msg
+       */
+      modMsg = new ModifyMsg(gen.NewChangeNumber(), personWithUUIDEntry.getDN(),
+          mods, user1entryUUID);
+      if (assured)
+        modMsg.setAssured();
+      broker.publish(modMsg);
 
-    boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
-                           "telephonenumber", "01 02 45", 1000);
+      boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
+          "telephonenumber", "01 02 45", 1000);
 
-    if (found == false)
-     fail("The modification has not been correctly replayed.");
+      if (found == false)
+        fail("The modification has not been correctly replayed.");
 
-    /*
-     * Test the Reception of Modify Dn Msg
-     */
-    moddnMsg = new ModifyDNMsg(personWithUUIDEntry.getDN().toString(),
-                           gen.NewChangeNumber(),
-                           user1entryUUID, null,
-                           true, null, "uid= new person");
-    if (assured)
-      moddnMsg.setAssured();
-    broker.publish(moddnMsg);
+      /*
+       * Test the Reception of Modify Dn Msg
+       */
+      moddnMsg = new ModifyDNMsg(personWithUUIDEntry.getDN().toString(),
+          gen.NewChangeNumber(),
+          user1entryUUID, null,
+          true, null, "uid= new person");
+      if (assured)
+        moddnMsg.setAssured();
+      broker.publish(moddnMsg);
 
-    resultEntry = getEntry(
-        DN.decode("uid= new person,ou=People,dc=example,dc=com"), 1000, true);
+      resultEntry = getEntry(
+          DN.decode("uid= new person,ou=People,dc=example,dc=com"), 1000, true);
 
-    assertNotNull(resultEntry,
-        "The modify DN synchronization message was not applied");
+      assertNotNull(resultEntry,
+      "The modify DN synchronization message was not applied");
 
-    /*
-     * Test the Reception of Delete Msg
-     */
-    delMsg = new DeleteMsg("uid= new person,ou=People,dc=example,dc=com",
-                           gen.NewChangeNumber(), user1entryUUID);
-    if (assured)
-      delMsg.setAssured();
-    broker.publish(delMsg);
-    resultEntry = getEntry(
+      /*
+       * Test the Reception of Delete Msg
+       */
+      delMsg = new DeleteMsg("uid= new person,ou=People,dc=example,dc=com",
+          gen.NewChangeNumber(), user1entryUUID);
+      if (assured)
+        delMsg.setAssured();
+      broker.publish(delMsg);
+      resultEntry = getEntry(
           DN.decode("uid= new person,ou=People,dc=example,dc=com"), 1000, false);
 
-    assertNull(resultEntry,
-        "The DELETE synchronization message was not replayed");
-
-    broker.stop();
+      assertNull(resultEntry,
+      "The DELETE synchronization message was not replayed");
+    }
+    finally
+    {
+      broker.stop();
+    }
   }
 
   /**
@@ -850,7 +860,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     ServerState state = new ServerState(baseDn);
     state.loadState();
     ChangelogBroker broker = new ChangelogBroker(state, baseDn,
-                                                 serverId, 0, 0, 0, 0);
+                                                 serverId, 0, 0, 0, 0, 100);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:8989");
     broker.start(servers);
@@ -996,6 +1006,10 @@ public class UpdateOperationTest extends SynchronizationTestCase
   @Test(enabled=true)
   public void deleteNoSuchObject() throws Exception
   {
+    logError(ErrorLogCategory.SYNCHRONIZATION,
+        ErrorLogSeverity.NOTICE,
+        "Starting synchronization test : deleteNoSuchObject" , 1);
+    
     DN dn = DN.decode("cn=No Such Object,ou=People,dc=example,dc=com");
     Operation op =
          new DeleteOperation(connection,
@@ -1014,12 +1028,17 @@ public class UpdateOperationTest extends SynchronizationTestCase
   @Test(enabled=true)
   public void infiniteReplayLoop() throws Exception
   {
+    logError(ErrorLogCategory.SYNCHRONIZATION,
+        ErrorLogSeverity.NOTICE,
+        "Starting synchronization test : infiniteReplayLoop" , 1);
+    
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
-    ChangelogBroker broker = openChangelogSession(baseDn, (short) 3);
+    Thread.sleep(2000);
+    ChangelogBroker broker = openChangelogSession(baseDn, (short) 11);
     try
     {
-      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 3, 0);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 11, 0);
 
       // Create a test entry.
       String personLdif = "dn: uid=user.2,ou=People,dc=example,dc=com\n"

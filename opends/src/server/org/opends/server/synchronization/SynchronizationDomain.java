@@ -138,6 +138,7 @@ public class SynchronizationDomain extends DirectoryThread
   static String MAX_RECEIVE_DELAY = "ds-cfg-max-receive-delay";
   static String MAX_SEND_QUEUE = "ds-cfg-max-send-queue";
   static String MAX_SEND_DELAY = "ds-cfg-max-send-delay";
+  static String WINDOW_SIZE = "ds-cfg-window-size";
 
   private static final StringConfigAttribute changelogStub =
     new StringConfigAttribute(CHANGELOG_SERVER_ATTR,
@@ -275,6 +276,20 @@ public class SynchronizationDomain extends DirectoryThread
       configAttributes.add(maxSendDelayAttr);
     }
 
+    Integer window;
+    IntegerConfigAttribute windowStub =
+      new IntegerConfigAttribute(WINDOW_SIZE, "window size",
+                                 false, false, false, true, 0, false, 0);
+    IntegerConfigAttribute windowAttr =
+      (IntegerConfigAttribute) configEntry.getConfigAttribute(windowStub);
+    if (windowAttr == null)
+      window = 100;  // Attribute is not present : use the default value
+    else
+    {
+      window = windowAttr.activeIntValue();
+      configAttributes.add(windowAttr);
+    }
+
     configDn = configEntry.getDN();
     DirectoryServer.registerConfigurableComponent(this);
 
@@ -292,7 +307,7 @@ public class SynchronizationDomain extends DirectoryThread
     try
     {
       broker = new ChangelogBroker(state, baseDN, serverId, maxReceiveQueue,
-          maxReceiveDelay, maxSendQueue, maxSendDelay);
+          maxReceiveDelay, maxSendQueue, maxSendDelay, window);
       synchronized (broker)
       {
         broker.start(changelogServers);
@@ -882,10 +897,7 @@ public class SynchronizationDomain extends DirectoryThread
    */
   public int getPendingUpdatesCount()
   {
-    synchronized (pendingChanges)
-    {
-      return pendingChanges.size();
-    }
+    return pendingChanges.size();
   }
 
   /**
@@ -1661,5 +1673,45 @@ public class SynchronizationDomain extends DirectoryThread
       return false;
     }
     return true;
+  }
+
+  /**
+   * Get the maximum receive window size.
+   *
+   * @return The maximum receive window size.
+   */
+  public int getMaxRcvWindow()
+  {
+    return broker.getMaxRcvWindow();
+  }
+
+  /**
+   * Get the current receive window size.
+   *
+   * @return The current receive window size.
+   */
+  public int getCurrentRcvWindow()
+  {
+    return broker.getCurrentRcvWindow();
+  }
+
+  /**
+   * Get the maximum send window size.
+   *
+   * @return The maximum send window size.
+   */
+  public int getMaxSendWindow()
+  {
+    return broker.getMaxSendWindow();
+  }
+
+  /**
+   * Get the current send window size.
+   *
+   * @return The current send window size.
+   */
+  public int getCurrentSendWindow()
+  {
+    return broker.getCurrentSendWindow();
   }
 }

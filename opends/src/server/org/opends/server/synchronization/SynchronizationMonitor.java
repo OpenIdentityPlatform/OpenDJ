@@ -98,64 +98,37 @@ public class SynchronizationMonitor extends MonitorProvider
     attributes.add(attr);
 
     /* get number of received updates */
-    final String ATTR_UPDATE_RECVD = "received-updates";
-    AttributeType type =
-                    DirectoryServer.getDefaultAttributeType(ATTR_UPDATE_RECVD);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(type,
-                                  String.valueOf(domain.getNumRcvdUpdates())));
-    attr = new Attribute(type, "received-updates", values);
-    attributes.add(attr);
+    addMonitorData(attributes, "received-updates", domain.getNumRcvdUpdates());
 
     /* get number of updates sent */
-    final String ATTR_UPDATE_SENT = "sent-updates";
-    type =  DirectoryServer.getDefaultAttributeType(ATTR_UPDATE_SENT);
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(type,
-                                  String.valueOf(domain.getNumSentUpdates())));
-    attr = new Attribute(type, "sent-updates", values);
-    attributes.add(attr);
+    addMonitorData(attributes, "sent-updates", domain.getNumSentUpdates());
 
     /* get number of changes in the pending list */
-    final String ATTR_UPDATE_PENDING = "pending-updates";
-    type =  DirectoryServer.getDefaultAttributeType(ATTR_UPDATE_PENDING);
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(type,
-                              String.valueOf(domain.getPendingUpdatesCount())));
-    attr = new Attribute(type, "pending-updates", values);
-    attributes.add(attr);
+    addMonitorData(attributes, "pending-updates",
+                   domain.getPendingUpdatesCount());
 
     /* get number of changes replayed */
-    final String ATTR_REPLAYED_UPDATE = "replayed-updates";
-    type =  DirectoryServer.getDefaultAttributeType(ATTR_REPLAYED_UPDATE);
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(type,
-                              String.valueOf(domain.getNumProcessedUpdates())));
-    attr = new Attribute(type, ATTR_REPLAYED_UPDATE, values);
-    attributes.add(attr);
+    addMonitorData(attributes, "replayed-updates",
+                   domain.getNumProcessedUpdates());
 
     /* get number of changes successfully */
-    final String ATTR_REPLAYED_UPDATE_OK = "replayed-updates-ok";
-    type =  DirectoryServer.getDefaultAttributeType(ATTR_REPLAYED_UPDATE_OK);
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(type,
-                          String.valueOf(domain.getNumReplayedPostOpCalled())));
-    attr = new Attribute(type, ATTR_REPLAYED_UPDATE_OK, values);
-    attributes.add(attr);
+    addMonitorData(attributes, "replayed-updates-ok",
+                   domain.getNumReplayedPostOpCalled());
 
-    /* get debugCount */
-    final String DEBUG_COUNT = "debug-count";
-    type =  DirectoryServer.getDefaultAttributeType(DEBUG_COUNT);
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(type,
-                          String.valueOf(domain.getDebugCount())));
-    attr = new Attribute(type, DEBUG_COUNT, values);
-    attributes.add(attr);
+    /* get window information */
+    addMonitorData(attributes, "max-rcv-window", domain.getMaxRcvWindow());
+    addMonitorData(attributes, "current-rcv-window",
+                               domain.getCurrentRcvWindow());
+    addMonitorData(attributes, "max-send-window",
+                               domain.getMaxSendWindow());
+    addMonitorData(attributes, "current-send-window",
+                               domain.getCurrentSendWindow());
 
     /* get the Server State */
     final String ATTR_SERVER_STATE = "server-state";
-    type =  DirectoryServer.getDefaultAttributeType(ATTR_SERVER_STATE);
-    values = new LinkedHashSet<AttributeValue>();
+    AttributeType type =
+      DirectoryServer.getDefaultAttributeType(ATTR_SERVER_STATE);
+    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
     for (String str : domain.getServerState().toStringSet())
     {
       values.add(new AttributeValue(type,str));
@@ -165,6 +138,27 @@ public class SynchronizationMonitor extends MonitorProvider
 
     return attributes;
 
+  }
+
+  /**
+   * Add an attribute with an integer value to the list of monitoring
+   * attributes.
+   *
+   * @param attributes the list of monitoring attributes
+   * @param name the name of the attribute to add.
+   * @param value The integer value of he attribute to add.
+   */
+  private void addMonitorData(ArrayList<Attribute> attributes,
+       String name, int value)
+  {
+    Attribute attr;
+    AttributeType type;
+    LinkedHashSet<AttributeValue> values;
+    type =  DirectoryServer.getDefaultAttributeType(name);
+    values = new LinkedHashSet<AttributeValue>();
+    values.add(new AttributeValue(type, String.valueOf(value)));
+    attr = new Attribute(type, name, values);
+    attributes.add(attr);
   }
 
   /**

@@ -446,7 +446,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
 
     // shutdown the Changelog Service if necessary
     if (changelog != null)
-      Changelog.shutdown();
+      changelog.shutdown();
   }
 
   /**

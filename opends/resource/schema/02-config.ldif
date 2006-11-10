@@ -547,6 +547,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.163
   NAME 'ds-cfg-bind-with-dn-requires-password'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.288
+  NAME 'ds-cfg-window-size'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.164
   NAME 'ds-cfg-max-receive-queue'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
@@ -1239,7 +1243,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.58 NAME
   STRUCTURAL MUST ( ds-cfg-changelog-server $ ds-cfg-directory-server-id
   $ ds-cfg-synchronization-dn )
   MAY ( cn $ ds-cfg-receive-status $ ds-cfg-max-receive-queue $
-  ds-cfg-max-receive-delay $ ds-cfg-max-send-queue $ ds-cfg-max-send-delay )
+  ds-cfg-max-receive-delay $ ds-cfg-max-send-queue $ ds-cfg-max-send-delay $
+  ds-cfg-window-size )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.59
   NAME 'ds-cfg-length-based-password-validator' SUP ds-cfg-password-validator
@@ -1295,7 +1300,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.64
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.65 NAME
   'ds-cfg-synchronization-changelog-server-config' SUP top
   STRUCTURAL MUST (ds-cfg-changelog-server-id $ ds-cfg-changelog-port )
-  MAY ( ds-cfg-changelog-server $ cn ) X-ORIGIN 'OpenDS Directory Server' )
+  MAY ( ds-cfg-changelog-server $ cn $ ds-cfg-window-size ) X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.66 NAME 'ds-backup-directory'
   SUP top STRUCTURAL MUST ( ds-backup-directory-path $ ds-backup-backend-dn )
   X-ORIGIN 'OpenDS Directory Server' )
