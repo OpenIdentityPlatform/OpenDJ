@@ -160,12 +160,14 @@ public class LDIFDiff
       configFile = new StringArgument("configfile", 'c', "configFile", false,
                                       false, true, "{configFile}", null, null,
                                       MSGID_LDIFDIFF_DESCRIPTION_CONFIG_FILE);
+      configFile.setHidden(true);
       argParser.addArgument(configFile);
 
       configClass = new StringArgument("configclass", 'C', "configClass", false,
                              false, true, "{configClass}",
                              ConfigFileHandler.class.getName(), null,
                              MSGID_LDIFDIFF_DESCRIPTION_CONFIG_CLASS);
+      configClass.setHidden(true);
       argParser.addArgument(configClass);
 
       showUsage = new BooleanArgument("showusage", 'H', "help",

@@ -136,12 +136,14 @@ public class MakeLDIF
       configFile = new StringArgument("configfile", 'c', "configFile", true,
                                       false, true, "{configFile}", null, null,
                                       MSGID_MAKELDIF_DESCRIPTION_CONFIG_FILE);
+      configFile.setHidden(true);
       argParser.addArgument(configFile);
 
 
       configClass = new StringArgument("configclass", 'C', "configClass", false,
                                        false, true, "{configClass}", null, null,
                                        MSGID_MAKELDIF_DESCRIPTION_CONFIG_CLASS);
+      configClass.setHidden(true);
       argParser.addArgument(configClass);
 
 

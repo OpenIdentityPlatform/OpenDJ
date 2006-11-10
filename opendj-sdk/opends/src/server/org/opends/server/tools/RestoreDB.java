@@ -125,6 +125,7 @@ public class RestoreDB
                               true, "{configClass}",
                               ConfigFileHandler.class.getName(), null,
                               MSGID_RESTOREDB_DESCRIPTION_CONFIG_CLASS);
+      configClass.setHidden(true);
       argParser.addArgument(configClass);
 
 
@@ -132,6 +133,7 @@ public class RestoreDB
            new StringArgument("configfile", 'f', "configFile", true, false,
                               true, "{configFile}", null, null,
                               MSGID_RESTOREDB_DESCRIPTION_CONFIG_FILE);
+      configFile.setHidden(true);
       argParser.addArgument(configFile);
 
 
