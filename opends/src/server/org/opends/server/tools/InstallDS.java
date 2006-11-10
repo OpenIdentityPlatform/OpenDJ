@@ -186,12 +186,14 @@ public class InstallDS
       configFile = new StringArgument("configfile", 'c', "configFile", false,
                                       false, true, "{configFile}", null, null,
                                       MSGID_INSTALLDS_DESCRIPTION_CONFIG_FILE);
+      configFile.setHidden(true);
       argParser.addArgument(configFile);
 
       configClass = new StringArgument("configclass", 'C', "configClass", false,
                              false, true, "{configClass}",
                              ConfigFileHandler.class.getName(), null,
                              MSGID_INSTALLDS_DESCRIPTION_CONFIG_CLASS);
+      configClass.setHidden(true);
       argParser.addArgument(configClass);
 
       silentInstall = new BooleanArgument("silent", 's', "silentInstall",

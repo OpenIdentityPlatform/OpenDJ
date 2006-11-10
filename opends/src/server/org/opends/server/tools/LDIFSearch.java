@@ -181,12 +181,14 @@ public class LDIFSearch
       configFile = new StringArgument("configfile", 'c', "configFile", false,
                                       false, true, "{configFile}", null, null,
                                       MSGID_LDIFSEARCH_DESCRIPTION_CONFIG_FILE);
+      configFile.setHidden(true);
       argParser.addArgument(configFile);
 
       configClass = new StringArgument("configclass", 'C', "configClass", false,
                              false, true, "{configClass}",
                              ConfigFileHandler.class.getName(), null,
                              MSGID_LDIFSEARCH_DESCRIPTION_CONFIG_CLASS);
+      configClass.setHidden(true);
       argParser.addArgument(configClass);
 
       filterFile = new FileBasedArgument("filterfile", 'f', "filterFile", false,

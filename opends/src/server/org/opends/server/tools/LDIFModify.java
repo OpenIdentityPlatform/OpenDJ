@@ -429,6 +429,7 @@ public class LDIFModify
       configFile = new StringArgument("configfile", 'c', "configFile", true,
                                       false, true, "{configFile}", null, null,
                                       MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_FILE);
+      configFile.setHidden(true);
       argParser.addArgument(configFile);
 
 
@@ -436,6 +437,7 @@ public class LDIFModify
                              false, true, "{configClass}",
                              ConfigFileHandler.class.getName(), null,
                              MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_CLASS);
+      configClass.setHidden(true);
       argParser.addArgument(configClass);
 
 

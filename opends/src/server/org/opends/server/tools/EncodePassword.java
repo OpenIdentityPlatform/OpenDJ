@@ -131,6 +131,7 @@ public class EncodePassword
                                        true, false, true, "{configClass}",
                                        ConfigFileHandler.class.getName(), null,
                                        MSGID_ENCPW_DESCRIPTION_CONFIG_CLASS);
+      configClass.setHidden(true);
       argParser.addArgument(configClass);
 
 
@@ -138,6 +139,7 @@ public class EncodePassword
                                       true, false, true, "{configFile}", null,
                                       null,
                                       MSGID_ENCPW_DESCRIPTION_CONFIG_FILE);
+      configFile.setHidden(true);
       argParser.addArgument(configFile);
 
 

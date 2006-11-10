@@ -7478,6 +7478,7 @@ public class DirectoryServer
                                        true, false, true, "{configClass}",
                                        ConfigFileHandler.class.getName(), null,
                                        MSGID_DSCORE_DESCRIPTION_CONFIG_CLASS);
+      configClass.setHidden(true);
       argParser.addArgument(configClass);
 
 
@@ -7485,6 +7486,7 @@ public class DirectoryServer
                                       true, false, true, "{configFile}", null,
                                       null,
                                       MSGID_DSCORE_DESCRIPTION_CONFIG_FILE);
+      configFile.setHidden(true);
       argParser.addArgument(configFile);
 
 
@@ -7511,9 +7513,8 @@ public class DirectoryServer
       argParser.addArgument(dumpMessages);
 
 
-      noDetach = new BooleanArgument("nodetach", 'N', "noDetach",
+      noDetach = new BooleanArgument("nodetach", 'N', "nodetach",
                                      MSGID_DSCORE_DESCRIPTION_NODETACH);
-      noDetach.setHidden(true);
       argParser.addArgument(noDetach);
 
 

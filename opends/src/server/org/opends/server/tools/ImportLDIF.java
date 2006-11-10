@@ -149,6 +149,7 @@ public class ImportLDIF
                               true, "{configClass}",
                               ConfigFileHandler.class.getName(), null,
                               MSGID_LDIFIMPORT_DESCRIPTION_CONFIG_CLASS);
+      configClass.setHidden(true);
       argParser.addArgument(configClass);
 
 
@@ -156,6 +157,7 @@ public class ImportLDIF
            new StringArgument("configfile", 'f', "configFile", true, false,
                               true, "{configFile}", null, null,
                               MSGID_LDIFIMPORT_DESCRIPTION_CONFIG_FILE);
+      configFile.setHidden(true);
       argParser.addArgument(configFile);
 
 
