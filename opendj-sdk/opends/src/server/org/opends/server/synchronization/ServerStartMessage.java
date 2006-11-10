@@ -52,6 +52,7 @@ public class ServerStartMessage extends SynchronizationMessage implements
   private int maxSendQueue;
   private int maxReceiveDelay;
   private int maxSendDelay;
+  private int windowSize;
   private ServerState serverState = null;
 
   /**
@@ -64,11 +65,13 @@ public class ServerStartMessage extends SynchronizationMessage implements
    * @param maxReceiveQueue The max receive Queue for this server.
    * @param maxSendDelay The max Send Delay from this server.
    * @param maxSendQueue The max send Queue from this server.
+   * @param windowSize   The window size used by this server.
    * @param serverState  The state of this server.
    */
   public ServerStartMessage(short serverId, DN baseDn, int maxReceiveDelay,
                             int maxReceiveQueue, int maxSendDelay,
-                            int maxSendQueue, ServerState serverState)
+                            int maxSendQueue, int windowSize,
+                            ServerState serverState)
   {
     this.serverId = serverId;
     this.baseDn = baseDn.toString();
@@ -77,6 +80,7 @@ public class ServerStartMessage extends SynchronizationMessage implements
     this.maxSendDelay = maxSendDelay;
     this.maxSendQueue = maxSendQueue;
     this.serverState = serverState;
+    this.windowSize = windowSize;
 
     try
     {
@@ -100,7 +104,7 @@ public class ServerStartMessage extends SynchronizationMessage implements
   {
     /* The ServerStartMessage is encoded in the form :
      * <operation type><baseDn><ServerId><ServerUrl><maxRecvDelay><maxRecvQueue>
-     * <maxSendDelay><maxSendQueue><ServerState>
+     * <maxSendDelay><maxSendQueue><window><ServerState>
      */
     try
     {
@@ -158,6 +162,13 @@ public class ServerStartMessage extends SynchronizationMessage implements
        */
       length = getNextLength(in, pos);
       maxSendQueue = Integer.valueOf(new String(in, pos, length, "UTF-8"));
+      pos += length +1;
+
+      /*
+       * read the windowSize
+       */
+      length = getNextLength(in, pos);
+      windowSize = Integer.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       /*
@@ -269,7 +280,7 @@ public class ServerStartMessage extends SynchronizationMessage implements
     /*
      * ServerStartMessage contains.
      * <baseDn><ServerId><ServerUrl><maxRecvDelay><maxRecvQueue>
-     * <maxSendDelay><maxSendQueue><ServerState>
+     * <maxSendDelay><maxSendQueue><windowsize><ServerState>
      */
     try {
       byte[] byteDn = baseDn.getBytes("UTF-8");
@@ -283,6 +294,8 @@ public class ServerStartMessage extends SynchronizationMessage implements
                      String.valueOf(maxSendDelay).getBytes("UTF-8");
       byte[] byteMaxSendQueue =
                      String.valueOf(maxSendQueue).getBytes("UTF-8");
+      byte[] byteWindowSize =
+                     String.valueOf(windowSize).getBytes("UTF-8");
       byte[] byteServerState = serverState.getBytes();
 
       int length = 1 + byteDn.length + 1 + byteServerId.length + 1 +
@@ -291,6 +304,7 @@ public class ServerStartMessage extends SynchronizationMessage implements
                    byteMaxRecvQueue.length + 1 +
                    byteMaxSendDelay.length + 1 +
                    byteMaxSendQueue.length + 1 +
+                   byteWindowSize.length + 1 +
                    byteServerState.length + 1;
 
       byte[] resultByteArray = new byte[length];
@@ -313,6 +327,8 @@ public class ServerStartMessage extends SynchronizationMessage implements
 
       pos = addByteArray(byteMaxSendQueue, resultByteArray, pos);
 
+      pos = addByteArray(byteWindowSize, resultByteArray, pos);
+
       pos = addByteArray(byteServerState, resultByteArray, pos);
 
       return resultByteArray;
@@ -321,5 +337,15 @@ public class ServerStartMessage extends SynchronizationMessage implements
     {
       return null;
     }
+  }
+
+  /**
+   * Get the window size for the ldap server that created the message.
+   *
+   * @return The window size for the ldap server that created the message.
+   */
+  public int getWindowSize()
+  {
+    return windowSize;
   }
 }

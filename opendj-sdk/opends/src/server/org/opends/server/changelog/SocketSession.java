@@ -60,6 +60,10 @@ public class SocketSession implements ProtocolSession
   public SocketSession(Socket socket) throws IOException
   {
     this.socket = socket;
+    /*
+     * Use a window instead of the TCP flow control.
+     * Therefore set a very large value for send and receive buffer sizes.
+     */
     input = socket.getInputStream();
     output = socket.getOutputStream();
   }

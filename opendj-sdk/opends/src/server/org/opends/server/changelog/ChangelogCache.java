@@ -100,15 +100,18 @@ public class ChangelogCache
    */
   private Map<Short, DbHandler> sourceDbHandlers =
     new ConcurrentHashMap<Short, DbHandler>();
+  private Changelog changelog;
 
   /**
    * Creates a new ChangelogCache associated to the DN baseDn.
    *
    * @param baseDn The baseDn associated to the ChangelogCache.
+   * @param changelog the Changelog that created this changelog cache.
    */
-  public ChangelogCache(DN baseDn)
+  public ChangelogCache(DN baseDn, Changelog changelog)
   {
     this.baseDn = baseDn;
+    this.changelog = changelog;
   }
 
   /**
@@ -161,7 +164,7 @@ public class ChangelogCache
       {
         try
         {
-          dbHandler = new DbHandler(id, baseDn);
+          dbHandler = changelog.newDbHandler(id, baseDn);
         } catch (DatabaseException e)
         {
           /*
@@ -169,14 +172,13 @@ public class ChangelogCache
            * from at least one LDAP server.
            * This changelog therefore can't do it's job properly anymore
            * and needs to close all its connections and shutdown itself.
-           * TODO : log error
            */
           int    msgID   = MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR;
           String message = getMessage(msgID) + stackTraceToSingleLineString(e);
           logError(ErrorLogCategory.SYNCHRONIZATION,
                    ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
-          Changelog.shutdown();
+          changelog.shutdown();
           return;
         }
         sourceDbHandlers.put(id, dbHandler);
@@ -411,14 +413,15 @@ public class ChangelogCache
   /**
    * creates a new ChangelogDB with specified identifier.
    * @param id the identifier of the new ChangelogDB.
-   * @param baseDn the baseDn of the new ChangelogDB.
+   * @param db the new db.
+   *
    * @throws DatabaseException If a database error happened.
    */
-  public void newDb(short id, DN baseDn) throws DatabaseException
+  public void newDb(short id, DbHandler db) throws DatabaseException
   {
     synchronized (sourceDbHandlers)
     {
-      sourceDbHandlers.put(id , new DbHandler(id, baseDn));
+      sourceDbHandlers.put(id , db);
     }
   }
 
@@ -441,6 +444,16 @@ public class ChangelogCache
    */
   public void ack(AckMessage message, short fromServerId)
   {
+    /*
+     * there are 2 possible cases here :
+     *  - the message that was acked comes from a server to which
+     *    we are directly connected.
+     *    In this case, we can find the handler from the connectedServers map
+     *  - the message that was acked comes from a server to which we are not
+     *    connected.
+     *    In this case we need to find the changelog server that forwarded
+     *    the change and send back the ack to this server.
+     */
     ServerHandler handler = connectedServers.get(
                                        message.getChangeNumber().getServerId());
     if (handler != null)
@@ -551,6 +564,4 @@ public class ChangelogCache
   {
     return "ChangelogCache " + baseDn;
   }
-
-
 }

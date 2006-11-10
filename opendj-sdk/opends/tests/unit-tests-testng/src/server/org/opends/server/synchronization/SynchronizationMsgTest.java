@@ -438,6 +438,73 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     // Check that retrieved CN is OK
     msg2 = (AckMessage) SynchronizationMessage.generateMsg(msg1.getBytes());
   }
+  
+  @DataProvider(name="serverStart")
+  public Object [][] createServerStartMessageTestData() throws Exception
+  {
+    DN baseDN = DN.decode("dc=example, dc=com");
+    ServerState state = new ServerState(baseDN);
+    return new Object [][] { {(short)1, baseDN, 100, state} };
+  }
+  /**
+   * Test that ServerStartMessage encoding and decoding works
+   * by checking that : msg == new ServerStartMessage(msg.getBytes()).
+   */
+  @Test(dataProvider="serverStart")
+  public void ServerStartMessageTest(short serverId, DN baseDN, int window,
+         ServerState state) throws Exception
+  {
+    state.update(new ChangeNumber((long)1, 1,(short)1));
+    ServerStartMessage msg = new ServerStartMessage(serverId, baseDN,
+        window, window, window, window, window, state);
+    ServerStartMessage newMsg = new ServerStartMessage(msg.getBytes());
+    assertEquals(msg.getServerId(), newMsg.getServerId());
+    assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
+    assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
+    assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
+    assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
+        newMsg.getServerState().getMaxChangeNumber((short)1));
+  }
+  
+  @DataProvider(name="changelogStart")
+  public Object [][] createChangelogStartMessageTestData() throws Exception
+  {
+    DN baseDN = DN.decode("dc=example, dc=com");
+    ServerState state = new ServerState(baseDN);
+    return new Object [][] { {(short)1, baseDN, 100, "localhost:8989", state} };
+  }
+  
+  /**
+   * Test that changelogStartMessage encoding and decoding works
+   * by checking that : msg == new ChangelogStartMessage(msg.getBytes()).
+   */
+  @Test(dataProvider="changelogStart")
+  public void ChangelogStartMessageTest(short serverId, DN baseDN, int window,
+         String url, ServerState state) throws Exception
+  {
+    state.update(new ChangeNumber((long)1, 1,(short)1));
+    ChangelogStartMessage msg = new ChangelogStartMessage(serverId, 
+        url, baseDN, window, state);
+    ChangelogStartMessage newMsg = new ChangelogStartMessage(msg.getBytes());
+    assertEquals(msg.getServerId(), newMsg.getServerId());
+    assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
+    assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
+    assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
+    assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
+        newMsg.getServerState().getMaxChangeNumber((short)1));
+  }
+  
+  /**
+   * Test that WindowMessageTest encoding and decoding works
+   * by checking that : msg == new WindowMessageTest(msg.getBytes()).
+   */
+  @Test()
+  public void WindowMessageTest() throws Exception
+  {
+    WindowMessage msg = new WindowMessage(123);
+    WindowMessage newMsg = new WindowMessage(msg.getBytes());
+    assertEquals(msg.getNumAck(), newMsg.getNumAck());
+  }
 
   /**
    * Test PendingChange

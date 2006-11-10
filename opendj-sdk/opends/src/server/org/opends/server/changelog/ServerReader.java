@@ -36,6 +36,7 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.synchronization.AckMessage;
 import org.opends.server.synchronization.SynchronizationMessage;
 import org.opends.server.synchronization.UpdateMessage;
+import org.opends.server.synchronization.WindowMessage;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
@@ -105,7 +106,13 @@ public class ServerReader extends DirectoryThread
         else if (msg instanceof UpdateMessage)
         {
           UpdateMessage update = (UpdateMessage) msg;
+          handler.checkWindow();
           changelogCache.put(update, handler);
+        }
+        else if (msg instanceof WindowMessage)
+        {
+          WindowMessage windowMsg = (WindowMessage) msg;
+          handler.updateWindow(windowMsg);
         }
       }
     } catch (IOException e)

@@ -28,19 +28,15 @@
 package org.opends.server.synchronization;
 
 import static org.opends.server.loggers.Error.logError;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
 
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -48,7 +44,11 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
+import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPException;
+import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -56,12 +56,11 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.TimeThread;
+import org.opends.server.types.SearchScope;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -70,15 +69,12 @@ import org.testng.annotations.Test;
  * Test the contructors, encoders and decoders of the synchronization AckMsg,
  * ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
  */
-public class StressTest extends MonitorProvider
+public class ProtocolWindowTest
 {
+  private static final int WINDOW_SIZE = 10;
+
   private static final String SYNCHRONIZATION_STRESS_TEST =
     "Synchronization Stress Test";
-
-  public StressTest()
-  {
-    super("synchronization Stress Test");
-  }
 
   /**
    * The internal connection used for operation
@@ -132,46 +128,39 @@ public class StressTest extends MonitorProvider
    */
   MultimasterSynchronization mms;
 
-  private BrokerReader reader = null;
-
   // WORKAROUND FOR BUG #639 - END -
 
   /**
-   * Stress test from LDAP server to client using the ChangelogBroker API.
+   * Test the window mechanism by :
+   *  - creating a Changelog service client using the ChangelogBroker class.
+   *  - set a small window size.
+   *  - perform more than the window size operations.
+   *  - check that the Changelog has not sent more than window size operations.
+   *  - receive all messages from the ChangelogBroker, check that
+   *    the client receives the correct number of operations.
    */
   @Test(enabled=true, groups="slow")
-  public void fromServertoBroker() throws Exception
+  public void saturateAndRestart() throws Exception
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
-        "Starting Synchronization StressTest : fromServertoBroker" , 1);
+        "Starting synchronization ProtocolWindowTest : saturateAndRestart" , 1);
     
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
-    final int TOTAL_MESSAGES = 1000;
     cleanEntries();
 
-    ChangelogBroker broker = openChangelogSession(baseDn, (short) 18);
-    DirectoryServer.registerMonitorProvider(this);
+    ChangelogBroker broker = openChangelogSession(baseDn, (short) 13);
 
     try {
-      /*
-       * loop receiving update until there is nothing left
-       * to make sure that message from previous tests have been consumed.
+      
+      /* Test that changelog monitor and synchro plugin monitor informations
+       * publish the correct window size.
+       * This allows both the check the monitoring code and to test that
+       * configuration is working.
        */
-      try
-      {
-        while (true)
-        {
-          broker.receive();
-        }
-      }
-      catch (Exception e)
-      { }
-      /*
-       * Test that operations done on this server are sent to the
-       * changelog server and forwarded to our changelog broker session.
-       */
-
+      Thread.sleep(1500);
+      assertTrue(checkWindows(WINDOW_SIZE));
+      
       // Create an Entry (add operation) that will be later used in the test.
       Entry tmp = personEntry.duplicate();
       AddOperation addOp = new AddOperation(connection,
@@ -197,46 +186,66 @@ public class StressTest extends MonitorProvider
       assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
         "The received ADD synchronization message is not for the excepted DN");
 
-      reader = new BrokerReader(broker);
-      reader.start();
+      // send twice the window modify operations
+      int count = WINDOW_SIZE * 2;
+      processModify(count);
 
-      long startTime = TimeThread.getTime();
-      int count = TOTAL_MESSAGES;
+      // let some time to the message to reach the changelog client
+      Thread.sleep(500);
 
-      // Create a number of writer thread that will loop modifying the entry
-      List<Thread> writerThreadList = new LinkedList<Thread>();
-      for (int n = 0; n < 1; n++)
+      // check that the changelog only sent WINDOW_SIZE messages
+      assertTrue(searchUpdateSent());
+
+      int rcvCount=0;
+      try
       {
-        BrokerWriter writer = new BrokerWriter(count);
-        writerThreadList.add(writer);
+        while (true)
+        {
+          broker.receive();
+          rcvCount++;
+        }
       }
-      for (Thread thread : writerThreadList)
-      {
-        thread.start();
-      }
-      // wait for all the threads to finish.
-      for (Thread thread : writerThreadList)
-      {
-        thread.join();
-      }
-
-      long afterSendTime = TimeThread.getTime();
-
-      int rcvCount = reader.getCount();
-      
-      long afterReceiveTime = TimeThread.getTime();
-
-      if (rcvCount != TOTAL_MESSAGES)
-      {
-        fail("some messages were lost : expected : " +TOTAL_MESSAGES +
-            " received : " + rcvCount);
-      }
-
+      catch (SocketTimeoutException e)
+      {}
+      /*
+       * check that we received all updates
+       */
+      assertEquals(rcvCount, WINDOW_SIZE*2);
     }
     finally {
-      DirectoryServer.deregisterMonitorProvider(SYNCHRONIZATION_STRESS_TEST);
       broker.stop();
+      DirectoryServer.deregisterMonitorProvider(SYNCHRONIZATION_STRESS_TEST);
     }
+  }
+
+  /**
+   * Check that the window configuration has been successfull
+   * by reading the monitoring information and checking 
+   * that we do have 2 entries with the configured max-rcv-window.
+   */
+  private boolean checkWindows(int windowSize) throws LDAPException
+  {
+    InternalSearchOperation op = connection.processSearch(
+        new ASN1OctetString("cn=monitor"),
+        SearchScope.WHOLE_SUBTREE,
+        LDAPFilter.decode("(max-rcv-window=" + windowSize + ")"));
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+    return (op.getEntriesSent() == 3);
+  }
+
+  /**
+   * Search that the changelog has stopped sending changes after 
+   * having reach the limit of the window size.
+   * Do this by checking the monitoring information.
+   */
+  private boolean searchUpdateSent() throws Exception
+  {
+    InternalSearchOperation op = connection.processSearch(
+        new ASN1OctetString("cn=monitor"),
+        SearchScope.WHOLE_SUBTREE,
+        LDAPFilter.decode("(update-sent=" + WINDOW_SIZE + ")"));
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+    return (op.getEntriesSent() == 1);
   }
 
   /**
@@ -300,7 +309,8 @@ public class StressTest extends MonitorProvider
         + "objectClass: top\n"
         + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
         + "cn: Changelog Server\n" + "ds-cfg-changelog-port: 8989\n"
-        + "ds-cfg-changelog-server-id: 1\n";
+        + "ds-cfg-changelog-server-id: 1\n"
+        + "ds-cfg-window-size: " + WINDOW_SIZE;
     changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
 
     // suffix synchronized
@@ -311,7 +321,9 @@ public class StressTest extends MonitorProvider
         + "cn: example\n"
         + "ds-cfg-synchronization-dn: ou=People,dc=example,dc=com\n"
         + "ds-cfg-changelog-server: localhost:8989\n"
-        + "ds-cfg-directory-server-id: 1\n" + "ds-cfg-receive-status: true\n";
+        + "ds-cfg-directory-server-id: 1\n"
+        + "ds-cfg-receive-status: true\n"
+        + "ds-cfg-window-size: " + WINDOW_SIZE;
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
     String personLdif = "dn: uid=user.1,ou=People,dc=example,dc=com\n"
@@ -399,12 +411,25 @@ public class StressTest extends MonitorProvider
   {
     ServerState state = new ServerState(baseDn);
     state.loadState();
-    ChangelogBroker broker = new ChangelogBroker(state, baseDn,
-                                                 serverId, 0, 0, 0, 0, 100);
+    ChangelogBroker broker =
+      new ChangelogBroker(state, baseDn, serverId, 0, 0, 0, 0, WINDOW_SIZE);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:8989");
     broker.start(servers);
     broker.setSoTimeout(5000);
+    /*
+     * loop receiving update until there is nothing left
+     * to make sure that message from previous tests have been consumed.
+     */
+    try
+    {
+      while (true)
+      {
+        broker.receive();
+      }
+    }
+    catch (Exception e)
+    { }
     return broker;
   }
 
@@ -448,156 +473,22 @@ public class StressTest extends MonitorProvider
     // We also have a replicated suffix (synchronization domain)
     DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
     assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
-        "Unable to add the synchronized server");
+        "Unable to add the syncrhonized server");
     entryList.add(synchroServerEntry);
   }
 
-  @Override
-  public List<Attribute> getMonitorData()
+  private void processModify(int count)
   {
-    Attribute attr;
-    if (reader == null)
-      attr = new Attribute("received-messages", "not yet started");
-    else
-      attr = new Attribute("received-messages",
-                           String.valueOf(reader.getCurrentCount()));
-    List<Attribute>  list = new LinkedList<Attribute>();
-    list.add(attr);
-    attr = new Attribute("base-dn", "ou=People,dc=example,dc=com");
-    list.add(attr);
-    return list;
-  }
-
-  @Override
-  public String getMonitorInstanceName()
-  {
-    return SYNCHRONIZATION_STRESS_TEST;
-  }
-
-  @Override
-  public long getUpdateInterval()
-  {
-    // we don't wont to do polling on this monitor
-    return 0;
-  }
-
-  @Override
-  public void initializeMonitorProvider(ConfigEntry configEntry)
-  throws ConfigException, InitializationException
-  {
-    // nothing to do
-
-  }
-
-  @Override
-  public void updateMonitorData()
-  {
-    // nothing to do
-
-  }
-
-  private class BrokerWriter extends Thread
-  {
-    int count;
-
-    /**
-     * Creates a new Stress Test Reader
-     * @param broker
-     */
-    public BrokerWriter(int count)
+    while (count>0)
     {
-      this.count = count;
-    }
+      count--;
+      // must generate the mods for every operation because they are modified
+      // by processModify.
+      List<Modification> mods = generatemods("telephonenumber", "01 02 45");
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void run()
-    {
-      while (count>0)
-      {
-        count--;
-        // must generate the mods for every operation because they are modified
-        // by processModify.
-        List<Modification> mods = generatemods("telephonenumber", "01 02 45");
-
-        ModifyOperation modOp =
-          connection.processModify(personEntry.getDN(), mods);
-        assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
-      }
-    }
-  }
-
-  /**
-   * Continuously reads messages from a changelog broker until there is nothing
-   * left. Count the number of received messages.
-   */
-  private class BrokerReader extends Thread
-  {
-    private ChangelogBroker broker;
-    private int count = 0;
-    private Boolean finished = false;
-
-    /**
-     * Creates a new Stress Test Reader
-     * @param broker
-     */
-    public BrokerReader(ChangelogBroker broker)
-    {
-      this.broker = broker;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void run()
-    {
-      // loop receiving messages until either we get a timeout
-      // because there is nothing left or an error condition happens.
-      try
-      {
-        while (true)
-        {
-          SynchronizationMessage msg = broker.receive();
-          if (msg == null)
-            break;
-          count ++;
-        }
-      } catch (Exception e) {
-        synchronized (this)
-        {
-          finished = true;
-          this.notify();
-        }
-      }
-    }
-
-    /**
-     * wait until the thread has finished its job then return the number of
-     * received messages.
-     */
-    public int getCount()
-    {
-      synchronized (this)
-      {
-        if (finished == true)
-          return count;
-        try
-        {
-          this.wait(60);
-          return count;
-        } catch (InterruptedException e)
-        {
-          return -1;
-        }
-      }
-    }
-
-    public int getCurrentCount()
-    {
-      return count;
+      ModifyOperation modOp =
+        connection.processModify(personEntry.getDN(), mods);
+      assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
     }
   }
 }
