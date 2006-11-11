@@ -6703,7 +6703,7 @@ public class DirectoryServer
     // the server.
     if (directoryServer.pluginConfigManager != null)
     {
-      directoryServer.pluginConfigManager.invokeShutdownPlugins();
+      directoryServer.pluginConfigManager.invokeShutdownPlugins(reason);
       directoryServer.pluginConfigManager.finalizePlugins();
     }
 

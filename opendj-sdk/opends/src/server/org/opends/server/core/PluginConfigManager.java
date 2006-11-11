@@ -1693,17 +1693,20 @@ parsePluginEntry:
   /**
    * Invokes the set of shutdown plugins that have been configured in the
    * Directory Server.
+   *
+   * @param  reason  The human-readable reason for the shutdown.
    */
-  public void invokeShutdownPlugins()
+  public void invokeShutdownPlugins(String reason)
   {
-    assert debugEnter(CLASS_NAME, "invokeShutdownPlugins");
+    assert debugEnter(CLASS_NAME, "invokeShutdownPlugins",
+                      String.valueOf(reason));
 
 
     for (DirectoryServerPlugin p : shutdownPlugins)
     {
       try
       {
-        p.doShutdown();
+        p.doShutdown(reason);
       }
       catch (Exception e)
       {

@@ -125,7 +125,7 @@ public class DirectoryServerPluginTestCase
   @Test(expectedExceptions = { UnsupportedOperationException.class })
   public void testDoShutdown()
   {
-    new NullPlugin().doShutdown();
+    new NullPlugin().doShutdown("testDoShutdown");
   }
 
 
