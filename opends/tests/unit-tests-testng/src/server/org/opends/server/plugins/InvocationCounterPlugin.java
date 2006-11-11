@@ -1035,7 +1035,7 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public void doShutdown()
+  public void doShutdown(String reason)
   {
     shutdownCalled = true;
   }

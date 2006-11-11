@@ -204,10 +204,13 @@ public abstract class DirectoryServerPlugin
    * method will be called early in the shutdown process after the
    * connection handlers are stopped but before other finalization is
    * performed.
+   *
+   * @param  reason  The human-readable reason for the shutdown.
    */
-  public void doShutdown()
+  public void doShutdown(String reason)
   {
-    assert debugEnter(CLASS_NAME, "doShutdown");
+    assert debugEnter(CLASS_NAME, "doShutdown",
+                      String.valueOf(reason));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
