@@ -24,9 +24,42 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
+package org.opends.server.synchronization.changelog;
+
+import java.util.Comparator;
+
+import org.opends.server.synchronization.common.ChangeNumber;
+import org.opends.server.synchronization.protocol.UpdateMessage;
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * Class to use for establishing an order within UpdateMessages.
  */
-package org.opends.server.synchronization;
+public class UpdateComparator implements Comparator<UpdateMessage>
+{
+  /**
+   * The UpdateComparator Singleton.
+   */
+  public static UpdateComparator comparator = new UpdateComparator();
+
+  /**
+   * Private constructor.
+   */
+  private UpdateComparator()
+  {
+    super();
+  }
+
+  /**
+   * Compares two UpdateMessages.
+   *
+   * @param msg1 first UpdateMessage to compare
+   * @param msg2 second UpdateMessage to compare
+   * @return -1 if msg1 < msg2
+   *          0 if msg1 == msg2
+   *          1 if msg1 > msg2
+   */
+  public int compare(UpdateMessage msg1, UpdateMessage msg2)
+  {
+    return ChangeNumber.compare(msg1.getChangeNumber(), msg2.getChangeNumber());
+  }
+}

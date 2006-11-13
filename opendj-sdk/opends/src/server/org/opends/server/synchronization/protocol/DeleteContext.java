@@ -24,9 +24,23 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
+package org.opends.server.synchronization.protocol;
+
+import org.opends.server.synchronization.common.ChangeNumber;
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * This class is used to describe the context attached to a Delete Operation.
  */
-package org.opends.server.synchronization;
+public class DeleteContext extends OperationContext
+{
+  /**
+   * Creates a new DeleteContext with the provided information.
+   *
+   * @param changeNumber The change number of the Delete Operation.
+   * @param uid The unique Id of the deleted entry.
+   */
+  public DeleteContext(ChangeNumber changeNumber, String uid)
+  {
+    super(changeNumber, uid);
+  }
+}

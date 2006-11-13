@@ -26,7 +26,21 @@
  */
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * This package contains utilities that can are used by all the packages
+ * below org.opends.server.synchronization
+ * <br>
+ * The main classes of this core are :
+ * <ul>
+ * <li>
+ * <A HREF="ChangeNumber.html"><B>ChangeNumber</B></A>
+ * Define Change Numbers used to identify and to order the LDAP changes
+ * </li>
+ * <li>
+ * <A HREF="ServerState.html"><B>ServerStaten</B></A>
+ * This class is used to define and store the updatedness of any component
+ * of the synchronization architecture (i.e : to know which changes
+ * it has already processed).
+ * </li>
+ * </ul>
  */
-package org.opends.server.synchronization;
+package org.opends.server.synchronization.common;

@@ -39,6 +39,15 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
+import org.opends.server.synchronization.common.ChangeNumberGenerator;
+import org.opends.server.synchronization.plugin.ChangelogBroker;
+import org.opends.server.synchronization.plugin.MultimasterSynchronization;
+import org.opends.server.synchronization.plugin.PersistentServerState;
+import org.opends.server.synchronization.protocol.AddMsg;
+import org.opends.server.synchronization.protocol.DeleteMsg;
+import org.opends.server.synchronization.protocol.ModifyDNMsg;
+import org.opends.server.synchronization.protocol.ModifyMsg;
+import org.opends.server.synchronization.protocol.SynchronizationMessage;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -857,7 +866,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
   private ChangelogBroker openChangelogSession(final DN baseDn, short serverId)
           throws Exception, SocketException
   {
-    ServerState state = new ServerState(baseDn);
+    PersistentServerState state = new PersistentServerState(baseDn);
     state.loadState();
     ChangelogBroker broker = new ChangelogBroker(state, baseDn,
                                                  serverId, 0, 0, 0, 0, 100);

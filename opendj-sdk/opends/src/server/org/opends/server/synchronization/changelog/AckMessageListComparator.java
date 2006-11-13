@@ -24,9 +24,20 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
+package org.opends.server.synchronization.changelog;
+
+import java.util.Comparator;
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * This comparator is used to build TreeSet of AckMessageLists.
  */
-package org.opends.server.synchronization;
+public class AckMessageListComparator implements Comparator<AckMessageList>
+{
+  /**
+   * {@inheritDoc}
+   */
+  public int compare(AckMessageList a1, AckMessageList a2)
+  {
+    return a1.getChangeNumber().compareTo(a2.getChangeNumber());
+  }
+}
