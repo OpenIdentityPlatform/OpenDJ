@@ -24,9 +24,42 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
+package org.opends.server.synchronization.protocol;
+
+import java.lang.reflect.Field;
+
+import org.opends.server.messages.MessageHandler;
+import org.opends.server.synchronization.SynchronizationTestCase;
+import org.opends.server.synchronization.common.LogMessages;
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
+
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * Test of ValueInfo
  */
-package org.opends.server.synchronization;
+public class SyncMessagesTest extends SynchronizationTestCase
+{
+  /**
+   * Create a ValueInfo and check the methods
+   */
+  @Test()
+  public void synchroMessagesTest()
+         throws Exception
+  {
+    LogMessages.registerMessages() ;
+    Field fields[] = LogMessages.class.getFields() ;
+    LogMessages synMsg = new LogMessages() ;
+    for (Field f : fields)
+    {
+      if (f.getClass().equals(Integer.class))
+      {
+        // Get the id
+        String msg = MessageHandler.getMessage(f.getInt(synMsg));
+        assertFalse(msg.startsWith("Unknown message for message ID"));
+      }
+    }
+  }
+
+
+}

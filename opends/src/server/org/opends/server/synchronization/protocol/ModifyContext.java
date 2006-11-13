@@ -24,9 +24,25 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
+package org.opends.server.synchronization.protocol;
+
+import org.opends.server.synchronization.common.ChangeNumber;
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * This class describe the synchronization context that is attached to
+ * Modify operation.
  */
-package org.opends.server.synchronization;
+public class ModifyContext extends OperationContext
+{
+
+  /**
+   * Creates a new Modify Context with the provided parameters.
+   *
+   * @param changeNumber The change number of the operation.
+   * @param uid the unique Id of the modified entry.
+   */
+  public ModifyContext(ChangeNumber changeNumber, String uid)
+  {
+    super(changeNumber, uid);
+  }
+}

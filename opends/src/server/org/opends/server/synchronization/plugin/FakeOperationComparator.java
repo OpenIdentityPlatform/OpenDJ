@@ -24,9 +24,24 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
+package org.opends.server.synchronization.plugin;
+
+import java.util.Comparator;
+
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * This Class implements a Comparator that can be used to build TreeSet
+ * containing FakeOperations sorted by the ChangeNumber order.
  */
-package org.opends.server.synchronization;
+public class FakeOperationComparator implements Comparator<FakeOperation>
+{
+  /**
+   * {@inheritDoc}
+   */
+  public int compare(FakeOperation op1, FakeOperation op2)
+  {
+    if (op1 == null)
+      return -1;
+    return op1.getChangeNumber().compareTo(op2.getChangeNumber());
+  }
+}

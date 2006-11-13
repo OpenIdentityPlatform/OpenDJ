@@ -26,7 +26,25 @@
  */
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * This package contains the part of the Multimaster
+ * synchronization code that works on the Directory Server side.
+ * <br>
+ * The main classes of this core are :
+ * <ul>
+ * <li>
+ * <A HREF="MultimasterSynchronization.html"><B>MultimasterSynchronization
+ * </B></A>contains the synchronization provider
+ * code and more generally all the code that makes the glue between the core
+ * server and the synchronization code.
+ * </li>
+ * <li>
+ * <A HREF="SynchronizationDomain.html"><B>SynchronizationDomain</B></A>
+ * contains the bulk of the Directory Server side of the
+ * synchronization code. Most notably it contains the root method for
+ * publishing a change, processing a change received from the changelog
+ * service, handle conflict resolution, handle protocol messages from the
+ * changelog server.
+ * </li>
+ * </ul>
  */
-package org.opends.server.synchronization;
+package org.opends.server.synchronization.plugin;

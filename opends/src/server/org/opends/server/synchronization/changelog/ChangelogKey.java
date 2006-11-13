@@ -24,9 +24,33 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
+package org.opends.server.synchronization.changelog;
+
+import java.io.UnsupportedEncodingException;
+
+import com.sleepycat.je.DatabaseEntry;
+
+import org.opends.server.synchronization.common.ChangeNumber;
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * Superclass of DatabaseEntry.
+ * Useful to create Changelog keys from ChangeNumbers.
  */
-package org.opends.server.synchronization;
+public class ChangelogKey extends DatabaseEntry
+{
+  /**
+   * Creates a new ChangelogKey from the given ChangeNumber.
+   * @param changeNumber The changeNumber to use.
+   */
+  public ChangelogKey(ChangeNumber changeNumber)
+  {
+    try
+    {
+      this.setData(changeNumber.toString().getBytes("UTF-8"));
+    } catch (UnsupportedEncodingException e)
+    {
+      // Should never happens, UTF-8 is always supported
+      // TODO : add better logging
+    }
+  }
+}

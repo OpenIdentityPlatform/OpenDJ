@@ -26,7 +26,26 @@
  */
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * This package contains the code used by the changelog and by the
+ * code running on the Directory Server side to exchange their information.
+ * <br>
+ * <br>
+ * The main classes of this packages are :
+ * <br>
+ * <ul>
+ * <li><A HREF="SocketSession.html"><B>SocketSession</B></A>
+ * implements the ProtocolSession interface that is
+ * used by the changelog server and the directory server to communicate.
+ * This is done by using the innate encoding/decoding capabilities of the
+ * SynchronizationMessages objects. This class is used by both the
+ * changelog and the synchronization package.
+ * </li>
+ * <li><A HREF="SynchronizationMessage.html"><B>SynchronizationMessage</B></A>
+ * This class and the class that inherit from it contain the
+ * messages that are used for communication between the changelog and the
+ * Directory Server as well as the methods fro encoding/decoding them.
+ * </li>
+ *  </ul>
  */
-package org.opends.server.synchronization;
+
+package org.opends.server.synchronization.protocol;

@@ -29,16 +29,17 @@ package org.opends.server.changelog;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.synchronization.OperationContext.SYNCHROCONTEXT;
+import static org.opends.server.synchronization.protocol.OperationContext.SYNCHROCONTEXT;
 import static org.testng.Assert.*;
 
 
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.synchronization.ChangeNumber;
-import org.opends.server.synchronization.DeleteContext;
-import org.opends.server.synchronization.DeleteMsg;
-import org.opends.server.synchronization.UpdateMessage;
+import org.opends.server.synchronization.changelog.UpdateComparator;
+import org.opends.server.synchronization.common.ChangeNumber;
+import org.opends.server.synchronization.protocol.DeleteContext;
+import org.opends.server.synchronization.protocol.DeleteMsg;
+import org.opends.server.synchronization.protocol.UpdateMessage;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.util.TimeThread;
