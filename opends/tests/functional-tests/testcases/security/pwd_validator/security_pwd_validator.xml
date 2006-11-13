@@ -79,6 +79,10 @@
           file="'%s/testcases/security/pwd_validator/security_pwd_length.xml' % (TESTS_DIR)"/>
         <call function="'pwd_length'" />
 
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_validator/security_skip_val_for_admins.xml' % (TESTS_DIR)"/>
+        <call function="'skip_val_for_admins'" />
+
         <!--- Test Case : Stop DS -->
         <testcase name="'StopDS'">
           <sequence>
