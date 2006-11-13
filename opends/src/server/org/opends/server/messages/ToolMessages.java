@@ -7060,6 +7060,249 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * list-backends tool.  This does not take any arguments.
+   */
+  public static final int MSGID_LISTBACKENDS_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 723;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * configClass argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_CLASS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 724;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * configFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 725;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * backendID argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LISTBACKENDS_DESCRIPTION_BACKEND_ID =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 726;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * baseDN argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LISTBACKENDS_DESCRIPTION_BASE_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 727;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * help argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LISTBACKENDS_DESCRIPTION_HELP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 728;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to initialize the command-line argument parser.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LISTBACKENDS_CANNOT_INITIALIZE_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 729;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * parsing the provided command-line arguments.  This takes a single argument,
+   * which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LISTBACKENDS_ERROR_PARSING_ARGS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 730;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to bootstrap the Directory Server.  This takes a single argument,
+   * which is a string representation of the exception that was caught.
+   */
+  public static final int MSGID_LISTBACKENDS_SERVER_BOOTSTRAP_ERROR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 731;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying load the Directory Server configuration.  This takes a single
+   * argument which is a message with information about the problem that
+   * occurred.
+   */
+  public static final int MSGID_LISTBACKENDS_CANNOT_LOAD_CONFIG =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 732;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to load the Directory Server schema.  This takes a single argument,
+   * which is a message with information about the problem that occurred.
+   */
+  public static final int MSGID_LISTBACKENDS_CANNOT_LOAD_SCHEMA =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 733;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to read backend information from the configuration.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LISTBACKENDS_CANNOT_GET_BACKENDS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 734;
+
+
+
+  /**
+   * The message ID for the message that will be used if a provided string can't
+   * be parsed as a DN.  This takes two arguments, which are the provided string
+   * and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LISTBACKENDS_INVALID_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 735;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that a
+   * provided DN was not a base DN for any backend.  This takes a single
+   * argument, which is the provided DN.
+   */
+  public static final int MSGID_LISTBACKENDS_NOT_BASE_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 736;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that a
+   * provided DN was not appropriate for any backend.  This takes a single
+   * argument, which is the provided DN.
+   */
+  public static final int MSGID_LISTBACKENDS_NO_BACKEND_FOR_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 737;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that a
+   * provided DN was below the base DN for a backend in the server.  This takes
+   * three arguments, which are the provided DN, the base DN for the
+   * corresponding backend, and the backend ID.
+   */
+  public static final int MSGID_LISTBACKENDS_DN_BELOW_BASE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 738;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that a
+   * provided DN a base DN for a backend.  This takes two arguments, which are
+   * the provided DN and the corresponding backend ID.
+   */
+  public static final int MSGID_LISTBACKENDS_BASE_FOR_ID =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 739;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label for the
+   * backend ID column header.
+   */
+  public static final int MSGID_LISTBACKENDS_LABEL_BACKEND_ID =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 740;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label for the base
+   * DN column header.
+   */
+  public static final int MSGID_LISTBACKENDS_LABEL_BASE_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 741;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided backend ID
+   * is not associated with any backend configured in the server.  This takes a
+   * single argument, which is the provided backend ID.
+   */
+  public static final int MSGID_LISTBACKENDS_NO_SUCH_BACKEND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 742;
+
+
+
+  /**
+   * The message ID for the message that will be used if none of the provided
+   * backend IDs are valid.  This does not take any arguments.
+   */
+  public static final int MSGID_LISTBACKENDS_NO_VALID_BACKENDS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 743;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to decode the base DN for backend configuration entries.  This takes
+   * two arguments, which are the base DN and a message explaining the problem
+   * that occurred.
+   */
+  public static final int MSGID_LISTBACKENDS_CANNOT_DECODE_BACKEND_BASE_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 744;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to retrieve the backend configuration base entry.  This takes two
+   * arguments, which are the DN of the entry and a message explaining the
+   * problem that occurred.
+   */
+  public static final int
+       MSGID_LISTBACKENDS_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 745;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine the backend ID.  This takes two arguments, which are
+   * the DN of the backend configuration entry and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_LISTBACKENDS_CANNOT_DETERMINE_BACKEND_ID =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 746;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine the set of base DNs for a backend.  This takes two
+   * arguments, which are the DN of the backend configuration entry and a string
+   * representation of the exception that was caught.
+   */
+  public static final int
+       MSGID_LISTBACKENDS_CANNOT_DETERMINE_BASES_FOR_BACKEND =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 747;
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -9235,6 +9478,81 @@ public class ToolMessages
     registerMessage(MSGID_WAIT4DEL_TOOL_DESCRIPTION,
                     "This utility may be used to wait for a file to be " +
                     "removed from the filesystem.");
+    registerMessage(MSGID_LISTBACKENDS_TOOL_DESCRIPTION,
+                    "This utility may be used to list the backends and base " +
+                    "DNs configured in the Directory Server.");
+
+
+    registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_CLASS,
+                    "The fully-qualified name of the Java class to use as " +
+                    "the Directory Server configuration handler.  If this is " +
+                    "not provided, then a default of " +
+                    ConfigFileHandler.class.getName() + " will be used.");
+    registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_FILE,
+                    "The path to the Directory Server configuration file, " +
+                    "which will enable the use of the schema definitions " +
+                    "when processing the updates.  If it is not provided, " +
+                    "then schema processing will not be available.");
+    registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_BACKEND_ID,
+                    "Backend ID of the backend for which to list the base DNs");
+    registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_BASE_DN,
+                    "Base DN for which to list the backend ID");
+    registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_HELP,
+                    "Display this usage information.");
+    registerMessage(MSGID_LISTBACKENDS_CANNOT_INITIALIZE_ARGS,
+                    "An unexpected error occurred while attempting to " +
+                    "initialize the command-line arguments:  %s.");
+    registerMessage(MSGID_LISTBACKENDS_ERROR_PARSING_ARGS,
+                    "An error occurred while parsing the command-line " +
+                    "arguments:  %s.");
+    registerMessage(MSGID_LISTBACKENDS_SERVER_BOOTSTRAP_ERROR,
+                    "An unexpected error occurred while attempting to " +
+                    "bootstrap the Directory Server client-side code:  %s.");
+    registerMessage(MSGID_LISTBACKENDS_CANNOT_LOAD_CONFIG,
+                    "An error occurred while trying to load the Directory " +
+                    "Server configuration:  %s.");
+    registerMessage(MSGID_LISTBACKENDS_CANNOT_LOAD_SCHEMA,
+                    "An error occurred while trying to load the Directory " +
+                    "Server schema:  %s.");
+    registerMessage(MSGID_LISTBACKENDS_CANNOT_GET_BACKENDS,
+                    "An error occurred while trying to read backend " +
+                    "information from the server configuration:  %s.");
+    registerMessage(MSGID_LISTBACKENDS_INVALID_DN,
+                    "The provided base DN value '%s' could not be parsed as " +
+                    "a valid DN:  %s.");
+    registerMessage(MSGID_LISTBACKENDS_NOT_BASE_DN,
+                    "The provided DN '%s' is not a base DN for any backend " +
+                    "configured in the Directory Server.");
+    registerMessage(MSGID_LISTBACKENDS_NO_BACKEND_FOR_DN,
+                    "The provided DN '%s' is not below any base DN for any " +
+                    "of the backends configured in the Directory Server.");
+    registerMessage(MSGID_LISTBACKENDS_DN_BELOW_BASE,
+                    "The provided DN '%s' is below '%s' which is configured " +
+                    "as a base DN for backend '%s'.");
+    registerMessage(MSGID_LISTBACKENDS_BASE_FOR_ID,
+                    "The provided DN '%s' is a base DN for backend '%s'.");
+    registerMessage(MSGID_LISTBACKENDS_LABEL_BACKEND_ID,
+                    "Backend ID");
+    registerMessage(MSGID_LISTBACKENDS_LABEL_BASE_DN,
+                    "Base DN");
+    registerMessage(MSGID_LISTBACKENDS_NO_SUCH_BACKEND,
+                    "There is no backend with ID '%s' in the server " +
+                    "configuration.");
+    registerMessage(MSGID_LISTBACKENDS_NO_VALID_BACKENDS,
+                    "None of the provided backend IDs exist in the server " +
+                    "configuration.");
+    registerMessage(MSGID_LISTBACKENDS_CANNOT_DECODE_BACKEND_BASE_DN,
+                    "Unable to decode the backend configuration base DN " +
+                    "string \"%s\" as a valid DN:  %s.");
+    registerMessage(MSGID_LISTBACKENDS_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY,
+                    "Unable to retrieve the backend configuration base entry " +
+                    "\"%s\" from the server configuration:  %s.");
+    registerMessage(MSGID_LISTBACKENDS_CANNOT_DETERMINE_BACKEND_ID,
+                    "Cannot determine the backend ID for the backend defined " +
+                    "in configuration entry %s:  %s.");
+    registerMessage(MSGID_LISTBACKENDS_CANNOT_DETERMINE_BASES_FOR_BACKEND,
+                    "Unable to determine the set of base DNs defined in " +
+                    "backend configuration entry %s:  %s.");
   }
 }
 
