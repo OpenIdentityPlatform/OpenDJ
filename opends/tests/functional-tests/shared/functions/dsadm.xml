@@ -48,7 +48,7 @@
 
         <process name="'Configure DS'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/configure-ds.%s' % (OPENDS_BINPATH,fileExt)</command>
+            <command>'%s/configure-ds%s' % (OPENDS_BINPATH,fileExt)</command>
             <parms>'-p %s -b "%s"' % (dsInstancePort,dsInstanceSuffix)</parms>
             <workdir>'%s' % (OPENDS_BINPATH)</workdir>
             <envs>
@@ -84,7 +84,7 @@
 
         <process name="'Start DS'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/start-ds.%s' % (dsbinpath,fileExt)</command>
+            <command>'%s/start-ds%s' % (dsbinpath,fileExt)</command>
             <workdir>'%s' % (dsbinpath)</workdir>
             <envs>
                 ['PATH=/bin:/usr/bin:%s' % (dsbinpath), 'JAVA_HOME=%s' % (JAVA_HOME)]
@@ -120,7 +120,7 @@
 
         <process name="'Stop DS'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/stop-ds.%s' % (OPENDS_BINPATH,fileExt)</command>
+            <command>'%s/stop-ds%s' % (OPENDS_BINPATH,fileExt)</command>
             <parms>'-p %s' % (dsInstancePort)</parms>
             <workdir>'%s' % (OPENDS_BINPATH)</workdir>
             <envs>
@@ -277,11 +277,11 @@
       <sequence>
 
         <message>
-          'import-ldif.%s -l %s -n %s %s' % (fileExt,ldifFile,backEnd,extraParams)
+          'import-ldif%s -l %s -n %s %s' % (fileExt,ldifFile,backEnd,extraParams)
         </message>
         <process name="'Offline Import'">
           <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-          <command>'%s/import-ldif.%s' % (OPENDS_BINPATH,fileExt)</command>
+          <command>'%s/import-ldif%s' % (OPENDS_BINPATH,fileExt)</command>
           <parms>'-l %s -n %s %s' % (ldifFile,backEnd,extraParams)</parms>
           <workdir>'%s' % (OPENDS_BINPATH)</workdir>
           <envs>
@@ -500,11 +500,11 @@
 
         <!-- On line Import Task with ldapmodify -->
         <message>
-          'ldapmodify.%s -a -h %s -p %s -D "%s" -w %s' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)
+          'ldapmodify%s -a -h %s -p %s -D "%s" -w %s' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)
         </message>
         <process name="'On line Import Task'">
           <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-          <command>'%s/ldapmodify.%s' % (OPENDS_BINPATH,fileExt)</command>
+          <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
           <parms>'-a -h %s -p %s -D "%s" -w %s' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)</parms>
           <workdir>'%s' % (OPENDS_BINPATH)</workdir>
           <envs>
@@ -541,11 +541,11 @@
           <sequence>
           
             <message>
-              'ldapsearch.%s -h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)
+              'ldapsearch%s -h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)
             </message>
             <process name="'Search On line Import Task'">
               <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-              <command>'%s/ldapsearch.%s' % (OPENDS_BINPATH,fileExt)</command>
+              <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
               <parms>'-h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)</parms>
               <workdir>'%s' % (OPENDS_BINPATH)</workdir>
               <envs>
