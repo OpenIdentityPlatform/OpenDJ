@@ -58,11 +58,11 @@
       <sequence>
 
         <message>
-            'ldapmodify.%s -a -h %s -p %s -D "%s" -w %s %s -f "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeAdded)
+            'ldapmodify%s -a -h %s -p %s -D "%s" -w %s %s -f "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeAdded)
         </message>
         <process name="'Add Entry'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapmodify.%s' % (OPENDS_BINPATH,fileExt)</command>
+            <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
             <parms>'-a -h %s -p %s -D "%s" -w %s %s -f "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeAdded)</parms>
             <workdir>'%s' % (OPENDS_BINPATH)</workdir>
             <envs>
@@ -111,11 +111,11 @@
       <sequence>
 
         <message>
-            'ldapmodify.%s -h %s -p %s -D "%s" -w %s %s -f "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeModified)
+            'ldapmodify%s -h %s -p %s -D "%s" -w %s %s -f "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeModified)
         </message>
         <process name="'Modify Entry'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapmodify.%s' % (OPENDS_BINPATH,fileExt)</command>
+            <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
             <parms>'-h %s -p %s -D "%s" -w %s %s -f "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeModified)</parms>
             <workdir>'%s' % (OPENDS_BINPATH)</workdir>
             <envs>
@@ -167,11 +167,11 @@
       <sequence>
 
         <message>
-            'ldapsearch.%s -h %s -p %s -D "%s" -w %s %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN,dsFilter)
+            'ldapsearch%s -h %s -p %s -D "%s" -w %s %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN,dsFilter)
         </message>
         <process name="'Search Base Object'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapsearch.%s' % (OPENDS_BINPATH,fileExt)</command>
+            <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
             <parms>'-h %s -p %s -D "%s" -w %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN,dsFilter)</parms>
             <workdir>'%s' % (OPENDS_BINPATH)</workdir>
             <envs>
@@ -212,11 +212,11 @@
       <sequence>
 
         <message>
-            'ldapsearch.%s -h %s -p %s %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)
+            'ldapsearch%s -h %s -p %s %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)
         </message>
         <process name="'Anonymous Search Base Object'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapsearch.%s' % (OPENDS_BINPATH,fileExt)</command>
+            <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
             <parms>'-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)</parms>
             <workdir>'%s' % (OPENDS_BINPATH)</workdir>
             <envs>
@@ -260,11 +260,11 @@
       <sequence>
 
         <message>
-            'ldapdelete.%s -h %s -p %s -D "%s" -w %s %s "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN)
+            'ldapdelete%s -h %s -p %s -D "%s" -w %s %s "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN)
         </message>
         <process name="'Delete Object'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapdelete.%s' % (OPENDS_BINPATH,fileExt)</command>
+            <command>'%s/ldapdelete%s' % (OPENDS_BINPATH,fileExt)</command>
             <parms>'-h %s -p %s -D "%s" -w %s %s "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN)</parms>
             <workdir>'%s' % (OPENDS_BINPATH)</workdir>
             <envs>
@@ -316,11 +316,11 @@
       <sequence>
 
         <message>
-            'ldapcompare.%s -h %s -p %s -D "%s" -w %s %s  "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,attrToBeCompared,entryToBeCompared)
+            'ldapcompare%s -h %s -p %s -D "%s" -w %s %s  "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,attrToBeCompared,entryToBeCompared)
         </message>
         <process name="'Compare Entry'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapcompare.%s' % (OPENDS_BINPATH,fileExt)</command>
+            <command>'%s/ldapcompare%s' % (OPENDS_BINPATH,fileExt)</command>
             <parms>'-h %s -p %s -D "%s" -w %s %s  "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,attrToBeCompared,entryToBeCompared)</parms>
             <workdir>'%s' % (OPENDS_BINPATH)</workdir>
             <envs>

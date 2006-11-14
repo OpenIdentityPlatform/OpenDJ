@@ -34,36 +34,6 @@
 
       <sequence>
 
-      <script>
-          STAXLogMessage = 1
-          SRCFILE = '%s/%s' % (ZIPPATH,ZIPNAME)
-          DSTFILE = '%s/%s' % (TMPDIR,ZIPNAME)
-          OPENDS_BINPATH = '%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-      </script>
-
-      <!--- Import all the shared libraries
-            may be we should have a loadlibs.xml to
-            load all the libs -->
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-          file="'%s/utils.xml' % (TESTS_FUNCTIONS_DIR)"/>
-
-      <!--- Set OS related variables on remote host -->
-      <message>
-          'Set OS related variables on remote host.'
-      </message>
-      <call function="'setOSvariables'">
-          { 'hostname' : STAF_REMOTE_HOSTNAME }
-      </call>
-
-      <script>OSName= STAXResult</script>
-
-      <if expr="OSName == 'Win2003'">
-        <script>fileExt= 'bat'</script>
-      <else>
-        <script>fileExt= 'sh'</script>
-      </else>
-      </if>
-
         <!--- Check that DS started -->
         <call function="'isAlive'">
           { 'noOfLoops'        : 5 ,

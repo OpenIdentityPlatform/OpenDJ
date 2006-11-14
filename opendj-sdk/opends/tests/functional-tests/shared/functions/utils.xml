@@ -31,7 +31,7 @@
     <function name="checkRC">
 
     <function-prolog>
-        This function checks the STAF return code against an expected return code
+        This function checks a return code against an expected return code
     </function-prolog>
 
     <function-map-args>
