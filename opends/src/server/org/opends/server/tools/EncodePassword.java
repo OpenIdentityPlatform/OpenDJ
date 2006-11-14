@@ -28,6 +28,8 @@ package org.opends.server.tools;
 
 
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,10 +41,13 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordStorageSchemeConfigManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.schema.AuthPasswordSyntax;
+import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -74,17 +79,80 @@ public class EncodePassword
    */
   public static void main(String[] args)
   {
+    int returnCode = encodePassword(args, true, System.out, System.err);
+    if (returnCode != 0)
+    {
+      System.exit(returnCode);
+    }
+  }
+
+
+
+  /**
+   * Processes the command-line arguments and performs the requested action.
+   *
+   * @param  args  The command-line arguments provided to this program.
+   *
+   * @return  An integer value that indicates whether processing was successful.
+   */
+  public static int encodePassword(String[] args)
+  {
+    return encodePassword(args, true, System.out, System.err);
+  }
+
+
+
+  /**
+   * Processes the command-line arguments and performs the requested action.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param  initializeServer  Indicates whether to initialize the server.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           <CODE>null</CODE> if standard output is not
+   *                           needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           <CODE>null</CODE> if standard error is not
+   *                           needed.
+   *
+   * @return  An integer value that indicates whether processing was successful.
+   */
+  public static int encodePassword(String[] args, boolean initializeServer,
+                                   OutputStream outStream,
+                                   OutputStream errStream)
+  {
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
     // Define the command-line arguments that may be used with this program.
-    BooleanArgument   authPasswordSyntax  = null;
-    BooleanArgument   listSchemes         = null;
-    BooleanArgument   showUsage           = null;
-    StringArgument    clearPassword       = null;
-    FileBasedArgument clearPasswordFile   = null;
-    StringArgument    encodedPassword     = null;
-    FileBasedArgument encodedPasswordFile = null;
-    StringArgument    configClass         = null;
-    StringArgument    configFile          = null;
-    StringArgument    schemeName          = null;
+    BooleanArgument   authPasswordSyntax   = null;
+    BooleanArgument   useCompareResultCode = null;
+    BooleanArgument   listSchemes          = null;
+    BooleanArgument   showUsage            = null;
+    StringArgument    clearPassword        = null;
+    FileBasedArgument clearPasswordFile    = null;
+    StringArgument    encodedPassword      = null;
+    FileBasedArgument encodedPasswordFile  = null;
+    StringArgument    configClass          = null;
+    StringArgument    configFile           = null;
+    StringArgument    schemeName           = null;
 
 
     // Create the command-line argument parser for use with this program.
@@ -158,18 +226,25 @@ public class EncodePassword
       argParser.addArgument(authPasswordSyntax);
 
 
+      useCompareResultCode =
+           new BooleanArgument("usecompareresultcode", 'r',
+                               "useCompareResultCode",
+                               MSGID_ENCPW_DESCRIPTION_USE_COMPARE_RESULT);
+      argParser.addArgument(useCompareResultCode);
+
+
       showUsage = new BooleanArgument("usage", 'H', "help",
                                       MSGID_ENCPW_DESCRIPTION_USAGE);
       argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
+      argParser.setUsageArgument(showUsage, out);
     }
     catch (ArgumentException ae)
     {
       int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
     }
 
 
@@ -183,21 +258,43 @@ public class EncodePassword
       int    msgID   = MSGID_ENCPW_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.err.println(argParser.getUsage());
-      System.exit(1);
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
+      return 1;
     }
 
 
-    // If we should just display usage information, then print it and exit.
+    // If we should just display usage information, then we've already done it
+    // so just return without doing anything else.
     if (showUsage.isPresent())
     {
-      System.exit(0);
+      return 0;
     }
 
 
-    // If we are not going to just list the storage schemes, then the clear
-    // password and scheme name must have been provided.
+    // Check for conflicting arguments.
+    if (clearPassword.isPresent() && clearPasswordFile.isPresent())
+    {
+      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, clearPassword.getLongIdentifier(),
+                                  clearPasswordFile.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    if (encodedPassword.isPresent() && encodedPasswordFile.isPresent())
+    {
+      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, encodedPassword.getLongIdentifier(),
+                                  encodedPasswordFile.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+
+    // If we are not going to just list the storage schemes, then the clear-text
+    // password must have been provided.  If we're going to encode a password,
+    // then the scheme must have also been provided.
     ASN1OctetString clearPW = null;
     if (! listSchemes.isPresent())
     {
@@ -214,18 +311,18 @@ public class EncodePassword
         int    msgID = MSGID_ENCPW_NO_CLEAR_PW;
         String message = getMessage(msgID, clearPassword.getLongIdentifier(),
                                     clearPasswordFile.getLongIdentifier());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        System.err.println(argParser.getUsage());
-        System.exit(1);
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        err.println(argParser.getUsage());
+        return 1;
       }
 
-      if (! schemeName.hasValue())
+      if ((! encodedPassword.isPresent()) && (! schemeName.isPresent()))
       {
         int    msgID   = MSGID_ENCPW_NO_SCHEME;
         String message = getMessage(msgID, schemeName.getLongIdentifier());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        System.err.println(argParser.getUsage());
-        System.exit(1);
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        err.println(argParser.getUsage());
+        return 1;
       }
     }
 
@@ -249,125 +346,128 @@ public class EncodePassword
     // configuration.
     DirectoryServer directoryServer = DirectoryServer.getInstance();
 
-    try
+    if (initializeServer)
     {
-      directoryServer.bootstrapClient();
-      directoryServer.initializeJMX();
-    }
-    catch (Exception e)
-    {
-      int msgID = MSGID_ENCPW_SERVER_BOOTSTRAP_ERROR;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
+      try
+      {
+        directoryServer.bootstrapClient();
+        directoryServer.initializeJMX();
+      }
+      catch (Exception e)
+      {
+        int msgID = MSGID_ENCPW_SERVER_BOOTSTRAP_ERROR;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
-    try
-    {
-      directoryServer.initializeConfiguration(configClass.getValue(),
-                                              configFile.getValue());
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_LOAD_CONFIG;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_LOAD_CONFIG;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
-
-
-
-    // Initialize the Directory Server schema elements.
-    try
-    {
-      directoryServer.initializeSchema();
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
-      String message = getMessage(msgID, ce.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
+      try
+      {
+        directoryServer.initializeConfiguration(configClass.getValue(),
+                                                configFile.getValue());
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_LOAD_CONFIG;
+        String message = getMessage(msgID, ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_LOAD_CONFIG;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
 
-    // Initialize the Directory Server core configuration.
-    try
-    {
-      CoreConfigManager coreConfigManager = new CoreConfigManager();
-      coreConfigManager.initializeCoreConfig();
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
-      String message = getMessage(msgID, ce.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
+
+      // Initialize the Directory Server schema elements.
+      try
+      {
+        directoryServer.initializeSchema();
+      }
+      catch (ConfigException ce)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
+        String message = getMessage(msgID, ce.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
+        String message = getMessage(msgID, ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
 
-    // Initialize the password storage schemes.
-    try
-    {
-      PasswordStorageSchemeConfigManager storageSchemeConfigManager =
-           new PasswordStorageSchemeConfigManager();
-      storageSchemeConfigManager.initializePasswordStorageSchemes();
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES;
-      String message = getMessage(msgID, ce.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      // Initialize the Directory Server core configuration.
+      try
+      {
+        CoreConfigManager coreConfigManager = new CoreConfigManager();
+        coreConfigManager.initializeCoreConfig();
+      }
+      catch (ConfigException ce)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
+        String message = getMessage(msgID, ce.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
+        String message = getMessage(msgID, ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+
+
+      // Initialize the password storage schemes.
+      try
+      {
+        PasswordStorageSchemeConfigManager storageSchemeConfigManager =
+             new PasswordStorageSchemeConfigManager();
+        storageSchemeConfigManager.initializePasswordStorageSchemes();
+      }
+      catch (ConfigException ce)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES;
+        String message = getMessage(msgID, ce.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES;
+        String message = getMessage(msgID, ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
     }
 
 
@@ -382,7 +482,7 @@ public class EncodePassword
         {
           int msgID = MSGID_ENCPW_NO_STORAGE_SCHEMES;
           String message = getMessage(msgID);
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
@@ -400,11 +500,11 @@ public class EncodePassword
 
           for (String storageSchemeName : nameArray)
           {
-            System.out.println(storageSchemeName);
+            out.println(storageSchemeName);
           }
         }
 
-        System.exit(0);
+        return 0;
       }
       else
       {
@@ -414,7 +514,7 @@ public class EncodePassword
         {
           int msgID = MSGID_ENCPW_NO_STORAGE_SCHEMES;
           String message = getMessage(msgID);
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
         {
@@ -432,39 +532,11 @@ public class EncodePassword
 
           for (String storageSchemeName : nameArray)
           {
-            System.out.println(storageSchemeName);
+            out.println(storageSchemeName);
           }
         }
 
-        System.exit(0);
-      }
-    }
-
-
-    // Try to get a reference to the requested password storage scheme.
-    PasswordStorageScheme storageScheme;
-    if (authPasswordSyntax.isPresent())
-    {
-      String scheme = schemeName.getValue();
-      storageScheme = DirectoryServer.getAuthPasswordStorageScheme(scheme);
-      if (storageScheme == null)
-      {
-        int    msgID   = MSGID_ENCPW_NO_SUCH_AUTH_SCHEME;
-        String message = getMessage(msgID, scheme);
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        System.exit(1);
-      }
-    }
-    else
-    {
-      String scheme = toLowerCase(schemeName.getValue());
-      storageScheme = DirectoryServer.getPasswordStorageScheme(scheme);
-      if (storageScheme == null)
-      {
-        int    msgID   = MSGID_ENCPW_NO_SUCH_SCHEME;
-        String message = getMessage(msgID, scheme);
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        System.exit(1);
+        return 0;
       }
     }
 
@@ -473,15 +545,20 @@ public class EncodePassword
     // compare the clear-text password against the encoded password.
     if (compareMode)
     {
+      // Check to see if the provided password value was encoded.  If so, then
+      // break it down into its component parts and use that to perform the
+      // comparison.  Otherwise, the user must have provided the storage scheme.
       if (authPasswordSyntax.isPresent())
       {
-        String authInfo  = null;
-        String authValue = null;
+        String scheme;
+        String authInfo;
+        String authValue;
+
         try
         {
-          String encodedPWString = encodedPassword.getValue();
           StringBuilder[] authPWElements =
-               AuthPasswordSyntax.decodeAuthPassword(encodedPWString);
+               AuthPasswordSyntax.decodeAuthPassword(encodedPW.stringValue());
+          scheme    = authPWElements[0].toString();
           authInfo  = authPWElements[1].toString();
           authValue = authPWElements[2].toString();
         }
@@ -489,48 +566,181 @@ public class EncodePassword
         {
           int    msgID   = MSGID_ENCPW_INVALID_ENCODED_AUTHPW;
           String message = getMessage(msgID, de.getErrorMessage());
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          System.exit(1);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
         }
         catch (Exception e)
         {
           int    msgID   = MSGID_ENCPW_INVALID_ENCODED_AUTHPW;
-          String message = getMessage(msgID, e);
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          System.exit(1);
+          String message = getMessage(msgID, String.valueOf(e));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+
+        PasswordStorageScheme storageScheme =
+             DirectoryServer.getAuthPasswordStorageScheme(scheme);
+        if (storageScheme == null)
+        {
+          int    msgID   = MSGID_ENCPW_NO_SUCH_AUTH_SCHEME;
+          String message = getMessage(msgID, scheme);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
         }
 
         if (storageScheme.authPasswordMatches(clearPW, authInfo, authValue))
         {
           int    msgID   = MSGID_ENCPW_PASSWORDS_MATCH;
           String message = getMessage(msgID);
-          System.out.println(wrapText(message, MAX_LINE_WIDTH));
+          out.println(message);
+
+          if (useCompareResultCode.isPresent())
+          {
+            return LDAPResultCode.COMPARE_TRUE;
+          }
+          else
+          {
+            return 0;
+          }
         }
         else
         {
           int    msgID   = MSGID_ENCPW_PASSWORDS_DO_NOT_MATCH;
           String message = getMessage(msgID);
-          System.out.println(wrapText(message, MAX_LINE_WIDTH));
+          out.println(message);
+
+          if (useCompareResultCode.isPresent())
+          {
+            return LDAPResultCode.COMPARE_FALSE;
+          }
+          else
+          {
+            return 0;
+          }
         }
       }
       else
       {
-        if (storageScheme.passwordMatches(clearPW, encodedPW))
+        PasswordStorageScheme storageScheme;
+        String                encodedPWString;
+
+        if (UserPasswordSyntax.isEncoded(encodedPW))
+        {
+          try
+          {
+            String[] userPWElements =
+                 UserPasswordSyntax.decodeUserPassword(encodedPW.stringValue());
+            encodedPWString = userPWElements[1];
+
+            storageScheme =
+                 DirectoryServer.getPasswordStorageScheme(userPWElements[0]);
+            if (storageScheme == null)
+            {
+              int    msgID   = MSGID_ENCPW_NO_SUCH_SCHEME;
+              String message = getMessage(msgID, userPWElements[0]);
+              err.println(wrapText(message, MAX_LINE_WIDTH));
+              return 1;
+            }
+          }
+          catch (DirectoryException de)
+          {
+            int    msgID   = MSGID_ENCPW_INVALID_ENCODED_USERPW;
+            String message = getMessage(msgID, de.getErrorMessage());
+            err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
+          catch (Exception e)
+          {
+            int    msgID   = MSGID_ENCPW_INVALID_ENCODED_USERPW;
+            String message = getMessage(msgID, String.valueOf(e));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
+        }
+        else
+        {
+          if (! schemeName.isPresent())
+          {
+            int    msgID   = MSGID_ENCPW_NO_SCHEME;
+            String message = getMessage(msgID, schemeName.getLongIdentifier());
+            err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
+
+          encodedPWString = encodedPW.toString();
+
+          String scheme = toLowerCase(schemeName.getValue());
+          storageScheme = directoryServer.getPasswordStorageScheme(scheme);
+          if (storageScheme == null)
+          {
+            int    msgID   = MSGID_ENCPW_NO_SUCH_SCHEME;
+            String message = getMessage(msgID, scheme);
+            err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
+        }
+
+        if (storageScheme.passwordMatches(clearPW,
+                                          new ASN1OctetString(encodedPWString)))
         {
           int    msgID   = MSGID_ENCPW_PASSWORDS_MATCH;
           String message = getMessage(msgID);
-          System.out.println(wrapText(message, MAX_LINE_WIDTH));
+          out.println(message);
+
+          if (useCompareResultCode.isPresent())
+          {
+            return LDAPResultCode.COMPARE_TRUE;
+          }
+          else
+          {
+            return 0;
+          }
         }
         else
         {
           int    msgID   = MSGID_ENCPW_PASSWORDS_DO_NOT_MATCH;
           String message = getMessage(msgID);
-          System.out.println(wrapText(message, MAX_LINE_WIDTH));
+          out.println(message);
+
+          if (useCompareResultCode.isPresent())
+          {
+            return LDAPResultCode.COMPARE_FALSE;
+          }
+          else
+          {
+            return 0;
+          }
         }
       }
     }
     else
     {
+      // Try to get a reference to the requested password storage scheme.
+      PasswordStorageScheme storageScheme;
+      if (authPasswordSyntax.isPresent())
+      {
+        String scheme = schemeName.getValue();
+        storageScheme = DirectoryServer.getAuthPasswordStorageScheme(scheme);
+        if (storageScheme == null)
+        {
+          int    msgID   = MSGID_ENCPW_NO_SUCH_AUTH_SCHEME;
+          String message = getMessage(msgID, scheme);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+      else
+      {
+        String scheme = toLowerCase(schemeName.getValue());
+        storageScheme = DirectoryServer.getPasswordStorageScheme(scheme);
+        if (storageScheme == null)
+        {
+          int    msgID   = MSGID_ENCPW_NO_SUCH_SCHEME;
+          String message = getMessage(msgID, scheme);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+
       if (authPasswordSyntax.isPresent())
       {
         try
@@ -539,21 +749,21 @@ public class EncodePassword
 
           int    msgID   = MSGID_ENCPW_ENCODED_PASSWORD;
           String message = getMessage(msgID, encodedPW.stringValue());
-          System.out.println(message);
+          out.println(message);
         }
         catch (DirectoryException de)
         {
           int msgID = MSGID_ENCPW_CANNOT_ENCODE;
           String message = getMessage(msgID, de.getErrorMessage());
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          System.exit(1);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
         }
         catch (Exception e)
         {
           int msgID = MSGID_ENCPW_CANNOT_ENCODE;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          System.exit(1);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
         }
       }
       else
@@ -564,24 +774,27 @@ public class EncodePassword
 
           int    msgID   = MSGID_ENCPW_ENCODED_PASSWORD;
           String message = getMessage(msgID, encodedPW.stringValue());
-          System.out.println(message);
+          out.println(message);
         }
         catch (DirectoryException de)
         {
           int msgID = MSGID_ENCPW_CANNOT_ENCODE;
           String message = getMessage(msgID, de.getErrorMessage());
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          System.exit(1);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
         }
         catch (Exception e)
         {
           int msgID = MSGID_ENCPW_CANNOT_ENCODE;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          System.exit(1);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
         }
       }
     }
+
+    // If we've gotten here, then all processing completed successfully.
+    return 0;
   }
 }
 

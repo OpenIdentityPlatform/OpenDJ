@@ -7302,6 +7302,26 @@ public class ToolMessages
             CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 747;
 
 
+
+  /**
+   * The message ID for the message that will be used if the encoded password is
+   * not valid according to the user password syntax.  This takes a single
+   * argument, which is a message explaining why it is invalid.
+   */
+  public static final int MSGID_ENCPW_INVALID_ENCODED_USERPW =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 748;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * useCompareResultCode argument.  This does not take any arguments.
+   */
+  public static final int MSGID_ENCPW_DESCRIPTION_USE_COMPARE_RESULT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 749;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -7349,6 +7369,9 @@ public class ToolMessages
     registerMessage(MSGID_ENCPW_DESCRIPTION_AUTHPW,
                     "Use the authentication password syntax rather than the " +
                     "user password syntax");
+    registerMessage(MSGID_ENCPW_DESCRIPTION_USE_COMPARE_RESULT,
+                    "Use the LDAP compare result as an exit code for the " +
+                    "password comparison");
     registerMessage(MSGID_ENCPW_DESCRIPTION_USAGE,
                     "Displays this usage information.");
     registerMessage(MSGID_ENCPW_CANNOT_INITIALIZE_ARGS,
@@ -7398,6 +7421,9 @@ public class ToolMessages
     registerMessage(MSGID_ENCPW_PASSWORDS_DO_NOT_MATCH,
                     "The provided clear-text and encoded passwords do not " +
                     "match.");
+    registerMessage(MSGID_ENCPW_INVALID_ENCODED_USERPW,
+                    "The provided password is not a valid encoded " +
+                    "user password value:  %s.");
     registerMessage(MSGID_ENCPW_ENCODED_PASSWORD,
                     "Encoded Password:  \"%s\".");
     registerMessage(MSGID_ENCPW_CANNOT_ENCODE,
