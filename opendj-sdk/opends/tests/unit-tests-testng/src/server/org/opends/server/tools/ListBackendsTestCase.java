@@ -105,7 +105,7 @@ public class ListBackendsTestCase
 
     args = new String[]
     {
-      "-c",
+      "-f",
     };
     argLists.add(args);
     reasonList.add("No value for '-f' argument");
