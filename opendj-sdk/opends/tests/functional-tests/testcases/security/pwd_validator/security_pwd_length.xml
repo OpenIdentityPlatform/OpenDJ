@@ -34,10 +34,11 @@
 
       <sequence>
 
-        <testcase name="'Security: Pwd Length: Check Existence of ds-cfg-minimum-password-length'">
+        <!--- Admin Check Existence of Min Pwd Length Attr -->
+        <testcase name="'Security: Pwd Length Min: Preamble Setup'">
           <sequence>
             <message>
-               'Security: Pwd Length: Checking existence of ds-cfg-minimum-password-length'
+               'Security: Pwd Length Min: Preamble Step 1. Checking existence of ds-cfg-minimum-password-length'
             </message>
 
             <call function="'compareEntry'">
@@ -49,19 +50,13 @@
                 'entryToBeCompared'   : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Admin Enable Pwd Length Validator -->
-        <testcase name="'Security:Pwd Length: Admin Enable Pwd Length Validator'">
-          <sequence>
+            <!--- Admin Enable Pwd Length Validator -->
             <message>
-               'Security: Pwd Length: Admin Enabling Pwd Length Validator'
+               'Security: Pwd Length Min: Preamble Step 2. Admin Enabling Pwd Length Validator'
             </message>
 
             <call function="'modifyEntry'">
@@ -80,10 +75,10 @@
         </testcase>
 
         <!--- Test Case : User Change Password - Too Short-->
-        <testcase name="'Security:Pwd Length: User Change Password - Too Short'">
+        <testcase name="'Security: Pwd Length Min: Pwd Too Short 1'">
           <sequence>
             <message>
-               'Security: Pwd Length: User Changing Password - Too Short'
+               'Security: Pwd Length Min: Pwd Too Short 1 Step 1. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -94,19 +89,13 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 53 }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 53">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Password'">
-          <sequence>
+            <!--- User Search With Password -->
             <message>
-               'Security: Pwd Policy: User Searching With Password'
+               'Security: Pwd Length Min: Pwd Too Short 1 Step 2. User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -128,10 +117,10 @@
         </testcase>
 
         <!--- Test Case : Admin Change Minimum Pwd Length -->
-        <testcase name="'Security:Pwd Length: Admin Change Minimum Pwd Length'">
+        <testcase name="'Security: Pwd Length Min: Admin Change Min Pwd Length'">
           <sequence>
             <message>
-               'Security: Pwd Length: Admin Changing Minimum Pwd Length'
+               'Security: Pwd Length Min: Admin Changing Minimum Pwd Length'
             </message>
 
             <call function="'modifyEntry'">
@@ -149,11 +138,11 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Change Password - Too Short-->
-        <testcase name="'Security:Pwd Length: User Change Password - Too Short'">
+        <!--- Test Case : User Change Password - Too Short 2-->
+        <testcase name="'Security: Pwd Length Min: Pwd Too Short 2'">
           <sequence>
             <message>
-               'Security: Pwd Length: User Changing Password - Too Short'
+               'Security: Pwd Length Min: Pwd Too Short 2 Step 1. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -164,19 +153,13 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short2.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 53 }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 53">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Password'">
-          <sequence>
+            <!--- User Search With Password -->
             <message>
-               'Security: Pwd Policy: User Searching With Password'
+               'Security: Pwd Length Min: Pwd Too Short 2 Step 2. User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -198,10 +181,10 @@
         </testcase>
 
         <!--- Test Case : User Change Password-->
-        <testcase name="'Security:Pwd Length: User Change Password'">
+        <testcase name="'Security: Pwd Length Min: User Change Pwd'">
           <sequence>
             <message>
-               'Security: Pwd Length: User Changing Password'
+               'Security: Pwd Length Min: User Change Pwd Step 1. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -212,18 +195,13 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Password'">
-          <sequence>
+            <!--- User Search With Password -->
             <message>
-               'Security: Pwd Policy: User Searching With Password'
+               'Security: Pwd Length Min: User Change Pwd Step 2. User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -244,10 +222,10 @@
         </testcase>
 
         <!--- Test Case : Admin Reset Minimum Pwd Length -->
-        <testcase name="'Security:Pwd Length: Admin Reset Minimum Pwd Length'">
+        <testcase name="'Security: Pwd Length Min: Postamble Reset'">
           <sequence>
             <message>
-               'Security: Pwd Length: Admin Resetting Minimum Pwd Length'
+               'Security: Pwd Length Min: Postamble - Admin Resetting Minimum Pwd Length'
             </message>
 
             <call function="'modifyEntry'">
@@ -265,10 +243,10 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Length: Check Existence of ds-cfg-maximum-password-length'">
+        <testcase name="'Security: Pwd Length Max: Preamble Setup'">
           <sequence>
             <message>
-               '####Security: Pwd Length: Checking existence of ds-cfg-maximum-password-length'
+               'Security: Pwd Length Max: Preamble Step 1. Checking existence of ds-cfg-maximum-password-length'
             </message>
 
             <call function="'compareEntry'">
@@ -280,19 +258,13 @@
                 'entryToBeCompared'   : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-          </sequence>
-        </testcase>
-
-        <!--- Test Case : Admin Change Maximum Pwd Length -->
-        <testcase name="'Security:Pwd Length: Admin Change Maximum Pwd Length'">
-          <sequence>
+            <!--- Admin Change Maximum Pwd Length -->
             <message>
-               'Security: Pwd Length: Admin Changing Maximum Pwd Length'
+               'Security: Pwd Length Max: Preamble Step 2. Admin Changing Maximum Pwd Length'
             </message>
 
             <call function="'modifyEntry'">
@@ -311,10 +283,10 @@
         </testcase>
 
         <!--- Test Case : User Change Password - Too Long-->
-        <testcase name="'Security:Pwd Length: User Change Password - Too Long'">
+        <testcase name="'Security: Pwd Length Max: Pwd Too Long 1'">
           <sequence>
             <message>
-               'Security: Pwd Length: User Changing Password - Too Long'
+               'Security: Pwd Length Max: Pwd Too Long 1 Step 1. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -325,19 +297,13 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 53 }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 53">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Password'">
-          <sequence>
+            <!--- User Search With Password -->
             <message>
-               'Security: Pwd Policy: User Searching With Password'
+               'Security: Pwd Length Max: Pwd Too Long 1 Step 2. User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -350,7 +316,7 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
                   'expected'   : 1 }
@@ -359,10 +325,10 @@
         </testcase>
 
         <!--- Test Case : User Change Password-->
-        <testcase name="'Security:Pwd Length: User Change Password'">
+        <testcase name="'Security: Pwd Length Max: User Change Pwd'">
           <sequence>
             <message>
-               'Security: Pwd Length: User Changing Password'
+               'Security: Pwd Length Max: User Change Password Step 1. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -373,18 +339,13 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long2.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Password'">
-          <sequence>
+            <!--- User Search With Password -->
             <message>
-               'Security: Pwd Policy: User Searching With Password'
+               'Security: Pwd Length Max: User Change Password Step 2. User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -405,10 +366,10 @@
         </testcase>
 
         <!--- Test Case : Admin Reset Maximum Pwd Length -->
-        <testcase name="'Security:Pwd Length: Admin Reset Maximum Pwd Length'">
+        <testcase name="'Security: Pwd Length Max: Postamble Reset'">
           <sequence>
             <message>
-               'Security: Pwd Length: Admin Resetting Maximum Pwd Length'
+               'Security: Pwd Length Max: Postamble Step 1. Admin Resetting Maximum Pwd Length'
             </message>
 
             <call function="'modifyEntry'">
@@ -419,18 +380,13 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_max_pwd_length.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Change Password -->
-        <testcase name="'Security:Pwd Length: User Change Password'">
-          <sequence>
+            <!--- User Change Password -->
             <message>
-               'Security: Pwd Length: User Changing Password'
+               'Security: Pwd Length Max: Postamble Step 2. User Changing Password'
             </message>
 
             <call function="'modifyEntry'">
