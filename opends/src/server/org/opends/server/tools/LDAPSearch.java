@@ -622,7 +622,7 @@ public class LDAPSearch
                                          MSGID_DESCRIPTION_USE_SASL_EXTERNAL);
       argParser.addArgument(saslExternal);
 
-      saslOptions = new StringArgument("saslOptions", 'o', "saslOptions", false,
+      saslOptions = new StringArgument("saslOption", 'o', "saslOption", false,
                                        true, true, "{name=value}", null, null,
                                        MSGID_DESCRIPTION_SASL_PROPERTIES);
       argParser.addArgument(saslOptions);
