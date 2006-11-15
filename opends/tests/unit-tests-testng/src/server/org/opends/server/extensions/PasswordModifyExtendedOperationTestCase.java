@@ -2378,7 +2378,7 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "authPassword: password",
          "authPassword: password2",
-         "pwdPolicySubentry: cn=SHA1 AuthPassword Policy," +
+         "ds-pwp-password-policy-dn: cn=SHA1 AuthPassword Policy," +
               "cn=Password Policies,cn=config");
 
 

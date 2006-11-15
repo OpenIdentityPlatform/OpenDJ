@@ -273,7 +273,7 @@ public class PasswordPolicyImportPluginTestCase
       "sn: User2",
       "cn: Test User2",
       "userPassword: password",
-      "pwdPolicySubentry: cn=SSHA512 UserPassword Policy," +
+      "ds-pwp-password-policy-dn: cn=SSHA512 UserPassword Policy," +
            "cn=Password Policies,cn=config",
       "",
       "dn: uid=test.user3,o=test",
@@ -287,8 +287,8 @@ public class PasswordPolicyImportPluginTestCase
       "sn: User3",
       "cn: Test User3",
       "authPassword: password",
-      "pwdPolicySubentry: cn=SHA1 AuthPassword Policy,cn=Password Policies," +
-           "cn=config"
+      "ds-pwp-password-policy-dn: cn=SHA1 AuthPassword Policy," +
+           "cn=Password Policies,cn=config"
     };
 
     String ldifString = TestCaseUtils.makeLdif(entryLines);

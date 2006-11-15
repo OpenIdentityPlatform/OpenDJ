@@ -298,14 +298,10 @@ public class PasswordPolicyState
     assert debugEnter(CLASS_NAME, "getPasswordPolicy");
 
 
-    // See if the user entry contains the pwdPolicySubentry attribute to select
-    // a custom objectclass (whether real or virtual).
+    // See if the user entry contains the ds-pwp-password-policy-dn attribute to
+    // select a custom objectclass (whether real or virtual).
     AttributeType type =
-         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_SUBENTRY_LC);
-    if (type == null)
-    {
-      type = DirectoryServer.getDefaultAttributeType(OP_ATTR_PWPOLICY_SUBENTRY);
-    }
+         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN, true);
 
     List<Attribute> attrList = userEntry.getAttribute(type);
     if ((attrList == null) || attrList.isEmpty())
