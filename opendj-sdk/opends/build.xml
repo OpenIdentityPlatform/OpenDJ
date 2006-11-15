@@ -370,9 +370,10 @@
       <fileset file="${lib.dir}/*.jar" />
     </copy>
 
-    <copy todir="${pdir}/bin">
-      <fileset file="${scripts.dir}/*" />
-    </copy>
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat"
+         eol="lf" /> 
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" includes="*.bat"
+         eol="crlf" /> 
 
     <copy todir="${pdir}/config">
       <fileset file="${config.dir}/*" />
@@ -398,13 +399,10 @@
       <fileset file="${resource.dir}/README" />
     </copy>
 
-    <copy todir="${pdir}">
-      <fileset file="${resource.dir}/setup.sh" />
-    </copy>
-
-    <copy todir="${pdir}">
-      <fileset file="${resource.dir}/setup.bat" />
-    </copy>
+    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.sh"
+         eol="lf" />
+    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.bat"
+         eol="crlf" />
 
     <chmod file="${pdir}/*.sh" perm="755" />
     <chmod perm="755">
