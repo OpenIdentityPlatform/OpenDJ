@@ -590,8 +590,7 @@ public class MemoryBackend
     assert debugEnter(CLASS_NAME, "supportsControl",
                       String.valueOf(controlOID));
 
-    // This backend does not provide any special control support.
-    return false;
+    return supportedControls.contains(controlOID);
   }
 
 
