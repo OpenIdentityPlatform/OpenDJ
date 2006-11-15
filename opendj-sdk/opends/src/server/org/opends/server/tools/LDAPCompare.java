@@ -464,7 +464,7 @@ public class LDAPCompare
       argParser.addArgument(assertionFilter);
 
       controlStr =
-           new StringArgument("controls", 'J', "controls", false, false, true,
+           new StringArgument("control", 'J', "control", false, true, true,
                     "{controloid[:criticality[:value|::b64value|:<filePath]]}",
                     null, null, MSGID_DESCRIPTION_CONTROLS);
       argParser.addArgument(controlStr);
@@ -698,19 +698,22 @@ public class LDAPCompare
     compareOptions.setVerbose(verbose.isPresent());
     compareOptions.setContinueOnError(continueOnError.isPresent());
     compareOptions.setEncoding(encodingStr.getValue());
-    if(controlStr.hasValue())
+
+    if(controlStr.isPresent())
     {
-      String ctrlString = controlStr.getValue();
-      LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
-      if(ctrl == null)
+      for (String ctrlString : controlStr.getValues())
       {
-        int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
-        String message = getMessage(msgID, ctrlString);
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        err.println(argParser.getUsage());
-        return 1;
+        LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
+        if(ctrl == null)
+        {
+          int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
+          String message = getMessage(msgID, ctrlString);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(argParser.getUsage());
+          return 1;
+        }
+        compareOptions.getControls().add(ctrl);
       }
-      compareOptions.getControls().add(ctrl);
     }
 
     if (assertionFilter.isPresent())

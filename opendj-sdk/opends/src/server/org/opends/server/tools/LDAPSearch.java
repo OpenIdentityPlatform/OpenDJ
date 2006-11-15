@@ -702,7 +702,7 @@ public class LDAPSearch
       argParser.addArgument(matchedValuesFilter);
 
       controlStr =
-           new StringArgument("controls", 'J', "controls", false, false, true,
+           new StringArgument("control", 'J', "control", false, true, true,
                     "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
                     null, null, MSGID_DESCRIPTION_CONTROLS);
       argParser.addArgument(controlStr);
@@ -955,19 +955,21 @@ public class LDAPSearch
       return 1;
     }
 
-    if(controlStr.hasValue())
+    if(controlStr.isPresent())
     {
-      String ctrlString = controlStr.getValue();
-      LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
-      if(ctrl == null)
+      for (String ctrlString : controlStr.getValues())
       {
-        int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
-        String message = getMessage(msgID, ctrlString);
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        err.println(argParser.getUsage());
-        return 1;
+        LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
+        if(ctrl == null)
+        {
+          int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
+          String message = getMessage(msgID, ctrlString);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(argParser.getUsage());
+          return 1;
+        }
+        searchOptions.getControls().add(ctrl);
       }
-      searchOptions.getControls().add(ctrl);
     }
 
     if (proxyAuthzID.isPresent())

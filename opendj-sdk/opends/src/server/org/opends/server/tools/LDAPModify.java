@@ -726,7 +726,7 @@ public class LDAPModify
       argParser.addArgument(postReadAttributes);
 
       controlStr =
-           new StringArgument("controls", 'J', "controls", false, false, true,
+           new StringArgument("control", 'J', "control", false, true, true,
                     "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
                     null, null, MSGID_DESCRIPTION_CONTROLS);
       argParser.addArgument(controlStr);
@@ -878,19 +878,22 @@ public class LDAPModify
     modifyOptions.setContinueOnError(continueOnError.isPresent());
     modifyOptions.setEncoding(encodingStr.getValue());
     modifyOptions.setDefaultAdd(defaultAdd.isPresent());
-    if(controlStr.hasValue())
+
+    if (controlStr.isPresent())
     {
-      String ctrlString = controlStr.getValue();
-      LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
-      if(ctrl == null)
+      for (String ctrlString : controlStr.getValues())
       {
-        int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
-        String message = getMessage(msgID, ctrlString);
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        err.println(argParser.getUsage());
-        return 1;
+        LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
+        if(ctrl == null)
+        {
+          int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
+          String message = getMessage(msgID, ctrlString);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(argParser.getUsage());
+          return 1;
+        }
+        modifyOptions.getControls().add(ctrl);
       }
-      modifyOptions.getControls().add(ctrl);
     }
 
     if (proxyAuthzID.isPresent())
