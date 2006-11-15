@@ -147,6 +147,7 @@ public class MakeLDIF
            new StringArgument("resourcepath", 'r', "resourcePath", true, false,
                               true, "{path}", null, null,
                               MSGID_MAKELDIF_DESCRIPTION_RESOURCE_PATH);
+      resourcePath.setHidden(true);
       argParser.addArgument(resourcePath);
 
 
