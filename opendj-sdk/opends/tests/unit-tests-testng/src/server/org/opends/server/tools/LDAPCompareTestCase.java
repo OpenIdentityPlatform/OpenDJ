@@ -709,7 +709,7 @@ public class LDAPCompareTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password",
-         "pwdPolicySubentry: cn=Clear UserPassword Policy," +
+         "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
     InternalClientConnection conn =
@@ -758,7 +758,7 @@ public class LDAPCompareTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password",
-         "pwdPolicySubentry: cn=Clear UserPassword Policy," +
+         "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
     InternalClientConnection conn =

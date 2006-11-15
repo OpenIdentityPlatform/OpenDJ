@@ -1408,7 +1408,7 @@ addProcessing:
           //          attribute.
           PasswordPolicy pwPolicy = null;
           List<Attribute> pwAttrList =
-               entry.getAttribute(OP_ATTR_PWPOLICY_SUBENTRY_LC);
+               entry.getAttribute(OP_ATTR_PWPOLICY_POLICY_DN);
           if ((pwAttrList != null) && (! pwAttrList.isEmpty()))
           {
             Attribute a = pwAttrList.get(0);

@@ -7945,8 +7945,8 @@ public class CoreMessages
 
     registerMessage(MSGID_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN,
                     "An error occurred while attempting to decode the " +
-                    OP_ATTR_PWPOLICY_SUBENTRY + " value \"%s\" in user entry " +
-                    "\"%s\" as a DN:  %s.");
+                    OP_ATTR_PWPOLICY_POLICY_DN + " value \"%s\" in user " +
+                    "entry \"%s\" as a DN:  %s.");
     registerMessage(MSGID_PWPSTATE_NO_SUCH_POLICY,
                     "User entry %s is configured to use a password policy " +
                     "subentry of %s but no such password policy has been " +

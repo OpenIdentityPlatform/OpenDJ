@@ -3176,17 +3176,8 @@ public class ConfigConstants
    * The name of the operational attribute that will appear in a user's entry to
    * indicate which password policy should be used.
    */
-  public static final String OP_ATTR_PWPOLICY_SUBENTRY =
-       "pwdPolicySubentry";
-
-
-
-  /**
-   * The name of the password policy subentry attribute, in all lowercase
-   * characters.
-   */
-  public static final String OP_ATTR_PWPOLICY_SUBENTRY_LC =
-       "pwdpolicysubentry";
+  public static final String OP_ATTR_PWPOLICY_POLICY_DN =
+       "ds-pwp-password-policy-dn";
 
 
 

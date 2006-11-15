@@ -854,7 +854,7 @@ objectClass: top
 objectClass: ds-cfg-password-policy
 cn: Root Password Policy
 ds-cfg-password-attribute: userPassword
-ds-cfg-default-password-storage-scheme: SSHA512
+ds-cfg-default-password-storage-scheme: SSHA
 ds-cfg-allow-expired-password-changes: false
 ds-cfg-allow-multiple-password-values: false
 ds-cfg-allow-pre-encoded-passwords: false
@@ -1030,7 +1030,7 @@ ds-cfg-alternate-bind-dn: cn=Directory Manager
 ds-rlim-size-limit: 0
 ds-rlim-time-limit: 0
 ds-rlim-lookthrough-limit: 0
-pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config
+ds-pwp-password-policy-dn: cn=Root Password Policy,cn=Password Policies,cn=config
 
 dn: cn=Root DSE,cn=config
 objectClass: top

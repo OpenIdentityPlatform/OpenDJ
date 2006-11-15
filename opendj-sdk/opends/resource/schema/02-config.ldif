@@ -988,6 +988,9 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.286 NAME 'ds-rlim-lookthrough-limit'
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.287 NAME 'ds-cfg-backend-mode'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.288 NAME 'ds-pwp-password-policy-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 USAGE directoryOperation
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )

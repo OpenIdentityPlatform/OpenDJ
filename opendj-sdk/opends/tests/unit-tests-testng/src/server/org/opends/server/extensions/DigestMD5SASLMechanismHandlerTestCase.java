@@ -210,7 +210,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password",
-         "pwdPolicySubentry: cn=Clear UserPassword Policy," +
+         "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
     InternalClientConnection conn =
@@ -261,7 +261,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password",
-         "pwdPolicySubentry: cn=Clear UserPassword Policy," +
+         "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
     InternalClientConnection conn =
@@ -312,7 +312,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
               "sn: User",
          "cn: Test User",
          "userPassword: password",
-         "pwdPolicySubentry: cn=Clear UserPassword Policy," +
+         "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
     InternalClientConnection conn =
@@ -363,7 +363,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password",
-         "pwdPolicySubentry: cn=Clear UserPassword Policy," +
+         "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
     InternalClientConnection conn =
@@ -778,7 +778,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Second Root DN",
          "ds-cfg-alternate-bind-dn: cn=Second Root DN",
          "userPassword: password",
-         "pwdPolicySubentry: cn=Clear UserPassword Policy," +
+         "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
     InternalClientConnection conn =
