@@ -440,7 +440,7 @@ public class LDAPDelete
       argParser.addArgument(deleteSubtree);
 
       controlStr =
-           new StringArgument("controls", 'J', "controls", false, false, true,
+           new StringArgument("control", 'J', "control", false, true, true,
                     "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
                     null, null, MSGID_DESCRIPTION_CONTROLS);
       argParser.addArgument(controlStr);
@@ -591,20 +591,24 @@ public class LDAPDelete
     deleteOptions.setContinueOnError(continueOnError.isPresent());
     deleteOptions.setEncoding(encodingStr.getValue());
     deleteOptions.setDeleteSubtree(deleteSubtree.isPresent());
-    if(controlStr.hasValue())
+
+    if(controlStr.isPresent())
     {
-      String ctrlString = controlStr.getValue();
-      LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
-      if(ctrl == null)
+      for (String ctrlString : controlStr.getValues())
       {
-        int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
-        String message = getMessage(msgID, ctrlString);
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        err.println(argParser.getUsage());
-        return 1;
+        LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
+        if(ctrl == null)
+        {
+          int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
+          String message = getMessage(msgID, ctrlString);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(argParser.getUsage());
+          return 1;
+        }
+        deleteOptions.getControls().add(ctrl);
       }
-      deleteOptions.getControls().add(ctrl);
     }
+
     if(deleteOptions.getDeleteSubtree())
     {
       LDAPControl control = new LDAPControl(OID_SUBTREE_DELETE_CONTROL);

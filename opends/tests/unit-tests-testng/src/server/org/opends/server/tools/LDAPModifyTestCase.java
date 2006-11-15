@@ -1549,6 +1549,38 @@ public class LDAPModifyTestCase
 
 
   /**
+   * Tests the inclusion of multiple arbitrary controls in the request to the
+   * server.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testMultipleRequestControls()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: o=test",
+         "changetype: delete");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", OID_MANAGE_DSAIT_CONTROL + ":false",
+      "-J", OID_SUBTREE_DELETE_CONTROL + ":true",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
    * Tests with various forms of malformed LDIF changes.
    *
    * @throws  Exception  If an unexpected problem occurs.

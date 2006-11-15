@@ -850,6 +850,34 @@ public class LDAPDeleteTestCase
 
 
   /**
+   * Tests the inclusion of multiple arbitrary controls in the request to the
+   * server.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testMultipleRequestControls()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", OID_MANAGE_DSAIT_CONTROL + ":false",
+      "-J", OID_SUBTREE_DELETE_CONTROL + ":true",
+      "o=test"
+    };
+
+    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
    * Tests the LDAPDelete tool with the "--help" option.
    */
   @Test()

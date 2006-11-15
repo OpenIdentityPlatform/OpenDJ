@@ -1350,6 +1350,36 @@ public class LDAPSearchTestCase
 
 
   /**
+   * Tests the inclusion of multiple arbitrary controls in the request to the
+   * server.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testMultipleRequestControls()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "o=test",
+      "-s", "base",
+      "-J", OID_ACCOUNT_USABLE_CONTROL + ":true",
+      "-J", OID_MANAGE_DSAIT_CONTROL + ":false",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
    * Tests the LDAPSearch tool with the "--help" option.
    */
   @Test()
