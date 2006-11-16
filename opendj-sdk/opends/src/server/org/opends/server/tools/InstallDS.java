@@ -152,6 +152,7 @@ public class InstallDS
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
     BooleanArgument   addBaseEntry;
+    BooleanArgument   cliMode;
     BooleanArgument   testOnly;
     BooleanArgument   showUsage;
     BooleanArgument   silentInstall;
@@ -191,6 +192,12 @@ public class InstallDS
                              MSGID_INSTALLDS_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
+
+      // NOTE:  This argument isn't actually used for anything, but it provides
+      // consistency with the setup script, which does take a --cli option.
+      cliMode = new BooleanArgument("cli", null, "cli",
+                                    MSGID_INSTALLDS_DESCRIPTION_CLI);
+      argParser.addArgument(cliMode);
 
       silentInstall = new BooleanArgument("silent", 's', "silentInstall",
                                           MSGID_INSTALLDS_DESCRIPTION_SILENT);

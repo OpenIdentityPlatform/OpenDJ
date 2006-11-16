@@ -7342,6 +7342,15 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * cli argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_CLI =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 752;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8848,6 +8857,8 @@ public class ToolMessages
                     "the Directory Server configuration handler.  If this is " +
                     "not provided, then a default of " +
                     ConfigFileHandler.class.getName() + " will be used.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_CLI,
+                    "Launch the installer in command-line mode (no GUI).");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_SILENT,
                     "Perform a silent installation.");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_BASEDN,
