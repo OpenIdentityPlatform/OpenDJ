@@ -54,6 +54,10 @@
           file="'%s/testcases/security/pwd_validator/security_pwd_validator.xml' % (TESTS_DIR)"/>
 	<call function="'security_pwd_validator'" />
 
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/bind_no_pwd/security_bind_no_pwd.xml' % (TESTS_DIR)"/>
+	<call function="'security_bind_no_pwd'" />
+
       </sequence>
 
   </function>
