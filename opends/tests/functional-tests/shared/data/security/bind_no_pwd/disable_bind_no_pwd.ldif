@@ -1,0 +1,5 @@
+dn: cn=config
+changetype: modify
+replace: ds-cfg-bind-with-dn-requires-password
+ds-cfg-bind-with-dn-requires-password: true
+
