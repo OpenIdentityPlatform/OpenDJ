@@ -185,6 +185,54 @@
 
     </function>
 
+    <function name="SearchObjectNoPwd">
+
+    <function-prolog>
+        This function searches the Directory Server with optional arguments possible
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="dsInstanceHost">
+            Directory Server Host Name
+        </function-required-arg>
+        <function-required-arg name="dsInstancePort">
+            Directory Server Port Number
+        </function-required-arg>
+        <function-required-arg name="dsInstanceDn">
+            Directory Server Manager DN
+        </function-required-arg>
+        <function-required-arg name="dsBaseDN">
+            The baseDN for the search operation
+        </function-required-arg>
+        <function-required-arg name="dsFilter">
+            The filter for the search operation
+        </function-required-arg>
+        <function-optional-arg name="extraParams" default="' '">
+            Optional extra parameters for specific test cases
+        </function-optional-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <message>
+            'ldapsearch%s -h %s -p %s -D "%s" %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter)
+        </message>
+        <process name="'Search Base Object'">
+            <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+            <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
+            <parms>'-h %s -p %s -D "%s" %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter)</parms>
+            <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+            <envs>
+                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+            </envs>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+        </process>
+
+      </sequence>
+
+    </function>
+
     <function name="AnonSearchObject">
 
     <function-prolog>

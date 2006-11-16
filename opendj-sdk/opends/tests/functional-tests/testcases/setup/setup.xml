@@ -58,6 +58,14 @@
           }
       </call>
 
+      <call function="'CopyFolderByExtension'">
+          { 'srcfolder'  : TESTS_DIR,
+            'destfolder' : TMP_DATA_DIR,
+            'extension'  : 'pwd',
+            'hostname'   : STAF_LOCAL_HOSTNAME
+          }
+      </call>
+
       <!-- Archive (gz) files -->
       <message>'Copy gz data files'</message>
       <call function="'CopyFolderByExtension'">
