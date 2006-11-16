@@ -7323,6 +7323,25 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description of the
+   * countEntries property.  This does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_COUNT_ENTRIES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 750;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide the number of
+   * matching entries for a search request.  This takes a single argument, which
+   * is the number of matching entries.
+   */
+  public static final int MSGID_LDAPSEARCH_MATCHING_ENTRY_COUNT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 751;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7999,6 +8018,8 @@ public class ToolMessages
                     "SASL bind options");
     registerMessage(MSGID_DESCRIPTION_DONT_WRAP,
                     "Do not wrap long lines");
+    registerMessage(MSGID_DESCRIPTION_COUNT_ENTRIES,
+                    "Count the number of entries returned by the server");
     registerMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_KDC,
                     "Specifies the KDC to use for the Kerberos " +
                     "authentication.");
@@ -9428,6 +9449,8 @@ public class ToolMessages
                     "#   The account is locked.");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK,
                     "#   Time until the account is unlocked:  %s.");
+    registerMessage(MSGID_LDAPSEARCH_MATCHING_ENTRY_COUNT,
+                    "# Total number of matching entries:  %d.");
 
 
     registerMessage(MSGID_TOOL_CONFLICTING_ARGS,
