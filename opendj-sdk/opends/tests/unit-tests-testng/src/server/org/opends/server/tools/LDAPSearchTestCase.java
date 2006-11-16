@@ -1271,6 +1271,33 @@ public class LDAPSearchTestCase
 
 
   /**
+   * Tests with the account usability control with an alternate name for an
+   * authenticated search.
+   */
+  @Test()
+  public void testAccountUsabilityControlAltName()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "o=test",
+      "-s", "base",
+      "-J", "accountusable:true",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
    * Tests with the LDAP assertion control in which the assertion is true.
    */
   @Test()
@@ -1345,6 +1372,70 @@ public class LDAPSearchTestCase
     };
 
     assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests the use of the LDAP subentries control.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSubentriesControl()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+                                      "objectClass: top",
+                                      "objectClass: ldapSubEntry",
+                                      "cn: test");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+                         e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-b", "o=test",
+      "-s", "sub",
+      "--countEntries",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 1);
+
+    args = new String[]
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-b", "o=test",
+      "-s", "sub",
+      "--countEntries",
+      "-J", OID_LDAP_SUBENTRIES + ":true",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 2);
+
+    args = new String[]
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-b", "o=test",
+      "-s", "sub",
+      "--countEntries",
+      "-J", "subentries:true",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 2);
   }
 
 

@@ -56,6 +56,7 @@ public class LDAPSearchOptions extends LDAPToolOptions
   private int sizeLimit = 0;
   private int timeLimit = 0;
   private boolean typesOnly = false;
+  private boolean countMatchingEntries = false;
 
   /**
    * Creates the options instance.
@@ -228,5 +229,30 @@ public class LDAPSearchOptions extends LDAPToolOptions
     this.typesOnly = typesOnly;
   }
 
+
+  /**
+   * Indicates whether to report the number of matching entries returned by the
+   * server.
+   *
+   * @return  {@code true} if the number of matching entries should be reported,
+   *          or {@code false} if not.
+   */
+  public boolean countMatchingEntries()
+  {
+    return countMatchingEntries;
+  }
+
+
+  /**
+   * Specifies whether to report the number of matching entries returned by the
+   * server.
+   *
+   * @param  countMatchingEntries  Specifies whether to report the number of
+   *                               matching entries returned by the server.
+   */
+  public void setCountMatchingEntries(boolean countMatchingEntries)
+  {
+    this.countMatchingEntries = countMatchingEntries;
+  }
 }
 

@@ -882,6 +882,33 @@ public class LDAPModifyTestCase
 
 
   /**
+   * Tests a simple modify operation using LDAP No-Op control with an alternate
+   * name.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testModifyLDAPNoOpAltName()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", "no-op:true",
+      "-f", modifyFilePath
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
    * Tests a simple add operation using LDAP No-Op control.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -915,6 +942,40 @@ public class LDAPModifyTestCase
 
 
   /**
+   * Tests a simple add operation using LDAP No-Op control with an alternate
+   * name.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddLDAPNoOpAltName()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: ou=People,o=test",
+         "changetype: add",
+         "objectClass: top",
+         "objectClass: organizationalUnit",
+         "ou: People");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", "no-op:true",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
    * Tests a simple delete operation using LDAP No-Op control.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -936,6 +997,37 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests a simple delete operation using LDAP No-Op control with an alternate
+   * name.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDeleteLDAPNoOpAltName()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: o=test",
+         "changetype: delete");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", "no-op:true",
       "-f", path
     };
 
@@ -981,6 +1073,52 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests a simple modify DN operation using LDAP No-Op control with an
+   * alternate name.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testModifyDNLDAPNoOpAltName()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: ou=People,o=test",
+         "objectClass: top",
+         "objectClass: organizationalUnit",
+         "ou: People");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(),
+                         e.getUserAttributes(), e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: ou=People,o=test",
+         "changetype: moddn",
+         "newRDN: ou=Users",
+         "deleteOldRDN: 1");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", "no-op:true",
       "-f", path
     };
 

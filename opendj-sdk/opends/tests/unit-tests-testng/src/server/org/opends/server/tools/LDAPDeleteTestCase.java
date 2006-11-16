@@ -798,6 +798,52 @@ public class LDAPDeleteTestCase
 
 
   /**
+   * Tests a subtree delete operation using an alternate name for the control.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSubtreeDeleteAltName()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+                         e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", "subtreedelete:true",
+      "o=test"
+    };
+
+    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
    * Tests a simple delete using the client-side no-op option.
    *
    * @throws  Exception  If an unexpectd problem occurs.
@@ -844,7 +890,34 @@ public class LDAPDeleteTestCase
       "o=test"
     };
 
-    LDAPDelete.mainDelete(args, false, null, null);
+    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests a simple delete using the server-side no-op control with an alternate
+   * name for the no-op control.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testDeleteServerSideNoOpAltName()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", "no-op:true",
+      "o=test"
+    };
+
+    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
   }
 
 

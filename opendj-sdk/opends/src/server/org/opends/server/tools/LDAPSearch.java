@@ -130,18 +130,24 @@ public class LDAPSearch
    * @param searchOptions  The constraints for the search.
    * @param wrapColumn     The column at which to wrap long lines.
    *
+   * @return  The number of matching entries returned by the server.  If there
+   *          were multiple search filters provided, then this will be the
+   *          total number of matching entries for all searches.
+   *
    * @throws  IOException  If a problem occurs while attempting to communicate
    *                       with the Directory Server.
    *
    * @throws  LDAPException  If the Directory Server returns an error response.
    */
-  public void executeSearch(LDAPConnection connection, String baseDN,
-                            ArrayList<LDAPFilter> filters,
-                            LinkedHashSet<String> attributes,
-                            LDAPSearchOptions searchOptions,
-                            int wrapColumn )
+  public int executeSearch(LDAPConnection connection, String baseDN,
+                           ArrayList<LDAPFilter> filters,
+                           LinkedHashSet<String> attributes,
+                           LDAPSearchOptions searchOptions,
+                           int wrapColumn )
          throws IOException, LDAPException
   {
+    int matchingEntries = 0;
+
     for (LDAPFilter filter: filters)
     {
       ASN1OctetString asn1OctetStr = new ASN1OctetString(baseDN);
@@ -267,6 +273,7 @@ public class LDAPSearch
               StringBuilder sb = new StringBuilder();
               toLDIF(searchEntryOp, sb, wrapColumn, typesOnly);
               out.println(sb.toString());
+              matchingEntries++;
               break;
 
             case OP_TYPE_SEARCH_RESULT_REFERENCE:
@@ -312,6 +319,15 @@ public class LDAPSearch
         throw new IOException(ae.getMessage());
       }
     }
+
+    if (searchOptions.countMatchingEntries())
+    {
+      int    msgID   = MSGID_LDAPSEARCH_MATCHING_ENTRY_COUNT;
+      String message = getMessage(msgID, matchingEntries);
+      out.println(message);
+      out.println();
+    }
+    return matchingEntries;
   }
 
   /**
@@ -522,6 +538,7 @@ public class LDAPSearch
     LinkedHashSet<String> attributes = new LinkedHashSet<String>();
 
     BooleanArgument   continueOnError          = null;
+    BooleanArgument   countEntries             = null;
     BooleanArgument   dontWrap                 = null;
     BooleanArgument   noop                     = null;
     BooleanArgument   reportAuthzID            = null;
@@ -741,6 +758,10 @@ public class LDAPSearch
                                      MSGID_DESCRIPTION_DONT_WRAP);
       argParser.addArgument(dontWrap);
 
+      countEntries = new BooleanArgument("countentries", null, "countEntries",
+                                         MSGID_DESCRIPTION_COUNT_ENTRIES);
+      argParser.addArgument(countEntries);
+
       continueOnError =
            new BooleanArgument("continueOnError", 'c', "continueOnError",
                                MSGID_DESCRIPTION_CONTINUE_ON_ERROR);
@@ -935,6 +956,7 @@ public class LDAPSearch
     searchOptions.setVerbose(verbose.isPresent());
     searchOptions.setContinueOnError(continueOnError.isPresent());
     searchOptions.setEncoding(encodingStr.getValue());
+    searchOptions.setCountMatchingEntries(countEntries.isPresent());
     try
     {
       searchOptions.setTimeLimit(timeLimit.getIntValue());
@@ -1276,8 +1298,17 @@ public class LDAPSearch
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
       LDAPSearch ldapSearch = new LDAPSearch(nextMessageID, out, err);
-      ldapSearch.executeSearch(connection, baseDNValue, filters, attributes,
-                               searchOptions, wrapColumn);
+      int matchingEntries = ldapSearch.executeSearch(connection, baseDNValue,
+                                                     filters, attributes,
+                                                     searchOptions, wrapColumn);
+      if (countEntries.isPresent())
+      {
+        return matchingEntries;
+      }
+      else
+      {
+        return 0;
+      }
 
     } catch(LDAPException le)
     {
@@ -1303,7 +1334,6 @@ public class LDAPSearch
         connection.close();
       }
     }
-    return 0;
   }
 
 }
