@@ -35,6 +35,8 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPControl;
 
 import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -71,13 +73,52 @@ public class LDAPToolUtils
     ASN1OctetString controlValue = null;
 
     int idx = argString.indexOf(":");
-    if(idx == -1)
+
+    if(idx < 0)
     {
-      control = new LDAPControl(argString);
-      return control;
+      controlOID = argString;
+    }
+    else
+    {
+      controlOID = argString.substring(0, idx);
     }
 
-    controlOID = argString.substring(0, idx);
+    String lowerOID = toLowerCase(controlOID);
+    if (lowerOID.equals("accountusable") || lowerOID.equals("accountusability"))
+    {
+      controlOID = OID_ACCOUNT_USABLE_CONTROL;
+    }
+    else if (lowerOID.equals("authzid") ||
+             lowerOID.equals("authorizationidentity"))
+    {
+      controlOID = OID_AUTHZID_REQUEST;
+    }
+    else if (lowerOID.equals("noop") || lowerOID.equals("no-op"))
+    {
+      controlOID = OID_LDAP_NOOP_OPENLDAP_ASSIGNED;
+    }
+    else if (lowerOID.equals("subentries"))
+    {
+      controlOID = OID_LDAP_SUBENTRIES;
+    }
+    else if (lowerOID.equals("managedsait"))
+    {
+      controlOID = OID_MANAGE_DSAIT_CONTROL;
+    }
+    else if (lowerOID.equals("pwpolicy") || lowerOID.equals("passwordpolicy"))
+    {
+      controlOID = OID_PASSWORD_POLICY_CONTROL;
+    }
+    else if (lowerOID.equals("subtreedelete") || lowerOID.equals("treedelete"))
+    {
+      controlOID = OID_SUBTREE_DELETE_CONTROL;
+    }
+
+    if (idx < 0)
+    {
+      return new LDAPControl(controlOID);
+    }
+
     String remainder = argString.substring(idx+1, argString.length());
 
     idx = remainder.indexOf(":");
