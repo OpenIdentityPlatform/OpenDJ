@@ -111,5 +111,5 @@ fi
 
 
 # Launch the setup process.
-"${JAVA_BIN}" org.opends.quicksetup.SetupLauncher -P setup.sh "${@}"
+"${JAVA_BIN}" org.opends.quicksetup.SetupLauncher -P setup "${@}"
 

@@ -470,12 +470,12 @@
       <fileset file="${resource.dir}/README" />
     </copy>
 
-    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.sh"
+    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup"
          eol="lf" />
     <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.bat"
          eol="crlf" />
 
-    <chmod file="${pdir}/*.sh" perm="755" />
+    <chmod file="${pdir}/setup" perm="755" />
     <chmod perm="755">
       <fileset dir="${pdir}/bin">
         <exclude name="*.bat"/>
@@ -492,7 +492,7 @@
 
     <zip destfile="${package.dir}/OpenDS-${pkgversion}.zip">
       <zipfileset dir="${package.dir}" includes="**/*"
-           excludes="OpenDS-${pkgversion}/bin/*,OpenDS-${pkgversion}/setup.sh"
+           excludes="OpenDS-${pkgversion}/bin/*,OpenDS-${pkgversion}/setup"
            filemode="644" dirmode="755" />
       <zipfileset dir="${package.dir}"
            includes="OpenDS-${pkgversion}/bin/*.bat"
@@ -500,7 +500,7 @@
       <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/bin/*"
            excludes="OpenDS-${pkgversion}/bin/*.bat"
            filemode="755" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/setup.sh"
+      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/setup"
            filemode="755" dirmode="755" />
     </zip>
   </target>
