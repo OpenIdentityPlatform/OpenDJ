@@ -49,7 +49,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.synchronization.common.ServerState;
 import org.opends.server.synchronization.plugin.ChangelogBroker;
 import org.opends.server.synchronization.plugin.MultimasterSynchronization;
 import org.opends.server.synchronization.plugin.PersistentServerState;
@@ -78,6 +77,7 @@ import org.testng.annotations.Test;
 public class ProtocolWindowTest
 {
   private static final int WINDOW_SIZE = 10;
+  private static final int CHANGELOG_QUEUE_SIZE = 100;
 
   private static final String SYNCHRONIZATION_STRESS_TEST =
     "Synchronization Stress Test";
@@ -146,7 +146,7 @@ public class ProtocolWindowTest
    *    the client receives the correct number of operations.
    */
   @Test(enabled=true, groups="slow")
-  public void saturateAndRestart() throws Exception
+  public void saturateQueueAndRestart() throws Exception
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
@@ -166,6 +166,7 @@ public class ProtocolWindowTest
        */
       Thread.sleep(1500);
       assertTrue(checkWindows(WINDOW_SIZE));
+      assertTrue(checkChangelogQueueSize(CHANGELOG_QUEUE_SIZE));
       
       // Create an Entry (add operation) that will be later used in the test.
       Entry tmp = personEntry.duplicate();
@@ -192,8 +193,9 @@ public class ProtocolWindowTest
       assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
         "The received ADD synchronization message is not for the excepted DN");
 
-      // send twice the window modify operations
-      int count = WINDOW_SIZE * 2;
+      // send (2 * window + changelog queue) modify operations
+      // so that window + changelog queue get stuck in the changelog queue 
+      int count = WINDOW_SIZE * 2 + CHANGELOG_QUEUE_SIZE;
       processModify(count);
 
       // let some time to the message to reach the changelog client
@@ -216,12 +218,28 @@ public class ProtocolWindowTest
       /*
        * check that we received all updates
        */
-      assertEquals(rcvCount, WINDOW_SIZE*2);
+      assertEquals(rcvCount, count);
     }
     finally {
       broker.stop();
       DirectoryServer.deregisterMonitorProvider(SYNCHRONIZATION_STRESS_TEST);
     }
+  }
+
+  /**
+   * Check that the Changelog queue size has correctly been configured
+   * by reading the monitoring information.
+   * @throws LDAPException 
+   */
+  private boolean checkChangelogQueueSize(int changelog_queue_size)
+          throws LDAPException
+  {
+    InternalSearchOperation op = connection.processSearch(
+        new ASN1OctetString("cn=monitor"),
+        SearchScope.WHOLE_SUBTREE, LDAPFilter.decode(
+            "(max-waiting-changes=" +  changelog_queue_size + ")"));
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+    return (op.getEntriesSent() == 2);
   }
 
   /**
@@ -238,10 +256,11 @@ public class ProtocolWindowTest
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
     return (op.getEntriesSent() == 3);
   }
-
+  
   /**
-   * Search that the changelog has stopped sending changes after 
+   * Search that the changelog has stopped sending changes after
    * having reach the limit of the window size.
+   * And that the number of waiting changes is accurate.
    * Do this by checking the monitoring information.
    */
   private boolean searchUpdateSent() throws Exception
@@ -251,6 +270,16 @@ public class ProtocolWindowTest
         SearchScope.WHOLE_SUBTREE,
         LDAPFilter.decode("(update-sent=" + WINDOW_SIZE + ")"));
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+    if (op.getEntriesSent() != 1)
+      return false;
+    
+    op = connection.processSearch(
+        new ASN1OctetString("cn=monitor"),
+        SearchScope.WHOLE_SUBTREE,
+        LDAPFilter.decode("(waiting-changes=" +
+            (CHANGELOG_QUEUE_SIZE + WINDOW_SIZE) + ")"));
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+
     return (op.getEntriesSent() == 1);
   }
 
@@ -316,7 +345,8 @@ public class ProtocolWindowTest
         + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
         + "cn: Changelog Server\n" + "ds-cfg-changelog-port: 8989\n"
         + "ds-cfg-changelog-server-id: 1\n"
-        + "ds-cfg-window-size: " + WINDOW_SIZE;
+        + "ds-cfg-window-size: " + WINDOW_SIZE + "\n"
+        + "ds-cfg-changelog-max-queue-size: " + CHANGELOG_QUEUE_SIZE;
     changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
 
     // suffix synchronized

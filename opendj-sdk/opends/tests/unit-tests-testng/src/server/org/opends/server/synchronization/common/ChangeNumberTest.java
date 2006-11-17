@@ -53,7 +53,7 @@ public class ChangeNumberTest extends SynchronizationTestCase
        {TimeThread.getTime(), (short) 123, (short) 45}
     };
   }
-
+ 
   /**
    * Test ChangeNumber constructor
    */
@@ -70,6 +70,21 @@ public class ChangeNumberTest extends SynchronizationTestCase
     assertTrue(true);
   }
 
+  /**
+   * Test toString and constructor from String 
+   */
+ @Test(dataProvider = "changeNumberData")
+ public void ChangeNumberEncodeDecode(long time, int seq, short id)
+        throws Exception
+ {
+   // Create 2 ChangeNumber with the same data and check equality
+   ChangeNumber cn = new ChangeNumber(time,seq,id);
+   ChangeNumber cn2 = new ChangeNumber(cn.toString());
+   
+   assertEquals(cn, cn2,
+       "The encoding/decoding of ChangeNumber is not reversible");
+ }
+  
   /**
    * Create ChangeNumber
    */

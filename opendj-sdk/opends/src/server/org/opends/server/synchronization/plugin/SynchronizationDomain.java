@@ -27,7 +27,6 @@
 package org.opends.server.synchronization.plugin;
 
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.util.TimeThread.getTime;
 import static org.opends.server.synchronization.common.LogMessages.*;
 import static org.opends.server.synchronization.plugin.Historical.*;
 import static org.opends.server.synchronization.protocol.OperationContext.*;
@@ -308,11 +307,7 @@ public class SynchronizationDomain extends DirectoryThread
     monitor = new SynchronizationMonitor(this);
     DirectoryServer.registerMonitorProvider(monitor);
 
-    // TODO : read RUV from database an make sure we don't
-    // generate changeNumber smaller than ChangeNumbers in the RUV
-    long startingChangeNumber = getTime();
-    changeNumberGenerator = new ChangeNumberGenerator(serverId,
-                                                      startingChangeNumber);
+    changeNumberGenerator = new ChangeNumberGenerator(serverId, state);
     /*
      * create the broker object used to publish and receive changes
      */
@@ -1213,7 +1208,8 @@ public class SynchronizationDomain extends DirectoryThread
   {
     synchronized (pendingChanges)
     {
-      pendingChanges.remove(changeNumber);
+      PendingChange change = pendingChanges.get(changeNumber);
+      change.setCommitted(true);
       pushCommittedChanges();
     }
   }
@@ -1631,7 +1627,8 @@ public class SynchronizationDomain extends DirectoryThread
 
     while ((firstChange != null) && firstChange.isCommitted())
     {
-      if (firstChange.getOp().isSynchronizationOperation() == false)
+      if ((firstChange.getOp() != null ) &&
+          (firstChange.getOp().isSynchronizationOperation() == false))
       {
         numSentUpdates++;
         broker.publish(firstChange.getMsg());

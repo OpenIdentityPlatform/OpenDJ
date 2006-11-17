@@ -525,6 +525,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.158
   NAME 'ds-cfg-changelog-port'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.290
+  NAME 'ds-cfg-changelog-max-queue-size'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.278
   NAME 'ds-cfg-changelog-server-id'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
@@ -1303,7 +1307,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.64
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.65 NAME
   'ds-cfg-synchronization-changelog-server-config' SUP top
   STRUCTURAL MUST (ds-cfg-changelog-server-id $ ds-cfg-changelog-port )
-  MAY ( ds-cfg-changelog-server $ cn $ ds-cfg-window-size ) X-ORIGIN 'OpenDS Directory Server' )
+  MAY ( ds-cfg-changelog-server $ cn $ ds-cfg-window-size $
+  ds-cfg-changelog-max-queue-size ) X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.66 NAME 'ds-backup-directory'
   SUP top STRUCTURAL MUST ( ds-backup-directory-path $ ds-backup-backend-dn )
   X-ORIGIN 'OpenDS Directory Server' )

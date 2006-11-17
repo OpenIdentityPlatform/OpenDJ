@@ -94,8 +94,8 @@ public class ModifyConflictTest
     UUID uuid = UUID.randomUUID();
 
     // Create the att values list of uuid
-    LinkedHashSet<AttributeValue> valuesUuid = new LinkedHashSet<AttributeValue>(
-        1);
+    LinkedHashSet<AttributeValue> valuesUuid =
+      new LinkedHashSet<AttributeValue>(1);
     valuesUuid.add(new AttributeValue(Historical.entryuuidAttrType,
         new ASN1OctetString(uuid.toString())));
     ArrayList<Attribute> uuidList = new ArrayList<Attribute>(1);
@@ -109,23 +109,6 @@ public class ModifyConflictTest
     Map<AttributeType, List<Attribute>> operationalAttributes = entry
         .getOperationalAttributes();
     operationalAttributes.put(Historical.entryuuidAttrType, uuidList);
-
-    // Create the att values list of historicalAttr
-    String stringVal =
-      "ds-sync-hist:00000108b3a6cbb800000001:repl:00000108b3a6cbb800000002";
-
-  AttributeValue val = new AttributeValue(Historical.historicalAttrType,
-      stringVal);
-    LinkedHashSet<AttributeValue> valuesHist =
-      new LinkedHashSet<AttributeValue>(1);
-    valuesHist.add(val);
-    ArrayList<Attribute> histList = new ArrayList<Attribute>(1);
-    Attribute histAttr = new Attribute(Historical.historicalAttrType,
-        "ds-sync-hist", valuesHist);
-    histList.add(histAttr);
-
-    //Add the historical att in the entry
-    operationalAttributes.put(Historical.historicalAttrType,histList) ;
 
     // load historical from the entry
     Historical hist = Historical.load(entry);
@@ -283,25 +266,8 @@ public class ModifyConflictTest
 
     operationalAttributes.put(Historical.entryuuidAttrType, uuidList);
 
-    // Create the att values list of historicalAttr
-    String stringVal =
-      "ds-sync-hist:00000108b3a6cbb800000001:del:00000108b3a6cbb800000002";
-
-  AttributeValue val = new AttributeValue(Historical.historicalAttrType,
-      stringVal);
-    LinkedHashSet<AttributeValue> valuesHist =
-      new LinkedHashSet<AttributeValue>(1);
-    valuesHist.add(val);
-    ArrayList<Attribute> histList = new ArrayList<Attribute>(1);
-    Attribute histAttr = new Attribute(Historical.historicalAttrType,
-        "ds-sync-hist", valuesHist);
-    histList.add(0, histAttr);
-
-    //Add the historical att in the entry
-    entry.putAttribute(Historical.historicalAttrType,histList) ;
 
     // load historical from the entry
-
     Historical hist = Historical.load(entry);
 
     /*
@@ -377,25 +343,8 @@ public class ModifyConflictTest
         .getOperationalAttributes();
 
     operationalAttributes.put(Historical.entryuuidAttrType, uuidList);
-    // Create the att values list of historicalAttr
-    String stringVal =
-      "ds-sync-hist:00000108b3a6cbb800000001:add:00000108b3a6cbb800000002";
-
-  AttributeValue val = new AttributeValue(Historical.historicalAttrType,
-      stringVal);
-    LinkedHashSet<AttributeValue> valuesHist =
-      new LinkedHashSet<AttributeValue>(1);
-    valuesHist.add(val);
-    ArrayList<Attribute> histList = new ArrayList<Attribute>(1);
-    Attribute histAttr = new Attribute(Historical.historicalAttrType,
-        "ds-sync-hist", valuesHist);
-    histList.add(histAttr);
-
-    //Add the historycal att in the entry
-    entry.putAttribute(Historical.historicalAttrType,histList) ;
-
+   
     // load historical from the entry
-
     Historical hist = Historical.load(entry);
 
     /*
