@@ -45,7 +45,7 @@ public class SetupLauncher
 {
   private static String COMMAND_NAME_WINDOWS = "setup.bat";
 
-  private static String COMMAND_NAME_UNIX = "setup.sh";
+  private static String COMMAND_NAME_UNIX = "setup";
 
   /**
    * The main method which is called by the setup command lines.

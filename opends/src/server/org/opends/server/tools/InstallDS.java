@@ -143,7 +143,7 @@ public class InstallDS
     }
     else
     {
-      programName = "setup.sh";
+      programName = "setup";
     }
 
 
