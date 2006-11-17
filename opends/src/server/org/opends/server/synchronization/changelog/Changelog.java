@@ -98,11 +98,13 @@ public class Changelog implements Runnable, ConfigurableComponent
           new ArrayList<ConfigAttribute>();
   private ChangelogDbEnv dbEnv;
   private int rcvWindow;
+  private int queueSize;
 
   static final String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
   static final String SERVER_ID_ATTR = "ds-cfg-changelog-server-id";
   static final String CHANGELOG_PORT_ATTR = "ds-cfg-changelog-port";
   static final String WINDOW_SIZE_ATTR = "ds-cfg-window-size";
+  static final String QUEUE_SIZE_ATTR = "ds-cfg-changelog-max-queue-size";
 
   static final IntegerConfigAttribute changelogPortStub =
     new IntegerConfigAttribute(CHANGELOG_PORT_ATTR, "changelog port",
@@ -120,6 +122,10 @@ public class Changelog implements Runnable, ConfigurableComponent
 
   static final IntegerConfigAttribute windowStub =
     new IntegerConfigAttribute(WINDOW_SIZE_ATTR, "window size",
+                               false, false, false, true, 0, false, 0);
+
+  static final IntegerConfigAttribute queueSizeStub =
+    new IntegerConfigAttribute(QUEUE_SIZE_ATTR, "changelog queue size",
                                false, false, false, true, 0, false, 0);
 
   /**
@@ -247,6 +253,16 @@ public class Changelog implements Runnable, ConfigurableComponent
       configAttributes.add(windowAttr);
     }
 
+    IntegerConfigAttribute queueSizeAttr =
+      (IntegerConfigAttribute) config.getConfigAttribute(queueSizeStub);
+    if (queueSizeAttr == null)
+      queueSize = 10000;  // Attribute is not present : use the default value
+    else
+    {
+      queueSize = queueSizeAttr.activeIntValue();
+      configAttributes.add(queueSizeAttr);
+    }
+
     initialize(changelogServerId, changelogPort);
 
     configDn = config.getDN();
@@ -325,7 +341,7 @@ public class Changelog implements Runnable, ConfigurableComponent
         newSocket =  listenSocket.accept();
         newSocket.setReceiveBufferSize(1000000);
         ServerHandler handler = new ServerHandler(
-                                     new SocketSession(newSocket));
+                                     new SocketSession(newSocket), queueSize);
         handler.start(null, serverId, serverURL, rcvWindow, this);
       } catch (IOException e)
       {
@@ -401,7 +417,7 @@ public class Changelog implements Runnable, ConfigurableComponent
       socket.connect(ServerAddr, 500);
 
       ServerHandler handler = new ServerHandler(
-                                      new SocketSession(socket));
+                                      new SocketSession(socket), queueSize);
       handler.start(baseDn, serverId, serverURL, rcvWindow, this);
     }
     catch (IOException e)

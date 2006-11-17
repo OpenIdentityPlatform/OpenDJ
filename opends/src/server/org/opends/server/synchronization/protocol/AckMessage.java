@@ -65,10 +65,9 @@ public class AckMessage extends SynchronizationMessage
         throw new DataFormatException("byte[] is not a valid modify msg");
       int pos = 1;
 
-      /* read the changeNumber
-       * it is always 24 characters long
-       */
-      String changenumberStr = new  String(in, pos, 24, "UTF-8");
+      /* read the changeNumber */
+      int length = getNextLength(in, pos);
+      String changenumberStr = new  String(in, pos, length, "UTF-8");
       changeNumber = new ChangeNumber(changenumberStr);
       pos +=24;
     } catch (UnsupportedEncodingException e)
@@ -95,7 +94,8 @@ public class AckMessage extends SynchronizationMessage
   {
     try
     {
-      int length = 1 + 24;
+      byte[] changeNumberByte = changeNumber.toString().getBytes("UTF-8");
+      int length = 1 + changeNumberByte.length + 1;
       byte[] resultByteArray = new byte[length];
       int pos = 1;
 
@@ -103,14 +103,8 @@ public class AckMessage extends SynchronizationMessage
       resultByteArray[0] = MSG_TYPE_ACK;
 
       /* put the ChangeNumber */
-      byte[] changeNumberByte;
+      pos = addByteArray(changeNumberByte, resultByteArray, pos);
 
-      changeNumberByte = this.getChangeNumber().toString().getBytes("UTF-8");
-
-      for (int i=0; i<24; i++,pos++)
-      {
-        resultByteArray[pos] = changeNumberByte[i];
-      }
       return resultByteArray;
     } catch (UnsupportedEncodingException e)
     {

@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.server.changelog;
+package org.opends.server.synchronization.changelog;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

@@ -953,13 +953,13 @@ public class UpdateOperationTest extends SynchronizationTestCase
                throws InterruptedException, DirectoryException
   {
     Entry newEntry = null ;
-    int i = timeout/50;
+    int i = timeout/200;
     if (i<1)
       i=1;
     newEntry = DirectoryServer.getEntry(dn);
     while ((i> 0) && ((newEntry == null) == exist))
     {
-      Thread.sleep(50);
+      Thread.sleep(200);
       newEntry = DirectoryServer.getEntry(dn);
       i--;
     }

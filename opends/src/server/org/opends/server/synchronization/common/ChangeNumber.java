@@ -48,11 +48,10 @@ public class ChangeNumber implements java.io.Serializable,
     timeStamp = Long.parseLong(temp, 16);
 
     temp = str.substring(16, 20);
-    seqnum = Integer.parseInt(temp, 16);
-
-    temp = str.substring(20, 24);
     serverId = Short.parseShort(temp, 16);
 
+    temp = str.substring(20, 28);
+    seqnum = Integer.parseInt(temp, 16);
   }
 
   /**
@@ -140,7 +139,7 @@ public class ChangeNumber implements java.io.Serializable,
    */
   public String toString()
   {
-    return String.format("%016x%04x%04x", timeStamp, seqnum, serverId);
+    return String.format("%016x%04x%08x", timeStamp, serverId, seqnum);
   }
 
   /**

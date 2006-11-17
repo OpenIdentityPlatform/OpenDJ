@@ -37,19 +37,42 @@ import org.opends.server.util.TimeThread;
 public class ChangeNumberGenerator
 {
   private long lastTime;
-  private int seqnum = 0;
+  private int seqnum;
   private short serverId;
 
   /**
    * Create a new ChangeNumber Generator.
-   * @param id id to use when creating change numbers
-   * @param timestamp time to start with
+   * @param id id to use when creating change numbers.
+   * @param timestamp time to start with.
    */
   public ChangeNumberGenerator(short id, long timestamp)
   {
-    lastTime = timestamp;
-    serverId = id;
+    this.lastTime = timestamp;
+    this.serverId = id;
+    this.seqnum = 0;
   }
+
+  /**
+  * Create a new ChangeNumber Generator.
+  *
+  * @param id id to use when creating change numbers.
+  * @param state This generator will be created in a way that makes sure that
+  *              all change numbers generated will be larger than all the
+  *              changenumbers currently in state.
+  */
+ public ChangeNumberGenerator(short id, ServerState state)
+ {
+   this.lastTime = TimeThread.getTime();
+   for (short stateId : state)
+   {
+     if (this.lastTime < state.getMaxChangeNumber(stateId).getTime())
+       this.lastTime = state.getMaxChangeNumber(stateId).getTime();
+     if (stateId == id)
+       this.seqnum = state.getMaxChangeNumber(id).getSeqnum();
+   }
+   this.serverId = id;
+
+ }
 
   /**
    * Generate a new ChangeNumber.
@@ -65,17 +88,12 @@ public class ChangeNumberGenerator
     {
       if (curTime > lastTime)
       {
-        seqnum = 0;
         lastTime = curTime;
       }
-      else
+
+      if (seqnum++ == 0)
       {
-        seqnum++;
-        if (seqnum > 0xFFFF)
-        {
-          lastTime++;
-          seqnum = 0;
-        }
+        lastTime++;
       }
     }
 
@@ -94,7 +112,6 @@ public class ChangeNumberGenerator
   public void adjust(ChangeNumber number)
   {
     long rcvdTime = number.getTime();
-    int rcvdSeqnum = number.getSeqnum();
 
     /* need to synchronize with NewChangeNumber method so that we
      * protect writing of seqnum and lastTime fields
@@ -103,19 +120,8 @@ public class ChangeNumberGenerator
     {
       if (lastTime > rcvdTime)
         return;
-      if (lastTime == rcvdTime)
-      {
-        if (seqnum < rcvdSeqnum)
-        {
-          seqnum = rcvdSeqnum;
-        }
-        return;
-      }
-      if (lastTime < rcvdTime)
-      {
-        lastTime = rcvdTime;
-        seqnum = rcvdSeqnum;
-      }
+      else
+        lastTime = lastTime++;
     }
   }
 }

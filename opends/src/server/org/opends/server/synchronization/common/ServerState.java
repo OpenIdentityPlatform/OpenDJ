@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.DataFormatException;
@@ -44,7 +45,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
  * from each server.
  * It is exchanged with the changelog servers at connection establishment time.
  */
-public class ServerState
+public class ServerState implements Iterable<Short>
 {
   private HashMap<Short, ChangeNumber> list;
 
@@ -280,5 +281,13 @@ public class ServerState
       }
       return result;
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Iterator<Short> iterator()
+  {
+    return list.keySet().iterator();
   }
 }
