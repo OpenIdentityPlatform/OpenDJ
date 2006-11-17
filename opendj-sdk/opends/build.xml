@@ -76,6 +76,10 @@
   <property name="dsml.gen.dir"     location="${build.dir}/dsml/gen"     />
   <property name="dsml.classes.dir" location="${build.dir}/dsml/classes" />
 
+	<!-- Properties for use with the Quick Setup.                      -->
+	<property name="quicksetup.src.dir"         location="src/quicksetup"             />
+	<property name="quicksetup.classes.dir"    location="${build.dir}/quicksetup/classes"    />
+	
   <!-- Properties for code coverage testing.                            -->
   <property name="coverage.dir"         location="build/coverage"            />
   <property name="coverage.report.dir"  
@@ -226,12 +230,18 @@
 
     <taskdef resource="checkstyletask.properties"
          classpath="${checkstyle.dir}/checkstyle-all-4.1.jar" />
-
+  	
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
       <fileset dir="${src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
+  	
+  	<checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+     	failOnViolation="true">
+	  <fileset dir="${quicksetup.src.dir}" includes="**/*.java" />
+      <formatter type="plain" />
+     </checkstyle>
 
     <checkstyle config="${checkstyle.dir}/opends-doctarget-checkstyle.xml"
          failOnViolation="true">
@@ -259,7 +269,7 @@
 
 
   <!-- Compile the Directory Server source files. -->
-  <target name="cleancompile" depends="cleaninit,compile"
+  <target name="cleancompile" depends="cleaninit,compile,compilequicksetup"
        description="Recompile the Directory Server source files.">
   </target>
 
@@ -284,11 +294,36 @@
     </javac>
   </target>
 
+	<!-- Compile the Quick Setup source files. -->
+	<target name="compilequicksetup"
+		depends="buildtools,compile"
+	    description="Compile the Quick Setup source files.">
+		
+	    <mkdir dir="${quicksetup.classes.dir}" />
+	    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}" optimize="true"
+	    	debug="on" debuglevel="lines,source" source="1.5" target="1.5"
+	        deprecation="true" fork="true" memoryInitialSize="${MEM}"
+	        memoryMaximumSize="${MEM}">
+	        <compilerarg value="-Xlint:all" />
 
-
-
+	    	<classpath>
+	        	<fileset dir="${ext.dir}">
+	            	<include name="build-tools.jar" />
+	            </fileset>
+	            <pathelement path="${classes.dir}"/>
+	        </classpath>
+	   	</javac>
+	   	<copy todir="${quicksetup.classes.dir}">
+	   		<fileset dir="${quicksetup.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
+	   	</copy>
+	    <copy todir="${quicksetup.classes.dir}">
+	    	<fileset dir="${classes.dir}"
+	        	includes="**/DynamicConstants.class"/>
+	    </copy>
+  </target>
+	
   <!--
-   ! Rebuild the Directory Server without destorying any existing configuration
+   ! Rebuild the Directory Server without destroying any existing configuration
    ! or data.  It will only overwrite the libraries, classes, and scripts, and
    ! it will not re-package.  It will also not do a complete initialization, so
    ! DynamicConstants.java won't be regenerated.
@@ -313,7 +348,9 @@
     <delete dir="${classes.dir}" />
     <delete file="${package.dir}/lib/OpenDS.jar" />
     <delete file="${pdir}.zip" />
-
+    <delete dir="${quicksetup.classes.dir}" />
+    <delete file="${package.dir}/lib/quicksetup.jar" />
+    
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
     <javac srcdir="${src.dir}" destdir="${classes.dir}" optimize="true"
@@ -332,6 +369,37 @@
     <!-- Generate the OpenDS.jar file -->
     <jar jarfile="${pdir}/lib/OpenDS.jar"
          basedir="${classes.dir}" compress="true" index="true" />
+         
+    <!-- Recreate the quicksetup classes directory and recompile into it. -->
+    <mkdir dir="${quicksetup.classes.dir}" />
+    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}" optimize="true"
+        debug="on" debuglevel="lines,source" source="1.5" target="1.5"
+        deprecation="true" fork="true" memoryInitialSize="${MEM}"
+        memoryMaximumSize="${MEM}">
+        <compilerarg value="-Xlint:all" />
+        <classpath>
+            <fileset dir="${ext.dir}">
+                <include name="build-tools.jar" />
+            </fileset>
+            <fileset dir="${pdir}/lib">
+                <include name="OpenDS.jar" />
+            </fileset>
+        </classpath>
+    </javac>
+
+    <copy todir="${quicksetup.classes.dir}">
+        <fileset dir="${quicksetup.src.dir}"
+            includes="**/*.properties, **/*.gif, **/*.png"/>
+    </copy>
+
+    <copy todir="${quicksetup.classes.dir}">
+        <fileset dir="${classes.dir}"
+            includes="**/DynamicConstants.class"/>
+    </copy>
+
+    <!-- Generate the quicksetup.jar file -->
+    <jar jarfile="${pdir}/lib/quicksetup.jar"
+         basedir="${quicksetup.classes.dir}" compress="true" index="true" />
   </target>
 
 
@@ -365,7 +433,10 @@
 
     <jar jarfile="${pdir}/lib/OpenDS.jar"
          basedir="${classes.dir}" compress="true" index="true" />
-
+    
+    <jar jarfile="${pdir}/lib/quicksetup.jar"
+         basedir="${quicksetup.classes.dir}" compress="true" index="true" />
+         
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.jar" />
     </copy>
@@ -433,9 +504,6 @@
            filemode="755" dirmode="755" />
     </zip>
   </target>
-
-
-
 
   <!-- Prepare the Directory Server DSML library. -->
   <target name="predsml" depends="prepackage"
@@ -794,4 +862,3 @@
   </target>
         
 </project>
-

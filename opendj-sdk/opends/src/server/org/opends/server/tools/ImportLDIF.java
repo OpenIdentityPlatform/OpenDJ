@@ -662,8 +662,12 @@ public class ImportLDIF
 
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
     ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
-    ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
-    getBackends(backendList, entryList, dnList);
+    ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
+    int code = getBackends(backendList, entryList, dnList);
+    if (code != 0)
+    {
+      return code;
+    }
 
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
@@ -1000,8 +1004,11 @@ public class ImportLDIF
    *                      the backends will be placed.
    * @param  dnList       A list into which the set of base DNs for each backend
    *                      will be placed.
+   *
+   * @return 0 if everything went fine. 1 if an error occurred.
+   *
    */
-  private static void getBackends(ArrayList<Backend> backendList,
+  private static int getBackends(ArrayList<Backend> backendList,
                                   ArrayList<ConfigEntry> entryList,
                                   ArrayList<List<DN>> dnList)
   {
@@ -1017,7 +1024,7 @@ public class ImportLDIF
       String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
-      System.exit(1);
+      return 1;
     }
     catch (Exception e)
     {
@@ -1026,7 +1033,7 @@ public class ImportLDIF
                                   stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
-      System.exit(1);
+      return 1;
     }
 
     ConfigEntry baseEntry = null;
@@ -1040,7 +1047,7 @@ public class ImportLDIF
       String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
-      System.exit(1);
+      return 1;
     }
     catch (Exception e)
     {
@@ -1049,7 +1056,7 @@ public class ImportLDIF
                                   stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
-      System.exit(1);
+      return 1;
     }
 
 
@@ -1084,7 +1091,7 @@ public class ImportLDIF
                                     ce.getMessage());
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        System.exit(1);
+        return 1;
       }
       catch (Exception e)
       {
@@ -1093,7 +1100,7 @@ public class ImportLDIF
                                     stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        System.exit(1);
+        return 1;
       }
 
 
@@ -1124,7 +1131,7 @@ public class ImportLDIF
                                     ce.getMessage());
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        System.exit(1);
+        return 1;
       }
       catch (Exception e)
       {
@@ -1133,7 +1140,7 @@ public class ImportLDIF
                                     stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        System.exit(1);
+        return 1;
       }
 
       Class backendClass = null;
@@ -1149,7 +1156,7 @@ public class ImportLDIF
                                     stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        System.exit(1);
+        return 1;
       }
 
       Backend backend = null;
@@ -1166,7 +1173,7 @@ public class ImportLDIF
                                     stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        System.exit(1);
+        return 1;
       }
 
 
@@ -1201,7 +1208,7 @@ public class ImportLDIF
                                     stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        System.exit(1);
+        return 1;
       }
 
 
@@ -1209,6 +1216,7 @@ public class ImportLDIF
       entryList.add(configEntry);
       dnList.add(baseDNs);
     }
+    return 0;
   }
 }
 

@@ -111,8 +111,5 @@ fi
 
 
 # Launch the setup process.
-"${JAVA_BIN}" ${JAVA_ARGS} -Dorg.opends.server.scriptName=setup \
-     org.opends.server.tools.InstallDS \
-     --configClass org.opends.server.extensions.ConfigFileHandler \
-     --configFile "${INSTANCE_ROOT}/config/config.ldif" -P "${0}" "${@}"
+"${JAVA_BIN}" org.opends.quicksetup.SetupLauncher -P setup.sh "${@}"
 
