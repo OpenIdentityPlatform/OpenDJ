@@ -49,7 +49,7 @@
   <!-- Properties for build tools                                   -->  
   <property name="buildtools.dir" location="build-tools"              />
   <property name="buildtools.src.dir" location="${buildtools.dir}/src" />
-  <property name="buildtools.classes.dir" location="${buildtools.dir}/classes" />
+  <property name="buildtools.classes.dir" location="${build.dir}/build-tools/classes" />
 
   <!-- Properties for use in unit testing.                           -->
   <property name="unittest.testng.dir" location="tests/unit-tests-testng"/>
@@ -307,7 +307,7 @@
 	        <compilerarg value="-Xlint:all" />
 
 	    	<classpath>
-	        	<fileset dir="${ext.dir}">
+	        	<fileset dir="${build.dir}/build-tools">
 	            	<include name="build-tools.jar" />
 	            </fileset>
 	            <pathelement path="${classes.dir}"/>
@@ -378,7 +378,7 @@
         memoryMaximumSize="${MEM}">
         <compilerarg value="-Xlint:all" />
         <classpath>
-            <fileset dir="${ext.dir}">
+            <fileset dir="${build.dir}/build-tools">
                 <include name="build-tools.jar" />
             </fileset>
             <fileset dir="${pdir}/lib">
@@ -628,7 +628,7 @@
 
 
   <!-- Prepare to execute the Directory Server TestNG unit tests. -->
-  <target name="testinit" depends="compile"
+  <target name="testinit" depends="buildtools,compile"
          description="Prepare to execute the Directory Server TestNG unit tests.">
 
     <!-- If we are to perform coverage tests, then set that up. -->
@@ -668,7 +668,7 @@
     <!-- Prep the TestNG XML file -->
     <mkdir dir="${unittest.resource.dir}" />
     <typedef name="preptestng" classname="org.opends.build.tools.PrepTestNG"
-        classpath="${ext.dir}/build-tools.jar" />
+        classpath="${build.dir}/build-tools/build-tools.jar" />
 
 
     <preptestng file="${testng.dir}/testng.xml"
@@ -857,7 +857,7 @@
       </classpath>
     </javac>
 
-    <jar jarfile="${ext.dir}/build-tools.jar"
+    <jar jarfile="${build.dir}/build-tools/build-tools.jar"
          basedir="${buildtools.classes.dir}" compress="true" index="true" />
   </target>
         
