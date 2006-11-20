@@ -292,19 +292,10 @@ public class WebStartInstaller extends Installer implements JnlpProperties
 
     if (in == null)
     {
-      // Retry once
-      loader.start(true);
-      waitForLoader(maxRatio);
-      in =
-          Installer.class.getClassLoader()
-              .getResourceAsStream(getZipFileName());
-
-      if (in == null)
-      {
-        throw new InstallException(InstallException.Type.DOWNLOAD_ERROR,
-            getMsg("error-zipinputstreamnull"), null);
-      }
+      throw new InstallException(InstallException.Type.DOWNLOAD_ERROR,
+          getMsg("error-zipinputstreamnull"), null);
     }
+
 
     notifyListeners(getHtmlDone());
     return in;
