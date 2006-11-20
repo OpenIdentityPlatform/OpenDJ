@@ -58,45 +58,21 @@
                'Security: Lockout Fail Cnt: Preamble Step 2. Default Bind With Bad Pwd 3x'
             </message>
 
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'oranges' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
+            <script>
+                search_pwds = ['bad', 'bad', 'bad', 'oranges']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : '%s' % pwds,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+              </call>
+            </iterate>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
@@ -135,45 +111,21 @@
                'Security: Lockout Fail Cnt: Lockout With Bad Pwd 3x'
             </message>
 
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'oranges' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
+            <script>
+                search_pwds = ['bad', 'bad', 'bad', 'oranges']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : '%s' % pwds,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+              </call>
+            </iterate>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
@@ -222,45 +174,21 @@
                'Security: Lockout Fail Cnt: Postamble Step 3. Check Bind With Bad Pwd 3x'
             </message>
 
-             <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-             <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-             <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-             <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'ruling' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
+            <script>
+                search_pwds = ['bad', 'bad', 'bad', 'ruling']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : '%s' % pwds,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+              </call>
+            </iterate>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
