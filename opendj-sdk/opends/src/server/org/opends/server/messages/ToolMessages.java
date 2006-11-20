@@ -7448,6 +7448,24 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * sslKeyStorePIN argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PIN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 783;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * sslKeyStorePIN argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PIN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 784;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -9465,15 +9483,20 @@ public class ToolMessages
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE,
                     "The path to the keystore to use when establishing " +
                     "SSL/TLS communication with the server.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PIN,
+                    "The PIN needed to access the contents of the keystore.");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE,
-                    "Specifies the path to a file containing the PIN needed " +
+                    "The path to a file containing the PIN needed " +
                     "to access the contents of the keystore.");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE,
-                    "The path to the truststore to use when establishing " +
+                    "The path to the trust store to use when establishing " +
                     "SSL/TLS communication with the server.");
+    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PIN,
+                    "The PIN needed to access the contents of the trust " +
+                    "store.");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE,
-                    "Specifies the path to a file containing the PIN needed " +
-                    "to access the contents of the truststore.");
+                    "The path to a file containing the PIN needed to access" +
+                    "the contents of the trust store.");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_USAGE,
                     "Show this usage information.");
     registerMessage(MSGID_LDAPPWMOD_CANNOT_INITIALIZE_ARGS,
