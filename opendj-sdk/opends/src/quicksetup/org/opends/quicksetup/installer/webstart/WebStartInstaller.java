@@ -186,10 +186,6 @@ public class WebStartInstaller extends Installer implements JnlpProperties
 
     } catch (InstallException ex)
     {
-      if (ex.getCause() != null)
-      {
-        ex.getCause().printStackTrace();
-      }
       status = InstallProgressStep.FINISHED_WITH_ERROR;
       String html = getHtmlError(ex, true);
       notifyListeners(html);
@@ -330,17 +326,39 @@ public class WebStartInstaller extends Installer implements JnlpProperties
   private void waitForLoader(Integer maxRatio) throws InstallException
   {
     int lastPercentage = -1;
+    WebStartDownloader.Status lastStatus =
+      WebStartDownloader.Status.DOWNLOADING;
     while (!loader.isFinished() && (loader.getException() == null))
     {
       // Pool until is over
       int perc = loader.getDownloadPercentage();
-      if (perc != lastPercentage)
+      WebStartDownloader.Status downloadStatus = loader.getStatus();
+      if ((perc != lastPercentage) || (downloadStatus != lastStatus))
       {
         lastPercentage = perc;
         int ratio = (perc * maxRatio) / 100;
-        String[] arg =
-          { String.valueOf(perc) };
-        String summary = getMsg("downloading-ratio", arg);
+        String summary;
+        switch (downloadStatus)
+        {
+        case VALIDATING:
+          String[] argsValidating =
+            { String.valueOf(perc),
+              String.valueOf(loader.getCurrentValidatingPercentage())};
+
+          summary = getMsg("validating-ratio", argsValidating);
+          break;
+        case UPGRADING:
+          String[] argsUpgrading =
+            { String.valueOf(perc),
+              String.valueOf(loader.getCurrentUpgradingPercentage())};
+          summary = getMsg("upgrading-ratio", argsUpgrading);
+          break;
+        default:
+          String[] arg =
+            { String.valueOf(perc) };
+
+          summary = getMsg("downloading-ratio", arg);
+        }
         hmSummary.put(InstallProgressStep.DOWNLOADING, summary);
         notifyListeners(ratio, summary, null);
 
