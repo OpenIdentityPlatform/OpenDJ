@@ -102,7 +102,7 @@ public class ApproximatematchingRule extends SchemaTestCase
         {"DoubleMetaphoneApproximateMatchingRule", "odd", "ot", true},
         {"DoubleMetaphoneApproximateMatchingRule", "edgar", "etkar", true},
         {"DoubleMetaphoneApproximateMatchingRule", "edge", "eje", true},
-        {"DoubleMetaphoneApproximateMatchingRule", "accord", "akord", true},     
+        {"DoubleMetaphoneApproximateMatchingRule", "accord", "akord", true},
         {"DoubleMetaphoneApproximateMatchingRule", "noize", "noise", true},
         {"DoubleMetaphoneApproximateMatchingRule", "orchid", "orkid", true},
         {"DoubleMetaphoneApproximateMatchingRule", "chemistry", "kemistry", true},
@@ -124,7 +124,9 @@ public class ApproximatematchingRule extends SchemaTestCase
         {"DoubleMetaphoneApproximateMatchingRule", "bouteille", "butaille", true},
         {"DoubleMetaphoneApproximateMatchingRule", "xeon", "zeon", true},
         {"DoubleMetaphoneApproximateMatchingRule", "achtung", "aktung", true},
-        {"DoubleMetaphoneApproximateMatchingRule", "", "", true},      
+        {"DoubleMetaphoneApproximateMatchingRule", "throttle", "throddle", true},
+        {"DoubleMetaphoneApproximateMatchingRule", "thimble", "thimblle", true},
+        {"DoubleMetaphoneApproximateMatchingRule", "", "", true},
     };
   }
 

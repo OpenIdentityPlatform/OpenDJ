@@ -1025,7 +1025,7 @@ public class DoubleMetaphoneApproximateMatchingRule
 
 
           // TH or TTH  will be mapped to either T (for Germanic cases) or
-          // O for the rest.
+          // 0 (zero) for the rest.
           if (((posPlusOne = valueString.charAt(pos+1)) == 'H') ||
               ((posPlusOne == 'T') && (valueString.charAt(pos+2) == 'H')))
           {
@@ -1037,7 +1037,7 @@ public class DoubleMetaphoneApproximateMatchingRule
             }
             else
             {
-              metaphone.append("O");
+              metaphone.append("0");
             }
 
             pos += 2;
