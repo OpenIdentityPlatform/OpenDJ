@@ -63,6 +63,33 @@ public class WebStartDownloader implements DownloadServiceListener,
 
   private int currentPercMax = 0;
 
+  private int currentValidatingPercent = 0;
+
+  private int currentUpgradingPercent = 0;
+
+  private Status status = Status.DOWNLOADING;
+
+  /**
+   * This enumeration contains the different Status on which
+   * the dowloading process of the jars can be.
+   *
+   */
+  public enum Status
+    {
+    /**
+     * Downloading a jar file.
+     */
+    DOWNLOADING,
+    /**
+     * Validating a jar file.
+     */
+    VALIDATING,
+    /**
+     * Upgrading a jar file.
+     */
+    UPGRADING
+    };
+
   /**
    * Starts the downloading of the jar files.  If forceDownload is set to
    * <CODE>true</CODE> the files will be re-downloaded even if they already
@@ -84,14 +111,12 @@ public class WebStartDownloader implements DownloadServiceListener,
           startDownload(forceDownload);
         } catch (MalformedURLException mfe)
         {
-          mfe.printStackTrace();
           // This is a bug
           ex =
               new InstallException(InstallException.Type.BUG, getExceptionMsg(
                   "bug-msg", mfe), mfe);
         } catch (IOException ioe)
         {
-          ioe.printStackTrace();
           StringBuffer buf = new StringBuffer();
           String[] jars = getJarUrls();
           for (int i = 0; i < jars.length; i++)
@@ -109,7 +134,6 @@ public class WebStartDownloader implements DownloadServiceListener,
                   getExceptionMsg("downloading-error", arg, ioe), ioe);
         } catch (RuntimeException re)
         {
-          re.printStackTrace();
           // This is a bug
           ex =
               new InstallException(InstallException.Type.BUG, getExceptionMsg(
@@ -132,12 +156,39 @@ public class WebStartDownloader implements DownloadServiceListener,
   }
 
   /**
+   * Returns the Status of the current download process.
+   * @return the current status of the download process.
+   */
+  public Status getStatus()
+  {
+    return status;
+  }
+
+  /**
    * Returns the current download percentage.
    * @return the current download percentage.
    */
   public int getDownloadPercentage()
   {
     return downloadPercentage;
+  }
+
+  /**
+   * Returns the completed percentage for the file being currently validated.
+   * @return the completed percentage for the file being currently validated.
+   */
+  public int getCurrentValidatingPercentage()
+  {
+    return currentValidatingPercent;
+  }
+
+  /**
+   * Returns the completed percentage for the file being currently upgraded.
+   * @return the completed percentage for the file being currently upgraded.
+   */
+  public int getCurrentUpgradingPercentage()
+  {
+    return currentUpgradingPercent;
   }
 
   /**
@@ -153,8 +204,7 @@ public class WebStartDownloader implements DownloadServiceListener,
   private void startDownload(boolean forceDownload)
       throws MalformedURLException, IOException
   {
-    DownloadService ds;
-
+    DownloadService ds = null;
     try
     {
       ds =
@@ -198,6 +248,7 @@ public class WebStartDownloader implements DownloadServiceListener,
           // if not in the cache load the resource into the cache
           ds.loadResource(url, version, this);
         }
+        downloadPercentage = currentPercMax;
       }
     }
     isFinished = true;
@@ -235,6 +286,7 @@ public class WebStartDownloader implements DownloadServiceListener,
     {
       downloadPercentage = getPercentage(overallPercent);
     }
+    status = Status.DOWNLOADING;
   }
 
   /**
@@ -243,10 +295,8 @@ public class WebStartDownloader implements DownloadServiceListener,
   public void upgradingArchive(URL url, String version, int patchPercent,
       int overallPercent)
   {
-    if (overallPercent >= 0)
-    {
-      downloadPercentage = getPercentage(overallPercent);
-    }
+    currentUpgradingPercent = overallPercent;
+    status = Status.UPGRADING;
   }
 
   /**
@@ -255,10 +305,15 @@ public class WebStartDownloader implements DownloadServiceListener,
   public void validating(URL url, String version, long entry, long total,
       int overallPercent)
   {
-    if (overallPercent >= 0)
+    if (total > 0)
     {
-      downloadPercentage = getPercentage(overallPercent);
+      currentValidatingPercent = (int)((100 * entry) / total);
     }
+    else {
+      currentValidatingPercent = 0;
+    }
+
+    status = Status.VALIDATING;
   }
 
   /**
