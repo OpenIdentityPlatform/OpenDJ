@@ -139,10 +139,10 @@ public class LDAPPasswordModifyTestCase
 
     args = new String[]
     {
-      "-W"
+      "-j"
     };
     argLists.add(args);
-    reasonList.add("No value for '-W' argument");
+    reasonList.add("No value for '-j' argument");
 
     args = new String[]
     {
@@ -210,7 +210,7 @@ public class LDAPPasswordModifyTestCase
     args = new String[]
     {
       "-D", "cn=Directory Manager",
-      "-W", "no.such.file"
+      "-j", "no.such.file"
     };
     argLists.add(args);
     reasonList.add("Invalid bind password file path");
@@ -219,7 +219,7 @@ public class LDAPPasswordModifyTestCase
     {
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "-W", currentPasswordFile
+      "-j", currentPasswordFile
     };
     argLists.add(args);
     reasonList.add("Both bind password and bind password file");
@@ -280,7 +280,7 @@ public class LDAPPasswordModifyTestCase
 
     args = new String[]
     {
-      "-W", currentPasswordFile
+      "-j", currentPasswordFile
     };
     argLists.add(args);
     reasonList.add("Bind password file without a DN");
@@ -1053,7 +1053,7 @@ public class LDAPPasswordModifyTestCase
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
-      "-W", currentPasswordFile,
+      "-j", currentPasswordFile,
       "-a", "dn:uid=test.user,o=test",
       "-N", newPasswordFile
     };
