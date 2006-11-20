@@ -181,13 +181,6 @@ public class LDAPPasswordModifyTestCase
 
     args = new String[]
     {
-      "-k"
-    };
-    argLists.add(args);
-    reasonList.add("No value for '-k' argument");
-
-    args = new String[]
-    {
       "-K"
     };
     argLists.add(args);
@@ -195,17 +188,38 @@ public class LDAPPasswordModifyTestCase
 
     args = new String[]
     {
-      "-t"
+      "-W"
     };
     argLists.add(args);
-    reasonList.add("No value for '-t' argument");
+    reasonList.add("No value for '-W' argument");
 
     args = new String[]
     {
-      "-T"
+      "--keyStorePasswordFile"
     };
     argLists.add(args);
-    reasonList.add("No value for '-T' argument");
+    reasonList.add("No value for '--keyStorePasswordFile' argument");
+
+    args = new String[]
+    {
+      "-P"
+    };
+    argLists.add(args);
+    reasonList.add("No value for '-P' argument");
+
+    args = new String[]
+    {
+      "--trustStorePassword"
+    };
+    argLists.add(args);
+    reasonList.add("No value for '--trustStorePassword' argument");
+
+    args = new String[]
+    {
+      "--trustStorePasswordFile"
+    };
+    argLists.add(args);
+    reasonList.add("No value for '--trustStorePasswordFile' argument");
 
     args = new String[]
     {
@@ -909,7 +923,7 @@ public class LDAPPasswordModifyTestCase
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
       "-Z",
-      "-t", trustStorePath,
+      "-P", trustStorePath,
       "-a", "dn:uid=test.user,o=test",
       "-c", "password",
       "-n", "newPassword"
@@ -1006,7 +1020,7 @@ public class LDAPPasswordModifyTestCase
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-q",
-      "-t", trustStorePath,
+      "-P", trustStorePath,
       "-a", "dn:uid=test.user,o=test",
       "-c", "password",
       "-n", "newPassword"

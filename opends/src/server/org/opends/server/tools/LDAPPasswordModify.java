@@ -179,7 +179,9 @@ public class LDAPPasswordModify
     StringArgument    ldapHost;
     StringArgument    newPW;
     StringArgument    sslKeyStore;
+    StringArgument    sslKeyStorePIN;
     StringArgument    sslTrustStore;
+    StringArgument    sslTrustStorePIN;
 
 
     // Initialize the argument parser.
@@ -269,36 +271,51 @@ public class LDAPPasswordModify
 
 
       sslBlindTrust =
-           new BooleanArgument("blindtrust", 'X', "trustAllCertificates",
+           new BooleanArgument("blindtrust", 'X', "trustAll",
                                MSGID_LDAPPWMOD_DESCRIPTION_BLIND_TRUST);
       argParser.addArgument(sslBlindTrust);
 
 
       sslKeyStore =
-           new StringArgument("sslkeystore", 'k', "sslKeyStore", false, false,
-                              true, "{file}", null, null,
+           new StringArgument("keystorepath", 'K', "keyStorePath", false, false,
+                              true, "{keyStorePath}", null, null,
                               MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE);
       argParser.addArgument(sslKeyStore);
 
 
+      sslKeyStorePIN =
+           new StringArgument("keystorepassword", 'W', "keyStorePassword",
+                              false, false, true, "{password}", null, null,
+                              MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PIN);
+      argParser.addArgument(sslKeyStorePIN);
+
+
       sslKeyStorePINFile =
-           new FileBasedArgument("sslkeystorepin", 'K', "sslKeyStorePINFile",
-                                 false, false, "{file}", null, null,
+           new FileBasedArgument("keystorepasswordilfe", null,
+                                 "keyStorePasswordFile", false, false, "{path}",
+                                 null, null,
                                  MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE);
       argParser.addArgument(sslKeyStorePINFile);
 
 
       sslTrustStore =
-           new StringArgument("ssltruststore", 't', "sslTrustStore", false,
-                              false, true, "{file}", null, null,
+           new StringArgument("truststorepath", 'P', "trustStorePath", false,
+                              false, true, "{trustStorePath}", null, null,
                               MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE);
       argParser.addArgument(sslTrustStore);
 
 
+      sslTrustStorePIN =
+           new StringArgument("truststorepassword", null, "trustStorePassword",
+                              false, false, true, "{password}", null, null,
+                              MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PIN);
+      argParser.addArgument(sslTrustStorePIN);
+
+
       sslTrustStorePINFile =
-           new FileBasedArgument("ssltruststorepin", 'T',
-                    "sslTrustStorePINFile", false, false, "{file}", null, null,
-                    MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE);
+           new FileBasedArgument("truststorepasswordfile", null,
+                    "trustStorePasswordFile", false, false, "{path}", null,
+                    null, MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE);
       argParser.addArgument(sslTrustStorePINFile);
 
 
@@ -374,6 +391,24 @@ public class LDAPPasswordModify
       int    msgID   = MSGID_LDAPPWMOD_CONFLICTING_ARGS;
       String message = getMessage(msgID, useSSL.getLongIdentifier(),
                                   useStartTLS.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    if (sslKeyStorePIN.isPresent() && sslKeyStorePINFile.isPresent())
+    {
+      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, sslKeyStorePIN.getLongIdentifier(),
+                                  sslKeyStorePINFile.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    if (sslTrustStorePIN.isPresent() && sslTrustStorePINFile.isPresent())
+    {
+      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, sslTrustStorePIN.getLongIdentifier(),
+                                  sslTrustStorePINFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -459,14 +494,32 @@ public class LDAPPasswordModify
     connectionOptions.setVersionNumber(3);
     if(connectionOptions.useSSL() || connectionOptions.useStartTLS())
     {
+      String keyPIN = null;
+      if (sslKeyStorePIN.isPresent())
+      {
+        keyPIN = sslKeyStorePIN.getValue();
+      }
+      else if (sslKeyStorePINFile.isPresent())
+      {
+        keyPIN = sslKeyStorePINFile.getValue();
+      }
+
+      String trustPIN = null;
+      if (sslTrustStorePIN.isPresent())
+      {
+        trustPIN = sslTrustStorePIN.getValue();
+      }
+      else if (sslTrustStorePINFile.isPresent())
+      {
+        trustPIN = sslTrustStorePINFile.getValue();
+      }
+
       try
       {
         SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
         sslConnectionFactory.init(sslBlindTrust.isPresent(),
-                                  sslKeyStore.getValue(),
-                                  sslKeyStorePINFile.getValue(),
-                                  sslTrustStore.getValue(),
-                                  sslTrustStorePINFile.getValue());
+                                  sslKeyStore.getValue(), keyPIN,
+                                  sslTrustStore.getValue(), trustPIN);
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
       catch (Exception e)
