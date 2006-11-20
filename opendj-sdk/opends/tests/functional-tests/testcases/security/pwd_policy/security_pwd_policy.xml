@@ -111,6 +111,10 @@
           file="'%s/testcases/security/pwd_policy/security_mult_pwd_policies.xml' % (TESTS_DIR)"/>
         <call function="'mult_pwd_policies'" />
 
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_policy/security_preencoded_pwds.xml' % (TESTS_DIR)"/>
+        <call function="'preencoded_pwds'" />
+
         <!--- Test Case : Stop DS -->
         <testcase name="'StopDS'">
           <sequence>
