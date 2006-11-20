@@ -77,25 +77,6 @@ then
   exit 1
 fi
 
-PACK200="${JAVA_HOME}/bin/pack200"
-if test ! -x "${PACK200}"
-then
-  echo "ERROR:  Cannot find the ${PACK200} utility."
-  echo "        Is JAVA_HOME set correctly?"
-  echo "        It should point to the root of a JDK (not a JRE) installation"
-  exit 1
-fi
-
-JNLP_SERVLET_FILE="${JAVA_HOME}/sample/jnlp/servlet/jnlp-servlet.jar"
-if test ! -f "${JNLP_SERVLET_FILE}"
-then
-  echo "ERROR:  Cannot find the ${JNLP_SERVLET_FILE} JAR file."
-  echo "        Is JAVA_HOME set correctly?"
-  echo "        It should point to the root of a JDK (not a JRE) installation"
-  exit 1
-fi
-
-
 # Make sure that the OpenDS build directory exists.  If not, then create it.
 BUILD_DIR="${ROOT_DIR}/build"
 if test ! -d "${BUILD_DIR}"
@@ -138,42 +119,31 @@ mkdir -p "${INSTALL_DIR}/lib"
 # in the archive.
 echo "Copying static content into place ..."
 cp -Rp "${SCRIPT_DIR}/images" "${INSTALL_DIR}"
-cp -Rp "${SCRIPT_DIR}/WEB-INF" "${INSTALL_DIR}"
 
 
-# Copy the jnlp-servlet.jar file into the WEB-INF/lib directory.
-cp "${JNLP_SERVLET_FILE}" "${INSTALL_DIR}/WEB-INF/lib/"
-
-
-# Copy the appropriate OpenDS library files and make sure they are signed and
-# packed.
+# Copy the appropriate OpenDS library files and make sure they are signed.
 PKG_LIB_DIR="${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/lib"
 CERT_KEYSTORE="${ROOT_DIR}/tests/unit-tests-testng/resource/server.keystore"
 CERT_KEYSTORE_PIN="password"
 CERT_ALIAS="server-cert"
 for LIBFILE in OpenDS.jar je.jar quicksetup.jar
 do
-  echo "Signing and packing ${LIBFILE} ..."
+  echo "Signing ${LIBFILE} ..."
   cp "${PKG_LIB_DIR}/${LIBFILE}" "${INSTALL_DIR}/lib"
-  "${PACK200}" --repack "${INSTALL_DIR}/lib/${LIBFILE}"
   "${JARSIGNER}" -keystore "${CERT_KEYSTORE}" -keypass "${CERT_KEYSTORE_PIN}" \
                  -storepass "${CERT_KEYSTORE_PIN}" \
                  "${INSTALL_DIR}/lib/${LIBFILE}" "${CERT_ALIAS}"
-  "${PACK200}" "${INSTALL_DIR}/lib/${LIBFILE}.pack.gz" \
-               "${INSTALL_DIR}/lib/${LIBFILE}"
 done
 
 
-# Create the zipped.jar file (and the corresponding packed version)
+# Create and sign the zipped.jar file.
 echo "Creating zipped.jar ..."
 cd "${BUILD_DIR}/package"
 "${JAR}" -cf "${INSTALL_DIR}/lib/zipped.jar" "${ZIP_FILENAME_BASE}.zip"
 cd "${INSTALL_DIR}/lib"
-echo "Signing and packing zipped.jar ..."
-"${PACK200}" --repack zipped.jar
+echo "Signing zipped.jar ..."
 "${JARSIGNER}" -keystore "${CERT_KEYSTORE}" -keypass "${CERT_KEYSTORE_PIN}" \
                -storepass "${CERT_KEYSTORE_PIN}" zipped.jar "${CERT_ALIAS}"
-"${PACK200}" zipped.jar.pack.gz zipped.jar
 
 
 # Create the JNLP file with the appropriate contents.
@@ -200,7 +170,7 @@ cat > "${JNLP_FILENAME}" <<ENDOFJNLP
   </security>
 
   <resources>
-    <j2se version="1.5+"/>
+    <j2se version="1.5+" java-vm-args="-client"/>
     <jar href="lib/quicksetup.jar" download="eager" main="true"/>
     <jar href="lib/OpenDS.jar" download="lazy"/>
     <jar href="lib/je.jar" download="lazy"/>
@@ -212,11 +182,6 @@ cat > "${JNLP_FILENAME}" <<ENDOFJNLP
   <application-desc main-class="org.opends.quicksetup.SplashScreen"/>
 </jnlp>
 ENDOFJNLP
-
-
-# Create a WAR file with the appropriate contents.
-echo "Creating WAR file install.war ..."
-${JAR} -cf ../install.war *
 
 
 # Tell the user where the files are.
