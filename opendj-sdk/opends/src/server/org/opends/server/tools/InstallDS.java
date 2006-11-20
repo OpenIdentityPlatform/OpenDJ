@@ -41,6 +41,7 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.types.DN;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.util.CreateTemplate;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
@@ -95,6 +96,35 @@ public class InstallDS
    * The name of the program used to launch this installation process.
    */
   private static String programName;
+
+
+
+  /**
+   * The value that indicates that only the base entry should be created.
+   */
+  private static final int POPULATE_TYPE_BASE_ONLY = 1;
+
+
+
+  /**
+   * The value that indicates that the database should be left empty.
+   */
+  private static final int POPULATE_TYPE_LEAVE_EMPTY = 2;
+
+
+
+  /**
+   * The value that indicates that data should be imported from an LDIF file.
+   */
+  private static final int POPULATE_TYPE_IMPORT_FROM_LDIF = 3;
+
+
+
+  /**
+   * The value that indicates that the database should be populated with sample
+   * data.
+   */
+  private static final int POPULATE_TYPE_GENERATE_SAMPLE_DATA = 4;
 
 
 
@@ -159,6 +189,7 @@ public class InstallDS
     BooleanArgument   skipPortCheck;
     FileBasedArgument rootPWFile;
     IntegerArgument   ldapPort;
+    IntegerArgument   sampleData;
     StringArgument    baseDN;
     StringArgument    configClass;
     StringArgument    configFile;
@@ -217,6 +248,12 @@ public class InstallDS
                                       MSGID_INSTALLDS_DESCRIPTION_IMPORTLDIF);
       argParser.addArgument(importLDIF);
 
+      sampleData = new IntegerArgument("sampledata", 'd', "sampleData", false,
+                                       false, true, "{numEntries}", 0, null,
+                                       true, 0, false, 0,
+                                       MSGID_INSTALLDS_DESCRIPTION_SAMPLE_DATA);
+      argParser.addArgument(sampleData);
+
       ldapPort = new IntegerArgument("ldapport", 'p', "ldapPort", false, false,
                                      true, "{port}", 389, null, true, 1, true,
                                      65535,
@@ -274,6 +311,36 @@ public class InstallDS
     if (showUsage.isPresent() || testOnly.isPresent())
     {
       return 0;
+    }
+
+
+    // Make sure that the user didn't provide conflicting arguments.
+    if (addBaseEntry.isPresent())
+    {
+      if (importLDIF.isPresent())
+      {
+        int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+        String message = getMessage(msgID, addBaseEntry.getLongIdentifier(),
+                                    importLDIF.getLongIdentifier());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      else if (sampleData.isPresent())
+      {
+        int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+        String message = getMessage(msgID, addBaseEntry.getLongIdentifier(),
+                                    sampleData.getLongIdentifier());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+    }
+    else if (importLDIF.isPresent() && sampleData.isPresent())
+    {
+      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, importLDIF.getLongIdentifier(),
+                                  sampleData.getLongIdentifier());
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
     }
 
 
@@ -354,128 +421,6 @@ public class InstallDS
                                   e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
-    }
-
-
-    // Determine the directory base DN.
-    LinkedList<DN> baseDNs;
-    if (baseDN.isPresent())
-    {
-      baseDNs = new LinkedList<DN>();
-      for (String s : baseDN.getValues())
-      {
-        try
-        {
-          baseDNs.add(DN.decode(s));
-        }
-        catch (Exception e)
-        {
-          int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
-          String message = getMessage(msgID, s, e.getMessage());
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
-        }
-      }
-    }
-    else if (silentInstall.isPresent())
-    {
-      try
-      {
-        baseDNs = new LinkedList<DN>();
-        baseDNs.add(DN.decode(baseDN.getDefaultValue()));
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
-        String message = getMessage(msgID, baseDN.getDefaultValue(),
-                                    e.getMessage());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-    }
-    else
-    {
-      int    msgID   = MSGID_INSTALLDS_PROMPT_BASEDN;
-      String message = getMessage(msgID);
-
-      baseDNs = new LinkedList<DN>();
-      baseDNs.add(promptForDN(message, baseDN.getDefaultValue()));
-    }
-
-
-    // Determine whether to import data from LDIF.
-    LinkedList<String> ldifFiles;
-    if (silentInstall.isPresent())
-    {
-      if (importLDIF.isPresent())
-      {
-        ldifFiles = importLDIF.getValues();
-      }
-      else
-      {
-        ldifFiles = null;
-      }
-    }
-    else if (importLDIF.isPresent())
-    {
-      ldifFiles = importLDIF.getValues();
-    }
-    else if (! baseDN.isPresent())
-    {
-      int     msgID          = MSGID_INSTALLDS_PROMPT_IMPORT;
-      String  message        = getMessage(msgID);
-      boolean importFromLDIF = promptForBoolean(message, false);
-
-      if (importFromLDIF)
-      {
-        msgID   = MSGID_INSTALLDS_PROMPT_IMPORT_FILE;
-        message = getMessage(msgID);
-
-        ldifFiles = new LinkedList<String>();
-        ldifFiles.add(promptForString(message, null));
-      }
-      else
-      {
-        ldifFiles = null;
-      }
-    }
-    else
-    {
-      ldifFiles = null;
-    }
-
-
-
-    // Determine whether to add the base entry.
-    boolean addBase;
-    if (addBaseEntry.isPresent())
-    {
-      addBase = true;
-
-      if ((ldifFiles != null) && (! ldifFiles.isEmpty()))
-      {
-        int msgID = MSGID_INSTALLDS_TWO_CONFLICTING_ARGUMENTS;
-        String message = getMessage(msgID, addBaseEntry.getLongIdentifier(),
-                                    importLDIF.getLongIdentifier());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-    }
-    else if (silentInstall.isPresent() ||
-             ((ldifFiles != null) && (! ldifFiles.isEmpty())))
-    {
-      addBase = false;
-    }
-    else if (baseDN.isPresent())
-    {
-      addBase = false;
-    }
-    else
-    {
-      int    msgID   = MSGID_INSTALLDS_PROMPT_ADDBASE;
-      String message = getMessage(msgID, baseDNs.getFirst().toString());
-
-      addBase = promptForBoolean(message, true);
     }
 
 
@@ -619,6 +564,137 @@ public class InstallDS
     }
 
 
+    // Determine the directory base DN.
+    LinkedList<DN> baseDNs;
+    if (baseDN.isPresent())
+    {
+      baseDNs = new LinkedList<DN>();
+      for (String s : baseDN.getValues())
+      {
+        try
+        {
+          baseDNs.add(DN.decode(s));
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
+          String message = getMessage(msgID, s, e.getMessage());
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+    }
+    else if (silentInstall.isPresent())
+    {
+      try
+      {
+        baseDNs = new LinkedList<DN>();
+        baseDNs.add(DN.decode(baseDN.getDefaultValue()));
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
+        String message = getMessage(msgID, baseDN.getDefaultValue(),
+                                    e.getMessage());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+    }
+    else
+    {
+      int    msgID   = MSGID_INSTALLDS_PROMPT_BASEDN;
+      String message = getMessage(msgID);
+
+      baseDNs = new LinkedList<DN>();
+      baseDNs.add(promptForDN(message, baseDN.getDefaultValue()));
+    }
+
+
+    // Determine how to populate the database.
+    int                populateType = POPULATE_TYPE_LEAVE_EMPTY;
+    int                numUsers     = -1;
+    LinkedList<String> ldifFiles    = null;
+    if (addBaseEntry.isPresent())
+    {
+      populateType = POPULATE_TYPE_BASE_ONLY;
+    }
+    else if (importLDIF.isPresent())
+    {
+      ldifFiles    = importLDIF.getValues();
+      populateType = POPULATE_TYPE_IMPORT_FROM_LDIF;
+    }
+    else if (sampleData.isPresent())
+    {
+      try
+      {
+        numUsers     = sampleData.getIntValue();
+        populateType = POPULATE_TYPE_GENERATE_SAMPLE_DATA;
+      }
+      catch (Exception e)
+      {
+        // This should never happen.
+        e.printStackTrace();
+        return 1;
+      }
+    }
+    else if (silentInstall.isPresent())
+    {
+      populateType = POPULATE_TYPE_LEAVE_EMPTY;
+    }
+    else
+    {
+      int msgID = MSGID_INSTALLDS_HEADER_POPULATE_TYPE;
+      System.out.println(wrapText(getMessage(msgID), MAX_LINE_WIDTH));
+
+      msgID = MSGID_INSTALLDS_POPULATE_OPTION_BASE_ONLY;
+      System.out.println(wrapText("1.  " + getMessage(msgID), MAX_LINE_WIDTH));
+
+      msgID = MSGID_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY;
+      System.out.println(wrapText("2.  " + getMessage(msgID), MAX_LINE_WIDTH));
+
+      msgID = MSGID_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF;
+      System.out.println(wrapText("3.  " + getMessage(msgID), MAX_LINE_WIDTH));
+
+      msgID = MSGID_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE;
+      System.out.println(wrapText("4.  " + getMessage(msgID), MAX_LINE_WIDTH));
+
+      msgID = MSGID_INSTALLDS_PROMPT_POPULATE_CHOICE;
+      populateType = promptForInteger(getMessage(msgID), 1, 1, 4);
+      System.out.println();
+
+      if (populateType == POPULATE_TYPE_IMPORT_FROM_LDIF)
+      {
+        ldifFiles = new LinkedList<String>();
+        while (true)
+        {
+          msgID = MSGID_INSTALLDS_PROMPT_IMPORT_FILE;
+          String message = getMessage(msgID);
+          String path    = promptForString(message, "");
+          if (new File(path).exists())
+          {
+            ldifFiles.add(path);
+            System.out.println();
+            break;
+          }
+          else
+          {
+            msgID   = MSGID_INSTALLDS_NO_SUCH_LDIF_FILE;
+            message = getMessage(msgID, path);
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            System.err.println();
+          }
+        }
+      }
+      else if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
+      {
+        msgID = MSGID_INSTALLDS_PROMPT_NUM_ENTRIES;
+        String message = getMessage(msgID);
+        numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
+        System.out.println();
+      }
+    }
+
+
     // At this point, we should be able to invoke the ConfigureDS utility to
     // apply the requested configuration.
     ArrayList<String> argList = new ArrayList<String>();
@@ -662,8 +738,8 @@ public class InstallDS
     }
 
 
-    // If we should import data or add the base entry, then do so now.
-    if (addBase)
+    // If we need to create a base LDIF file or a template file, then do so now.
+    if (populateType == POPULATE_TYPE_BASE_ONLY)
     {
       // Create a temporary LDIF file that will hold the entry to add.
       if (! silentInstall.isPresent())
@@ -692,12 +768,33 @@ public class InstallDS
         if (ldifFiles == null)
         {
           ldifFiles = new LinkedList<String>();
-          ldifFiles.add(ldifFilePath);
         }
+        ldifFiles.add(ldifFilePath);
       }
       catch (Exception e)
       {
         int    msgID   = MSGID_INSTALLDS_CANNOT_CREATE_BASE_ENTRY_LDIF;
+        String message = getMessage(msgID, String.valueOf(e));
+
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+    }
+    else if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
+    {
+      try
+      {
+        File templateFile = CreateTemplate.createTemplateFile(
+                                 baseDNs.getFirst().toString(), numUsers);
+        if (ldifFiles == null)
+        {
+          ldifFiles = new LinkedList<String>();
+        }
+        ldifFiles.add(templateFile.getAbsolutePath());
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_INSTALLDS_CANNOT_CREATE_TEMPLATE_FILE;
         String message = getMessage(msgID, String.valueOf(e));
 
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -724,11 +821,24 @@ public class InstallDS
 
       for (String s : ldifFiles)
       {
-        argList.add("-l");
+        if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
+        {
+          argList.add("-t");
+        }
+        else
+        {
+          argList.add("-l");
+        }
         argList.add(s);
       }
 
-      if (addBase)
+      if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
+      {
+        argList.add("-S");
+        argList.add("0");
+      }
+
+      if (populateType == POPULATE_TYPE_BASE_ONLY)
       {
         argList.add("-q");
       }

@@ -44,6 +44,7 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.CreateTemplate;
 
 /**
  * This is an abstract class that is in charge of actually performing the
@@ -708,76 +709,18 @@ public abstract class Installer
    */
   protected File createTemplateFile() throws InstallException
   {
-    File templateFile = null;
-    String baseDn = getUserData().getDataOptions().getBaseDn();
-    int nEntries = getUserData().getDataOptions().getNumberEntries();
     try
     {
-      templateFile = File.createTempFile("opends-template-file", ".template");
-      templateFile.deleteOnExit();
-    } catch (IOException ioe)
+      return CreateTemplate.createTemplateFile(
+                  getUserData().getDataOptions().getBaseDn(),
+                  getUserData().getDataOptions().getNumberEntries());
+    }
+    catch (IOException ioe)
     {
       String failedMsg = getExceptionMsg("error-creating-temp-file", null, ioe);
       throw new InstallException(InstallException.Type.FILE_SYSTEM_ERROR,
           failedMsg, ioe);
     }
-
-    StringBuffer buf = new StringBuffer();
-    buf.append("define suffix=" + baseDn);
-    if (nEntries > 0)
-    {
-      buf.append("\ndefine numusers=" + nEntries);
-    }
-
-    buf.append("\n").append("\nbranch: [suffix]").append("\n");
-    buf.append("\nbranch: ou=People,[suffix]");
-
-    if (nEntries > 0)
-    {
-      buf.append("\nsubordinateTemplate: person:[numusers]")
-      .append("\n")
-          .append("\ntemplate: person")
-          .append("\nrdnAttr: uid")
-          .append("\nobjectClass: top")
-          .append("\nobjectClass: person")
-          .append("\nobjectClass: organizationalPerson")
-          .append("\nobjectClass: inetOrgPerson")
-          .append("\ngivenName: <first>")
-          .append("\nsn: <last>")
-          .append("\ncn: {givenName} {sn}")
-          .append("\ninitials: {givenName:1}")
-          .append("<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}")
-          .append("\nemployeeNumber: <sequential:0>")
-          .append("\nuid: user.{employeeNumber}")
-          .append("\nmail: {uid}@maildomain.net")
-          .append("\nuserPassword: password")
-          .append("\ntelephoneNumber: <random:telephone>")
-          .append("\nhomePhone: <random:telephone>")
-          .append("\npager: <random:telephone>")
-          .append("\nmobile: <random:telephone>")
-          .append("\nstreet: <random:numeric:5> <file:streets> Street")
-          .append("\nl: <file:cities>")
-          .append("\nst: <file:states>")
-          .append("\npostalCode: <random:numeric:5>")
-          .append("\npostalAddress: {cn}${street}${l}, {st}  {postalCode}")
-          .append("\ndescription: This is the description for {cn}.");
-    }
-
-    String path = templateFile.getAbsolutePath();
-    try
-    {
-      Utils.createFile(path, buf.toString());
-    } catch (IOException ioe)
-    {
-      String[] arg =
-        { path };
-      String failedMsg =
-          getExceptionMsg("error-writing-to-temp-file", arg, ioe);
-      throw new InstallException(InstallException.Type.FILE_SYSTEM_ERROR,
-          failedMsg, ioe);
-    }
-
-    return templateFile;
   }
 
   /**

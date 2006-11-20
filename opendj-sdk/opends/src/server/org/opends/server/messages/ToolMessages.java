@@ -7351,6 +7351,103 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * sampleData argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_SAMPLE_DATA =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 753;
+
+
+
+  /**
+   * The message ID for the message that will be used as the heading when asking
+   * the user how to populate the database.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_HEADER_POPULATE_TYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 754;
+
+
+
+  /**
+   * The message ID for the message that will be used as the text for the
+   * populate option that will create only the base entry.  This does not take
+   * any arguments.
+   */
+  public static final int MSGID_INSTALLDS_POPULATE_OPTION_BASE_ONLY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 755;
+
+
+
+  /**
+   * The message ID for the message that will be used as the text for the
+   * populate option that will leave the database emtpy.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 756;
+
+
+
+  /**
+   * The message ID for the message that will be used as the text for the
+   * populate option that will import data from LDIF.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 757;
+
+
+
+  /**
+   * The message ID for the message that will be used as the text for the
+   * populate option that will create only the base entry.  This does not take
+   * any arguments.
+   */
+  public static final int MSGID_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 758;
+
+
+
+  /**
+   * The message ID for the message that will be used as the text for the prompt
+   * asking the user how to populate the database.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_POPULATE_CHOICE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 759;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * specified LDIF file does not exist.  This takes a single argument, which is
+   * the specified LDIF file.
+   */
+  public static final int MSGID_INSTALLDS_NO_SUCH_LDIF_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 780;
+
+
+
+  /**
+   * The message ID for the message that will be used as the prompt for the
+   * number of entries to generate.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_NUM_ENTRIES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 781;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs when
+   * trying to create the template for generating sample data.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_INSTALLDS_CANNOT_CREATE_TEMPLATE_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 782;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8873,6 +8970,9 @@ public class ToolMessages
                     "should be added to the Directory Server database.  " +
                     "Multiple LDIF files may be provided by using this " +
                     "option multiple times.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_SAMPLE_DATA,
+                    "Specifies that the database should be populated with " +
+                    "the specified number of sample entries.");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_LDAPPORT,
                     "Specifies the port on which the Directory Server should " +
                     "listen for LDAP communication.");
@@ -8995,6 +9095,25 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_ERROR_READING_FROM_STDIN,
                     "ERROR:  Unexpected failure while reading from standard " +
                     "input:  %s.");
+    registerMessage(MSGID_INSTALLDS_HEADER_POPULATE_TYPE,
+                    "Options for populating the database:");
+    registerMessage(MSGID_INSTALLDS_POPULATE_OPTION_BASE_ONLY,
+                    "Only create the base entry");
+    registerMessage(MSGID_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY,
+                    "Leave the database empty");
+    registerMessage(MSGID_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF,
+                    "Import data from an LDIF file");
+    registerMessage(MSGID_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE,
+                    "Load automatically-generated sample data");
+    registerMessage(MSGID_INSTALLDS_PROMPT_POPULATE_CHOICE,
+                    "Database population selection:");
+    registerMessage(MSGID_INSTALLDS_NO_SUCH_LDIF_FILE,
+                    "ERROR:  The specified LDIF file %s does not exist.");
+    registerMessage(MSGID_INSTALLDS_PROMPT_NUM_ENTRIES,
+                    "Please specify the number of user entries to generate:");
+    registerMessage(MSGID_INSTALLDS_CANNOT_CREATE_TEMPLATE_FILE,
+                    "ERROR:  Cannot create the template file for generating " +
+                    "sample data:  %s.");
 
 
     registerMessage(MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT,
