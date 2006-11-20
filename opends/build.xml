@@ -76,10 +76,11 @@
   <property name="dsml.gen.dir"     location="${build.dir}/dsml/gen"     />
   <property name="dsml.classes.dir" location="${build.dir}/dsml/classes" />
 
-	<!-- Properties for use with the Quick Setup.                      -->
-	<property name="quicksetup.src.dir"         location="src/quicksetup"             />
-	<property name="quicksetup.classes.dir"    location="${build.dir}/quicksetup/classes"    />
-	
+  <!-- Properties for use with the Quick Setup.                      -->
+  <property name="quicksetup.src.dir" location="src/quicksetup"       />
+  <property name="quicksetup.classes.dir"
+            location="${build.dir}/quicksetup/classes"                />
+
   <!-- Properties for code coverage testing.                            -->
   <property name="coverage.dir"         location="build/coverage"            />
   <property name="coverage.report.dir"  
@@ -230,18 +231,18 @@
 
     <taskdef resource="checkstyletask.properties"
          classpath="${checkstyle.dir}/checkstyle-all-4.1.jar" />
-  	
+
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
       <fileset dir="${src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
-  	
-  	<checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
-     	failOnViolation="true">
-	  <fileset dir="${quicksetup.src.dir}" includes="**/*.java" />
+
+    <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+         failOnViolation="true">
+      <fileset dir="${quicksetup.src.dir}" includes="**/*.java" />
       <formatter type="plain" />
-     </checkstyle>
+    </checkstyle>
 
     <checkstyle config="${checkstyle.dir}/opends-doctarget-checkstyle.xml"
          failOnViolation="true">
@@ -294,34 +295,34 @@
     </javac>
   </target>
 
-	<!-- Compile the Quick Setup source files. -->
-	<target name="compilequicksetup"
-		depends="buildtools,compile"
-	    description="Compile the Quick Setup source files.">
-		
-	    <mkdir dir="${quicksetup.classes.dir}" />
-	    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}" optimize="true"
-	    	debug="on" debuglevel="lines,source" source="1.5" target="1.5"
-	        deprecation="true" fork="true" memoryInitialSize="${MEM}"
-	        memoryMaximumSize="${MEM}">
-	        <compilerarg value="-Xlint:all" />
+  <!-- Compile the Quick Setup source files. -->
+  <target name="compilequicksetup" depends="buildtools,compile"
+          description="Compile the Quick Setup source files.">
 
-	    	<classpath>
-	        	<fileset dir="${build.dir}/build-tools">
-	            	<include name="build-tools.jar" />
-	            </fileset>
-	            <pathelement path="${classes.dir}"/>
-	        </classpath>
-	   	</javac>
-	   	<copy todir="${quicksetup.classes.dir}">
-	   		<fileset dir="${quicksetup.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
-	   	</copy>
-	    <copy todir="${quicksetup.classes.dir}">
-	    	<fileset dir="${classes.dir}"
-	        	includes="**/DynamicConstants.class"/>
-	    </copy>
+    <mkdir dir="${quicksetup.classes.dir}" />
+    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
+         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+         memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="build-tools.jar" />
+        </fileset>
+        <pathelement path="${classes.dir}"/>
+      </classpath>
+    </javac>
+    <copy todir="${quicksetup.classes.dir}">
+      <fileset dir="${quicksetup.src.dir}"
+               includes="**/*.properties, **/*.gif, **/*.png" />
+    </copy>
+    <copy todir="${quicksetup.classes.dir}">
+      <fileset dir="${classes.dir}"
+               includes="**/DynamicConstants.class **/CreateTemplate.class" />
+    </copy>
   </target>
-	
+
   <!--
    ! Rebuild the Directory Server without destroying any existing configuration
    ! or data.  It will only overwrite the libraries, classes, and scripts, and
@@ -394,7 +395,7 @@
 
     <copy todir="${quicksetup.classes.dir}">
         <fileset dir="${classes.dir}"
-            includes="**/DynamicConstants.class"/>
+            includes="**/DynamicConstants.class **/CreateTemplate.class"/>
     </copy>
 
     <!-- Generate the quicksetup.jar file -->
@@ -674,9 +675,9 @@
     <preptestng file="${testng.dir}/testng.xml"
                 tofile="${unittest.resource.dir}/testng.xml"
                 grouplist="${test.groups}" 
-		packagelist="${test.packages}"
+                packagelist="${test.packages}"
                 classList="${test.classes}" 
-		methodList="${test.methods}" />
+                methodList="${test.methods}" />
 
 
 
@@ -691,7 +692,7 @@
 
   <!-- Execute Directory Server TestNG unit tests specified from CLI -->
   <target name="testcustom"
-	  depends="testinit,runtests"
+          depends="testinit,runtests"
           description="Execute the Directory Server TestNG unit tests specified from CLI.">
   </target>
 
@@ -722,7 +723,7 @@
 
   <!-- Execute the Directory Server TestNG unit tests specified from CLI in text mode with a coverage report. -->
   <target name="testcustomwithcoverage"
-	  depends="coverage,testcustom"
+          depends="coverage,testcustom"
           description="Execute the Directory Server TestNG unit tests specified from CLI in text mode with a coverage report.">
   </target>
 
