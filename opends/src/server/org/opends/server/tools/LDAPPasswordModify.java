@@ -224,7 +224,7 @@ public class LDAPPasswordModify
 
 
       bindPWFile =
-           new FileBasedArgument("bindpwfile", 'W', "bindPasswordFile", false,
+           new FileBasedArgument("bindpwfile", 'j', "bindPasswordFile", false,
                                  false, "{file}", null, null,
                                  MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW_FILE);
       argParser.addArgument(bindPWFile);
@@ -237,7 +237,7 @@ public class LDAPPasswordModify
 
 
       provideDNForAuthzID =
-           new BooleanArgument("providednforauthzid", 'A',"provideDNForAuthZID",
+           new BooleanArgument("providednforauthzid", 'A',"provideDNForAuthzID",
                     MSGID_LDAPPWMOD_DESCRIPTION_PROVIDE_DN_FOR_AUTHZID);
       argParser.addArgument(provideDNForAuthzID);
 
