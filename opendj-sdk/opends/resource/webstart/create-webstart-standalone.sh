@@ -179,6 +179,11 @@ cat > "${JNLP_FILENAME}" <<ENDOFJNLP
     <property name="org.opends.quicksetup.lazyjarurls" value="${INSTALLER_URI}/lib/OpenDS.jar ${INSTALLER_URI}/lib/zipped.jar ${INSTALLER_URI}/lib/je.jar" />
     <property name="org.opends.quicksetup.zipfilename" value="${ZIP_FILENAME_BASE}.zip"/>
   </resources>
+  
+  <resources os="AIX">
+    <j2se version="1.5+"/>
+  </resources>
+  
   <application-desc main-class="org.opends.quicksetup.SplashScreen"/>
 </jnlp>
 ENDOFJNLP
