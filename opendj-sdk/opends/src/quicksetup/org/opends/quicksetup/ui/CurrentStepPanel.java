@@ -108,6 +108,16 @@ class CurrentStepPanel extends QuickSetupPanel
   }
 
   /**
+   * Returns the panel we use to display the progress.  This method is used
+   * to be able to retrieve the message formatter.
+   * @return the panel we use to display the progress.
+   */
+  ProgressPanel getProgressPanel()
+  {
+    return (ProgressPanel)hmPanels.get(Step.PROGRESS);
+  }
+
+  /**
    * Create the layout of the panel.
    * @param isUninstall whether this is an install or uninstall panel.
    */

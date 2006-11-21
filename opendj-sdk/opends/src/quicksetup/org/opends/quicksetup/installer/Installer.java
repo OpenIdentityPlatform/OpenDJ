@@ -32,9 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,7 +39,7 @@ import java.util.Map;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.CreateTemplate;
 
@@ -57,13 +54,6 @@ import org.opends.server.util.CreateTemplate;
  * will send a ProgressUpdateEvent.
  *
  * This class is supposed to be fully independent of the graphical layout.
- * However it is the most appropriate part of the code to generate well
- * formatted messages.  So it generates HTML messages in the
- * ProgressUpdateEvent and to do so uses the UIFactory method.
- *
- * TODO pass an object in the constructor that would generate the messages.
- * The problem of this approach is that the resulting interface of this object
- * may be quite complex and could impact the lisibility of the code.
  *
  */
 public abstract class Installer
@@ -90,26 +80,20 @@ public abstract class Installer
 
   private UserInstallData userData;
 
-  private String doneHtml;
-
-  /**
-   * The line break in HTML.
-   */
-  protected static String LINE_BREAK = "<br>";
-
-  /**
-   * The space in HTML.
-   */
-  protected static String SPACE = "&nbsp;";
+  private ProgressMessageFormatter formatter;
 
   /**
    * Constructor to be used by the subclasses.
    * @param userData the user data definining the parameters of the
    * installation.
+   * @param formatter the message formatter to be used to generate the text of
+   * the ProgressUpdateEvent
    */
-  protected Installer(UserInstallData userData)
+  protected Installer(UserInstallData userData,
+      ProgressMessageFormatter formatter)
   {
     this.userData = userData;
+    this.formatter = formatter;
   }
 
   /**
@@ -258,71 +242,63 @@ public abstract class Installer
   }
 
   /**
-   * Returns the HTML representation of an error for a given text.
-   * @param text the source text from which we want to get the HTML
+   * Returns the formatted representation of the text that is the summary of the
+   * installation process (the one that goes in the UI next to the progress
+   * bar).
+   * @param text the source text from which we want to get the formatted
    * representation
-   * @return the HTML representation of an error for the given text.
+   * @return the formatted representation of an error for the given text.
    */
-  protected String getHtmlError(String text)
+  protected String getFormattedSummary(String text)
   {
-    String html =
-        UIFactory.getIconHtml(UIFactory.IconType.ERROR)
-            + SPACE
-            + SPACE
-            + UIFactory.applyFontToHtml(getHtml(text),
-                UIFactory.PROGRESS_ERROR_FONT);
-
-    String result = UIFactory.applyErrorBackgroundToHtml(html);
-    return result;
+    return formatter.getFormattedSummary(text);
   }
 
   /**
-   * Returns the HTML representation of an warning for a given text.
-   * @param text the source text from which we want to get the HTML
+   * Returns the formatted representation of an error for a given text.
+   * @param text the source text from which we want to get the formatted
    * representation
-   * @return the HTML representation of an warning for the given text.
+   * @return the formatted representation of an error for the given text.
    */
-  protected String getHtmlWarning(String text)
+  protected String getFormattedError(String text)
   {
-    String html =
-        UIFactory.getIconHtml(UIFactory.IconType.WARNING)
-            + SPACE
-            + SPACE
-            + UIFactory.applyFontToHtml(getHtml(text),
-                UIFactory.PROGRESS_WARNING_FONT);
-
-    String result = UIFactory.applyWarningBackgroundToHtml(html);
-    return result;
+    return formatter.getFormattedError(text);
   }
 
   /**
-   * Returns the HTML representation of a success message for a given text.
-   * @param text the source text from which we want to get the HTML
+   * Returns the formatted representation of an warning for a given text.
+   * @param text the source text from which we want to get the formatted
    * representation
-   * @return the HTML representation of an success message for the given text.
+   * @return the formatted representation of an warning for the given text.
    */
-  protected String getHtmlSuccess(String text)
+  public String getFormattedWarning(String text)
   {
-    // Note: the text we get already is in HTML form
-    String html =
-        UIFactory.getIconHtml(UIFactory.IconType.INFORMATION) + SPACE
-        + SPACE + UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
-
-    String result = UIFactory.applySuccessfulBackgroundToHtml(html);
-    return result;
+    return formatter.getFormattedWarning(text);
   }
 
   /**
-   * Returns the HTML representation of a log error message for a given text.
-   * @param text the source text from which we want to get the HTML
+   * Returns the formatted representation of a success message for a given text.
+   * @param text the source text from which we want to get the formatted
    * representation
-   * @return the HTML representation of a log error message for the given text.
+   * @return the formatted representation of an success message for the given
+   * text.
    */
-  protected String getHtmlLogError(String text)
+  public String getFormattedSuccess(String text)
   {
-    String html = getHtml(text);
-    return UIFactory.applyFontToHtml(html,
-        UIFactory.PROGRESS_LOG_ERROR_FONT);
+    return formatter.getFormattedSuccess(text);
+  }
+
+  /**
+   * Returns the formatted representation of a log error message for a given
+   * text.
+   * @param text the source text from which we want to get the formatted
+   * representation
+   * @return the formatted representation of a log error message for the given
+   * text.
+   */
+  protected String getFormattedLogError(String text)
+  {
+    return formatter.getFormattedLogError(text);
   }
 
   /**
@@ -331,71 +307,30 @@ public abstract class Installer
    * representation
    * @return the HTML representation of a log message for the given text.
    */
-  protected String getHtmlLog(String text)
+  protected String getFormattedLog(String text)
   {
-    String html = getHtml(text);
-    return UIFactory.applyFontToHtml(html, UIFactory.PROGRESS_LOG_FONT);
+    return formatter.getFormattedLog(text);
   }
 
   /**
-   * Returns the HTML representation of the 'Done' text string.
-   * @return the HTML representation of the 'Done' text string.
+   * Returns the formatted representation of the 'Done' text string.
+   * @return the formatted representation of the 'Done' text string.
    */
-  protected String getHtmlDone()
+  protected String getFormattedDone()
   {
-    if (doneHtml == null)
-    {
-      String html = getHtml(getMsg("progress-done"));
-      doneHtml = UIFactory.applyFontToHtml(html,
-          UIFactory.PROGRESS_DONE_FONT);
-    }
-    return doneHtml;
+    return formatter.getFormattedDone();
   }
 
   /**
-   * Returns the HTML representation of the argument text to which we add
+   * Returns the formatted representation of the argument text to which we add
    * points.  For instance if we pass as argument 'Configuring Server' the
-   * return value will be 'Configuring Server <B>.....</B>'.
+   * return value will be 'Configuring Server .....'.
    * @param text the String to which add points.
-   * @return the HTML representation of the '.....' text string.
+   * @return the formatted representation of the '.....' text string.
    */
-  protected String getHtmlWithPoints(String text)
+  protected String getFormattedWithPoints(String text)
   {
-    String html = getHtml(text);
-    String points = SPACE + getHtml(getMsg("progress-points")) + SPACE;
-
-    StringBuffer buf = new StringBuffer();
-    buf.append(UIFactory.applyFontToHtml(html, UIFactory.PROGRESS_FONT))
-        .append(
-            UIFactory.applyFontToHtml(points, UIFactory.PROGRESS_POINTS_FONT));
-
-    return buf.toString();
-  }
-
-  /**
-   * Returns the HTML representation for a given text. without adding any kind
-   * of font or style elements.  Just escapes the problematic characters
-   * (like '<') and transform the break lines into '\n' characters.
-   *
-   * @param text the source text from which we want to get the HTML
-   * representation
-   * @return the HTML representation for the given text.
-   */
-  protected String getHtml(String text)
-  {
-    StringBuffer buffer = new StringBuffer();
-    text = text.replaceAll("\r\n", "\n");
-    String[] lines = text.split("[\n\r\u0085\u2028\u2029]");
-    for (int i = 0; i < lines.length; i++)
-    {
-      if (i != 0)
-      {
-        buffer.append("<br>");
-      }
-      buffer.append(escape(lines[i]));
-    }
-
-    return buffer.toString();
+    return formatter.getFormattedWithPoints(text);
   }
 
   /**
@@ -404,298 +339,43 @@ public abstract class Installer
    * representation
    * @return the HTML representation of a progress message for the given text.
    */
-  protected String getHtmlProgress(String text)
+  protected String getFormattedProgress(String text)
   {
-    return UIFactory.applyFontToHtml(getHtml(text),
-        UIFactory.PROGRESS_FONT);
+    return formatter.getFormattedProgress(text);
   }
 
   /**
-   * Returns the HTML representation of an error message for a given exception.
+   * Returns the formatted representation of an error message for a given
+   * exception.
    * This method applies a margin if the applyMargin parameter is
    * <CODE>true</CODE>.
    * @param ex the exception.
    * @param applyMargin specifies whether we apply a margin or not to the
-   * resulting HTML.
-   * @return the HTML representation of an error message for the given
+   * resulting formatted text.
+   * @return the formatted representation of an error message for the given
    * exception.
    */
-  protected String getHtmlError(Exception ex, boolean applyMargin)
+  protected String getFormattedError(Exception ex, boolean applyMargin)
   {
-    String openDiv = "<div style=\"margin-left:5px; margin-top:10px\">";
-    String hideText =
-        UIFactory.applyFontToHtml(getMsg("hide-exception-details"),
-            UIFactory.PROGRESS_FONT);
-    String showText =
-        UIFactory.applyFontToHtml(getMsg("show-exception-details"),
-            UIFactory.PROGRESS_FONT);
-    String closeDiv = "</div>";
-
-    StringBuffer stackBuf = new StringBuffer();
-    stackBuf.append(getHtmlStack(ex));
-    Throwable root = ex.getCause();
-    while (root != null)
-    {
-      stackBuf.append(getHtml(getMsg("exception-root-cause")) + LINE_BREAK);
-      stackBuf.append(getHtmlStack(root));
-      root = root.getCause();
-    }
-    String stackText =
-        UIFactory.applyFontToHtml(stackBuf.toString(), UIFactory.STACK_FONT);
-
-    StringBuffer buf = new StringBuffer();
-
-    String msg = ex.getMessage();
-    if (msg != null)
-    {
-      buf.append(UIFactory.applyFontToHtml(getHtml(ex.getMessage()),
-          UIFactory.PROGRESS_ERROR_FONT)
-          + LINE_BREAK);
-    } else
-    {
-      buf.append(ex.toString() + LINE_BREAK);
-    }
-    buf.append(getErrorWithStackHtml(openDiv, hideText, showText, stackText,
-        closeDiv, false));
-
-    String html =
-        UIFactory.getIconHtml(UIFactory.IconType.ERROR) + SPACE + SPACE
-            + buf.toString();
-
-    String result;
-    if (applyMargin)
-    {
-      result =
-          UIFactory.applyMargin(UIFactory.applyErrorBackgroundToHtml(html),
-              UIFactory.TOP_INSET_ERROR_MESSAGE, 0, 0, 0);
-    } else
-    {
-      result = UIFactory.applyErrorBackgroundToHtml(html);
-    }
-    return result;
+    return formatter.getFormattedError(ex, applyMargin);
   }
 
   /**
-   * Returns a HTML representation of the stack trace of a Throwable object.
-   * @param ex the throwable object from which we want to obtain the stack
-   * trace HTML representation.
-   * @return a HTML representation of the stack trace of a Throwable object.
+   * Returns the line break formatted.
+   * @return the line break formatted.
    */
-  private String getHtmlStack(Throwable ex)
+  protected String getLineBreak()
   {
-    StringBuffer buf = new StringBuffer();
-    StackTraceElement[] stack = ex.getStackTrace();
-    for (int i = 0; i < stack.length; i++)
-    {
-      buf.append(SPACE + SPACE + SPACE + SPACE + SPACE + SPACE + SPACE +
-          SPACE + SPACE + SPACE + getHtml(stack[i].toString()) + LINE_BREAK);
-    }
-    return buf.toString();
+    return formatter.getLineBreak();
   }
 
   /**
-   * Returns the HTML representation of a plain text string which is obtained
-   * by converting some special characters (like '<') into its equivalent
-   * escaped HTML representation.
-   *
-   * @param rawString the String from which we want to obtain the HTML
-   * representation.
-   * @return the HTML representation of the plain text string.
+   * Returns the task separator formatted.
+   * @return the task separator formatted.
    */
-  private String escape(String rawString)
+  protected String getTaskSeparator()
   {
-    int toto;
-    StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < rawString.length(); i++)
-    {
-      char c = rawString.charAt(i);
-      switch (c)
-      {
-      case '<':
-        buffer.append("&lt;");
-        break;
-
-      case '>':
-        buffer.append("&gt;");
-        break;
-
-      case '&':
-        buffer.append("&amp;");
-        break;
-
-      case '"':
-        buffer.append("&quot;");
-        break;
-
-      default:
-        buffer.append(c);
-        break;
-      }
-    }
-
-    return buffer.toString();
-  }
-
-  /**
-   * Returns the HTML representation of an exception in the
-   * progress log.<BR>
-   * We can have something of type:<BR><BR>
-   *
-   * An error occurred.  java.io.IOException could not connect to server.<BR>
-   * <A HREF="">Show Details</A>
-   *
-   * When the user clicks on 'Show Details' the whole stack will be displayed.
-   *
-   * An error occurred.  java.io.IOException could not connect to server.<BR>
-   * <A HREF="">Hide Details</A><BR>
-   * ... And here comes all the stack trace representation<BR>
-   *
-   *
-   * As the object that listens to this hyperlink events is not here (it is
-   * QuickSetupStepPanel) we must include all the information somewhere.  The
-   * chosen solution is to include everything in the URL using parameters.
-   * This everything consists of:
-   * The open div tag for the text.
-   * The text that we display when we do not display the exception.
-   * The text that we display when we display the exception.
-   * The stack trace text.
-   * The closing div.
-   * A boolean informing if we are hiding the exception or not (to know in the
-   * next event what must be displayed).
-   *
-   * @param openDiv the open div tag for the text.
-   * @param hideText the text that we display when we do not display the
-   * exception.
-   * @param showText the text that we display when we display the exception.
-   * @param stackText the stack trace text.
-   * @param closeDiv the closing div.
-   * @param hide a boolean informing if we are hiding the exception or not.
-   * @return the HTML representation of an error message with an stack trace.
-   */
-  private static String getErrorWithStackHtml(String openDiv, String hideText,
-      String showText, String stackText, String closeDiv, boolean hide)
-  {
-    StringBuffer buf = new StringBuffer();
-
-    String params =
-        getUrlParams(openDiv, hideText, showText, stackText, closeDiv, hide);
-    try
-    {
-      String text = hide ? hideText : showText;
-      buf.append(openDiv + "<a href=\"http://").append(
-          URLEncoder.encode(params, "UTF-8") + "\">" + text + "</a>");
-      if (hide)
-      {
-        buf.append(LINE_BREAK + stackText);
-      }
-      buf.append(closeDiv);
-
-    } catch (UnsupportedEncodingException uee)
-    {
-      // Bug
-      throw new IllegalStateException("UTF-8 is not supported ", uee);
-    }
-
-    return buf.toString();
-  }
-
-  private static String PARAM_SEPARATOR = "&&&&";
-
-  /**
-   * Gets the url parameters of the href we construct in getErrorWithStackHtml.
-   * @see getErrorWithStackHtml
-   * @param openDiv the open div tag for the text.
-   * @param hideText the text that we display when we do not display the
-   * exception.
-   * @param showText the text that we display when we display the exception.
-   * @param stackText the stack trace text.
-   * @param closeDiv the closing div.
-   * @param hide a boolean informing if we are hiding the exception or not.
-   * @return the url parameters of the href we construct in getHrefString.
-   */
-  private static String getUrlParams(String openDiv, String hideText,
-      String showText, String stackText, String closeDiv, boolean hide)
-  {
-    StringBuffer buf = new StringBuffer();
-    buf.append(openDiv + PARAM_SEPARATOR);
-    buf.append(hideText + PARAM_SEPARATOR);
-    buf.append(showText + PARAM_SEPARATOR);
-    buf.append(stackText + PARAM_SEPARATOR);
-    buf.append(closeDiv + PARAM_SEPARATOR);
-    buf.append(hide);
-    return buf.toString();
-  }
-
-  /**
-   * Returns the log HTML representation after the user has clicked on a url.
-   *
-   * @see getErrorWithStackHtml
-   * @param url that has been clicked
-   * @param lastText the HTML representation of the log before clicking on the
-   * url.
-   * @return the log HTML representation after the user has clicked on a url.
-   */
-  public static String getHtmlAfterUrlClick(String url, String lastText)
-  {
-    String urlText = getErrorWithStackHtml(url, false);
-    String newUrlText = getErrorWithStackHtml(url, true);
-
-    int index = lastText.indexOf(urlText);
-    if (index == -1)
-    {
-      System.out.println("lastText: " + lastText);
-      System.out.println("does not contain: " + urlText);
-    } else
-    {
-      lastText =
-          lastText.substring(0, index) + newUrlText
-              + lastText.substring(index + urlText.length());
-    }
-    return lastText;
-  }
-
-  /**
-   * Returns the HTML representation of an exception in the
-   * progress log for a given url.
-   * @see getHrefString
-   * @param url the url containing all the information required to retrieve
-   * the HTML representation.
-   * @param inverse indicates whether we want to 'inverse' the representation
-   * or not.  For instance if the url specifies that the stack is being hidden
-   * and this parameter is <CODE>true</CODE> the resulting HTML will display
-   * the stack.
-   * @return the HTML representation of an exception in the progress log for a
-   * given url.
-   */
-  private static String getErrorWithStackHtml(String url, boolean inverse)
-  {
-    String p = url.substring("http://".length());
-    try
-    {
-      p = URLDecoder.decode(p, "UTF-8");
-    } catch (UnsupportedEncodingException uee)
-    {
-      // Bug
-      throw new IllegalStateException("UTF-8 is not supported ", uee);
-    }
-    String params[] = p.split(PARAM_SEPARATOR);
-    int i = 0;
-    String openDiv = params[i++];
-    String hideText = params[i++];
-    String showText = params[i++];
-    String stackText = params[i++];
-    String closeDiv = params[i++];
-    boolean isHide = new Boolean(params[i]);
-
-    if (isHide)
-    {
-      return getErrorWithStackHtml(openDiv, hideText, showText, stackText,
-          closeDiv, !inverse);
-    } else
-    {
-      return getErrorWithStackHtml(openDiv, hideText, showText, stackText,
-          closeDiv, inverse);
-    }
+    return formatter.getTaskSeparator();
   }
 
   /**
@@ -803,14 +483,14 @@ public abstract class Installer
               StringBuffer buf = new StringBuffer();
               if (!isFirstLine)
               {
-                buf.append(LINE_BREAK);
+                buf.append(formatter.getLineBreak());
               }
               if (isError)
               {
-                buf.append(getHtmlLogError(line));
+                buf.append(getFormattedLogError(line));
               } else
               {
-                buf.append(getHtmlLog(line));
+                buf.append(getFormattedLog(line));
               }
               notifyListeners(buf.toString());
               isFirstLine = false;
@@ -934,10 +614,10 @@ public abstract class Installer
     {
       if (isFirstLine)
       {
-        notifyListeners(getHtmlLogError(msg));
+        notifyListeners(getFormattedLogError(msg));
       } else
       {
-        notifyListeners(LINE_BREAK + getHtmlLogError(msg));
+        notifyListeners(formatter.getLineBreak() + getFormattedLogError(msg));
       }
       isFirstLine = false;
     }
@@ -993,10 +673,10 @@ public abstract class Installer
     {
       if (isFirstLine)
       {
-        notifyListeners(getHtmlLog(msg));
+        notifyListeners(getFormattedLog(msg));
       } else
       {
-        notifyListeners(LINE_BREAK + getHtmlLog(msg));
+        notifyListeners(formatter.getLineBreak() + getFormattedLog(msg));
       }
       isFirstLine = false;
     }
@@ -1028,7 +708,7 @@ public abstract class Installer
    */
   protected void configureServer() throws InstallException
   {
-    notifyListeners(getHtmlWithPoints(getMsg("progress-configuring")));
+    notifyListeners(getFormattedWithPoints(getMsg("progress-configuring")));
 
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
@@ -1078,8 +758,8 @@ public abstract class Installer
   {
     String[] arg =
       { getUserData().getDataOptions().getBaseDn() };
-    notifyListeners(getHtmlWithPoints(getMsg("progress-creating-base-entry",
-        arg)));
+    notifyListeners(getFormattedWithPoints(
+        getMsg("progress-creating-base-entry", arg)));
 
     InstallerHelper helper = new InstallerHelper();
     String baseDn = getUserData().getDataOptions().getBaseDn();
@@ -1120,7 +800,7 @@ public abstract class Installer
           getExceptionMsg("error-creating-base-entry", null, re), re);
     }
 
-    notifyListeners(getHtmlDone());
+    notifyListeners(getFormattedDone());
   }
 
   /**
@@ -1132,8 +812,8 @@ public abstract class Installer
   {
     String[] arg =
       { getUserData().getDataOptions().getLDIFPath() };
-    notifyListeners(getHtmlProgress(getMsg("progress-importing-ldif", arg))
-        + LINE_BREAK);
+    notifyListeners(getFormattedProgress(getMsg("progress-importing-ldif", arg))
+        + formatter.getLineBreak());
 
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
@@ -1179,9 +859,9 @@ public abstract class Installer
     int nEntries = getUserData().getDataOptions().getNumberEntries();
     String[] arg =
       { String.valueOf(nEntries) };
-    notifyListeners(getHtmlProgress(getMsg(
+    notifyListeners(getFormattedProgress(getMsg(
         "progress-import-automatically-generated", arg))
-        + LINE_BREAK);
+        + formatter.getLineBreak());
 
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
@@ -1225,7 +905,8 @@ public abstract class Installer
    */
   protected void startServer() throws InstallException
   {
-    notifyListeners(getHtmlProgress(getMsg("progress-starting")) + LINE_BREAK);
+    notifyListeners(getFormattedProgress(getMsg("progress-starting")) +
+        getLineBreak());
 
     ArrayList<String> argList = new ArrayList<String>();
 
@@ -1320,35 +1001,27 @@ public abstract class Installer
       Map<InstallProgressStep, String> hmSummary)
   {
     hmSummary.put(InstallProgressStep.NOT_STARTED,
-        UIFactory.applyFontToHtml(
-        getMsg("summary-not-started"), UIFactory.PROGRESS_FONT));
+        getFormattedSummary(getMsg("summary-not-started")));
     hmSummary.put(InstallProgressStep.DOWNLOADING,
-        UIFactory.applyFontToHtml(
-        getMsg("summary-downloading"), UIFactory.PROGRESS_FONT));
+        getFormattedSummary(getMsg("summary-downloading")));
     hmSummary.put(InstallProgressStep.EXTRACTING,
-        UIFactory.applyFontToHtml(
-        getMsg("summary-extracting"), UIFactory.PROGRESS_FONT));
+        getFormattedSummary(getMsg("summary-extracting")));
     hmSummary.put(InstallProgressStep.CONFIGURING_SERVER,
-        UIFactory.applyFontToHtml(getMsg("summary-configuring"),
-            UIFactory.PROGRESS_FONT));
-    hmSummary.put(InstallProgressStep.CREATING_BASE_ENTRY, UIFactory
-        .applyFontToHtml(getMsg("summary-creating-base-entry"),
-            UIFactory.PROGRESS_FONT));
-    hmSummary.put(InstallProgressStep.IMPORTING_LDIF, UIFactory
-        .applyFontToHtml(getMsg("summary-importing-ldif"),
-            UIFactory.PROGRESS_FONT));
+        getFormattedSummary(getMsg("summary-configuring")));
+    hmSummary.put(InstallProgressStep.CREATING_BASE_ENTRY,
+        getFormattedSummary(getMsg("summary-creating-base-entry")));
+    hmSummary.put(InstallProgressStep.IMPORTING_LDIF,
+        getFormattedSummary(getMsg("summary-importing-ldif")));
     hmSummary.put(
         InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED,
-        UIFactory.applyFontToHtml(
-            getMsg("summary-importing-automatically-generated"),
-            UIFactory.PROGRESS_FONT));
-    hmSummary.put(InstallProgressStep.STARTING_SERVER, UIFactory
-        .applyFontToHtml(getMsg("summary-starting"),
-            UIFactory.PROGRESS_FONT));
+        getFormattedSummary(
+            getMsg("summary-importing-automatically-generated")));
+    hmSummary.put(InstallProgressStep.STARTING_SERVER,
+        getFormattedSummary(getMsg("summary-starting")));
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY, "<html>"
-        + getHtmlSuccess(getMsg("summary-finished-successfully")));
+        + getFormattedSuccess(getMsg("summary-finished-successfully")));
     hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR, "<html>"
-        + getHtmlError(getMsg("summary-finished-with-error")));
+        + getFormattedError(getMsg("summary-finished-with-error")));
   }
 
   /**

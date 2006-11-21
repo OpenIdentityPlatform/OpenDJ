@@ -41,7 +41,7 @@ import org.opends.quicksetup.installer.InstallException;
 import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.UserInstallData;
-import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -68,13 +68,6 @@ import org.opends.quicksetup.util.Utils;
  * will send a ProgressUpdateEvent.
  *
  * This class is supposed to be fully independent of the graphical layout.
- * However it is the most appropriate part of the code to generate well
- * formatted messages.  So it generates HTML messages in the
- * ProgressUpdateEvent and to do so uses the UIFactory method.
- *
- * TODO pass an object in the constructor that would generate the messages.
- * The problem of this approach is that the resulting interface of this object
- * may be quite complex and could impact the lisibility of the code.
  *
  */
 public class WebStartInstaller extends Installer implements JnlpProperties
@@ -95,11 +88,13 @@ public class WebStartInstaller extends Installer implements JnlpProperties
    * user.
    * @param loader the WebStartLoader that is used to download the remote jar
    * files.
+   * @param formatter the message formatter to be used to generate the text of
+   * the ProgressUpdateEvent
    */
   public WebStartInstaller(UserInstallData userData,
-      WebStartDownloader loader)
+      WebStartDownloader loader, ProgressMessageFormatter formatter)
   {
-    super(userData);
+    super(userData, formatter);
     this.loader = loader;
     initMaps();
     status = InstallProgressStep.NOT_STARTED;
@@ -145,12 +140,12 @@ public class WebStartInstaller extends Installer implements JnlpProperties
 
       InputStream in =
           getZipInputStream(getRatio(InstallProgressStep.EXTRACTING));
-      notifyListeners(UIFactory.HTML_SEPARATOR);
+      notifyListeners(getTaskSeparator());
 
       status = InstallProgressStep.EXTRACTING;
       extractZipFiles(in, getRatio(InstallProgressStep.EXTRACTING),
           getRatio(InstallProgressStep.CONFIGURING_SERVER));
-      notifyListeners(UIFactory.HTML_SEPARATOR);
+      notifyListeners(getTaskSeparator());
 
       status = InstallProgressStep.CONFIGURING_SERVER;
       configureServer();
@@ -159,24 +154,24 @@ public class WebStartInstaller extends Installer implements JnlpProperties
       {
       case CREATE_BASE_ENTRY:
         status = InstallProgressStep.CREATING_BASE_ENTRY;
-        notifyListeners(UIFactory.HTML_SEPARATOR);
+        notifyListeners(getTaskSeparator());
         createBaseEntry();
         break;
       case IMPORT_FROM_LDIF_FILE:
         status = InstallProgressStep.IMPORTING_LDIF;
-        notifyListeners(UIFactory.HTML_SEPARATOR);
+        notifyListeners(getTaskSeparator());
         importLDIF();
         break;
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
         status = InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED;
-        notifyListeners(UIFactory.HTML_SEPARATOR);
+        notifyListeners(getTaskSeparator());
         importAutomaticallyGenerated();
         break;
       }
 
       if (getUserData().getStartServer())
       {
-        notifyListeners(UIFactory.HTML_SEPARATOR);
+        notifyListeners(getTaskSeparator());
         status = InstallProgressStep.STARTING_SERVER;
         startServer();
       }
@@ -187,7 +182,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     } catch (InstallException ex)
     {
       status = InstallProgressStep.FINISHED_WITH_ERROR;
-      String html = getHtmlError(ex, true);
+      String html = getFormattedError(ex, true);
       notifyListeners(html);
     }
   }
@@ -282,7 +277,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
   private InputStream getZipInputStream(Integer maxRatio)
       throws InstallException
   {
-    notifyListeners(getHtmlWithPoints(getMsg("progress-downloading")));
+    notifyListeners(getFormattedWithPoints(getMsg("progress-downloading")));
     InputStream in = null;
 
     waitForLoader(maxRatio);
@@ -297,7 +292,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     }
 
 
-    notifyListeners(getHtmlDone());
+    notifyListeners(getFormattedDone());
     return in;
   }
 
@@ -499,7 +494,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     String path = Utils.getPath(basePath, entryName);
 
     notifyListeners(ratioBeforeCompleted, getSummary(getStatus()),
-        getHtmlWithPoints(getMsg("progress-extracting", new String[]
+        getFormattedWithPoints(getMsg("progress-extracting", new String[]
           { path })));
     if (Utils.createParentPath(path))
     {
@@ -534,7 +529,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
       throw new IOException("Could not create parent path: " + path);
     }
     notifyListeners(ratioWhenCompleted, getSummary(getStatus()),
-        getHtmlDone() + LINE_BREAK);
+        getFormattedDone() + getLineBreak());
   }
 
   /**
