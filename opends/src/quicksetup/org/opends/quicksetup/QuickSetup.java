@@ -53,6 +53,8 @@ import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.uninstaller.Uninstaller;
 import org.opends.quicksetup.util.BackgroundTask;
+import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -767,12 +769,14 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void launchInstallation()
   {
+    ProgressMessageFormatter formatter = new HtmlProgressMessageFormatter();
     if (isWebStart())
     {
-      installer = new WebStartInstaller(getUserData(), jnlpDownloader);
+      installer = new WebStartInstaller(getUserData(), jnlpDownloader,
+          formatter);
     } else
     {
-      installer = new OfflineInstaller(getUserData());
+      installer = new OfflineInstaller(getUserData(), formatter);
     }
     installer.addProgressUpdateListener(this);
     installer.start();

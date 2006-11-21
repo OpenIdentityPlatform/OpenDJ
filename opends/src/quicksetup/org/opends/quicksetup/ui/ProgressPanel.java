@@ -42,7 +42,8 @@ import javax.swing.event.HyperlinkListener;
 
 import org.opends.quicksetup.installer.InstallProgressDescriptor;
 import org.opends.quicksetup.installer.InstallProgressStep;
-import org.opends.quicksetup.installer.Installer;
+import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 
 /**
  * This panel is used to show the progress of the install or the uninstall.
@@ -61,6 +62,8 @@ public class ProgressPanel extends QuickSetupStepPanel
   private JScrollPane scroll;
 
   private String lastText;
+
+  private ProgressMessageFormatter formatter;
 
   /**
    * ProgressPanel constructor.
@@ -116,7 +119,8 @@ public class ProgressPanel extends QuickSetupStepPanel
         if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
         {
           String url = e.getURL().toString();
-          String newText = Installer.getHtmlAfterUrlClick(url, lastText);
+          String newText = getFormatter().getFormattedAfterUrlClick(url,
+              lastText);
           lastText = newText;
           detailsTextArea.setText(lastText);
         }
@@ -207,5 +211,20 @@ public class ProgressPanel extends QuickSetupStepPanel
     panel.add(Box.createHorizontalGlue(), gbc);
 
     return panel;
+  }
+
+  /**
+   * Returns the formatter that will be used to display the messages in this
+   * panel.
+   * @return the formatter that will be used to display the messages in this
+   * panel.
+   */
+  ProgressMessageFormatter getFormatter()
+  {
+    if (formatter == null)
+    {
+      formatter = new HtmlProgressMessageFormatter();
+    }
+    return formatter;
   }
 }

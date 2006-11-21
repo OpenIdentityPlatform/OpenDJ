@@ -36,7 +36,7 @@ import org.opends.quicksetup.installer.InstallException;
 import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.UserInstallData;
-import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -51,13 +51,6 @@ import org.opends.quicksetup.util.Utils;
  * will send a ProgressUpdateEvent.
  *
  * This class is supposed to be fully independent of the graphical layout.
- * However it is the most appropriate part of the code to generate well
- * formatted messages.  So it generates HTML messages in the
- * ProgressUpdateEvent and to do so uses the UIFactory method.
- *
- * TODO pass an object in the constructor that would generate the messages.
- * The problem of this approach is that the resulting interface of this object
- * may be quite complex and could impact the lisibility of the code.
  *
  */
 public class OfflineInstaller extends Installer
@@ -111,10 +104,14 @@ public class OfflineInstaller extends Installer
    * OfflineInstaller constructor.
    * @param userData the UserInstallData with the parameters provided by the
    * user.
+   * @param formatter the message formatter to be used to generate the text of
+   * the ProgressUpdateEvent.
+   *
    */
-  public OfflineInstaller(UserInstallData userData)
+  public OfflineInstaller(UserInstallData userData,
+      ProgressMessageFormatter formatter)
   {
-    super(userData);
+    super(userData, formatter);
     initMaps();
     status = InstallProgressStep.NOT_STARTED;
   }
@@ -162,24 +159,24 @@ public class OfflineInstaller extends Installer
       {
       case CREATE_BASE_ENTRY:
         status = InstallProgressStep.CREATING_BASE_ENTRY;
-        notifyListeners(UIFactory.HTML_SEPARATOR);
+        notifyListeners(getTaskSeparator());
         createBaseEntry();
         break;
       case IMPORT_FROM_LDIF_FILE:
         status = InstallProgressStep.IMPORTING_LDIF;
-        notifyListeners(UIFactory.HTML_SEPARATOR);
+        notifyListeners(getTaskSeparator());
         importLDIF();
         break;
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
         status = InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED;
-        notifyListeners(UIFactory.HTML_SEPARATOR);
+        notifyListeners(getTaskSeparator());
         importAutomaticallyGenerated();
         break;
       }
 
       if (getUserData().getStartServer())
       {
-        notifyListeners(UIFactory.HTML_SEPARATOR);
+        notifyListeners(getTaskSeparator());
         status = InstallProgressStep.STARTING_SERVER;
         startServer();
       }
@@ -197,7 +194,7 @@ public class OfflineInstaller extends Installer
         ex.getCause().printStackTrace();
       }
       status = InstallProgressStep.FINISHED_WITH_ERROR;
-      String html = getHtmlError(ex, true);
+      String html = getFormattedError(ex, true);
       notifyListeners(html);
     }
   }

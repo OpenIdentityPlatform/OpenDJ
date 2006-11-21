@@ -48,6 +48,7 @@ import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.installer.InstallProgressDescriptor;
 import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.installer.UserInstallData;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -335,6 +336,17 @@ public class QuickSetupDialog
   public Object getFieldValue(FieldName fieldName)
   {
     return getCurrentStepPanel().getFieldValue(fieldName);
+  }
+
+  /**
+   * Return the progress message formatter that will be used in the dialog
+   * to display the messages.
+   * @return the progress message formatter that will be used in the dialog
+   * to display the messages.
+   */
+  public ProgressMessageFormatter getFormatter()
+  {
+    return getCurrentStepPanel().getProgressPanel().getFormatter();
   }
 
   /**
