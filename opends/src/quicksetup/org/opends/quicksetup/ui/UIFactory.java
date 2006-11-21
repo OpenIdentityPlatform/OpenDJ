@@ -191,7 +191,7 @@ public class UIFactory
   /**
    * Specifies the number of columns of a text field for a relative path.
    */
-  public static final int RELATIVE_PATH_FIELD_SIZE = 5;
+  public static final int RELATIVE_PATH_FIELD_SIZE = 10;
 
   /**
    * Specifies the number of columns of a text field for a port.

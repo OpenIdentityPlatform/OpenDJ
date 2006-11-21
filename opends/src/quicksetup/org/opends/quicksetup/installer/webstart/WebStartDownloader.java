@@ -220,10 +220,59 @@ public class WebStartDownloader implements DownloadServiceListener,
       String[] urls = getJarUrls();
       String[] versions = getJarVersions();
 
+      /*
+       * Calculate the percentages that correspond to each file.
+       * TODO ideally this should be done dynamically, but as this is just
+       * to provide progress, updating this information from time to time can
+       * be enough and does not complexify the build process.
+       */
+      int[] percentageMax = new int[urls.length];
+      int[] ratios = new int[urls.length];
+      int totalRatios = 0;
+      for (int i=0; i<percentageMax.length; i++)
+      {
+        int ratio;
+        if (urls[i].endsWith("OpenDS.jar"))
+        {
+          ratio =  23;
+        }
+        else if (urls[i].endsWith("je.jar"))
+        {
+          ratio = 11;
+        }
+        else if (urls[i].endsWith("zipped.jar"))
+        {
+          ratio = 110;
+        }
+        else
+        {
+          ratio = (100 / urls.length);
+        }
+        ratios[i] = ratio;
+        totalRatios += ratio;
+      }
+
+      for (int i=0; i<percentageMax.length; i++)
+      {
+        int r = 0;
+        for (int j=0; j<=i; j++)
+        {
+          r += ratios[j];
+        }
+        percentageMax[i] = (100 * r)/totalRatios;
+      }
+
+
       for (int i = 0; i < urls.length && (getException() == null); i++)
       {
-        currentPercMin = (100 * i) / urls.length;
-        currentPercMax = (100 * (i + 1)) / urls.length;
+        if (i == 0)
+        {
+          currentPercMin = 0;
+        }
+        else {
+          currentPercMin = percentageMax[i-1];
+        }
+        currentPercMax = percentageMax[i];
 
         // determine if a particular resource is cached
         String sUrl = urls[i];
