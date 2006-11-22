@@ -34,6 +34,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.ShortCircuitPlugin;
@@ -688,7 +689,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
           tmp.getOperationalAttributes());
       addOp.run();
       entryList.add(personEntry);
-      assertNotNull(DirectoryServer.getEntry(personEntry.getDN()),
+      assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
       "The Add Entry operation failed");
 
       // Check if the client has received the msg
@@ -731,11 +732,10 @@ public class UpdateOperationTest extends SynchronizationTestCase
           .decode("uid=new person"), true, DN
           .decode("ou=People,dc=example,dc=com"));
       modDNOp.run();
-      assertNotNull(DirectoryServer.getEntry(newDN),
+      assertTrue(DirectoryServer.entryExists(newDN),
       "The MOD_DN operation didn't create the new person entry");
-      assertNull(DirectoryServer.getEntry(personEntry.getDN()),
+      assertFalse(DirectoryServer.entryExists(personEntry.getDN()),
       "The MOD_DN operation didn't delete the old person entry");
-      entryList.add(DirectoryServer.getEntry(newDN));
 
       // See if the client has received the msg
       msg = broker.receive();
@@ -748,15 +748,13 @@ public class UpdateOperationTest extends SynchronizationTestCase
       "The received MODIFY_DN message is not for the excepted DN");
 
       // Delete the entry
-      Entry newPersonEntry = DirectoryServer.getEntry(newDN) ;
       DeleteOperation delOp = new DeleteOperation(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, DN
           .decode("uid= new person,ou=People,dc=example,dc=com"));
       delOp.run();
-      assertNull(DirectoryServer.getEntry(newDN),
+      assertFalse(DirectoryServer.entryExists(newDN),
       "Unable to delete the new person Entry");
-      entryList.remove(newPersonEntry);
 
       // See if the client has received the msg
       msg = broker.receive();
@@ -884,29 +882,53 @@ public class UpdateOperationTest extends SynchronizationTestCase
   private boolean checkEntryHasAttribute(DN dn, String attrTypeStr,
       String valueString, int timeout, boolean hasAttribute) throws Exception
   {
-    // Wait no more than 1 second (synchro operation has to be sent,
-    // received and replay)
     boolean found;
-    int i = timeout/50;
-    if (i<1)
-      i=1;
+    int count = timeout/100;
+    if (count<1)
+      count=1;
 
     do
     {
-      Entry newEntry = DirectoryServer.getEntry(personWithUUIDEntry.getDN());
-      if (newEntry == null)
-        fail("The entry " + personWithUUIDEntry.getDN() +
-             " has incorrectly been deleted from the database.");
-      List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
-      Attribute tmpAttr = tmpAttrList.get(0);
+      Entry newEntry;
+      Lock lock = null;
+      for (int j=0; j < 3; j++)
+      {
+        lock = LockManager.lockRead(dn);
+        if (lock != null)
+        {
+          break;
+        }
+      }
+      
+      if (lock == null)
+      {
+        throw new Exception("could not lock entry " + dn);
+      }
 
-      AttributeType attrType =
-        DirectoryServer.getAttributeType(attrTypeStr, true);
-      found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
-      i-- ;
+      try
+      {
+        newEntry = DirectoryServer.getEntry(personWithUUIDEntry.getDN());
+      
+     
+        if (newEntry == null)
+          fail("The entry " + personWithUUIDEntry.getDN() +
+          " has incorrectly been deleted from the database.");
+        List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
+        Attribute tmpAttr = tmpAttrList.get(0);
+
+        AttributeType attrType =
+          DirectoryServer.getAttributeType(attrTypeStr, true);
+        found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
+       
+      }
+      finally
+      {
+        LockManager.unlock(dn, lock);
+      }
+      
       if (found != hasAttribute)
-        Thread.sleep(50);
-    } while ((i > 0) && (found != hasAttribute));
+        Thread.sleep(100);
+    } while ((--count > 0) && (found != hasAttribute));
     return found;
   }
 
@@ -916,28 +938,51 @@ public class UpdateOperationTest extends SynchronizationTestCase
    */
   private String getEntryUUID(DN dn) throws Exception
   {
-    // Wait no more than 1 second (synchro operation has to be sent,
-    // received and replay)
-    int i = 10;
-    if (i<1)
-      i=1;
+    Entry newEntry;
+    int count = 10;
+    if (count<1)
+      count=1;
     String found = null;
-    while ((i> 0) && (found == null))
+    while ((count> 0) && (found == null))
     {
       Thread.sleep(100);
-      Entry newEntry = DirectoryServer.getEntry(dn);
-      if (newEntry != null)
+      
+      Lock lock = null;
+      for (int i=0; i < 3; i++)
       {
-        List<Attribute> tmpAttrList = newEntry.getAttribute("entryuuid");
-        Attribute tmpAttr = tmpAttrList.get(0);
-
-        LinkedHashSet<AttributeValue> vals = tmpAttr.getValues();
-
-        for (AttributeValue val : vals)
+        lock = LockManager.lockRead(dn);
+        if (lock != null)
         {
-          found = val.getStringValue();
           break;
         }
+      }
+      
+      if (lock == null)
+      {
+        throw new Exception("could not lock entry " + dn);
+      }
+
+      try
+      {
+        newEntry = DirectoryServer.getEntry(dn);
+    
+        if (newEntry != null)
+        {
+          List<Attribute> tmpAttrList = newEntry.getAttribute("entryuuid");
+          Attribute tmpAttr = tmpAttrList.get(0);
+
+          LinkedHashSet<AttributeValue> vals = tmpAttr.getValues();
+
+          for (AttributeValue val : vals)
+          {
+            found = val.getStringValue();
+            break;
+          }
+        }
+      }
+      finally
+      {
+        LockManager.unlock(dn, lock);
       }
     }
     return found;
@@ -945,25 +990,50 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
   /**
    * Retrieves an entry from the local Directory Server.
-   *
-   * @throws InterruptedException
-   * @throws DirectoryException
+   * @throws Exception When the entry cannot be locked.
    */
   private Entry getEntry(DN dn, int timeout, boolean exist)
-               throws InterruptedException, DirectoryException
+               throws Exception
   {
-    Entry newEntry = null ;
-    int i = timeout/200;
-    if (i<1)
-      i=1;
-    newEntry = DirectoryServer.getEntry(dn);
-    while ((i> 0) && ((newEntry == null) == exist))
+    int count = timeout/200;
+    if (count<1)
+      count=1;
+    boolean found = DirectoryServer.entryExists(dn);
+    while ((count> 0) && (found != exist))
     {
       Thread.sleep(200);
-      newEntry = DirectoryServer.getEntry(dn);
-      i--;
+      
+      found = DirectoryServer.entryExists(dn);
+      count--;
     }
-    return newEntry;
+    
+    Lock lock = null;
+    for (int i=0; i < 3; i++)
+    {
+      lock = LockManager.lockRead(dn);
+      if (lock != null)
+      {
+        break;
+      }
+    }
+    
+    if (lock == null)
+    {
+      throw new Exception("could not lock entry " + dn);
+    }
+
+    try
+    {
+      Entry entry = DirectoryServer.getEntry(dn);
+      if (entry == null)
+        return null;
+      else
+        return entry.duplicate();
+    }
+    finally
+    {
+      LockManager.unlock(dn, lock);
+    }
   }
 
   /**
@@ -1082,7 +1152,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       long initialCount = getReplayedUpdatesCount();
 
       // Get the UUID of the test entry.
-      Entry resultEntry = DirectoryServer.getEntry(tmp.getDN());
+      Entry resultEntry = getEntry(tmp.getDN(), 1, true);
       AttributeType uuidType = DirectoryServer.getAttributeType("entryuuid");
       String uuid =
            resultEntry.getAttributeValue(uuidType,
