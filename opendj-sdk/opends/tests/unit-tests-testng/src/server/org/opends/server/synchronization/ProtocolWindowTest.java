@@ -25,7 +25,7 @@
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
 
-package org.opends.server.synchronization.protocol;
+package org.opends.server.synchronization;
 
 import static org.opends.server.loggers.Error.logError;
 import static org.testng.Assert.*;
@@ -74,7 +74,7 @@ import org.testng.annotations.Test;
  * Test the contructors, encoders and decoders of the synchronization AckMsg,
  * ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
  */
-public class ProtocolWindowTest
+public class ProtocolWindowTest extends SynchronizationTestCase
 {
   private static final int WINDOW_SIZE = 10;
   private static final int CHANGELOG_QUEUE_SIZE = 100;
@@ -177,7 +177,7 @@ public class ProtocolWindowTest
           tmp.getOperationalAttributes());
       addOp.run();
       entryList.add(personEntry);
-      assertNotNull(DirectoryServer.getEntry(personEntry.getDN()),
+      assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
         "The Add Entry operation failed");
 
       // Check if the client has received the msg

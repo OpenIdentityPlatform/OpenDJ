@@ -75,15 +75,10 @@ import org.testng.annotations.Test;
  * Test the contructors, encoders and decoders of the synchronization AckMsg,
  * ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
  */
-public class StressTest extends MonitorProvider
+public class StressTest extends SynchronizationTestCase
 {
   private static final String SYNCHRONIZATION_STRESS_TEST =
     "Synchronization Stress Test";
-
-  public StressTest()
-  {
-    super("synchronization Stress Test");
-  }
 
   /**
    * The internal connection used for operation
@@ -156,7 +151,8 @@ public class StressTest extends MonitorProvider
     cleanEntries();
 
     ChangelogBroker broker = openChangelogSession(baseDn, (short) 18);
-    DirectoryServer.registerMonitorProvider(this);
+    Monitor monitor = new Monitor("stress test monitor");
+    DirectoryServer.registerMonitorProvider(monitor);
 
     try {
       /*
@@ -186,7 +182,7 @@ public class StressTest extends MonitorProvider
           tmp.getOperationalAttributes());
       addOp.run();
       entryList.add(personEntry);
-      assertNotNull(DirectoryServer.getEntry(personEntry.getDN()),
+      assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
         "The Add Entry operation failed");
 
       // Check if the client has received the msg
@@ -457,50 +453,6 @@ public class StressTest extends MonitorProvider
     entryList.add(synchroServerEntry);
   }
 
-  @Override
-  public List<Attribute> getMonitorData()
-  {
-    Attribute attr;
-    if (reader == null)
-      attr = new Attribute("received-messages", "not yet started");
-    else
-      attr = new Attribute("received-messages",
-                           String.valueOf(reader.getCurrentCount()));
-    List<Attribute>  list = new LinkedList<Attribute>();
-    list.add(attr);
-    attr = new Attribute("base-dn", "ou=People,dc=example,dc=com");
-    list.add(attr);
-    return list;
-  }
-
-  @Override
-  public String getMonitorInstanceName()
-  {
-    return SYNCHRONIZATION_STRESS_TEST;
-  }
-
-  @Override
-  public long getUpdateInterval()
-  {
-    // we don't wont to do polling on this monitor
-    return 0;
-  }
-
-  @Override
-  public void initializeMonitorProvider(ConfigEntry configEntry)
-  throws ConfigException, InitializationException
-  {
-    // nothing to do
-
-  }
-
-  @Override
-  public void updateMonitorData()
-  {
-    // nothing to do
-
-  }
-
   private class BrokerWriter extends Thread
   {
     int count;
@@ -604,5 +556,60 @@ public class StressTest extends MonitorProvider
     {
       return count;
     }
+  }
+  
+  private class Monitor extends MonitorProvider
+  {
+    protected Monitor(String threadName)
+    {
+      super(threadName);
+    }
+
+    @Override
+    public List<Attribute> getMonitorData()
+    {
+      Attribute attr;
+      if (reader == null)
+        attr = new Attribute("received-messages", "not yet started");
+      else
+        attr = new Attribute("received-messages",
+                             String.valueOf(reader.getCurrentCount()));
+      List<Attribute>  list = new LinkedList<Attribute>();
+      list.add(attr);
+      attr = new Attribute("base-dn", "ou=People,dc=example,dc=com");
+      list.add(attr);
+      return list;
+    }
+
+    @Override
+    public String getMonitorInstanceName()
+    {
+      return SYNCHRONIZATION_STRESS_TEST;
+    }
+
+    @Override
+    public void updateMonitorData()
+    {
+      // nothing to do
+    
+    }
+
+    @Override
+    public void initializeMonitorProvider(ConfigEntry configEntry)
+    throws ConfigException, InitializationException
+    {
+      // nothing to do
+    
+    }
+
+    @Override
+    public long getUpdateInterval()
+    {
+      // we don't wont to do polling on this monitor
+      return 0;
+    }
+
+    
+    
   }
 }
