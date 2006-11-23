@@ -30,7 +30,6 @@ package org.opends.server.synchronization;
 import static org.opends.server.loggers.Error.logError;
 import static org.testng.Assert.*;
 
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -42,15 +41,11 @@ import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.synchronization.common.ChangeNumberGenerator;
 import org.opends.server.synchronization.plugin.ChangelogBroker;
-import org.opends.server.synchronization.plugin.MultimasterSynchronization;
-import org.opends.server.synchronization.plugin.PersistentServerState;
 import org.opends.server.synchronization.protocol.AddMsg;
 import org.opends.server.synchronization.protocol.DeleteMsg;
 import org.opends.server.synchronization.protocol.ModifyDNMsg;
 import org.opends.server.synchronization.protocol.ModifyMsg;
 import org.opends.server.synchronization.protocol.SynchronizationMessage;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -61,7 +56,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -72,64 +66,11 @@ import org.testng.annotations.Test;
  */
 public class UpdateOperationTest extends SynchronizationTestCase
 {
-
-  /**
-   * The internal connection used for operation
-   */
-  private InternalClientConnection connection;
-
-  /**
-   * Created entries that need to be deleted for cleanup
-   */
-  private ArrayList<Entry> entryList = new ArrayList<Entry>();
-
-  /**
-   * The Synchronization config manager entry
-   */
-  private String synchroStringDN;
-
-  /**
-   * The synchronization plugin entry
-   */
-  private String synchroPluginStringDN;
-
-  private Entry synchroPluginEntry;
-
-  /**
-   * The Server synchro entry
-   */
-  private String synchroServerStringDN;
-
-  private Entry synchroServerEntry;
-
-  /**
-   * The Change log entry
-   */
-  private String changeLogStringDN;
-
-  private Entry changeLogEntry;
-
-  /**
-   * A "person" entry
-   */
-  private Entry personEntry;
-
   /**
    * An entry with a entryUUID
    */
   private Entry personWithUUIDEntry;
   private Entry personWithSecondUniqueID;
-
-  /**
-   * schema check flag
-   */
-  private boolean schemaCheck;
-
-  // WORKAROUND FOR BUG #639 - BEGIN -
-  /**
-   *
-   */
-  MultimasterSynchronization mms;
 
   private String baseUUID;
 
@@ -138,8 +79,11 @@ public class UpdateOperationTest extends SynchronizationTestCase
   private String user1entrysecondUUID;
 
   private String user1entryUUID;
-
-  // WORKAROUND FOR BUG #639 - END -
+  
+  /**
+   * A "person" entry
+   */
+  protected Entry personEntry;
 
   /**
    * Set up the environment for performing the tests in this Class.
@@ -179,13 +123,13 @@ public class UpdateOperationTest extends SynchronizationTestCase
           entry.getUserAttributes(), entry.getOperationalAttributes());
       addOp.setInternalOperation(true);
       addOp.run();
-      entryList.add(entry);
+      entryList.add(entry.getDN());
     }
 
     baseUUID = getEntryUUID(DN.decode("ou=People,dc=example,dc=com"));
 
     // top level synchro provider
-    synchroStringDN = "cn=Synchronization Providers,cn=config";
+    String synchroStringDN = "cn=Synchronization Providers,cn=config";
 
     // Multimaster Synchro plugin
     synchroPluginStringDN = "cn=Multimaster Synchronization, "
@@ -200,7 +144,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     synchroPluginEntry = TestCaseUtils.entryFromLdifString(synchroPluginLdif);
 
     // Change log
-    changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
+    String changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
     String changeLogLdif = "dn: " + changeLogStringDN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
@@ -209,7 +153,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
 
     // suffix synchronized
-    synchroServerStringDN = "cn=example, " + synchroPluginStringDN;
+    String synchroServerStringDN = "cn=example, " + synchroPluginStringDN;
     String synchroServerLdif = "dn: " + synchroServerStringDN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-synchronization-provider-config\n"
@@ -282,48 +226,6 @@ public class UpdateOperationTest extends SynchronizationTestCase
   }
 
   /**
-   * Clean up the environment. return null;
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
-  @AfterClass
-  public void classCleanUp() throws Exception
-  {
-
-    DirectoryServer.setCheckSchema(schemaCheck);
-
-    // WORKAROUND FOR BUG #639 - BEGIN -
-    DirectoryServer.deregisterSynchronizationProvider(mms);
-    mms.finalizeSynchronizationProvider();
-    // WORKAROUND FOR BUG #639 - END -
-
-    cleanEntries();
-  }
-
-  /**
-   * suppress all the entries created by the tests in this class
-   */
-  private void cleanEntries()
-  {
-    DeleteOperation op;
-    // Delete entries
-    Entry entries[] = entryList.toArray(new Entry[0]);
-    for (int i = entries.length - 1; i != 0; i--)
-    {
-      try
-      {
-        op = new DeleteOperation(connection, InternalClientConnection
-            .nextOperationID(), InternalClientConnection.nextMessageID(), null,
-            entries[i].getDN());
-        op.run();
-      } catch (Exception e)
-      {
-      }
-    }
-  }
-
-  /**
    * Tests the naming conflict resolution code.
    * In this test, the local server act both as an LDAP server and
    * a changelog server that are inter-connected.
@@ -346,7 +248,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
      * Open a session to the changelog server using the Changelog broker API.
      * This must use a serverId different from the LDAP server ID
      */
-    ChangelogBroker broker = openChangelogSession(baseDn, (short) 2);
+    ChangelogBroker broker = openChangelogSession(baseDn, (short) 2, 100);
 
     /*
      * Create a Change number generator to generate new changenumbers
@@ -375,7 +277,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     Entry resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
     assertNotNull(resultEntry,
         "The send ADD synchronization message was not applied");
-    entryList.add(resultEntry);
+    entryList.add(resultEntry.getDN());
 
     // send a modify operation with the correct unique ID but another DN
     List<Modification> mods = generatemods("telephonenumber", "01 02 45");
@@ -412,7 +314,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
     assertNotNull(resultEntry,
         "The ADD synchronization message was not applied");
-    entryList.add(resultEntry);
+    entryList.add(resultEntry.getDN());
 
     // send a modify operation with a wrong unique ID but the same DN
     mods = generatemods("telephonenumber", "02 01 03 05");
@@ -464,7 +366,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
     assertNotNull(resultEntry,
         "The ADD synchronization message was not applied");
-    entryList.add(resultEntry);
+    entryList.add(resultEntry.getDN());
 
     //  create an entry with the same DN and another unique ID
     addMsg = new AddMsg(gen.NewChangeNumber(),
@@ -658,7 +560,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     cleanEntries();
 
-    ChangelogBroker broker = openChangelogSession(baseDn, (short) 27);
+    ChangelogBroker broker = openChangelogSession(baseDn, (short) 27, 100);
     try {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
 
@@ -688,7 +590,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
           tmp.getObjectClasses(), tmp.getUserAttributes(),
           tmp.getOperationalAttributes());
       addOp.run();
-      entryList.add(personEntry);
+      entryList.add(personEntry.getDN());
       assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
       "The Add Entry operation failed");
 
@@ -787,7 +689,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       Entry resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
       assertNotNull(resultEntry,
       "The send ADD synchronization message was not applied");
-      entryList.add(resultEntry);
+      entryList.add(resultEntry.getDN());
 
       /*
        * Test the reception of Modify Msg
@@ -855,24 +757,6 @@ public class UpdateOperationTest extends SynchronizationTestCase
     Modification mod = new Modification(ModificationType.REPLACE, attr);
     mods.add(mod);
     return mods;
-  }
-
-  /**
-   * Open a changelog session to the local Changelog server.
-   *
-   */
-  private ChangelogBroker openChangelogSession(final DN baseDn, short serverId)
-          throws Exception, SocketException
-  {
-    PersistentServerState state = new PersistentServerState(baseDn);
-    state.loadState();
-    ChangelogBroker broker = new ChangelogBroker(state, baseDn,
-                                                 serverId, 0, 0, 0, 0, 100);
-    ArrayList<String> servers = new ArrayList<String>(1);
-    servers.add("localhost:8989");
-    broker.start(servers);
-    broker.setSoTimeout(1000);
-    return broker;
   }
 
   /**
@@ -1037,50 +921,6 @@ public class UpdateOperationTest extends SynchronizationTestCase
   }
 
   /**
-   * Configure the Synchronization for this test.
-   */
-  private void configureSynchronization() throws Exception
-  {
-    //
-    // Add the Multimaster synchronization plugin
-    DirectoryServer.getConfigHandler().addEntry(synchroPluginEntry, null);
-    entryList.add(synchroPluginEntry);
-    assertNotNull(DirectoryServer.getConfigEntry(DN
-        .decode(synchroPluginStringDN)),
-        "Unable to add the Multimaster synchronization plugin");
-
-    // WORKAROUND FOR BUG #639 - BEGIN -
-    DN dn = DN.decode(synchroPluginStringDN);
-    ConfigEntry mmsConfigEntry = DirectoryServer.getConfigEntry(dn);
-    mms = new MultimasterSynchronization();
-    try
-    {
-      mms.initializeSynchronizationProvider(mmsConfigEntry);
-    }
-    catch (ConfigException e)
-    {
-      assertTrue(false,
-          "Unable to initialize the Multimaster synchronization plugin");
-    }
-    DirectoryServer.registerSynchronizationProvider(mms);
-    // WORKAROUND FOR BUG #639 - END -
-
-    //
-    // Add the changelog server
-    DirectoryServer.getConfigHandler().addEntry(changeLogEntry, null);
-    assertNotNull(DirectoryServer.getConfigEntry(changeLogEntry.getDN()),
-        "Unable to add the changeLog server");
-    entryList.add(changeLogEntry);
-
-    //
-    // We also have a replicated suffix (synchronization domain)
-    DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
-    assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
-        "Unable to add the syncrhonized server");
-    entryList.add(synchroServerEntry);
-  }
-
-  /**
    * Test case for
    * [Issue 635] NullPointerException when trying to access non existing entry.
    */
@@ -1116,7 +956,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     Thread.sleep(2000);
-    ChangelogBroker broker = openChangelogSession(baseDn, (short) 11);
+    ChangelogBroker broker = openChangelogSession(baseDn, (short) 11, 100);
     try
     {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 11, 0);
@@ -1147,7 +987,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
                             tmp.getOperationalAttributes());
       addOp.run();
       assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
-      entryList.add(tmp);
+      entryList.add(tmp.getDN());
 
       long initialCount = getReplayedUpdatesCount();
 
