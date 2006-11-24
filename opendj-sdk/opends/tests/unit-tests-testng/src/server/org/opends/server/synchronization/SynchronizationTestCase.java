@@ -150,13 +150,11 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
       while (true)
       {
         DN dn = entryList.removeLast(); 
-        System.out.println("removing : " + dn);
         op = new DeleteOperation(connection, InternalClientConnection
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,
             dn);
        
-        op.run();
-        System.out.println("removed : " + dn + " " + op.getResultCode());
+        op.run();;
       }
     }
     catch (NoSuchElementException e) {

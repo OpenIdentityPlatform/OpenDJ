@@ -264,7 +264,6 @@ public class ProtocolWindowTest extends SynchronizationTestCase
           entry.getUserAttributes(), entry.getOperationalAttributes());
       addOp.setInternalOperation(true);
       addOp.run();
-      System.out.println("adding " + entry.getDN());
       entryList.addLast(entry.getDN());
     }
 
