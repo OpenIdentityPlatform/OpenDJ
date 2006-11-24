@@ -172,8 +172,6 @@ public final class TestCaseUtils {
                   new File(testConfigDir, "schema"));
     copyDirectory(new File(resourceDir, "MakeLDIF"),
                   new File(testConfigDir, "MakeLDIF"));
-    copyFile(new File(testResourceDir, "jmxkeystore"),
-             new File(testRoot, "jmxkeystore"));
     copyFile(new File(testResourceDir, "server.keystore"),
              new File(testConfigDir, "server.keystore"));
     copyFile(new File(testResourceDir, "server.truststore"),

@@ -384,7 +384,7 @@ public class JmxConnectTest extends JmxTestCase
         "objectClass: top",
         "objectClass: ds-cfg-connection-handler",
         "objectClass: ds-cfg-jmx-connection-handler",
-        "ds-cfg-ssl-cert-nickname: jmx-cert",
+        "ds-cfg-ssl-cert-nickname: server-cert",
         "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
         "ds-cfg-connection-handler-enabled: true",
         "ds-cfg-use-ssl: true",
@@ -562,8 +562,9 @@ public class JmxConnectTest extends JmxTestCase
    */
   private String getJmxKeystorePath()
   {
-    return DirectoryServer.getServerRoot() + File.separator
-                        + "jmxkeystore";
+    return DirectoryServer.getServerRoot() + File.separator +
+              "config" + File.separator +
+              "server.keystore";
   }
 
   /**
