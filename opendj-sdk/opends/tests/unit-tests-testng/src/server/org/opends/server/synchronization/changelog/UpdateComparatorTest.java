@@ -35,6 +35,7 @@ import static org.testng.Assert.*;
 
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.synchronization.SynchronizationTestCase;
 import org.opends.server.synchronization.changelog.UpdateComparator;
 import org.opends.server.synchronization.common.ChangeNumber;
 import org.opends.server.synchronization.protocol.DeleteContext;
@@ -49,7 +50,7 @@ import org.opends.server.util.TimeThread;
 /**
  * Test ChangeNumber and ChangeNumberGenerator
  */
-public class UpdateComparatorTest extends ChangeLogTestCase
+public class UpdateComparatorTest extends SynchronizationTestCase
 {
 
   /**
