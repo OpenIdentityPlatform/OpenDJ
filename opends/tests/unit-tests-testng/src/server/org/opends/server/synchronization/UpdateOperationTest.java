@@ -248,7 +248,8 @@ public class UpdateOperationTest extends SynchronizationTestCase
      * Open a session to the changelog server using the Changelog broker API.
      * This must use a serverId different from the LDAP server ID
      */
-    ChangelogBroker broker = openChangelogSession(baseDn, (short) 2, 100);
+    ChangelogBroker broker =
+      openChangelogSession(baseDn, (short) 2, 100, 8989, 1000);
 
     /*
      * Create a Change number generator to generate new changenumbers
@@ -560,7 +561,8 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     cleanEntries();
 
-    ChangelogBroker broker = openChangelogSession(baseDn, (short) 27, 100);
+    ChangelogBroker broker =
+      openChangelogSession(baseDn, (short) 27, 100, 8989, 1000);
     try {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
 
@@ -956,7 +958,8 @@ public class UpdateOperationTest extends SynchronizationTestCase
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     Thread.sleep(2000);
-    ChangelogBroker broker = openChangelogSession(baseDn, (short) 11, 100);
+    ChangelogBroker broker =
+      openChangelogSession(baseDn, (short) 11, 100, 8989, 1000);
     try
     {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 11, 0);

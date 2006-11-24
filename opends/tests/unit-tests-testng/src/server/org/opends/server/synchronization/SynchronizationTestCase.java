@@ -107,11 +107,10 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
   
   /**
    * Open a changelog session to the local Changelog server.
-   * @param window_size 
    *
    */
   protected ChangelogBroker openChangelogSession(
-      final DN baseDn, short serverId, int window_size)
+      final DN baseDn, short serverId, int window_size, int port, int timeout)
           throws Exception, SocketException
   {
     PersistentServerState state = new PersistentServerState(baseDn);
@@ -119,9 +118,10 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     ChangelogBroker broker = new ChangelogBroker(
         state, baseDn, serverId, 0, 0, 0, 0, window_size);
     ArrayList<String> servers = new ArrayList<String>(1);
-    servers.add("localhost:8989");
+    servers.add("localhost:" + port);
     broker.start(servers);
-    broker.setSoTimeout(1000);
+    if (timeout != 0)
+      broker.setSoTimeout(timeout);
     /*
      * loop receiving update until there is nothing left
      * to make sure that message from previous tests have been consumed.
