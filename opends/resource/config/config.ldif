@@ -1084,7 +1084,7 @@ objectClass: ds-cfg-sasl-mechanism-handler
 objectClass: ds-cfg-gssapi-sasl-mechanism-handler
 cn: GSSAPI
 ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions.GSSAPISASLMechanismHandler
-ds-cfg-sasl-mechanism-handler-enabled: true
+ds-cfg-sasl-mechanism-handler-enabled: false
 ds-cfg-identity-mapper-dn: cn=Exact Match,cn=Identity Mappers,cn=config
 ds-cfg-keytab: /etc/krb5/krb5.keytab
 
