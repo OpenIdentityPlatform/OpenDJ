@@ -316,7 +316,7 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checkRC'">
+            <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
                   'expected'   : 1 }
