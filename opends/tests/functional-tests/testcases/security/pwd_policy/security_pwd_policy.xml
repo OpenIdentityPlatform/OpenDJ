@@ -115,6 +115,10 @@
           file="'%s/testcases/security/pwd_policy/security_preencoded_pwds.xml' % (TESTS_DIR)"/>
         <call function="'preencoded_pwds'" />
 
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_policy/security_lockout_duration.xml' % (TESTS_DIR)"/>
+        <call function="'lockout_duration'" />
+
         <!--- Test Case : Stop DS -->
         <testcase name="'StopDS'">
           <sequence>
