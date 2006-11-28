@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+
+  <defaultcall function="start_job"/>
+
+  <function name="start_job">
+
+    <sequence>
+
+      <script>
+        logdir='%s' % TMPDIR
+      </script>
+      
+      <job name="'Test Job 1'" monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
+        <job-file>'%s/testcases/runFuncTests.xml' % TESTS_DIR</job-file>
+        <job-scriptfiles machine="'%s' % STAF_LOCAL_HOSTNAME">['%s/config/config.py' % TESTS_DIR,'%s/python/security.py' % TESTS_SHARED_DIR]</job-scriptfiles>
+        <job-action>
+          <log>'Started sub-job %s' % (STAXSubJobID)</log>
+        </job-action>
+      </job>
+
+      <if expr="RC == 0">
+        <message>'Sub-job %s completed. Result: %s' % (STAXSubJobID, STAXResult)</message>
+      <else>
+        <message>'Sub-job %s could not be started. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)</message>
+      </else>
+      </if>
+
+      <stafcmd name="'STAF Command: Log Query All'">
+        <location>'localhost'</location>
+        <service>'log'</service>
+        <request>
+          'QUERY ALL MACHINE %s LOGNAME STAX_Job_%s' % (STAXServiceMachine,STAXSubJobID)
+        </request>
+      </stafcmd>
+
+      <message>
+         'RC=%s, STAFResult= %s' % (RC,STAFResult)
+      </message>
+ 
+      <!-- Write Text File for results -->
+      <script>
+          resultFile= STAFResult
+          outfile= '%s/results.txt' % logdir
+          txtfh=open(outfile,'w')
+      </script>
+      
+      <iterate var="line" in="resultFile"> 
+
+        <script> 
+          txtfh.write('%s\n' % line) 
+        </script>
+      
+      </iterate> 
+ 
+      <script> 
+        txtfh.close() 
+      </script> 
+
+      <!-- Write XML File for results -->
+      <script>
+          import re
+          resultFile= STAFResult
+          xmlfile= '%s/results.xml' % logdir
+          xmlfh=open(xmlfile,'w')
+          errorfile= '%s/results.errors' % logdir
+          errorfh=open(errorfile,'w')
+      </script>
+
+      <!-- Build the test case dictionary object -->
+      <script>
+        testDict={}
+        testCaseList=[]
+      </script>
+
+      <iterate var="element" in="STAFResult"> 
+        <script>
+          level=element['level']
+          message=element['message']
+          timestamp=element['timestamp']
+
+          startValueDict={}
+          stopValueDict={}
+          statusValueDict={}
+
+          if level == 'Start':
+
+            tcpattern=re.compile("(Testcase): (.*)")
+            tcmatch = tcpattern.search(message)
+
+            if tcmatch:
+              tctype=tcmatch.group(1)
+              tcname=tcmatch.group(2)
+
+              if testDict.has_key(tcname):
+
+                for key in testDict[tcname].keys():
+                  value=testDict[tcname][key]
+                  startValueDict[key]=value
+
+              startValueDict['start']=timestamp
+              testDict[tcname]=startValueDict
+
+              testCaseList.append(tcname)
+
+            else:
+              errorfh.write('No match element %s.\n' % element)
+
+          if level == 'Stop':
+
+            tcpattern=re.compile("(Testcase): (.*), ElapsedTime: (.*)")
+            tcmatch = tcpattern.search(message)
+
+            if tcmatch:
+              tctype=tcmatch.group(1)
+              tcname=tcmatch.group(2)
+              tctime=tcmatch.group(3)
+
+              if testDict.has_key(tcname):
+
+                for key in testDict[tcname].keys():
+                  value=testDict[tcname][key]
+                  stopValueDict[key]=value
+
+              stopValueDict['stop']=timestamp
+              stopValueDict['duration']=tctime
+              testDict[tcname]=stopValueDict
+
+            else:
+              errorfh.write('No match element %s.\n' % element)
+
+          if level == 'Status':
+
+            tcpattern=re.compile("(Testcase): (.*), Pass: (.*), Fail: (.*), ElapsedTime: (.*), NumStarts: (.*)")
+            tcmatch = tcpattern.search(message)
+
+            if tcmatch:
+              tctype=tcmatch.group(1)
+              tcname=tcmatch.group(2)
+              tcpass=tcmatch.group(3)
+              tcfail=tcmatch.group(4)
+              tctime=tcmatch.group(5)
+              tcnums=tcmatch.group(6)
+
+              if testDict.has_key(tcname):
+
+                for key in testDict[tcname].keys():
+                  value=testDict[tcname][key]
+                  statusValueDict[key]=value
+
+              statusValueDict['pass']=tcpass
+              statusValueDict['fail']=tcfail
+              testDict[tcname]=statusValueDict
+
+            else:
+              errorfh.write('No match element %s.\n' % element)
+
+        </script>
+      </iterate>
+
+      <!-- XML Report Pre -->
+      <script>
+        xmlfh.write('&lt;qa&gt;\n')
+        xmlfh.write('  &lt;functional-tests&gt;\n')
+        xmlfh.write('    &lt;results&gt;\n')
+      </script>
+
+      <!-- XML Report Results -->
+      <script>
+        for tcname in testCaseList:
+
+          if testDict.has_key(tcname):
+
+            if testDict[tcname].has_key('pass'):
+              tcpass=testDict[tcname]['pass']
+            else:
+              tcpass='0'
+
+            if testDict[tcname].has_key('fail'):
+              tcfail=testDict[tcname]['fail']
+            else:
+              tcfail='0'
+
+            if testDict[tcname].has_key('start'):
+              tcstart=testDict[tcname]['start']
+            else:
+              tcstart='unknown'
+
+            if testDict[tcname].has_key('stop'):
+              tcstop=testDict[tcname]['stop']
+            else:
+              tcstop='unknown'
+
+            if testDict[tcname].has_key('duration'):
+              tcduration=testDict[tcname]['duration']
+            else:
+              duration='unknown'
+
+          else:
+            errorfh.write('No key for testcase %s.\n' % tcname)
+
+          if int(tcfail) == 0 and int(tcpass) > 0:
+            tcresult='pass'
+          elif int(tcfail) == 0 and int(tcpass) == 0: 
+            tcresult='unknown'
+          else:
+            tcresult='fail'
+
+          xmlfh.write('      &lt;testcase name="%s" result="%s" start="%s" stop="%s" duration="%s"/&gt;\n' % (tcname,tcresult,tcstart,tcstop,tcduration))
+      </script> 
+ 
+      <!-- XML Report Post -->
+      <script>
+        xmlfh.write('    &lt;/results&gt;\n')
+        xmlfh.write('  &lt;/functional-tests&gt;\n')
+        xmlfh.write('&lt;/qa&gt;\n')
+      </script>
+
+      <script> 
+        xmlfh.close() 
+        errorfh.close() 
+      </script> 
+      
+    </sequence>
+
+  </function>
+
+</stax>
