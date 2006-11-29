@@ -37,26 +37,22 @@
 <parallel>
     <block name="'Block DS Process Active'">
 
-      <!--- Test Case : Start DS -->
-      <testcase name="'StartDS'">
-        <sequence>
-          <message>
-             'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-          </message>
- 
-          <!--- Start DS -->
-          <call function="'startDS'">
-            { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
-          </call>
-
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
-
-        </sequence>
-
-      </testcase>
+      <!--- Start DS -->
+      <sequence>
+         <message>
+            'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+         </message>
+  
+         <call function="'startDS'">
+           { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+         </call>
+  
+         <call function="'checkRC'">
+             { 'returncode' : RC ,
+               'result'     : STAXResult }
+         </call>
+  
+       </sequence>
 
      <!--- End Block DS Process Active -->
      </block>
@@ -93,23 +89,21 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Stop DS -->
-        <testcase name="'StopDS'">
-          <sequence>
-            <message>
-               'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
-            </message>
-
-            <call function="'stopDS'">
-              { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+        <!--- Stop DS -->
+		<sequence>
+		  <message>
+		     'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+		  </message>
+		
+		  <call function="'stopDS'">
+		    { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
+		  </call>
+		
+		  <call function="'checkRC'">
+		      { 'returncode' : RC ,
+		        'result'     : STAXResult }
+		  </call>
+		</sequence>
 
         <return>RC</return>
 

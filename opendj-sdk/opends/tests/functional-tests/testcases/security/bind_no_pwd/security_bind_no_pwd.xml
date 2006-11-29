@@ -37,26 +37,23 @@
 <parallel>
     <block name="'Block DS Process Active'">
 
-      <!--- Test Case : Start DS -->
-      <testcase name="'StartDS'">
-        <sequence>
-          <message>
-             'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-          </message>
- 
-          <!--- Start DS -->
-          <call function="'startDS'">
-            { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
-          </call>
+      <!--- Start DS -->
+      <sequence>
+        <message>
+           'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+        </message>
 
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
+        <!--- Start DS -->
+        <call function="'startDS'">
+          { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+        </call>
 
-        </sequence>
+        <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+        </call>
 
-      </testcase>
+      </sequence>
 
      <!--- End Block DS Process Active -->
      </block>
@@ -79,8 +76,7 @@
           file="'%s/testcases/security/bind_no_pwd/security_pwd_null.xml' % (TESTS_DIR)"/>
         <call function="'pwd_null'" />
 
-        <!--- Test Case : Stop DS -->
-        <testcase name="'StopDS'">
+        <!--- Stop DS -->
           <sequence>
             <message>
                'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
@@ -90,12 +86,11 @@
               { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
             </call>
 
-            <call function="'checktestRC'">
+            <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
           </sequence>
-        </testcase>
 
         <return>RC</return>
 
