@@ -141,22 +141,20 @@
           'ziphost'  : STAF_REMOTE_HOSTNAME }
       </call>
 
-      <!--- Test Case : Configure DS -->
-      <testcase name="'ConfigureDS'">
-        <sequence>
-          <message>
-           'Configure DS to run on port %s with base suffix %s' % (DIRECTORY_INSTANCE_PORT,DIRECTORY_INSTANCE_SFX)
-          </message>
-          <call function="'configureDS'">
-              { 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceSuffix' : DIRECTORY_INSTANCE_SFX }
-          </call>
-          <call function="'checktestRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-          </call>
-        </sequence>
-      </testcase>
+      <!--- Configure DS -->
+      <sequence>
+        <message>
+         'Configure DS to run on port %s with base suffix %s' % (DIRECTORY_INSTANCE_PORT,DIRECTORY_INSTANCE_SFX)
+        </message>
+        <call function="'configureDS'">
+            { 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceSuffix' : DIRECTORY_INSTANCE_SFX }
+        </call>
+        <call function="'checkRC'">
+          { 'returncode' : RC ,
+            'result'     : STAXResult }
+        </call>
+      </sequence>
 
     </sequence>
 
