@@ -167,11 +167,11 @@ public class BindOperation
 
   // The password policy error type that should be included in the response
   // control
-  PasswordPolicyErrorType pwPolicyErrorType;
+  private PasswordPolicyErrorType pwPolicyErrorType;
 
   // The password policy warning type that should be included in the response
   // control
-  PasswordPolicyWarningType pwPolicyWarningType;
+  private PasswordPolicyWarningType pwPolicyWarningType;
 
   // The password policy state information for this bind operation.
   private PasswordPolicyState pwPolicyState;
