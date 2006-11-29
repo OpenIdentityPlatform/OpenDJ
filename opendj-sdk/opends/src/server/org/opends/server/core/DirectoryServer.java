@@ -466,7 +466,7 @@ public class DirectoryServer
   private RootDSEBackend rootDSEBackend;
 
   // The SASL mechanism config manager for the Directory Server.
-  SASLConfigManager saslConfigManager;
+  private SASLConfigManager saslConfigManager;
 
   // The schema for the Directory Server.
   private Schema schema;
