@@ -372,6 +372,9 @@ attributeTypes: ( 2.16.840.1.113730.3.1.542 NAME 'nsUniqueId'
 attributeTypes: ( 1.3.6.1.4.1.1466.101.120.1 NAME 'administratorsAddress'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 USAGE directoryOperation
   X-ORIGIN 'draft-wahl-ldap-adminaddr' )
+attributeTypes: ( 2.16.840.1.113730.3.1.198 NAME 'memberURL'
+  DESC 'Sun-defined attribute type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  X-ORIGIN 'Sun Java System Directory Server' )
 objectClasses: ( 2.5.6.0 NAME 'top' ABSTRACT MUST objectClass
   X-ORIGIN 'RFC 2256' )
 objectClasses: ( 2.5.6.1 NAME 'alias' SUP top STRUCTURAL MUST aliasedObjectName
@@ -522,4 +525,8 @@ objectClasses: ( 1.3.6.1.4.1.7628.5.6.1.1 NAME 'inheritableLDAPSubEntry'
   DESC 'Inheritable LDAP Subentry class, version 1'  SUP ldapSubEntry
   STRUCTURAL  MUST ( inheritable )  MAY  ( blockInheritance )
   X-ORIGIN 'draft-ietf-ldup-subentry' )
+objectClasses: ( 2.16.840.1.113730.3.2.33 NAME 'groupOfURLs'
+  DESC 'Sun-defined objectclass' SUP top MUST ( cn )
+  MAY ( memberURL $ businessCategory $ description $ o $ ou $ owner $ seeAlso )
+  X-ORIGIN 'Sun Java System Directory Server' )
 
