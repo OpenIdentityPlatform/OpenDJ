@@ -6419,11 +6419,13 @@ public class DirectoryServer
                                        msgID);
 
         case EXTENDED:
-          // This will only be allowed if it's a password modify request.
+          // We will only allow the password modify and StartTLS extended
+          // operations.
           ExtendedOperation extOp      = (ExtendedOperation) operation;
           String            requestOID = extOp.getRequestOID();
           if ((requestOID == null) ||
-              (! requestOID.equals(OID_PASSWORD_MODIFY_REQUEST)))
+              ((! requestOID.equals(OID_PASSWORD_MODIFY_REQUEST)) &&
+               (! requestOID.equals(OID_START_TLS_REQUEST))))
           {
             msgID   = MSGID_ENQUEUE_MUST_CHANGE_PASSWORD;
             message = getMessage(msgID);
