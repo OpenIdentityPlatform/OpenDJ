@@ -106,6 +106,7 @@ public class ExportLDIF
     BooleanArgument compressLDIF            = null;
     BooleanArgument displayUsage            = null;
     BooleanArgument encryptLDIF             = null;
+    BooleanArgument excludeOperationalAttrs = null;
     BooleanArgument signHash                = null;
     IntegerArgument wrapColumn              = null;
     StringArgument  backendID               = null;
@@ -208,6 +209,12 @@ public class ExportLDIF
                               false, true, true, "{filter}", null, null,
                               MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_FILTER);
       argParser.addArgument(excludeFilterStrings);
+
+
+      excludeOperationalAttrs =
+           new BooleanArgument("excludeoperational", 'O', "excludeOperational",
+                    MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_OPERATIONAL);
+      argParser.addArgument(excludeOperationalAttrs);
 
 
       wrapColumn =
@@ -714,6 +721,8 @@ public class ExportLDIF
     exportConfig.setIncludeBranches(includeBranches);
     exportConfig.setIncludeFilters(includeFilters);
     exportConfig.setSignHash(signHash.isPresent());
+    exportConfig.setIncludeOperationalAttributes(
+                      (! excludeOperationalAttrs.isPresent()));
 
     // FIXME -- Should this be conditional?
     exportConfig.setInvokeExportPlugins(true);

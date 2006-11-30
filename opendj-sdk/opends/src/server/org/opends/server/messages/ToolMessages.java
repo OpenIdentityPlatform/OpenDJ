@@ -7466,6 +7466,15 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description of the
+   * excludeOperational argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_OPERATIONAL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 785;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7600,6 +7609,8 @@ public class ToolMessages
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_FILTER,
                     "Filter to identify entries to exclude from the LDIF " +
                     "export");
+    registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_OPERATIONAL,
+                    "Exclude operational attributes from the LDIF export");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_WRAP_COLUMN,
                     "Column at which to wrap long lines (0 for no wrapping)");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_COMPRESS_LDIF,
