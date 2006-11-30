@@ -636,6 +636,26 @@ public class LDIFExportConfig
 
 
   /**
+   * Specifies whether the set of operational attributes should be
+   * included in the export.
+   *
+   * @param  includeOperationalAttributes  Specifies whether the set
+   *                                       of operational attributes
+   *                                       should be included in the
+   *                                       export.
+   */
+  public void setIncludeOperationalAttributes(
+                   boolean includeOperationalAttributes)
+  {
+    assert debugEnter(CLASS_NAME, "setIncludeOperationalAttributes",
+                      String.valueOf(includeOperationalAttributes));
+
+    this.includeOperationalAttributes = includeOperationalAttributes;
+  }
+
+
+
+  /**
    * Retrieves the set of attributes that should be excluded from the
    * entries written to LDIF.  The set that is returned may be altered
    * by the caller.
