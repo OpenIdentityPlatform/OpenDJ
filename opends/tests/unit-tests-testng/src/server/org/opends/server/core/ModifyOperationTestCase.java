@@ -867,6 +867,57 @@ public class ModifyOperationTestCase
 
 
   /**
+   * Tests to ensure that a modify attempt fails if an attempt is made to add a
+   * second value to a single-valued operational attribute.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testFailAddToSingleValuedOperationalAttribute()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password",
+         "ds-pwp-account-disabled: true");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("false"));
+    LDAPAttribute attr = new LDAPAttribute("ds-pwp-account-disabled", values);
+
+    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    mods.add(new LDAPModification(ModificationType.ADD, attr));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+    assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    retrieveFailedOperationElements(modifyOperation);
+  }
+
+
+
+  /**
    * Tests to ensure that a modify attempt fails if an attempt is made to
    * replace a single-valued attribute with multiple values.
    *
@@ -905,6 +956,57 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     values.add(new ASN1OctetString("bar"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
+
+    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+    assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    retrieveFailedOperationElements(modifyOperation);
+  }
+
+
+
+  /**
+   * Tests to ensure that a modify attempt fails if an attempt is made to
+   * replace a single-valued operational attribute with multiple values.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testFailReplaceSingleValuedOperationalAttrWithMultipleValues()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("true"));
+    values.add(new ASN1OctetString("false"));
+    LDAPAttribute attr = new LDAPAttribute("ds-pwp-account-disabled", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));

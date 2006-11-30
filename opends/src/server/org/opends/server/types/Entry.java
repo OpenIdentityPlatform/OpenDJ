@@ -2246,6 +2246,32 @@ public class Entry
     }
 
 
+    // Iterate through all of the operational attributes and make sure
+    // that all of the single-valued attributes only have one value.
+    for (AttributeType t : operationalAttributes.keySet())
+    {
+      if (t.isSingleValue())
+      {
+        List<Attribute> attrList = operationalAttributes.get(t);
+        if (attrList != null)
+        {
+          for (Attribute a : attrList)
+          {
+            if (a.getValues().size() > 1)
+            {
+              int    msgID   = MSGID_ENTRY_SCHEMA_ATTR_SINGLE_VALUED;
+              String message = getMessage(msgID, String.valueOf(dn),
+                                          t.getNameOrOID());
+
+              invalidReason.append(message);
+              return false;
+            }
+          }
+        }
+      }
+    }
+
+
     // Optionally, make sure that the entry contains exactly one
     // structural objectclass.
     AcceptRejectWarn structuralPolicy =
