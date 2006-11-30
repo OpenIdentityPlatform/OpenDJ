@@ -2210,6 +2210,29 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * configuration attribute that is used to indicate whether all attributes
+   * in the subschema entry should be shown even if they are marked operational.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_INFORMATIONAL | 208;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine whether to treat all subschema attributes as user
+   * attributes.  This takes two arguments, which are the DN of the
+   * configuration entry and a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 209;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -2402,6 +2425,16 @@ public class BackendMessages
                     "locations for compatibility purposes.  If no value is " +
                     "provided, a default of \"" + DN_DEFAULT_SCHEMA_ROOT +
                     "\" will be used.");
+    registerMessage(MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES,
+                    "Indicates whether to treat attributes in the subschema " +
+                    "entry as user attributes even if they are marked " +
+                    "operational.  This may provide compatibility with some " +
+                    "applications that expect schema attributes like " +
+                    "attributeType and objectClasses to be included by " +
+                    "default even if they are not requested.  Note that the " +
+                    "ldapSyntaxes attribute will always be treated as " +
+                    "operational in order to avoid problems with attempts to " +
+                    "modify the schema over protocol.");
     registerMessage(MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN,
                     "An error occurred while trying to determine the base " +
                     "DNs to use when publishing the Directory Server schema " +
@@ -2409,6 +2442,14 @@ public class BackendMessages
                     " attribute of configuration entry %s:  %s.  The default " +
                     "schema base DN of " + DN_DEFAULT_SCHEMA_ROOT +
                     " will be used.");
+    registerMessage(MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL,
+                    "An error occurred while trying to determine whether to " +
+                    "treat all subschema entry attributes as user attributes " +
+                    "regardless of the way they are defined in the schema, " +
+                    "as specified in the " + ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES +
+                    " attribute of configuration entry %s:  %s.  The default " +
+                    "behavior, which is to treat the attribute types as " +
+                    "defined in the server schema, will be used.");
     registerMessage(MSGID_SCHEMA_ADD_NOT_SUPPORTED,
                     "Unwilling to add entry \"%s\" because add operations " +
                     "are not supported in the schema backend.");
