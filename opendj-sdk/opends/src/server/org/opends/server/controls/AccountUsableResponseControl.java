@@ -58,7 +58,7 @@ import static org.opends.server.util.StaticUtils.*;
  *      is_available           [0] INTEGER, -- Seconds before expiration --
  *      is_not_available       [1] MORE_INFO }
  *
- * MORE_INFO
+ * MORE_INFO ::= SEQUENCE {
  *      inactive               [0] BOOLEAN DEFAULT FALSE,
  *      reset                  [1] BOOLEAN DEFAULT FALSE,
  *      expired                [2] BOOLEAN DEFAULT_FALSE,
