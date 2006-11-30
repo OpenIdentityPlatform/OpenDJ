@@ -54,6 +54,7 @@ import javax.crypto.Mac;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConfigurableComponent;
+import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
@@ -119,6 +120,10 @@ public class SchemaBackend
   // The set of user-defined attributes that will be included in the schema
   // entry.
   private ArrayList<Attribute> userDefinedAttributes;
+
+  // Indicates whether the attributes of the schema entry should always be
+  // treated as user attributes even if they are defined as operational.
+  private boolean showAllAttributes;
 
   // The set of objectclasses that will be used in the schema entry.
   private HashMap<ObjectClass,String> schemaObjectClasses;
@@ -217,6 +222,32 @@ public class SchemaBackend
     }
 
 
+    // Determine whether to show all attributes.
+    showAllAttributes = DEFAULT_SCHEMA_SHOW_ALL_ATTRIBUTES;
+    int msgID = MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES;
+    BooleanConfigAttribute showAllStub =
+         new BooleanConfigAttribute(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES,
+                                    getMessage(msgID), false);
+    try
+    {
+      BooleanConfigAttribute showAllAttr =
+           (BooleanConfigAttribute) configEntry.getConfigAttribute(showAllStub);
+      if (showAllAttr != null)
+      {
+        showAllAttributes = showAllAttr.activeValue();
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+
+      msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      throw new ConfigException(msgID, message, e);
+    }
+
+
     // Register each of the suffixes with the Directory Server.  Also, register
     // the first one as the schema base.
     this.baseDNs = baseDNs;
@@ -299,6 +330,8 @@ public class SchemaBackend
         attrType.hasName(ATTR_BACKEND_CLASS.toLowerCase()) ||
         attrType.hasName(ATTR_BACKEND_ID.toLowerCase()) ||
         attrType.hasName(ATTR_BACKEND_BASE_DN.toLowerCase()) ||
+        attrType.hasName(ATTR_BACKEND_WRITABILITY_MODE.toLowerCase()) ||
+        attrType.hasName(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES.toLowerCase()) ||
         attrType.hasName(ATTR_COMMON_NAME))
     {
       return true;
@@ -426,64 +459,78 @@ public class SchemaBackend
 
     // Add the "attributeTypes" attribute.
     AttributeType attrType =
-         DirectoryServer.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(ATTR_ATTRIBUTE_TYPES);
-    }
-
+         DirectoryServer.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC, true);
     LinkedHashSet<AttributeValue> valueSet =
          DirectoryServer.getAttributeTypeSet();
 
     Attribute attr = new Attribute(attrType, ATTR_ATTRIBUTE_TYPES, valueSet);
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
-    userAttrs.put(attrType, attrList);
+    if (attrType.isOperational() && (! showAllAttributes))
+    {
+      operationalAttrs.put(attrType, attrList);
+    }
+    else
+    {
+      userAttrs.put(attrType, attrList);
+    }
 
 
     // Add the "objectClasses" attribute.
-    attrType = DirectoryServer.getAttributeType(ATTR_OBJECTCLASSES_LC);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(ATTR_OBJECTCLASSES);
-    }
-
+    attrType = DirectoryServer.getAttributeType(ATTR_OBJECTCLASSES_LC, true);
     valueSet = DirectoryServer.getObjectClassSet();
 
     attr = new Attribute(attrType, ATTR_OBJECTCLASSES, valueSet);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
-    userAttrs.put(attrType, attrList);
+    if (attrType.isOperational() && (! showAllAttributes))
+    {
+      operationalAttrs.put(attrType, attrList);
+    }
+    else
+    {
+      userAttrs.put(attrType, attrList);
+    }
 
 
     // Add the "matchingRules" attribute.
-    attrType = DirectoryServer.getAttributeType(ATTR_MATCHING_RULES_LC);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(ATTR_MATCHING_RULES);
-    }
-
+    attrType = DirectoryServer.getAttributeType(ATTR_MATCHING_RULES_LC, true);
     valueSet = DirectoryServer.getMatchingRuleSet();
 
     attr = new Attribute(attrType, ATTR_MATCHING_RULES, valueSet);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
-    userAttrs.put(attrType, attrList);
+    if (attrType.isOperational() && (! showAllAttributes))
+    {
+      operationalAttrs.put(attrType, attrList);
+    }
+    else
+    {
+      userAttrs.put(attrType, attrList);
+    }
 
 
     // Add the "ldapSyntaxes" attribute.
-    attrType = DirectoryServer.getAttributeType(ATTR_LDAP_SYNTAXES_LC);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(ATTR_LDAP_SYNTAXES);
-    }
-
+    attrType = DirectoryServer.getAttributeType(ATTR_LDAP_SYNTAXES_LC, true);
     valueSet = DirectoryServer.getAttributeSyntaxSet();
 
     attr = new Attribute(attrType, ATTR_LDAP_SYNTAXES, valueSet);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
-    userAttrs.put(attrType, attrList);
+
+    // Note that we intentionally ignore showAllAttributes for ldapSyntaxes
+    // because that attribute isn't allowed in the subschema objectclass, and
+    // treating it as a user attribute would cause schema updates to fail.  This
+    // means that you'll always have to explicitly request ldapSyntaxes in order
+    // to be able to see it.
+    if (attrType.isOperational())
+    {
+      operationalAttrs.put(attrType, attrList);
+    }
+    else
+    {
+      userAttrs.put(attrType, attrList);
+    }
 
 
     // Add all the user-defined attributes.
@@ -1947,6 +1994,13 @@ public class SchemaBackend
     attrList.add(new DNConfigAttribute(ATTR_SCHEMA_ENTRY_DN, description,
                                        false, true, false, values));
 
+
+    description = getMessage(MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES);
+    attrList.add(new BooleanConfigAttribute(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES,
+                                            description, false,
+                                            showAllAttributes));
+
+
     return attrList;
   }
 
@@ -1991,6 +2045,28 @@ public class SchemaBackend
       assert debugException(CLASS_NAME, "initializeBackend", e);
 
       int msgID = MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      unacceptableReasons.add(message);
+      configIsAcceptable = false;
+    }
+
+
+    description = getMessage(MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES);
+    BooleanConfigAttribute showAllStub =
+         new BooleanConfigAttribute(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES,
+                                    description, false);
+    try
+    {
+      // We don't care what the value is as long as we can parse it.
+      BooleanConfigAttribute showAllAttr =
+           (BooleanConfigAttribute) configEntry.getConfigAttribute(showAllStub);
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeBackend", e);
+
+      int msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
                                   stackTraceToSingleLineString(e));
       unacceptableReasons.add(message);
@@ -2066,6 +2142,34 @@ public class SchemaBackend
       assert debugException(CLASS_NAME, "applyNewConfiguration", e);
 
       msgID = MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                              stackTraceToSingleLineString(e)));
+      resultCode = DirectoryServer.getServerErrorResultCode();
+      newBaseDNs = null;
+    }
+
+
+    // Check to see if we should change the behavior regarding whether to show
+    // all schema attributes.
+    boolean newShowAllAttributes = DEFAULT_SCHEMA_SHOW_ALL_ATTRIBUTES;
+    msgID = MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES;
+    BooleanConfigAttribute showAllStub =
+         new BooleanConfigAttribute(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES,
+                                    getMessage(msgID), false);
+    try
+    {
+      BooleanConfigAttribute showAllAttr =
+           (BooleanConfigAttribute) configEntry.getConfigAttribute(showAllStub);
+      if (showAllAttr != null)
+      {
+        newShowAllAttributes = showAllAttr.activeValue();
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+
+      msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
                               stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
@@ -2163,6 +2267,9 @@ public class SchemaBackend
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
+
+
+      showAllAttributes = newShowAllAttributes;
 
 
       userDefinedAttributes = newUserAttrs;

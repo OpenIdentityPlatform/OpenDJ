@@ -240,6 +240,24 @@ public class ConfigConstants
 
 
   /**
+   * The name of the configuration attribute that indicates whether the
+   * subschema entry should treat all attributes as user attributes or if it
+   * should treat them as per their definition in the schema.
+   */
+  public static final String ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES =
+       NAME_PREFIX_CFG + "show-all-attributes";
+
+
+
+  /**
+   * The default value that will be used regarding treating all subschema entry
+   * attributes as user attributes if it is not defined in the configuration.
+   */
+  public static final boolean DEFAULT_SCHEMA_SHOW_ALL_ATTRIBUTES = false;
+
+
+
+  /**
    * The name of the configuration attribute that indicates whether to allow
    * clients to use the startTLS extended operation.
    */

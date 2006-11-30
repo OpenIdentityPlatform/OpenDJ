@@ -242,6 +242,7 @@ ds-cfg-backend-class: org.opends.server.backends.SchemaBackend
 ds-cfg-backend-id: schema
 ds-cfg-backend-writability-mode: enabled
 ds-cfg-backend-base-dn: cn=schema
+ds-cfg-show-all-attributes: false
 
 dn: ds-cfg-backend-id=tasks,cn=Backends,cn=config
 objectClass: top
