@@ -74,6 +74,7 @@ import static org.opends.server.messages.LoggerMessages.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.types.ResultCode.*;
+import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -230,8 +231,9 @@ public class DirectoryAuditLogger extends AccessLogger
       ByteString dnString = addOperation.getRawEntryDN();
       encodeValue(dnString, buffer);
 
-      buffer.append("\n");
-      buffer.append("changetype: add\n");
+      buffer.append(EOL);
+      buffer.append("changetype: add");
+      buffer.append(EOL);
       List<LDAPAttribute> rawAttributes = addOperation.getRawAttributes();
       for(LDAPAttribute attr : rawAttributes)
       {
@@ -245,14 +247,14 @@ public class DirectoryAuditLogger extends AccessLogger
           encodeValue(nextString, buffer);
           while (iterator.hasNext())
           {
-            buffer.append("\n");
+            buffer.append(EOL);
             buffer.append(attr.getAttributeType());
             buffer.append(":");
             nextString = iterator.next();
             encodeValue(nextString, buffer);
           }
         }
-        buffer.append("\n");
+        buffer.append(EOL);
       }
 
       auditLogger.log(DirectoryLogLevel.INFORMATIONAL, buffer.toString());
@@ -343,9 +345,10 @@ public class DirectoryAuditLogger extends AccessLogger
       buffer.append("dn:");
       ByteString dnString = deleteOperation.getRawEntryDN();
       encodeValue(dnString, buffer);
-      buffer.append("\n");
-      buffer.append("changetype: delete\n");
-      buffer.append("\n");
+      buffer.append(EOL);
+      buffer.append("changetype: delete");
+      buffer.append(EOL);
+      buffer.append(EOL);
 
       auditLogger.log(DirectoryLogLevel.INFORMATIONAL, buffer.toString());
     }
@@ -415,8 +418,9 @@ public class DirectoryAuditLogger extends AccessLogger
       buffer.append("dn:");
       ByteString dnString = modifyOperation.getRawEntryDN();
       encodeValue(dnString, buffer);
-      buffer.append("\n");
-      buffer.append("changetype: modify\n");
+      buffer.append(EOL);
+      buffer.append("changetype: modify");
+      buffer.append(EOL);
       List<LDAPModification> modifications =
            modifyOperation.getRawModifications();
       for(LDAPModification modification : modifications)
@@ -438,9 +442,25 @@ public class DirectoryAuditLogger extends AccessLogger
             break;
         }
         buffer.append(attr.getAttributeType());
+        List<ASN1OctetString> values = attr.getValues();
+        if (! values.isEmpty())
+        {
+          Iterator<ASN1OctetString> iterator = values.iterator();
+          ASN1OctetString nextString = iterator.next();
+          encodeValue(nextString, buffer);
+          while (iterator.hasNext())
+          {
+            buffer.append(EOL);
+            buffer.append(attr.getAttributeType());
+            buffer.append(":");
+            nextString = iterator.next();
+            encodeValue(nextString, buffer);
+          }
+        }
+        buffer.append(EOL);
       }
 
-      buffer.append("\n");
+      buffer.append(EOL);
 
       auditLogger.log(DirectoryLogLevel.INFORMATIONAL, buffer.toString());
     }
@@ -484,29 +504,31 @@ public class DirectoryAuditLogger extends AccessLogger
       buffer.append("dn:");
       ByteString dnString = modifyDNOperation.getRawEntryDN();
       encodeValue(dnString, buffer);
-      buffer.append("\n");
-      buffer.append("changetype: modrdn\n");
+      buffer.append(EOL);
+      buffer.append("changetype: moddn");
+      buffer.append(EOL);
       buffer.append("newrdn: ");
       ByteString newrdnString = modifyDNOperation.getRawNewRDN();
       encodeValue(newrdnString, buffer);
-      buffer.append("\n");
+      buffer.append(EOL);
       buffer.append("deleteoldrdn: ");
       if(modifyDNOperation.deleteOldRDN())
       {
-        buffer.append("1\n");
+        buffer.append("1");
       } else
       {
-        buffer.append("0\n");
+        buffer.append("0");
       }
+      buffer.append(EOL);
       if(modifyDNOperation.getRawNewSuperior() != null)
       {
         buffer.append("newsuperior: ");
         ByteString newSuperior = modifyDNOperation.getRawNewSuperior();
         encodeValue(newSuperior, buffer);
-        buffer.append("\n");
+        buffer.append(EOL);
       }
 
-      buffer.append("\n");
+      buffer.append(EOL);
 
       auditLogger.log(DirectoryLogLevel.INFORMATIONAL, buffer.toString());
     }
