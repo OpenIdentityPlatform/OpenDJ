@@ -180,6 +180,8 @@
             <stderr mode="'stdout'"/>
             <returnstdout/>
         </process>
+        
+        <return>STAXResult</return>
 
       </sequence>
 
