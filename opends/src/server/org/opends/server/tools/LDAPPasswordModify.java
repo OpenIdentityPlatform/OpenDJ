@@ -33,6 +33,9 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.opends.server.controls.PasswordPolicyErrorType;
+import org.opends.server.controls.PasswordPolicyResponseControl;
+import org.opends.server.controls.PasswordPolicyWarningType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -751,6 +754,50 @@ public class LDAPPasswordModify
         msgID   = MSGID_LDAPPWMOD_ADDITIONAL_INFO;
         message = getMessage(msgID, additionalInfo);
         out.println(wrapText(message, MAX_LINE_WIDTH));
+      }
+    }
+
+
+    // See if the response included any controls that we recognize, and if so
+    // then handle them.
+    ArrayList<LDAPControl> responseControls = responseMessage.getControls();
+    if (responseControls != null)
+    {
+      for (LDAPControl c : responseControls)
+      {
+        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+        {
+          try
+          {
+            PasswordPolicyResponseControl pwPolicyControl =
+                 PasswordPolicyResponseControl.decodeControl(c.getControl());
+
+            PasswordPolicyWarningType pwPolicyWarningType =
+                 pwPolicyControl.getWarningType();
+            if (pwPolicyWarningType != null)
+            {
+              int    msgID   = MSGID_LDAPPWMOD_PWPOLICY_WARNING;
+              String message = getMessage(msgID, pwPolicyWarningType.toString(),
+                                          pwPolicyControl.getWarningValue());
+              out.println(wrapText(message, MAX_LINE_WIDTH));
+            }
+
+            PasswordPolicyErrorType pwPolicyErrorType =
+                 pwPolicyControl.getErrorType();
+            if (pwPolicyErrorType != null)
+            {
+              int    msgID   = MSGID_LDAPPWMOD_PWPOLICY_ERROR;
+              String message = getMessage(msgID, pwPolicyErrorType.toString());
+              out.println(wrapText(message, MAX_LINE_WIDTH));
+            }
+          }
+          catch (Exception e)
+          {
+            int    msgID   = MSGID_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL;
+            String message = getMessage(msgID, String.valueOf(e));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
+          }
+        }
       }
     }
 

@@ -7475,6 +7475,38 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used to display warning
+   * information included in the password policy response control.  This takes
+   * two arguments, which are the string representation of the warning type and
+   * the integer warning value.
+   */
+  public static final int MSGID_LDAPPWMOD_PWPOLICY_WARNING =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 786;
+
+
+
+  /**
+   * The message ID for the message that will be used to display error
+   * information included in the password policy response control.  This takes
+   * a single argument, which is the string representation of the error type.
+   */
+  public static final int MSGID_LDAPPWMOD_PWPOLICY_ERROR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 787;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to decode the password policy response control.  This takes a
+   * single argument, which is a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 788;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -9547,6 +9579,13 @@ public class ToolMessages
                     "The LDAP password modify operation was successful.");
     registerMessage(MSGID_LDAPPWMOD_ADDITIONAL_INFO,
                     "Additional Info:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_PWPOLICY_WARNING,
+                    "Password Policy Warning:  %s = %d.");
+    registerMessage(MSGID_LDAPPWMOD_PWPOLICY_ERROR,
+                    "Password Policy Error:  %s.");
+    registerMessage(MSGID_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL,
+                    "Unable to decode the password policy response control:  " +
+                     "%s.");
     registerMessage(MSGID_LDAPPWMOD_GENERATED_PASSWORD,
                     "Generated Password:  %s.");
     registerMessage(MSGID_LDAPPWMOD_UNRECOGNIZED_VALUE_TYPE,

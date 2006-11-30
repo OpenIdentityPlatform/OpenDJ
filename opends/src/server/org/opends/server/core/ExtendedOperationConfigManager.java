@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.api.ConfigAddListener;
@@ -872,6 +873,27 @@ public class ExtendedOperationConfigManager
                               String.valueOf(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    }
+
+
+    // If the extended operation handler defines any supported controls and/or
+    // features, then register them with the server.
+    Set<String> controlOIDs = handler.getSupportedControls();
+    if (controlOIDs != null)
+    {
+      for (String oid : controlOIDs)
+      {
+        DirectoryServer.registerSupportedControl(oid);
+      }
+    }
+
+    Set<String> featureOIDs = handler.getSupportedFeatures();
+    if (featureOIDs != null)
+    {
+      for (String oid : featureOIDs)
+      {
+        DirectoryServer.registerSupportedFeature(oid);
+      }
     }
 
 

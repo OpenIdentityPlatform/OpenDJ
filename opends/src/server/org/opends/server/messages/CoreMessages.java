@@ -5956,6 +5956,17 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if an extended operation
+   * cannot be processed because it contains an unsupported critical control.
+   * This takes two arguments, which are the OID of the extended request and the
+   * OID of the unsupported control.
+   */
+  public static final int MSGID_EXTENDED_UNSUPPORTED_CRITICAL_CONTROL =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 570;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -7198,6 +7209,10 @@ public class CoreMessages
                     "There is no extended operation handler registered with " +
                     "the Directory Server for handling extended operations " +
                     "with a request OID of %s.");
+    registerMessage(MSGID_EXTENDED_UNSUPPORTED_CRITICAL_CONTROL,
+                    "Unable to process the request for extended operation %s " +
+                    "because it contained an unsupported critical control " +
+                    "with OID %s.");
 
 
     registerMessage(MSGID_CONNHANDLER_CLOSED_BY_SHUTDOWN,

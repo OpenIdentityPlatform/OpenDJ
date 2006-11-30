@@ -28,6 +28,9 @@ package org.opends.server.api;
 
 
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ExtendedOperation;
@@ -50,6 +53,16 @@ public abstract class ExtendedOperationHandler
    */
   private static final String CLASS_NAME =
        "org.opends.server.api.ExtendedOperationHandler";
+
+
+
+  // The default set of supported control OIDs for this extended
+  // operation.
+  private Set<String> supportedControlOIDs = new HashSet<String>(0);
+
+  // The default set of supported feature OIDs for this extended
+  // operation.
+  private Set<String> supportedFeatureOIDs = new HashSet<String>(0);
 
 
 
@@ -98,5 +111,79 @@ public abstract class ExtendedOperationHandler
    */
   public abstract void processExtendedOperation(ExtendedOperation
                                                      operation);
+
+
+
+  /**
+   * Retrieves the OIDs of the controls that may be supported by this
+   * extended operation handler.  It should be overridden by any
+   * extended operation handler which provides special support for one
+   * or more controls.
+   *
+   * @return  The OIDs of the controls that may be supported by this
+   *          extended operation handler.
+   */
+  public Set<String> getSupportedControls()
+  {
+    assert debugEnter(CLASS_NAME, "getSupportedControls");
+
+    return supportedControlOIDs;
+  }
+
+
+
+  /**
+   * Indicates whether this extended operation handler supports the
+   * specified control.
+   *
+   * @param  controlOID  The OID of the control for which to make the
+   *                     determination.
+   *
+   * @return  {@code true} if this extended operation handler does
+   *          support the requested control, or {@code false} if not.
+   */
+  public final boolean supportsControl(String controlOID)
+  {
+    assert debugEnter(CLASS_NAME, "supportsControl",
+                      String.valueOf(controlOID));
+
+    return getSupportedControls().contains(controlOID);
+  }
+
+
+
+  /**
+   * Retrieves the OIDs of the features that may be supported by this
+   * extended operation handler.
+   *
+   * @return  The OIDs of the features that may be supported by this
+   *          extended operation handler.
+   */
+  public Set<String> getSupportedFeatures()
+  {
+    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
+
+    return supportedFeatureOIDs;
+  }
+
+
+
+  /**
+   * Indicates whether this extended operation handler supports the
+   * specified feature.
+   *
+   * @param  featureOID  The OID of the feature for which to make the
+   *                     determination.
+   *
+   * @return  {@code true} if this extended operation handler does
+   *          support the requested feature, or {@code false} if not.
+   */
+  public final boolean supportsFeature(String featureOID)
+  {
+    assert debugEnter(CLASS_NAME, "supportsFeature",
+                      String.valueOf(featureOID));
+
+    return getSupportedFeatures().contains(featureOID);
+  }
 }
 
