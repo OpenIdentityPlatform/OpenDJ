@@ -41,6 +41,7 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
@@ -175,6 +176,7 @@ public class LDAPPasswordModify
     StringArgument    authzID;
     StringArgument    bindDN;
     StringArgument    bindPW;
+    StringArgument    controlStr;
     StringArgument    currentPW;
     StringArgument    ldapHost;
     StringArgument    newPW;
@@ -317,6 +319,13 @@ public class LDAPPasswordModify
                     "trustStorePasswordFile", false, false, "{path}", null,
                     null, MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE);
       argParser.addArgument(sslTrustStorePINFile);
+
+
+      controlStr =
+           new StringArgument("control", 'J', "control", false, true, true,
+                    "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
+                    null, null, MSGID_DESCRIPTION_CONTROLS);
+      argParser.addArgument(controlStr);
 
 
       showUsage = new BooleanArgument("help", 'H', "help",
@@ -479,6 +488,26 @@ public class LDAPPasswordModify
     }
 
 
+    // If a control string was provided, then decode the requested controls.
+    ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>();
+    if(controlStr.isPresent())
+    {
+      for (String ctrlString : controlStr.getValues())
+      {
+        LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
+        if(ctrl == null)
+        {
+          int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
+          String message = getMessage(msgID, ctrlString);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(argParser.getUsage());
+          return 1;
+        }
+        controls.add(ctrl);
+      }
+    }
+
+
     // Perform a basic Directory Server bootstrap if appropriate.
     if (initializeServer)
     {
@@ -604,7 +633,8 @@ public class LDAPPasswordModify
          new ExtendedRequestProtocolOp(OID_PASSWORD_MODIFY_REQUEST,
                                        requestValue);
     LDAPMessage requestMessage =
-         new LDAPMessage(nextMessageID.getAndIncrement(), extendedRequest);
+         new LDAPMessage(nextMessageID.getAndIncrement(), extendedRequest,
+                         controls);
 
 
     // Send the request to the server and read the response.
