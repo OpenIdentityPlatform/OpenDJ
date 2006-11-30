@@ -559,10 +559,30 @@ extendedProcessing:
       }
 
 
-      // Check the set of controls included in the request.  If there are any,
-      // see if any special processing is required.  This should also include
-      // taking care of any synchronization that might be needed.
-      // NYI
+      // Look at the controls included in the request and ensure that all
+      // critical controls are supported by the handler.
+      List<Control> requestControls = getRequestControls();
+      if ((requestControls != null) && (! requestControls.isEmpty()))
+      {
+        for (Control c : requestControls)
+        {
+          if (! c.isCritical())
+          {
+            // The control isn't critical, so we don't care if it's supported
+            // or not.
+          }
+          else if (! handler.supportsControl(c.getOID()))
+          {
+            setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+
+            int msgID = MSGID_EXTENDED_UNSUPPORTED_CRITICAL_CONTROL;
+            appendErrorMessage(getMessage(msgID, String.valueOf(requestOID),
+                                          c.getOID()));
+
+            break extendedProcessing;
+          }
+        }
+      }
 
 
       // Check to see if the client has permission to perform the

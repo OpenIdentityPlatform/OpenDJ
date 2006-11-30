@@ -4014,6 +4014,34 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if a password change is
+   * not actually performed because the request contained the LDAP no-op
+   * control.  This does not take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_NOOP =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_WARNING | 380;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user's account is
+   * disabled.  This does not take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_ACCOUNT_DISABLED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 381;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user's account is
+   * locked.  This does not take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_ACCOUNT_LOCKED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 382;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -4274,6 +4302,10 @@ public class ExtensionsMessages
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY,
                     "An error occurred while attempting to get the " +
                     "password policy for user %s:  %s.");
+    registerMessage(MSGID_EXTOP_PASSMOD_ACCOUNT_DISABLED,
+                    "The user account has been administratively disabled.");
+    registerMessage(MSGID_EXTOP_PASSMOD_ACCOUNT_LOCKED,
+                    "The user account is locked.");
     registerMessage(MSGID_EXTOP_PASSMOD_REQUIRE_CURRENT_PW,
                     "The current password must be provided for self password " +
                     "changes.");
@@ -4307,6 +4339,10 @@ public class ExtensionsMessages
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD,
                     "Unable to encode the provided password using the " +
                     "default scheme(s):  %s.");
+    registerMessage(MSGID_EXTOP_PASSMOD_NOOP,
+                    "The password modify operation was not actually " +
+                    "performed in the Directory Server because the LDAP " +
+                    "no-op control was present in the request.");
 
 
     registerMessage(MSGID_NULL_KEYMANAGER_NO_MANAGER,

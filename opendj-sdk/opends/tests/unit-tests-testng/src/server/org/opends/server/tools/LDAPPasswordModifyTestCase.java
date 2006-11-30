@@ -347,6 +347,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testSelfChangeCurrentPasswordNewPassword()
          throws Exception
   {
@@ -393,6 +394,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testSelfChangeNoCurrentPasswordNewPassword()
          throws Exception
   {
@@ -438,6 +440,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testSelfChangeCurrentPasswordNoNewPassword()
          throws Exception
   {
@@ -483,6 +486,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testSelfChangeNoCurrentPasswordNoNewPassword()
          throws Exception
   {
@@ -527,6 +531,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testAuthenticatedSelfExplicitAuthzIDCurrentNew()
          throws Exception
   {
@@ -574,6 +579,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testAuthenticatedSelfImplicitAuthzIDCurrentNew()
          throws Exception
   {
@@ -622,6 +628,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testAuthenticatedSelfImplicitAuthzIDNoCurrentNew()
          throws Exception
   {
@@ -668,6 +675,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testUnauthenticatedSelfChangeNewPassword()
          throws Exception
   {
@@ -713,6 +721,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testUnauthenticatedSelfChangeNoNewPassword()
          throws Exception
   {
@@ -756,6 +765,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testAdminResetNewPassword()
          throws Exception
   {
@@ -801,6 +811,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testAdminResetNoNewPassword()
          throws Exception
   {
@@ -845,6 +856,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testSSLBlindTrust()
          throws Exception
   {
@@ -891,6 +903,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testSSLTrustStore()
          throws Exception
   {
@@ -941,6 +954,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testStartTLSBlindTrust()
          throws Exception
   {
@@ -988,6 +1002,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testStartTLSTrustStore()
          throws Exception
   {
@@ -1038,6 +1053,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testBindAndNewPasswordsFromFile()
          throws Exception
   {
@@ -1084,6 +1100,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testCurrentAndNewPasswordsFromFile()
          throws Exception
   {
@@ -1129,6 +1146,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testResetWithInvalidAuthzDN()
          throws Exception
   {
@@ -1156,6 +1174,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test()
   public void testResetOnNonExistentUser()
          throws Exception
   {
@@ -1173,6 +1192,252 @@ public class LDAPPasswordModifyTestCase
 
     assertFalse(LDAPPasswordModify.mainPasswordModify(args, false, null,
                                                       null) == 0);
+  }
+
+
+
+  /**
+   * Tests a failure when attempting an administrative reset on a user entry
+   * that has been disabled.  Also include the password policy control in the
+   * request.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testResetOnDisabledUser()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "userPassword: password",
+         "ds-pwp-account-disabled: true");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(),
+                         e.getUserAttributes(), e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-a", "dn:uid=test.user,o=test",
+      "-n", "newPassword",
+      "-J", "pwpolicy:true"
+    };
+
+    assertFalse(LDAPPasswordModify.mainPasswordModify(args, false, null,
+                                                      null) == 0);
+  }
+
+
+
+  /**
+   * Tests the password modify extended operation in conjunction with a control
+   * that is marked critical but that is not supported by the server.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testLDAPNoOpUnsupportedCriticalControl()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(),
+                         e.getUserAttributes(), e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-a", "dn:uid=test.user,o=test",
+      "-n", "newPassword",
+      "-J", "1.2.3.4:true"
+    };
+
+    assertFalse(LDAPPasswordModify.mainPasswordModify(args, false, null, null)
+                == 0);
+  }
+
+
+
+  /**
+   * Tests the password modify extended operation in conjunction with the LDAP
+   * no-op control using the explicit OID for that control.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testLDAPNoOpExplicitOID()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(),
+                         e.getUserAttributes(), e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-a", "dn:uid=test.user,o=test",
+      "-n", "newPassword",
+      "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true"
+    };
+
+    // FIXME -- Change this whenever the real LDAP No-Op result code is assigned
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
+                 0);
+  }
+
+
+
+  /**
+   * Tests the password modify extended operation in conjunction with the LDAP
+   * no-op control using a more user-friendly name instead of an OID.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testLDAPNoOpImplicitOID()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(),
+                         e.getUserAttributes(), e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-a", "dn:uid=test.user,o=test",
+      "-n", "newPassword",
+      "-J", "noop:true"
+    };
+
+    // FIXME -- Change this whenever the real LDAP No-Op result code is assigned
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
+                 0);
+  }
+
+
+
+  /**
+   * Tests the password modify extended operation in conjunction with multiple
+   * request controls.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testLDAPMultipleControls()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(),
+                         e.getUserAttributes(), e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-a", "dn:uid=test.user,o=test",
+      "-n", "newPassword",
+      "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true",
+      "-J", OID_PASSWORD_POLICY_CONTROL + ":true"
+    };
+
+    // FIXME -- Change this whenever the real LDAP No-Op result code is assigned
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
+                 0);
   }
 
 

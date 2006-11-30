@@ -34,6 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.ClientConnection;
@@ -45,6 +46,9 @@ import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.DNConfigAttribute;
+import org.opends.server.controls.PasswordPolicyResponseControl;
+import org.opends.server.controls.PasswordPolicyWarningType;
+import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
@@ -62,6 +66,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -106,6 +111,9 @@ public class PasswordModifyExtendedOperation
 
   // The reference to the identity mapper.
   private IdentityMapper identityMapper;
+
+  // The set of OIDs for the supported controls.
+  private Set<String> supportedControlOIDs;
 
 
 
@@ -185,6 +193,12 @@ public class PasswordModifyExtendedOperation
       throw new InitializationException(msgID, message, e);
     }
 
+
+    supportedControlOIDs = new HashSet<String>();
+    supportedControlOIDs.add(OID_LDAP_NOOP_OPENLDAP_ASSIGNED);
+    supportedControlOIDs.add(OID_PASSWORD_POLICY_CONTROL);
+
+
     DirectoryServer.registerConfigurableComponent(this);
 
     DirectoryServer.registerSupportedExtension(OID_PASSWORD_MODIFY_REQUEST,
@@ -223,6 +237,30 @@ public class PasswordModifyExtendedOperation
     ByteString userIdentity = null;
     ByteString oldPassword  = null;
     ByteString newPassword  = null;
+
+
+    // Look at the set of controls included in the request, if there are any.
+    boolean                   noOpRequested        = false;
+    boolean                   pwPolicyRequested    = false;
+    int                       pwPolicyWarningValue = 0;
+    PasswordPolicyErrorType   pwPolicyErrorType    = null;
+    PasswordPolicyWarningType pwPolicyWarningType  = null;
+    List<Control> controls = operation.getRequestControls();
+    if (controls != null)
+    {
+      for (Control c : controls)
+      {
+        String oid = c.getOID();
+        if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
+        {
+          noOpRequested = true;
+        }
+        else if (oid.equals(OID_PASSWORD_POLICY_CONTROL))
+        {
+          pwPolicyRequested = true;
+        }
+      }
+    }
 
 
     // Parse the encoded request, if there is one.
@@ -466,6 +504,68 @@ public class PasswordModifyExtendedOperation
                             userDN.equals(requestorDN));
 
 
+      // See if the account is locked.  If so, then reject the request.
+      if (pwPolicyState.isDisabled())
+      {
+        if (pwPolicyRequested)
+        {
+          pwPolicyErrorType =
+               PasswordPolicyErrorType.ACCOUNT_LOCKED;
+          operation.addResponseControl(
+               new PasswordPolicyResponseControl(pwPolicyWarningType,
+                                                 pwPolicyWarningValue,
+                                                 pwPolicyErrorType));
+        }
+
+        int    msgID   = MSGID_EXTOP_PASSMOD_ACCOUNT_DISABLED;
+        String message = getMessage(msgID);
+
+        if (oldPassword == null)
+        {
+          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          operation.appendErrorMessage(message);
+        }
+        else
+        {
+          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+          operation.appendAdditionalLogMessage(message);
+        }
+
+        return;
+      }
+      else if (selfChange &&
+               (pwPolicyState.lockedDueToFailures() ||
+                pwPolicyState.lockedDueToIdleInterval() ||
+                pwPolicyState.lockedDueToMaximumResetAge()))
+      {
+        if (pwPolicyRequested)
+        {
+          pwPolicyErrorType =
+               PasswordPolicyErrorType.ACCOUNT_LOCKED;
+          operation.addResponseControl(
+               new PasswordPolicyResponseControl(pwPolicyWarningType,
+                                                 pwPolicyWarningValue,
+                                                 pwPolicyErrorType));
+        }
+
+        int    msgID   = MSGID_EXTOP_PASSMOD_ACCOUNT_LOCKED;
+        String message = getMessage(msgID);
+
+        if (oldPassword == null)
+        {
+          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          operation.appendErrorMessage(message);
+        }
+        else
+        {
+          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+          operation.appendAdditionalLogMessage(message);
+        }
+
+        return;
+      }
+
+
       // If the current password was provided, then we'll need to verify whether
       // it was correct.  If it wasn't provided but this is a self change, then
       // make sure that's OK.
@@ -477,6 +577,17 @@ public class PasswordModifyExtendedOperation
 
           int msgID = MSGID_EXTOP_PASSMOD_REQUIRE_CURRENT_PW;
           operation.appendErrorMessage(getMessage(msgID));
+
+          if (pwPolicyRequested)
+          {
+            pwPolicyErrorType =
+                 PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD;
+            operation.addResponseControl(
+                 new PasswordPolicyResponseControl(pwPolicyWarningType,
+                                                   pwPolicyWarningValue,
+                                                   pwPolicyErrorType));
+          }
+
           return;
         }
       }
@@ -507,6 +618,16 @@ public class PasswordModifyExtendedOperation
       // the request.
       if (selfChange && (! pwPolicyState.allowUserPasswordChanges()))
       {
+        if (pwPolicyRequested)
+        {
+          pwPolicyErrorType =
+               PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+          operation.addResponseControl(
+               new PasswordPolicyResponseControl(pwPolicyWarningType,
+                                                 pwPolicyWarningValue,
+                                                 pwPolicyErrorType));
+        }
+
         if (oldPassword == null)
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -554,6 +675,16 @@ public class PasswordModifyExtendedOperation
       // then reject it.
       if (selfChange && pwPolicyState.isWithinMinimumAge())
       {
+        if (pwPolicyRequested)
+        {
+          pwPolicyErrorType =
+               PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
+          operation.addResponseControl(
+               new PasswordPolicyResponseControl(pwPolicyWarningType,
+                                                 pwPolicyWarningValue,
+                                                 pwPolicyErrorType));
+        }
+
         if (oldPassword == null)
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -578,6 +709,16 @@ public class PasswordModifyExtendedOperation
       if ((selfChange && pwPolicyState.isPasswordExpired() &&
           (! pwPolicyState.allowExpiredPasswordChanges())))
       {
+        if (pwPolicyRequested)
+        {
+          pwPolicyErrorType =
+               PasswordPolicyErrorType.PASSWORD_EXPIRED;
+          operation.addResponseControl(
+               new PasswordPolicyResponseControl(pwPolicyWarningType,
+                                                 pwPolicyWarningValue,
+                                                 pwPolicyErrorType));
+        }
+
         if (oldPassword == null)
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -712,6 +853,16 @@ public class PasswordModifyExtendedOperation
                                                      clearPasswords,
                                                      invalidReason))
             {
+              if (pwPolicyRequested)
+              {
+                pwPolicyErrorType =
+                     PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
+                operation.addResponseControl(
+                     new PasswordPolicyResponseControl(pwPolicyWarningType,
+                                                       pwPolicyWarningValue,
+                                                       pwPolicyErrorType));
+              }
+
               if (oldPassword == null)
               {
                 operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -923,52 +1074,77 @@ public class PasswordModifyExtendedOperation
       modList.addAll(pwPolicyState.getModifications());
 
 
-      // Get an internal connection and use it to perform the modification.
-      boolean isRoot = DirectoryServer.isRootDN(requestorDN);
-      AuthenticationInfo authInfo = new AuthenticationInfo(requestorDN, isRoot);
-      InternalClientConnection internalConnection = new
-           InternalClientConnection(authInfo);
-
-      ModifyOperation modifyOperation =
-           internalConnection.processModify(userDN, modList);
-      ResultCode resultCode = modifyOperation.getResultCode();
-      if (resultCode != resultCode.SUCCESS)
+      // If the LDAP no-op control was included in the request, then set the
+      // appropriate response.  Otherwise, process the operation.
+      if (noOpRequested)
       {
-        operation.setResultCode(resultCode);
-        operation.setErrorMessage(modifyOperation.getErrorMessage());
-        operation.setReferralURLs(modifyOperation.getReferralURLs());
-        return;
+        operation.appendErrorMessage(getMessage(MSGID_EXTOP_PASSMOD_NOOP));
+
+        // FIXME -- We must set a result code other than SUCCESS.
+        operation.setResultCode(ResultCode.SUCCESS);
       }
-
-
-      // If we've gotten here, then everything is OK, so indicate that the
-      // operation was successful.  If a password was generated, then include
-      // it in the response.
-      operation.setResultCode(ResultCode.SUCCESS);
-
-      if (generatedPassword)
+      else
       {
-        ArrayList<ASN1Element> valueElements = new ArrayList<ASN1Element>(1);
+        // Get an internal connection and use it to perform the modification.
+        boolean isRoot = DirectoryServer.isRootDN(requestorDN);
+        AuthenticationInfo authInfo = new AuthenticationInfo(requestorDN,
+                                                             isRoot);
+        InternalClientConnection internalConnection = new
+             InternalClientConnection(authInfo);
 
-        ASN1OctetString newPWString =
-             new ASN1OctetString(TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD,
-                                 newPassword.value());
-        valueElements.add(newPWString);
+        ModifyOperation modifyOperation =
+             internalConnection.processModify(userDN, modList);
+        ResultCode resultCode = modifyOperation.getResultCode();
+        if (resultCode != resultCode.SUCCESS)
+        {
+          operation.setResultCode(resultCode);
+          operation.setErrorMessage(modifyOperation.getErrorMessage());
+          operation.setReferralURLs(modifyOperation.getReferralURLs());
+          return;
+        }
 
-        ASN1Sequence valueSequence = new ASN1Sequence(valueElements);
-        operation.setResponseValue(new ASN1OctetString(valueSequence.encode()));
-      }
+
+        // If we've gotten here, then everything is OK, so indicate that the
+        // operation was successful.  If a password was generated, then include
+        // it in the response.
+        operation.setResultCode(ResultCode.SUCCESS);
+
+        if (generatedPassword)
+        {
+          ArrayList<ASN1Element> valueElements = new ArrayList<ASN1Element>(1);
+
+          ASN1OctetString newPWString =
+               new ASN1OctetString(TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD,
+                                   newPassword.value());
+          valueElements.add(newPWString);
+
+          ASN1Sequence valueSequence = new ASN1Sequence(valueElements);
+          operation.setResponseValue(new ASN1OctetString(
+                                              valueSequence.encode()));
+        }
 
 
-      // If this was a self password change, and the client is authenticated as
-      // the user whose password was changed, then clear the "must change
-      // password" flag in the client connection.  Note that we're using the
-      // authentication DN rather than the authorization DN in this case to
-      // avoid mistakenly clearing the flag for the wrong user.
-      if (selfChange && (authInfo.getAuthenticationDN() != null) &&
-          (authInfo.getAuthenticationDN().equals(userDN)))
-      {
-        operation.getClientConnection().setMustChangePassword(false);
+        // If this was a self password change, and the client is authenticated
+        // as the user whose password was changed, then clear the "must change
+        // password" flag in the client connection.  Note that we're using the
+        // authentication DN rather than the authorization DN in this case to
+        // avoid mistakenly clearing the flag for the wrong user.
+        if (selfChange && (authInfo.getAuthenticationDN() != null) &&
+            (authInfo.getAuthenticationDN().equals(userDN)))
+        {
+          operation.getClientConnection().setMustChangePassword(false);
+        }
+
+
+        // If the password policy control was requested, then add the
+        // appropriate response control.
+        if (pwPolicyRequested)
+        {
+          operation.addResponseControl(
+               new PasswordPolicyResponseControl(pwPolicyWarningType,
+                                                 pwPolicyWarningValue,
+                                                 pwPolicyErrorType));
+        }
       }
     }
     finally
@@ -1051,6 +1227,18 @@ public class PasswordModifyExtendedOperation
 
       return null;
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getSupportedControls()
+  {
+    assert debugEnter(CLASS_NAME, "getSupportedControls");
+
+    return supportedControlOIDs;
   }
 
 
