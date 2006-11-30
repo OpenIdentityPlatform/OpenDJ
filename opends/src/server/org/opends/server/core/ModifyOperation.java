@@ -1353,13 +1353,15 @@ modifyProcessing:
 
           // If the modification is updating the password attribute, then
           // perform any necessary password policy processing.  This processing
-          // should be skipped for internal and synchronization operations.
+          // should be skipped for synchronization operations.
           boolean isPassword = t.equals(pwPolicyState.getPasswordAttribute());
-          if (isPassword &&
-              (! (isInternalOperation() || isSynchronizationOperation())))
+          if (isPassword && (!(isSynchronizationOperation())))
           {
-            // If the attribute contains any options, then reject it.  Passwords
-            // will not be allowed to have options.
+           // If the attribute contains any options, then reject it.  Passwords
+           // will not be allowed to have options. Skipped for internal
+           // operations.
+           if(!isInternalOperation())
+           {
             if (a.hasOptions())
             {
               setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -1404,7 +1406,7 @@ modifyProcessing:
               appendErrorMessage(getMessage(msgID));
               break modifyProcessing;
             }
-
+           }
 
             // Check to see whether this will adding, deleting, or replacing
             // password values (increment doesn't make any sense for passwords).
@@ -1429,10 +1431,11 @@ modifyProcessing:
                 {
                   numPasswords = passwordsToAdd;
                 }
-
                 // If there were multiple password values provided, then make
                 // sure that's OK.
-                if ((! pwPolicyState.allowMultiplePasswordValues()) &&
+
+                if ((!isInternalOperation()) &&
+                        (! pwPolicyState.allowMultiplePasswordValues()) &&
                     (passwordsToAdd > 1))
                 {
                   setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -1450,7 +1453,8 @@ modifyProcessing:
                 {
                   if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
                   {
-                    if (! pwPolicyState.allowPreEncodedPasswords())
+                    if ((!isInternalOperation()) &&
+                            ! pwPolicyState.allowPreEncodedPasswords())
                     {
                       setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
@@ -1521,7 +1525,7 @@ modifyProcessing:
                 {
                   if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
                   {
-                    if (selfChange)
+                    if ((!isInternalOperation()) && selfChange)
                     {
                       setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
