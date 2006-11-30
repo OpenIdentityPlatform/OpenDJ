@@ -166,9 +166,13 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'will expire' }
             </call>
           </sequence>
         </testcase>

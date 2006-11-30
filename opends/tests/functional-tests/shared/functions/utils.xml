@@ -119,6 +119,48 @@
 
   </function>
 
+  <function name="checktestString">
+
+    <function-prolog>
+        This function checks the return string against an expected return substring for a testcase
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="expectedString">
+            the substring expected from the command
+        </function-required-arg>
+        <function-required-arg name="returnString">
+            the return string received from command
+        </function-required-arg>
+ 
+    </function-map-args>
+
+      <sequence>
+         <script> 
+              import re 
+              searchre = re.compile('%s' % expectedString)
+            </script> 
+  
+            <if expr='re.search(searchre, returnString) != None'>
+              <sequence>
+              <tcstatus result="'pass'"/>
+              <message log="1">
+                'Success: Found substring, %s, in the return string' % (expectedString)
+              </message>
+              </sequence>
+            <else>
+              <sequence>
+              <tcstatus result="'fail'"/>
+              <message log="1" level="'Error'">
+                'Error: Did not find substring, %s, in the return string, %s' % (expectedString, returnString)
+              </message>
+              </sequence>
+            </else>
+            </if>
+      </sequence>
+      
+  </function>
+
   <function name="isAlive">
 
     <function-prolog>
