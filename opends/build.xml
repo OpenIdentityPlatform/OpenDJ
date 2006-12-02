@@ -430,7 +430,6 @@
     <mkdir dir="${pdir}/lib"             />
     <mkdir dir="${pdir}/locks"           />
     <mkdir dir="${pdir}/logs"            />
-    <mkdir dir="${pdir}/war"             />
 
     <jar jarfile="${pdir}/lib/OpenDS.jar"
          basedir="${classes.dir}" compress="true" index="true" />
@@ -492,7 +491,7 @@
        description="Package the Directory Server for distribution.">
 
     <zip destfile="${package.dir}/OpenDS-${pkgversion}.zip">
-      <zipfileset dir="${package.dir}" includes="**/*"
+      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/**/*"
            excludes="OpenDS-${pkgversion}/bin/*,OpenDS-${pkgversion}/setup"
            filemode="644" dirmode="755" />
       <zipfileset dir="${package.dir}"
@@ -555,7 +554,7 @@
       </classpath>
     </javac>
 
-    <war destfile="${classes.dir}/dsml.war"
+    <war destfile="${classes.dir}/OpenDS-${pkgversion}-DSML.war"
          webxml="${dsml.dir}/webapp/web.xml">
       <fileset file="${dsml.dir}/webapp/server.properties" />
 
@@ -574,7 +573,7 @@
       </lib>
     </war>
 
-    <copy todir="${pdir}/war">
+    <copy todir="${package.dir}">
       <fileset file="${classes.dir}/*.war" />
     </copy>
   </target>
