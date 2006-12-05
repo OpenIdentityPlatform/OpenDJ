@@ -29,6 +29,7 @@ package org.opends.server.api;
 
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -400,10 +401,18 @@ public abstract class Backend
    * @param  controlOID  The OID of the control for which to make the
    *                     determination.
    *
-   * @return  <CODE>true</CODE> if this backend does support the
-   *          requested control, or <CODE>false</CODE>
+   * @return  {@code true} if this backends supports the control with
+   *          the specified OID, or {@code false} if it does not.
    */
-  public abstract boolean supportsControl(String controlOID);
+  public final boolean supportsControl(String controlOID)
+  {
+    assert debugEnter(CLASS_NAME, "supportsControl",
+                      String.valueOf(controlOID));
+
+    Set<String> supportedControls = getSupportedControls();
+    return ((supportedControls != null) &&
+            supportedControls.contains(controlOID));
+  }
 
 
 
@@ -424,10 +433,18 @@ public abstract class Backend
    * @param  featureOID  The OID of the feature for which to make the
    *                     determination.
    *
-   * @return  <CODE>true</CODE> if this backend does support the
-   *          requested feature, or <CODE>false</CODE>
+   * @return  {@code true} if this backend supports the feature with
+   *          the specified OID, or {@code false} if it does not.
    */
-  public abstract boolean supportsFeature(String featureOID);
+  public final boolean supportsFeature(String featureOID)
+  {
+    assert debugEnter(CLASS_NAME, "supportsFeature",
+                      String.valueOf(featureOID));
+
+    Set<String> supportedFeatures = getSupportedFeatures();
+    return ((supportedFeatures != null) &&
+            supportedFeatures.contains(featureOID));
+  }
 
 
 
@@ -892,15 +909,64 @@ public abstract class Backend
 
     synchronized (this)
     {
-      Backend[] newSubordinateBackends =
-           new Backend[subordinateBackends.length+1];
+      LinkedHashSet<Backend> backendSet =
+           new LinkedHashSet<Backend>();
 
-      System.arraycopy(subordinateBackends, 0, newSubordinateBackends,
-                       0, subordinateBackends.length);
-      newSubordinateBackends[subordinateBackends.length] =
-           subordinateBackend;
+      for (Backend b : subordinateBackends)
+      {
+        backendSet.add(b);
+      }
 
-      subordinateBackends = newSubordinateBackends;
+      if (backendSet.add(subordinateBackend))
+      {
+        Backend[] newSubordinateBackends =
+             new Backend[backendSet.size()];
+        backendSet.toArray(newSubordinateBackends);
+        subordinateBackends = newSubordinateBackends;
+      }
+    }
+  }
+
+
+
+  /**
+   * Removes the provided backend from the set of subordinate backends
+   * for this backend.
+   *
+   * @param  subordinateBackend  The backend to remove from the set of
+   *                             subordinate backends for this
+   *                             backend.
+   */
+  public void removeSubordinateBackend(Backend subordinateBackend)
+  {
+    assert debugEnter(CLASS_NAME, "removeSubordinateBackend",
+                      String.valueOf(subordinateBackend));
+
+    synchronized (this)
+    {
+      ArrayList<Backend> backendList =
+           new ArrayList<Backend>(subordinateBackends.length);
+
+      boolean found = false;
+      for (Backend b : subordinateBackends)
+      {
+        if (b.equals(subordinateBackend))
+        {
+          found = true;
+        }
+        else
+        {
+          backendList.add(b);
+        }
+      }
+
+      if (found)
+      {
+        Backend[] newSubordinateBackends =
+             new Backend[backendList.size()];
+        backendList.toArray(newSubordinateBackends);
+        subordinateBackends = newSubordinateBackends;
+      }
     }
   }
 

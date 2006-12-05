@@ -1018,7 +1018,7 @@ addProcessing:
       if (parentDN == null)
       {
         // Either this entry is a suffix or doesn't belong in the directory.
-        if (DirectoryServer.isSuffix(entryDN))
+        if (DirectoryServer.isNamingContext(entryDN))
         {
           // This is fine.  This entry is one of the configured suffixes.
           parentLock = null;

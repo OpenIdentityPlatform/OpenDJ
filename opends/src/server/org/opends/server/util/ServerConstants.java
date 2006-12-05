@@ -186,8 +186,8 @@ public class ServerConstants
 
   /**
    * The name of the standard attribute that is used to specify the set of
-   * naming contexts (suffixes) for the Directory Server, formatted in camel
-   * case.
+   * public naming contexts (suffixes) for the Directory Server, formatted in
+   * camel case.
    */
   public static final String ATTR_NAMING_CONTEXTS = "namingContexts";
 
@@ -195,10 +195,19 @@ public class ServerConstants
 
   /**
    * The name of the standard attribute that is used to specify the set of
-   * naming contexts (suffixes) for the Directory Server, formatted in all
-   * lowercase.
+   * public naming contexts (suffixes) for the Directory Server, formatted in
+   * all lowercase.
    */
   public static final String ATTR_NAMING_CONTEXTS_LC = "namingcontexts";
+
+
+
+  /**
+   * The name of the attribute used to hold the DNs that constitute the set of
+   * "private" naming contexts registered with the server.
+   */
+  public static final String ATTR_PRIVATE_NAMING_CONTEXTS =
+       "ds-private-naming-contexts";
 
 
 

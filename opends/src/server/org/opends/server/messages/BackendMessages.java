@@ -2233,6 +2233,17 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to register a base DN for use in the server.  This takes two
+   * arguments, which are the base DN and a string representation of the
+   * exception that was caught.
+   */
+  public static final int MSGID_BACKEND_CANNOT_REGISTER_BASEDN =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_FATAL_ERROR | 210;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -2252,6 +2263,9 @@ public class BackendMessages
                     "the entry is already locked by a long-running operation " +
                     "or that the entry has previously been locked but was " +
                     "not properly unlocked.");
+    registerMessage(MSGID_BACKEND_CANNOT_REGISTER_BASEDN,
+                    "An error occurred while attempting to register base DN " +
+                    "in the Directory Server:  %s.");
 
 
     registerMessage(MSGID_ROOTDSE_CONFIG_ENTRY_NULL,

@@ -76,7 +76,7 @@ public final class TestCaseUtils {
    */
   public static final String PROPERTY_LDAP_PORT =
        "org.opends.server.LdapPort";
-  
+
   /**
    * The string representation of the DN that will be used as the base entry for
    * the test backend.  This must not be changed, as there are a number of test
@@ -151,7 +151,7 @@ public final class TestCaseUtils {
     testRoot.mkdirs();
     //db_verify is second jeb backend used by the jeb verify test cases
     String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
-                                "config", "db", "db_verify", "ldif", "lib", 
+                                "config", "db", "db_verify", "ldif", "lib",
                                 "locks", "logs" };
     for (String s : subDirectories)
     {
@@ -348,6 +348,7 @@ public final class TestCaseUtils {
     if (memoryBackend == null)
     {
       memoryBackend = new MemoryBackend();
+      memoryBackend.setBackendID("test");
       memoryBackend.initializeBackend(null, new DN[] { baseDN });
       DirectoryServer.registerBackend(memoryBackend);
     }
@@ -367,12 +368,12 @@ public final class TestCaseUtils {
 
    * @param  createBaseEntry  Indicate whether to automatically create the base
    *                          entry and add it to the backend.
-   *                          
+   *
    * @param beID  The be id to clear.
-   * 
+   *
    * @param dn   The suffix of the backend to create if the the createBaseEntry
    *             boolean is true.
-   *             
+   *
    * @throws  Exception  If an unexpected problem occurs.
    */
   public static void clearJEBackend(boolean createBaseEntry, String beID, String dn)

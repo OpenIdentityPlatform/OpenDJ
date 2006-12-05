@@ -598,7 +598,8 @@ public class ConfigFileHandler
 
     try
     {
-      DirectoryServer.registerPrivateSuffix(configRootEntry.getDN(), this);
+      DirectoryServer.registerBaseDN(configRootEntry.getDN(), this, true,
+                                     false);
     }
     catch (Exception e)
     {
@@ -729,7 +730,7 @@ public class ConfigFileHandler
 
     try
     {
-      DirectoryServer.deregisterSuffix(configRootEntry.getDN());
+      DirectoryServer.deregisterBaseDN(configRootEntry.getDN(), false);
     }
     catch (Exception e)
     {
@@ -1796,23 +1797,6 @@ public class ConfigFileHandler
 
 
   /**
-   * Indicates whether this backend supports the specified control.
-   *
-   * @param  controlOID  The OID of the control for which to make the
-   *                     determination.
-   *
-   * @return  <CODE>true</CODE> if this backend does support the requested
-   *          control, or <CODE>false</CODE>
-   */
-  public boolean supportsControl(String controlOID)
-  {
-    // NYI
-    return false;
-  }
-
-
-
-  /**
    * Retrieves the OIDs of the features that may be supported by this backend.
    *
    * @return  The OIDs of the features that may be supported by this backend.
@@ -1821,23 +1805,6 @@ public class ConfigFileHandler
   {
     // NYI
     return null;
-  }
-
-
-
-  /**
-   * Indicates whether this backend supports the specified feature.
-   *
-   * @param  featureOID  The OID of the feature for which to make the
-   *                     determination.
-   *
-   * @return  <CODE>true</CODE> if this backend does support the requested
-   *          feature, or <CODE>false</CODE>
-   */
-  public boolean supportsFeature(String featureOID)
-  {
-    // NYI
-    return false;
   }
 
 

@@ -63,6 +63,7 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.LDIFException;
 
+import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.Error.logError;
@@ -293,10 +294,21 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     config = new Config();
     config.initializeConfig(configEntry, baseDNs);
 
-    // FIXME: Currently assuming every base DN is also a suffix.
     for (DN dn : baseDNs)
     {
-      DirectoryServer.registerSuffix(dn, this);
+      try
+      {
+        DirectoryServer.registerBaseDN(dn, this, false, false);
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "initializeBackend", e);
+
+        int    msgID   = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+        String message = getMessage(msgID, String.valueOf(dn),
+                                    String.valueOf(e));
+        throw new InitializationException(msgID, message, e);
+      }
     }
 
 /*
@@ -402,9 +414,9 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       try
       {
-        DirectoryServer.deregisterSuffix(dn);
+        DirectoryServer.deregisterBaseDN(dn, false);
       }
-      catch (ConfigException e)
+      catch (Exception e)
       {
         assert debugException(CLASS_NAME, "finalizeBackend", e);
       }
@@ -571,23 +583,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
 
   /**
-   * Indicates whether this backend supports the specified feature.
-   *
-   * @param featureOID The OID of the feature for which to make the
-   *                   determination.
-   * @return <CODE>true</CODE> if this backend does support the requested
-   *         feature, or <CODE>false</CODE>
-   */
-  public boolean supportsFeature(String featureOID)
-  {
-    assert debugEnter(CLASS_NAME, "supportsFeature");
-
-    return false;  //NYI
-  }
-
-
-
-  /**
    * Retrieves the OIDs of the controls that may be supported by this backend.
    *
    * @return The OIDs of the controls that may be supported by this backend.
@@ -597,23 +592,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return supportedControls;
-  }
-
-
-
-  /**
-   * Indicates whether this backend supports the specified control.
-   *
-   * @param controlOID The OID of the control for which to make the
-   *                   determination.
-   * @return <CODE>true</CODE> if this backend does support the requested
-   *         control, or <CODE>false</CODE>
-   */
-  public boolean supportsControl(String controlOID)
-  {
-    assert debugEnter(CLASS_NAME, "supportsControl");
-
-    return supportedControls.contains(controlOID);
   }
 
 
@@ -1365,6 +1343,8 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     assert debugEnter(CLASS_NAME, "applyNewConfiguration");
 
     ConfigChangeResult ccr;
+    ResultCode resultCode = ResultCode.SUCCESS;
+    ArrayList<String> messages = new ArrayList<String>();
 
     try
     {
@@ -1397,7 +1377,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
           // Even though access to the entry container map is safe, there may be
           // operation threads with a handle on the entry container being
           // closed.
-          DirectoryServer.deregisterSuffix(baseDN);
+          DirectoryServer.deregisterBaseDN(baseDN, false);
           rootContainer.removeEntryContainer(baseDN);
         }
       }
@@ -1406,9 +1386,24 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (!rootContainer.getBaseDNs().contains(baseDN))
         {
-          // The base DN was added.
-          rootContainer.openEntryContainer(baseDN);
-          DirectoryServer.registerSuffix(baseDN, this);
+          try
+          {
+            // The base DN was added.
+            rootContainer.openEntryContainer(baseDN);
+            DirectoryServer.registerBaseDN(baseDN, this, false, false);
+          }
+          catch (Exception e)
+          {
+            assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+
+            resultCode = DirectoryServer.getServerErrorResultCode();
+
+            int msgID   = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+            messages.add(getMessage(msgID, String.valueOf(baseDN),
+                                    String.valueOf(e)));
+            ccr = new ConfigChangeResult(resultCode, false, messages);
+            return ccr;
+          }
         }
       }
 
@@ -1420,14 +1415,13 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (Exception e)
     {
-      ArrayList<String> messages = new ArrayList<String>();
       messages.add(e.getMessage());
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    false, messages);
       return ccr;
     }
 
-    ccr = new ConfigChangeResult(ResultCode.SUCCESS, false);
+    ccr = new ConfigChangeResult(resultCode, false, messages);
     return ccr;
   }
 

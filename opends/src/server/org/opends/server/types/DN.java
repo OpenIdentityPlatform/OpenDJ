@@ -507,7 +507,9 @@ public final class DN implements Comparable<DN>, Serializable {
   public DN getParentDNInSuffix() {
     assert debugEnter(CLASS_NAME, "getParentDNInSuffix");
 
-    if ((numComponents <= 1) || (DirectoryServer.isSuffix(this))) {
+    if ((numComponents <= 1) ||
+        DirectoryServer.isNamingContext(this))
+    {
       return null;
     }
 
