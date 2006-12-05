@@ -2945,7 +2945,24 @@ public class SchemaMessages
   public static final int MSGID_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR =
        CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_ERROR | 263;
 
+  /**
+   * The message ID for the message that will be used if an attribute syntax
+   * extension value cannot be parsed because an invalid character was found.
+   * This takes a two arguments, which are the provided value, and the position
+   * of the invalid character.
+   */
+  public static final int
+       MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER =
+            CATEGORY_MASK_SCHEMA | SEVERITY_MASK_MILD_ERROR | 264;
 
+  /**
+   * The message ID for the message that will be used if an attribute syntax
+   * extension value cannot be parsed. This takes one argument, a string
+   * representation of the exception that was caught.
+   */
+  public static final int
+       MSGID_ATTR_SYNTAX_ATTRSYNTAX_INVALID_EXTENSION =
+            CATEGORY_MASK_SCHEMA | SEVERITY_MASK_MILD_ERROR | 265;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -4178,6 +4195,15 @@ public class SchemaMessages
     registerMessage(MSGID_ATTR_SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_INVALID,
                     "The provided value \"%s\" could not be parsed as a" +
                     " valid relative subtree specification.");
+
+    registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER,
+            "The provided value \"%s\" could not be parsed as an " +
+            "attribute syntax extension because an invalid character"+
+            "was found at position %d.");
+
+    registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_INVALID_EXTENSION,
+           "The attribute syntax could not be parsed because of an"+
+           "invalid extension."+ "%s.");
   }
 }
 
