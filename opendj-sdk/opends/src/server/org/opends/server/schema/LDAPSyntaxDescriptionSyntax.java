@@ -469,7 +469,19 @@ public class LDAPSyntaxDescriptionSyntax
                                       stackTraceToSingleLineString(e)));
       return false;
     }
-
+    //Check if we have a RFC 4512 style extension.
+    if ((c = valueStr.charAt(pos)) != ')')
+    {
+        try {
+            pos=parseExtension(valueStr, pos);
+        } catch (Exception e) {
+            assert debugException(CLASS_NAME, "valueIsAcceptable", e);
+            int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_INVALID_EXTENSION;
+            invalidReason.append(getMessage(msgID,
+                    stackTraceToSingleLineString(e)));
+            return false;
+        }
+    }
 
     // The next character must be the closing parenthesis and there should not
     // be anything after it (except maybe some spaces).
@@ -641,6 +653,90 @@ public class LDAPSyntaxDescriptionSyntax
 
     // Return the position of the first non-space character after the token.
     return startPos;
+  }
+
+  /** Parses a RFC 4512 extensions (see 4.1.5 and 4.1 of the RFC) definition.
+   *
+   * From 4.1.5 of the spec:
+   *
+   *  LDAP syntax definitions are written according to the ABNF:
+   *
+   *  SyntaxDescription = LPAREN WSP
+   *      numericoid                 ; object identifier
+   *      [ SP "DESC" SP qdstring ]  ; description
+   *      extensions WSP RPAREN      ; extensions
+   *
+   * @param valueStr The user-provided representation of the extensions
+   *                      definition.
+   *
+   * @param startPos The position in the provided string at which to start
+   *                      reading the quoted string.
+   *
+   * @return The position of the first character that is not part of the quoted
+   *          string or one of the trailing spaces after it.
+   *
+   * @throws DirectoryException If the extensions definition could not be
+   *                            parsed.
+   */
+private static int parseExtension(String valueStr, int startPos)
+  throws DirectoryException {
+
+      int pos=startPos, len=valueStr.length();
+      char c;
+      while(true)
+      {
+          StringBuilder tokenNameBuffer = new StringBuilder();
+          pos = readTokenName(valueStr, tokenNameBuffer, pos);
+          String tokenName = tokenNameBuffer.toString();
+          if((tokenName.length() <= 2) || (!tokenName.startsWith("X-")))
+          {
+              int    msgID  =
+                  MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER;
+              String message = getMessage(msgID, valueStr);
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                      message, msgID);
+          }
+          String xstring = tokenName.substring(2);
+          //Only allow a-z,A-Z,-,_ characters after X-
+          if(xstring.split("^[A-Za-z_-]+").length > 0)
+          {
+              int    msgID   =
+                  MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER;
+              String message = getMessage(msgID, valueStr);
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                      message, msgID);
+          }
+          if((c=valueStr.charAt(pos)) == '\'')
+          {
+              StringBuilder qdString = new StringBuilder();
+              pos = readQuotedString(valueStr, qdString, pos);
+
+          } else if(c == '(')
+          {
+              pos++;
+              StringBuilder qdString = new StringBuilder();
+              while ((c=valueStr.charAt(pos)) != ')')
+                  pos = readQuotedString(valueStr, qdString, pos);
+              pos++;
+          } else
+          {
+              int    msgID   =
+                  MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER;
+              String message = getMessage(msgID, valueStr);
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                      message, msgID);
+          }
+          if (pos >= len)
+          {
+            int    msgID   = MSGID_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE;
+            String message = getMessage(msgID, valueStr);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message, msgID);
+          }
+          if(valueStr.charAt(pos) == ')')
+              break;
+      }
+      return pos;
   }
 }
 
