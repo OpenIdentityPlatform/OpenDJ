@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="test_account"/>
+
+  <function name="test_account">
+
+      <sequence>
+
+        <!--- Test case: User Bind Before Deactivation -->
+        <testcase name="'Security: Acct Act: Preamble'">
+          <sequence>
+            <message>
+               'Security: Account Activation: Preamble - Checking User Bind Before Deactivation'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'sprain' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Deactivate User-->
+        <testcase name="'Security: Acct Act: Admin Deactivate User'">
+          <sequence>
+            <message>
+               'Security: Account Activation: Admin Deactivating User'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/account_activation/admin_deactivate_account.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind After Deactivation-->
+        <testcase name="'Security: Acct Act: User Bind After Deactivation'">
+          <sequence>
+            <message>
+               'Security: Acct Act: User Binding After Deactivation'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'sprain' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+         <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
+            </call>
+          </sequence>
+        </testcase>
+
+       <!--- Test case: Admin Reactivate User -->
+        <testcase name="'Security: Acct Act: Postamble'">
+          <sequence>
+            <message>
+               'Security: Account Activation: Postamble Step 1.  Admin Reactivating User'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/account_activation/admin_reactivate_account.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Account Activation: Postamble Step 2.  Checking User Bind After Reactivation'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'sprain' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>
