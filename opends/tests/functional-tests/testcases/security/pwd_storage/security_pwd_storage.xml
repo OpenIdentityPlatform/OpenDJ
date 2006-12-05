@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="security_pwd_storage"/>
+
+  <function name="security_pwd_storage">
+
+      <sequence>
+
+<parallel>
+    <block name="'Block DS Process Active'">
+
+      <!--- Start DS -->
+      <sequence>
+        <message>
+           'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+        </message>
+
+        <!--- Start DS -->
+        <call function="'startDS'">
+          { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+        </call>
+
+        <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+        </call>
+
+      </sequence>
+
+     <!--- End Block DS Process Active -->
+     </block>
+
+     <block name="'Block Clients'">
+
+      <sequence>
+
+        <!--- Check that DS started -->
+        <call function="'isAlive'">
+          { 'noOfLoops'        : 5 ,
+            'noOfMilliSeconds' : 2000 }
+        </call>
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_setup_pwd_storage.xml' % (TESTS_DIR)"/>
+        <call function="'setup_pwd_storage'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_pwd_SSHA.xml' % (TESTS_DIR)"/>
+        <call function="'pwd_SSHA'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_pwd_SHA.xml' % (TESTS_DIR)"/>
+        <call function="'pwd_SHA'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_pwd_SSHA256.xml' % (TESTS_DIR)"/>
+        <call function="'pwd_SSHA256'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_pwd_SSHA384.xml' % (TESTS_DIR)"/>
+        <call function="'pwd_SSHA384'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_pwd_SSHA512.xml' % (TESTS_DIR)"/>
+        <call function="'pwd_SSHA512'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_pwd_MD5.xml' % (TESTS_DIR)"/>
+        <call function="'pwd_MD5'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_pwd_SMD5.xml' % (TESTS_DIR)"/>
+        <call function="'pwd_SMD5'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_pwd_BASE64.xml' % (TESTS_DIR)"/>
+        <call function="'pwd_BASE64'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_pwd_CLEAR.xml' % (TESTS_DIR)"/>
+        <call function="'pwd_CLEAR'" />
+
+        <!--- Stop DS -->
+        <sequence>
+          <message>
+             'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+          </message>
+
+          <call function="'stopDS'">
+            { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
+          </call>
+
+          <call function="'checkRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
+          </call>
+        </sequence>
+
+        <return>RC</return>
+
+        </sequence>
+
+       <!--- End Block Clients -->
+       </block>
+
+</parallel>
+
+     </sequence>
+
+  </function>
+
+</stax>
