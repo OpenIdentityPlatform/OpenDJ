@@ -48,6 +48,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.RestoreConfig;
@@ -62,6 +63,7 @@ import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -148,7 +150,7 @@ public class MemoryBackend
    */
   public synchronized void initializeBackend(ConfigEntry configEntry,
                                              DN[] baseDNs)
-         throws ConfigException
+         throws ConfigException, InitializationException
   {
     assert debugEnter(CLASS_NAME, "initializeBackend",
                       String.valueOf(configEntry), String.valueOf(baseDNs));
@@ -184,7 +186,19 @@ public class MemoryBackend
 
     for (DN dn : baseDNs)
     {
-      DirectoryServer.registerSuffix(dn, this);
+      try
+      {
+        DirectoryServer.registerBaseDN(dn, this, false, false);
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "initializeBackend", e);
+
+        int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+        String message = getMessage(msgID, dn.toString(),
+                                    stackTraceToSingleLineString(e));
+        throw new InitializationException(msgID, message, e);
+      }
     }
   }
 
@@ -209,6 +223,18 @@ public class MemoryBackend
     assert debugEnter(CLASS_NAME, "finalizeBackend");
 
     clearMemoryBackend();
+
+    for (DN dn : baseDNs)
+    {
+      try
+      {
+        DirectoryServer.deregisterBaseDN(dn, false);
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "finalizeBackend", e);
+      }
+    }
   }
 
 
@@ -585,38 +611,11 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
-  public boolean supportsControl(String controlOID)
-  {
-    assert debugEnter(CLASS_NAME, "supportsControl",
-                      String.valueOf(controlOID));
-
-    return supportedControls.contains(controlOID);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public HashSet<String> getSupportedFeatures()
   {
     assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return supportedFeatures;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean supportsFeature(String featureOID)
-  {
-    assert debugEnter(CLASS_NAME, "supportsFeature",
-                      String.valueOf(featureOID));
-
-    // This backend does not provide any special feature support.
-    return false;
   }
 
 

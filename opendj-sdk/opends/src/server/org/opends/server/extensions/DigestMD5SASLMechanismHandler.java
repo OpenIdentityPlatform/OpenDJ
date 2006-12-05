@@ -35,9 +35,9 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -309,7 +309,7 @@ public class DigestMD5SASLMechanismHandler
       // use it.  Otherwise, add a realm for each suffix defined in the server.
       if (realm == null)
       {
-        LinkedHashMap<DN,Backend> suffixes = DirectoryServer.getSuffixes();
+        Map<DN,Backend> suffixes = DirectoryServer.getPublicNamingContexts();
         if (! suffixes.isEmpty())
         {
           Iterator<DN> iterator = suffixes.keySet().iterator();

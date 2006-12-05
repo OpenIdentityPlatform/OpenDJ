@@ -251,11 +251,22 @@ public class SchemaBackend
     // Register each of the suffixes with the Directory Server.  Also, register
     // the first one as the schema base.
     this.baseDNs = baseDNs;
-    DirectoryServer.registerPrivateSuffix(baseDNs[0], this);
     DirectoryServer.setSchemaDN(baseDNs[0]);
-    for (int i=1; i < baseDNs.length; i++)
+    for (int i=0; i < baseDNs.length; i++)
     {
-      DirectoryServer.registerPrivateSuffix(baseDNs[i], this);
+      try
+      {
+        DirectoryServer.registerBaseDN(baseDNs[i], this, true, false);
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "initializeBackend", e);
+
+        msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+        String message = getMessage(msgID, baseDNs[i].toString(),
+                                    stackTraceToSingleLineString(e));
+        throw new InitializationException(msgID, message, e);
+      }
     }
 
 
@@ -306,6 +317,18 @@ public class SchemaBackend
     assert debugEnter(CLASS_NAME, "finalizeBackend");
 
     DirectoryServer.deregisterConfigurableComponent(this);
+
+    for (DN baseDN : baseDNs)
+    {
+      try
+      {
+        DirectoryServer.deregisterBaseDN(baseDN, false);
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "finalizeBackend", e);
+      }
+    }
   }
 
 
@@ -801,26 +824,6 @@ public class SchemaBackend
 
 
   /**
-   * Indicates whether this backend supports the specified control.
-   *
-   * @param  controlOID  The OID of the control for which to make the
-   *                     determination.
-   *
-   * @return  <CODE>true</CODE> if this backend does support the requested
-   *          control, or <CODE>false</CODE>
-   */
-  public boolean supportsControl(String controlOID)
-  {
-    assert debugEnter(CLASS_NAME, "supportsControl",
-                      String.valueOf(controlOID));
-
-    // This backend does not provide any special control support.
-    return false;
-  }
-
-
-
-  /**
    * Retrieves the OIDs of the features that may be supported by this backend.
    *
    * @return  The OIDs of the features that may be supported by this backend.
@@ -830,26 +833,6 @@ public class SchemaBackend
     assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return supportedFeatures;
-  }
-
-
-
-  /**
-   * Indicates whether this backend supports the specified feature.
-   *
-   * @param  featureOID  The OID of the feature for which to make the
-   *                     determination.
-   *
-   * @return  <CODE>true</CODE> if this backend does support the requested
-   *          feature, or <CODE>false</CODE>
-   */
-  public boolean supportsFeature(String featureOID)
-  {
-    assert debugEnter(CLASS_NAME, "supportsFeature",
-                      String.valueOf(featureOID));
-
-    // This backend does not provide any special feature support.
-    return false;
   }
 
 
@@ -2227,7 +2210,7 @@ public class SchemaBackend
       {
         try
         {
-          DirectoryServer.deregisterSuffix(dn);
+          DirectoryServer.deregisterBaseDN(dn, false);
           if (detailedResults)
           {
             msgID = MSGID_SCHEMA_DEREGISTERED_BASE_DN;
@@ -2250,7 +2233,7 @@ public class SchemaBackend
       {
         try
         {
-          DirectoryServer.registerPrivateSuffix(dn, this);
+          DirectoryServer.registerBaseDN(dn, this, true, false);
           if (detailedResults)
           {
             msgID = MSGID_SCHEMA_REGISTERED_BASE_DN;

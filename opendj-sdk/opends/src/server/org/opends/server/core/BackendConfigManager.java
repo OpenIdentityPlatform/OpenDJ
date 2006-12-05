@@ -48,6 +48,7 @@ import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.MultiChoiceConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
@@ -542,7 +543,21 @@ public class BackendConfigManager
 
 
       // Register the backend with the server.
-      DirectoryServer.registerBackend(backend);
+      try
+      {
+        DirectoryServer.registerBackend(backend);
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+
+        msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
+        String message = getMessage(msgID, backendID,
+                                    stackTraceToSingleLineString(e));
+        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+        // FIXME -- Do we need to send an admin alert?
+      }
 
 
       // Put this backend in the hash so that we will be able to find it if it
@@ -710,6 +725,64 @@ public class BackendConfigManager
         msgID = MSGID_CONFIG_BACKEND_NO_BASE_DNS;
         unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
         return false;
+      }
+
+      // See if the backend is registered with the server.  If it is, then
+      // see what's changed and whether those changes are acceptable.
+      Backend backend = registeredBackends.get(configEntryDN);
+      if (backend != null)
+      {
+        LinkedHashSet<DN> removedDNs = new LinkedHashSet<DN>();
+        for (DN dn : backend.getBaseDNs())
+        {
+          removedDNs.add(dn);
+        }
+
+        LinkedHashSet<DN> addedDNs = new LinkedHashSet<DN>();
+        for (DN dn : baseDNAttr.pendingValues())
+        {
+          addedDNs.add(dn);
+        }
+
+        Iterator<DN> iterator = removedDNs.iterator();
+        while (iterator.hasNext())
+        {
+          DN dn = iterator.next();
+          if (addedDNs.remove(dn))
+          {
+            iterator.remove();
+          }
+        }
+
+        for (DN dn : addedDNs)
+        {
+          try
+          {
+            DirectoryServer.registerBaseDN(dn, backend, false, true);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "configChangeIsAcceptable", de);
+
+            unacceptableReason.append(de.getMessage());
+            return false;
+          }
+        }
+
+        for (DN dn : removedDNs)
+        {
+          try
+          {
+            DirectoryServer.deregisterBaseDN(dn, true);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "configChangeIsAcceptable", de);
+
+            unacceptableReason.append(de.getMessage());
+            return false;
+          }
+        }
       }
     }
     catch (Exception e)
@@ -1266,7 +1339,28 @@ public class BackendConfigManager
       }
 
       // Register the backend with the server.
-      DirectoryServer.registerBackend(backend);
+      try
+      {
+        DirectoryServer.registerBackend(backend);
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+
+        msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
+        String message = getMessage(msgID, backendID,
+                                    stackTraceToSingleLineString(e));
+
+        resultCode = DirectoryServer.getServerErrorResultCode();
+        messages.add(message);
+
+        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+        // FIXME -- Do we need to send an admin alert?
+
+        return new ConfigChangeResult(resultCode, adminActionRequired,
+                                      messages);
+      }
 
 
       registeredBackends.put(backendDN, backend);
@@ -1443,6 +1537,7 @@ public class BackendConfigManager
 
     // See if the entry contains an attribute that specifies the set of base DNs
     // for the backend.  If it does not, then skip it.
+    List<DN> baseDNs = null;
     msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
     DNConfigAttribute baseDNStub =
          new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID), true,
@@ -1457,6 +1552,10 @@ public class BackendConfigManager
         msgID = MSGID_CONFIG_BACKEND_NO_BASE_DNS;
         unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
         return false;
+      }
+      else
+      {
+        baseDNs = baseDNAttr.pendingValues();
       }
     }
     catch (Exception e)
@@ -1553,6 +1652,25 @@ public class BackendConfigManager
       }
     }
 
+
+    // Make sure that all of the base DNs are acceptable for use in the server.
+    for (DN baseDN : baseDNs)
+    {
+      try
+      {
+        DirectoryServer.registerBaseDN(baseDN, backend, false, true);
+      }
+      catch (DirectoryException de)
+      {
+        unacceptableReason.append(de.getMessage());
+        return false;
+      }
+      catch (Exception e)
+      {
+        unacceptableReason.append(stackTraceToSingleLineString(e));
+        return false;
+      }
+    }
 
 
     // If we've gotten to this point, then it is acceptable as far as we are
@@ -1960,7 +2078,29 @@ public class BackendConfigManager
 
     // At this point, the backend should be online.  Add it as one of the
     // registered backends for this backend config manager.
-    DirectoryServer.registerBackend(backend);
+    try
+    {
+      DirectoryServer.registerBackend(backend);
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+
+      msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
+      String message = getMessage(msgID, backendID,
+                                  stackTraceToSingleLineString(e));
+
+      resultCode = DirectoryServer.getServerErrorResultCode();
+      messages.add(message);
+
+      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+               message, msgID);
+      // FIXME -- Do we need to send an admin alert?
+
+      return new ConfigChangeResult(resultCode, adminActionRequired,
+                                    messages);
+    }
+
     registeredBackends.put(backendDN, backend);
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
@@ -1995,7 +2135,7 @@ public class BackendConfigManager
     // do know about it, then that means that it is enabled and we will not
     // allow removing a backend that is enabled.
     Backend backend = registeredBackends.get(backendDN);
-    if (backendDN == null)
+    if (backend == null)
     {
       return true;
     }
@@ -2041,7 +2181,7 @@ public class BackendConfigManager
     // See if this backend config manager has a backend registered with the
     // provided DN.  If not, then we don't care if the entry is deleted.
     Backend backend = registeredBackends.get(backendDN);
-    if (backendDN == null)
+    if (backend == null)
     {
       return new ConfigChangeResult(resultCode, adminActionRequired,
                                     messages);
@@ -2053,6 +2193,19 @@ public class BackendConfigManager
     Backend[] subBackends = backend.getSubordinateBackends();
     if ((subBackends == null) || (subBackends.length == 0))
     {
+      registeredBackends.remove(backendDN);
+
+      try
+      {
+        backend.finalizeBackend();
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "applyConfigurationDelete", e);
+      }
+
+      DirectoryServer.deregisterBackend(backend);
+
       return new ConfigChangeResult(resultCode, adminActionRequired,
                                     messages);
     }

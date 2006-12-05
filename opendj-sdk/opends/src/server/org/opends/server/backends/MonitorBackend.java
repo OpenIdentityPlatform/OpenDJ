@@ -250,7 +250,19 @@ public class MonitorBackend
 
 
     // Register the monitor base as a private suffix.
-    DirectoryServer.registerPrivateSuffix(baseMonitorDN, this);
+    try
+    {
+      DirectoryServer.registerBaseDN(baseMonitorDN, this, true, false);
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeBackend", e);
+
+      int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+      String message = getMessage(msgID, baseMonitorDN.toString(),
+                                  stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
+    }
   }
 
 
@@ -271,6 +283,15 @@ public class MonitorBackend
     assert debugEnter(CLASS_NAME, "finalizeBackend");
 
     DirectoryServer.deregisterConfigurableComponent(this);
+
+    try
+    {
+      DirectoryServer.deregisterBaseDN(baseMonitorDN, false);
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "finalizeBackend", e);
+    }
   }
 
 
@@ -929,26 +950,6 @@ public class MonitorBackend
 
 
   /**
-   * Indicates whether this backend supports the specified control.
-   *
-   * @param  controlOID  The OID of the control for which to make the
-   *                     determination.
-   *
-   * @return  <CODE>true</CODE> if this backend does support the requested
-   *          control, or <CODE>false</CODE>
-   */
-  public boolean supportsControl(String controlOID)
-  {
-    assert debugEnter(CLASS_NAME, "supportsControl",
-                      String.valueOf(controlOID));
-
-    // This backend does not provide any special control support.
-    return false;
-  }
-
-
-
-  /**
    * Retrieves the OIDs of the features that may be supported by this backend.
    *
    * @return  The OIDs of the features that may be supported by this backend.
@@ -958,26 +959,6 @@ public class MonitorBackend
     assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return supportedFeatures;
-  }
-
-
-
-  /**
-   * Indicates whether this backend supports the specified feature.
-   *
-   * @param  featureOID  The OID of the feature for which to make the
-   *                     determination.
-   *
-   * @return  <CODE>true</CODE> if this backend does support the requested
-   *          feature, or <CODE>false</CODE>
-   */
-  public boolean supportsFeature(String featureOID)
-  {
-    assert debugEnter(CLASS_NAME, "supportsFeature",
-                      String.valueOf(featureOID));
-
-    // This backend does not provide any special feature support.
-    return false;
   }
 
 

@@ -34,8 +34,11 @@ import java.net.InetAddress;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -161,6 +164,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -398,19 +402,6 @@ public class DirectoryServer
   // The key manager provider configuration manager for the Directory Server.
   private KeyManagerProviderConfigManager keyManagerProviderConfigManager;
 
-  // The set of "private" suffixes that will be used to provide server-generated
-  // data (e.g., monitor information, schema, etc.) to clients but will not be
-  // searchable by default.
-  private LinkedHashMap<DN,Backend> privateSuffixes;
-
-  // The set of backends that have been registered with the server (mapped
-  // between the normalized suffix and the backend).
-  private LinkedHashMap<DN,Backend> suffixes;
-
-  // The set of backends that have been registered with the server (mapped
-  // between their backend ID and the backend).
-  private LinkedHashMap<String,Backend> backends;
-
   // The set of connections that are currently established.
   private LinkedHashSet<ClientConnection> establishedConnections;
 
@@ -497,6 +488,18 @@ public class DirectoryServer
 
   // The thread group for all threads associated with the Directory Server.
   private ThreadGroup directoryThreadGroup;
+
+  // The set of base DNs registered with the server.
+  private TreeMap<DN,Backend> baseDNs;
+
+  // The set of private naming contexts registered with the server.
+  private TreeMap<DN,Backend> privateNamingContexts;
+
+  // The set of public naming contexts registered with the server.
+  private TreeMap<DN,Backend> publicNamingContexts;
+
+  // The set of backends registered with the server.
+  private TreeMap<String,Backend> backends;
 
   // The set of supported controls registered with the Directory Server.
   private TreeSet<String> supportedControls;
@@ -606,9 +609,10 @@ public class DirectoryServer
     directoryServer.defaultPasswordPolicy = null;
     directoryServer.monitorProviders =
          new ConcurrentHashMap<String,MonitorProvider>();
-    directoryServer.privateSuffixes = new LinkedHashMap<DN,Backend>();
-    directoryServer.suffixes = new LinkedHashMap<DN,Backend>();
-    directoryServer.backends = new LinkedHashMap<String,Backend>();
+    directoryServer.backends = new TreeMap<String,Backend>();
+    directoryServer.baseDNs = new TreeMap<DN,Backend>();
+    directoryServer.publicNamingContexts = new TreeMap<DN,Backend>();
+    directoryServer.privateNamingContexts = new TreeMap<DN,Backend>();
     directoryServer.changeNotificationListeners =
          new CopyOnWriteArrayList<ChangeNotificationListener>();
     directoryServer.persistentSearches =
@@ -5210,12 +5214,12 @@ public class DirectoryServer
 
   /**
    * Retrieves the set of backends that have been registered with the Directory
-   * Server.
+   * Server, as a mapping between the backend ID and the corresponding backend.
    *
    * @return  The set of backends that have been registered with the Directory
    *          Server.
    */
-  public static LinkedHashMap<String,Backend> getBackends()
+  public static Map<String,Backend> getBackends()
   {
     assert debugEnter(CLASS_NAME, "getBackends");
 
@@ -5229,7 +5233,7 @@ public class DirectoryServer
    *
    * @param  backendID  The backend ID of the backend to retrieve.
    *
-   * @return  The backend with the specified backend ID, or <CODE>null</CODE> if
+   * @return  The backend with the specified backend ID, or {@code null} if
    *          there is none.
    */
   public static Backend getBackend(String backendID)
@@ -5247,8 +5251,8 @@ public class DirectoryServer
    *
    * @param  backendID  The backend ID for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the Directory Server has a backend with the
-   *          specified backend ID, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the Directory Server has a backend with the
+   *          specified backend ID, or {@code false} if not.
    */
   public static boolean hasBackend(String backendID)
   {
@@ -5264,13 +5268,40 @@ public class DirectoryServer
    * will not register the set of configured suffixes with the server, as that
    * must be done by the backend itself.
    *
-   * @param  backend  The backend to register with the server.
+   * @param  backend  The backend to register with the server.  Neither the
+   *                  backend nor its backend ID may be null.
+   *
+   * @throws  DirectoryException  If the backend ID for the provided backend
+   *                              conflicts with the backend ID of an existing
+   *                              backend.
    */
   public static void registerBackend(Backend backend)
+         throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "registerBackend", String.valueOf(backend));
 
-    directoryServer.backends.put(backend.getBackendID(), backend);
+    ensureNotNull(backend);
+
+    String backendID = backend.getBackendID();
+    ensureNotNull(backendID);
+
+    synchronized (directoryServer)
+    {
+      TreeMap<String,Backend> newBackends =
+           new TreeMap<String,Backend>(directoryServer.backends);
+      if (newBackends.containsKey(backendID))
+      {
+        int    msgID   = MSGID_REGISTER_BACKEND_ALREADY_EXISTS;
+        String message = getMessage(msgID, backendID);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+      else
+      {
+        newBackends.put(backendID, backend);
+        directoryServer.backends = newBackends;
+      }
+    }
   }
 
 
@@ -5280,365 +5311,520 @@ public class DirectoryServer
    * will not deregister the set of configured suffixes with the server, as that
    * must be done by the backend itself.
    *
-   * @param  backend  the backend to deregister with the server.
+   * @param  backend  The backend to deregister with the server.  It must not be
+   *                  {@code null}.
    */
   public static void deregisterBackend(Backend backend)
   {
     assert debugEnter(CLASS_NAME, "deregisterBackend", String.valueOf(backend));
 
-    directoryServer.backends.remove(backend.getBackendID());
+    ensureNotNull(backend);
+
+    synchronized (directoryServer)
+    {
+      TreeMap<String,Backend> newBackends =
+           new TreeMap<String,Backend>(directoryServer.backends);
+      newBackends.remove(backend.getBackendID());
+
+      directoryServer.backends = newBackends;
+    }
   }
 
 
 
   /**
-   * Retrieves the set of suffixes that have been registered with the Directory
-   * Server.
+   * Retrieves the entire set of base DNs registered with the Directory Server,
+   * mapped from the base DN to the backend responsible for that base DN.  The
+   * same backend may be present multiple times, mapped from different base DNs.
    *
-   * @return  The set of suffixes that have been registered with the Directory
-   *          Server.
+   * @return  The entire set of base DNs registered with the Directory Server.
    */
-  public static LinkedHashMap<DN,Backend> getSuffixes()
+  public static Map<DN,Backend> getBaseDNs()
   {
-    assert debugEnter(CLASS_NAME, "getSuffixes");
+    assert debugEnter(CLASS_NAME, "getBaseDNs");
 
-    return directoryServer.suffixes;
+    return directoryServer.baseDNs;
   }
 
 
 
   /**
-   * Retrieves the set of "private" suffixes that have been registered with the
-   * server that will provide server-specific data to clients (e.g., monitor
-   * data, schema, etc.) but should not be considered for normal operations
-   * that may target all "user" suffixes.
+   * Retrieves the backend with the specified base DN.
    *
-   * @return  The set of "private" suffixes that have been registered with the
-   *          server.
+   * @param  baseDN  The DN that is registered as one of the base DNs for the
+   *                 backend to retrieve.
+   *
+   * @return  The backend with the specified base DN, or {@code null} if there
+   *          is no backend registered with the specified base DN.
    */
-  public static LinkedHashMap<DN,Backend> getPrivateSuffixes()
+  public static Backend getBackendWithBaseDN(DN baseDN)
   {
-    assert debugEnter(CLASS_NAME, "getPrivateSuffixes");
+    assert debugEnter(CLASS_NAME, "getBackendWithBaseDN",
+                      String.valueOf(baseDN));
 
-    return directoryServer.privateSuffixes;
+    return directoryServer.baseDNs.get(baseDN);
   }
 
 
 
   /**
-   * Indicates whether the provided DN is one of the suffixes defined in the
-   * Directory Server.
+   * Retrieves the backend that should be used to handle operations on the
+   * specified entry.
    *
-   * @param  dn  The DN for which to make the determination.
+   * @param  entryDN  The DN of the entry for which to retrieve the
+   *                  corresponding backend.
    *
-   * @return  <CODE>true</CODE> if the provided DN is one of the suffixes
-   *          defined in the Directory Server, or <CODE>false</CODE> if not.
+   * @return  The backend that should be used to handle operations on the
+   *          specified entry, or {@code null} if no appropriate backend is
+   *          registered with the server.
    */
-  public static boolean isSuffix(DN dn)
+  public static Backend getBackend(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "isSuffix", String.valueOf(dn));
+    assert debugEnter(CLASS_NAME, "getBackendForEntry",
+                      String.valueOf(entryDN));
 
-    return (directoryServer.suffixes.containsKey(dn) ||
-            directoryServer.privateSuffixes.containsKey(dn));
-  }
-
-
-
-  /**
-   * Retrieves the backend that should be used to handle operations for the
-   * provided entry DN.
-   *
-   * @param  dn  The DN of the entry for which to retrieve the appropriate
-   *             backend.
-   *
-   * @return  The backend that should be used to handle the provided DN, or
-   *          <CODE>null</CODE> if there is no backend for the provided DN.
-   */
-  public static Backend getBackend(DN dn)
-  {
-    assert debugEnter(CLASS_NAME, "getBackend", String.valueOf(dn));
-
-    if (dn.isNullDN())
+    if (entryDN.isNullDN())
     {
       return directoryServer.rootDSEBackend;
     }
 
-    Backend backend = directoryServer.suffixes.get(dn);
-    if (backend == null)
+    TreeMap<DN,Backend> baseDNs = directoryServer.baseDNs;
+    Backend b = baseDNs.get(entryDN);
+    while (b == null)
     {
-      backend = directoryServer.privateSuffixes.get(dn);
-    }
-
-    while (backend == null)
-    {
-      dn = dn.getParentDNInSuffix();
-      if (dn == null)
+      entryDN = entryDN.getParent();
+      if (entryDN == null)
       {
-        break;
+        return null;
       }
 
-      backend = directoryServer.suffixes.get(dn);
-      if (backend == null)
-      {
-        backend = directoryServer.privateSuffixes.get(dn);
-      }
+      b = baseDNs.get(entryDN);
     }
 
-    return backend;
+    return b;
   }
 
 
 
   /**
-   * Registers the specified suffix to be handled by the provided backend.
+   * Registers the provided base DN with the server.
    *
-   * @param  suffixDN  The base DN for this suffix.
-   * @param  backend   The backend to handle operations for the provided base.
+   * @param  baseDN     The base DN to register with the server.  It must not be
+   *                    {@code null}.
+   * @param  backend    The backend responsible for the provided base DN.  It
+   *                    must not be {@code null}.
+   * @param  isPrivate  Indicates whether the base DN should be considered a
+   *                    private base DN.  If the provided base DN is a naming
+   *                    context, then this controls whether it is public or
+   *                    private.
+   * @param  testOnly   Indicates whether to only test whether the new base DN
+   *                    registration would be successful without actually
+   *                    applying any changes.
    *
-   * @throws  ConfigException  If the specified suffix is already registered
-   *                           with the Directory Server.
+   * @throws  DirectoryException  If a problem occurs while attempting to
+   *                              register the provided base DN.
    */
-  public static void registerSuffix(DN suffixDN, Backend backend)
-         throws ConfigException
+  public static void registerBaseDN(DN baseDN, Backend backend,
+                                    boolean isPrivate, boolean testOnly)
+         throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerSuffix", String.valueOf(suffixDN),
-                      String.valueOf(backend));
+    assert debugEnter(CLASS_NAME, "registerBaseDN", String.valueOf(baseDN),
+                      String.valueOf(backend), String.valueOf(isPrivate),
+                      String.valueOf(testOnly));
 
-    backend.setPrivateBackend(false);
+    ensureNotNull(baseDN, backend);
 
-    synchronized (directoryServer.suffixes)
+    synchronized (directoryServer)
     {
-      // Check to see if this suffix is already in use.  It may be a suffix, or
-      // it may be a sub-suffix of an existing suffix.
-      Backend b = directoryServer.suffixes.get(suffixDN);
-      if (b != null)
-      {
-        int    msgID   = MSGID_CANNOT_REGISTER_DUPLICATE_SUFFIX;
-        String message = getMessage(msgID, String.valueOf(suffixDN),
-                                    b.getClass().getName());
+      TreeMap<DN,Backend> newBaseDNs =
+           new TreeMap<DN,Backend>(directoryServer.baseDNs);
+      TreeMap<DN,Backend> newPublicNamingContexts =
+           new TreeMap<DN,Backend>(directoryServer.publicNamingContexts);
+      TreeMap<DN,Backend> newPrivateNamingContexts =
+           new TreeMap<DN,Backend>(directoryServer.privateNamingContexts);
 
-        throw new ConfigException(msgID, message);
+
+      // Check to see if the base DN is already registered with the server.
+      Backend existingBackend = newBaseDNs.get(baseDN);
+      if (existingBackend != null)
+      {
+        int    msgID   = MSGID_REGISTER_BASEDN_ALREADY_EXISTS;
+        String message = getMessage(msgID, String.valueOf(baseDN),
+                                    backend.getBackendID(),
+                                    existingBackend.getBackendID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
       }
 
-      boolean found = false;
-      DN parentDN = suffixDN.getParentDNInSuffix();
+
+      // Check to see if the backend is already registered with the server for
+      // any other base DN(s).  The new base DN must not have any hierarchical
+      // relationship with any other base Dns for the same backend.
+      LinkedList<DN> otherBaseDNs = new LinkedList<DN>();
+      for (DN dn : newBaseDNs.keySet())
+      {
+        Backend b = newBaseDNs.get(dn);
+        if (b.equals(backend))
+        {
+          otherBaseDNs.add(dn);
+
+          if (baseDN.isAncestorOf(dn) || baseDN.isDescendantOf(dn))
+          {
+            int    msgID   = MSGID_REGISTER_BASEDN_HIERARCHY_CONFLICT;
+            String message = getMessage(msgID, String.valueOf(baseDN),
+                                        backend.getBackendID(),
+                                        String.valueOf(dn));
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID);
+          }
+        }
+      }
+
+
+      // Check to see if the new base DN is subordinate to any other base DN
+      // already defined.  If it is, then any other base DN(s) for the same
+      // backend must also be subordinate to the same base DN.
+      Backend superiorBackend = null;
+      DN      superiorBaseDN  = null;
+      DN      parentDN        = baseDN.getParent();
       while (parentDN != null)
       {
-        b = directoryServer.suffixes.get(suffixDN);
-        if (b != null)
+        if (newBaseDNs.containsKey(parentDN))
         {
-          if (b.hasSubSuffix(suffixDN))
+          superiorBaseDN  = parentDN;
+          superiorBackend = newBaseDNs.get(parentDN);
+
+          for (DN dn : otherBaseDNs)
           {
-            int    msgID   = MSGID_CANNOT_REGISTER_DUPLICATE_SUBSUFFIX;
-            String message = getMessage(msgID, String.valueOf(suffixDN),
-                                        String.valueOf(parentDN));
-
-            throw new ConfigException(msgID, message);
+            if (! dn.isDescendantOf(superiorBaseDN))
+            {
+              int    msgID   = MSGID_REGISTER_BASEDN_DIFFERENT_PARENT_BASES;
+              String message = getMessage(msgID, String.valueOf(baseDN),
+                                          backend.getBackendID(),
+                                          String.valueOf(dn));
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                           message, msgID);
+            }
           }
-          else
-          {
-            b.addSubordinateBackend(backend);
-            found = true;
-            break;
-          }
+
+          break;
         }
 
-        parentDN = parentDN.getParentDNInSuffix();
+        parentDN = parentDN.getParent();
       }
 
-
-      if (! found)
+      if (superiorBackend == null)
       {
-        // If we've gotten here, then it is not in use.  Register it.
-        directoryServer.suffixes.put(suffixDN, backend);
-      }
-
-
-      // See if there are any supported controls or features that we want to
-      // advertise.
-      Set<String> supportedControls = backend.getSupportedControls();
-      if (supportedControls != null)
-      {
-        for (String controlOID : supportedControls)
+        if (backend.getParentBackend() != null)
         {
-          registerSupportedControl(controlOID);
+          int    msgID   = MSGID_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE;
+          String message = getMessage(msgID, String.valueOf(baseDN),
+                                backend.getBackendID(),
+                                backend.getParentBackend().getBackendID());
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                       message, msgID);
         }
       }
 
-      Set<String> supportedFeatures = backend.getSupportedFeatures();
-      if (supportedFeatures != null)
+
+      // Check to see if the new base DN should be the superior base DN for any
+      // other base DN(s) already defined.
+      LinkedList<Backend> subordinateBackends = new LinkedList<Backend>();
+      LinkedList<DN>      subordinateBaseDNs  = new LinkedList<DN>();
+      for (DN dn : newBaseDNs.keySet())
       {
-        for (String featureOID : supportedFeatures)
-        {
-          registerSupportedFeature(featureOID);
-        }
-      }
-    }
-  }
-
-
-
-  /**
-   * Registers the specified private suffix to be handled by the provided
-   * backend.
-   *
-   * @param  suffixDN  The base DN for this suffix.
-   * @param  backend   The backend to handle operations for the provided base.
-   *
-   * @throws  ConfigException  If the specified suffix is already registered
-   *                           with the Directory Server.
-   */
-  public static void registerPrivateSuffix(DN suffixDN, Backend backend)
-         throws ConfigException
-  {
-    assert debugEnter(CLASS_NAME, "registerPrivateSuffix",
-                      String.valueOf(suffixDN), String.valueOf(backend));
-
-    backend.setPrivateBackend(true);
-
-    synchronized (directoryServer.privateSuffixes)
-    {
-      // Check to see if this suffix is already in use for a "user" suffix.  It
-      // may be a suffix, or it may be a sub-suffix of an  existing suffix.
-      synchronized (directoryServer.suffixes)
-      {
-        Backend b = directoryServer.suffixes.get(suffixDN);
-        if (b != null)
-        {
-          int    msgID   = MSGID_CANNOT_REGISTER_DUPLICATE_SUFFIX;
-          String message = getMessage(msgID, String.valueOf(suffixDN),
-                                      b.getClass().getName());
-
-          throw new ConfigException(msgID, message);
-        }
-
-        DN parentDN = suffixDN.getParentDNInSuffix();
+        Backend b = newBaseDNs.get(dn);
+        parentDN = dn.getParent();
         while (parentDN != null)
         {
-          b = directoryServer.suffixes.get(suffixDN);
-          if (b != null)
+          if (parentDN.equals(baseDN))
           {
-            int msgID = MSGID_CANNOT_REGISTER_PRIVATE_SUFFIX_BELOW_USER_PARENT;
-            String message = getMessage(msgID, String.valueOf(suffixDN),
-                                        String.valueOf(parentDN));
-            throw new ConfigException(msgID, message);
+            subordinateBaseDNs.add(dn);
+            subordinateBackends.add(b);
+            break;
+          }
+          else if (newBaseDNs.containsKey(parentDN))
+          {
+            break;
           }
 
-          parentDN = suffixDN.getParentDNInSuffix();
+          parentDN = parentDN.getParent();
         }
       }
 
 
-      // Check to see if this suffix is already registered as a private suffix
-      // or sub-suffix.
-      Backend b = directoryServer.privateSuffixes.get(suffixDN);
-      if (b != null)
+      // If we've gotten here, then the new base DN is acceptable.  If we should
+      // actually apply the changes then do so now.
+      if (! testOnly)
       {
-        int    msgID   = MSGID_CANNOT_REGISTER_DUPLICATE_SUFFIX;
-        String message = getMessage(msgID, String.valueOf(suffixDN),
-                                    b.getClass().getName());
-
-        throw new ConfigException(msgID, message);
-      }
-
-      DN parentDN = suffixDN.getParentDNInSuffix();
-      while (parentDN != null)
-      {
-        b = directoryServer.privateSuffixes.get(suffixDN);
-        if (b != null)
+        // Check to see if any of the registered backends already contain an
+        // entry with the DN specified as the base DN.  This could happen if
+        // we're creating a new subordinate backend in an existing directory
+        // (e.g., moving the "ou=People,dc=example,dc=com" branch to its own
+        // backend when that data already exists under the "dc=example,dc=com"
+        // backend).  This condition shouldn't prevent the new base DN from
+        // being registered, but it's definitely important enough that we let
+        // the administrator know about it and remind them that the existing
+        // backend will need to be reinitialized.
+        if (superiorBackend != null)
         {
-          if (b.hasSubSuffix(suffixDN))
+          if (superiorBackend.entryExists(baseDN))
           {
-            int    msgID   = MSGID_CANNOT_REGISTER_DUPLICATE_SUBSUFFIX;
-            String message = getMessage(msgID, String.valueOf(suffixDN),
-                                        String.valueOf(parentDN));
+            int    msgID   = MSGID_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS;
+            String message = getMessage(msgID, superiorBackend.getBackendID(),
+                                        String.valueOf(baseDN),
+                                        backend.getBackendID());
+            logError(ErrorLogCategory.CONFIGURATION,
+                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          }
+        }
 
-            throw new ConfigException(msgID, message);
+
+        newBaseDNs.put(baseDN, backend);
+
+        if (superiorBackend == null)
+        {
+          if (isPrivate)
+          {
+            backend.setPrivateBackend(true);
+            newPrivateNamingContexts.put(baseDN, backend);
           }
           else
           {
-            b.addSubordinateBackend(backend);
-            return;
+            backend.setPrivateBackend(false);
+            newPublicNamingContexts.put(baseDN, backend);
           }
         }
+        else if (otherBaseDNs.isEmpty())
+        {
+          backend.setParentBackend(superiorBackend);
+          superiorBackend.addSubordinateBackend(backend);
+        }
 
-        parentDN = suffixDN.getParentDNInSuffix();
+        for (Backend b : subordinateBackends)
+        {
+          Backend oldParentBackend = b.getParentBackend();
+          if (oldParentBackend != null)
+          {
+            oldParentBackend.removeSubordinateBackend(b);
+          }
+
+          b.setParentBackend(backend);
+          backend.addSubordinateBackend(b);
+        }
+
+        for (DN dn : subordinateBaseDNs)
+        {
+          newPublicNamingContexts.remove(dn);
+          newPrivateNamingContexts.remove(dn);
+        }
+
+        directoryServer.baseDNs               = newBaseDNs;
+        directoryServer.publicNamingContexts  = newPublicNamingContexts;
+        directoryServer.privateNamingContexts = newPrivateNamingContexts;
       }
-
-
-      // If we've gotten here, then it is not in use.  Register it.
-      directoryServer.privateSuffixes.put(suffixDN, backend);
     }
   }
 
 
 
   /**
-   * Deregisters the specified suffix with the Directory Server.  This should
-   * work regardless of whether the specified DN is a normal suffix or a private
-   * suffix.
+   * Deregisters the provided base DN with the server.
    *
-   * @param  suffixDN  The suffix DN to deregister with the server.
+   * @param  baseDN     The base DN to deregister with the server.  It must not
+   *                    be {@code null}.
+   * @param  testOnly   Indicates whether to only test whether the new base DN
+   *                    registration would be successful without actually
+   *                    applying any changes.
    *
-   * @throws  ConfigException  If a problem occurs while attempting to
-   *                           deregister the specified suffix.
+   * @throws  DirectoryException  If a problem occurs while attempting to
+   *                              deregister the provided base DN.
    */
-  public static void deregisterSuffix(DN suffixDN)
-         throws ConfigException
+  public static void deregisterBaseDN(DN baseDN, boolean testOnly)
+         throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "deregisterSuffix", String.valueOf(suffixDN));
+    assert debugEnter(CLASS_NAME, "deregisterBaseDN", String.valueOf(baseDN));
 
+    ensureNotNull(baseDN);
 
-    // First, check to see if it is a "user" suffix or sub-suffix.
-    synchronized (directoryServer.suffixes)
+    synchronized (directoryServer)
     {
-      Backend b = directoryServer.suffixes.remove(suffixDN);
-      if (b != null)
+      TreeMap<DN,Backend> newBaseDNs =
+           new TreeMap<DN,Backend>(directoryServer.baseDNs);
+      TreeMap<DN,Backend> newPublicNamingContexts =
+           new TreeMap<DN,Backend>(directoryServer.publicNamingContexts);
+      TreeMap<DN,Backend> newPrivateNamingContexts =
+           new TreeMap<DN,Backend>(directoryServer.privateNamingContexts);
+
+
+      // Make sure that the Directory Server actually contains a backend with
+      // the specified base DN.
+      Backend backend = newBaseDNs.get(baseDN);
+      if (backend == null)
       {
-        return;
+        int    msgID   = MSGID_DEREGISTER_BASEDN_NOT_REGISTERED;
+        String message = getMessage(msgID, String.valueOf(baseDN));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
       }
 
-      DN parentDN = suffixDN.getParentDNInSuffix();
-      while (parentDN != null)
-      {
-        b = directoryServer.suffixes.get(parentDN);
-        if (b != null)
-        {
-          if (b.hasSubSuffix(suffixDN))
-          {
-            b.removeSubSuffix(suffixDN, parentDN);
-          }
 
-          return;
+      // Check to see if the backend has a parent backend, and whether it has
+      // any subordinates with base DNs that are below the base DN to remove.
+      Backend             superiorBackend     = backend.getParentBackend();
+      LinkedList<Backend> subordinateBackends = new LinkedList<Backend>();
+      if (backend.getSubordinateBackends() != null)
+      {
+        for (Backend b : backend.getSubordinateBackends())
+        {
+          for (DN dn : b.getBaseDNs())
+          {
+            if (dn.isDescendantOf(baseDN))
+            {
+              subordinateBackends.add(b);
+              break;
+            }
+          }
         }
       }
-    }
 
 
-    // Check the set of private suffixes and sub-suffixes.
-    synchronized (directoryServer.privateSuffixes)
-    {
-      Backend b = directoryServer.privateSuffixes.remove(suffixDN);
-      if (b != null)
+      // See if there are any other base DNs registered within the same backend.
+      LinkedList<DN> otherBaseDNs = new LinkedList<DN>();
+      for (DN dn : newBaseDNs.keySet())
       {
-        return;
-      }
-
-      DN parentDN = suffixDN.getParentDNInSuffix();
-      while (parentDN != null)
-      {
-        b = directoryServer.privateSuffixes.get(parentDN);
-        if (b != null)
+        if (dn.equals(baseDN))
         {
-          if (b.hasSubSuffix(suffixDN))
-          {
-            b.removeSubSuffix(suffixDN, parentDN);
-          }
+          continue;
+        }
 
-          return;
+        Backend b = newBaseDNs.get(dn);
+        if (backend.equals(b))
+        {
+          otherBaseDNs.add(dn);
         }
       }
+
+
+      // If we've gotten here, then it's OK to make the changes.
+      if (! testOnly)
+      {
+        // Get rid of the references to this base DN in the mapping tree
+        // information.
+        newBaseDNs.remove(baseDN);
+        newPublicNamingContexts.remove(baseDN);
+        newPrivateNamingContexts.remove(baseDN);
+
+
+        if (superiorBackend == null)
+        {
+          // If there were any subordinate backends, then all of their base DNs
+          // will now be promoted to naming contexts.
+          for (Backend b : subordinateBackends)
+          {
+            b.setParentBackend(null);
+            backend.removeSubordinateBackend(b);
+
+            for (DN dn : b.getBaseDNs())
+            {
+              if (b.isPrivateBackend())
+              {
+                newPrivateNamingContexts.put(dn, b);
+              }
+              else
+              {
+                newPublicNamingContexts.put(dn, b);
+              }
+            }
+          }
+        }
+        else
+        {
+          // If there are no other base DNs for the associated backend, then
+          // remove this backend as a subordinate of the parent backend.
+          if (otherBaseDNs.isEmpty())
+          {
+            superiorBackend.removeSubordinateBackend(backend);
+          }
+
+
+          // If there are any subordinate backends, then they need to be made
+          // subordinate to the parent backend.  Also, we should log a warning
+          // message indicating that there may be inconsistent search results
+          // because some of the structural entries will be missing.
+          if (! subordinateBackends.isEmpty())
+          {
+            int    msgID   = MSGID_DEREGISTER_BASEDN_MISSING_HIERARCHY;
+            String message = getMessage(msgID, String.valueOf(baseDN),
+                                        backend.getBackendID());
+            logError(ErrorLogCategory.CONFIGURATION,
+                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+
+            for (Backend b : subordinateBackends)
+            {
+              backend.removeSubordinateBackend(b);
+              superiorBackend.addSubordinateBackend(b);
+              b.setParentBackend(superiorBackend);
+            }
+          }
+        }
+
+
+        directoryServer.baseDNs               = newBaseDNs;
+        directoryServer.publicNamingContexts  = newPublicNamingContexts;
+        directoryServer.privateNamingContexts = newPrivateNamingContexts;
+      }
     }
+  }
+
+
+
+  /**
+   * Retrieves the set of public naming contexts defined in the Directory
+   * Server, mapped from the naming context DN to the corresponding backend.
+   *
+   * @return  The set of public naming contexts defined in the Directory Server.
+   */
+  public static Map<DN,Backend> getPublicNamingContexts()
+  {
+    assert debugEnter(CLASS_NAME, "getPublicNamingContexts");
+
+    return directoryServer.publicNamingContexts;
+  }
+
+
+
+  /**
+   * Retrieves the set of private naming contexts defined in the Directory
+   * Server, mapped from the naming context DN to the corresponding backend.
+   *
+   * @return  The set of private naming contexts defined in the Directory
+   *          Server.
+   */
+  public static Map<DN,Backend> getPrivateNamingContexts()
+  {
+    assert debugEnter(CLASS_NAME, "getPrivateNamingContexts");
+
+    return directoryServer.privateNamingContexts;
+  }
+
+
+
+  /**
+   * Indicates whether the specified DN is one of the Directory Server naming
+   * contexts.
+   *
+   * @param  dn  The DN for which to make the determination.
+   *
+   * @return  {@code true} if the specified DN is a naming context for the
+   *          Directory Server, or {@code false} if it is not.
+   */
+  public static boolean isNamingContext(DN dn)
+  {
+    assert debugEnter(CLASS_NAME, "isNamingContext");
+
+    return (directoryServer.publicNamingContexts.containsKey(dn) ||
+            directoryServer.privateNamingContexts.containsKey(dn));
   }
 
 

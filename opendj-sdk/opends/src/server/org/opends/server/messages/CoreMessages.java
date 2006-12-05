@@ -5967,6 +5967,98 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * register a backend with an ID that is already registered.  This takes a
+   * single argument, which is the conflicting backend ID.
+   */
+  public static final int MSGID_REGISTER_BACKEND_ALREADY_EXISTS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 571;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * register a base DN that is already registered.  This takes three arguments,
+   * which are the base DN, the backend ID for the new backend, and the backend
+   * ID for the already-registered backend.
+   */
+  public static final int MSGID_REGISTER_BASEDN_ALREADY_EXISTS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 572;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * register a base DN with a backend that already has another base DN that
+   * contains conflicting hierarchy.  This takes three arguments, which are the
+   * base DN to be registered, the backend ID, and the already-registered base
+   * DN.
+   */
+  public static final int MSGID_REGISTER_BASEDN_HIERARCHY_CONFLICT =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 573;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * register a base DN with a backend that already contains other base DNs
+   * that do not share the same parent base DN.  This takes three arguments,
+   * which are the base DN to be registered, the backend ID, and the
+   * already-registered base DN.
+   */
+  public static final int MSGID_REGISTER_BASEDN_DIFFERENT_PARENT_BASES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 574;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * register a base DN with a backend that already contains other base DNs
+   * that are subordinate to a backend whereas the new base DN is not
+   * subordinate to any backend.  This takes three arguments, which are the base
+   * DN to be registered, the backend ID, and the backend ID of the parent
+   * backend.
+   */
+  public static final int MSGID_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 575;
+
+
+
+  /**
+   * The message ID for the message that will be used if a newly-registered
+   * backend has a base DN for which a corresponding entry already exists in the
+   * server.  This takes three arguments, which are the backend ID for the
+   * existing backend, the base DN for the new backend, and the backend ID for
+   * the new backend.
+   */
+  public static final int MSGID_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 576;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * deregister a base DN that is not registered.  This takes a single argument,
+   * which is the base DN to deregister.
+   */
+  public static final int MSGID_DEREGISTER_BASEDN_NOT_REGISTERED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 577;
+
+
+
+  /**
+   * The message ID for the message that will be used if a base DN containing
+   * both superior and subordinate backends is deregistered, leaving the
+   * possibility for missing entries in the data hierarchy.  This takes two
+   * arguments, which are the base DN that has been deregistered and the backend
+   * ID of the associated backend.
+   */
+  public static final int MSGID_DEREGISTER_BASEDN_MISSING_HIERARCHY =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 578;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -8057,6 +8149,50 @@ public class CoreMessages
                     "The user-specific lookthrough limit value %s contained " +
                     "in user entry %s could not be parsed as an integer.  " +
                     "The default server lookthrough limit will be used.");
+
+
+    registerMessage(MSGID_REGISTER_BACKEND_ALREADY_EXISTS,
+                    "Unable to register backend %s with the Directory Server " +
+                    "because another backend with the same backend ID is " +
+                    "already registered.");
+    registerMessage(MSGID_REGISTER_BASEDN_ALREADY_EXISTS,
+                    "Unable to register base DN %s with the Directory Server " +
+                    "for backend %s because that base DN is already " +
+                    "registered for backend %s.");
+    registerMessage(MSGID_REGISTER_BASEDN_HIERARCHY_CONFLICT,
+                    "Unable to register base DN %s with the Directory Server " +
+                    "for backend %s because that backend already contains " +
+                    "another base DN %s that is within the same hierarchical " +
+                    "path.");
+    registerMessage(MSGID_REGISTER_BASEDN_DIFFERENT_PARENT_BASES,
+                    "Unable to register base DN %s with the Directory Server " +
+                    "for backend %s because that backend already contains " +
+                    "another base DN %s that is not subordinate to the same " +
+                    "base DN in the parent backend.");
+    registerMessage(MSGID_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE,
+                    "Unable to register base DN %s with the Directory Server " +
+                    "for backend %s because that backend already contains " +
+                    "one or more other base DNs that are subordinate to " +
+                    "backend %s but the new base DN is not.");
+    registerMessage(MSGID_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS,
+                    "Backend %s already contains entry %s which has just " +
+                    "been registered as the base DN for backend %s.  " +
+                    "These conflicting entries may cause unexpected or " +
+                    "errant search results, and both backends should be " +
+                    "reinitialized to ensure that each has the correct " +
+                    "content.");
+    registerMessage(MSGID_DEREGISTER_BASEDN_NOT_REGISTERED,
+                    "Unable to de-register base DN %s with the Directory " +
+                    "Server because that base DN is not registered for any " +
+                    "active backend.");
+    registerMessage(MSGID_DEREGISTER_BASEDN_MISSING_HIERARCHY,
+                    "Base DN %s has been deregistered from the Directory " +
+                    "Server for backend %s.  This base DN had both superior " +
+                    "and subordinate entries in other backends, and there " +
+                    "may be inconsistent or unexpected behavior when " +
+                    "accessing entries in this portion of the hierarchy " +
+                    "because of the missing entries that had been held in " +
+                    "the de-registered backend.");
   }
 }
 

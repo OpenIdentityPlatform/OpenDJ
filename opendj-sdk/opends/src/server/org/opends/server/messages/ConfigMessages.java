@@ -6153,6 +6153,17 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to register a backend with the Directory Server.  This takes two
+   * arguments, which are the backend ID and a string representation of the
+   * exception that was caught.
+   */
+  public static final int MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 572;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7020,6 +7031,9 @@ public class ConfigMessages
                     "lock for backend %s:  %s.  This may interfere with " +
                     "operations that require exclusive access, including " +
                     "LDIF import and restoring a backup.");
+    registerMessage(MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND,
+                    "An error occurred while attempting to register backend " +
+                    "%s with the Directory Server:  %s.");
     registerMessage(MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND,
                     "The class %s specified in configuration entry %s does " +
                     "not contain a valid Directory Server backend " +
