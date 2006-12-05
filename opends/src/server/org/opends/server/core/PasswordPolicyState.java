@@ -1917,12 +1917,11 @@ public class PasswordPolicyState
         {
           debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
                        CLASS_NAME, "getLastLoginTime",
-                       "Returning creation time of " + createTime +
-                       " for user " + userDNString + " because no last login " +
-                       "time will be maintained.");
+                       "Returning -1 for user " + userDNString +
+                       " because no last login time will be maintained.");
         }
 
-        lastLoginTime = createTime;
+        lastLoginTime = -1;
         return lastLoginTime;
       }
 
@@ -1933,12 +1932,11 @@ public class PasswordPolicyState
         {
           debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
                        CLASS_NAME, "getLastLoginTime",
-                       "Returning creation time of " + createTime +
-                       " for user " + userDNString + " because no last login " +
-                       "time value exists.");
+                       "Returning -1 for user " + userDNString +
+                       " because no last login time value exists.");
         }
 
-        lastLoginTime = createTime;
+        lastLoginTime = -1;
         return lastLoginTime;
       }
 
@@ -2003,17 +2001,28 @@ public class PasswordPolicyState
               debugMessage(DebugLogCategory.PASSWORD_POLICY,
                            DebugLogSeverity.WARNING,
                            CLASS_NAME, "getLastLoginTime",
-                           "Returning creation time of " + createTime +
-                           " for user " + userDNString + " because the last " +
-                           "login time value " + valueString +
+                           "Returning -1 for user " + userDNString +
+                           " because the last login time value " + valueString +
                            "could not be parsed using any known format.");
             }
 
-            lastLoginTime = createTime;
+            lastLoginTime = -1;
             return lastLoginTime;
           }
         }
       }
+
+
+      // We shouldn't get here.
+      if (debug)
+      {
+        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.WARNING,
+                     CLASS_NAME, "getLastLoginTime",
+                     "Returning -1 for user " + userDNString +
+                     " because even though there appears to be a last " +
+                     "login time value we couldn't decipher it.");
+      }
+      return -1;
     }
 
     if (debug)
@@ -2143,14 +2152,15 @@ public class PasswordPolicyState
       {
         if (lastLoginTime > lockTime)
         {
-        if (debug)
-        {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "lockedDueToIdleInterval",
-                       "Returning false for user " + userDNString +
-                       " because the last login time is in an acceptable " +
-                         "window.");
-        }
+          if (debug)
+          {
+            debugMessage(DebugLogCategory.PASSWORD_POLICY,
+                         DebugLogSeverity.INFO, CLASS_NAME,
+                         "lockedDueToIdleInterval",
+                         "Returning false for user " + userDNString +
+                         " because the last login time is in an acceptable " +
+                           "window.");
+          }
 
           isIdleLocked = ConditionResult.FALSE;
           return false;
