@@ -116,6 +116,10 @@
           file="'%s/testcases/security/pwd_policy/security_lockout_duration.xml' % (TESTS_DIR)"/>
         <call function="'lockout_duration'" />
 
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_policy/security_teardown_pwd_policy.xml' % (TESTS_DIR)"/>
+        <call function="'teardown_pwd_policy'" />
+
         <!--- Stop DS -->
         <sequence>
           <message>
