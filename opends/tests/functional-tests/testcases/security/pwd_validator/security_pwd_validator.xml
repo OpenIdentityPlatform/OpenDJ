@@ -80,6 +80,10 @@
           file="'%s/testcases/security/pwd_validator/security_skip_val_for_admins.xml' % (TESTS_DIR)"/>
         <call function="'skip_val_for_admins'" />
 
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_validator/security_teardown_pwd_validator.xml' % (TESTS_DIR)"/>
+        <call function="'teardown_pwd_validator'" />
+
         <!--- Stop DS -->
         <sequence>
           <message>

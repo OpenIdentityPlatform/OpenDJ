@@ -108,6 +108,10 @@
           file="'%s/testcases/security/pwd_storage/security_pwd_CLEAR.xml' % (TESTS_DIR)"/>
         <call function="'pwd_CLEAR'" />
 
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_teardown_pwd_storage.xml' % (TESTS_DIR)"/>
+        <call function="'teardown_pwd_storage'" />
+
         <!--- Stop DS -->
         <sequence>
           <message>
