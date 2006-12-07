@@ -313,7 +313,10 @@ public class MonitorBackend
     AttributeType attrType = attribute.getAttributeType();
     if (attrType.hasName(ATTR_COMMON_NAME) ||
         attrType.hasName(ATTR_BACKEND_ENABLED.toLowerCase()) ||
-        attrType.hasName(ATTR_BACKEND_CLASS.toLowerCase()))
+        attrType.hasName(ATTR_BACKEND_CLASS.toLowerCase()) ||
+        attrType.hasName(ATTR_BACKEND_BASE_DN.toLowerCase()) ||
+        attrType.hasName(ATTR_BACKEND_ID.toLowerCase()) ||
+        attrType.hasName(ATTR_BACKEND_WRITABILITY_MODE.toLowerCase()))
     {
       return true;
     }
