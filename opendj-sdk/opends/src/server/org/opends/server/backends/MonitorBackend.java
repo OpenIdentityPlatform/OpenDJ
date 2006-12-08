@@ -222,21 +222,16 @@ public class MonitorBackend
 
 
     // Construct the set of objectclasses to include in the base monitor entry.
-    monitorObjectClasses = new HashMap<ObjectClass,String>(2);
-    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP);
-    if (topOC == null)
-    {
-      topOC = DirectoryServer.getDefaultObjectClass(OC_TOP);
-    }
+    monitorObjectClasses = new LinkedHashMap<ObjectClass,String>(3);
+    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
     monitorObjectClasses.put(topOC, OC_TOP);
 
+    ObjectClass monitorOC = DirectoryServer.getObjectClass(OC_MONITOR_ENTRY,
+                                                           true);
+    monitorObjectClasses.put(monitorOC, OC_MONITOR_ENTRY);
+
     ObjectClass extensibleObjectOC =
-         DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT);
-    if (extensibleObjectOC == null)
-    {
-      extensibleObjectOC =
-           DirectoryServer.getDefaultObjectClass(OC_EXTENSIBLE_OBJECT);
-    }
+         DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
     monitorObjectClasses.put(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
 
 

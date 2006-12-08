@@ -536,6 +536,14 @@ public class ServerConstants
 
 
   /**
+   * The name of the objectclass that will be used as the structural class for
+   * monitor entries.
+   */
+  public static final String OC_MONITOR_ENTRY = "ds-monitor-entry";
+
+
+
+  /**
    * The name of the standard objectclass, formatted in all lowercase, that is
    * used to indicate that an entry describes an organization.
    */
