@@ -185,6 +185,39 @@ public class ServerConstants
 
 
   /**
+   * The name of the monitor attribute that is used to hold a backend ID.
+   */
+  public static final String ATTR_MONITOR_BACKEND_ID = "ds-backend-id";
+
+
+
+  /**
+   * The name of the monitor attribute that is used to hold the set of base DNs.
+   */
+  public static final String ATTR_MONITOR_BACKEND_BASE_DN =
+       "ds-backend-base-dn";
+
+
+
+  /**
+   * The name of the monitor attribute that is used to hold the backend entry
+   * count.
+   */
+  public static final String ATTR_MONITOR_BACKEND_ENTRY_COUNT =
+       "ds-backend-entry-count";
+
+
+
+  /**
+   * The name of the monitor attribute that is used to hold the backend
+   * writability mode.
+   */
+  public static final String ATTR_MONITOR_BACKEND_WRITABILITY_MODE =
+       "ds-backend-writability-mode";
+
+
+
+  /**
    * The name of the standard attribute that is used to specify the set of
    * public naming contexts (suffixes) for the Directory Server, formatted in
    * camel case.

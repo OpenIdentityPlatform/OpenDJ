@@ -42,6 +42,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CancelledOperationException;
@@ -83,6 +84,9 @@ public abstract class Backend
   // hierarchically below the information in this backend.
   private Backend[] subordinateBackends;
 
+  // The backend monitor associated with this backend.
+  private BackendMonitor backendMonitor;
+
   // Indicates whether this is a private backend or one that holds
   // user data.
   private boolean isPrivateBackend;
@@ -109,6 +113,7 @@ public abstract class Backend
     subordinateBackends = new Backend[0];
     isPrivateBackend    = false;
     writabilityMode     = WritabilityMode.ENABLED;
+    backendMonitor      = null;
   }
 
 
@@ -712,6 +717,48 @@ public abstract class Backend
       this.writabilityMode = writabilityMode;
     }
   }
+
+
+
+  /**
+   * Retrieves the backend monitor that is associated with this
+   * backend.
+   *
+   * @return  The backend monitor that is associated with this
+   *          backend, or {@code null} if none has been assigned.
+   */
+  public BackendMonitor getBackendMonitor()
+  {
+    assert debugEnter(CLASS_NAME, "getBackendMonitor");
+
+    return backendMonitor;
+  }
+
+
+
+  /**
+   * Sets the backend monitor for this backend.
+   *
+   * @param  backendMonitor  The backend monitor for this backend.
+   */
+  public void setBackendMonitor(BackendMonitor backendMonitor)
+  {
+    assert debugEnter(CLASS_NAME, "setBackendMonitor",
+                      String.valueOf(backendMonitor));
+
+    this.backendMonitor = backendMonitor;
+  }
+
+
+
+  /**
+   * Retrieves the total number of entries contained in this backend,
+   * if that information is available.
+   *
+   * @return  The total number of entries contained in this backend,
+   *          or -1 if that information is not available.
+   */
+  public abstract long getEntryCount();
 
 
 

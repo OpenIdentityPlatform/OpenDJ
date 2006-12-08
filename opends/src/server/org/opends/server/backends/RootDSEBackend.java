@@ -413,6 +413,19 @@ public class RootDSEBackend
 
 
   /**
+   * {@inheritDoc}
+   */
+  public synchronized long getEntryCount()
+  {
+    assert debugEnter(CLASS_NAME, "getEntryCount");
+
+    // There is always just a single entry in this backend.
+    return 1;
+  }
+
+
+
+  /**
    * Indicates whether the data associated with this backend may be considered
    * local (i.e., in a repository managed by the Directory Server) rather than
    * remote (i.e., in an external repository accessed by the Directory Server

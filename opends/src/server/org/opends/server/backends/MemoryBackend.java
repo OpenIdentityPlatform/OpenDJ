@@ -254,6 +254,23 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  public synchronized long getEntryCount()
+  {
+    assert debugEnter(CLASS_NAME, "getEntryCount");
+
+    if (entryMap != null)
+    {
+      return entryMap.size();
+    }
+
+    return -1;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isLocal()
   {
     assert debugEnter(CLASS_NAME, "isLocal");

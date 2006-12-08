@@ -421,6 +421,23 @@ public class TaskBackend
 
 
   /**
+   * {@inheritDoc}
+   */
+  public long getEntryCount()
+  {
+    assert debugEnter(CLASS_NAME, "getEntryCount");
+
+    if (taskScheduler != null)
+    {
+      return taskScheduler.getEntryCount();
+    }
+
+    return -1;
+  }
+
+
+
+  /**
    * Indicates whether the data associated with this backend may be considered
    * local (i.e., in a repository managed by the Directory Server) rather than
    * remote (i.e., in an external repository accessed by the Directory Server
