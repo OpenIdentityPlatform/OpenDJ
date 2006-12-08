@@ -596,16 +596,16 @@ public class Index
     indexer.modifyEntry(txn, oldEntry, newEntry, mods, addKeys, delKeys);
 
     DatabaseEntry key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys)
-    {
-      key.setData(keyBytes.value());
-      insertID(txn, key, entryID);
-    }
-
     for (ASN1OctetString keyBytes : delKeys)
     {
       key.setData(keyBytes.value());
       removeID(txn, key, entryID);
+    }
+
+    for (ASN1OctetString keyBytes : addKeys)
+    {
+      key.setData(keyBytes.value());
+      insertID(txn, key, entryID);
     }
   }
 

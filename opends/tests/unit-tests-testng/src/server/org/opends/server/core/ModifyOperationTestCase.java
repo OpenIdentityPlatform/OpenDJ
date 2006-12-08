@@ -43,9 +43,9 @@ import org.opends.server.plugins.UpdatePreOpPlugin;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
@@ -53,25 +53,13 @@ import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.WritabilityMode;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -289,6 +277,20 @@ public class ModifyOperationTestCase
 
 
 
+  @DataProvider(name = "baseDNs")
+  public Object[][] getBaseDNs()
+         throws Exception
+  {
+    return new Object[][] {
+         { "dc=example,dc=com"},
+// FIXME Waiting on issue 1080.
+//         { "o=test"},
+    };
+  }
+
+
+
+
   /**
    * {@inheritDoc}
    */
@@ -312,7 +314,7 @@ public class ModifyOperationTestCase
    * Tests the <CODE>getRawEntryDN</CODE> and <CODE>setRawEntryDN</CODE>
    * methods.
    *
-   * @param  addOperation  The add operation to be tested.
+   * @param  modifyOperation  The modify operation to be tested.
    */
   @Test(dataProvider = "modifyOperations")
   public void testGetAndSetRawEntryDN(ModifyOperation modifyOperation)
@@ -446,7 +448,7 @@ public class ModifyOperationTestCase
    * Invokes methods to retrieve members of a modify operation after it has
    * completed successfully.
    *
-   * @param  addOperation  The modify operation to examine.  It should have
+   * @param  modifyOperation  The modify operation to examine.  It should have
    *                       completed successfully.
    */
   private void retrieveSuccessfulOperationElements(
@@ -473,7 +475,7 @@ public class ModifyOperationTestCase
    * Invokes methods to retrieve members of a modify operation after it has
    * completed unsuccessfully.
    *
-   * @param  addOperation  The modify operation to examine.  It should have
+   * @param  modifyOperation  The modify operation to examine.  It should have
    *                       completed failed.
    */
   private void retrieveFailedOperationElements(
@@ -541,8 +543,6 @@ public class ModifyOperationTestCase
 
   /**
    * Tests to ensure that a modify attempt fails if an invalid DN is provided.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testFailInvalidDN()
@@ -568,8 +568,6 @@ public class ModifyOperationTestCase
   /**
    * Tests to ensure that a modify attempt fails if the target DN is a suffix
    * that doesn't exist.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testFailNoSuchSuffix()
@@ -598,25 +596,25 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailNoSuchParent()
+  @Test(dataProvider = "baseDNs")
+  public void testFailNoSuchParent(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
          conn.processModify(
-              new ASN1OctetString("cn=test,ou=nosuchparent,o=test"), mods);
+              new ASN1OctetString("cn=test,ou=nosuchparent," + baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -629,24 +627,25 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailNoSuchEntry()
+  @Test(dataProvider = "baseDNs")
+  public void testFailNoSuchEntry(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("cn=nosuchentry,o=test"), mods);
+         conn.processModify(new ASN1OctetString("cn=nosuchentry," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -659,11 +658,11 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailNoModifications()
+  @Test(dataProvider = "baseDNs")
+  public void testFailNoModifications(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -671,7 +670,7 @@ public class ModifyOperationTestCase
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("o=test"), mods);
+         conn.processModify(new ASN1OctetString(baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -772,17 +771,17 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessAddAttributeWithOptions()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessAddAttributeWithOptions(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
+    Entry e = DirectoryServer.getEntry(DN.decode(baseDN));
 
     int numValues = 0;
     List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeType("o", true));
+         e.getAttribute(DirectoryServer.getAttributeType("dc", true));
     for (Attribute a : attrList)
     {
       numValues += a.getValues().size();
@@ -794,19 +793,19 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("test"));
-    LDAPAttribute attr = new LDAPAttribute("o;lang-en-us", values);
+    LDAPAttribute attr = new LDAPAttribute("dc;lang-en-us", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("o=test"), mods);
+         conn.processModify(new ASN1OctetString(baseDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    e = DirectoryServer.getEntry(DN.decode("o=test"));
+    e = DirectoryServer.getEntry(DN.decode(baseDN));
     numValues = 0;
-    attrList = e.getAttribute(DirectoryServer.getAttributeType("o", true));
+    attrList = e.getAttribute(DirectoryServer.getAttributeType("dc", true));
     for (Attribute a : attrList)
     {
       numValues += a.getValues().size();
@@ -822,14 +821,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailAddToSingleValuedAttribute()
+  @Test(dataProvider = "baseDNs")
+  public void testFailAddToSingleValuedAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -859,7 +858,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -872,14 +872,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailAddToSingleValuedOperationalAttribute()
+  @Test(dataProvider = "baseDNs")
+  public void testFailAddToSingleValuedOperationalAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -910,7 +910,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -923,14 +924,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailReplaceSingleValuedWithMultipleValues()
+  @Test(dataProvider = "baseDNs")
+  public void testFailReplaceSingleValuedWithMultipleValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -961,7 +962,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -974,14 +976,15 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailReplaceSingleValuedOperationalAttrWithMultipleValues()
+  @Test(dataProvider = "baseDNs")
+  public void testFailReplaceSingleValuedOperationalAttrWithMultipleValues(
+       String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1012,7 +1015,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1025,14 +1029,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailAddDuplicateValue()
+  @Test(dataProvider = "baseDNs")
+  public void testFailAddDuplicateValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1062,7 +1066,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1075,14 +1080,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailReplaceWithDuplicates()
+  @Test(dataProvider = "baseDNs")
+  public void testFailReplaceWithDuplicates(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1107,13 +1112,14 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("Foo"));
     values.add(new ASN1OctetString("Foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1126,14 +1132,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailReplaceWithSyntaxViolation()
+  @Test(dataProvider = "baseDNs")
+  public void testFailReplaceWithSyntaxViolation(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1144,7 +1150,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "manager: cn=boss,o=test");
+         "manager: cn=boss," + baseDN);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -1164,7 +1170,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1177,14 +1184,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailAddSyntaxViolation()
+  @Test(dataProvider = "baseDNs")
+  public void testFailAddSyntaxViolation(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1214,7 +1221,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1227,14 +1235,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailAddDisallowedAttribute()
+  @Test(dataProvider = "baseDNs")
+  public void testFailAddDisallowedAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1264,7 +1272,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1278,14 +1287,15 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessAddDisallowedAttributeWithExtensibleObject()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessAddDisallowedAttributeWithExtensibleObject(
+       String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1320,7 +1330,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1333,14 +1344,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailReplaceRDNAttribute()
+  @Test(dataProvider = "baseDNs")
+  public void testFailReplaceRDNAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1370,7 +1381,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1383,14 +1395,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailRemoveRDNAttribute()
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveRDNAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1417,7 +1429,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1430,14 +1443,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailRemoveRDNValue()
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveRDNValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1467,7 +1480,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1480,14 +1494,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailReplaceOneOfMultipleRDNAttributes()
+  @Test(dataProvider = "baseDNs")
+  public void testFailReplaceOneOfMultipleRDNAttributes(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: givenName=Test+sn=User,o=test",
+         "dn: givenName=Test+sn=User," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1518,7 +1532,7 @@ public class ModifyOperationTestCase
 
     ModifyOperation modifyOperation =
          conn.processModify(
-              new ASN1OctetString("givenName=Test,sn=User,o=test"), mods);
+              new ASN1OctetString("givenName=Test,sn=User," + baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1531,14 +1545,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailRemoveOneOfMultipleRDNValues()
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveOneOfMultipleRDNValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: givenName=Test+sn=User,o=test",
+         "dn: givenName=Test+sn=User," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1566,7 +1580,7 @@ public class ModifyOperationTestCase
 
     ModifyOperation modifyOperation =
          conn.processModify(
-              new ASN1OctetString("givenName=Test,sn=User,o=test"), mods);
+              new ASN1OctetString("givenName=Test,sn=User," + baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1579,14 +1593,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessRemoveCompleteAttribute()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessRemoveCompleteAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1613,7 +1627,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1626,14 +1641,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessRemoveOneOfManyValues()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessRemoveOneOfManyValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1644,8 +1659,8 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
-         "description: bar");
+         "mail: foo",
+         "mail: bar");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -1659,13 +1674,14 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1678,14 +1694,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessRemoveOnlyValue()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessRemoveOnlyValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1696,7 +1712,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo");
+         "mail: foo");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -1710,13 +1726,14 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1729,14 +1746,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessRemoveAllOfManyValues()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessRemoveAllOfManyValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1747,8 +1764,8 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
-         "description: bar");
+         "mail: foo",
+         "mail: bar");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -1763,13 +1780,14 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
     values.add(new ASN1OctetString("bar"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1782,14 +1800,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailRemoveRequiredAttribute()
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveRequiredAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1816,7 +1834,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1829,14 +1848,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailRemoveRequiredAttributeValue()
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveRequiredAttributeValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1866,7 +1885,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1879,14 +1899,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessReplaceExistingWithNew()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessReplaceExistingWithNew(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1897,7 +1917,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo");
+         "mail: foo");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -1911,13 +1931,14 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("bar"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1926,18 +1947,18 @@ public class ModifyOperationTestCase
 
   /**
    * Tests the ability to perform a modification that replaces an existing
-   * attribute with nothing.
+   * attribute with the same value.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessReplaceExistingWithNothing()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessReplaceExistingWithSame(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -1948,7 +1969,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo");
+         "mail: foo");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -1960,12 +1981,233 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    LDAPAttribute attr = new LDAPAttribute("description");
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("test.user"));
+    LDAPAttribute attr = new LDAPAttribute("uid", values);
+
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    retrieveSuccessfulOperationElements(modifyOperation);
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              new ASN1OctetString(baseDN),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(uid=test.user)"),
+              null, null);
+
+    searchOperation.run();
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getEntriesSent(), 1);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+  }
+
+
+
+  /**
+   * Tests the ability to perform a modification that deletes a value then
+   * adds the same value in a single operation.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessDeleteAndAddSameValue(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password",
+         "mail: foo");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("Test User"));
+    LDAPAttribute attr = new LDAPAttribute("cn", values);
+
+    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    mods.add(new LDAPModification(ModificationType.DELETE, attr));
+    mods.add(new LDAPModification(ModificationType.ADD, attr));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    retrieveSuccessfulOperationElements(modifyOperation);
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              new ASN1OctetString(baseDN),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(cn=Test User)"),
+              null, null);
+
+    searchOperation.run();
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getEntriesSent(), 1);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+  }
+
+
+
+  /**
+   * Tests the ability to perform a modification that deletes one value of an
+   * attribute containing two values, the values are the same but the attribute
+   * options differ.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessDeleteAttributeWithOption(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "givenName;lang-de: X",
+         "givenName;lang-fr: X",
+         "displayName: Test User",
+         "userPassword: password",
+         "mail: foo");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("X"));
+    LDAPAttribute attr = new LDAPAttribute("givenName;lang-fr", values);
+
+    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    mods.add(new LDAPModification(ModificationType.DELETE, attr));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    retrieveSuccessfulOperationElements(modifyOperation);
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              new ASN1OctetString(baseDN),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(givenName;lang-de=X)"),
+              null, null);
+
+    searchOperation.run();
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getEntriesSent(), 1);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+  }
+
+
+
+  /**
+   * Tests the ability to perform a modification that replaces an existing
+   * attribute with nothing.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessReplaceExistingWithNothing(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password",
+         "mail: foo");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    LDAPAttribute attr = new LDAPAttribute("mail");
+    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1978,14 +2220,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessReplaceNonExistingWithNothing()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessReplaceNonExistingWithNothing(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2007,12 +2249,13 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    LDAPAttribute attr = new LDAPAttribute("description");
+    LDAPAttribute attr = new LDAPAttribute("mail");
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -2025,14 +2268,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessReplaceNonExistingWithNew()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessReplaceNonExistingWithNew(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2056,13 +2299,14 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -2075,14 +2319,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessRemoveOnlyExistingAndAddNew()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessRemoveOnlyExistingAndAddNew(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2093,7 +2337,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo");
+         "mail: foo");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -2107,17 +2351,18 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("bar"));
-    attr = new LDAPAttribute("description", values);
+    attr = new LDAPAttribute("mail", values);
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -2130,14 +2375,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessRemoveOneExistingAndAddNew()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessRemoveOneExistingAndAddNew(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2148,8 +2393,8 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
-         "description: bar");
+         "mail: foo",
+         "mail: bar");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -2163,17 +2408,18 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("baz"));
-    attr = new LDAPAttribute("description", values);
+    attr = new LDAPAttribute("mail", values);
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -2186,14 +2432,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessRemoveOneExistingAndAddMultipleNew()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessRemoveOneExistingAndAddMultipleNew(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2204,7 +2450,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo");
+         "mail: foo");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -2218,18 +2464,19 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("bar"));
     values.add(new ASN1OctetString("baz"));
-    attr = new LDAPAttribute("description", values);
+    attr = new LDAPAttribute("mail", values);
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -2242,14 +2489,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailRemoveNonExistentAttribute()
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveNonExistentAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2275,7 +2522,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2288,14 +2536,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailRemoveNonExistentValue()
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveNonExistentValue(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2325,7 +2573,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2338,14 +2587,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailRemoveAllObjectClasses()
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveAllObjectClasses(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2372,7 +2621,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2385,14 +2635,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailReplaceObjectClassesWithNothing()
+  @Test(dataProvider = "baseDNs")
+  public void testFailReplaceObjectClassesWithNothing(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2419,7 +2669,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2432,14 +2683,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailRemoveStructuralObjectclass()
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveStructuralObjectclass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: ou=People,o=test",
+         "dn: ou=People," + baseDN,
          "objectClass: top",
          "objectClass: organizationalUnit",
          "objectClass: extensibleObject",
@@ -2463,7 +2714,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("ou=People,o=test"), mods);
+         conn.processModify(new ASN1OctetString("ou=People," + baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2476,14 +2727,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailAddSecondStructuralObjectClass()
+  @Test(dataProvider = "baseDNs")
+  public void testFailAddSecondStructuralObjectClass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: ou=People,o=test",
+         "dn: ou=People," + baseDN,
          "objectClass: top",
          "objectClass: organizationalUnit",
          "objectClass: extensibleObject",
@@ -2507,7 +2758,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("ou=People,o=test"), mods);
+         conn.processModify(new ASN1OctetString("ou=People," + baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2520,14 +2771,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessIncrementByOne()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessIncrementByOne(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2538,7 +2789,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -2558,11 +2809,12 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("employeenumber",
                                                          true));
@@ -2588,14 +2840,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessIncrementByTen()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessIncrementByTen(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2606,7 +2858,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -2626,11 +2878,12 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("employeenumber",
                                                          true));
@@ -2656,14 +2909,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessIncrementByNegativeOne()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessIncrementByNegativeOne(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2674,7 +2927,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -2694,11 +2947,12 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("employeenumber",
                                                          true));
@@ -2724,14 +2978,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailIncrementNonNumeric()
+  @Test(dataProvider = "baseDNs")
+  public void testFailIncrementNonNumeric(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2760,7 +3014,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2773,14 +3028,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailIncrementValueNonNumeric()
+  @Test(dataProvider = "baseDNs")
+  public void testFailIncrementValueNonNumeric(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2791,7 +3046,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: 1");
+         "mail: 1");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -2805,12 +3060,13 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("notnumeric"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2823,14 +3079,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessIncrementMultiValued()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessIncrementMultiValued(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2861,7 +3117,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -2874,14 +3131,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailIncrementNoIncrementValues()
+  @Test(dataProvider = "baseDNs")
+  public void testFailIncrementNoIncrementValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2909,7 +3166,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2922,14 +3180,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailIncrementMultipleIncrementValues()
+  @Test(dataProvider = "baseDNs")
+  public void testFailIncrementMultipleIncrementValues(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -2960,7 +3218,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2973,14 +3232,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailIncrementNonExisting()
+  @Test(dataProvider = "baseDNs")
+  public void testFailIncrementNonExisting(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3009,7 +3268,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -3022,14 +3282,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessRemoveUnneededAuxiliaryObjectClass()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessRemoveUnneededAuxiliaryObjectClass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3041,7 +3301,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -3061,11 +3321,12 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
     assertFalse(e.hasObjectClass(
          DirectoryServer.getObjectClass("extensibleobject", true)));
   }
@@ -3078,14 +3339,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessAddAuxiliaryObjectClass()
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessAddAuxiliaryObjectClass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3096,7 +3357,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -3116,11 +3377,12 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
     assertTrue(e.hasObjectClass(
          DirectoryServer.getObjectClass("extensibleobject", true)));
   }
@@ -3132,14 +3394,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailAddDuplicateObjectClass()
+  @Test(dataProvider = "baseDNs")
+  public void testFailAddDuplicateObjectClass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3150,7 +3412,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -3170,7 +3432,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -3183,14 +3446,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailRemoveNonExistingObjectClass()
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveNonExistingObjectClass(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3201,7 +3464,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -3221,7 +3484,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -3234,14 +3498,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailReplaceNoUserModification()
+  @Test(dataProvider = "baseDNs")
+  public void testFailReplaceNoUserModification(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3287,7 +3551,7 @@ public class ModifyOperationTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user,o=test"), mods);
+                  new ASN1OctetString("uid=test.user," + baseDN), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeElement(message.encode());
 
@@ -3305,14 +3569,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailServerCompletelyReadOnly()
+  @Test(dataProvider = "baseDNs")
+  public void testFailServerCompletelyReadOnly(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3323,7 +3587,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -3345,7 +3609,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
 
@@ -3360,14 +3625,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSucceedServerInternalOnlyWritability()
+  @Test(dataProvider = "baseDNs")
+  public void testSucceedServerInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3378,7 +3643,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -3400,7 +3665,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -3415,14 +3681,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailServerInternalOnlyWritability()
+  @Test(dataProvider = "baseDNs")
+  public void testFailServerInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3433,7 +3699,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -3473,7 +3739,7 @@ public class ModifyOperationTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user,o=test"), mods);
+                  new ASN1OctetString("uid=test.user," + baseDN), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeElement(message.encode());
 
@@ -3493,14 +3759,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailBackendCompletelyReadOnly()
+  @Test(dataProvider = "baseDNs")
+  public void testFailBackendCompletelyReadOnly(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3511,7 +3777,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -3524,7 +3790,7 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
@@ -3534,7 +3800,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
 
@@ -3549,14 +3816,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSucceedBackendInternalOnlyWritability()
+  @Test(dataProvider = "baseDNs")
+  public void testSucceedBackendInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3567,7 +3834,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -3580,7 +3847,7 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
@@ -3590,7 +3857,8 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user,o=test"), mods);
+         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+                            mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -3605,14 +3873,14 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailBackendInternalOnlyWritability()
+  @Test(dataProvider = "baseDNs")
+  public void testFailBackendInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Entry entry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
+         "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3623,7 +3891,7 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password",
-         "description: foo",
+         "mail: foo",
          "employeeNumber: 1");
 
     InternalClientConnection conn =
@@ -3636,7 +3904,7 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
 
@@ -3664,7 +3932,7 @@ public class ModifyOperationTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user,o=test"), mods);
+                  new ASN1OctetString("uid=test.user," + baseDN), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeElement(message.encode());
 
@@ -3722,11 +3990,11 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailDoNotNotifyChangeListeners()
+  @Test(dataProvider = "baseDNs")
+  public void testFailDoNotNotifyChangeListeners(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     TestChangeNotificationListener changeListener =
          new TestChangeNotificationListener();
@@ -3744,7 +4012,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("o=test"), mods);
+         conn.processModify(new ASN1OctetString(baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
 
@@ -3759,25 +4027,25 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected probem occurs.
    */
-  @Test()
-  public void testCancelBeforeStartup()
+  @Test(dataProvider = "baseDNs")
+  public void testCancelBeforeStartup(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
          new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             null, new ASN1OctetString("o=test"), mods);
+                             null, new ASN1OctetString(baseDN), mods);
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     "testCancelBeforeStartup");
@@ -3794,13 +4062,13 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = { "slow" })
-  public void testCannotLockEntry()
+  @Test(dataProvider = "baseDNs", groups = { "slow" })
+  public void testCannotLockEntry(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
-    Lock entryLock = LockManager.lockRead(DN.decode("o=test"));
+    Lock entryLock = LockManager.lockRead(DN.decode(baseDN));
 
     try
     {
@@ -3809,18 +4077,18 @@ public class ModifyOperationTestCase
 
       ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
       values.add(new ASN1OctetString("foo"));
-      LDAPAttribute attr = new LDAPAttribute("description", values);
+      LDAPAttribute attr = new LDAPAttribute("mail", values);
 
       ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
       mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
       ModifyOperation modifyOperation =
-           conn.processModify(new ASN1OctetString("o=test"), mods);
+           conn.processModify(new ASN1OctetString(baseDN), mods);
       assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     }
     finally
     {
-      LockManager.unlock(DN.decode("o=test"), entryLock);
+      LockManager.unlock(DN.decode(baseDN), entryLock);
     }
   }
 
@@ -3831,11 +4099,11 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDisconnectInPreParseModify()
+  @Test(dataProvider = "baseDNs")
+  public void testDisconnectInPreParseModify(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
@@ -3856,13 +4124,13 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(new ASN1OctetString("o=test"), mods);
+         new ModifyRequestProtocolOp(new ASN1OctetString(baseDN), mods);
     message = new LDAPMessage(2, modifyRequest,
          DisconnectClientPlugin.createDisconnectLDAPControlList("PreParse"));
     w.writeElement(message.encode());
@@ -3950,11 +4218,11 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDisconnectInPostOperationModify()
+  @Test(dataProvider = "baseDNs")
+  public void testDisconnectInPostOperationModify(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
@@ -3975,13 +4243,13 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(new ASN1OctetString("o=test"), mods);
+         new ModifyRequestProtocolOp(new ASN1OctetString(baseDN), mods);
     message = new LDAPMessage(2, modifyRequest,
          DisconnectClientPlugin.createDisconnectLDAPControlList(
               "PostOperation"));
@@ -4010,11 +4278,11 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDisconnectInPostResponseModify()
+  @Test(dataProvider = "baseDNs")
+  public void testDisconnectInPostResponseModify(String baseDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
@@ -4035,13 +4303,13 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("description", values);
+    LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(new ASN1OctetString("o=test"), mods);
+         new ModifyRequestProtocolOp(new ASN1OctetString(baseDN), mods);
     message = new LDAPMessage(2, modifyRequest,
          DisconnectClientPlugin.createDisconnectLDAPControlList(
               "PostResponse"));
