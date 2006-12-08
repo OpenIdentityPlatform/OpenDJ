@@ -1315,6 +1315,29 @@ public class TaskScheduler
 
 
   /**
+   * Retrieves the total number of entries in the task backend.
+   *
+   * @return  The total number of entries in the task backend.
+   */
+  public long getEntryCount()
+  {
+    assert debugEnter(CLASS_NAME, "getEntryCount");
+
+    schedulerLock.lock();
+
+    try
+    {
+      return tasks.size() + recurringTasks.size() + 3;
+    }
+    finally
+    {
+      schedulerLock.unlock();
+    }
+  }
+
+
+
+  /**
    * Retrieves the root entry that is the common ancestor for all entries in the
    * task backend.
    *

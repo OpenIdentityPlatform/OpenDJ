@@ -611,6 +611,30 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
 
   /**
+   * {@inheritDoc}
+   */
+  public long getEntryCount()
+  {
+    assert debugEnter(CLASS_NAME, "getEntryCount");
+
+    if (rootContainer != null)
+    {
+      try
+      {
+        return rootContainer.getEntryCount();
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "getEntryCount", e);
+      }
+    }
+
+    return -1;
+  }
+
+
+
+  /**
    * Retrieves the requested entry from this backend.  Note that the caller must
    * hold a read or write lock on the specified DN.
    *

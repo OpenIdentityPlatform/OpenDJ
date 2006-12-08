@@ -336,6 +336,34 @@ public class BackupBackend
 
 
   /**
+   * {@inheritDoc}
+   */
+  public long getEntryCount()
+  {
+    assert debugEnter(CLASS_NAME, "getEntryCount");
+
+    int numEntries = 1;
+
+    AttributeType backupPathType =
+         DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
+
+    for (File f : backupDirectories)
+    {
+      try
+      {
+        DN backupDirDN = makeChildDN(backupBaseDN, backupPathType,
+                                     f.getAbsolutePath());
+        getBackupDirectoryEntry(backupDirDN);
+        numEntries++;
+      } catch (Exception e) {}
+    }
+
+    return numEntries;
+  }
+
+
+
+  /**
    * Indicates whether the data associated with this backend may be considered
    * local (i.e., in a repository managed by the Directory Server) rather than
    * remote (i.e., in an external repository accessed by the Directory Server

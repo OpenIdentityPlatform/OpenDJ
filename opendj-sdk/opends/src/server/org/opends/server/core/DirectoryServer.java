@@ -90,6 +90,7 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.StartupDebugLogger;
 import org.opends.server.loggers.StartupErrorLogger;
+import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.BinarySyntax;
 import org.opends.server.schema.BooleanEqualityMatchingRule;
@@ -5300,6 +5301,11 @@ public class DirectoryServer
       {
         newBackends.put(backendID, backend);
         directoryServer.backends = newBackends;
+
+        BackendMonitor monitor = new BackendMonitor(backend);
+        monitor.initializeMonitorProvider(null);
+        backend.setBackendMonitor(monitor);
+        registerMonitorProvider(monitor);
       }
     }
   }
@@ -5327,6 +5333,14 @@ public class DirectoryServer
       newBackends.remove(backend.getBackendID());
 
       directoryServer.backends = newBackends;
+
+      BackendMonitor monitor = backend.getBackendMonitor();
+      if (monitor != null)
+      {
+        String instanceName = toLowerCase(monitor.getMonitorInstanceName());
+        deregisterMonitorProvider(instanceName);
+        monitor.finalizeMonitorProvider();
+      }
     }
   }
 
