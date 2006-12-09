@@ -272,7 +272,7 @@ public class LDAPSearch
                    responseMessage.getSearchResultEntryProtocolOp();
               StringBuilder sb = new StringBuilder();
               toLDIF(searchEntryOp, sb, wrapColumn, typesOnly);
-              out.println(sb.toString());
+              out.print(sb.toString());
               matchingEntries++;
               break;
 
