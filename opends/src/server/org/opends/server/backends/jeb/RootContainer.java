@@ -146,20 +146,23 @@ public class RootContainer
                     EnvironmentConfig envConfig) throws DatabaseException
   {
     // Get the backend database backendDirectory permissions and apply
-    try
+    if(FilePermission.canSetPermissions())
     {
-      if(!FilePermission.setPermissions(backendDirectory, backendPermission))
+      try
       {
-        throw new Exception();
+        if(!FilePermission.setPermissions(backendDirectory, backendPermission))
+        {
+          throw new Exception();
+        }
       }
-    }
-    catch(Exception e)
-    {
-      // Log an warning that the permissions were not set.
-      int msgID = MSGID_JEB_SET_PERMISSIONS_FAILED;
-      String message = getMessage(msgID, backendDirectory.getPath());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
+      catch(Exception e)
+      {
+        // Log an warning that the permissions were not set.
+        int msgID = MSGID_JEB_SET_PERMISSIONS_FAILED;
+        String message = getMessage(msgID, backendDirectory.getPath());
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
+                 message, msgID);
+      }
     }
 
     // Open the database environment
@@ -559,7 +562,8 @@ public class RootContainer
     FilePermission oldPermission = config.getBackendPermission();
     FilePermission newPermission = newConfig.getBackendPermission();
 
-    if(!FilePermission.toUNIXMode(oldPermission).equals(
+    if(FilePermission.canSetPermissions() &&
+        !FilePermission.toUNIXMode(oldPermission).equals(
         FilePermission.toUNIXMode(newPermission)))
     {
       try
