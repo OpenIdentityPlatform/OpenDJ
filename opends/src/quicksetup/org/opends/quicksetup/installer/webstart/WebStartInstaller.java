@@ -43,6 +43,7 @@ import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.UserInstallData;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.SetupUtils;
 
 /**
  * This is an implementation of the Installer class that is used to install
@@ -168,6 +169,13 @@ public class WebStartInstaller extends Installer implements JnlpProperties
         importAutomaticallyGenerated();
         break;
       }
+
+      try
+      {
+        // This isn't likely to happen, and it's not a serious problem even if
+        // it does.
+        SetupUtils.writeSetJavaHome(getUserData().getServerLocation());
+      } catch (Exception e) {}
 
       if (getUserData().getStartServer())
       {

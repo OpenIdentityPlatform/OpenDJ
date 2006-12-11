@@ -30,6 +30,7 @@ setlocal
 set DIR_HOME=%~dP0..
 set INSTANCE_ROOT=%DIR_HOME%
 
+:checkJavaBin
 if "%JAVA_BIN%" == "" goto noJavaBin
 goto setClassPath
 
@@ -40,17 +41,22 @@ set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
 :noJavaHome
+if not exist "%DIR_HOME%\bin\set-java-home.bat" goto noSetJavaHome
+call "%DIR_HOME%\bin\set-java-home.bat"
+set JAVA_BIN=%JAVA_HOME%\bin\java.exe
+goto setClassPath
+
+:noSetJavaHome
 echo Error: JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 installation.
 goto end
-
 
 :setClassPath
 FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
 
 set PATH=%SystemRoot%
 
-set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=start-ds"
+set SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=start-ds
 
 set NODETACH=0
 for %%x in (%*) DO if "%%x" == "-N" set NODETACH=1
