@@ -35,26 +35,30 @@
     <sequence>
 
       <script>
+        STAXLogMessage = 1
         logdir='%s' % TMPDIR
       </script>
       
-      <job name="'Test Job 1'" monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
+      <job name="'Job: %s %s' % (STAF_REMOTE_HOSTNAME,TEST_OS_STRING) " monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
         <job-file>'%s/testcases/runFuncTests.xml' % TESTS_DIR</job-file>
         <job-scriptfiles machine="'%s' % STAF_LOCAL_HOSTNAME">['%s/config/config.py' % TESTS_DIR,'%s/python/security.py' % TESTS_SHARED_DIR]</job-scriptfiles>
         <job-action>
-          <log>'Started sub-job %s' % (STAXSubJobID)</log>
+          <log>'Started sub-job %s on %s' % (STAXSubJobID,STAF_REMOTE_HOSTNAME)</log>
         </job-action>
       </job>
 
       <if expr="RC == 0">
         <message>'Sub-job %s completed. Result: %s' % (STAXSubJobID, STAXResult)</message>
       <else>
-        <message>'Sub-job %s could not be started. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)</message>
+        <sequence>
+          <message log="1" level="'Error'">'Sub-job %s could not be started. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)</message>
+          <return>1</return>
+        </sequence>
       </else>
       </if>
 
       <stafcmd name="'STAF Command: Log Query All'">
-        <location>'localhost'</location>
+        <location>'%s' % STAF_LOCAL_HOSTNAME </location>
         <service>'log'</service>
         <request>
           'QUERY ALL MACHINE %s LOGNAME STAX_Job_%s' % (STAXServiceMachine,STAXSubJobID)
@@ -62,14 +66,14 @@
       </stafcmd>
 
       <message>
-         'RC=%s, STAFResult= %s' % (RC,STAFResult)
+         'Log Query on STAX_Job_%s Completed. RC=%s' % (STAXSubJobID,RC)
       </message>
  
       <!-- Write Text File for results -->
       <script>
           resultFile= STAFResult
-          outfile= '%s/results.txt' % logdir
-          txtfh=open(outfile,'w')
+          textfile= '%s/results.txt' % logdir
+          txtfh=open(textfile,'w')
       </script>
       
       <iterate var="line" in="resultFile"> 
@@ -83,6 +87,10 @@
       <script> 
         txtfh.close() 
       </script> 
+
+      <message>
+        'TEXT Report Written to %s.' % textfile
+      </message>
 
       <!-- Write XML File for results -->
       <script>
@@ -189,6 +197,17 @@
       <script>
         xmlfh.write('&lt;qa&gt;\n')
         xmlfh.write('  &lt;functional-tests&gt;\n')
+        xmlfh.write('    &lt;identification&gt;\n')
+        xmlfh.write('      &lt;platform&gt;\n')
+        xmlfh.write('        %s\n' % TEST_OS_STRING)
+        xmlfh.write('      &lt;/platform&gt;\n')
+        xmlfh.write('      &lt;hardware&gt;\n')
+        xmlfh.write('        %s\n' % TEST_HW_STRING)
+        xmlfh.write('      &lt;/hardware&gt;\n')
+        xmlfh.write('      &lt;jvm&gt;\n')
+        xmlfh.write('        %s\n' % TEST_JVM_STRING)
+        xmlfh.write('      &lt;/jvm&gt;\n')
+        xmlfh.write('    &lt;/identification&gt;\n')
         xmlfh.write('    &lt;results&gt;\n')
       </script>
 
@@ -247,7 +266,57 @@
         xmlfh.close() 
         errorfh.close() 
       </script> 
-      
+
+      <message>
+        'XML Report Written to %s.' % xmlfile
+      </message>
+
+      <!-- Transform Report XML into HTML -->
+      <script>
+        htmlfile= '%s/results.html' % logdir
+        xml2htmlname= 'xmlToHtml'
+        xml2htmldir= '%s/java/%s' % (TESTS_SHARED_DIR,xml2htmlname)
+        xml2htmlclass= '%s/%s.class' % (xml2htmldir,xml2htmlname)
+        xml2htmljava = '%s/%s.java' % (xml2htmldir,xml2htmlname)
+        xslfile= '%s/xsl/gen-alltests-report.xsl' % TESTS_SHARED_DIR
+      </script>
+
+      <stafcmd name="'STAF Command: Check for xml2html transformer'">
+        <location>'%s' % (STAF_LOCAL_HOSTNAME)</location>
+        <service>'fs'</service>
+        <request>
+          'GET ENTRY %s TYPE' % xml2htmlclass
+        </request>
+      </stafcmd>
+
+      <if expr="RC == 48">
+        <sequence>
+          <message log="1" level="'Error'">
+            'XML transformer (%s) does not exist.' % xml2htmlclass
+          </message>
+          <return>1</return>
+        </sequence>
+      </if>
+
+      <process name="'Transform Report XML into HTML'">
+        <location>'%s' % STAF_LOCAL_HOSTNAME</location>
+        <command>'%s/bin/java' % STAF_JAVA_HOME</command>
+        <parms>'-cp %s xmlToHtml %s %s %s' % (xml2htmldir,xslfile,xmlfile,htmlfile)</parms>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+
+      <if expr="RC == 0">
+        <message>
+          'HTML Report Written to %s.' % htmlfile
+        </message>
+      <else>
+        <message log="1" level="'Error'">
+          'Failed to write HTML Report. RC: %s, STAFResult: %s, STAXResult: %s' % (RC,STAFResult,STAXResult)
+        </message>
+      </else>
+      </if>
+
     </sequence>
 
   </function>
