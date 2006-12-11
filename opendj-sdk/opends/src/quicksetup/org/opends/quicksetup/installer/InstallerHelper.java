@@ -36,7 +36,8 @@ import org.opends.quicksetup.util.Utils;
 
 /**
  * This is the only class that uses classes in org.opends.server (excluding the
- * case of org.opends.server.util.DynamicConstants which is already included in
+ * case of org.opends.server.util.DynamicConstants and
+ * org.opends.server.util.SetupUtils which are already included in
  * quicksetup.jar).
  *
  * Important note: do not include references to the classes in package
@@ -83,14 +84,14 @@ class InstallerHelper implements JnlpProperties
         MSGID_DIRECTORY_SERVER_STARTED);
   }
 
-  private String getExceptionMsg(String key, Exception ex)
+  private String getThrowableMsg(String key, Throwable t)
   {
-    return getExceptionMsg(key, null, ex);
+    return getThrowableMsg(key, null, t);
   }
 
-  private String getExceptionMsg(String key, String[] args, Exception ex)
+  private String getThrowableMsg(String key, String[] args, Throwable t)
   {
-    return Utils.getExceptionMsg(ResourceProvider.getInstance(), key, args, ex);
+    return Utils.getThrowableMsg(ResourceProvider.getInstance(), key, args, t);
   }
 
   /**
@@ -109,7 +110,7 @@ class InstallerHelper implements JnlpProperties
       ldifFile.deleteOnExit();
     } catch (IOException ioe)
     {
-      String failedMsg = getExceptionMsg("error-creating-temp-file", null, ioe);
+      String failedMsg = getThrowableMsg("error-creating-temp-file", null, ioe);
       throw new InstallException(InstallException.Type.FILE_SYSTEM_ERROR,
           failedMsg, ioe);
     }
@@ -134,19 +135,19 @@ class InstallerHelper implements JnlpProperties
     } catch (org.opends.server.types.DirectoryException de)
     {
       throw new InstallException(InstallException.Type.CONFIGURATION_ERROR,
-          getExceptionMsg("error-importing-ldif", null, de), de);
+          getThrowableMsg("error-importing-ldif", null, de), de);
     } catch (org.opends.server.util.LDIFException le)
     {
       throw new InstallException(InstallException.Type.CONFIGURATION_ERROR,
-          getExceptionMsg("error-importing-ldif", null, le), le);
+          getThrowableMsg("error-importing-ldif", null, le), le);
     } catch (IOException ioe)
     {
       throw new InstallException(InstallException.Type.CONFIGURATION_ERROR,
-          getExceptionMsg("error-importing-ldif", null, ioe), ioe);
-    } catch (RuntimeException re)
+          getThrowableMsg("error-importing-ldif", null, ioe), ioe);
+    } catch (Throwable t)
     {
-      throw new InstallException(InstallException.Type.BUG, getExceptionMsg(
-          "bug-msg", re), re);
+      throw new InstallException(InstallException.Type.BUG, getThrowableMsg(
+          "bug-msg", t), t);
     }
     return ldifFile;
   }

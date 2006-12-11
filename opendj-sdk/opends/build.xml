@@ -232,12 +232,12 @@
     <taskdef resource="checkstyletask.properties"
          classpath="${checkstyle.dir}/checkstyle-all-4.1.jar" />
 
-    <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+  	<checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
       <fileset dir="${src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
-
+	
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
       <fileset dir="${quicksetup.src.dir}" includes="**/*.java" />
@@ -470,12 +470,13 @@
       <fileset file="${resource.dir}/README" />
     </copy>
 
-    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup"
+    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup,uninstall"
          eol="lf" />
-    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.bat"
+    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.bat,uninstall.bat"
          eol="crlf" />
 
     <chmod file="${pdir}/setup" perm="755" />
+  	<chmod file="${pdir}/uninstall" perm="755" />
     <chmod perm="755">
       <fileset dir="${pdir}/bin">
         <exclude name="*.bat"/>
@@ -492,7 +493,7 @@
 
     <zip destfile="${package.dir}/OpenDS-${pkgversion}.zip">
       <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/**/*"
-           excludes="OpenDS-${pkgversion}/bin/*,OpenDS-${pkgversion}/setup"
+           excludes="OpenDS-${pkgversion}/bin/*,OpenDS-${pkgversion}/setup,OpenDS-${pkgversion}/uninstall"
            filemode="644" dirmode="755" />
       <zipfileset dir="${package.dir}"
            includes="OpenDS-${pkgversion}/bin/*.bat"
@@ -500,7 +501,7 @@
       <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/bin/*"
            excludes="OpenDS-${pkgversion}/bin/*.bat"
            filemode="755" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/setup"
+      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/setup,OpenDS-${pkgversion}/uninstall"
            filemode="755" dirmode="755" />
     </zip>
   </target>

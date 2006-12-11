@@ -25,56 +25,20 @@
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.ui;
-
-import java.awt.Component;
+package org.opends.quicksetup.event;
 
 /**
- * This panel is used to show a welcome message.
+ * Interface that implement the objects that want to receive notifications of
+ * updates in the installation progress.
  *
  */
-class WelcomePanel extends QuickSetupStepPanel
+public interface InstallProgressUpdateListener
 {
-  private static final long serialVersionUID = 6209217138897900860L;
-
   /**
-   * Default constructor.
+   * Method called when an update in the installation progress occurs.
    *
+   * @param ev the InstallProgressUpdateEvent describing the update that
+   * occurred in the installation progress.
    */
-  public WelcomePanel()
-  {
-    createLayout();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected String getTitle()
-  {
-    return getMsg("welcome-panel-title");
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected String getInstructions()
-  {
-    /*
-     * We can use org.opends.server.util.DynamicConstants without problems as it
-     * has been added to quicksetup.jar during build time.
-     */
-    String[] args =
-          { org.opends.server.util.DynamicConstants.COMPACT_VERSION_STRING,
-              org.opends.server.util.DynamicConstants.BUILD_ID };
-    return getMsg("welcome-panel-instructions", args);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected Component createInputPanel()
-  {
-    // No input in this panel
-    return null;
-  }
+  public void progressUpdate(InstallProgressUpdateEvent ev);
 }

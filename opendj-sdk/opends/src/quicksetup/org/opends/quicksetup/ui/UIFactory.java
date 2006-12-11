@@ -28,6 +28,7 @@
 package org.opends.quicksetup.ui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.Insets;
@@ -43,11 +44,13 @@ import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -275,6 +278,11 @@ public class UIFactory
   public static final Color PROGRESS_COLOR = Color.BLACK;
 
   /**
+   * Specifies the instructions text color.
+   */
+  public static final Color INSTRUCTIONS_COLOR = Color.BLACK;
+
+  /**
    * Specifies the text field text color.
    */
   public static final Color TEXTFIELD_COLOR = Color.BLACK;
@@ -327,6 +335,12 @@ public class UIFactory
    */
   public static final Font INSTRUCTIONS_FONT =
     Font.decode("Arial-PLAIN-14");
+
+  /**
+   * Specifies the font for the instructions of the current panel.
+   */
+  public static final Font INSTRUCTIONS_MONOSPACE_FONT =
+    Font.decode("Monospaced-PLAIN-14");
 
   /**
    * Specifies the font for the primary valid field.
@@ -559,6 +573,10 @@ public class UIFactory
      */
     PROGRESS,
     /**
+     * Text style for the instructions.
+     */
+    INSTRUCTIONS,
+    /**
      * No text style.
      */
     NO_STYLE
@@ -733,6 +751,19 @@ public class UIFactory
   }
 
   /**
+   * Creates a JList.
+   *
+   * @param textStyle the style to be used for the renderer.
+   * @return a JList.
+   */
+  public static JList makeJList(TextStyle textStyle)
+  {
+    JList list = new JList();
+    list.setCellRenderer(makeCellRenderer(textStyle));
+    return list;
+  }
+
+  /**
    * Sets the specified text style to the component passed as parameter.
    * @param l the component to update.
    * @param style the text style to use.
@@ -789,6 +820,11 @@ public class UIFactory
     case PROGRESS:
       l.setFont(UIFactory.PROGRESS_FONT);
       l.setForeground(PROGRESS_COLOR);
+      break;
+
+    case INSTRUCTIONS:
+      l.setFont(INSTRUCTIONS_FONT);
+      l.setForeground(INSTRUCTIONS_COLOR);
       break;
 
     case TEXTFIELD:
@@ -1278,6 +1314,24 @@ public class UIFactory
       throw new IllegalArgumentException("Unknow iconName: " + iconType);
     }
     return tooltip;
+  }
+
+  private static ListCellRenderer makeCellRenderer(final TextStyle textStyle)
+  {
+    ListCellRenderer renderer = new ListCellRenderer()
+    {
+      public Component getListCellRendererComponent(JList list,
+          Object value,
+          int index,
+          boolean isSelected,
+          boolean cellHasFocus)
+      {
+        JLabel l = makeJLabel(IconType.NO_ICON, (String)value, textStyle);
+        l.setBorder(new EmptyBorder(TOP_INSET_SECONDARY_FIELD, 0, 0, 0));
+        return l;
+      }
+    };
+    return renderer;
   }
 }
 

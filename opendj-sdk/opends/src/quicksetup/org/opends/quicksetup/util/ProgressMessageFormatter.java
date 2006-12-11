@@ -40,12 +40,21 @@ public interface ProgressMessageFormatter
 {
 
   /**
+   * Returns the formatted representation of the text without providing any
+   * style.
+   * @param text the source text from which we want to get the formatted
+   * representation
+   * @return the formatted representation for the given text.
+   */
+  public String getFormattedText(String text);
+
+  /**
    * Returns the formatted representation of the text that is the summary of the
    * installation process (the one that goes in the UI next to the progress
    * bar).
    * @param text the source text from which we want to get the formatted
    * representation
-   * @return the formatted representation of an error for the given text.
+   * @return the formatted representation of a summary for the given text.
    */
   public String getFormattedSummary(String text);
 
@@ -53,23 +62,27 @@ public interface ProgressMessageFormatter
    * Returns the formatted representation of an error for a given text.
    * @param text the source text from which we want to get the formatted
    * representation
+   * @param applyMargin specifies whether we apply a margin or not to the
+   * resulting formatted text.
    * @return the formatted representation of an error for the given text.
    */
-  public String getFormattedError(String text);
+  public String getFormattedError(String text, boolean applyMargin);
 
   /**
-   * Returns the formatted representation of an warning for a given text.
+   * Returns the formatted representation of a warning for a given text.
    * @param text the source text from which we want to get the formatted
    * representation
-   * @return the formatted representation of an warning for the given text.
+   * @param applyMargin specifies whether we apply a margin or not to the
+   * resulting formatted text.
+   * @return the formatted representation of a warning for the given text.
    */
-  public String getFormattedWarning(String text);
+  public String getFormattedWarning(String text, boolean applyMargin);
 
   /**
    * Returns the formatted representation of a success message for a given text.
    * @param text the source text from which we want to get the formatted
    * representation
-   * @return the formatted representation of an success message for the given
+   * @return the formatted representation of a success message for the given
    * text.
    */
   public String getFormattedSuccess(String text);
@@ -135,6 +148,12 @@ public interface ProgressMessageFormatter
    * @return the line break formatted.
    */
   public String getLineBreak();
+
+  /**
+   * Returns the tab formatted.
+   * @return the tab formatted.
+   */
+  public String getTab();
 
   /**
    * Returns the task separator formatted.

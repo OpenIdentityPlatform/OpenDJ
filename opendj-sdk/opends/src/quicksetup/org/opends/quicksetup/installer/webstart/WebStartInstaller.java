@@ -43,7 +43,6 @@ import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.UserInstallData;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.util.SetupUtils;
 
 /**
  * This is an implementation of the Installer class that is used to install
@@ -58,7 +57,7 @@ import org.opends.server.util.SetupUtils;
  * we require all the jar files to be downloaded in order to install and
  * configure the Directory Server.
  *
- * Based on the Java properties set through the OpenDSQuickSetup.jnlp file this
+ * Based on the Java properties set through the QuickSetup.jnlp file this
  * class will retrieve the zip file containing the install, unzip it and extract
  * it in the path specified by the user and that is contained in the
  * UserInstallData object.
@@ -125,7 +124,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
   }
 
   /**
-   * Actually performs the start in this thread.  The thread is blocked.
+   * Actually performs the install in this thread.  The thread is blocked.
    *
    */
   private void doInstall()
@@ -170,12 +169,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
         break;
       }
 
-      try
-      {
-        // This isn't likely to happen, and it's not a serious problem even if
-        // it does.
-        SetupUtils.writeSetJavaHome(getUserData().getServerLocation());
-      } catch (Exception e) {}
+      writeJavaHome();
 
       if (getUserData().getStartServer())
       {
@@ -192,6 +186,14 @@ public class WebStartInstaller extends Installer implements JnlpProperties
       status = InstallProgressStep.FINISHED_WITH_ERROR;
       String html = getFormattedError(ex, true);
       notifyListeners(html);
+    }
+    catch (Throwable t)
+    {
+      status = InstallProgressStep.FINISHED_WITH_ERROR;
+      InstallException ex = new InstallException(
+          InstallException.Type.BUG, getThrowableMsg("bug-msg", t), t);
+      String msg = getFormattedError(ex, true);
+      notifyListeners(msg);
     }
   }
 
@@ -424,7 +426,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
           {
             String[] arg =
               { entry.getName() };
-            String errorMsg = getExceptionMsg("error-copying", arg, ioe);
+            String errorMsg = getThrowableMsg("error-copying", arg, ioe);
 
             throw new InstallException(InstallException.Type.FILE_SYSTEM_ERROR,
                 errorMsg, ioe);
@@ -465,7 +467,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     {
       String[] arg =
         { getZipFileName() };
-      String errorMsg = getExceptionMsg("error-zip-stream", arg, ioe);
+      String errorMsg = getThrowableMsg("error-zip-stream", arg, ioe);
       throw new InstallException(InstallException.Type.FILE_SYSTEM_ERROR,
           errorMsg, ioe);
     }
@@ -565,11 +567,11 @@ public class WebStartInstaller extends Installer implements JnlpProperties
    */
   private String[] getOpenDSJarPaths()
   {
-    String[] jarPaths = new String[OPEN_DS_JAR_RELATIVE_PATHS.length];
+    String[] jarPaths = new String[Utils.getOpenDSJarPaths().length];
     File parentDir = new File(getUserData().getServerLocation());
     for (int i = 0; i < jarPaths.length; i++)
     {
-      File f = new File(parentDir, OPEN_DS_JAR_RELATIVE_PATHS[i]);
+      File f = new File(parentDir, Utils.getOpenDSJarPaths()[i]);
       jarPaths[i] = f.getAbsolutePath();
     }
     return jarPaths;
@@ -619,6 +621,9 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     } else if (path.endsWith(".sh"))
     {
       perm = "755";
+    } else if (path.endsWith("setup") || path.endsWith("uninstall"))
+    {
+      perm = "755";
     } else
     {
       perm = "644";
@@ -640,20 +645,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties
   /**
    * {@inheritDoc}
    */
-  protected String getConfigFilePath()
+  protected String getInstallationPath()
   {
-    String fullInstallPath = getUserData().getServerLocation();
-
-    return Utils.getPath(fullInstallPath, CONFIG_PATH_RELATIVE);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected String getBinariesPath()
-  {
-    String fullInstallPath = getUserData().getServerLocation();
-
-    return Utils.getPath(fullInstallPath, BINARIES_PATH_RELATIVE);
+    return getUserData().getServerLocation();
   }
 }

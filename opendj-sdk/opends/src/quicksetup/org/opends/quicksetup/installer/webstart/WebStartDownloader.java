@@ -42,7 +42,7 @@ import org.opends.quicksetup.util.Utils;
 
 /**
  * This class is used to download the files that have been marked as lazy
- * in the OpenDSQuickSetup.jnlp file.
+ * in the QuickSetup.jnlp file.
  *
  * The global idea is to force the user to download just one jar file
  * (quicksetup.jar) to display the Web Start installer dialog.  Then QuickSetup
@@ -132,12 +132,12 @@ public class WebStartDownloader implements DownloadServiceListener,
           ex =
               new InstallException(InstallException.Type.DOWNLOAD_ERROR,
                   getExceptionMsg("downloading-error", arg, ioe), ioe);
-        } catch (RuntimeException re)
+        } catch (Throwable t)
         {
           // This is a bug
           ex =
               new InstallException(InstallException.Type.BUG, getExceptionMsg(
-                  "bug-msg", re), re);
+                  "bug-msg", t), t);
         }
       }
     });
@@ -403,14 +403,14 @@ public class WebStartDownloader implements DownloadServiceListener,
   }
 
   /* Some commodity methods to get localized messages */
-  private String getExceptionMsg(String key, Exception ex)
+  private String getExceptionMsg(String key, Throwable t)
   {
-    return getExceptionMsg(key, null, ex);
+    return getExceptionMsg(key, null, t);
   }
 
-  private String getExceptionMsg(String key, String[] args, Exception ex)
+  private String getExceptionMsg(String key, String[] args, Throwable t)
   {
-    return Utils.getExceptionMsg(ResourceProvider.getInstance(), key, args, ex);
+    return Utils.getThrowableMsg(ResourceProvider.getInstance(), key, args, t);
   }
 
   private String getMsg(String key, String[] args)

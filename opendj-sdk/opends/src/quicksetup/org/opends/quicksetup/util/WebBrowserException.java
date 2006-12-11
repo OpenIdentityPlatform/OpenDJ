@@ -44,7 +44,7 @@ public class WebBrowserException extends Exception
    * @param msg the error message.
    * @param rootCause the root cause.
    */
-  public WebBrowserException(String url, String msg, Exception rootCause)
+  public WebBrowserException(String url, String msg, Throwable rootCause)
   {
     super(msg, rootCause);
     this.url = url;

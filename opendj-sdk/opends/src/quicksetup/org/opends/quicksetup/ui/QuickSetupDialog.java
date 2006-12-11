@@ -33,7 +33,6 @@ import java.util.HashSet;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -48,6 +47,8 @@ import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.installer.InstallProgressDescriptor;
 import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.installer.UserInstallData;
+import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
+import org.opends.quicksetup.uninstaller.UninstallProgressStep;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
@@ -103,7 +104,7 @@ public class QuickSetupDialog
       frame = new JFrame(getMsg("frame-uninstall-title"));
     } else
     {
-      frame = new JFrame(getMsg("frame-quicksetup-title"));
+      frame = new JFrame(getMsg("frame-install-title"));
     }
 
     frame.getContentPane().add(getFramePanel());
@@ -295,6 +296,22 @@ public class QuickSetupDialog
   }
 
   /**
+   * Forwards to the displayed panel the UninstallProgressDescriptor so that
+   * they can update their contents accordingly.
+   * @param descriptor the descriptor of the Uninstallation progress.
+   */
+  public void displayProgress(UninstallProgressDescriptor descriptor)
+  {
+    getCurrentStepPanel().displayProgress(descriptor);
+    UninstallProgressStep status = descriptor.getProgressStep();
+    if ((status == UninstallProgressStep.FINISHED_SUCCESSFULLY)
+        || (status == UninstallProgressStep.FINISHED_WITH_ERROR))
+    {
+      setButtonEnabled(ButtonName.CLOSE, true);
+    }
+  }
+
+  /**
    * Displays an error message dialog.
    *
    * @param msg
@@ -304,8 +321,7 @@ public class QuickSetupDialog
    */
   public void displayError(String msg, String title)
   {
-    JOptionPane.showMessageDialog(getFrame(), msg, title,
-        JOptionPane.ERROR_MESSAGE);
+    Utils.displayError(getFrame(), msg, title);
   }
 
   /**
@@ -320,12 +336,7 @@ public class QuickSetupDialog
    */
   public boolean displayConfirmation(String msg, String title)
   {
-    return JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(
-        getFrame(), msg, title, JOptionPane.YES_NO_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, // don't use a custom
-        // Icon
-        null, // the titles of buttons
-        null); // default button title
+    return Utils.displayConfirmation(getFrame(), msg, title);
   }
 
   /**
@@ -421,6 +432,7 @@ public class QuickSetupDialog
         // TODO: here we could have an animated gif.
         setButtonEnabled(ButtonName.NEXT, false);
         setButtonEnabled(ButtonName.PREVIOUS, false);
+        setButtonEnabled(ButtonName.FINISH, false);
       }
     };
     runOnEventThread(r);
@@ -443,6 +455,7 @@ public class QuickSetupDialog
         // TO COMPLETE: here we could have an animated gif.
         setButtonEnabled(ButtonName.NEXT, true);
         setButtonEnabled(ButtonName.PREVIOUS, true);
+        setButtonEnabled(ButtonName.FINISH, true);
       }
     };
     runOnEventThread(r);
@@ -472,6 +485,15 @@ public class QuickSetupDialog
   }
 
   /**
+   * Returns the frame containing the dialog.
+   * @return the frame containing the dialog.
+   */
+  public JFrame getFrame()
+  {
+    return frame;
+  }
+
+  /**
    * Enables a button associated with the given Button Name.
    * @param buttonName the button name of the button.
    * @param enable boolean indicating to enable or to disable the button.
@@ -479,15 +501,6 @@ public class QuickSetupDialog
   private void setButtonEnabled(ButtonName buttonName, boolean enable)
   {
     getButton(buttonName).setEnabled(enable);
-  }
-
-  /**
-   * Returns the frame containing the dialog.
-   * @return the frame containing the dialog.
-   */
-  private JFrame getFrame()
-  {
-    return frame;
   }
 
   /**
@@ -543,7 +556,8 @@ public class QuickSetupDialog
   {
     if (currentStepPanel == null)
     {
-      currentStepPanel = new CurrentStepPanel(defaultUserData, isUninstall());
+      currentStepPanel = new CurrentStepPanel(defaultUserData, installStatus,
+          isUninstall());
     }
     return currentStepPanel;
   }

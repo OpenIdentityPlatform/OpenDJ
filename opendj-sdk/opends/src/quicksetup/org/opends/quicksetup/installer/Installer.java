@@ -36,8 +36,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.opends.quicksetup.event.ProgressUpdateEvent;
-import org.opends.quicksetup.event.ProgressUpdateListener;
+import javax.naming.NamingException;
+
+import org.opends.quicksetup.event.InstallProgressUpdateEvent;
+import org.opends.quicksetup.event.InstallProgressUpdateListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
@@ -50,10 +52,13 @@ import org.opends.server.util.SetupUtils;
  * It just takes a UserInstallData object and based on that installs OpenDS.
  *
  * When there is an update during the installation it will notify the
- * ProgressUpdateListener objects that have been added to it.  The notification
- * will send a ProgressUpdateEvent.
+ * InstallProgressUpdateListener objects that have been added to it.  The
+ * notification will send a InstallProgressUpdateEvent.
  *
  * This class is supposed to be fully independent of the graphical layout.
+ *
+ * Note that we can use freely the class org.opends.server.util.SetupUtils as
+ * it is included in quicksetup.jar.
  *
  */
 public abstract class Installer
@@ -64,19 +69,8 @@ public abstract class Installer
   protected static final String CONFIG_PATH_RELATIVE =
       "config" + File.separator + "config.ldif";
 
-  /**
-   * The relative path where all the binaries (scripts) are.
-   */
-  protected static final String BINARIES_PATH_RELATIVE = "bin";
-
-  /**
-   * The relative paths to the jar files required by the install.
-   */
-  protected static final String[] OPEN_DS_JAR_RELATIVE_PATHS =
-    { "lib/OpenDS.jar", "lib/je.jar" };
-
-  private HashSet<ProgressUpdateListener> listeners =
-      new HashSet<ProgressUpdateListener>();
+  private HashSet<InstallProgressUpdateListener> listeners =
+      new HashSet<InstallProgressUpdateListener>();
 
   private UserInstallData userData;
 
@@ -87,7 +81,7 @@ public abstract class Installer
    * @param userData the user data definining the parameters of the
    * installation.
    * @param formatter the message formatter to be used to generate the text of
-   * the ProgressUpdateEvent
+   * the InstallProgressUpdateEvent
    */
   protected Installer(UserInstallData userData,
       ProgressMessageFormatter formatter)
@@ -97,20 +91,20 @@ public abstract class Installer
   }
 
   /**
-   * Adds a ProgressUpdateListener that will be notified of updates in the
-   * install progress.
-   * @param l the ProgressUpdateListener to be added.
+   * Adds a InstallProgressUpdateListener that will be notified of updates in
+   * the install progress.
+   * @param l the InstallProgressUpdateListener to be added.
    */
-  public void addProgressUpdateListener(ProgressUpdateListener l)
+  public void addProgressUpdateListener(InstallProgressUpdateListener l)
   {
     listeners.add(l);
   }
 
   /**
-   * Removes a ProgressUpdateListener.
-   * @param l the ProgressUpdateListener to be removed.
+   * Removes a InstallProgressUpdateListener.
+   * @param l the InstallProgressUpdateListener to be removed.
    */
-  public void removeProgressUpdateListener(ProgressUpdateListener l)
+  public void removeProgressUpdateListener(InstallProgressUpdateListener l)
   {
     listeners.remove(l);
   }
@@ -152,22 +146,22 @@ public abstract class Installer
   }
 
   /**
-   * This method notifies the ProgressUpdateListeners that there was an update
-   * in the installation progress.
+   * This method notifies the InstallProgressUpdateListeners that there was an
+   * update in the installation progress.
    * @param ratio the integer that specifies which percentage of
    * the whole installation has been completed.
    * @param currentPhaseSummary the localized summary message for the
-   * current installation progress in HTML form.
+   * current installation progress in formatted form.
    * @param newLogDetail the new log messages that we have for the
-   * installation in HTML form.
+   * installation in formatted form.
    */
   protected void notifyListeners(Integer ratio, String currentPhaseSummary,
       String newLogDetail)
   {
-    ProgressUpdateEvent ev =
-        new ProgressUpdateEvent(getStatus(), ratio, currentPhaseSummary,
+    InstallProgressUpdateEvent ev =
+        new InstallProgressUpdateEvent(getStatus(), ratio, currentPhaseSummary,
             newLogDetail);
-    for (ProgressUpdateListener l : listeners)
+    for (InstallProgressUpdateListener l : listeners)
     {
       l.progressUpdate(ev);
     }
@@ -218,27 +212,27 @@ public abstract class Installer
   }
 
   /**
-   * Returns a localized message for a given properties key an exception.
+   * Returns a localized message for a given properties key and throwable.
    * @param key the key of the message in the properties file.
-   * @param ex the exception for which we want to get a message.
-   * @return a localized message for a given properties key an exception.
+   * @param t the throwable for which we want to get a message.
+   * @return a localized message for a given properties key and throwable.
    */
-  protected String getExceptionMsg(String key, Exception ex)
+  protected String getThrowableMsg(String key, Throwable t)
   {
-    return getExceptionMsg(key, null, ex);
+    return getThrowableMsg(key, null, t);
   }
 
   /**
-   * Returns a localized message for a given properties key an exception.
+   * Returns a localized message for a given properties key and throwable.
    * @param key the key of the message in the properties file.
    * @param args the arguments of the message in the properties file.
-   * @param ex the exception for which we want to get a message.
+   * @param t the throwable for which we want to get a message.
    *
-   * @return a localized message for a given properties key an exception.
+   * @return a localized message for a given properties key and throwable.
    */
-  protected String getExceptionMsg(String key, String[] args, Exception ex)
+  protected String getThrowableMsg(String key, String[] args, Throwable t)
   {
-    return Utils.getExceptionMsg(getI18n(), key, args, ex);
+    return Utils.getThrowableMsg(getI18n(), key, args, t);
   }
 
   /**
@@ -262,7 +256,7 @@ public abstract class Installer
    */
   protected String getFormattedError(String text)
   {
-    return formatter.getFormattedError(text);
+    return formatter.getFormattedError(text, false);
   }
 
   /**
@@ -271,9 +265,9 @@ public abstract class Installer
    * representation
    * @return the formatted representation of an warning for the given text.
    */
-  public String getFormattedWarning(String text)
+  protected String getFormattedWarning(String text)
   {
-    return formatter.getFormattedWarning(text);
+    return formatter.getFormattedWarning(text, false);
   }
 
   /**
@@ -283,7 +277,7 @@ public abstract class Installer
    * @return the formatted representation of an success message for the given
    * text.
    */
-  public String getFormattedSuccess(String text)
+  protected String getFormattedSuccess(String text)
   {
     return formatter.getFormattedSuccess(text);
   }
@@ -302,10 +296,10 @@ public abstract class Installer
   }
 
   /**
-   * Returns the HTML representation of a log message for a given text.
-   * @param text the source text from which we want to get the HTML
+   * Returns the formatted representation of a log message for a given text.
+   * @param text the source text from which we want to get the formatted
    * representation
-   * @return the HTML representation of a log message for the given text.
+   * @return the formatted representation of a log message for the given text.
    */
   protected String getFormattedLog(String text)
   {
@@ -334,10 +328,12 @@ public abstract class Installer
   }
 
   /**
-   * Returns the HTML representation of a progress message for a given text.
-   * @param text the source text from which we want to get the HTML
+   * Returns the formatted representation of a progress message for a given
+   * text.
+   * @param text the source text from which we want to get the formatted
    * representation
-   * @return the HTML representation of a progress message for the given text.
+   * @return the formatted representation of a progress message for the given
+   * text.
    */
   protected String getFormattedProgress(String text)
   {
@@ -397,7 +393,7 @@ public abstract class Installer
     }
     catch (IOException ioe)
     {
-      String failedMsg = getExceptionMsg("error-creating-temp-file", null, ioe);
+      String failedMsg = getThrowableMsg("error-creating-temp-file", null, ioe);
       throw new InstallException(InstallException.Type.FILE_SYSTEM_ERROR,
           failedMsg, ioe);
     }
@@ -405,7 +401,7 @@ public abstract class Installer
 
   /**
    * This method is called when a new log message has been received.  It will
-   * notify the ProgressUpdateListeners of this fact.
+   * notify the InstallProgressUpdateListeners of this fact.
    * @param newLogDetail the new log detail.
    */
   protected void notifyListeners(String newLogDetail)
@@ -431,10 +427,10 @@ public abstract class Installer
   protected abstract Integer getRatio(InstallProgressStep step);
 
   /**
-   * Returns an HTML representation of the summary for the specified
+   * Returns an formatted representation of the summary for the specified
    * InstallProgressStep.
    * @param step the InstallProgressStep for which we want to get the summary
-   * @return an HTML representation of the summary for the specified
+   * @return an formatted representation of the summary for the specified
    * InstallProgressStep.
    */
   protected abstract String getSummary(InstallProgressStep step);
@@ -443,11 +439,11 @@ public abstract class Installer
    * This class is used to read the standard error and standard output of the
    * Start process.
    *
-   * When a new log message is found notifies the ProgressUpdateListeners of
-   * it. If an error occurs it also notifies the listeners.
+   * When a new log message is found notifies the InstallProgressUpdateListeners
+   * of it. If an error occurs it also notifies the listeners.
    *
    */
-  abstract class StartReader
+  private class StartReader
   {
     private InstallException ex;
 
@@ -463,7 +459,7 @@ public abstract class Installer
      * @param isError a boolean indicating whether the BufferedReader
      * corresponds to the standard error or to the standard output.
      */
-    protected StartReader(final BufferedReader reader, final String startedId,
+    public StartReader(final BufferedReader reader, final String startedId,
         final boolean isError)
     {
       final String errorTag =
@@ -503,17 +499,17 @@ public abstract class Installer
             }
           } catch (IOException ioe)
           {
-            String errorMsg = getExceptionMsg(errorTag, ioe);
+            String errorMsg = getThrowableMsg(errorTag, ioe);
             ex =
                 new InstallException(InstallException.Type.START_ERROR,
                     errorMsg, ioe);
 
-          } catch (RuntimeException re)
+          } catch (Throwable t)
           {
-            String errorMsg = getExceptionMsg(errorTag, re);
+            String errorMsg = getThrowableMsg(errorTag, t);
             ex =
                 new InstallException(InstallException.Type.START_ERROR,
-                    errorMsg, re);
+                    errorMsg, t);
           }
           isFinished = true;
         }
@@ -545,52 +541,14 @@ public abstract class Installer
   }
 
   /**
-   * A subclass of the StartReader class used to read the standard error of the
-   * server start.
-   *
-   */
-  protected class StartErrorReader extends StartReader
-  {
-    /**
-     * Constructor of the StartErrorReader.
-     * @param reader the BufferedReader that reads the standard error of the
-     * Start process.
-     * @param startedId the Message ID that
-     */
-    public StartErrorReader(BufferedReader reader, String startedId)
-    {
-      super(reader, startedId, true);
-    }
-  }
-
-  /**
-   * A subclass of the StartReader class used to read the standard output of
-   * the server start.
-   *
-   */
-  protected class StartOutputReader extends StartReader
-  {
-    /**
-     * Constructor of the StartOutputReader.
-     * @param reader the BufferedReader that reads the standard output of the
-     * Start process.
-     * @param startedId the Message ID that
-     */
-    public StartOutputReader(BufferedReader reader, String startedId)
-    {
-      super(reader, startedId, false);
-    }
-  }
-
-  /**
-   * This class is used to notify the ProgressUpdateListeners of events that
-   * are written to the standard error.  It is used in WebStartInstaller and in
-   * OfflineInstaller.  These classes just create a ErrorPrintStream and then
-   * they do a call to System.err with it.
+   * This class is used to notify the InstallProgressUpdateListeners of events
+   * that are written to the standard error.  It is used in WebStartInstaller
+   * and in OfflineInstaller.  These classes just create a ErrorPrintStream and
+   * then they do a call to System.err with it.
    *
    * The class just reads what is written to the standard error, obtains an
-   * HTML representation of it and then notifies the ProgressUpdateListeners
-   * with the HTML messages.
+   * formatted representation of it and then notifies the
+   * InstallProgressUpdateListeners with the formatted messages.
    *
    */
   protected class ErrorPrintStream extends PrintStream
@@ -642,14 +600,14 @@ public abstract class Installer
   }
 
   /**
-   * This class is used to notify the ProgressUpdateListeners of events that are
-   * written to the standard output. It is used in WebStartInstaller and in
-   * OfflineInstaller. These classes just create a OutputPrintStream and then
-   * they do a call to System.err with it.
+   * This class is used to notify the InstallProgressUpdateListeners of events
+   * that are written to the standard output. It is used in WebStartInstaller
+   * and in OfflineInstaller. These classes just create a OutputPrintStream and
+   * then they do a call to System.out with it.
    *
    * The class just reads what is written to the standard output, obtains an
-   * HTML representation of it and then notifies the ProgressUpdateListeners
-   * with the HTML messages.
+   * formatted representation of it and then notifies the
+   * InstallProgressUpdateListeners with the formatted messages.
    *
    */
   protected class OutputPrintStream extends PrintStream
@@ -741,11 +699,11 @@ public abstract class Installer
             InstallException.Type.CONFIGURATION_ERROR,
             getMsg("error-configuring"), null);
       }
-    } catch (RuntimeException re)
+    } catch (Throwable t)
     {
       throw new InstallException(
           InstallException.Type.CONFIGURATION_ERROR,
-          getExceptionMsg("error-configuring", null, re), re);
+          getThrowableMsg("error-configuring", null, t), t);
     }
   }
 
@@ -793,11 +751,11 @@ public abstract class Installer
             InstallException.Type.CONFIGURATION_ERROR,
             getMsg("error-creating-base-entry"), null);
       }
-    } catch (RuntimeException re)
+    } catch (Throwable t)
     {
       throw new InstallException(
           InstallException.Type.CONFIGURATION_ERROR,
-          getExceptionMsg("error-creating-base-entry", null, re), re);
+          getThrowableMsg("error-creating-base-entry", null, t), t);
     }
 
     notifyListeners(getFormattedDone());
@@ -840,11 +798,11 @@ public abstract class Installer
             InstallException.Type.CONFIGURATION_ERROR,
             getMsg("error-importing-ldif"), null);
       }
-    } catch (RuntimeException re)
+    } catch (Throwable t)
     {
       throw new InstallException(
           InstallException.Type.CONFIGURATION_ERROR,
-          getExceptionMsg("error-importing-ldif", null, re), re);
+          getThrowableMsg("error-importing-ldif", null, t), t);
     }
   }
 
@@ -890,12 +848,11 @@ public abstract class Installer
             InstallException.Type.CONFIGURATION_ERROR,
             getMsg("error-import-automatically-generated"), null);
       }
-    } catch (RuntimeException re)
+    } catch (Throwable t)
     {
       throw new InstallException(
           InstallException.Type.CONFIGURATION_ERROR,
-          getExceptionMsg("error-import-automatically-generated", null, re),
-          re);
+          getThrowableMsg("error-import-automatically-generated", null, t), t);
     }
   }
 
@@ -917,25 +874,30 @@ public abstract class Installer
     {
       argList.add(Utils.getPath(getBinariesPath(), "start-ds"));
     }
-    String[] env =
-      { "JAVA_HOME=" + System.getProperty("java.home") };
+
+    String[] args = new String[argList.size()];
+    argList.toArray(args);
+    ProcessBuilder pb = new ProcessBuilder(args);
+    Map<String, String> env = pb.environment();
+    env.put("JAVA_HOME", System.getProperty("java.home"));
+    /* Remove JAVA_BIN to be sure that we use the JVM running the installer
+     * JVM to start the server.
+     */
+    env.remove("JAVA_BIN");
 
     try
     {
       String startedId = getStartedId();
 
-      String[] args = new String[argList.size()];
-      argList.toArray(args);
-      // Process process = Runtime.getRuntime().exec(args);
-      Process process = Runtime.getRuntime().exec(args, env);
+      Process process = pb.start();
 
       BufferedReader err =
           new BufferedReader(new InputStreamReader(process.getErrorStream()));
       BufferedReader out =
           new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-      StartErrorReader errReader = new StartErrorReader(err, startedId);
-      StartOutputReader outputReader = new StartOutputReader(out, startedId);
+      StartReader errReader = new StartReader(err, startedId, true);
+      StartReader outputReader = new StartReader(out, startedId, false);
 
       while (!errReader.isFinished() && !outputReader.isFinished())
       {
@@ -963,13 +925,49 @@ public abstract class Installer
          * finished. This means that the server has written in its output the
          * message id informing that it started. So it seems that everything
          * went fine.
+         *
+         * However in Windows we can have issues with the firewalls.  Just check
+         * if we can connect to the server.  Try 5 times with an interval of
+         * 1 second between try.
          */
+        boolean connected = false;
+        for (int i=0; i<5 && !connected; i++)
+        {
+          String ldapUrl = "ldap://localhost:"+userData.getServerPort();
+          try
+          {
+            Utils.createLdapContext(
+                ldapUrl,
+                userData.getDirectoryManagerDn(),
+                userData.getDirectoryManagerPwd(), 3000, null);
+            connected = true;
+          }
+          catch (NamingException ne)
+          {
+          }
+          if (!connected)
+          {
+            try
+            {
+              Thread.sleep(1000);
+            }
+            catch (Throwable t)
+            {
+            }
+          }
+        }
+        if (!connected)
+        {
+          String[] arg = {String.valueOf(userData.getServerPort())};
+          throw new InstallException(InstallException.Type.START_ERROR,
+              getMsg("error-starting-server-in-windows", arg), null);
+        }
       }
 
     } catch (IOException ioe)
     {
       throw new InstallException(InstallException.Type.START_ERROR,
-          getExceptionMsg("error-starting-server", ioe), ioe);
+          getThrowableMsg("error-starting-server", ioe), ioe);
     }
   }
 
@@ -981,16 +979,29 @@ public abstract class Installer
   protected abstract String getOpenDSClassPath();
 
   /**
+   * Returns the installation path.
+   * @return the installation path.
+   */
+  protected abstract String getInstallationPath();
+
+  /**
    * Returns the config file path.
    * @return the config file path.
    */
-  protected abstract String getConfigFilePath();
+  protected String getConfigFilePath()
+  {
+    return Utils.getPath(getInstallationPath(), CONFIG_PATH_RELATIVE);
+  }
 
   /**
    * Returns the path to the binaries.
    * @return the path to the binaries.
    */
-  protected abstract String getBinariesPath();
+  protected String getBinariesPath()
+  {
+    return Utils.getPath(getInstallationPath(),
+        Utils.getBinariesRelativePath());
+  }
 
   /**
    * Updates the contents of the provided map with the localized summary
@@ -1001,7 +1012,7 @@ public abstract class Installer
       Map<InstallProgressStep, String> hmSummary)
   {
     hmSummary.put(InstallProgressStep.NOT_STARTED,
-        getFormattedSummary(getMsg("summary-not-started")));
+        getFormattedSummary(getMsg("summary-install-not-started")));
     hmSummary.put(InstallProgressStep.DOWNLOADING,
         getFormattedSummary(getMsg("summary-downloading")));
     hmSummary.put(InstallProgressStep.EXTRACTING,
@@ -1018,10 +1029,29 @@ public abstract class Installer
             getMsg("summary-importing-automatically-generated")));
     hmSummary.put(InstallProgressStep.STARTING_SERVER,
         getFormattedSummary(getMsg("summary-starting")));
-    hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY, "<html>"
-        + getFormattedSuccess(getMsg("summary-finished-successfully")));
-    hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR, "<html>"
-        + getFormattedError(getMsg("summary-finished-with-error")));
+
+    String[] arg = {formatter.getFormattedText(getInstallationPath())};
+    hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
+        getFormattedSuccess(
+            getMsg("summary-install-finished-successfully", arg)));
+    hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,
+        getFormattedError(getMsg("summary-install-finished-with-error")));
+  }
+
+  /**
+   * Writes the java home that we are using for the setup in a file.
+   * This way we can use this java home even if the user has not set JAVA_HOME
+   * when running the different scripts.
+   *
+   */
+  protected void writeJavaHome()
+  {
+    try
+    {
+      // This isn't likely to happen, and it's not a serious problem even if
+      // it does.
+      SetupUtils.writeSetJavaHome(getInstallationPath());
+    } catch (Exception e) {}
   }
 
   /**

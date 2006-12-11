@@ -240,9 +240,9 @@ class ServerSettingsPanel extends QuickSetupStepPanel
       if (isPortField)
       {
         JLabel l =
-            UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-                getPortHelpMessage(),
-                UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+          UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+              getPortHelpMessage(),
+              UIFactory.TextStyle.SECONDARY_FIELD_VALID);
         gbc.gridwidth = GridBagConstraints.RELATIVE;
         gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
         auxPanel.add(l, gbc);
@@ -261,7 +261,14 @@ class ServerSettingsPanel extends QuickSetupStepPanel
    */
   protected String getInstructions()
   {
-    return getMsg("server-settings-panel-instructions");
+    if (Utils.isWebStart())
+    {
+      return getMsg("server-settings-panel-instructions-webstart");
+    }
+    else
+    {
+      return getMsg("server-settings-panel-instructions");
+    }
   }
 
   /**
@@ -471,7 +478,14 @@ class ServerSettingsPanel extends QuickSetupStepPanel
       tf.addFocusListener(l);
     }
     getBrowseButton().addFocusListener(l);
-    lastFocusComponent = getField(FieldName.SERVER_LOCATION);
+    if (Utils.isWebStart())
+    {
+      lastFocusComponent = tfServerLocationRelativePath;
+    }
+    else
+    {
+      lastFocusComponent = getField(FieldName.DIRECTORY_MANAGER_PWD);
+    }
   }
 
   /**
@@ -483,15 +497,9 @@ class ServerSettingsPanel extends QuickSetupStepPanel
   private String getPortHelpMessage()
   {
     String s = "";
-    if (defaultUserData.getServerPort() <= 0)
+    if (defaultUserData.getServerPort() != 389)
     {
-      if (Utils.isUnix())
-      {
-        s = getMsg("cannot-find-default-port-unix");
-      } else
-      {
-        s = getMsg("cannot-find-default-port-windows");
-      }
+      s = getMsg("cannot-use-default-port");
     }
     return s;
   }

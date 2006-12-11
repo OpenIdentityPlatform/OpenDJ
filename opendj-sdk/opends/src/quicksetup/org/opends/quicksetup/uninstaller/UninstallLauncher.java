@@ -24,46 +24,49 @@
  *
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
-package org.opends.quicksetup;
+
+package org.opends.quicksetup.uninstaller;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
 
+import org.opends.quicksetup.SplashScreen;
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.Utils;
 
 /**
- * This class is called by the setup command lines to launch the installation of
- * the Directory Server. It just checks the command line arguments and the
+ * This class is called by the uninstall command lines to launch the uninstall
+ * of the Directory Server. It just checks the command line arguments and the
  * environment and determines whether the graphical or the command line
- * based setup much be launched.
+ * based uninstall much be launched.
  *
  */
-public class SetupLauncher
+public class UninstallLauncher
 {
-  private static String COMMAND_NAME_WINDOWS = "setup.bat";
+  private static String COMMAND_NAME_WINDOWS = "uninstall.bat";
 
-  private static String COMMAND_NAME_UNIX = "setup";
+  private static String COMMAND_NAME_UNIX = "uninstall";
 
   /**
-   * The main method which is called by the setup command lines.
-   * @param args the arguments passed by the command lines.  In the case
-   * we want to launch the cli setup they are basically the arguments that we
-   * will pass to the org.opends.server.tools.InstallDS class.
+   * The main method which is called by the uninstall command lines.
+   * @param args the arguments passed by the command lines.
    */
   public static void main(String[] args)
   {
-    boolean displayUsage = false;
+    boolean printUsage = false;
     boolean useCli = false;
     if ((args != null) && (args.length > 0))
     {
       for (int i = 0; i < args.length; i++)
       {
-        if (args[i].equals("--cli"))
+        if (args[i].equalsIgnoreCase("--cli"))
         {
           useCli = true;
+        }
+        else if (args[i].equalsIgnoreCase("-H") ||
+            args[i].equalsIgnoreCase("--help"))
+        {
+          printUsage = true;
         }
       }
 
@@ -71,55 +74,29 @@ public class SetupLauncher
       {
         if (args.length > 0)
         {
-          if (args.length == 2)
-          {
-            /*
-             * Just ignore the -P argument that is passed by the setup command
-             * line.
-             */
-            if (!args[0].equals("-P"))
-            {
-              displayUsage = true;
-            }
-          } else
-          {
-            displayUsage = true;
-          }
+          printUsage = true;
         }
       }
     }
-    if (displayUsage)
+    if (printUsage)
     {
-      String arg;
-      if (Utils.isWindows())
-      {
-        arg = COMMAND_NAME_WINDOWS;
-      } else
-      {
-        arg = COMMAND_NAME_UNIX;
-      }
-      /*
-       * This is required because the usage message contains '{' characters that
-       * mess up the MessageFormat.format method.
-       */
-      String msg = getMsg("setup-launcher-usage");
-      msg = msg.replace("{0}", arg);
-      System.err.println(msg);
+      printUsage();
       System.exit(1);
     } else if (useCli)
     {
-      int exitCode = launchCliSetup(args);
+      int exitCode = launchCliUninstall(args);
       if (exitCode != 0)
       {
         System.exit(exitCode);
       }
     } else
     {
-      int exitCode = launchGuiSetup(args);
+      System.setProperty("org.opends.quicksetup.uninstall", "true");
+      int exitCode = launchGuiUninstall(args);
       if (exitCode != 0)
       {
-        System.err.println(getMsg("setup-launcher-gui-launched-failed"));
-        exitCode = launchCliSetup(args);
+        System.err.println(getMsg("uninstall-launcher-gui-launched-failed"));
+        exitCode = launchCliUninstall(args);
         if (exitCode != 0)
         {
           System.exit(exitCode);
@@ -129,47 +106,29 @@ public class SetupLauncher
   }
 
   /**
-   * Launches the command line based setup.
+   * Launches the command line based uninstall.
    * @param args the arguments passed
    * @return 0 if everything worked fine, and an error code if something wrong
-   * occurred (as specified in org.opends.server.tools.InstallDS).
-   * @see org.opends.server.tools.InstallDS
+   * occurred.
    */
-  private static int launchCliSetup(String[] args)
+  private static int launchCliUninstall(String[] args)
   {
-    if (Utils.isWindows())
-    {
-      System.setProperty("org.opends.server.scriptName",
-          COMMAND_NAME_WINDOWS);
-    } else
-    {
-      System.setProperty("org.opends.server.scriptName",
-          COMMAND_NAME_UNIX);
-    }
-    ArrayList<String> newArgList = new ArrayList<String>();
-    if (args != null)
-    {
-      for (int i = 0; i < args.length; i++)
-      {
-        if (!args[i].equalsIgnoreCase("--cli"))
-        {
-          newArgList.add(args[i]);
-        }
-      }
-    }
-    newArgList.add("--configClass");
-    newArgList.add("org.opends.server.extensions.ConfigFileHandler");
-    newArgList.add("--configFile");
-    newArgList.add(OfflineInstaller.CONFIG_FILE_NAME);
+    System.setProperty("org.opends.quicksetup.cli", "true");
 
-    String[] newArgs = new String[newArgList.size()];
-    newArgList.toArray(newArgs);
+    UninstallCli cli = new UninstallCli(args);
+    int returnValue = cli.run();
+    if (returnValue == UninstallCli.USER_DATA_ERROR)
+    {
+      printUsage();
+    }
+//    Add an extra space systematically
+    System.out.println();
 
-    return org.opends.server.tools.InstallDS.installMain(newArgs);
+    return returnValue;
   }
 
   /**
-   * Launches the graphical setup. The graphical setup is launched in a
+   * Launches the graphical uninstall. The graphical uninstall is launched in a
    * different thread that the main thread because if we have a problem with the
    * graphical system (for instance the DISPLAY environment variable is not
    * correctly set) the native libraries will call exit. However if we launch
@@ -177,16 +136,16 @@ public class SetupLauncher
    *
    * This code also assumes that if the call to SplashWindow.main worked (and
    * the splash screen was displayed) we will never get out of it (we will call
-   * a System.exit() when we close the graphical setup dialog).
+   * a System.exit() when we close the graphical uninstall dialog).
    *
    * @params String[] args the arguments used to call the SplashWindow main
    *         method
    * @return 0 if everything worked fine, or 1 if we could not display properly
    *         the SplashWindow.
    */
-  private static int launchGuiSetup(final String[] args)
+  private static int launchGuiUninstall(final String[] args)
   {
-    System.out.println(getMsg("setup-launcher-launching-gui"));
+    System.out.println(getMsg("uninstall-launcher-launching-gui"));
     final int[] returnValue =
       { -1 };
     Thread t = new Thread(new Runnable()
@@ -217,13 +176,47 @@ public class SetupLauncher
     return returnValue[0];
   }
 
+  private static void printUsage()
+  {
+    String arg;
+    if (Utils.isWindows())
+    {
+      arg = COMMAND_NAME_WINDOWS;
+    } else
+    {
+      arg = COMMAND_NAME_UNIX;
+    }
+    /*
+     * This is required because the usage message contains '{' characters that
+     * mess up the MessageFormat.format method.
+     */
+    String msg;
+    if (Utils.isWindows())
+    {
+      msg = getMsg("uninstall-launcher-usage-windows");
+    }
+    else
+    {
+      msg = getMsg("uninstall-launcher-usage-unix");
+    }
+    msg = msg.replace("{0}", arg);
+    System.err.println(msg);
+  }
+
   /**
    * The following three methods are just commodity methods to get localized
    * messages.
    */
   private static String getMsg(String key)
   {
-    return getI18n().getMsg(key);
+    return org.opends.server.util.StaticUtils.wrapText(getI18n().getMsg(key),
+        UninstallCli.MAX_LINE_WIDTH);
+  }
+
+  private static String getMsg(String key, String[] args)
+  {
+    return org.opends.server.util.StaticUtils.wrapText(
+        getI18n().getMsg(key, args), UninstallCli.MAX_LINE_WIDTH);
   }
 
   private static ResourceProvider getI18n()
