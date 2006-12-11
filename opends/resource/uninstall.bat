@@ -51,14 +51,13 @@ echo Error: JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 installation.
 goto end
 
-
 :setClassPath
-FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
+call "%DIR_HOME%\bin\setcp.bat" %DIR_HOME%\lib\quicksetup.jar
+call "%DIR_HOME%\bin\setcp.bat" %DIR_HOME%\lib\OpenDS.jar
 
 set PATH=%SystemRoot%
 
-"%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.InstallLauncher -P setup.bat %*
+"%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.uninstaller.UninstallLauncher %*
 
 
 :end
-

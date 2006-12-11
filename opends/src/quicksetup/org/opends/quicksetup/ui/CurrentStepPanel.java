@@ -32,10 +32,13 @@ import java.awt.Dimension;
 
 import java.util.HashMap;
 
+import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Step;
 import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.installer.InstallProgressDescriptor;
 import org.opends.quicksetup.installer.UserInstallData;
+import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
+import org.opends.quicksetup.util.Utils;
 
 /**
  * This is the class that contains the panel on the right-top part of the
@@ -54,6 +57,8 @@ class CurrentStepPanel extends QuickSetupPanel
 {
   private UserInstallData defaultUserData;
 
+  private CurrentInstallStatus installStatus;
+
   private static final long serialVersionUID = 5474803491510999334L;
 
   private HashMap<Step, QuickSetupStepPanel> hmPanels =
@@ -63,12 +68,14 @@ class CurrentStepPanel extends QuickSetupPanel
    * The constructor of this class.
    * @param defaultUserData the default data that is used to initialize the
    * contents of the panels (the proposed values).
+   * @param installStatus the object describing the current installation status.
    * @param isUninstall boolean telling whether we are uninstalling or not.
    */
   public CurrentStepPanel(UserInstallData defaultUserData,
-      boolean isUninstall)
+      CurrentInstallStatus installStatus, boolean isUninstall)
   {
     this.defaultUserData = defaultUserData;
+    this.installStatus = installStatus;
     createLayout(isUninstall);
   }
 
@@ -125,11 +132,12 @@ class CurrentStepPanel extends QuickSetupPanel
   {
     if (isUninstall)
     {
-      hmPanels.put(Step.CONFIRM_UNINSTALL, new ConfirmUninstallPanel());
+      hmPanels.put(Step.CONFIRM_UNINSTALL,
+          new ConfirmUninstallPanel(installStatus));
       hmPanels.put(Step.PROGRESS, new ProgressPanel());
     } else
     {
-      hmPanels.put(Step.WELCOME, new WelcomePanel());
+      hmPanels.put(Step.WELCOME, new InstallWelcomePanel());
       hmPanels.put(Step.SERVER_SETTINGS, new ServerSettingsPanel(
           defaultUserData));
       hmPanels.put(Step.DATA_OPTIONS,
@@ -149,7 +157,10 @@ class CurrentStepPanel extends QuickSetupPanel
     }
 
     // For aesthetical reasons we add a little bit of height
-    minHeight += UIFactory.EXTRA_DIALOG_HEIGHT;
+    if (!Utils.isUninstall())
+    {
+      minHeight += UIFactory.EXTRA_DIALOG_HEIGHT;
+    }
 
     setPreferredSize(new Dimension(minWidth, minHeight));
     setMinimumSize(new Dimension(minWidth, minHeight));
@@ -176,6 +187,19 @@ class CurrentStepPanel extends QuickSetupPanel
    * @param descriptor the descriptor of the Installation progress.
    */
   public void displayProgress(InstallProgressDescriptor descriptor)
+  {
+    for (Step s : hmPanels.keySet())
+    {
+      getPanel(s).displayProgress(descriptor);
+    }
+  }
+
+  /**
+   * Forwards the different panels the UninstallProgressDescriptor so that they
+   * can update their contents accordingly.
+   * @param descriptor the descriptor of the Uninstallation progress.
+   */
+  public void displayProgress(UninstallProgressDescriptor descriptor)
   {
     for (Step s : hmPanels.keySet())
     {

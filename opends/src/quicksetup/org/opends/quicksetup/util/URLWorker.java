@@ -71,9 +71,9 @@ public class URLWorker extends BackgroundTask
     try
     {
       WebBrowserLauncher.openURL(url);
-    } catch (RuntimeException re)
+    } catch (Throwable t)
     {
-      throw new WebBrowserException(url, "Bug: run time exception", re);
+      throw new WebBrowserException(url, "Bug: throwable", t);
     }
     return null;
   }

@@ -28,16 +28,19 @@
 package org.opends.quicksetup;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.swing.SwingUtilities;
 
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
-import org.opends.quicksetup.event.ProgressUpdateEvent;
-import org.opends.quicksetup.event.ProgressUpdateListener;
+import org.opends.quicksetup.event.InstallProgressUpdateEvent;
+import org.opends.quicksetup.event.InstallProgressUpdateListener;
+import org.opends.quicksetup.event.UninstallProgressUpdateEvent;
+import org.opends.quicksetup.event.UninstallProgressUpdateListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.installer.DataOptions;
 import org.opends.quicksetup.installer.FieldName;
@@ -49,11 +52,15 @@ import org.opends.quicksetup.installer.UserInstallDataException;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.installer.webstart.WebStartDownloader;
 import org.opends.quicksetup.installer.webstart.WebStartInstaller;
+import org.opends.quicksetup.ui.DirectoryManagerAuthenticationDialog;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
+import org.opends.quicksetup.uninstaller.UninstallProgressStep;
 import org.opends.quicksetup.uninstaller.Uninstaller;
+import org.opends.quicksetup.uninstaller.UserUninstallData;
+import org.opends.quicksetup.uninstaller.UserUninstallDataException;
 import org.opends.quicksetup.util.BackgroundTask;
-import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
@@ -78,10 +85,14 @@ import org.opends.quicksetup.util.Utils;
  * the InstallProgressStep.DOWNLOADING step.
  *
  */
-class QuickSetup implements ButtonActionListener, ProgressUpdateListener
+class QuickSetup implements ButtonActionListener, InstallProgressUpdateListener,
+UninstallProgressUpdateListener
 {
-  // Contains the data provided by the user
-  private UserInstallData userData;
+  // Contains the data provided by the user in the install
+  private UserInstallData userInstallData;
+
+  // Contains the data provided by the user in the uninstall
+  private UserUninstallData userUninstallData;
 
   private Installer installer;
 
@@ -97,11 +108,17 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   private StringBuffer progressDetails = new StringBuffer();
 
-  private InstallProgressDescriptor lastDescriptor;
+  private InstallProgressDescriptor lastInstallDescriptor;
 
-  private InstallProgressDescriptor lastDisplayedDescriptor;
+  private InstallProgressDescriptor lastDisplayedInstallDescriptor;
 
-  private InstallProgressDescriptor descriptorToDisplay;
+  private InstallProgressDescriptor installDescriptorToDisplay;
+
+  private UninstallProgressDescriptor lastUninstallDescriptor;
+
+  private UninstallProgressDescriptor lastDisplayedUninstallDescriptor;
+
+  private UninstallProgressDescriptor uninstallDescriptorToDisplay;
 
   // Constants used to do checks
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
@@ -135,6 +152,7 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     }
     installStatus = new CurrentInstallStatus();
     initLookAndFeel();
+    /* In the calls to setCurrentStep the dialog will be created */
     if (Utils.isUninstall())
     {
       setCurrentStep(Step.CONFIRM_UNINSTALL);
@@ -183,6 +201,10 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       previousClicked();
       break;
 
+    case CANCEL:
+      cancelClicked();
+      break;
+
     default:
       throw new IllegalArgumentException("Unknown button name: "
           + ev.getButtonName());
@@ -190,42 +212,70 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * ProgressUpdateListener implementation. Here we take the ProgressUpdateEvent
-   * and create a ProgressDescriptor that will be used to update the progress
-   * dialog.
+   * InstallProgressUpdateListener implementation. Here we take the
+   * InstallProgressUpdateEvent and create an InstallProgressDescriptor that
+   * will be used to update the progress dialog.
    *
-   * @param ev the ProgressUpdateEvent we receive.
+   * @param ev the InstallProgressUpdateEvent we receive.
    *
    * @see #runDisplayUpdater()
    */
-  public void progressUpdate(ProgressUpdateEvent ev)
+  public void progressUpdate(InstallProgressUpdateEvent ev)
   {
     synchronized (this)
     {
-      InstallProgressDescriptor desc = createProgressDescriptor(ev);
+      InstallProgressDescriptor desc = createInstallProgressDescriptor(ev);
       boolean isLastDescriptor =
           desc.getProgressStep() == InstallProgressStep.FINISHED_SUCCESSFULLY
               || desc.getProgressStep() ==
                 InstallProgressStep.FINISHED_WITH_ERROR;
       if (isLastDescriptor)
       {
-        lastDescriptor = desc;
+        lastInstallDescriptor = desc;
       }
 
-      descriptorToDisplay = desc;
+      installDescriptorToDisplay = desc;
+    }
+  }
+
+  /**
+   * UninstallProgressUpdateListener implementation. Here we take the
+   * UninstallProgressUpdateEvent and create an UninstallProgressDescriptor that
+   * will be used to update the progress dialog.
+   *
+   * @param ev the UninstallProgressUpdateEvent we receive.
+   *
+   * @see #runDisplayUpdater()
+   */
+  public void progressUpdate(UninstallProgressUpdateEvent ev)
+  {
+    synchronized (this)
+    {
+      UninstallProgressDescriptor desc = createUninstallProgressDescriptor(ev);
+      boolean isLastDescriptor =
+          desc.getProgressStep() == UninstallProgressStep.FINISHED_SUCCESSFULLY
+              || desc.getProgressStep() ==
+                UninstallProgressStep.FINISHED_WITH_ERROR;
+      if (isLastDescriptor)
+      {
+        lastUninstallDescriptor = desc;
+      }
+
+      uninstallDescriptorToDisplay = desc;
     }
   }
 
   /**
    * This method is used to update the progress dialog.
    *
-   * We are receiving notifications from the installer (this class is a
-   * ProgressListener). However if we lots of notifications updating the
-   * progress panel every time we get a progress update can result of a lot of
-   * flickering. So the idea here is to have a minimal time between 2 updates of
-   * the progress dialog (specified by UPDATE_PERIOD).
+   * We are receiving notifications from the installer and uninstaller (this
+   * class is a ProgressListener). However if we lots of notifications updating
+   * the progress panel every time we get a progress update can result of a lot
+   * of flickering. So the idea here is to have a minimal time between 2 updates
+   * of the progress dialog (specified by UPDATE_PERIOD).
    *
-   * @see #progressUpdate(ProgressUpdateEvent ev)
+   * @see #progressUpdate(InstallProgressUpdateEvent ev)
+   * @see #progressUpdate(UninstallProgressUpdateEvent ev)
    *
    */
   private void runDisplayUpdater()
@@ -241,22 +291,45 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       }
       synchronized (this)
       {
-        final InstallProgressDescriptor desc = descriptorToDisplay;
-        if (desc != null)
+        if (Utils.isUninstall())
         {
-          if (desc != lastDisplayedDescriptor)
+          final UninstallProgressDescriptor desc = uninstallDescriptorToDisplay;
+          if (desc != null)
           {
-            lastDisplayedDescriptor = desc;
-
-            SwingUtilities.invokeLater(new Runnable()
+            if (desc != lastDisplayedUninstallDescriptor)
             {
-              public void run()
+              lastDisplayedUninstallDescriptor = desc;
+
+              SwingUtilities.invokeLater(new Runnable()
               {
-                getDialog().displayProgress(desc);
-              }
-            });
+                public void run()
+                {
+                  getDialog().displayProgress(desc);
+                }
+              });
+            }
+            doPool = desc != lastUninstallDescriptor;
           }
-          doPool = desc != lastDescriptor;
+        }
+        else
+        {
+          final InstallProgressDescriptor desc = installDescriptorToDisplay;
+          if (desc != null)
+          {
+            if (desc != lastDisplayedInstallDescriptor)
+            {
+              lastDisplayedInstallDescriptor = desc;
+
+              SwingUtilities.invokeLater(new Runnable()
+              {
+                public void run()
+                {
+                  getDialog().displayProgress(desc);
+                }
+              });
+            }
+            doPool = desc != lastInstallDescriptor;
+          }
         }
       }
     }
@@ -285,11 +358,16 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
         {
           try
           {
-            updateUserData(cStep);
-          } catch (RuntimeException re)
+            updateUserInstallData(cStep);
+          }
+          catch (UserInstallDataException uide)
           {
-            throw new UserInstallDataException(getCurrentStep(),
-                getExceptionMsg("bug-msg", re));
+            throw uide;
+          }
+          catch (Throwable t)
+          {
+            throw new UserInstallDataException(cStep,
+                getThrowableMsg("bug-msg", t));
           }
           return null;
         }
@@ -298,11 +376,13 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
             Throwable throwable)
         {
           getDialog().workerFinished();
-          UserInstallDataException ude = (UserInstallDataException)throwable;
-          if (ude != null)
+
+          if (throwable != null)
           {
+            UserInstallDataException ude = (UserInstallDataException)throwable;
             displayError(ude.getLocalizedMessage(), getMsg("error-title"));
-          } else
+          }
+          else
           {
             setCurrentStep(nextStep(cStep));
           }
@@ -319,7 +399,7 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void finishClicked()
   {
-    Step cStep = getCurrentStep();
+    final Step cStep = getCurrentStep();
     switch (cStep)
     {
     case REVIEW:
@@ -329,8 +409,93 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       break;
 
     case CONFIRM_UNINSTALL:
-      launchUninstallation();
-      setCurrentStep(Step.PROGRESS);
+      BackgroundTask worker = new BackgroundTask()
+      {
+        public Object processBackgroundTask() throws UserUninstallDataException
+        {
+          try
+          {
+            updateUserDataForConfirmUninstallPanel();
+          }
+          catch (UserUninstallDataException uude)
+          {
+            throw uude;
+          } catch (Throwable t)
+          {
+            throw new UserUninstallDataException(cStep,
+                getThrowableMsg("bug-msg", t));
+          }
+          return new Boolean(installStatus.isServerRunning());
+        }
+
+        public void backgroundTaskCompleted(Object returnValue,
+            Throwable throwable)
+        {
+          getDialog().workerFinished();
+          if (throwable != null)
+          {
+            UserUninstallDataException ude =
+              (UserUninstallDataException)throwable;
+            displayError(ude.getLocalizedMessage(), getMsg("error-title"));
+          } else
+          {
+            boolean serverRunning = ((Boolean)returnValue).booleanValue();
+            if (!serverRunning)
+            {
+              getUserUninstallData().setStopServer(false);
+              if (displayConfirmation(
+                  getMsg("confirm-uninstall-server-not-running-msg"),
+                  getMsg("confirm-uninstall-server-not-running-title")))
+              {
+                launchUninstallation();
+                setCurrentStep(nextStep(cStep));
+              }
+            }
+            else
+            {
+              if (Utils.isUnix())
+              {
+                if (displayConfirmation(
+                    getMsg("confirm-uninstall-server-running-unix-msg"),
+                    getMsg("confirm-uninstall-server-running-unix-title")))
+                {
+                  getUserUninstallData().setStopServer(true);
+                  launchUninstallation();
+                  setCurrentStep(nextStep(cStep));
+                }
+                else
+                {
+                  getUserUninstallData().setStopServer(false);
+                }
+              }
+              else
+              {
+                DirectoryManagerAuthenticationDialog dlg =
+                  new DirectoryManagerAuthenticationDialog(
+                      getDialog().getFrame(), installStatus);
+                dlg.setModal(true);
+                dlg.packAndShow();
+                if (dlg.isCancelled())
+                {
+                  getUserUninstallData().setStopServer(false);
+                }
+                else
+                {
+                  getUserUninstallData().setStopServer(dlg.getStopServer());
+                  getUserUninstallData().setDirectoryManagerDn(
+                      dlg.getDirectoryManagerDn());
+                  getUserUninstallData().setDirectoryManagerPwd(
+                      dlg.getDirectoryManagerPwd());
+                  launchUninstallation();
+                  setCurrentStep(nextStep(cStep));
+                }
+              }
+            }
+          }
+        }
+      };
+      getDialog().workerStarted();
+      worker.startBackgroundTask();
       break;
 
     default:
@@ -375,11 +540,16 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           "Cannot click on quit from progress step");
 
     default:
-      if (installStatus.isInstalled())
+      if (Utils.isUninstall())
       {
         quit();
-      } else if (displayConfirmation(getMsg("confirm-quit-quicksetup-msg"),
-          getMsg("confirm-quit-quicksetup-title")))
+      }
+      else if (installStatus.isInstalled())
+      {
+        quit();
+
+      } else if (displayConfirmation(getMsg("confirm-quit-install-msg"),
+          getMsg("confirm-quit-install-title")))
       {
         quit();
       }
@@ -409,8 +579,8 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       {
         boolean finished = installer.isFinished();
         if (finished
-            || displayConfirmation(getMsg("confirm-close-quicksetup-msg"),
-                getMsg("confirm-close-quicksetup-title")))
+            || displayConfirmation(getMsg("confirm-close-install-msg"),
+                getMsg("confirm-close-install-title")))
         {
           quit();
         }
@@ -420,6 +590,25 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     default:
       throw new IllegalStateException(
           "Close only can be clicked on PROGRESS step");
+    }
+  }
+
+  /**
+   * Method called when user clicks 'Cancel' button of the wizard.
+   *
+   */
+  private void cancelClicked()
+  {
+    Step cStep = getCurrentStep();
+    switch (cStep)
+    {
+    case CONFIRM_UNINSTALL:
+      quit();
+      break;
+
+    default:
+      throw new IllegalStateException(
+          "Cancel only can be clicked on CONFIRM_UNINSTALL step");
     }
   }
 
@@ -436,7 +625,7 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   /**
    * These methods validate the data provided by the user in the panels and
-   * update the UserData object according to that content.
+   * update the UserInstallData object according to that content.
    *
    * @param cStep
    *          the current step of the wizard
@@ -446,12 +635,12 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    *           valid.
    *
    */
-  private void updateUserData(Step cStep) throws UserInstallDataException
+  private void updateUserInstallData(Step cStep) throws UserInstallDataException
   {
     switch (cStep)
     {
     case SERVER_SETTINGS:
-      updateUserDataForServerSettingsPanel();
+      updateUserInstallDataForServerSettingsPanel();
       break;
 
     case DATA_OPTIONS:
@@ -466,14 +655,14 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   /**
    * Validate the data provided by the user in the server settings panel and
-   * update the UserData object according to that content.
+   * update the UserInstallData object according to that content.
    *
    * @throws an
    *           UserInstallDataException if the data provided by the user is not
    *           valid.
    *
    */
-  private void updateUserDataForServerSettingsPanel()
+  private void updateUserInstallDataForServerSettingsPanel()
       throws UserInstallDataException
   {
     ArrayList<String> errorMsgs = new ArrayList<String>();
@@ -523,7 +712,7 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
       } else
       {
-        getUserData().setServerLocation(serverLocation);
+        getUserInstallData().setServerLocation(serverLocation);
         displayFieldInvalid(FieldName.SERVER_LOCATION, false);
       }
     }
@@ -554,7 +743,7 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
       } else
       {
-        getUserData().setServerPort(port);
+        getUserInstallData().setServerPort(port);
         displayFieldInvalid(FieldName.SERVER_PORT, false);
       }
 
@@ -583,7 +772,7 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, true);
     } else
     {
-      getUserData().setDirectoryManagerDn(dmDn);
+      getUserInstallData().setDirectoryManagerDn(dmDn);
       displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, false);
     }
 
@@ -617,7 +806,7 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
     if (pwdValid)
     {
-      getUserData().setDirectoryManagerPwd(pwd1);
+      getUserInstallData().setDirectoryManagerPwd(pwd1);
       displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD, false);
       displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM, false);
     }
@@ -625,13 +814,13 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     if (errorMsgs.size() > 0)
     {
       throw new UserInstallDataException(Step.SERVER_SETTINGS,
-          getStringFromCollection(errorMsgs));
+          Utils.getStringFromCollection(errorMsgs, "\n"));
     }
   }
 
   /**
    * Validate the data provided by the user in the data options panel and update
-   * the UserData object according to that content.
+   * the UserInstallData object according to that content.
    *
    * @throws an
    *           UserInstallDataException if the data provided by the user is not
@@ -742,24 +931,77 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
     if (dataOptions != null)
     {
-      getUserData().setDataOptions(dataOptions);
+      getUserInstallData().setDataOptions(dataOptions);
     }
 
     if (errorMsgs.size() > 0)
     {
       throw new UserInstallDataException(Step.DATA_OPTIONS,
-          getStringFromCollection(errorMsgs));
+          Utils.getStringFromCollection(errorMsgs, "\n"));
     }
   }
 
   /**
-   * Update the UserData object according to the content of the review panel.
+   * Update the UserInstallData object according to the content of the review
+   * panel.
    *
    */
   private void updateUserDataForReviewPanel()
   {
     Boolean b = (Boolean) getFieldValue(FieldName.SERVER_START);
-    getUserData().setStartServer(b.booleanValue());
+    getUserInstallData().setStartServer(b.booleanValue());
+  }
+
+  /**
+   * Update the UserUninstallData object according to the content of the review
+   * panel.
+   *
+   */
+  private void updateUserDataForConfirmUninstallPanel()
+  throws UserUninstallDataException
+  {
+    getUserUninstallData().setRemoveLibrariesAndTools(
+        (Boolean)getFieldValue(FieldName.REMOVE_LIBRARIES_AND_TOOLS));
+    getUserUninstallData().setRemoveDatabases(
+        (Boolean)getFieldValue(FieldName.REMOVE_DATABASES));
+    getUserUninstallData().setRemoveConfigurationAndSchema(
+        (Boolean)getFieldValue(FieldName.REMOVE_CONFIGURATION_AND_SCHEMA));
+    getUserUninstallData().setRemoveBackups(
+        (Boolean)getFieldValue(FieldName.REMOVE_BACKUPS));
+    getUserUninstallData().setRemoveLDIFs(
+        (Boolean)getFieldValue(FieldName.REMOVE_LDIFS));
+    getUserUninstallData().setRemoveLogs(
+        (Boolean)getFieldValue(FieldName.REMOVE_LOGS));
+
+    Set<String> dbs = new HashSet<String>();
+    Set s = (Set)getFieldValue(FieldName.EXTERNAL_DB_DIRECTORIES);
+    for (Object v: s)
+    {
+      dbs.add((String)v);
+    }
+
+    Set<String> logs = new HashSet<String>();
+    s = (Set)getFieldValue(FieldName.EXTERNAL_LOG_FILES);
+    for (Object v: s)
+    {
+      logs.add((String)v);
+    }
+
+    getUserUninstallData().setExternalDbsToRemove(dbs);
+    getUserUninstallData().setExternalLogsToRemove(logs);
+
+    if ((dbs.size() == 0) &&
+        (logs.size() == 0) &&
+        !getUserUninstallData().getRemoveLibrariesAndTools() &&
+        !getUserUninstallData().getRemoveDatabases() &&
+        !getUserUninstallData().getRemoveConfigurationAndSchema() &&
+        !getUserUninstallData().getRemoveBackups() &&
+        !getUserUninstallData().getRemoveLDIFs() &&
+        !getUserUninstallData().getRemoveLogs())
+    {
+      throw new UserUninstallDataException(Step.CONFIRM_UNINSTALL,
+          getMsg("nothing-selected-to-uninstall"));
+    }
   }
 
   /**
@@ -769,14 +1011,14 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void launchInstallation()
   {
-    ProgressMessageFormatter formatter = new HtmlProgressMessageFormatter();
+    ProgressMessageFormatter formatter = getDialog().getFormatter();
     if (isWebStart())
     {
-      installer = new WebStartInstaller(getUserData(), jnlpDownloader,
+      installer = new WebStartInstaller(getUserInstallData(), jnlpDownloader,
           formatter);
     } else
     {
-      installer = new OfflineInstaller(getUserData(), formatter);
+      installer = new OfflineInstaller(getUserInstallData(), formatter);
     }
     installer.addProgressUpdateListener(this);
     installer.start();
@@ -796,8 +1038,18 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void launchUninstallation()
   {
-    uninstaller = new Uninstaller();
-    // TO COMPLETE
+    uninstaller = new Uninstaller(getUserUninstallData(),
+        getDialog().getFormatter());
+    uninstaller.addProgressUpdateListener(this);
+    uninstaller.start();
+    Thread t = new Thread(new Runnable()
+    {
+      public void run()
+      {
+        runDisplayUpdater();
+      }
+    });
+    t.start();
   }
 
   /**
@@ -807,13 +1059,29 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * @return the UserInstallData representing the data provided by the user in
    *         the Install wizard.
    */
-  private UserInstallData getUserData()
+  private UserInstallData getUserInstallData()
   {
-    if (userData == null)
+    if (userInstallData == null)
     {
-      userData = new UserInstallData();
+      userInstallData = new UserInstallData();
     }
-    return userData;
+    return userInstallData;
+  }
+
+  /**
+   * Provides the object representing the data provided by the user in the
+   * uninstall.
+   *
+   * @return the UserUninstallData representing the data provided by the user in
+   *         the Uninstall wizard.
+   */
+  private UserUninstallData getUserUninstallData()
+  {
+    if (userUninstallData == null)
+    {
+      userUninstallData = new UserUninstallData();
+    }
+    return userUninstallData;
   }
 
   /**
@@ -860,9 +1128,9 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     return getI18n().getMsg(key, args);
   }
 
-  private String getExceptionMsg(String key, Exception ex)
+  private String getThrowableMsg(String key, Throwable t)
   {
-    return Utils.getExceptionMsg(getI18n(), key, null, ex);
+    return Utils.getThrowableMsg(getI18n(), key, null, t);
   }
 
   private ResourceProvider getI18n()
@@ -895,7 +1163,7 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       throw new NullPointerException("step is null");
     }
     currentStep = step;
-    getDialog().setDisplayedStep(step, getUserData());
+    getDialog().setDisplayedStep(step, getUserInstallData());
   }
 
   /**
@@ -909,13 +1177,22 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private Step nextStep(Step step)
   {
-    Iterator<Step> it = EnumSet.range(step, Step.PROGRESS).iterator();
-    it.next();
-    if (!it.hasNext())
+    Step nextStep;
+    if (step == Step.CONFIRM_UNINSTALL)
     {
-      throw new IllegalArgumentException("No next for step: " + step);
+      nextStep = Step.PROGRESS;
     }
-    return it.next();
+    else
+    {
+      Iterator<Step> it = EnumSet.range(step, Step.PROGRESS).iterator();
+      it.next();
+      if (!it.hasNext())
+      {
+        throw new IllegalArgumentException("No next for step: " + step);
+      }
+      nextStep = it.next();
+    }
+    return nextStep;
   }
 
   /**
@@ -1038,31 +1315,6 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * This is a helper method that gets a String representation of the elements
-   * in the Collection. The String will display the different elements separated
-   * by a '\n' character.
-   *
-   * @param col
-   *          the collection containing the String.
-   * @return the String representation for the collection.
-   */
-  private String getStringFromCollection(Collection<String> col)
-  {
-    String msg = null;
-    for (String m : col)
-    {
-      if (msg == null)
-      {
-        msg = m;
-      } else
-      {
-        msg += "\n" + m;
-      }
-    }
-    return msg;
-  }
-
-  /**
    * A method to initialize the look and feel.
    *
    */
@@ -1072,16 +1324,16 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * A methods that creates a InstallProgressDescriptor based on the value of a
-   * ProgressUpdateEvent.
+   * A methods that creates an InstallProgressDescriptor based on the value of a
+   * InstallProgressUpdateEvent.
    *
    * @param ev
-   *          the ProgressUpdateEvent used to generate the
+   *          the InstallProgressUpdateEvent used to generate the
    *          InstallProgressDescriptor.
    * @return the InstallProgressDescriptor.
    */
-  private InstallProgressDescriptor createProgressDescriptor(
-      ProgressUpdateEvent ev)
+  private InstallProgressDescriptor createInstallProgressDescriptor(
+      InstallProgressUpdateEvent ev)
   {
     InstallProgressStep status = ev.getProgressStep();
     String newProgressLabel = ev.getCurrentPhaseSummary();
@@ -1094,6 +1346,32 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     }
 
     return new InstallProgressDescriptor(status, ratio, newProgressLabel,
+        progressDetails.toString());
+  }
+
+  /**
+   * A methods that creates an UninstallProgressDescriptor based on the value of
+   * a UninstallProgressUpdateEvent.
+   *
+   * @param ev
+   *          the UninstallProgressUpdateEvent used to generate the
+   *          UninstallProgressDescriptor.
+   * @return the InstallProgressDescriptor.
+   */
+  private UninstallProgressDescriptor createUninstallProgressDescriptor(
+      UninstallProgressUpdateEvent ev)
+  {
+    UninstallProgressStep status = ev.getProgressStep();
+    String newProgressLabel = ev.getCurrentPhaseSummary();
+    String additionalDetails = ev.getNewLogs();
+    Integer ratio = ev.getProgressRatio();
+
+    if (additionalDetails != null)
+    {
+      progressDetails.append(additionalDetails);
+    }
+
+    return new UninstallProgressDescriptor(status, ratio, newProgressLabel,
         progressDetails.toString());
   }
 
@@ -1118,9 +1396,14 @@ class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   private int getDefaultPort()
   {
     int defaultPort = -1;
-    if (Utils.canUseAsPort(389))
+
+    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
     {
-      defaultPort = 389;
+      int port = i + 389;
+      if (Utils.canUseAsPort(port))
+      {
+        defaultPort = port;
+      }
     }
     return defaultPort;
   }

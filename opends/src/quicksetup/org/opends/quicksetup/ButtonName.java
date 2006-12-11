@@ -52,5 +52,9 @@ public enum ButtonName
   /**
    * The Finish button.
    */
-  FINISH
+  FINISH,
+  /**
+   * The Cancel button.
+   */
+  CANCEL
 }

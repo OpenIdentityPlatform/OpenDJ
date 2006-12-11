@@ -78,5 +78,37 @@ public enum FieldName
   /**
    * The value associated with this is a Boolean.
    */
-  SERVER_START
+  SERVER_START,
+  /**
+   * The value associated with this is a Boolean.
+   */
+  REMOVE_LIBRARIES_AND_TOOLS,
+  /**
+   * The value associated with this is a Boolean.
+   */
+  REMOVE_DATABASES,
+  /**
+   * The value associated with this is a Boolean.
+   */
+  REMOVE_LOGS,
+  /**
+   * The value associated with this is a Boolean.
+   */
+  REMOVE_CONFIGURATION_AND_SCHEMA,
+  /**
+   * The value associated with this is a Boolean.
+   */
+  REMOVE_BACKUPS,
+  /**
+   * The value associated with this is a Boolean.
+   */
+  REMOVE_LDIFS,
+  /**
+   * The value associated with this is a Set of String.
+   */
+  EXTERNAL_DB_DIRECTORIES,
+  /**
+   * The value associated with this is a Set of String.
+   */
+  EXTERNAL_LOG_FILES
 }

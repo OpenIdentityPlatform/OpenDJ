@@ -182,8 +182,8 @@ public class ResourceProvider
         }
       } catch (java.util.MissingResourceException e)
       {
-        throw new IllegalStateException("Missing Resource Bundle: "
-            + BUNDLE_NAME);
+        throw new IllegalStateException("Could not retrieve Resource Bundle: "
+            + BUNDLE_NAME, e);
 
       }
     }

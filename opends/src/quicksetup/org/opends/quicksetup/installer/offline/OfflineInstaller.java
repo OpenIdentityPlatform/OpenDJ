@@ -27,7 +27,6 @@
 
 package org.opends.quicksetup.installer.offline;
 
-import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +37,6 @@ import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.UserInstallData;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.util.SetupUtils;
 
 /**
  * This is an implementation of the Installer class that is used to install
@@ -56,8 +54,6 @@ import org.opends.server.util.SetupUtils;
  */
 public class OfflineInstaller extends Installer
 {
-  private static String fullInstallPath;
-
   /* This map contains the ratio associated with each step */
   private HashMap<InstallProgressStep, Integer> hmRatio =
       new HashMap<InstallProgressStep, Integer>();
@@ -67,39 +63,6 @@ public class OfflineInstaller extends Installer
       new HashMap<InstallProgressStep, String>();
 
   private InstallProgressStep status;
-
-  static
-  {
-    /* Get the install path from the Class Path */
-    String sep = System.getProperty("path.separator");
-    String[] classPaths = System.getProperty("java.class.path").split(sep);
-    String path = null;
-    for (int i = 0; i < classPaths.length && (path == null); i++)
-    {
-      for (int j = 0; j < OPEN_DS_JAR_RELATIVE_PATHS.length &&
-      (path == null); j++)
-      {
-        String normPath = classPaths[i].replace(File.separatorChar, '/');
-        if (normPath.endsWith(OPEN_DS_JAR_RELATIVE_PATHS[j]))
-        {
-          path = classPaths[i];
-        }
-      }
-    }
-    File f = new File(path);
-    File binariesDir = f.getParentFile();
-    fullInstallPath = binariesDir.getParent();
-  }
-  /**
-   * A constant used to retrieve the full install path.
-   */
-  public static String FULL_INSTALL_PATH = fullInstallPath;
-
-  /**
-   * A constant used to retrieve the config file name.
-   */
-  public static String CONFIG_FILE_NAME =
-    Utils.getPath(FULL_INSTALL_PATH, CONFIG_PATH_RELATIVE);
 
   /**
    * OfflineInstaller constructor.
@@ -141,7 +104,7 @@ public class OfflineInstaller extends Installer
   }
 
   /**
-   * Actually performs the start in this thread.  The thread is blocked.
+   * Actually performs the install in this thread.  The thread is blocked.
    *
    */
   private void doInstall()
@@ -175,12 +138,7 @@ public class OfflineInstaller extends Installer
         break;
       }
 
-      try
-      {
-        // This isn't likely to happen, and it's not a serious problem even if
-        // it does.
-        SetupUtils.writeSetJavaHome(FULL_INSTALL_PATH);
-      } catch (Exception e) {}
+      writeJavaHome();
 
       if (getUserData().getStartServer())
       {
@@ -204,6 +162,14 @@ public class OfflineInstaller extends Installer
       status = InstallProgressStep.FINISHED_WITH_ERROR;
       String html = getFormattedError(ex, true);
       notifyListeners(html);
+    }
+    catch (Throwable t)
+    {
+      status = InstallProgressStep.FINISHED_WITH_ERROR;
+      InstallException ex = new InstallException(
+          InstallException.Type.BUG, getThrowableMsg("bug-msg", t), t);
+      String msg = getFormattedError(ex, true);
+      notifyListeners(msg);
     }
   }
 
@@ -290,17 +256,9 @@ public class OfflineInstaller extends Installer
   /**
    * {@inheritDoc}
    */
-  protected String getConfigFilePath()
+  protected String getInstallationPath()
   {
-    return CONFIG_FILE_NAME;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected String getBinariesPath()
-  {
-    return Utils.getPath(FULL_INSTALL_PATH, BINARIES_PATH_RELATIVE);
+    return Utils.getInstallPathFromClasspath();
   }
 
   /**

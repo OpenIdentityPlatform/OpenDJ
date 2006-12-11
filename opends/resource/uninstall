@@ -81,14 +81,13 @@ export INSTANCE_ROOT
 cd "${WORKING_DIR}"
 
 
-# Configure the appropriate CLASSPATH.
+# Configure the appropriate CLASSPATH to test.
 CLASSPATH=${INSTANCE_ROOT}/classes
 for JAR in ${INSTANCE_ROOT}/lib/*.jar
 do
   CLASSPATH=${CLASSPATH}:${JAR}
 done
 export CLASSPATH
-
 
 # Determine whether the detected Java environment is acceptable for use.
 if test -z "${JAVA_ARGS}"
@@ -116,7 +115,9 @@ else
   fi
 fi
 
+# Configure the appropriate CLASSPATH to run uninstall.
+CLASSPATH=${INSTANCE_ROOT}/lib/quicksetup.jar:${INSTANCE_ROOT}/lib/OpenDS.jar
+export CLASSPATH
 
-# Launch the setup process.
-"${JAVA_BIN}" org.opends.quicksetup.installer.InstallLauncher -P setup "${@}"
-
+# Launch the uninstall process.
+"${JAVA_BIN}" org.opends.quicksetup.uninstaller.UninstallLauncher "${@}"

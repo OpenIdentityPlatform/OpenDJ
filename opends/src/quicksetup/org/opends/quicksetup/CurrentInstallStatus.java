@@ -32,11 +32,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.naming.NamingException;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -56,6 +57,16 @@ public class CurrentInstallStatus
   private String installationMsg;
 
   private String configFileContents;
+
+  private Set<String> directoryManagerDns;
+
+  private Set<String> dbPaths;
+
+  private Set<String> logPaths;
+
+  private String ldapUrl;
+
+  private String ldapsUrl;
 
   /**
    * The constructor of a CurrentInstallStatus object.
@@ -136,13 +147,129 @@ public class CurrentInstallStatus
   }
 
   /**
+   * Returns the list of directory manager dns as they appear in the
+   * configuration file.
+   *
+   * @return the list of directory manager dns as they appear in the
+   * configuration file.
+   */
+  public Set<String> getDirectoryManagerDns()
+  {
+    if (directoryManagerDns == null)
+    {
+      directoryManagerDns = new HashSet<String>();
+      String directoryManagerDnAttr = "ds-cfg-alternate-bind-dn";
+      updateSetWithValues(directoryManagerDns, directoryManagerDnAttr);
+    }
+    return directoryManagerDns;
+  }
+
+  /**
+   * Returns the list of paths where the databases are installed as they appear
+   * in the configuration file.
+   *
+   * @return the list of paths where the databases are installed as they appear
+   * in the configuration file.
+   */
+  public Set<String> getDatabasePaths()
+  {
+    if (dbPaths == null)
+    {
+      dbPaths = new HashSet<String>();
+      String dbFileAttr = "ds-cfg-backend-directory";
+      updateSetWithValues(dbPaths, dbFileAttr);
+    }
+    return dbPaths;
+  }
+
+  /**
+   * Returns the list of paths where the logs files are located as they appear
+   * in the configuration file.
+   *
+   * @return the list of paths where the logs files are located as they appear
+   * in the configuration file.
+   */
+  public Set<String> getLogPaths()
+  {
+    if (logPaths == null)
+    {
+      logPaths = new HashSet<String>();
+      String logFileAttr = "ds-cfg-log-file";
+      updateSetWithValues(logPaths, logFileAttr);
+    }
+    return logPaths;
+  }
+
+  /**
+   * Indicates whether there is the server is running in the localhost on the
+   * LDAP port specified in config.ldif file.  Note that this method performs
+   * LDAP requests which can be time consuming.
+   *
+   * @return <CODE>true</CODE> if the server is running, or <CODE>false</CODE>
+   *         if not.
+   */
+  public boolean isServerRunning()
+  {
+    boolean isServerRunning = false;
+
+    try
+    {
+      Utils.createLdapContext(getLdapUrl(), null, null, 3000, null);
+      isServerRunning = true;
+    } catch (NamingException ne)
+    {
+      try
+      {
+        if (getSecurePort() != -1)
+        {
+          Utils.createLdapContext(getLdapsUrl(), null, null, 3000, null);
+          isServerRunning = true;
+        }
+      } catch (NamingException ne2)
+      {
+      }
+    }
+
+    return isServerRunning;
+  }
+
+  /**
+   * Provides the ldap url to the server (assumes we are calling this locally).
+   *
+   * @return the ldap url to the server.
+   */
+  public String getLdapUrl()
+  {
+    if (ldapUrl == null)
+    {
+      ldapUrl = "ldap://localhost:"+getPort();
+    }
+    return ldapUrl;
+  }
+
+  /**
+   * Provides the ldap secure url to the server (assumes we are calling this
+   * locally).
+   *
+   * @return the ldap secure url to the server.
+   */
+  public String getLdapsUrl()
+  {
+    if (ldapsUrl == null)
+    {
+      ldapsUrl = "ldaps://localhost:"+getSecurePort();
+    }
+    return ldapsUrl;
+  }
+
+  /**
    * Provides the config file path (path to config.ldif file).
    *
    * @return the config file path.
    */
   private String getConfigFilePath()
   {
-    return OfflineInstaller.CONFIG_FILE_NAME;
+    return Utils.getConfigFileFromClasspath();
   }
 
   /**
@@ -152,14 +279,30 @@ public class CurrentInstallStatus
    */
   private int getPort()
   {
+    return getPort("ds-cfg-listen-port");
+  }
+
+  /**
+   * Provides the LDAP secure port as is specified in the config.ldif file.
+   *
+   * @return the LDAP secure port specified in the config.ldif file.
+   */
+  private int getSecurePort()
+  {
+    // TODO find out which is the attribute for this port.
+    return getPort("ds-cfg-listen-secure-port");
+  }
+
+  private int getPort(String portAttr)
+  {
     int port = -1;
 
     int index = getConfigFileContents().indexOf("cn=ldap connection handler");
 
     if (index != -1)
     {
-      String portAttr = "ds-cfg-listen-port:";
-      int index1 = getConfigFileContents().indexOf(portAttr, index);
+      String attrWithPoints = portAttr+":";
+      int index1 = getConfigFileContents().indexOf(attrWithPoints, index);
       if (index1 != -1)
       {
         int index2 =
@@ -168,7 +311,8 @@ public class CurrentInstallStatus
         if (index2 != -1)
         {
           String sPort =
-              getConfigFileContents().substring(portAttr.length() + index1,
+              getConfigFileContents().substring(attrWithPoints.length() +
+                  index1,
                   index2).trim();
           try
           {
@@ -183,34 +327,6 @@ public class CurrentInstallStatus
   }
 
   /**
-   * Indicates whether there is the server is running in the localhost on the
-   * LDAP port specified in config.ldif file.
-   *
-   * @return <CODE>true</CODE> if the server is running, or <CODE>false</CODE>
-   *         if not.
-   */
-  private boolean isServerRunning()
-  {
-    boolean isServerRunning = false;
-
-    int port = getPort();
-
-    if (port > 0)
-    {
-      String ldapURL = "ldap://localhost:" + port;
-
-      try
-      {
-        Utils.createLdapContext(ldapURL, null, null, 3000, null);
-        isServerRunning = true;
-      } catch (NamingException ne)
-      {
-      }
-    }
-    return isServerRunning;
-  }
-
-  /**
    * Indicates whether there are database files under this installation.
    *
    * @return <CODE>true</CODE> if there are database files, or
@@ -219,7 +335,7 @@ public class CurrentInstallStatus
   private boolean dbFilesExist()
   {
     boolean dbFilesExist = false;
-    File dbDir = new File(OfflineInstaller.FULL_INSTALL_PATH, "db");
+    File dbDir = new File(Utils.getInstallPathFromClasspath(), "db");
     File[] children = dbDir.listFiles();
     if ((children != null) && (children.length > 0))
     {
@@ -262,18 +378,19 @@ public class CurrentInstallStatus
       StringBuffer buf = new StringBuffer();
       try
       {
-        BufferedReader in =
-            new BufferedReader(new FileReader(getConfigFilePath()));
+        FileReader reader = new FileReader(getConfigFilePath());
+        BufferedReader in = new BufferedReader(reader);
         String line;
         // We do not care about encoding: we are just interested in the ports
         while ((line = in.readLine()) != null)
         {
           buf.append(line + System.getProperty("line.separator"));
         }
-        configFileContents = buf.toString().toLowerCase();
+        reader.close();
       } catch (IOException ioe)
       {
       }
+      configFileContents = buf.toString().toLowerCase();
     }
     return configFileContents;
   }
@@ -295,5 +412,40 @@ public class CurrentInstallStatus
   private ResourceProvider getI18n()
   {
     return ResourceProvider.getInstance();
+  }
+
+  private void updateSetWithValues(Set<String> set, String attrName)
+  {
+    attrName += ":";
+    int index1 = getConfigFileContents().indexOf(attrName);
+    while (index1 != -1)
+    {
+      int index2 = getConfigFileContents().indexOf(
+            System.getProperty("line.separator"), index1);
+      String value;
+      if (index2 > (index1 + attrName.length()))
+      {
+        value = getConfigFileContents().substring(attrName.length() + index1,
+              index2).trim();
+      }
+      else if (getConfigFileContents().length() > (index1 + attrName.length()))
+      {
+        // Assume end of file
+        value = getConfigFileContents().substring(
+            attrName.length() + index1).trim();
+      }
+      else
+      {
+        value = null;
+      }
+
+      if ((value != null) && (value.length() > 0))
+      {
+        set.add(value);
+      }
+
+      index1 = getConfigFileContents().indexOf(attrName,
+          index1 + attrName.length());
+    }
   }
 }

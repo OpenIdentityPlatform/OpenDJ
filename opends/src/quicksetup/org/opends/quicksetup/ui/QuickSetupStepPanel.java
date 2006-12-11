@@ -45,6 +45,9 @@ import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.installer.InstallProgressDescriptor;
 import org.opends.quicksetup.installer.LabelFieldDescriptor;
 import org.opends.quicksetup.installer.UserInstallData;
+import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
+import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.URLWorker;
 import org.opends.quicksetup.util.Utils;
 
@@ -59,6 +62,8 @@ public abstract class QuickSetupStepPanel extends QuickSetupPanel
 implements HyperlinkListener
 {
   private Component inputPanel;
+
+  private ProgressMessageFormatter formatter;
 
   // We can use a HashMap (not multi-thread safe) because all
   // the calls to this object are done in the event-thread.
@@ -88,6 +93,15 @@ implements HyperlinkListener
    * @param descriptor the descriptor of the Installation progress.
    */
   public void displayProgress(InstallProgressDescriptor descriptor)
+  {
+  }
+
+  /**
+   * Called when a progress change must be reflected in the panels.  Only
+   * ProgressPanel overwrites this method and for all the others it stays empty.
+   * @param descriptor the descriptor of the Uninstallation progress.
+   */
+  public void displayProgress(UninstallProgressDescriptor descriptor)
   {
   }
 
@@ -363,6 +377,21 @@ implements HyperlinkListener
   }
 
   /**
+   * Returns the formatter that will be used to display the messages in this
+   * panel.
+   * @return the formatter that will be used to display the messages in this
+   * panel.
+   */
+  ProgressMessageFormatter getFormatter()
+  {
+    if (formatter == null)
+    {
+      formatter = new HtmlProgressMessageFormatter();
+    }
+    return formatter;
+  }
+
+  /**
    * Creates and returns the title panel.
    * @return the title panel.
    */
@@ -404,7 +433,6 @@ implements HyperlinkListener
     String instructions = getInstructions();
     if (instructions != null)
     {
-
       JEditorPane p =
           UIFactory.makeHtmlPane(instructions, UIFactory.INSTRUCTIONS_FONT);
       p.setOpaque(false);

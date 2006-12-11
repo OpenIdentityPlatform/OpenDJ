@@ -25,51 +25,36 @@
  *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.installer;
+package org.opends.quicksetup.uninstaller;
 
 /**
  * This exception is used to encapsulate all the error that we might have
- * during the installation.
+ * during the uninstallation.
  *
- * @see Installer, WebStartInstaller, OfflineInstaller.
+ * @see Uninstaller.
  *
  */
-public class InstallException extends Exception
+public class UninstallException extends Exception
 {
-  private static final long serialVersionUID = -3527273444231560341L;
-
+  private static final long serialVersionUID = 5988129928117915261L;
   private Type type;
 
   /**
-   * This enum contains the different type of InstallException that we can
+   * This enum contains the different type of UninstallException that we can
    * have.
    *
    */
   public enum Type
   {
     /**
-     * Error related to file system error: IOException writing files, permission
-     * errors, etc.
+     * Error related to file system error: IOException deleting files,
+     * permission errors, etc.
      */
     FILE_SYSTEM_ERROR,
     /**
-     * Error downloading jar files from web start server.  This is specific
-     * to the web start installation.
+     * Error stopping the Open DS server.
      */
-    DOWNLOAD_ERROR,
-    /**
-     * Error during the configuration of the Directory Server.
-     */
-    CONFIGURATION_ERROR,
-    /**
-     * Error during the import of data (base entry, from LDIF file or
-     * automatically generated data).
-     */
-    IMPORT_ERROR,
-    /**
-     * Error starting the Open DS server.
-     */
-    START_ERROR,
+    STOP_ERROR,
     /**
      * A bug (for instance when we throw an IllegalStateException).
      */
@@ -77,12 +62,12 @@ public class InstallException extends Exception
   };
 
   /**
-   * The constructor of the InstallException.
+   * The constructor of the UninstallException.
    * @param type the type of error we have.
    * @param localizedMsg a localized string describing the problem.
    * @param rootCause the root cause of this exception.
    */
-  public InstallException(Type type, String localizedMsg, Throwable rootCause)
+  public UninstallException(Type type, String localizedMsg, Throwable rootCause)
   {
     super(localizedMsg, rootCause);
     this.type = type;

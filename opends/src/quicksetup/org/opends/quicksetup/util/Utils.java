@@ -42,14 +42,21 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 
 import javax.naming.CommunicationException;
 import javax.naming.Context;
 import javax.naming.NamingException;
+import javax.naming.directory.SearchControls;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
+import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.installer.webstart.JnlpProperties;
 
@@ -61,6 +68,49 @@ import org.opends.quicksetup.installer.webstart.JnlpProperties;
 public class Utils
 {
   private static final int BUFFER_SIZE = 1024;
+
+  private static final String[] OPEN_DS_JAR_RELATIVE_PATHS =
+    { "lib/quicksetup.jar", "lib/OpenDS.jar", "lib/je.jar" };
+
+  /**
+   * The relative path where all the binaries (scripts) are.
+   */
+  private static final String BINARIES_PATH_RELATIVE = "bin";
+
+  /**
+   * The relative path where all the libraries (jar files) are.
+   */
+  private static final String LIBRARIES_PATH_RELATIVE = "lib";
+
+  /**
+   * The relative path where the database files are.
+   */
+  private static final String DATABASES_PATH_RELATIVE = "db";
+
+  /**
+   * The relative path where the log files are.
+   */
+  private static final String LOGS_PATH_RELATIVE = "logs";
+
+  /**
+   * The relative path where the LDIF files are.
+   */
+  private static final String LDIFS_PATH_RELATIVE = "ldif";
+
+  /**
+   * The relative path where the backup files are.
+   */
+  private static final String BACKUPS_PATH_RELATIVE = "bak";
+
+  /**
+   * The relative path where the config files are.
+   */
+  private static final String CONFIG_PATH_RELATIVE = "config";
+
+  /**
+   * The relative path to the Configuration LDIF file.
+   */
+  private static final String CONFIG_FILE_PATH_RELATIVE = "config/config.ldif";
 
   private Utils()
   {
@@ -166,7 +216,68 @@ public class Utils
   public static String getPath(String parentPath, String relativePath)
   {
     File f = new File(new File(parentPath), relativePath);
+    try
+    {
+      /*
+       * Do a best effort to avoid having a relative representation (for
+       * instance to avoid having ../../../).
+       */
+      File canonical = f.getCanonicalFile();
+      f = canonical;
+    }
+    catch (IOException ioe)
+    {
+      /* This is a best effort to get the best possible representation of the
+       * file: reporting the error is not necessary.
+       */
+    }
     return f.toString();
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the first provided path is under the second
+   * path in the file system.
+   * @param descendant the descendant candidate path.
+   * @param path the path.
+   * @return <CODE>true</CODE> if the first provided path is under the second
+   * path in the file system.
+   */
+  public static boolean isDescendant(String descendant, String path)
+  {
+    boolean isDescendant = false;
+    File f1;
+    File f2;
+
+    try
+    {
+      f1 = (new File(path)).getCanonicalFile();
+    }
+    catch (IOException ioe)
+    {
+      f1 = new File(path);
+    }
+
+    try
+    {
+      f2 = (new File(descendant)).getCanonicalFile();
+    }
+    catch (IOException ioe)
+    {
+      f2 = new File(descendant);
+    }
+
+    f2 = f2.getParentFile();
+
+    while ((f2 != null) && !isDescendant)
+    {
+      isDescendant = f1.equals(f2);
+
+      if (!isDescendant)
+      {
+        f2 = f2.getParentFile();
+      }
+    }
+    return isDescendant;
   }
 
   /**
@@ -446,6 +557,34 @@ public class Utils
   }
 
   /**
+   * This is a helper method that gets a String representation of the elements
+   * in the Collection. The String will display the different elements separated
+   * by the separator String.
+   *
+   * @param col
+   *          the collection containing the String.
+   * @param separator
+   *          the separator String to be used.
+   * @return the String representation for the collection.
+   */
+  public static String getStringFromCollection(Collection<String> col,
+      String separator)
+  {
+    String msg = null;
+    for (String m : col)
+    {
+      if (msg == null)
+      {
+        msg = m;
+      } else
+      {
+        msg += separator + m;
+      }
+    }
+    return msg;
+  }
+
+  /**
    * Returns the default server location that will be proposed to the user
    * in the installation.
    * @return the default server location that will be proposed to the user
@@ -522,16 +661,16 @@ public class Utils
   }
 
   /**
-   * Returns a localized message for a given properties key an exception.
+   * Returns a localized message for a given properties key an throwable.
    * @param key the key of the message in the properties file.
    * @param i18n the ResourceProvider to be used.
    * @param args the arguments of the message in the properties file.
-   * @param ex the exception for which we want to get a message.
+   * @param t the throwable for which we want to get a message.
    *
-   * @return a localized message for a given properties key an exception.
+   * @return a localized message for a given properties key and throwable.
    */
-  public static String getExceptionMsg(ResourceProvider i18n, String key,
-      String[] args, Exception ex)
+  public static String getThrowableMsg(ResourceProvider i18n, String key,
+      String[] args, Throwable t)
   {
     String msg;
     if (args != null)
@@ -542,7 +681,7 @@ public class Utils
       msg = i18n.getMsg(key);
     }
 
-    String detail = ex.toString();
+    String detail = t.toString();
     if (detail != null)
     {
       String[] arg =
@@ -659,6 +798,17 @@ public class Utils
   }
 
   /**
+   * Returns <CODE>true</CODE> if this is executed from command line and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if this is executed from command line and
+   * <CODE>false</CODE> otherwise.
+   */
+  public static boolean isCli()
+  {
+    return "true".equals(System.getProperty("org.opends.quicksetup.cli"));
+  }
+
+  /**
    * Creates a clear LDAP connection and returns the corresponding LdapContext.
    * This methods uses the specified parameters to create a JNDI environment
    * hashtable and creates an InitialLdapContext instance.
@@ -725,19 +875,293 @@ public class Utils
         {
           pair[1] = ne;
 
-        } catch (RuntimeException re)
+        } catch (Throwable t)
         {
-          pair[1] = re;
+          pair[1] = t;
         }
       }
     });
     return getInitialLdapContext(t, pair, timeout);
   }
+
+  /**
+   * Method used to know if we can connect as administrator in a server with a
+   * given password and dn.
+   * @param ldapUrl the ldap URL of the server.
+   * @param dn the dn to be used.
+   * @param pwd the password to be used.
+   * @return <CODE>true</CODE> if we can connect and read the configuration and
+   * <CODE>false</CODE> otherwise.
+   */
+  public static boolean canConnectAsAdministrativeUser(String ldapUrl,
+      String dn, String pwd)
+  {
+    boolean canConnectAsAdministrativeUser = false;
+    try
+    {
+      InitialLdapContext ctx =
+        Utils.createLdapContext(ldapUrl, dn, pwd, 3000, null);
+
+      /*
+       * Search for the config to check that it is the directory manager.
+       */
+      SearchControls searchControls = new SearchControls();
+      searchControls.setCountLimit(1);
+      searchControls.setSearchScope(
+      SearchControls. OBJECT_SCOPE);
+      searchControls.setReturningAttributes(
+      new String[] {"dn"});
+      ctx.search("cn=config", "objectclass=*", searchControls);
+
+      canConnectAsAdministrativeUser = true;
+    } catch (NamingException ne)
+    {
+      // Nothing to do.
+    } catch (Throwable t)
+    {
+      throw new IllegalStateException("Unexpected throwable.", t);
+    }
+    return canConnectAsAdministrativeUser;
+  }
+
+  /**
+   * Returns the path of the installation of the directory server.  Note that
+   * this method assumes that this code is being run locally.
+   * @return the path of the installation of the directory server.
+   */
+  public static String getInstallPathFromClasspath()
+  {
+    /* Get the install path from the Class Path */
+    String sep = System.getProperty("path.separator");
+    String[] classPaths = System.getProperty("java.class.path").split(sep);
+    String path = null;
+    for (int i = 0; i < classPaths.length && (path == null); i++)
+    {
+      for (int j = 0; j < OPEN_DS_JAR_RELATIVE_PATHS.length &&
+      (path == null); j++)
+      {
+        String normPath = classPaths[i].replace(File.separatorChar, '/');
+        if (normPath.endsWith(OPEN_DS_JAR_RELATIVE_PATHS[j]))
+        {
+          path = classPaths[i];
+        }
+      }
+    }
+    File f = new File(path).getAbsoluteFile();
+    File binariesDir = f.getParentFile();
+
+    return binariesDir.getParent();
+  }
+
+  /**
+   * Returns the path to the configuration file of the directory server.  Note
+   * that this method assumes that this code is being run locally.
+   * @return the path of the configuration file of the directory server.
+   */
+  public static String getConfigFileFromClasspath()
+  {
+    return getPath(getInstallPathFromClasspath(), CONFIG_FILE_PATH_RELATIVE);
+  }
+
+  /**
+   * Returns the list of jar files that might be used to execute the code of
+   * the installation and uninstallation.
+   * @return the list of jar files that might be used to execute the code of
+   * the installation and uninstallation.
+   */
+  public static String[] getOpenDSJarPaths()
+  {
+    return OPEN_DS_JAR_RELATIVE_PATHS;
+  }
+
+
+  /**
+   * Returns the relative path of the directory containing the binaries of the
+   * Open DS installation.  The path is relative to the installation path.
+   * @return the relative path of the directory containing the binaries of the
+   * Open DS installation.
+   */
+  public static String getBinariesRelativePath()
+  {
+    return BINARIES_PATH_RELATIVE;
+  }
+
+  /**
+   * Returns the relative path of the directory containing the libraries of the
+   * Open DS installation.  The path is relative to the installation path.
+   * @return the relative path of the directory containing the libraries of the
+   * Open DS installation.
+   */
+  public static String getLibrariesRelativePath()
+  {
+    return LIBRARIES_PATH_RELATIVE;
+  }
+
+  /**
+   * Returns the relative path of the directory containing the databases of the
+   * Open DS installation.  The path is relative to the installation path.
+   * @return the relative path of the directory containing the databases of the
+   * Open DS installation.
+   */
+  public static String getDatabasesRelativePath()
+  {
+    return DATABASES_PATH_RELATIVE;
+  }
+
+  /**
+   * Returns the relative path of the directory containing the logs of the
+   * Open DS installation.  The path is relative to the installation path.
+   * @return the relative path of the directory containing the logs of the
+   * Open DS installation.
+   */
+  public static String getLogsRelativePath()
+  {
+    return LOGS_PATH_RELATIVE;
+  }
+
+  /**
+   * Returns the relative path of the directory containing the LDIF files of the
+   * Open DS installation.  The path is relative to the installation path.
+   * @return the relative path of the directory containing the LDIF files of the
+   * Open DS installation.
+   */
+  public static String getLDIFsRelativePath()
+  {
+    return LDIFS_PATH_RELATIVE;
+  }
+
+
+  /**
+   * Returns the relative path of the directory containing the backup files of
+   * the Open DS installation.  The path is relative to the installation path.
+   * @return the relative path of the directory containing the backup files of
+   * the Open DS installation.
+   */
+  public static String getBackupsRelativePath()
+  {
+    return BACKUPS_PATH_RELATIVE;
+  }
+
+  /**
+   * Returns the relative path of the directory containing the config files of
+   * the Open DS installation.  The path is relative to the installation path.
+   * @return the relative path of the directory containing the config files of
+   * the Open DS installation.
+   */
+  public static String getConfigRelativePath()
+  {
+    return CONFIG_PATH_RELATIVE;
+  }
+
+  /**
+   * Displays a confirmation message dialog.
+  *
+  * @param parent
+   *          the parent frame of the confirmation dialog.
+   * @param msg
+  *          the confirmation message.
+  * @param title
+  *          the title of the dialog.
+  * @return <CODE>true</CODE> if the user confirms the message, or
+  * <CODE>false</CODE> if not.
+  */
+ public static boolean displayConfirmation(JFrame parent, String msg,
+     String title)
+ {
+   return JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(
+       parent, msg, title, JOptionPane.YES_NO_OPTION,
+       JOptionPane.QUESTION_MESSAGE, null, // don't use a custom
+       // Icon
+       null, // the titles of buttons
+       null); // default button title
+ }
+
+  /**
+   * Displays an error message dialog.
+   *
+   * @param parent
+   *          the parent frame of the error dialog.
+   * @param msg
+   *          the error message.
+   * @param title
+   *          the title for the dialog.
+   */
+  public static void displayError(JFrame parent, String msg, String title)
+  {
+    JOptionPane.showMessageDialog(parent, msg, title,
+        JOptionPane.ERROR_MESSAGE);
+  }
+
+  /**
+   * Displays an information message dialog.
+   *
+   * @param parent
+   *          the parent frame of the information dialog.
+   * @param msg
+   *          the error message.
+   * @param title
+   *          the title for the dialog.
+   */
+  public static void displayInformationMessage(JFrame parent, String msg,
+      String title)
+  {
+    JOptionPane.showMessageDialog(parent, msg, title,
+        JOptionPane.INFORMATION_MESSAGE);
+  }
+
+  /**
+   * Returns a Set of relative paths containing the db paths outside the
+   * installation.
+   * @param installStatus the Current Install Status object.
+   * @return a Set of relative paths containing the db paths outside the
+   * installation.
+   */
+  public static Set<String> getOutsideDbs(CurrentInstallStatus installStatus)
+  {
+    String installPath = getInstallPathFromClasspath();
+    Set<String> dbs = installStatus.getDatabasePaths();
+    Set<String> outsideDbs = new HashSet<String>();
+    for (String relativePath : dbs)
+    {
+      /* The db paths are relative */
+      String fullDbPath = getPath(installPath, relativePath);
+      if (!isDescendant(fullDbPath, installPath))
+      {
+        outsideDbs.add(fullDbPath);
+      }
+    }
+    return outsideDbs;
+  }
+
+  /**
+   * Returns a Set of relative paths containing the log paths outside the
+   * installation.
+   * @param installStatus the Current Install Status object.
+   * @return a Set of relative paths containing the log paths outside the
+   * installation.
+   */
+  public static Set<String> getOutsideLogs(CurrentInstallStatus installStatus)
+  {
+    String installPath = getInstallPathFromClasspath();
+    Set<String> logs = installStatus.getLogPaths();
+    Set<String> outsideLogs = new HashSet<String>();
+    for (String relativePath : logs)
+    {
+      /* The db paths are relative */
+      String fullDbPath = getPath(installPath, relativePath);
+      if (!isDescendant(fullDbPath, installPath))
+      {
+        outsideLogs.add(fullDbPath);
+      }
+    }
+    return outsideLogs;
+  }
+
   /**
    * This is just a commodity method used to try to get an InitialLdapContext.
    * @param t the Thread to be used to create the InitialLdapContext.
    * @param pair an Object[] array that contains the InitialLdapContext and the
-   * Exception if any occurred.
+   * Throwable if any occurred.
    * @param timeout the timeout.  If we do not get to create the connection
    * before the timeout a CommunicationException will be thrown.
    * @return the created InitialLdapContext
@@ -802,6 +1226,11 @@ public class Utils
       } else if (pair[1] instanceof RuntimeException)
       {
         throw (RuntimeException) pair[1];
+
+      } else if (pair[1] instanceof Throwable)
+      {
+        throw new IllegalStateException("Unexpected throwable occurred",
+            (Throwable) pair[1]);
       }
     }
     return (InitialLdapContext) pair[0];

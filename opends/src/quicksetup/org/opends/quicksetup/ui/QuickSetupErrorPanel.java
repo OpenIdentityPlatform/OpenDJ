@@ -95,7 +95,7 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
     p2.add(Box.createHorizontalGlue(), gbc);
     quitButton =
         UIFactory.makeJButton(getMsg("quit-button-label"),
-            getMsg("quit-button-tooltip"));
+            getMsg("quit-button-install-tooltip"));
 
     final ButtonName fButtonName = ButtonName.QUIT;
 

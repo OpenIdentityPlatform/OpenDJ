@@ -28,7 +28,7 @@
 package org.opends.quicksetup.installer.webstart;
 
 /**
- * The following properties are set in the OpenDSQuickSetup.jnlp file to provide
+ * The following properties are set in the QuickSetup.jnlp file to provide
  * informations.
  *
  */

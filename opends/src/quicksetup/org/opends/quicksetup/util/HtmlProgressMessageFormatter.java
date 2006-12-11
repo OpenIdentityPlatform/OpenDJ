@@ -59,25 +59,38 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   private static String SPACE = "&nbsp;";
 
   /**
+   * Returns the HTML representation of the text without providing any style.
+   * @param text the source text from which we want to get the HTML
+   * representation
+   * @return the HTML representation for the given text.
+   */
+  public String getFormattedText(String text)
+  {
+    return getHtml(text);
+  }
+
+  /**
    * Returns the HTML representation of the text that is the summary of the
    * installation process (the one that goes in the UI next to the progress
    * bar).
    * @param text the source text from which we want to get the formatted
    * representation
-   * @return the HTML representation of an error for the given text.
+   * @return the HTML representation of the summary for the given text.
    */
   public String getFormattedSummary(String text)
   {
-    return UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
+    return "<html>"+UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
   }
 
   /**
    * Returns the HTML representation of an error for a given text.
    * @param text the source text from which we want to get the HTML
    * representation
+   * @param applyMargin specifies whether we apply a margin or not to the
+   * resulting HTML.
    * @return the HTML representation of an error for the given text.
    */
-  public String getFormattedError(String text)
+  public String getFormattedError(String text, boolean applyMargin)
   {
     String html =
         UIFactory.getIconHtml(UIFactory.IconType.ERROR)
@@ -87,16 +100,24 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
                 UIFactory.PROGRESS_ERROR_FONT);
 
     String result = UIFactory.applyErrorBackgroundToHtml(html);
+    if (applyMargin)
+    {
+      result =
+          UIFactory.applyMargin(result,
+              UIFactory.TOP_INSET_ERROR_MESSAGE, 0, 0, 0);
+    }
     return result;
   }
 
   /**
-   * Returns the HTML representation of an warning for a given text.
+   * Returns the HTML representation of a warning for a given text.
    * @param text the source text from which we want to get the HTML
    * representation
-   * @return the HTML representation of an warning for the given text.
+   * @param applyMargin specifies whether we apply a margin or not to the
+   * resulting HTML.
+   * @return the HTML representation of a warning for the given text.
    */
-  public String getFormattedWarning(String text)
+  public String getFormattedWarning(String text, boolean applyMargin)
   {
     String html =
         UIFactory.getIconHtml(UIFactory.IconType.WARNING)
@@ -106,6 +127,12 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
                 UIFactory.PROGRESS_WARNING_FONT);
 
     String result = UIFactory.applyWarningBackgroundToHtml(html);
+    if (applyMargin)
+    {
+      result =
+          UIFactory.applyMargin(result,
+              UIFactory.TOP_INSET_ERROR_MESSAGE, 0, 0, 0);
+    }
     return result;
   }
 
@@ -113,7 +140,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the HTML representation of a success message for a given text.
    * @param text the source text from which we want to get the HTML
    * representation
-   * @return the HTML representation of an success message for the given text.
+   * @return the HTML representation of a success message for the given text.
    */
   public String getFormattedSuccess(String text)
   {
@@ -275,6 +302,15 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   public String getLineBreak()
   {
     return LINE_BREAK;
+  }
+
+  /**
+   * Returns the tab in HTML.
+   * @return the tab in HTML.
+   */
+  public String getTab()
+  {
+    return SPACE+SPACE+SPACE+SPACE+SPACE;
   }
 
   /**

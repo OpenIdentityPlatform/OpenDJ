@@ -42,8 +42,8 @@ import javax.swing.event.HyperlinkListener;
 
 import org.opends.quicksetup.installer.InstallProgressDescriptor;
 import org.opends.quicksetup.installer.InstallProgressStep;
-import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
-import org.opends.quicksetup.util.ProgressMessageFormatter;
+import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
+import org.opends.quicksetup.uninstaller.UninstallProgressStep;
 
 /**
  * This panel is used to show the progress of the install or the uninstall.
@@ -62,8 +62,6 @@ public class ProgressPanel extends QuickSetupStepPanel
   private JScrollPane scroll;
 
   private String lastText;
-
-  private ProgressMessageFormatter formatter;
 
   /**
    * ProgressPanel constructor.
@@ -180,6 +178,29 @@ public class ProgressPanel extends QuickSetupStepPanel
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public void displayProgress(UninstallProgressDescriptor descriptor)
+  {
+    progressBarLabel.setText(UIFactory.applyFontToHtml(descriptor
+        .getProgressBarMsg(), UIFactory.PROGRESS_FONT));
+    UninstallProgressStep status = descriptor.getProgressStep();
+    if ((status == UninstallProgressStep.FINISHED_WITH_ERROR)
+        || (status == UninstallProgressStep.FINISHED_SUCCESSFULLY))
+    {
+      progressBar.setVisible(false);
+    }
+    int v = descriptor.getProgressBarRatio().intValue();
+    if (v > 0)
+    {
+      progressBar.setIndeterminate(false);
+      progressBar.setValue(v);
+    }
+    lastText = descriptor.getDetailsMsg();
+    detailsTextArea.setText(lastText);
+  }
+
+  /**
    * Creates the progress bar panel.
    * @return the created panel.
    */
@@ -211,20 +232,5 @@ public class ProgressPanel extends QuickSetupStepPanel
     panel.add(Box.createHorizontalGlue(), gbc);
 
     return panel;
-  }
-
-  /**
-   * Returns the formatter that will be used to display the messages in this
-   * panel.
-   * @return the formatter that will be used to display the messages in this
-   * panel.
-   */
-  ProgressMessageFormatter getFormatter()
-  {
-    if (formatter == null)
-    {
-      formatter = new HtmlProgressMessageFormatter();
-    }
-    return formatter;
   }
 }

@@ -43,13 +43,21 @@ public enum UninstallProgressStep
    */
   STOPPING_SERVER,
   /**
-   * Removing Database files.
+   * Removing External Database files.
    */
-  REMOVING_DATABASE_FILES,
+  DELETING_EXTERNAL_DATABASE_FILES,
+  /**
+   * Removing External Log files.
+   */
+  DELETING_EXTERNAL_LOG_FILES,
   /**
    * Removing external references.
    */
   REMOVING_EXTERNAL_REFERENCES,
+  /**
+   * Removing installation files.
+   */
+  DELETING_INSTALLATION_FILES,
   /**
    * Installation finished successfully.
    */

@@ -42,6 +42,7 @@ import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.Step;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
+import org.opends.quicksetup.util.Utils;
 
 /**
  * This class contains the buttons in the bottom of the Install/Uninstall
@@ -65,6 +66,8 @@ class ButtonsPanel extends QuickSetupPanel
   private JButton closeButton;
 
   private JButton finishButton;
+
+  private JButton cancelButton;
 
   /**
    * Default constructor.
@@ -112,6 +115,7 @@ class ButtonsPanel extends QuickSetupPanel
       finishButton.setVisible(false);
       quitButton.setVisible(true);
       closeButton.setVisible(false);
+      cancelButton.setVisible(false);
 
       break;
 
@@ -122,6 +126,7 @@ class ButtonsPanel extends QuickSetupPanel
       finishButton.setVisible(true);
       quitButton.setVisible(true);
       closeButton.setVisible(false);
+      cancelButton.setVisible(false);
 
       break;
 
@@ -135,6 +140,7 @@ class ButtonsPanel extends QuickSetupPanel
       finishButton.setVisible(false);
       quitButton.setVisible(false);
       closeButton.setVisible(true);
+      cancelButton.setVisible(false);
 
       break;
 
@@ -143,8 +149,9 @@ class ButtonsPanel extends QuickSetupPanel
       previousButton.setVisible(false);
       nextButton.setVisible(false);
       finishButton.setVisible(true);
-      quitButton.setVisible(true);
+      quitButton.setVisible(false);
       closeButton.setVisible(false);
+      cancelButton.setVisible(true);
 
       break;
 
@@ -155,6 +162,7 @@ class ButtonsPanel extends QuickSetupPanel
       finishButton.setVisible(false);
       quitButton.setVisible(true);
       closeButton.setVisible(false);
+      cancelButton.setVisible(false);
     }
   }
 
@@ -188,6 +196,10 @@ class ButtonsPanel extends QuickSetupPanel
       b = finishButton;
       break;
 
+    case CANCEL:
+      b = cancelButton;
+      break;
+
     default:
       throw new IllegalArgumentException("Unknown button name: " +
           buttonName);
@@ -209,17 +221,25 @@ class ButtonsPanel extends QuickSetupPanel
         createButton("previous-button-label", "previous-button-tooltip",
             ButtonName.PREVIOUS);
 
+    String tooltip;
+
+    tooltip = "quit-button-install-tooltip";
     quitButton =
-        createButton("quit-button-label", "quit-button-tooltip",
-            ButtonName.QUIT);
+        createButton("quit-button-label", tooltip, ButtonName.QUIT);
 
-    closeButton =
-        createButton("close-button-label", "close-button-tooltip",
-            ButtonName.CLOSE);
+    tooltip = Utils.isUninstall()?
+        "close-button-uninstall-tooltip":"close-button-install-tooltip";
+    closeButton = createButton("close-button-label", tooltip, ButtonName.CLOSE);
 
-    finishButton =
-        createButton("finish-button-label", "finish-button-tooltip",
-            ButtonName.FINISH);
+    String label = Utils.isUninstall()?
+        "finish-button-uninstall-label":"finish-button-install-label";
+    tooltip = Utils.isUninstall()?
+        "finish-button-uninstall-tooltip":"finish-button-install-tooltip";
+    finishButton = createButton(label, tooltip, ButtonName.FINISH);
+
+    cancelButton =
+      createButton("cancel-button-label", "cancel-button-uninstall-tooltip",
+          ButtonName.CANCEL);
   }
 
   /**
@@ -241,7 +261,7 @@ class ButtonsPanel extends QuickSetupPanel
     int width = (int) previousButton.getPreferredSize().getWidth();
     previousPanel.add(Box.createHorizontalStrut(width), gbcAux);
 
-    gbc.gridwidth = 4;
+    gbc.gridwidth = 5;
     gbc.weightx = 0.0;
     gbc.weighty = 0.0;
     gbc.insets.bottom = 0;
@@ -255,7 +275,10 @@ class ButtonsPanel extends QuickSetupPanel
     // Set as opaque to inherit the background color of ButtonsPanel
     nextFinishPanel.setOpaque(false);
     nextFinishPanel.add(nextButton, gbcAux);
-    nextFinishPanel.add(finishButton, gbcAux);
+    if (!Utils.isUninstall())
+    {
+      nextFinishPanel.add(finishButton, gbcAux);
+    }
     width =
         (int) Math.max(nextButton.getPreferredSize().getWidth(), finishButton
             .getPreferredSize().getWidth());
@@ -268,20 +291,36 @@ class ButtonsPanel extends QuickSetupPanel
     gbc.insets.right = 0;
     add(Box.createHorizontalGlue(), gbc);
 
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
-    JPanel quitClosePanel = new JPanel(new GridBagLayout());
+    if (Utils.isUninstall())
+    {
+      gbc.insets.right = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
+      add(finishButton, gbc);
+      gbc.insets.right = 0;
+    }
+
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.weightx = 0.0;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.insets.left = 0;
+    JPanel quitCloseCancelPanel = new JPanel(new GridBagLayout());
     // Set as opaque to inherit the background color of ButtonsPanel
-    quitClosePanel.setOpaque(false);
-    quitClosePanel.add(quitButton, gbcAux);
-    quitClosePanel.add(closeButton, gbcAux);
+    quitCloseCancelPanel.setOpaque(false);
+    quitCloseCancelPanel.add(
+        Box.createHorizontalStrut(UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS),
+        gbcAux);
+    quitCloseCancelPanel.add(quitButton, gbcAux);
+    quitCloseCancelPanel.add(closeButton, gbcAux);
+    quitCloseCancelPanel.add(cancelButton, gbcAux);
     width =
         (int) Math.max(quitButton.getPreferredSize().getWidth(), closeButton
             .getPreferredSize().getWidth());
-    quitClosePanel.add(Box.createHorizontalStrut(width), gbcAux);
-    add(quitClosePanel, gbc);
+    width = (int) Math.max(width, cancelButton.getPreferredSize().getWidth());
+    quitCloseCancelPanel.add(Box.createHorizontalStrut(width), gbcAux);
+    add(quitCloseCancelPanel, gbc);
   }
 
   /**
