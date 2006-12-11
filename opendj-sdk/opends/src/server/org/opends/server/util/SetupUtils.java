@@ -37,10 +37,10 @@ import java.util.LinkedList;
 
 
 /**
- * This class may be used to generate a MakeLDIF template with a specified base
- * DN and number of user entries.
+ * This class provides a number of utility methods that may be used during the
+ * graphical or command-line setup process.
  */
-public class CreateTemplate
+public class SetupUtils
 {
   /**
    * Creates a MakeLDIF template file using the provided information.
@@ -114,6 +114,91 @@ public class CreateTemplate
     writer.close();
 
     return templateFile;
+  }
+
+
+
+  /**
+   * Indicates whether the underlying operating system is a Windows variant.
+   *
+   * @return  {@code true} if the underlying operating system is a Windows
+   *          variant, or {@code false} if not.
+   */
+  public static boolean isWindows()
+  {
+    String osName = System.getProperty("os.name");
+    return ((osName != null) && (osName.toLowerCase().indexOf("windows") >= 0));
+  }
+
+
+
+  /**
+   * Write a set-java-home file appropriate for the underlying platform that may
+   * be used to set the JAVA_HOME environment variable in a form suitable for
+   * the underlying operating system.  If a JAVA_HOME environment variable is
+   * currently set, then its value will be used.  Otherwise, it will be
+   * dynamically determined from the JVM properties.
+   * <BR><BR>
+   * Note that if the target file that would be written already exists, then
+   * this method will exit without doing anything and leaving the existing file
+   * intact.
+   *
+   *
+   * @param  serverRoot  The path to the root of the Directory Server instance
+   *                     for which the file will be written.
+   *
+   * @return  A handle to the {@code File} object that has been written.
+   *
+   * @throws  IOException  If a problem occurs while creating or writing to the
+   *                       specified file.
+   */
+  public static File writeSetJavaHome(String serverRoot)
+         throws IOException
+  {
+    String javaHome = System.getenv("JAVA_HOME");
+    if ((javaHome == null) || (javaHome.length() == 0))
+    {
+      javaHome = System.getProperty("java.home");
+    }
+
+
+    File binDirectory = new File(serverRoot, "bin");
+    File setJavaHomeFile;
+    if (isWindows())
+    {
+      setJavaHomeFile = new File(binDirectory, "set-java-home.bat");
+      if (setJavaHomeFile.exists())
+      {
+        return setJavaHomeFile;
+      }
+
+      BufferedWriter writer =
+           new BufferedWriter(new FileWriter(setJavaHomeFile));
+      writer.write("set JAVA_HOME=" + javaHome);
+      writer.newLine();
+      writer.close();
+    }
+    else
+    {
+      setJavaHomeFile = new File(binDirectory, "set-java-home");
+      if (setJavaHomeFile.exists())
+      {
+        return setJavaHomeFile;
+      }
+
+      BufferedWriter writer =
+           new BufferedWriter(new FileWriter(setJavaHomeFile));
+      writer.write("#!/bin/sh");
+      writer.newLine();
+      writer.newLine();
+      writer.write("JAVA_HOME=" + javaHome);
+      writer.newLine();
+      writer.write("export JAVA_HOME");
+      writer.newLine();
+      writer.close();
+    }
+
+    return setJavaHomeFile;
   }
 }
 

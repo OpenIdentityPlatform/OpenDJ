@@ -36,7 +36,7 @@ goto setClassPath
 :noJavaBin
 if "%JAVA_HOME%" == "" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
-set JAVA_BIN="%JAVA_HOME%\bin\java.exe"
+set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 :noJavaHome
 echo Error: JAVA_HOME environment variable is not set.
@@ -49,7 +49,7 @@ FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
 
 set PATH=%SystemRoot%
 
-%JAVA_BIN% %JAVA_ARGS% org.opends.quicksetup.SetupLauncher -P setup.bat %*
+"%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.SetupLauncher -P setup.bat %*
 
 
 :end

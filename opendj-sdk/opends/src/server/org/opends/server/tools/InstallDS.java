@@ -41,7 +41,7 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.types.DN;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.util.CreateTemplate;
+import org.opends.server.util.SetupUtils;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
@@ -81,7 +81,7 @@ public class InstallDS
   /**
    * Indicates whether we think we're running on a Windows system.
    */
-  private static boolean isWindows = false;
+  private static final boolean isWindows = SetupUtils.isWindows();
 
 
 
@@ -156,14 +156,6 @@ public class InstallDS
    */
   public static int installMain(String[] args)
   {
-    // Determine whether we think we're running on Windows.
-    String osName = System.getProperty("os.name");
-    if ((osName != null) && (osName.toLowerCase().indexOf("windows") >= 0))
-    {
-      isWindows = true;
-    }
-
-
     // Construct the product version string and the setup filename.
     versionString = DirectoryServer.getVersionString();
 
@@ -784,7 +776,7 @@ public class InstallDS
     {
       try
       {
-        File templateFile = CreateTemplate.createTemplateFile(
+        File templateFile = SetupUtils.createTemplateFile(
                                  baseDNs.getFirst().toString(), numUsers);
         if (ldifFiles == null)
         {
@@ -859,6 +851,24 @@ public class InstallDS
         System.out.println(wrapText(message, MAX_LINE_WIDTH));
       }
     }
+
+
+    // Try to write a file that can be used to set the JAVA_HOME environment
+    // variable for the administrative scripts and client tools provided with
+    // the server.  If this fails, then it's not a big deal.
+    try
+    {
+      String serverRoot = System.getenv("INSTANCE_ROOT");
+      if ((serverRoot == null) || (serverRoot.length() == 0))
+      {
+        File f = new File(configFileName);
+        serverRoot = f.getParentFile().getParentFile().getAbsolutePath();
+      }
+
+      // This isn't likely to happen, and it's not a serious problem even if it
+      // does.
+      SetupUtils.writeSetJavaHome(serverRoot);
+    } catch (Exception e) {}
 
 
     // If we've gotten here, then everything seems to have gone smoothly.

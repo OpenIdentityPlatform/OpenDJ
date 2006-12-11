@@ -41,7 +41,7 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.util.CreateTemplate;
+import org.opends.server.util.SetupUtils;
 
 /**
  * This is an abstract class that is in charge of actually performing the
@@ -391,7 +391,7 @@ public abstract class Installer
   {
     try
     {
-      return CreateTemplate.createTemplateFile(
+      return SetupUtils.createTemplateFile(
                   getUserData().getDataOptions().getBaseDn(),
                   getUserData().getDataOptions().getNumberEntries());
     }
