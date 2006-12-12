@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="account_expiration"/>
+
+  <function name="account_expiration">
+
+      <sequence>
+
+        <!--- Test case: User Bind Before Deactivation -->
+        <testcase name="'Security: Acct Exp: Preamble'">
+          <sequence>
+            <message>
+               'Security: Account Expiration: Preamble - Checking User Bind Before Expiration'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'inflict' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Expire User-->
+        <testcase name="'Security: Acct Exp: Admin Expire User'">
+          <sequence>
+            <message>
+               'Security: Account Expiration Admin Expiring User'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/account_activation/admin_expire_account.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind After Expiration-->
+        <testcase name="'Security: Acct Exp: User Bind After Expiration'">
+          <sequence>
+            <message>
+               'Security: Acct Exp: User Binding After Expiration'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'inflict' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+         <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
+            </call>
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Acct Exp: Admin Expire User in Future'">
+          <sequence>
+            <message>
+               'Security: Account Expiration Admin Expiring User in Future'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/account_activation/admin_expire_account_future.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind After Expiration-->
+        <testcase name="'Security: Acct Exp: User Bind With Future Expiration'">
+          <sequence>
+            <message>
+               'Security: Acct Exp: User Binding With Future Expiration'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'inflict' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+         <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+       <!--- Test case: Admin Reactivate User -->
+        <testcase name="'Security: Acct Exp: Postamble'">
+          <sequence>
+            <message>
+               'Security: Account Expiration: Postamble Step 1.  Admin Removing User Expiration'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/account_activation/admin_unexpire_account.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Account Expiration Postamble Step 2.  Checking User Bind After Removing Expiration'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'inflict' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>
