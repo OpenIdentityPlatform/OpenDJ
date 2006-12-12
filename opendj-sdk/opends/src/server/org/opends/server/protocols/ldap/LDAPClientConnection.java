@@ -188,6 +188,10 @@ public class LDAPClientConnection
   // The string representation of the address of the client.
   private String clientAddress;
 
+  // The name of the protocol that the client is using to communicate with the
+  // server.
+  private String protocol;
+
   // The string representation of the address of the server to which the client
   // has connected.
   private String serverAddress;
@@ -237,6 +241,7 @@ public class LDAPClientConnection
     disconnectRequested  = false;
     operationsInProgress = new ConcurrentHashMap<Integer,Operation>();
     keepStats            = connectionHandler.keepStats();
+    protocol             = "LDAP";
 
     clientAddress = clientChannel.socket().getInetAddress().getHostAddress();
     clientPort    = clientChannel.socket().getPort();
@@ -351,9 +356,7 @@ public class LDAPClientConnection
   {
     assert debugEnter(CLASS_NAME, "getProtocol");
 
-    // FIXME -- what if it is a secure connection?  And what if it is secure now
-    // but wasn't when it was established?
-    return "LDAP";
+    return protocol;
   }
 
 
@@ -522,6 +525,15 @@ public class LDAPClientConnection
                       String.valueOf(securityProvider));
 
     this.securityProvider = securityProvider;
+
+    if (securityProvider.isSecure())
+    {
+      protocol = "LDAP+" + securityProvider.getSecurityMechanismName();
+    }
+    else
+    {
+      protocol = "LDAP";
+    }
   }
 
 
@@ -2355,6 +2367,55 @@ public class LDAPClientConnection
 
 
   /**
+   * {@inheritDoc}
+   */
+  public String getMonitorSummary()
+  {
+    assert debugEnter(CLASS_NAME, "getMonitorSummary");
+
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("connID=\"");
+    buffer.append(connectionID);
+    buffer.append("\" connectTime=\"");
+    buffer.append(getConnectTimeString());
+    buffer.append("\" source=\"");
+    buffer.append(clientAddress);
+    buffer.append(":");
+    buffer.append(clientPort);
+    buffer.append("\" destination=\"");
+    buffer.append(serverAddress);
+    buffer.append(":");
+    buffer.append(connectionHandler.getListenPort());
+    buffer.append("\" ldapVersion=\"");
+    buffer.append(ldapVersion);
+    buffer.append("\" authDN=\"");
+
+    DN authDN = getAuthenticationInfo().getAuthenticationDN();
+    if (authDN != null)
+    {
+      authDN.toString(buffer);
+    }
+
+    buffer.append("\" security=\"");
+    if (securityProvider.isSecure())
+    {
+      buffer.append(securityProvider.getSecurityMechanismName());
+    }
+    else
+    {
+      buffer.append("none");
+    }
+
+    buffer.append("\" opsInProgress=\"");
+    buffer.append(operationsInProgress.size());
+    buffer.append("\"");
+
+    return buffer.toString();
+  }
+
+
+
+  /**
    * Appends a string representation of this client connection to the provided
    * buffer.
    *
@@ -2480,7 +2541,7 @@ public class LDAPClientConnection
     }
 
     clearSecurityProvider = securityProvider;
-    securityProvider      = tlsSecurityProvider;
+    setConnectionSecurityProvider(tlsSecurityProvider);
   }
 
 

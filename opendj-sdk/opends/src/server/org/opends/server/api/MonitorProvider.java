@@ -33,9 +33,12 @@ import java.util.List;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.ObjectClass;
 
 import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -145,6 +148,27 @@ public abstract class MonitorProvider
    * @return  The name of this monitor provider.
    */
   public abstract String getMonitorInstanceName();
+
+
+
+  /**
+   * Retrieves the objectclass that should be included in the monitor
+   * entry created from this monitor provider.  This may be overridden
+   * by subclasses that wish to include their own custom objectclass
+   * in the monitor entry (e.g., to make it easier to search for
+   * monitor entries of that type).  The default implementation
+   * returns the "extensibleObject" objectclass.
+   *
+   * @return  The objectclass that should be included in the monitor
+   *          entry created from this monitor provider.
+   */
+  public ObjectClass getMonitorObjectClass()
+  {
+    assert debugEnter(CLASS_NAME, "getMonitorObjectClass");
+
+    return DirectoryConfig.getObjectClass(OC_EXTENSIBLE_OBJECT_LC,
+                                          true);
+  }
 
 
 

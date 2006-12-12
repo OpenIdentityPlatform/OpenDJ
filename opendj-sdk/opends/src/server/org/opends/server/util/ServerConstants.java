@@ -218,6 +218,42 @@ public class ServerConstants
 
 
   /**
+   * The name of the monitor attribute that is used to hold the connection
+   * handler connections.
+   */
+  public static final String ATTR_MONITOR_CONNHANDLER_CONNECTION =
+       "ds-connectionhandler-connection";
+
+
+
+  /**
+   * The name of the monitor attribute that is used to hold the connection
+   * handler listeners.
+   */
+  public static final String ATTR_MONITOR_CONNHANDLER_LISTENER =
+       "ds-connectionhandler-listener";
+
+
+
+  /**
+   * The name of the monitor attribute that is used to hold the connection
+   * handler number of established connections.
+   */
+  public static final String ATTR_MONITOR_CONNHANDLER_NUMCONNECTIONS =
+       "ds-connectionhandler-num-connections";
+
+
+
+  /**
+   * The name of the monitor attribute that is used to hold the connection
+   * handler protocol.
+   */
+  public static final String ATTR_MONITOR_CONNHANDLER_PROTOCOL =
+       "ds-connectionhandler-protocol";
+
+
+
+  /**
    * The name of the standard attribute that is used to specify the set of
    * public naming contexts (suffixes) for the Directory Server, formatted in
    * camel case.
@@ -565,6 +601,23 @@ public class ServerConstants
    * in all lowercase.
    */
   public static final String OC_LDAP_SUBENTRY_LC = "ldapsubentry";
+
+
+
+  /**
+   * The name of the custom objectclass that will be included in backend monitor
+   * entries.
+   */
+  public static final String OC_MONITOR_BACKEND = "ds-backend-monitor-entry";
+
+
+
+  /**
+   * The name of the custom objectclass that will be included in connection
+   * handler monitor entries.
+   */
+  public static final String OC_MONITOR_CONNHANDLER =
+       "ds-connectionhandler-monitor-entry";
 
 
 

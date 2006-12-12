@@ -31,6 +31,8 @@ package org.opends.server.api;
 import java.util.Collection;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.monitors.ConnectionHandlerMonitor;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.server.loggers.Debug.*;
@@ -52,6 +54,11 @@ public abstract class ConnectionHandler
 
 
 
+  // The monitor associated with this connection handler.
+  private ConnectionHandlerMonitor monitor;
+
+
+
   /**
    * Creates a new instance of this connection handler.  This must be
    * called by all connection handlers, and all connection handlers
@@ -65,6 +72,7 @@ public abstract class ConnectionHandler
     super(threadName);
 
     assert debugConstructor(CLASS_NAME, String.valueOf(threadName));
+    monitor = null;
   }
 
 
@@ -114,6 +122,44 @@ public abstract class ConnectionHandler
 
 
   /**
+   * Retrieves a name that may be used to refer to this connection
+   * handler.  Every connection handler instance (even handlers of the
+   * same type) must have a unique name.
+   *
+   * @return  A unique name that may be used to refer to this
+   *          connection handler.
+   */
+  public abstract String getConnectionHandlerName();
+
+
+
+  /**
+   * Retrieves the name of the protocol used to communicate with
+   * clients.  It should take into account any special naming that may
+   * be needed to express any security mechanisms or other constraints
+   * in place (e.g., "LDAPS" for LDAP over SSL).
+   *
+   * @return  The name of the protocol used to communicate with
+   *          clients.
+   */
+  public abstract String getProtocol();
+
+
+
+  /**
+   * Retrieves information about the listener(s) that will be used to
+   * accept client connections.
+   *
+   * @return  Information about the listener(s) that will be used to
+   *          accept client connections, or an empty list if this
+   *          connection handler does not accept connections from
+   *          network clients.
+   */
+  public abstract Collection<HostPort> getListeners();
+
+
+
+  /**
    * Retrieves the set of active client connections that have been
    * established through this connection handler.
    *
@@ -129,6 +175,38 @@ public abstract class ConnectionHandler
    * requests on those connections are handled properly.
    */
   public abstract void run();
+
+
+
+  /**
+   * Retrieves the monitor instance for this connection handler.
+   *
+   * @return  The monitor instance for this connection handler, or
+   *          {@code null} if none has been provided.
+   */
+  public ConnectionHandlerMonitor getConnectionHandlerMonitor()
+  {
+    assert debugEnter(CLASS_NAME, "getConnectionHandlerMonitor");
+
+    return monitor;
+  }
+
+
+
+  /**
+   * Sets the monitor instance for this connection handler.
+   *
+   * @param  monitor  The monitor instance for this connection
+   *                  handler.
+   */
+  public void setConnectionHandlerMonitor(
+                   ConnectionHandlerMonitor monitor)
+  {
+    assert debugEnter(CLASS_NAME, "setConnectionHandlerMonitor",
+                      String.valueOf(monitor));
+
+    this.monitor = monitor;
+  }
 
 
 
