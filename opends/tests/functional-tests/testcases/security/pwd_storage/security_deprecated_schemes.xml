@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="deprecated_schemes"/>
+
+  <function name="deprecated_schemes">
+
+      <sequence>
+
+        <!--- Test case: Admin Add Three Additional Pwd Storage Schemes -->
+        <testcase name="'Security: Depr Pwd Schemes: Preamble'">
+          <sequence>
+            <message>
+               'Security: Deprecated Pwd Schemes: Preamble Step 1. Admin Adding 3 Pwd Storage Schemes'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_storage/admin_add_many_schemes.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Deprecated Pwd Schemes: Preamble Step 2. User Change Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'squatted' ,
+                'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_depr_schemes.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+             <message>
+               'Security: Deprecating Pwd Schemes: Preamble Step 3. Checking for MD5 Scheme Before Deprecating'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'      : 'userpassword' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'MD5' }
+            </call>
+          
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Deprecate MD5 Scheme-->
+        <testcase name="'Security: Depr Pwd Schemes: Admin Deprecate MD5'">
+          <sequence>
+            <message>
+               'Security: Deprecated Pwd Schemes: Admin Deprecating MD5 Scheme'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_storage/admin_depr_MD5.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Deprecated Pwd Schemes: Admin Removing MD5 Scheme From Default'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_storage/admin_delete_MD5.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+         
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind -->
+        <testcase name="'Security: Depr Pwd Schemes: User Bind'">
+          <sequence>
+            <message>
+               'Security: Deprecated Pwd Schemes: User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'squinted' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+         
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Check that MD5 hashed password was deleted from from user's entry-->
+        <testcase name="'Security: Depr Pwd Schemes: Check For Deletion'">
+          <sequence>
+             <message>
+               'Security: Deprecating Pwd Schemes: Checking for MD5 Hashed Pwd After Deprecating'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'      : 'userpassword' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'MD5' }
+            </call>
+          
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Check that other schemes were not deleted from from user's entry-->
+        <testcase name="'Security: Depr Pwd Schemes: Check For Non-Deletions - SSHA'">
+          <sequence>
+             <message>
+               'Security: Deprecating Pwd Schemes: Checking for SSHA256 Hashed Pwd After Deprecating'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'      : 'userpassword' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'SSHA256' }
+            </call>
+          
+          </sequence>
+        </testcase>
+          
+        <testcase name="'Security: Depr Pwd Schemes: Check For Non-Deletions - BASE64'">
+          <sequence>
+             <message>
+               'Security: Deprecating Pwd Schemes: Checking for BASE64 Hashed Pwd After Deprecating'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'      : 'userpassword' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'BASE64' }
+            </call>
+          
+          </sequence>
+        </testcase>
+
+        <!--- Test case: Admin Reset To SSHA Storage Scheme -->
+        <testcase name="'Security: Depr Pwd Schemes: Postamble'">
+          <sequence>
+            <message>
+               'Security: Deprecating Pwd Schemes: Postamble - Admin Resetting to SSHA Storage Scheme'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>

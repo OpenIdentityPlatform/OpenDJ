@@ -113,6 +113,10 @@
         <call function="'multiple_schemes'" />
 
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_storage/security_deprecated_schemes.xml' % (TESTS_DIR)"/>
+        <call function="'deprecated_schemes'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/security/pwd_storage/security_teardown_pwd_storage.xml' % (TESTS_DIR)"/>
         <call function="'teardown_pwd_storage'" />
 
