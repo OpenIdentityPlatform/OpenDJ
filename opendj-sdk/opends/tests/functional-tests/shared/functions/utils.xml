@@ -161,6 +161,48 @@
       
   </function>
 
+  <function name="checktestStringNotPresent">
+
+    <function-prolog>
+        This function checks the return string against an expected return substring that should not be present for a testcase
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="testString">
+            the substring being tested from the command
+        </function-required-arg>
+        <function-required-arg name="returnString">
+            the return string received from command
+        </function-required-arg>
+ 
+    </function-map-args>
+
+      <sequence>
+         <script> 
+              import re 
+              searchre = re.compile('%s' % testString)
+            </script> 
+  
+            <if expr='re.search(searchre, returnString) == None'>
+              <sequence>
+              <tcstatus result="'pass'"/>
+              <message log="1">
+                'Success: Did Not Find substring, %s, in the return string' % (testString)
+              </message>
+              </sequence>
+            <else>
+              <sequence>
+              <tcstatus result="'fail'"/>
+              <message log="1" level="'Error'">
+                'Error: Found substring, %s, in the return string, %s' % (testString, returnString)
+              </message>
+              </sequence>
+            </else>
+            </if>
+      </sequence>
+      
+  </function>
+
   <function name="isAlive">
 
     <function-prolog>
