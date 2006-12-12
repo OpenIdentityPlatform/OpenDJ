@@ -1009,6 +1009,18 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.294 NAME 'ds-backend-entry-count'
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.295 NAME 'ds-backend-writability-mode'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.296 NAME
+  'ds-connectionhandler-connection' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.297 NAME
+  'ds-connectionhandler-listener' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.298 NAME
+  'ds-connectionhandler-num-connections' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.299 NAME
+  'ds-connectionhandler-protocol' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1067,7 +1079,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.12
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.13
   NAME 'ds-cfg-connection-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-connection-handler-class $
-  ds-cfg-connection-handler-enabled ) MAY ( ds-cfg-allowed-client $ 
+  ds-cfg-connection-handler-enabled ) MAY ( ds-cfg-allowed-client $
   ds-cfg-denied-client ) X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.14
   NAME 'ds-cfg-ldap-connection-handler' SUP ds-cfg-connection-handler
@@ -1380,4 +1392,13 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.76
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.77 NAME 'ds-monitor-entry' SUP top
   STRUCTURAL MUST cn X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.78 NAME 'ds-backend-monitor-entry'
+  SUP ds-monitor-entry STRUCTURAL MAY ( ds-backend-id $ ds-backend-base-dn $
+  ds-backend-entry-count $ ds-backend-writability-mode )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.79 NAME
+  'ds-connectionhandler-monitor-entry' SUP ds-monitor-entry STRUCTURAL
+  MAY ( ds-connectionhandler-connection $ ds-connectionhandler-listener $
+  ds-connectionhandler-num-connections $ ds-connectionhandler-protocol )
+  X-ORIGIN 'OpenDS Directory Server' )
 

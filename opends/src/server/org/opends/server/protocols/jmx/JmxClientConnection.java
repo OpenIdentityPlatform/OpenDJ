@@ -1084,6 +1084,45 @@ public class JmxClientConnection
 
 
   /**
+   * {@inheritDoc}
+   */
+  public String getMonitorSummary()
+  {
+    assert debugEnter(CLASS_NAME, "getMonitorSummary");
+
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("connID=\"");
+    buffer.append(connectionID);
+    buffer.append("\" connectTime=\"");
+    buffer.append(getConnectTimeString());
+    buffer.append("\" jmxConnID=\"");
+    buffer.append(jmxConnectionID);
+    buffer.append("\" authDN=\"");
+
+    DN authDN = getAuthenticationInfo().getAuthenticationDN();
+    if (authDN != null)
+    {
+      authDN.toString(buffer);
+    }
+
+    buffer.append("\" security=\"");
+    if (securityProvider.isSecure())
+    {
+      buffer.append(securityProvider.getSecurityMechanismName());
+    }
+    else
+    {
+      buffer.append("none");
+    }
+
+    buffer.append("\"");
+
+    return buffer.toString();
+  }
+
+
+
+  /**
    * Appends a string representation of this client connection to the provided
    * buffer.
    *

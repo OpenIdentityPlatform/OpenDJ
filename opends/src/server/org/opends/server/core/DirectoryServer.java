@@ -91,6 +91,7 @@ import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.StartupDebugLogger;
 import org.opends.server.loggers.StartupErrorLogger;
 import org.opends.server.monitors.BackendMonitor;
+import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.BinarySyntax;
 import org.opends.server.schema.BooleanEqualityMatchingRule;
@@ -5340,6 +5341,7 @@ public class DirectoryServer
         String instanceName = toLowerCase(monitor.getMonitorInstanceName());
         deregisterMonitorProvider(instanceName);
         monitor.finalizeMonitorProvider();
+        backend.setBackendMonitor(null);
       }
     }
   }
@@ -6444,6 +6446,11 @@ public class DirectoryServer
     synchronized (directoryServer.connectionHandlers)
     {
       directoryServer.connectionHandlers.add(handler);
+
+      ConnectionHandlerMonitor monitor = new ConnectionHandlerMonitor(handler);
+      monitor.initializeMonitorProvider(null);
+      handler.setConnectionHandlerMonitor(monitor);
+      registerMonitorProvider(monitor);
     }
   }
 
@@ -6463,6 +6470,15 @@ public class DirectoryServer
     synchronized (directoryServer.connectionHandlers)
     {
       directoryServer.connectionHandlers.remove(handler);
+
+      ConnectionHandlerMonitor monitor = handler.getConnectionHandlerMonitor();
+      if (monitor != null)
+      {
+        String instanceName = toLowerCase(monitor.getMonitorInstanceName());
+        deregisterMonitorProvider(instanceName);
+        monitor.finalizeMonitorProvider();
+        handler.setConnectionHandlerMonitor(null);
+      }
     }
   }
 

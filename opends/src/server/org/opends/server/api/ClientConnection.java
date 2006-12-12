@@ -46,6 +46,7 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.util.TimeThread;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -83,9 +84,16 @@ public abstract class ClientConnection
   // The lookthrough limit for use with this client connection.
   private int lookthroughLimit;
 
+  // The time that this client connection was established.
+  private long connectTime;
+
   // The opaque information used for storing intermediate state
   // information needed across multi-stage SASL binds.
   private Object saslAuthState;
+
+  // A string representation of the time that this client connection
+  // was established.
+  private String connectTimeString;
 
   // A set of persistent searches registered for this client.
   private CopyOnWriteArrayList<PersistentSearch> persistentSearches;
@@ -100,6 +108,8 @@ public abstract class ClientConnection
   {
     assert debugConstructor(CLASS_NAME);
 
+    connectTime        = TimeThread.getTime();
+    connectTimeString  = TimeThread.getUTCTime();
     authenticationInfo = new AuthenticationInfo();
     saslAuthState      = null;
     bindInProgress     = false;
@@ -107,6 +117,38 @@ public abstract class ClientConnection
     sizeLimit          = DirectoryServer.getSizeLimit();
     timeLimit          = DirectoryServer.getTimeLimit();
     lookthroughLimit   = DirectoryServer.getLookthroughLimit();
+  }
+
+
+
+  /**
+   * Retrieves the time that this connection was established, measured
+   * in the number of milliseconds since January 1, 1970 UTC.
+   *
+   * @return  The time that this connection was established, measured
+   *          in the number of milliseconds since January 1, 1970 UTC.
+   */
+  public long getConnectTime()
+  {
+    assert debugEnter(CLASS_NAME, "getConnectTime");
+
+    return connectTime;
+  }
+
+
+
+  /**
+   * Retrieves a string representation of the time that this
+   * connection was established.
+   *
+   * @return  A string representation of the time that this connection
+   *          was established.
+   */
+  public String getConnectTimeString()
+  {
+    assert debugEnter(CLASS_NAME, "getConnectTimeString");
+
+    return connectTimeString;
   }
 
 
@@ -848,6 +890,21 @@ public abstract class ClientConnection
 
     this.timeLimit = timeLimit;
   }
+
+
+
+  /**
+   * Retrieves a one-line summary of this client connection in a form
+   * that is suitable for including in the monitor entry for the
+   * associated connection handler.  It should be in a format that is
+   * both humand readable and machine parseable (e.g., a
+   * space-delimited name-value list, with quotes around the values).
+   *
+   * @return  A one-line summary of this client connection in a form
+   *          that is suitable for including in the monitor entry for
+   *          the associated connection handler.
+   */
+  public abstract String getMonitorSummary();
 
 
 

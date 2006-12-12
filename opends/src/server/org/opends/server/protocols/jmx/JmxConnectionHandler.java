@@ -61,6 +61,7 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
@@ -168,6 +169,21 @@ public class JmxConnectionHandler
    */
   private LinkedList<ConfigAttribute> configAttrs =
     new LinkedList<ConfigAttribute>();
+
+  /**
+   * The unique name for this connection handler.
+   */
+  protected String connectionHandlerName;
+
+  /**
+   * The protocol used to communicate with clients.
+   */
+  protected String protocol;
+
+  /**
+   * The set of listeners for this connection handler.
+   */
+  protected LinkedList<HostPort> listeners = new LinkedList<HostPort>();
 
   /**
    * The list of active client connection.
@@ -493,6 +509,19 @@ public class JmxConnectionHandler
       String message = getMessage(msgID, String.valueOf(configEntryDN), "");
       throw new InitializationException(msgID, message);
     }
+
+    if (useSSL)
+    {
+      protocol = "JMX+SSL";
+    }
+    else
+    {
+      protocol = "JMX";
+    }
+
+    listeners.clear();
+    listeners.add(new HostPort("0.0.0.0", listenPort));
+    connectionHandlerName = "JMX Connection Handler "+ listenPort;
   }
 
   /**
@@ -515,6 +544,36 @@ public class JmxConnectionHandler
 
     // We should also close the RMI registry.
     rmiConnector.finalizeConnectionHandler(closeConnections, true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getConnectionHandlerName()
+  {
+    assert debugEnter(CLASS_NAME, "getConnectionHandlerName");
+
+    return connectionHandlerName;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getProtocol()
+  {
+    assert debugEnter(CLASS_NAME, "getProtocol");
+
+    return protocol;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Collection<HostPort> getListeners()
+  {
+    assert debugEnter(CLASS_NAME, "getListeners");
+
+    return listeners;
   }
 
   /**
@@ -841,6 +900,18 @@ public class JmxConnectionHandler
         // Print error message
       }
     }
+
+    if (useSSL)
+    {
+      protocol = "JMX+SSL";
+    }
+    else
+    {
+      protocol = "JMX";
+    }
+
+    listeners.clear();
+    listeners.add(new HostPort(listenPort));
 
     //
     // Start the new RMI Connector

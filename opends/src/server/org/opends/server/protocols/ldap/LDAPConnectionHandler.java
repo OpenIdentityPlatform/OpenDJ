@@ -69,6 +69,7 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SSLClientAuthPolicy;
@@ -206,6 +207,9 @@ public class LDAPConnectionHandler
   // accepted by the server.
   private int requestHandlerIndex;
 
+  // The set of listeners for this connection handler.
+  private LinkedList<HostPort> listeners;
+
   // The set of request handlers that are associated with this connection
   // handler.
   private LDAPRequestHandler[] requestHandlers;
@@ -222,6 +226,9 @@ public class LDAPConnectionHandler
 
   // The unique name assigned to this connection handler.
   private String handlerName;
+
+  // The protocol used by this connection handler.
+  private String protocol;
 
   // The security mechanism used for connections accepted by this connection
   // handler.
@@ -996,11 +1003,14 @@ public class LDAPConnectionHandler
     }
 
 
-    // Construct a unique name for this connection handler.
+    // Construct a unique name for this connection handler, and put together the
+    // set of listeners.
+    listeners = new LinkedList<HostPort>();
     StringBuilder nameBuffer = new StringBuilder();
     nameBuffer.append("LDAP Connection Handler");
     for (InetAddress a : listenAddresses)
     {
+      listeners.add(new HostPort(a.getHostAddress(), listenPort));
       nameBuffer.append(" ");
       nameBuffer.append(a.getHostAddress());
     }
@@ -1013,16 +1023,18 @@ public class LDAPConnectionHandler
     if (useSSL)
     {
       securityMechanism = SECURITY_MECHANISM_SSL;
+      protocol          = "LDAP+SSL";
     }
     else
     {
       securityMechanism = null;
+      protocol          = "LDAP";
     }
 
 
     // Perform any additional initialization that might be required.
     connHandlerThread = null;
-    statTracker = new LDAPStatistics(handlerName);
+    statTracker = new LDAPStatistics(handlerName + " Statistics");
 
 
     // Create and start the request handlers.
@@ -1091,6 +1103,42 @@ public class LDAPConnectionHandler
 
 
   /**
+   * {@inheritDoc}
+   */
+  public String getConnectionHandlerName()
+  {
+    assert debugEnter(CLASS_NAME, "getConnectionHandlerName");
+
+    return handlerName;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getProtocol()
+  {
+    assert debugEnter(CLASS_NAME, "getProtocol");
+
+    return protocol;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Collection<HostPort> getListeners()
+  {
+    assert debugEnter(CLASS_NAME, "getProtocol");
+
+    return listeners;
+  }
+
+
+
+  /**
    * Retrieves the set of active client connections that have been established
    * through this connection handler.
    *
@@ -1109,6 +1157,22 @@ public class LDAPConnectionHandler
     }
 
     return connectionList;
+  }
+
+
+
+  /**
+   * Retrieves the port on which this connection handler is listening
+   * for client connections.
+   *
+   * @return  The port on which this connection handler is listening
+   *          for client connections.
+   */
+  public int getListenPort()
+  {
+    assert debugEnter(CLASS_NAME, "getListenPort");
+
+    return listenPort;
   }
 
 
@@ -3013,7 +3077,7 @@ public class LDAPConnectionHandler
         {
           if (statTracker == null)
           {
-            statTracker = new LDAPStatistics(handlerName);
+            statTracker = new LDAPStatistics(handlerName + " Statistics");
           }
           else
           {

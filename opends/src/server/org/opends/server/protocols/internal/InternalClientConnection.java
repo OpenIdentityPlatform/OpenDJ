@@ -1701,6 +1701,25 @@ public class InternalClientConnection
 
 
   /**
+   * {@inheritDoc}
+   */
+  public String getMonitorSummary()
+  {
+    assert debugEnter(CLASS_NAME, "getMonitorSummary");
+
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("connID=\"");
+    buffer.append(connectionID);
+    buffer.append("\" authDN=\"");
+    buffer.append(getAuthenticationInfo().getAuthenticationDN());
+    buffer.append("\"");
+
+    return buffer.toString();
+  }
+
+
+
+  /**
    * Appends a string representation of this client connection to the
    * provided buffer.
    *
@@ -1709,6 +1728,9 @@ public class InternalClientConnection
    */
   public void toString(StringBuilder buffer)
   {
+    assert debugEnter(CLASS_NAME, "toString",
+                      "java.lang.StringBuilder");
+
     buffer.append("InternalClientConnection(connID=");
     buffer.append(connectionID);
     buffer.append(", authDN=\"");

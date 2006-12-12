@@ -36,6 +36,7 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.HostPort;
 
 import static org.opends.server.loggers.Debug.*;
 
@@ -65,6 +66,12 @@ public class InternalConnectionHandler
   // handler.
   private LinkedList<ClientConnection> connectionList;
 
+  // The list of listeners associated with this connection handler.
+  private LinkedList<HostPort> listeners;
+
+  // The name of the protocol for this connection handler.
+  private String protocol;
+
 
 
   /**
@@ -81,7 +88,9 @@ public class InternalConnectionHandler
     // Since we can't guarantee that the initializeConnectionHandler
     // method will always be called for this method, we'll do the
     // necessary "initialization" here.
+    protocol       = "internal";
     connectionList = new LinkedList<ClientConnection>();
+    listeners      = new LinkedList<HostPort>();
   }
 
 
@@ -149,6 +158,42 @@ public class InternalConnectionHandler
                       String.valueOf(closeConnections));
 
     // No implementation is required.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getConnectionHandlerName()
+  {
+    assert debugEnter(CLASS_NAME, "getConnectionHandlerName");
+
+    return "Internal Connection Handler";
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getProtocol()
+  {
+    assert debugEnter(CLASS_NAME, "getProtocol");
+
+    return protocol;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Collection<HostPort> getListeners()
+  {
+    assert debugEnter(CLASS_NAME, "getProtocol");
+
+    return listeners;
   }
 
 

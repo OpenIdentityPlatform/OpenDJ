@@ -41,6 +41,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
+import org.opends.server.types.ObjectClass;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -136,6 +137,22 @@ public class BackendMonitor
     assert debugEnter(CLASS_NAME, "getMonitorInstanceName");
 
     return monitorName;
+  }
+
+
+
+  /**
+   * Retrieves the objectclass that should be included in the monitor entry
+   * created from this monitor provider.
+   *
+   * @return  The objectclass that should be included in the monitor entry
+   *          created from this monitor provider.
+   */
+  public ObjectClass getMonitorObjectClass()
+  {
+    assert debugEnter(CLASS_NAME, "getMonitorObjectClass");
+
+    return DirectoryConfig.getObjectClass(OC_MONITOR_BACKEND, true);
   }
 
 

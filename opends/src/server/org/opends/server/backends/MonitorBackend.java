@@ -222,17 +222,13 @@ public class MonitorBackend
 
 
     // Construct the set of objectclasses to include in the base monitor entry.
-    monitorObjectClasses = new LinkedHashMap<ObjectClass,String>(3);
+    monitorObjectClasses = new LinkedHashMap<ObjectClass,String>(2);
     ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
     monitorObjectClasses.put(topOC, OC_TOP);
 
     ObjectClass monitorOC = DirectoryServer.getObjectClass(OC_MONITOR_ENTRY,
                                                            true);
     monitorObjectClasses.put(monitorOC, OC_MONITOR_ENTRY);
-
-    ObjectClass extensibleObjectOC =
-         DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
-    monitorObjectClasses.put(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
 
 
     // Define an empty sets for the supported controls and features.
@@ -509,6 +505,13 @@ public class MonitorBackend
     assert debugEnter(CLASS_NAME, "getBaseMonitorEntry");
 
 
+    HashMap<ObjectClass,String> monitorClasses =
+         new LinkedHashMap<ObjectClass,String>(3);
+    monitorClasses.putAll(monitorObjectClasses);
+
+    ObjectClass extensibleObjectOC =
+         DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
+    monitorClasses.put(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
 
     HashMap<AttributeType,List<Attribute>> monitorUserAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>();
@@ -655,7 +658,7 @@ public class MonitorBackend
 
 
     // Construct and return the entry.
-    return new Entry(baseMonitorDN, monitorObjectClasses, monitorUserAttrs,
+    return new Entry(baseMonitorDN, monitorClasses, monitorUserAttrs,
                      monitorOperationalAttrs);
   }
 
@@ -676,6 +679,13 @@ public class MonitorBackend
   {
     assert debugEnter(CLASS_NAME, "getMonitorEntry",
                       String.valueOf(monitorProvider));
+
+    HashMap<ObjectClass,String> monitorClasses =
+         new LinkedHashMap<ObjectClass,String>(3);
+    monitorClasses.putAll(monitorObjectClasses);
+
+    ObjectClass monitorOC = monitorProvider.getMonitorObjectClass();
+    monitorClasses.put(monitorOC, monitorOC.getPrimaryName());
 
     List<Attribute> monitorAttrs = monitorProvider.getMonitorData();
     HashMap<AttributeType,List<Attribute>> attrMap =
@@ -717,7 +727,7 @@ public class MonitorBackend
       }
     }
 
-    return new Entry(entryDN, monitorObjectClasses, attrMap,
+    return new Entry(entryDN, monitorClasses, attrMap,
                      new HashMap<AttributeType,List<Attribute>>(0));
   }
 
