@@ -364,9 +364,202 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case : Admin Enable Maximum Reset Age -->
+        <testcase name="'Security: Pwd Change: Admin Enable Max Reset Age Long'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: Admin Enabling Maximum Reset Age Long'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_max_reset_age_long.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Change User Pwd -->
+        <testcase name="'Security: Pwd Change: Admin Reset User Pwd - Long Reset Time'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: Admin Changing User Pwd'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd4.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Change Password -->
+        <testcase name="'Security: Pwd Change: User Change Password - Long Reset Time'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: User Changing Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'adminlongpizza' ,
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd7.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Pwd Change: User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newlongpizza' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Enable Maxmimum Reset Age -->
+        <testcase name="'Security: Pwd Change: Admin Enable Max Reset Age Short'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: Admin Enabling Maximum Reset Age Short'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_max_reset_age_short.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin Change User Pwd -->
+        <testcase name="'Security: Pwd Change: Admin Reset User Pwd - Short Reset Time'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: Admin Changing User Pwd'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd5.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Change Password -->
+        <testcase name="'Security: Pwd Change: User Change Password - Short Reset Time'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: User Change Password - Short Reset Time - Sleeping'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '12000' }
+            </call>
+            
+             <message>
+               'Security: Pwd Change: User Changing Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'adminshortpizza' ,
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd8.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 1">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Pwd Change: User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newshortpizza' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1  }
+            </call>
+          </sequence>
+        </testcase>
+
         <!--- Test Case : Admin Disable Force Password On Reset -->
         <testcase name="'Security: Pwd Change: Postamble - Disable Force Pwd On Reset'">
           <sequence>
+            <message>
+               'Security: Pwd Change: Postamble Step 1. Admin Disabling Max Pwd Age'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_max_reset_age.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
             <message>
                'Security: Pwd Change: Postamble Step 2. Admin Disabling Force Password On Reset'
             </message>
