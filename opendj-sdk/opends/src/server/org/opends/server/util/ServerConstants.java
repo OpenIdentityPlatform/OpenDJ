@@ -200,6 +200,15 @@ public class ServerConstants
 
 
   /**
+   * The name of the monitor attribute that is used to indicate whether a
+   * backend is private.
+   */
+  public static final String ATTR_MONITOR_BACKEND_IS_PRIVATE =
+       "ds-backend-is-private";
+
+
+
+  /**
    * The name of the monitor attribute that is used to hold the backend entry
    * count.
    */
