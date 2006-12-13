@@ -35,6 +35,7 @@ import java.util.List;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
+import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -72,6 +73,9 @@ public class BackendMonitor
 
   // The attribute type that will be used to report the number of entries.
   private AttributeType entryCountType;
+
+  // The attribute type that will be used to indicate if a backend is private.
+  private AttributeType isPrivateType;
 
   // The attribute type that will be used to report the writability mode.
   private AttributeType writabilityModeType;
@@ -120,6 +124,10 @@ public class BackendMonitor
 
     entryCountType =
          DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_ENTRY_COUNT,
+                                          true);
+
+    isPrivateType =
+         DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_IS_PRIVATE,
                                           true);
 
     writabilityModeType =
@@ -204,6 +212,11 @@ public class BackendMonitor
                                     ByteStringFactory.create(dn.toString())));
     }
     attrs.add(new Attribute(baseDNType, ATTR_MONITOR_BACKEND_BASE_DN, values));
+
+    values = new LinkedHashSet<AttributeValue>();
+    values.add(BooleanSyntax.createBooleanValue(backend.isPrivateBackend()));
+    attrs.add(new Attribute(isPrivateType, ATTR_MONITOR_BACKEND_IS_PRIVATE,
+                            values));
 
     values = new LinkedHashSet<AttributeValue>();
     values.add(new AttributeValue(entryCountType,
