@@ -821,6 +821,147 @@
           </sequence>
         </testcase>
         
+        <testcase name="'Schema: RFC 2739 Add1 Test 36'">
+          <sequence>
+            <message>
+               'Schema RFC36: Add an entry that is covered by rfc 2739'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2739.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Search the entry just added and return calCalURI '
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'o=rfc tests,dc=example,dc=com' ,
+		'dsFilter'         : 'uid=tsmith' ,
+                'attributes'	   : 'calCalURI' }
+                
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Schema: RFC 2714 Add1 Test 37'">
+          <sequence>
+            <message>
+               'Schema RFC37: Add an entry that is covered by rfc 2714'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2714.ldif' % STAGED_DATA_DIR }
+            </call>
+            
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 65 }
+           </call>
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Schema: RFC 2714 Add2 Test 38'">
+          <sequence>
+            <message>
+               'Schema RFC38: Add an entry that is covered by rfc 2714'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2714_2.ldif' % STAGED_DATA_DIR }
+            </call>
+            
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Search the entry just added and return corbaRepositoryId '
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'o=rfc tests,dc=example,dc=com' ,
+		'dsFilter'         : 'cn=corba1' ,
+                'attributes'	   : 'corbaRepositoryId' }
+                
+            </call>
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Schema: RFC 2713 Add1 Test 39'">
+          <sequence>
+            <message>
+               'Schema RFC39: Add an entry that is covered by rfc 2713'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2713.ldif' % STAGED_DATA_DIR }
+            </call>
+            
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Search the entry just added and return javaClassName '
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'ou=java object,o=rfc tests,dc=example,dc=com' ,
+		'dsFilter'         : 'cn=java1' ,
+                'attributes'	   : 'javaClassName' }
+                
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+           </call>
+          </sequence>
+        </testcase>
+        
         <return>RC</return>
 
      </sequence>
