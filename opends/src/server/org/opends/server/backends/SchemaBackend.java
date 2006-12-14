@@ -121,6 +121,35 @@ public class SchemaBackend
   // entry.
   private ArrayList<Attribute> userDefinedAttributes;
 
+  // The attribute type that will be used to include the defined attribute
+  // types.
+  private AttributeType attributeTypesType;
+
+  // The attribute type that will be used to include the defined DIT content
+  // rules.
+  private AttributeType ditContentRulesType;
+
+  // The attribute type that will be used to include the defined DIT structure
+  // rules.
+  private AttributeType ditStructureRulesType;
+
+  // The attribute type that will be used to include the defined attribute
+  // syntaxes.
+  private AttributeType ldapSyntaxesType;
+
+  // The attribute type that will be used to include the defined matching rules.
+  private AttributeType matchingRulesType;
+
+  // The attribute type that will be used to include the defined matching rule
+  // uses.
+  private AttributeType matchingRuleUsesType;
+
+  // The attribute type that will be used to include the defined object classes.
+  private AttributeType objectClassesType;
+
+  // The attribute type that will be used to include the defined name forms.
+  private AttributeType nameFormsType;
+
   // Indicates whether the attributes of the schema entry should always be
   // treated as user attributes even if they are defined as operational.
   private boolean showAllAttributes;
@@ -192,6 +221,24 @@ public class SchemaBackend
     }
 
     configEntryDN = configEntry.getDN();
+
+
+    // Get all of the attribute types that we will use for schema elements.
+    attributeTypesType =
+         DirectoryServer.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC, true);
+    objectClassesType =
+         DirectoryServer.getAttributeType(ATTR_OBJECTCLASSES_LC, true);
+    matchingRulesType =
+         DirectoryServer.getAttributeType(ATTR_MATCHING_RULES_LC, true);
+    ldapSyntaxesType =
+         DirectoryServer.getAttributeType(ATTR_LDAP_SYNTAXES_LC, true);
+    ditContentRulesType =
+         DirectoryServer.getAttributeType(ATTR_DIT_CONTENT_RULES_LC, true);
+    ditStructureRulesType =
+         DirectoryServer.getAttributeType(ATTR_DIT_STRUCTURE_RULES_LC, true);
+    matchingRuleUsesType =
+         DirectoryServer.getAttributeType(ATTR_MATCHING_RULE_USE_LC, true);
+    nameFormsType = DirectoryServer.getAttributeType(ATTR_NAME_FORMS, true);
 
 
     // Get the set of user-defined attributes for the configuration entry.  Any
@@ -494,78 +541,146 @@ public class SchemaBackend
 
 
     // Add the "attributeTypes" attribute.
-    AttributeType attrType =
-         DirectoryServer.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC, true);
     LinkedHashSet<AttributeValue> valueSet =
          DirectoryServer.getAttributeTypeSet();
-
-    Attribute attr = new Attribute(attrType, ATTR_ATTRIBUTE_TYPES, valueSet);
+    Attribute attr = new Attribute(attributeTypesType, ATTR_ATTRIBUTE_TYPES,
+                                   valueSet);
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
-    if (attrType.isOperational() && (! showAllAttributes))
+    if (attributeTypesType.isOperational() && (! showAllAttributes))
     {
-      operationalAttrs.put(attrType, attrList);
+      operationalAttrs.put(attributeTypesType, attrList);
     }
     else
     {
-      userAttrs.put(attrType, attrList);
+      userAttrs.put(attributeTypesType, attrList);
     }
 
 
     // Add the "objectClasses" attribute.
-    attrType = DirectoryServer.getAttributeType(ATTR_OBJECTCLASSES_LC, true);
     valueSet = DirectoryServer.getObjectClassSet();
-
-    attr = new Attribute(attrType, ATTR_OBJECTCLASSES, valueSet);
+    attr = new Attribute(objectClassesType, ATTR_OBJECTCLASSES, valueSet);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
-    if (attrType.isOperational() && (! showAllAttributes))
+    if (objectClassesType.isOperational() && (! showAllAttributes))
     {
-      operationalAttrs.put(attrType, attrList);
+      operationalAttrs.put(objectClassesType, attrList);
     }
     else
     {
-      userAttrs.put(attrType, attrList);
+      userAttrs.put(objectClassesType, attrList);
     }
 
 
     // Add the "matchingRules" attribute.
-    attrType = DirectoryServer.getAttributeType(ATTR_MATCHING_RULES_LC, true);
     valueSet = DirectoryServer.getMatchingRuleSet();
-
-    attr = new Attribute(attrType, ATTR_MATCHING_RULES, valueSet);
+    attr = new Attribute(matchingRulesType, ATTR_MATCHING_RULES, valueSet);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
-    if (attrType.isOperational() && (! showAllAttributes))
+    if (matchingRulesType.isOperational() && (! showAllAttributes))
     {
-      operationalAttrs.put(attrType, attrList);
+      operationalAttrs.put(matchingRulesType, attrList);
     }
     else
     {
-      userAttrs.put(attrType, attrList);
+      userAttrs.put(matchingRulesType, attrList);
     }
 
 
     // Add the "ldapSyntaxes" attribute.
-    attrType = DirectoryServer.getAttributeType(ATTR_LDAP_SYNTAXES_LC, true);
     valueSet = DirectoryServer.getAttributeSyntaxSet();
-
-    attr = new Attribute(attrType, ATTR_LDAP_SYNTAXES, valueSet);
+    attr = new Attribute(ldapSyntaxesType, ATTR_LDAP_SYNTAXES, valueSet);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
 
-    // Note that we intentionally ignore showAllAttributes for ldapSyntaxes
-    // because that attribute isn't allowed in the subschema objectclass, and
-    // treating it as a user attribute would cause schema updates to fail.  This
-    // means that you'll always have to explicitly request ldapSyntaxes in order
-    // to be able to see it.
-    if (attrType.isOperational())
+    // Note that we intentionally ignore showAllAttributes for attribute
+    // syntaxes, name forms, matching rule uses, DIT content rules, and DIT
+    // structure rules because those attributes aren't allowed in the subschema
+    // objectclass, and treating them as user attributes would cause schema
+    // updates to fail.  This means that you'll always have to explicitly
+    // request these attributes in order to be able to see them.
+    if (ldapSyntaxesType.isOperational())
     {
-      operationalAttrs.put(attrType, attrList);
+      operationalAttrs.put(ldapSyntaxesType, attrList);
     }
     else
     {
-      userAttrs.put(attrType, attrList);
+      userAttrs.put(ldapSyntaxesType, attrList);
+    }
+
+
+    // If there are any name forms defined, then add them.
+    valueSet = DirectoryServer.getNameFormSet();
+    if (! valueSet.isEmpty())
+    {
+      attr = new Attribute(nameFormsType, ATTR_NAME_FORMS, valueSet);
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(attr);
+      if (nameFormsType.isOperational())
+      {
+        operationalAttrs.put(nameFormsType, attrList);
+      }
+      else
+      {
+        userAttrs.put(nameFormsType, attrList);
+      }
+    }
+
+
+    // If there are any DIT content rules defined, then add them.
+    valueSet = DirectoryServer.getDITContentRuleSet();
+    if (! valueSet.isEmpty())
+    {
+      attr = new Attribute(ditContentRulesType, ATTR_DIT_CONTENT_RULES,
+                           valueSet);
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(attr);
+      if (ditContentRulesType.isOperational())
+      {
+        operationalAttrs.put(ditContentRulesType, attrList);
+      }
+      else
+      {
+        userAttrs.put(ditContentRulesType, attrList);
+      }
+    }
+
+
+    // If there are any DIT structure rules defined, then add them.
+    valueSet = DirectoryServer.getDITStructureRuleSet();
+    if (! valueSet.isEmpty())
+    {
+      attr = new Attribute(ditStructureRulesType, ATTR_DIT_STRUCTURE_RULES,
+                           valueSet);
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(attr);
+      if (ditStructureRulesType.isOperational())
+      {
+        operationalAttrs.put(ditStructureRulesType, attrList);
+      }
+      else
+      {
+        userAttrs.put(ditStructureRulesType, attrList);
+      }
+    }
+
+
+    // If there are any matching rule uses defined, then add them.
+    valueSet = DirectoryServer.getMatchingRuleUseSet();
+    if (! valueSet.isEmpty())
+    {
+      attr = new Attribute(matchingRuleUsesType, ATTR_MATCHING_RULE_USE,
+                           valueSet);
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(attr);
+      if (matchingRuleUsesType.isOperational())
+      {
+        operationalAttrs.put(matchingRuleUsesType, attrList);
+      }
+      else
+      {
+        userAttrs.put(matchingRuleUsesType, attrList);
+      }
     }
 
 
