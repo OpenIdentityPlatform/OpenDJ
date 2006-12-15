@@ -595,14 +595,15 @@ public class ObjectClassSyntax
         {
           // This is bad because we don't know what the superior objectclass
           // is so we can't base this objectclass on it.  Log a message and
-          // just go with the top objectclass.
+          // just create a default empty superior class.
           int    msgID   = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS;
           String message = getMessage(msgID, String.valueOf(oid),
                                       String.valueOf(woidBuffer));
           logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
                    message, msgID);
 
-          superiorClass = DirectoryServer.getTopObjectClass();
+          superiorClass =
+               DirectoryServer.getDefaultObjectClass(woidBuffer.toString());
         }
 
 
