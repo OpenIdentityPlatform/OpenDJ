@@ -3334,8 +3334,8 @@ public class SchemaMessages
                     "The definition for the objectclass with OID %s declared " +
                     "a superior objectclass with an OID of %s.  No " +
                     "objectclass with this OID exists in the server schema, " +
-                    "so the Directory Server will use the top objectclass as " +
-                    "the superior class for this definition.");
+                    "so the Directory Server will assume it to be an empty " +
+                    "objectclass with no required or optional attributes.");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because a single quote was " +

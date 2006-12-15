@@ -2244,6 +2244,136 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used if a modify operation
+   * attempts to delete existing schema elements, which is not currently
+   * supported.  This does not take any arguments.
+   */
+  public static final int MSGID_SCHEMA_DELETE_MODTYPE_NOT_SUPPORTED =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 211;
+
+
+
+  /**
+   * The message ID for the message that will be used if a modify operation
+   * attempts to replace or increment schema elements, which is not allowed.
+   * This takes a single argument, which is the name of the attempted
+   * modification type.
+   */
+  public static final int MSGID_SCHEMA_INVALID_MODIFICATION_TYPE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 212;
+
+
+
+  /**
+   * The message ID for the message that will be used if a modify operation
+   * attempts to modify an attribute type that cannot be changed.  This takes a
+   * single argument, which is the name of the target attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 213;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode a new attribute type.  This takes two arguments, which
+   * are the attribute type string and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 214;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new attribute type with a name or OID that conflicts with an existing
+   * attribute type.  This takes two arguments, which are the name of the new
+   * attribute type and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_ATTRTYPE_ALREADY_EXISTS =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 215;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode a new objectclass.  This takes two arguments, which
+   * are the objectclass string and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 216;
+
+
+
+  /**
+   * The message ID for the message that will be used if a new objectclass
+   * references an undefined superior class.  This takes two arguments, which
+   * are the name of the new objectclass and the name of the undefined superior
+   * class.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 217;
+
+
+
+  /**
+   * The message ID for the message that will be used if a new objectclass
+   * references an undefined required attribute.  This takes two arguments,
+   * which are the name of the new objectclass and the name of the undefined
+   * attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 218;
+
+
+
+  /**
+   * The message ID for the message that will be used if a new objectclass
+   * references an undefined optional attribute.  This takes two arguments,
+   * which are the name of the new objectclass and the name of the undefined
+   * attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 219;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new objectclass type with a name or OID that conflicts with an
+   * existing objectclass.  This takes two arguments, which are the name of the
+   * new objectclass and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_OBJECTCLASS_ALREADY_EXISTS =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 220;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to read the contents of an existing schema file so that it may
+   * be updated.  This takes two arguments, which are the path to the schema
+   * file and a string representation of the exception that was caught.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CANNOT_READ_EXISTING_USER_SCHEMA =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 221;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to write an updated schema file.  This takes two arguments, which
+   * are the path to the schema file and a string representation of the
+   * exception that was caught.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 222;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -2476,6 +2606,49 @@ public class BackendMessages
                     "backend.  If you wish to alter the contents of the base " +
                     "schema entry itself, then it may be possible to do so " +
                     "by modifying the \"%s\" entry in the configuration.");
+    registerMessage(MSGID_SCHEMA_DELETE_MODTYPE_NOT_SUPPORTED,
+                    "The schema backend does not currently support removing " +
+                    "existing schema elements.");
+    // FIXME -- Change the below message once we support removing schema
+    // elements.
+    registerMessage(MSGID_SCHEMA_INVALID_MODIFICATION_TYPE,
+                    "The schema backend does not support the %s modification " +
+                    "type.  It is currently only possible to add new schema " +
+                    "elements.");
+    registerMessage(MSGID_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE,
+                    "The schema backend does not support the modification of " +
+                    "the %s attribute type.  Only attribute types, object " +
+                    "classes, name forms, DIT content rules, DIT structure " +
+                    "rules, and matching rule uses may be modified.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE,
+                    "An error occurred while attempting to decode the " +
+                    "attribute type \"%s\":  %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_ATTRTYPE_ALREADY_EXISTS,
+                    "Unable to add attribute type  %s to the server schema " +
+                    "because there is an existing attribute type with a " +
+                    "conflicting name or OID:  %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS,
+                    "An error occurred while attempting to decode the object " +
+                    "class \"%s\":  %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS,
+                    "Unable to add objectclass %s because its superior " +
+                    "class of %s is not defined in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR,
+                    "Unable to add objectclass %s because it requires " +
+                    "attribute %s which is not defined in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR,
+                    "Unable to add objectclass %s because it allows " +
+                    "attribute %s which is not defined in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_OBJECTCLASS_ALREADY_EXISTS,
+                    "Unable to add objectclass %s to the server schema " +
+                    "because there is an existing objectclass with a " +
+                    "conflicting name or OID:  %s");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_READ_EXISTING_USER_SCHEMA,
+                    "An error occurred while attempting to read the contents " +
+                    "of schema file %s:  %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA,
+                    "An error occurred while attepting to write the updated " +
+                    "schema file %s:  %s.");
     registerMessage(MSGID_SCHEMA_MODIFY_DN_NOT_SUPPORTED,
                     "Unwilling to rename entry \"%s\" because modify DN " +
                     "operations are not supported in the schema backend.");
