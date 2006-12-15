@@ -237,7 +237,7 @@ public final class LastModPlugin
     try
     {
       modifyOperation.addModification(new Modification(ModificationType.REPLACE,
-                                                       nameAttr));
+                                                       nameAttr, true));
     }
     catch (DirectoryException de)
     {
@@ -261,7 +261,7 @@ public final class LastModPlugin
     try
     {
       modifyOperation.addModification(new Modification(ModificationType.REPLACE,
-                                                       timeAttr));
+                                                       timeAttr, true));
     }
     catch (DirectoryException de)
     {
@@ -310,7 +310,7 @@ public final class LastModPlugin
     Attribute nameAttr = new Attribute(modifiersNameType,
                                        OP_ATTR_MODIFIERS_NAME, nameValues);
     modifyDNOperation.addModification(new Modification(ModificationType.REPLACE,
-                                                       nameAttr));
+                                                       nameAttr, true));
 
 
     //  Create the modifyTimestamp attribute.
@@ -322,7 +322,7 @@ public final class LastModPlugin
     Attribute timeAttr = new Attribute(modifyTimestampType,
                                        OP_ATTR_MODIFY_TIMESTAMP, timeValues);
     modifyDNOperation.addModification(new Modification(ModificationType.REPLACE,
-                                                       timeAttr));
+                                                       timeAttr, true));
 
 
     // We shouldn't ever need to return a non-success result.
