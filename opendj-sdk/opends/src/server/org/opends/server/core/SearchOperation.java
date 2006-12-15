@@ -64,6 +64,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.FilterType;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -842,9 +843,48 @@ public class SearchOperation
     if ((scope != SearchScope.BASE_OBJECT) && (! returnLDAPSubentries) &&
         entry.isLDAPSubentry())
     {
-      // This is a subentry and we should not return it to the client.  Just
-      // throw it away without doing anything.
-      return true;
+      // Check to see if the filter contains an equality element with the
+      // objectclass attribute type and a value of "ldapSubentry".  If so, then
+      // we'll return it anyway.  Technically, this isn't part of the
+      // specification so we don't need to get carried away with really in-depth
+      // checks.
+      switch (filter.getFilterType())
+      {
+        case AND:
+        case OR:
+          for (SearchFilter f : filter.getFilterComponents())
+          {
+            if ((f.getFilterType() == FilterType.EQUALITY) &&
+                (f.getAttributeType().isObjectClassType()))
+            {
+              AttributeValue v = f.getAssertionValue();
+              if (toLowerCase(v.getStringValue()).equals("ldapsubentry"))
+              {
+                returnLDAPSubentries = true;
+              }
+              break;
+            }
+          }
+          break;
+        case EQUALITY:
+          AttributeType t = filter.getAttributeType();
+          if (t.isObjectClassType())
+          {
+            AttributeValue v = filter.getAssertionValue();
+            if (toLowerCase(v.getStringValue()).equals("ldapsubentry"))
+            {
+              returnLDAPSubentries = true;
+            }
+          }
+          break;
+      }
+
+      if (! returnLDAPSubentries)
+      {
+        // We still shouldn't return it even based on the filter.  Just throw it
+        // away without doing anything.
+        return true;
+      }
     }
 
 
