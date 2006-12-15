@@ -345,6 +345,12 @@ public class RootDSEBackend
     supportedFeatures = new HashSet<String>(0);
 
 
+    // Set the backend ID for this backend.  We don't have to worry about
+    // potential conflicts because this backend will never get registered with
+    // the Directory Server like other backends.
+    setBackendID("rootdse");
+
+
     // Register with the Directory Server as a configurable component.
     DirectoryServer.registerConfigurableComponent(this);
   }
