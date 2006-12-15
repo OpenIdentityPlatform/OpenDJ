@@ -2326,6 +2326,20 @@ public class DirectoryServer
 
 
   /**
+   * Replaces the Directory Server schema with the provided schema.
+   *
+   * @param  schema  The new schema to use for the Directory Server.
+   */
+  public static void setSchema(Schema schema)
+  {
+    assert debugEnter(CLASS_NAME, "setSchema", String.valueOf(schema));
+
+    directoryServer.schema = schema;
+  }
+
+
+
+  /**
    * Retrieves the set of matching rules registered with the Directory Server.
    * The mapping will be between the lowercase name or OID for each matching
    * rule and the matching rule implementation.  The same matching rule instance

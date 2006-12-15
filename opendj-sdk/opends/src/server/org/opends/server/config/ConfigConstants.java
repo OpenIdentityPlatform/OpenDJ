@@ -3262,6 +3262,14 @@ public class ConfigConstants
 
 
   /**
+   * The name (with no path information) of the file in the schema directory
+   * that will contain user-defined schema definitions.
+   */
+  public static final String FILE_USER_SCHEMA_ELEMENTS = "99-user.ldif";
+
+
+
+  /**
    * The name of the configuration attribute that indicates the log file
    * where the loggers will log the information.
    */

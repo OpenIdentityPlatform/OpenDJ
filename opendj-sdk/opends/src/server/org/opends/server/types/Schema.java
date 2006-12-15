@@ -253,6 +253,27 @@ public class Schema
 
 
   /**
+   * Indicates whether this schema definition includes an attribute
+   * type with the provided name or OID.
+   *
+   * @param  lowerName  The name or OID for which to make the
+   *                    determination, formatted in all lowercase
+   *                    characters.
+   *
+   * @return  {@code true} if this schema contains an attribute type
+   *          with the provided name or OID, or {@code false} if not.
+   */
+  public boolean hasAttributeType(String lowerName)
+  {
+    assert debugEnter(CLASS_NAME, "hasAttributeType",
+                      String.valueOf(lowerName));
+
+    return attributeTypes.containsKey(lowerName);
+  }
+
+
+
+  /**
    * Retrieves the attribute type definition with the specified name
    * or OID.
    *
@@ -420,6 +441,27 @@ public class Schema
     assert debugEnter(CLASS_NAME, "getObjectClassSet");
 
     return objectClassSet;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition includes an objectclass
+   * with the provided name or OID.
+   *
+   * @param  lowerName  The name or OID for which to make the
+   *                    determination, formatted in all lowercase
+   *                    characters.
+   *
+   * @return  {@code true} if this schema contains an objectclass with
+   *          the provided name or OID, or {@code false} if not.
+   */
+  public boolean hasObjectClass(String lowerName)
+  {
+    assert debugEnter(CLASS_NAME, "hasObjectClass",
+                      String.valueOf(lowerName));
+
+    return objectClasses.containsKey(lowerName);
   }
 
 
@@ -593,6 +635,27 @@ public class Schema
 
 
   /**
+   * Indicates whether this schema definition includes an attribute
+   * syntax with the provided name or OID.
+   *
+   * @param  lowerName  The name or OID for which to make the
+   *                    determination, formatted in all lowercase
+   *                    characters.
+   *
+   * @return  {@code true} if this schema contains an attribute syntax
+   *          with the provided name or OID, or {@code false} if not.
+   */
+  public boolean hasSyntax(String lowerName)
+  {
+    assert debugEnter(CLASS_NAME, "hasSyntax",
+                      String.valueOf(lowerName));
+
+    return syntaxes.containsKey(lowerName);
+  }
+
+
+
+  /**
    * Retrieves the attribute syntax definition with the OID.
    *
    * @param  lowerName  The OID of the attribute syntax to retrieve,
@@ -730,6 +793,27 @@ public class Schema
     assert debugEnter(CLASS_NAME, "getMatchingRuleSet");
 
     return matchingRuleSet;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition includes a matching rule
+   * with the provided name or OID.
+   *
+   * @param  lowerName  The name or OID for which to make the
+   *                    determination, formatted in all lowercase
+   *                    characters.
+   *
+   * @return  {@code true} if this schema contains a matching rule
+   *          with the provided name or OID, or {@code false} if not.
+   */
+  public boolean hasMatchingRule(String lowerName)
+  {
+    assert debugEnter(CLASS_NAME, "hasMatchingRule",
+                      String.valueOf(lowerName));
+
+    return matchingRules.containsKey(lowerName);
   }
 
 
@@ -1645,6 +1729,26 @@ public class Schema
 
 
   /**
+   * Indicates whether this schema definition includes a matching rule
+   * use for the provided matching rule.
+   *
+   * @param  matchingRule  The matching rule for which to make the
+   *                       determination.
+   *
+   * @return  {@code true} if this schema contains a matching rule use
+   *          for the provided matching rule, or {@code false} if not.
+   */
+  public boolean hasMatchingRuleUse(MatchingRule matchingRule)
+  {
+    assert debugEnter(CLASS_NAME, "hasMatchingRuleUse",
+                      String.valueOf(matchingRule));
+
+    return matchingRuleUses.containsKey(matchingRule);
+  }
+
+
+
+  /**
    * Retrieves the matching rule use definition for the specified
    * matching rule.
    *
@@ -1789,6 +1893,26 @@ public class Schema
     assert debugEnter(CLASS_NAME, "getDITContentRuleSet");
 
     return ditContentRuleSet;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition includes a DIT content
+   * rule for the provided objectclass.
+   *
+   * @param  objectClass  The objectclass for which to make the
+   *                      determination.
+   *
+   * @return  {@code true} if this schema contains a DIT content rule
+   *          for the provided objectclass, or {@code false} if not.
+   */
+  public boolean hasDITContentRule(ObjectClass objectClass)
+  {
+    assert debugEnter(CLASS_NAME, "hasDITContentRule",
+                      String.valueOf(objectClass));
+
+    return ditContentRules.containsKey(objectClass);
   }
 
 
@@ -1956,6 +2080,46 @@ public class Schema
     assert debugEnter(CLASS_NAME, "getDITStructureRulesByNameForm");
 
     return ditStructureRulesByNameForm;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition includes a DIT structure
+   * rule with the provided rule ID.
+   *
+   * @param  ruleID  The rule ID for which to make the determination.
+   *
+   * @return  {@code true} if this schema contains a DIT structure
+   *          rule with the provided rule ID, or {@code false} if not.
+   */
+  public boolean hasDITStructureRule(int ruleID)
+  {
+    assert debugEnter(CLASS_NAME, "hasDITStructureRule",
+                      String.valueOf(ruleID));
+
+    return ditStructureRulesByID.containsKey(ruleID);
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition includes a DIT structure
+   * rule for the provided name form.
+   *
+   * @param  nameForm  The name form for which to make the
+   *                   determination.
+   *
+   * @return  {@code true} if this schema contains a DIT structure
+   *          rule for the provided name form, or {@code false} if
+   *          not.
+   */
+  public boolean hasDITStructureRule(NameForm nameForm)
+  {
+    assert debugEnter(CLASS_NAME, "hasDITStructureRule",
+                      String.valueOf(nameForm));
+
+    return ditStructureRulesByNameForm.containsKey(nameForm);
   }
 
 
@@ -2164,6 +2328,47 @@ public class Schema
     assert debugEnter(CLASS_NAME, "getNameForms");
 
     return nameFormsByName;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition includes a name form for
+   * the specified objectclass.
+   *
+   * @param  objectClass  The objectclass for which to make the
+   *                      determination.
+   *
+   * @return  {@code true} if this schema contains a name form for the
+   *          provided objectclass, or {@code false} if not.
+   */
+  public boolean hasNameForm(ObjectClass objectClass)
+  {
+    assert debugEnter(CLASS_NAME, "hasNameForm",
+                      String.valueOf(objectClass));
+
+    return nameFormsByOC.containsKey(objectClass);
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition includes a name form
+   * with the specified name or OID.
+   *
+   * @param  lowerName  The name or OID for which to make the
+   *                    determination, formatted in all lowercase
+   *                    characters.
+   *
+   * @return  {@code true} if this schema contains a name form with
+   *          the provided name or OID, or {@code false} if not.
+   */
+  public boolean hasNameForm(String lowerName)
+  {
+    assert debugEnter(CLASS_NAME, "hasNameForm",
+                      String.valueOf(lowerName));
+
+    return nameFormsByName.containsKey(lowerName);
   }
 
 

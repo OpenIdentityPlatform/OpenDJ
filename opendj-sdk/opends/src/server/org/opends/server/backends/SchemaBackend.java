@@ -65,6 +65,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.schema.AttributeTypeSyntax;
+import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -78,16 +80,20 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.Schema;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -238,7 +244,7 @@ public class SchemaBackend
          DirectoryServer.getAttributeType(ATTR_DIT_STRUCTURE_RULES_LC, true);
     matchingRuleUsesType =
          DirectoryServer.getAttributeType(ATTR_MATCHING_RULE_USE_LC, true);
-    nameFormsType = DirectoryServer.getAttributeType(ATTR_NAME_FORMS, true);
+    nameFormsType = DirectoryServer.getAttributeType(ATTR_NAME_FORMS_LC, true);
 
 
     // Get the set of user-defined attributes for the configuration entry.  Any
@@ -321,19 +327,12 @@ public class SchemaBackend
     schemaObjectClasses = new LinkedHashMap<ObjectClass,String>(3);
     schemaObjectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
 
-    ObjectClass subentryOC =
-         DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC);
-    if (subentryOC == null)
-    {
-      subentryOC = DirectoryServer.getDefaultObjectClass(OC_LDAP_SUBENTRY);
-    }
+    ObjectClass subentryOC = DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC,
+                                                            true);
     schemaObjectClasses.put(subentryOC, OC_LDAP_SUBENTRY);
 
-    ObjectClass subschemaOC = DirectoryServer.getObjectClass(OC_SUBSCHEMA);
-    if (subschemaOC == null)
-    {
-      subschemaOC = DirectoryServer.getDefaultObjectClass(OC_SUBSCHEMA);
-    }
+    ObjectClass subschemaOC = DirectoryServer.getObjectClass(OC_SUBSCHEMA,
+                                                             true);
     schemaObjectClasses.put(subschemaOC, OC_SUBSCHEMA);
 
 
@@ -837,12 +836,381 @@ public class SchemaBackend
     assert debugEnter(CLASS_NAME, "replaceEntry", String.valueOf(entry),
                       String.valueOf(modifyOperation));
 
-    // FIXME -- We need to allow this.
-    int    msgID   = MSGID_SCHEMA_MODIFY_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(entry.getDN()),
-                                String.valueOf(configEntryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+
+    // At present, we only allow the addition of new attribute types,
+    // object classes, name forms, DIT content rules, DIT structure rules, and
+    // matching rule uses.  We will not support removing or replacing existing
+    // elements, nor will we allow modification of any other attributes.  Make
+    // sure that the included modify operation is acceptable within these
+    // constraints.
+    List<Modification> mods = modifyOperation.getModifications();
+    if (mods.isEmpty())
+    {
+      // There aren't any modifications, so we don't need to do anything.
+      return;
+    }
+
+    Schema newSchema = DirectoryServer.getSchema().duplicate();
+    LinkedList<AttributeType> newAttrTypes = new LinkedList<AttributeType>();
+    LinkedList<ObjectClass> newObjectClasses = new LinkedList<ObjectClass>();
+
+    for (Modification m : mods)
+    {
+      if (m.isInternal())
+      {
+        // We don't need to do anything for internal modifications (e.g., like
+        // those that set modifiersName and modifyTimestamp).
+        continue;
+      }
+
+      switch (m.getModificationType())
+      {
+        case ADD:
+          // This is fine, as long as there aren't any conflicts later.
+          break;
+
+        case DELETE:
+          // FIXME -- We need to support this.
+          int    msgID   = MSGID_SCHEMA_DELETE_MODTYPE_NOT_SUPPORTED;
+          String message = getMessage(msgID);
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                       msgID);
+
+        case REPLACE:
+          // FIXME -- Should we support this?
+        case INCREMENT:
+        default:
+          // FIXME -- Make sure to update this message once we support
+          // schema deletes and possibly replace.
+          msgID   = MSGID_SCHEMA_INVALID_MODIFICATION_TYPE;
+          message = getMessage(msgID, m.getModificationType());
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                       msgID);
+      }
+
+
+      // At the present time, we will only allow modification of the
+      // attributeTypes and objectClasses attributes.
+      Attribute     a = m.getAttribute();
+      AttributeType t = a.getAttributeType();
+      if (t.equals(attributeTypesType))
+      {
+        for (AttributeValue v : a.getValues())
+        {
+          AttributeType newType;
+          try
+          {
+            newType = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
+                                                              newSchema);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "replaceEntry", de);
+
+            int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
+            String message = getMessage(msgID, v.getStringValue(),
+                                        de.getErrorMessage());
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message, msgID, de);
+          }
+
+          try
+          {
+            newSchema.registerAttributeType(newType, false);
+            newAttrTypes.add(newType);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "replaceEntry", de);
+
+            int    msgID   = MSGID_SCHEMA_MODIFY_ATTRTYPE_ALREADY_EXISTS;
+            String message = getMessage(msgID, newType.getNameOrOID(),
+                                        de.getErrorMessage());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID, de);
+          }
+        }
+      }
+      else if (t.equals(objectClassesType))
+      {
+        for (AttributeValue v : a.getValues())
+        {
+          ObjectClass newClass;
+          try
+          {
+            newClass = ObjectClassSyntax.decodeObjectClass(v.getValue(),
+                                                           newSchema);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "replaceEntry", de);
+
+            int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
+            String message = getMessage(msgID, v.getStringValue(),
+                                        de.getErrorMessage());
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message, msgID, de);
+          }
+
+          // If there is a superior class, then make sure it is defined.
+          ObjectClass superiorClass = newClass.getSuperiorClass();
+          if (superiorClass != null)
+          {
+            String lowerName = toLowerCase(superiorClass.getNameOrOID());
+            if (! newSchema.hasObjectClass(lowerName))
+            {
+              int msgID = MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS;
+              String message = getMessage(msgID, newClass.getNameOrOID(),
+                                          superiorClass.getNameOrOID());
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                           message, msgID);
+            }
+          }
+
+          // Make sure that all the associated attribute types are defined.
+          for (AttributeType at : newClass.getRequiredAttributes())
+          {
+            String lowerName = toLowerCase(at.getNameOrOID());
+            if (! newSchema.hasAttributeType(lowerName))
+            {
+              int    msgID   = MSGID_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR;
+              String message = getMessage(msgID, newClass.getNameOrOID(),
+                                          at.getNameOrOID());
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                           message, msgID);
+            }
+          }
+
+          for (AttributeType at : newClass.getOptionalAttributes())
+          {
+            String lowerName = toLowerCase(at.getNameOrOID());
+            if (! newSchema.hasAttributeType(lowerName))
+            {
+              int    msgID   = MSGID_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR;
+              String message = getMessage(msgID, newClass.getNameOrOID(),
+                                          at.getNameOrOID());
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                           message, msgID);
+            }
+          }
+
+          try
+          {
+            newSchema.registerObjectClass(newClass, false);
+            newObjectClasses.add(newClass);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "replaceEntry", de);
+
+            int    msgID   = MSGID_SCHEMA_MODIFY_OBJECTCLASS_ALREADY_EXISTS;
+            String message = getMessage(msgID, newClass.getNameOrOID(),
+                                        de.getErrorMessage());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID, de);
+          }
+        }
+      }
+      else
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE;
+        String message = getMessage(msgID, a.getName());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // If we've gotten here, then everything looks OK.  Add the new schema
+    // elements to the 99-user.ldif file and swing the new schema into place.
+    String schemaDirPath = DirectoryServer.getServerRoot() + File.separator +
+                           PATH_SCHEMA_DIR;
+    File userSchemaFile = new File(schemaDirPath, FILE_USER_SCHEMA_ELEMENTS);
+    Entry userSchemaEntry = null;
+
+    if (userSchemaFile.exists())
+    {
+      // There's already a set of user-defined schema elements, so we'll need to
+      // add these new elements to that set.
+      LDIFReader ldifReader = null;
+      try
+      {
+        LDIFImportConfig importConfig =
+             new LDIFImportConfig(userSchemaFile.getAbsolutePath());
+        ldifReader = new LDIFReader(importConfig);
+
+        userSchemaEntry = ldifReader.readEntry(true);
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "replaceEntry", e);
+
+        int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_READ_EXISTING_USER_SCHEMA;
+        String message = getMessage(msgID, userSchemaFile.getAbsolutePath(),
+                                    stackTraceToSingleLineString(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, msgID, e);
+      }
+      finally
+      {
+        if (ldifReader != null)
+        {
+          ldifReader.close();
+        }
+      }
+    }
+
+    if (userSchemaEntry == null)
+    {
+      // This could happen if there was no user schema file or if it was there
+      // but didn't have any entries.  At any rate, create a new, empty entry.
+      userSchemaEntry = createEmptySchemaEntry();
+    }
+
+
+    // Add all of the new schema elements to the entry.
+    if (! newAttrTypes.isEmpty())
+    {
+      LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>();
+      for (AttributeType t : newAttrTypes)
+      {
+        StringBuilder buffer = new StringBuilder();
+        t.toString(buffer, false);
+        values.add(new AttributeValue(attributeTypesType, buffer.toString()));
+      }
+
+      Attribute attrTypeAttribute = new Attribute(attributeTypesType,
+                                                  ATTR_ATTRIBUTE_TYPES, values);
+      LinkedList<AttributeValue> duplicateValues =
+           new LinkedList<AttributeValue>();
+      userSchemaEntry.addAttribute(attrTypeAttribute, duplicateValues);
+    }
+
+    if (! newObjectClasses.isEmpty())
+    {
+      LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>();
+      for (ObjectClass oc : newObjectClasses)
+      {
+        StringBuilder buffer = new StringBuilder();
+        oc.toString(buffer, false);
+        values.add(new AttributeValue(attributeTypesType, buffer.toString()));
+      }
+
+      Attribute ocAttribute = new Attribute(objectClassesType,
+                                            ATTR_OBJECTCLASSES, values);
+      LinkedList<AttributeValue> duplicateValues =
+           new LinkedList<AttributeValue>();
+      userSchemaEntry.addAttribute(ocAttribute, duplicateValues);
+    }
+
+
+    // Swing the new schema into place.
+    try
+    {
+      File tempSchemaFile = new File(userSchemaFile.getAbsolutePath() + ".tmp");
+      LDIFExportConfig exportConfig =
+           new LDIFExportConfig(tempSchemaFile.getAbsolutePath(),
+                                ExistingFileBehavior.OVERWRITE);
+
+      LDIFWriter writer = null;
+      try
+      {
+        writer = new LDIFWriter(exportConfig);
+        writer.writeEntry(userSchemaEntry);
+      }
+      finally
+      {
+        if (writer != null)
+        {
+          writer.close();
+        }
+      }
+
+      File oldSchemaFile = null;
+      if (userSchemaFile.exists())
+      {
+        oldSchemaFile = new File(userSchemaFile.getAbsolutePath() + ".old");
+        if (oldSchemaFile.exists())
+        {
+          oldSchemaFile.delete();
+        }
+
+        userSchemaFile.renameTo(oldSchemaFile);
+      }
+
+      tempSchemaFile.renameTo(userSchemaFile);
+
+      if (oldSchemaFile != null)
+      {
+        oldSchemaFile.delete();
+      }
+
+      DirectoryServer.setSchema(newSchema);
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "replaceEntry", e);
+
+      int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA;
+      String message = getMessage(msgID, userSchemaFile.getAbsolutePath(),
+                                  stackTraceToSingleLineString(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, msgID, e);
+    }
+  }
+
+
+
+  /**
+   * Creates an empty entry that may be used as the basis for a new schema file.
+   *
+   * @return  An empty entry that may be used as the basis for a new schema
+   *          file.
+   */
+  private Entry createEmptySchemaEntry()
+  {
+    assert debugEnter(CLASS_NAME, "createEmptySchemaEntry");
+
+    LinkedHashMap<ObjectClass,String> objectClasses =
+         new LinkedHashMap<ObjectClass,String>();
+    objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    objectClasses.put(DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC, true),
+                      OC_LDAP_SUBENTRY);
+    objectClasses.put(DirectoryServer.getObjectClass(OC_SUBSCHEMA, true),
+                      OC_SUBSCHEMA);
+
+    LinkedHashMap<AttributeType,List<Attribute>> userAttributes =
+         new LinkedHashMap<AttributeType,List<Attribute>>();
+
+    LinkedHashMap<AttributeType,List<Attribute>> operationalAttributes =
+         new LinkedHashMap<AttributeType,List<Attribute>>();
+
+    DN  dn  = DirectoryServer.getSchemaDN();
+    RDN rdn = dn.getRDN();
+    for (int i=0; i < rdn.getNumValues(); i++)
+    {
+      AttributeType type = rdn.getAttributeType(i);
+      String        name = rdn.getAttributeName(i);
+
+      LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>(1);
+      values.add(rdn.getAttributeValue(i));
+
+      LinkedList<Attribute> attrList = new LinkedList<Attribute>();
+      attrList.add(new Attribute(type, name, values));
+      if (type.isOperational())
+      {
+        operationalAttributes.put(type, attrList);
+      }
+      else
+      {
+        userAttributes.put(type, attrList);
+      }
+    }
+
+    return new Entry(dn, objectClasses,  userAttributes, operationalAttributes);
   }
 
 
@@ -2394,6 +2762,40 @@ public class SchemaBackend
 
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+
+
+  /**
+   * Indicates whether to treat common schema attributes like user attributes
+   * rather than operational attributes.
+   *
+   * @return  {@code true} if common attributes should be treated like user
+   *          attributes, or {@code false} if not.
+   */
+  boolean showAllAttributes()
+  {
+    assert debugEnter(CLASS_NAME, "showAllAttributes");
+
+    return showAllAttributes;
+  }
+
+
+
+  /**
+   * Specifies whether to treat common schema attributes like user attributes
+   * rather than operational attributes.
+   *
+   * @param  showAllAttributes  Specifies whether to treat common schema
+   *                            attributes like user attributes rather than
+   *                            operational attributes.
+   */
+  void setShowAllAttributes(boolean showAllAttributes)
+  {
+    assert debugEnter(CLASS_NAME, "setShowAllAttributes",
+                      String.valueOf(showAllAttributes));
+
+    this.showAllAttributes = showAllAttributes;
   }
 }
 
