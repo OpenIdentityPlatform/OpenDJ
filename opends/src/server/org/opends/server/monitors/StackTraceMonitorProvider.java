@@ -31,18 +31,20 @@ package org.opends.server.monitors;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -164,102 +166,74 @@ public class StackTraceMonitorProvider
 
 
     Map<Thread,StackTraceElement[]> threadStacks = Thread.getAllStackTraces();
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
 
-    int i=0;
-    for (Thread t : threadStacks.keySet())
+
+    // Re-arrange all of the elements by thread ID so that there is some logical
+    // order.
+    TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>> orderedStacks =
+         new TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>>();
+    for (Map.Entry<Thread,StackTraceElement[]> e : threadStacks.entrySet())
     {
-      String prefix = "thread-" + i + "-";
+      orderedStacks.put(e.getKey().getId(), e);
+    }
 
-      // Create an attribute for the thread name.
-      attrs.add(createAttribute(prefix + "name", t.getName()));
 
-      // Create an attribute for the thread ID.
-      attrs.add(createAttribute(prefix + "id:", String.valueOf(t.getId())));
+    AttributeType attrType =
+         DirectoryServer.getDefaultAttributeType("jvmThread");
+    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
 
-      // Create an attribute for the thread priority.
-      attrs.add(createAttribute(prefix + "priority",
-                                String.valueOf(t.getPriority())));
+    for (Map.Entry<Thread,StackTraceElement[]> e : orderedStacks.values())
+    {
+      Thread t                          = e.getKey();
+      StackTraceElement[] stackElements = e.getValue();
 
-      // Create an attribute for the current thread state.
-      attrs.add(createAttribute(prefix + "state", t.getState().toString()));
+      long id = t.getId();
 
-      // Create an attribute for the thread group.
-      ThreadGroup threadGroup = t.getThreadGroup();
-      if (threadGroup != null)
-      {
-        attrs.add(createAttribute(prefix + "group", threadGroup.getName()));
-      }
+      StringBuilder buffer = new StringBuilder();
+      buffer.append("id=");
+      buffer.append(id);
+      buffer.append(" ---------- ");
+      buffer.append(t.getName());
+      buffer.append(" ----------");
+      values.add(new AttributeValue(attrType, buffer.toString()));
 
       // Create an attribute for the stack trace.
-      StackTraceElement[] stackElements = threadStacks.get(t);
       if (stackElements != null)
       {
-        int j=0;
-        for (StackTraceElement e : stackElements)
+        for (int j=0; j < stackElements.length; j++)
         {
-          StringBuilder trace = new StringBuilder();
+          buffer = new StringBuilder();
+          buffer.append("id=");
+          buffer.append(id);
+          buffer.append(" frame[");
+          buffer.append(j);
+          buffer.append("]=");
 
-          trace.append(e.getClassName());
-          trace.append(".");
-          trace.append(e.getMethodName());
-          trace.append("(");
-          trace.append(e.getFileName());
-          trace.append(":");
-          trace.append(e.getLineNumber());
-          trace.append(")");
-
-          if (e.isNativeMethod())
+          buffer.append(stackElements[j].getClassName());
+          buffer.append(".");
+          buffer.append(stackElements[j].getMethodName());
+          buffer.append("(");
+          buffer.append(stackElements[j].getFileName());
+          buffer.append(":");
+          if (stackElements[j].isNativeMethod())
           {
-            trace.append(" -- Native method");
+            buffer.append("native");
           }
+          else
+          {
+            buffer.append(stackElements[j].getLineNumber());
+          }
+          buffer.append(")");
 
-          attrs.add(createAttribute(prefix + "stack-frame-" + j,
-                                    trace.toString()));
-          j++;
+          values.add(new AttributeValue(attrType, buffer.toString()));
         }
       }
-
-      i++;
     }
+
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+    attrs.add(new Attribute(attrType, "jvmThread", values));
 
     return attrs;
-  }
-
-
-
-  /**
-   * Constructs an attribute using the provided information.  It will have the
-   * default syntax.
-   *
-   * @param  name   The name to use for the attribute.
-   * @param  value  The value to use for the attribute.
-   *
-   * @return  The attribute created from the provided information.
-   */
-  private Attribute createAttribute(String name, String value)
-  {
-    assert debugEnter(CLASS_NAME, "createAttribute", String.valueOf(name),
-                      String.valueOf(value));
-
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
-
-    ASN1OctetString encodedValue = new ASN1OctetString(value);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-
-    try
-    {
-      values.add(new AttributeValue(encodedValue,
-                                    attrType.normalize(encodedValue)));
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "createAttribute", e);
-
-      values.add(new AttributeValue(encodedValue, encodedValue));
-    }
-
-    return new Attribute(attrType, name, values);
   }
 }
 
