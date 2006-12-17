@@ -42,6 +42,7 @@ import org.opends.server.types.InitializationException;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentStats;
+import com.sleepycat.je.JEVersion;
 import com.sleepycat.je.LockStats;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.TransactionStats;
@@ -233,6 +234,13 @@ public class DatabaseEnvironmentMonitor extends MonitorProvider
     }
 
     ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
+
+    String jeVersion = JEVersion.CURRENT_VERSION.getVersionString();
+    AttributeType versionType =
+         DirectoryServer.getDefaultAttributeType("JEVersion");
+    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    values.add(new AttributeValue(versionType, jeVersion));
+    monitorAttrs.add(new Attribute(versionType, "JEVersion", values));
 
     addAttributesForStatsObject(monitorAttrs, environmentStats, "Environment");
     addAttributesForStatsObject(monitorAttrs, lockStats, "Lock");
