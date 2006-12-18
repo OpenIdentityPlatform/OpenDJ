@@ -119,6 +119,7 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
 
     setLayout(new GridBagLayout());
     setBackground(UIFactory.DEFAULT_BACKGROUND);
+    setOpaque(true);
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.fill = GridBagConstraints.BOTH;
     gbc.gridwidth = GridBagConstraints.REMAINDER;

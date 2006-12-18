@@ -35,8 +35,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.naming.NamingException;
-
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 
@@ -201,36 +199,14 @@ public class CurrentInstallStatus
   }
 
   /**
-   * Indicates whether there is the server is running in the localhost on the
-   * LDAP port specified in config.ldif file.  Note that this method performs
-   * LDAP requests which can be time consuming.
+   * Indicates whether there is the server is running.
    *
    * @return <CODE>true</CODE> if the server is running, or <CODE>false</CODE>
    *         if not.
    */
   public boolean isServerRunning()
   {
-    boolean isServerRunning = false;
-
-    try
-    {
-      Utils.createLdapContext(getLdapUrl(), null, null, 3000, null);
-      isServerRunning = true;
-    } catch (NamingException ne)
-    {
-      try
-      {
-        if (getSecurePort() != -1)
-        {
-          Utils.createLdapContext(getLdapsUrl(), null, null, 3000, null);
-          isServerRunning = true;
-        }
-      } catch (NamingException ne2)
-      {
-      }
-    }
-
-    return isServerRunning;
+    return Utils.isServerRunning(Utils.getInstallPathFromClasspath());
   }
 
   /**
@@ -242,7 +218,10 @@ public class CurrentInstallStatus
   {
     if (ldapUrl == null)
     {
-      ldapUrl = "ldap://localhost:"+getPort();
+      if (getPort() != -1)
+      {
+        ldapUrl = "ldap://localhost:"+getPort();
+      }
     }
     return ldapUrl;
   }
@@ -257,7 +236,10 @@ public class CurrentInstallStatus
   {
     if (ldapsUrl == null)
     {
-      ldapsUrl = "ldaps://localhost:"+getSecurePort();
+      if (getSecurePort() != -1)
+      {
+        ldapsUrl = "ldaps://localhost:"+getSecurePort();
+      }
     }
     return ldapsUrl;
   }
