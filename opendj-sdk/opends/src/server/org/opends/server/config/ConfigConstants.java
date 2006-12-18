@@ -2427,10 +2427,10 @@ public class ConfigConstants
 
 
   /**
-   * The base name (with no path information) of the file that will hold the
-   * archived of previous configurations.
+   * The base name (with no path information) of the directory that will hold
+   * the archived versions of previous configurations.
    */
-  public static final String CONFIG_ARCHIVE_NAME = "archived-config.zip";
+  public static final String CONFIG_ARCHIVE_DIR_NAME = "archived-configs";
 
 
 
