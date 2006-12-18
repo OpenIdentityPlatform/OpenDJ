@@ -43,6 +43,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
@@ -198,12 +199,13 @@ public class TraditionalWorkQueueTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    SearchOperation searchOperation =
-         new SearchOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             requestControls, DN.decode("o=test"),
-                             SearchScope.BASE_OBJECT,
-                             DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                             filter, attrs);
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(conn, conn.nextOperationID(),
+                                     conn.nextMessageID(),requestControls,
+                                     DN.decode("o=test"),
+                                     SearchScope.BASE_OBJECT,
+                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     0, false, filter, attrs, null);
     DirectoryServer.getWorkQueue().submitOperation(searchOperation);
 
     long startTime = System.currentTimeMillis();
@@ -234,12 +236,13 @@ public class TraditionalWorkQueueTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    SearchOperation searchOperation =
-         new SearchOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             requestControls, DN.decode("o=test"),
-                             SearchScope.BASE_OBJECT,
-                             DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                             filter, attrs);
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(conn, conn.nextOperationID(),
+                                     conn.nextMessageID(), requestControls,
+                                     DN.decode("o=test"),
+                                     SearchScope.BASE_OBJECT,
+                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     0, false, filter, attrs, null);
     DirectoryServer.getWorkQueue().submitOperation(searchOperation);
 
     long startTime = System.currentTimeMillis();
