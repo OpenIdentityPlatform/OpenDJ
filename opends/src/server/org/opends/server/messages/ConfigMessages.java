@@ -6164,6 +6164,40 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create the configuration archive directory but no additional
+   * information is available to explain the underlying problem.  This takes a
+   * single argument, which is the path to the archive directory to be created.
+   */
+  public static final int
+       MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 573;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create the configuration archive directory.  This takes two
+   * arguments, which are the path to the archive directory to be created and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 574;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to write the current configuration to the configuration archive.
+   * This takes two arguments, which are the path to the archive directory to be
+   * created and a string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 575;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6471,6 +6505,15 @@ public class ConfigMessages
                     "The updated archive containing previous Directory " +
                     "Server configurations could not be renamed from %s to " +
                     "%s:  %s.");
+    registerMessage(MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON,
+                    "An error occurred while trying to create the " +
+                    "configuration archive directory %s.");
+    registerMessage(MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR,
+                    "An error occurred while trying to create the " +
+                    "configuration archive directory %s:  %s.");
+    registerMessage(MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE,
+                    "An error occurred while trying to write the current " +
+                    "configuration to the configuration archive:  %s.");
     registerMessage(MSGID_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG,
                     "An error occurred while attempting to export the new " +
                     "Directory Server configuration to file %s:  %s.");

@@ -44,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.zip.Deflater;
+import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -1560,185 +1561,138 @@ public class ConfigFileHandler
     // FIXME -- This needs support for encryption.
 
 
-    // Get the path to the current config file and then the path to the
-    // directory containing that file.
-    File f = new File(configFile);
-    String configDirectory = f.getParent();
-
-
-    // Open a temporary zip file for writing.
-    String archiveName = configDirectory + File.separator + CONFIG_ARCHIVE_NAME;
-    String tempArchive = archiveName + ".tmp";
-    ZipOutputStream outputStream;
-
-    try
+    // Try to write the configuration archive.  If any part of this fails, then
+    // we'll abort that, but still try to write the updated configuration
+    // later.
+writeConfigArchive:
     {
-      outputStream = new ZipOutputStream(new FileOutputStream(tempArchive,
-                                                              false));
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
-
-      int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_CREATE_TEMP_ARCHIVE;
-      String message = getMessage(msgID, String.valueOf(tempArchive),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
-
-      DirectoryServer.sendAlertNotification(this,
-           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
-
-      return;
-    }
+      // Determine the path to the directory that will hold the archived
+      // configuration files.
+      File configDirectory  = new File(configFile).getParentFile();
+      File archiveDirectory = new File(configDirectory,
+                                       CONFIG_ARCHIVE_DIR_NAME);
 
 
-    // Create a buffer to hold the information that we will read.
-    byte[] buffer = new byte[8192];
+      // If the archive directory doesn't exist, then create it.
+      if (! archiveDirectory.exists())
+      {
+        try
+        {
+          if (! archiveDirectory.mkdirs())
+          {
+            int msgID = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON;
+            String message = getMessage(msgID,
+                                        archiveDirectory.getAbsolutePath());
+
+            logError(ErrorLogCategory.CONFIGURATION,
+                     ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+
+            DirectoryServer.sendAlertNotification(this,
+                 ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+
+            break writeConfigArchive;
+          }
+        }
+        catch (Exception e)
+        {
+          assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
+
+          int    msgID   = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR;
+          String message = getMessage(msgID, archiveDirectory.getAbsolutePath(),
+                                      stackTraceToSingleLineString(e));
+
+          logError(ErrorLogCategory.CONFIGURATION,
+                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+
+          DirectoryServer.sendAlertNotification(this,
+               ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+
+          break writeConfigArchive;
+        }
+      }
 
 
-    // Get a current timestamp that we will use as an extension for the config
-    // file with the running configuration.  This is necessary because we can't
-    // have multiple files with the same name, so if there are multiple config
-    // changes in the same second, then only the last one will be stored in the
-    // archive (it will encapsulate the other changes as well, but it won't be
-    // possible to determine that they were made in separate changes).
-    String runningArchiveName = configFile + "." + TimeThread.getUTCTime();
-
-
-    // See if there is an existing archive.  If so, then read its contents and
-    // write them into the new archive.
-    File archiveFile = new File(archiveName);
-    if (archiveFile.exists())
-    {
+      // Determine the appropriate name to use for the current configuration.
+      File archiveFile;
       try
       {
-        ZipInputStream inputStream =
-             new ZipInputStream(new FileInputStream(archiveFile));
-
-        ZipEntry zipEntry = inputStream.getNextEntry();
-        while (zipEntry != null)
+        String timestamp = TimeThread.getUTCTime();
+        archiveFile = new File(archiveDirectory, "config-" + timestamp + ".gz");
+        if (archiveFile.exists())
         {
-          if (zipEntry.getName().equals(runningArchiveName))
+          int counter = 2;
+          archiveFile = new File(archiveDirectory,
+                                 "config-" + timestamp + "-" + counter + ".gz");
+
+          while (archiveFile.exists())
           {
-            // This entry has a name that is the same as what we will use for
-            // archiving the running config, so we will skip it.  It's almost
-            // a guarantee that there won't be any more entries, but we can keep
-            // going to make sure.
-            zipEntry = inputStream.getNextEntry();
-            continue;
+            counter++;
+            archiveFile = new File(archiveDirectory,
+                                   "config-" + timestamp + "." + counter +
+                                   ".gz");
           }
-
-          outputStream.putNextEntry(zipEntry);
-
-          int bytesRead = inputStream.read(buffer);
-          while (bytesRead > 0)
-          {
-            outputStream.write(buffer, 0, bytesRead);
-            bytesRead = inputStream.read(buffer);
-          }
-
-          outputStream.closeEntry();
-          zipEntry = inputStream.getNextEntry();
         }
-
-        inputStream.close();
       }
       catch (Exception e)
       {
         assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
 
-        int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_COPY_EXISTING_ARCHIVE;
-        String message = getMessage(msgID, String.valueOf(archiveName),
-                                    String.valueOf(tempArchive),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+
+        logError(ErrorLogCategory.CONFIGURATION,
+                 ErrorLogSeverity.SEVERE_ERROR, message, msgID);
 
         DirectoryServer.sendAlertNotification(this,
              ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
-        return;
-      }
-    }
 
-
-    // Read the contents of the current configuration file and put them into the
-    // archive.
-    try
-    {
-      FileInputStream inputStream = new FileInputStream(configFile);
-
-      outputStream.putNextEntry(new ZipEntry(runningArchiveName));
-
-      int bytesRead = inputStream.read(buffer);
-      while (bytesRead > 0)
-      {
-        outputStream.write(buffer, 0, bytesRead);
-        bytesRead = inputStream.read(buffer);
+        break writeConfigArchive;
       }
 
-      outputStream.closeEntry();
-      inputStream.close();
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
 
-      int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_COPY_CURRENT_CONFIG;
-      String message = getMessage(msgID, String.valueOf(tempArchive),
-                                  String.valueOf(configFile),
-                                  stackTraceToSingleLineString(e));
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
-
-      DirectoryServer.sendAlertNotification(this,
-           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
-      return;
-    }
-
-
-    // Close the temporary archive, delete the existing archive, and replace it
-    // with the temporary version.
-    try
-    {
-      outputStream.close();
-
-      if (archiveFile.exists())
+      // Copy the current configuration to the new configuration file.
+      byte[]           buffer       = new byte[8192];
+      FileInputStream  inputStream  = null;
+      GZIPOutputStream outputStream = null;
+      try
       {
-        archiveFile.delete();
+        inputStream  = new FileInputStream(configFile);
+        outputStream = new GZIPOutputStream(new FileOutputStream(archiveFile));
+
+        int bytesRead = inputStream.read(buffer);
+        while (bytesRead > 0)
+        {
+          outputStream.write(buffer, 0, bytesRead);
+          bytesRead = inputStream.read(buffer);
+        }
       }
-
-      File tempArchiveFile = new File(tempArchive);
-      if (! tempArchiveFile.renameTo(archiveFile))
+      catch (Exception e)
       {
-        int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_RENAME_TEMP_ARCHIVE;
-        String message = getMessage(msgID, String.valueOf(tempArchive),
-                                    String.valueOf(archiveName));
+        assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
 
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+
+        logError(ErrorLogCategory.CONFIGURATION,
+                 ErrorLogSeverity.SEVERE_ERROR, message, msgID);
 
         DirectoryServer.sendAlertNotification(this,
              ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
-        return;
+
+        break writeConfigArchive;
       }
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
+      finally
+      {
+        try
+        {
+          inputStream.close();
+        } catch (Exception e) {}
 
-      int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_REPLACE_ARCHIVE;
-      String message = getMessage(msgID, String.valueOf(archiveName),
-                                  String.valueOf(tempArchive),
-                                  stackTraceToSingleLineString(e));
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
-
-      DirectoryServer.sendAlertNotification(this,
-           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
-      return;
+        try
+        {
+          outputStream.close();
+        } catch (Exception e) {}
+      }
     }
 
 
@@ -1772,6 +1726,7 @@ public class ConfigFileHandler
     // Delete the previous version of the configuration and rename the new one.
     try
     {
+      File f = new File(configFile);
       f.delete();
       new File(tempConfig).renameTo(f);
     }
@@ -2295,43 +2250,46 @@ public class ConfigFileHandler
     }
 
 
-    // If we have a zip file with archived forms of previous configurations,
-    // then add it as well.
+    // If an archive directory exists, then add its contents as well.
     try
     {
-      File archivedConfigsFile = new File(new File(configFile).getParent() +
-                                          File.separator + CONFIG_ARCHIVE_NAME);
-      if (archivedConfigsFile.exists())
+      File archiveDirectory = new File(new File(configFile).getParent(),
+                                       CONFIG_ARCHIVE_DIR_NAME);
+      if (archiveDirectory.exists())
       {
-        ZipEntry zipEntry = new ZipEntry(archivedConfigsFile.getName());
-        zipStream.putNextEntry(zipEntry);
-
-        inputStream = new FileInputStream(archivedConfigsFile);
-        while (true)
+        for (File archiveFile : archiveDirectory.listFiles())
         {
-          int bytesRead = inputStream.read(buffer);
-          if (bytesRead < 0)
+          ZipEntry zipEntry = new ZipEntry(CONFIG_ARCHIVE_DIR_NAME +
+                                           File.separator +
+                                           archiveFile.getName());
+          zipStream.putNextEntry(zipEntry);
+          inputStream = new FileInputStream(archiveFile);
+          while (true)
           {
-            break;
+            int bytesRead = inputStream.read(buffer);
+            if (bytesRead < 0)
+            {
+              break;
+            }
+
+            if (hash)
+            {
+              if (signHash)
+              {
+                mac.update(buffer, 0, bytesRead);
+              }
+              else
+              {
+                digest.update(buffer, 0, bytesRead);
+              }
+            }
+
+            zipStream.write(buffer, 0, bytesRead);
           }
 
-          if (hash)
-          {
-            if (signHash)
-            {
-              mac.update(buffer, 0, bytesRead);
-            }
-            else
-            {
-              digest.update(buffer, 0, bytesRead);
-            }
-          }
-
-          zipStream.write(buffer, 0, bytesRead);
+          inputStream.close();
+          zipStream.closeEntry();
         }
-
-        inputStream.close();
-        zipStream.closeEntry();
       }
     }
     catch (Exception e)
@@ -2690,11 +2648,12 @@ public class ConfigFileHandler
           configBackupDir.mkdirs();
           moveFile(configFile, configBackupDir);
 
-          File archivedConfigsFile = new File(configDirPath + File.separator +
-                                              CONFIG_ARCHIVE_NAME);
-          if (archivedConfigsFile.exists())
+          File archiveDirectory = new File(configDir, CONFIG_ARCHIVE_DIR_NAME);
+          if (archiveDirectory.exists())
           {
-            moveFile(archivedConfigsFile, configBackupDir);
+            File archiveBackupPath = new File(configBackupDir,
+                                              CONFIG_ARCHIVE_DIR_NAME);
+            archiveDirectory.renameTo(archiveBackupPath);
           }
         }
       }
@@ -2800,10 +2759,17 @@ public class ConfigFileHandler
       OutputStream outputStream = null;
       if (! verifyOnly)
       {
-        String filePath = configDirPath + File.separator + fileName;
+        File restoreFile = new File(configDirPath + File.separator + fileName);
+        File parentDir   = restoreFile.getParentFile();
+
         try
         {
-          outputStream = new FileOutputStream(filePath);
+          if (! parentDir.exists())
+          {
+            parentDir.mkdirs();
+          }
+
+          outputStream = new FileOutputStream(restoreFile);
         }
         catch (Exception e)
         {
@@ -2817,7 +2783,8 @@ public class ConfigFileHandler
           }
 
           int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_CREATE_FILE;
-          String message = getMessage(msgID, backupID, filePath,
+          String message = getMessage(msgID, backupID,
+                                      restoreFile.getAbsolutePath(),
                                       stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
