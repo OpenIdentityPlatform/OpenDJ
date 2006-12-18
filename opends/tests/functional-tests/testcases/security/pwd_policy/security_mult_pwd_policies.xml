@@ -138,45 +138,21 @@
                'Security: Mult Pwd Policies: Testing Sales Pwd Policy with Lockout Count'
             </message>
 
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=sguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=sguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=sguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=sguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'superguy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
+            <script>
+                search_pwds = ['bad', 'bad', 'bad', 'superguy']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=sguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : '%s' % pwds ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+              </call>
+            </iterate>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
@@ -194,45 +170,21 @@
                'Security: Mult Pwd Policies: Testing Default Pwd Policy with Lockout Count'
             </message>
 
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=tclow,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=tclow,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=tclow,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'bad' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=tclow,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'cardreader' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
+            <script>
+                search_pwds = ['bad', 'bad', 'bad', 'cardreader']
+            </script>
+            
+            <iterate var="pwds" in="search_pwds" indexvar="index">
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=tclow,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : '%s' % pwds ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+              </call>
+            </iterate>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
