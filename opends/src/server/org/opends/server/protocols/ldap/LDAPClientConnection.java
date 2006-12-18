@@ -1312,7 +1312,15 @@ public class LDAPClientConnection
       {
         if (ps.getSearchOperation().getMessageID() == messageID)
         {
-          return ps.getSearchOperation().cancel(cancelRequest);
+          CancelResult cancelResult =
+               ps.getSearchOperation().cancel(cancelRequest);
+
+          if (keepStats && (cancelResult == CancelResult.CANCELED))
+          {
+            statTracker.updateAbandonedOperation();
+          }
+
+          return cancelResult;
         }
       }
 
@@ -1320,6 +1328,12 @@ public class LDAPClientConnection
     }
     else
     {
+      CancelResult cancelResult = op.cancel(cancelRequest);
+      if (keepStats && (cancelResult == CancelResult.CANCELED))
+      {
+        statTracker.updateAbandonedOperation();
+      }
+
       return op.cancel(cancelRequest);
     }
   }
@@ -1347,7 +1361,11 @@ public class LDAPClientConnection
       {
         try
         {
-          o.cancel(cancelRequest);
+          CancelResult cancelResult = o.cancel(cancelRequest);
+          if (keepStats && (cancelResult == CancelResult.CANCELED))
+          {
+            statTracker.updateAbandonedOperation();
+          }
         }
         catch (Exception e)
         {
@@ -1408,7 +1426,11 @@ public class LDAPClientConnection
         {
           try
           {
-            o.cancel(cancelRequest);
+            CancelResult cancelResult = o.cancel(cancelRequest);
+            if (keepStats && (cancelResult == CancelResult.CANCELED))
+            {
+              statTracker.updateAbandonedOperation();
+            }
           }
           catch (Exception e)
           {
@@ -1848,6 +1870,10 @@ public class LDAPClientConnection
                               protocolOp.getIDToAbandon());
 
     abandonOp.run();
+    if (keepStats && (abandonOp.getResultCode() == ResultCode.CANCELED))
+    {
+      statTracker.updateAbandonedOperation();
+    }
 
     return connectionValid;
   }

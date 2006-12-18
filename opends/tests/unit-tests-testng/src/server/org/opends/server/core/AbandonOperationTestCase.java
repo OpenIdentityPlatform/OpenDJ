@@ -311,6 +311,10 @@ public class AbandonOperationTestCase
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
+    long abandonRequests   = ldapStatistics.getAbandonRequests();
+    long abandonsCompleted = ldapStatistics.getOperationsAbandoned();
+
+
     // Create an add request and send it to the server.  Make sure to include
     // the delay request control so it won't complete before we can send the
     // abandon request.
@@ -345,6 +349,9 @@ public class AbandonOperationTestCase
     message = LDAPMessage.decode(r.readElement().decodeAsSequence());
     AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
     assertEquals(addResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    assertEquals(ldapStatistics.getAbandonRequests(), abandonRequests+1);
+    waitForAbandon(abandonsCompleted+1);
 
     s.close();
 
@@ -384,6 +391,10 @@ public class AbandonOperationTestCase
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
+    long abandonRequests   = ldapStatistics.getAbandonRequests();
+    long abandonsCompleted = ldapStatistics.getOperationsAbandoned();
+
+
     // Create a compare request and send it to the server.  Make sure to include
     // the delay request control so it won't complete before we can send the
     // abandon request.
@@ -409,6 +420,9 @@ public class AbandonOperationTestCase
     CompareResponseProtocolOp compareResponse =
          message.getCompareResponseProtocolOp();
     assertEquals(compareResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    assertEquals(ldapStatistics.getAbandonRequests(), abandonRequests+1);
+    waitForAbandon(abandonsCompleted+1);
 
     s.close();
 
@@ -462,6 +476,10 @@ public class AbandonOperationTestCase
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
+    long abandonRequests   = ldapStatistics.getAbandonRequests();
+    long abandonsCompleted = ldapStatistics.getOperationsAbandoned();
+
+
     // Create a delete request and send it to the server.  Make sure to include
     // the delay request control so it won't complete before we can send the
     // abandon request.
@@ -486,6 +504,9 @@ public class AbandonOperationTestCase
     DeleteResponseProtocolOp deleteResponse =
          message.getDeleteResponseProtocolOp();
     assertEquals(deleteResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    assertEquals(ldapStatistics.getAbandonRequests(), abandonRequests+1);
+    waitForAbandon(abandonsCompleted+1);
 
     s.close();
 
@@ -525,6 +546,10 @@ public class AbandonOperationTestCase
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
+    long abandonRequests   = ldapStatistics.getAbandonRequests();
+    long abandonsCompleted = ldapStatistics.getOperationsAbandoned();
+
+
     // Create a "Who Am I?" extended oepration and send it to the server.  Make
     // sure to include the delay request control so it won't complete before we
     // can send the abandon request.
@@ -549,6 +574,9 @@ public class AbandonOperationTestCase
     ExtendedResponseProtocolOp extendedResponse =
          message.getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    assertEquals(ldapStatistics.getAbandonRequests(), abandonRequests+1);
+    waitForAbandon(abandonsCompleted+1);
 
     s.close();
 
@@ -588,6 +616,10 @@ public class AbandonOperationTestCase
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
+    long abandonRequests   = ldapStatistics.getAbandonRequests();
+    long abandonsCompleted = ldapStatistics.getOperationsAbandoned();
+
+
     // Create a modify request and send it to the server.  Make sure to include
     // the delay request control so it won't complete before we can send the
     // abandon request.
@@ -619,6 +651,9 @@ public class AbandonOperationTestCase
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertEquals(modifyResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    assertEquals(ldapStatistics.getAbandonRequests(), abandonRequests+1);
+    waitForAbandon(abandonsCompleted+1);
 
     s.close();
 
@@ -672,6 +707,10 @@ public class AbandonOperationTestCase
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
+    long abandonRequests   = ldapStatistics.getAbandonRequests();
+    long abandonsCompleted = ldapStatistics.getOperationsAbandoned();
+
+
     // Create a modify DN request and send it to the server.  Make sure to
     // include the delay request control so it won't complete before we can send
     // the abandon request.
@@ -697,6 +736,9 @@ public class AbandonOperationTestCase
     ModifyDNResponseProtocolOp modifyDNResponse =
          message.getModifyDNResponseProtocolOp();
     assertEquals(modifyDNResponse.getResultCode(), LDAPResultCode.CANCELED);
+
+    assertEquals(ldapStatistics.getAbandonRequests(), abandonRequests+1);
+    waitForAbandon(abandonsCompleted+1);
 
     s.close();
 
@@ -736,6 +778,10 @@ public class AbandonOperationTestCase
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
+    long abandonRequests   = ldapStatistics.getAbandonRequests();
+    long abandonsCompleted = ldapStatistics.getOperationsAbandoned();
+
+
     // Create a search request and send it to the server.  Make sure to include
     // the delay request control so it won't complete before we can send the
     // abandon request.
@@ -766,10 +812,41 @@ public class AbandonOperationTestCase
          message.getSearchResultDoneProtocolOp();
     assertEquals(searchDone.getResultCode(), LDAPResultCode.CANCELED);
 
+    assertEquals(ldapStatistics.getAbandonRequests(), abandonRequests+1);
+    waitForAbandon(abandonsCompleted+1);
+
     s.close();
 
     assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
     assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
+  }
+
+
+
+  /**
+   * Waits up to ten seconds for the abandoned operation count to reach the
+   * expected value.
+   *
+   * @param  expectedCount  The abandon count the server is expected to reach.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  private void waitForAbandon(long expectedCount)
+          throws Exception
+  {
+    long stopTime = System.currentTimeMillis() + 10000;
+    while (System.currentTimeMillis() < stopTime)
+    {
+      if (ldapStatistics.getOperationsAbandoned() == expectedCount)
+      {
+        return;
+      }
+
+      Thread.sleep(10);
+    }
+
+    throw new AssertionError("Expected abandon count of " + expectedCount +
+                   " but got " + ldapStatistics.getOperationsAbandoned());
   }
 }
 

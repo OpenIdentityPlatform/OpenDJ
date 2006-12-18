@@ -635,6 +635,9 @@ public class CompareOperationTestCase extends OperationTestCase
       {
         InvocationCounterPlugin.resetAllCounters();
 
+        long compareRequests  = ldapStatistics.getCompareRequests();
+        long compareResponses = ldapStatistics.getCompareResponses();
+
         CompareRequestProtocolOp compareRequest =
           new CompareRequestProtocolOp(
                new ASN1OctetString(entry.getDN().toString()),
@@ -654,6 +657,9 @@ public class CompareOperationTestCase extends OperationTestCase
         assertEquals(InvocationCounterPlugin.getPostOperationCount(), 0);
         // The post response might not have been called yet.
         assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
+
+        assertEquals(ldapStatistics.getCompareRequests(), compareRequests+1);
+        assertEquals(ldapStatistics.getCompareResponses(), compareResponses+1);
       } finally
       {
         LockManager.unlock(entry.getDN(), writeLock);

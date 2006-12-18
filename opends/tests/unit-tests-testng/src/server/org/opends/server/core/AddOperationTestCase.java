@@ -855,6 +855,9 @@ public class AddOperationTestCase
     values.add(new ASN1OctetString("20060101000000Z"));
     attrs.add(new LDAPAttribute("createTimestamp", values));
 
+    long addRequests  = ldapStatistics.getAddRequests();
+    long addResponses = ldapStatistics.getAddResponses();
+
     AddRequestProtocolOp addRequest =
          new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
                                   attrs);
@@ -865,6 +868,9 @@ public class AddOperationTestCase
     AddResponseProtocolOp addResponse =
          message.getAddResponseProtocolOp();
     assertFalse(addResponse.getResultCode() == 0);
+
+    assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
+    assertEquals(ldapStatistics.getAddResponses(), addResponses+1);
 
     try
     {
@@ -1650,6 +1656,9 @@ public class AddOperationTestCase
 
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
+    long addRequests  = ldapStatistics.getAddRequests();
+    long addResponses = ldapStatistics.getAddResponses();
+
     AddRequestProtocolOp addRequest =
          new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
                                   attrs);
@@ -1660,6 +1669,9 @@ public class AddOperationTestCase
     AddResponseProtocolOp addResponse =
          message.getAddResponseProtocolOp();
     assertFalse(addResponse.getResultCode() == 0);
+
+    assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
+    assertEquals(ldapStatistics.getAddResponses(), addResponses+1);
 
     try
     {
@@ -1796,6 +1808,9 @@ public class AddOperationTestCase
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
+    long addRequests  = ldapStatistics.getAddRequests();
+    long addResponses = ldapStatistics.getAddResponses();
+
     AddRequestProtocolOp addRequest =
          new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
                                   attrs);
@@ -1806,6 +1821,9 @@ public class AddOperationTestCase
     AddResponseProtocolOp addResponse =
          message.getAddResponseProtocolOp();
     assertFalse(addResponse.getResultCode() == 0);
+
+    assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
+    assertEquals(ldapStatistics.getAddResponses(), addResponses+1);
 
     try
     {

@@ -3549,6 +3549,9 @@ public class ModifyOperationTestCase
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
+    long modifyRequests  = ldapStatistics.getModifyRequests();
+    long modifyResponses = ldapStatistics.getModifyResponses();
+
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
                   new ASN1OctetString("uid=test.user," + baseDN), mods);
@@ -3559,6 +3562,9 @@ public class ModifyOperationTestCase
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertFalse(modifyResponse.getResultCode() == 0);
+
+    assertEquals(ldapStatistics.getModifyRequests(), modifyRequests+1);
+    assertEquals(ldapStatistics.getModifyResponses(), modifyResponses+1);
   }
 
 
@@ -3737,6 +3743,9 @@ public class ModifyOperationTestCase
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
+    long modifyRequests  = ldapStatistics.getModifyRequests();
+    long modifyResponses = ldapStatistics.getModifyResponses();
+
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
                   new ASN1OctetString("uid=test.user," + baseDN), mods);
@@ -3747,6 +3756,9 @@ public class ModifyOperationTestCase
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertFalse(modifyResponse.getResultCode() == 0);
+
+    assertEquals(ldapStatistics.getModifyRequests(), modifyRequests+1);
+    assertEquals(ldapStatistics.getModifyResponses(), modifyResponses+1);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
   }
@@ -3930,6 +3942,9 @@ public class ModifyOperationTestCase
     ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
+    long modifyRequests  = ldapStatistics.getModifyRequests();
+    long modifyResponses = ldapStatistics.getModifyResponses();
+
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
                   new ASN1OctetString("uid=test.user," + baseDN), mods);
@@ -3940,6 +3955,9 @@ public class ModifyOperationTestCase
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertFalse(modifyResponse.getResultCode() == 0);
+
+    assertEquals(ldapStatistics.getModifyRequests(), modifyRequests+1);
+    assertEquals(ldapStatistics.getModifyResponses(), modifyResponses+1);
 
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }

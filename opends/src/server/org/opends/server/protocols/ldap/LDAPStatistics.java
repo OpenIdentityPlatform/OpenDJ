@@ -918,5 +918,689 @@ public class LDAPStatistics
 
     return new Attribute(attrType, name, values);
   }
+
+
+
+  /**
+   * Retrieves the number of client connections that have been established.
+   *
+   * @return  The number of client connections that have been established.
+   */
+  public long getConnectionsEstablished()
+  {
+    assert debugEnter(CLASS_NAME, "getConnectionsEstablished");
+
+    connectLock.lock();
+
+    try
+    {
+      return connectionsEstablished;
+    }
+    finally
+    {
+      connectLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of client connections that have been closed.
+   *
+   * @return  The number of client connections that have been closed.
+   */
+  public long getConnectionsClosed()
+  {
+    assert debugEnter(CLASS_NAME, "getConnectionsClosed");
+
+    disconnectLock.lock();
+
+    try
+    {
+      return connectionsClosed;
+    }
+    finally
+    {
+      disconnectLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of bytes that have been received from clients.
+   *
+   * @return  The number of bytes that have been received from clients.
+   */
+  public long getBytesRead()
+  {
+    assert debugEnter(CLASS_NAME, "getBytesRead");
+
+    readLock.lock();
+
+    try
+    {
+      return bytesRead;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of bytes that have been written to clients.
+   *
+   * @return  The number of bytes that have been written to clients.
+   */
+  public long getBytesWritten()
+  {
+    assert debugEnter(CLASS_NAME, "getBytesWritten");
+
+    writeLock.lock();
+
+    try
+    {
+      return bytesWritten;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of LDAP messages that have been received from clients.
+   *
+   * @return  The number of LDAP messages that have been received from clients.
+   */
+  public long getMessagesRead()
+  {
+    assert debugEnter(CLASS_NAME, "getMessagesRead");
+
+    readLock.lock();
+
+    try
+    {
+      return messagesRead;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of LDAP messages that have been written to clients.
+   *
+   * @return  The number of LDAP messages that have been written to clients.
+   */
+  public long getMessagesWritten()
+  {
+    assert debugEnter(CLASS_NAME, "getMessagesWritten");
+
+    writeLock.lock();
+
+    try
+    {
+      return messagesWritten;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of operations that have been initiated by clients.
+   *
+   * @return  The number of operations that have been initiated by clients.
+   */
+  public long getOperationsInitiated()
+  {
+    assert debugEnter(CLASS_NAME, "getOperationsInitiated");
+
+    readLock.lock();
+
+    try
+    {
+      return operationsInitiated;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of operations for which the server has completed
+   * processing.
+   *
+   * @return  The number of operations for which the server has completed
+   *          processing.
+   */
+  public long getOperationsCompleted()
+  {
+    assert debugEnter(CLASS_NAME, "getOperationsCompleted");
+
+    writeLock.lock();
+
+    try
+    {
+      return operationsCompleted;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of operations that have been abandoned by clients.
+   *
+   * @return  The number of operations that have been abandoned by clients.
+   */
+  public long getOperationsAbandoned()
+  {
+    assert debugEnter(CLASS_NAME, "getOperationsAbandoned");
+
+    abandonLock.lock();
+
+    try
+    {
+      return operationsAbandoned;
+    }
+    finally
+    {
+      abandonLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of abandon requests that have been received.
+   *
+   * @return  The number of abandon requests that have been received.
+   */
+  public long getAbandonRequests()
+  {
+    assert debugEnter(CLASS_NAME, "getAbandonRequests");
+
+    readLock.lock();
+
+    try
+    {
+      return abandonRequests;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of add requests that have been received.
+   *
+   * @return  The number of add requests that have been received.
+   */
+  public long getAddRequests()
+  {
+    assert debugEnter(CLASS_NAME, "getAddRequests");
+
+    readLock.lock();
+
+    try
+    {
+      return addRequests;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of add responses that have been sent.
+   *
+   * @return  The number of add responses that have been sent.
+   */
+  public long getAddResponses()
+  {
+    assert debugEnter(CLASS_NAME, "getAddResponses");
+
+    writeLock.lock();
+
+    try
+    {
+      return addResponses;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of bind requests that have been received.
+   *
+   * @return  The number of bind requests that have been received.
+   */
+  public long getBindRequests()
+  {
+    assert debugEnter(CLASS_NAME, "getBindRequests");
+
+    readLock.lock();
+
+    try
+    {
+      return bindRequests;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of bind responses that have been sent.
+   *
+   * @return  The number of bind responses that have been sent.
+   */
+  public long getBindResponses()
+  {
+    assert debugEnter(CLASS_NAME, "getBindResponses");
+
+    writeLock.lock();
+
+    try
+    {
+      return bindResponses;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of compare requests that have been received.
+   *
+   * @return  The number of compare requests that have been received.
+   */
+  public long getCompareRequests()
+  {
+    assert debugEnter(CLASS_NAME, "getCompareRequests");
+
+    readLock.lock();
+
+    try
+    {
+      return compareRequests;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of compare responses that have been sent.
+   *
+   * @return  The number of compare responses that have been sent.
+   */
+  public long getCompareResponses()
+  {
+    assert debugEnter(CLASS_NAME, "getCompareResponses");
+
+    writeLock.lock();
+
+    try
+    {
+      return compareResponses;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of delete requests that have been received.
+   *
+   * @return  The number of delete requests that have been received.
+   */
+  public long getDeleteRequests()
+  {
+    assert debugEnter(CLASS_NAME, "getDeleteRequests");
+
+    readLock.lock();
+
+    try
+    {
+      return deleteRequests;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of delete responses that have been sent.
+   *
+   * @return  The number of delete responses that have been sent.
+   */
+  public long getDeleteResponses()
+  {
+    assert debugEnter(CLASS_NAME, "getDeleteResponses");
+
+    writeLock.lock();
+
+    try
+    {
+      return deleteResponses;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of extended requests that have been received.
+   *
+   * @return  The number of extended requests that have been received.
+   */
+  public long getExtendedRequests()
+  {
+    assert debugEnter(CLASS_NAME, "getExtendedRequests");
+
+    readLock.lock();
+
+    try
+    {
+      return extendedRequests;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of extended responses that have been sent.
+   *
+   * @return  The number of extended responses that have been sent.
+   */
+  public long getExtendedResponses()
+  {
+    assert debugEnter(CLASS_NAME, "getExtendedResponses");
+
+    writeLock.lock();
+
+    try
+    {
+      return extendedResponses;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of modify requests that have been received.
+   *
+   * @return  The number of modify requests that have been received.
+   */
+  public long getModifyRequests()
+  {
+    assert debugEnter(CLASS_NAME, "getModifyRequests");
+
+    readLock.lock();
+
+    try
+    {
+      return modifyRequests;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of modify responses that have been sent.
+   *
+   * @return  The number of modify responses that have been sent.
+   */
+  public long getModifyResponses()
+  {
+    assert debugEnter(CLASS_NAME, "getModifyResponses");
+
+    writeLock.lock();
+
+    try
+    {
+      return modifyResponses;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of modify DN requests that have been received.
+   *
+   * @return  The number of modify DN requests that have been received.
+   */
+  public long getModifyDNRequests()
+  {
+    assert debugEnter(CLASS_NAME, "getModifyDNRequests");
+
+    readLock.lock();
+
+    try
+    {
+      return modifyDNRequests;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of modify DN responses that have been sent.
+   *
+   * @return  The number of modify DN responses that have been sent.
+   */
+  public long getModifyDNResponses()
+  {
+    assert debugEnter(CLASS_NAME, "getModifyDNResponses");
+
+    writeLock.lock();
+
+    try
+    {
+      return modifyDNResponses;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of search requests that have been received.
+   *
+   * @return  The number of search requests that have been received.
+   */
+  public long getSearchRequests()
+  {
+    assert debugEnter(CLASS_NAME, "getSearchRequests");
+
+    readLock.lock();
+
+    try
+    {
+      return searchRequests;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of search result entries that have been sent.
+   *
+   * @return  The number of search result entries that have been sent.
+   */
+  public long getSearchResultEntries()
+  {
+    assert debugEnter(CLASS_NAME, "getSearchResultEntries");
+
+    writeLock.lock();
+
+    try
+    {
+      return searchResultEntries;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of search result references that have been sent.
+   *
+   * @return  The number of search result references that have been sent.
+   */
+  public long getSearchResultReferences()
+  {
+    assert debugEnter(CLASS_NAME, "getSearchResultReferences");
+
+    writeLock.lock();
+
+    try
+    {
+      return searchResultReferences;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of search result done messages that have been sent.
+   *
+   * @return  The number of search result done messages that have been sent.
+   */
+  public long getSearchResultsDone()
+  {
+    assert debugEnter(CLASS_NAME, "getSearchResultsDone");
+
+    writeLock.lock();
+
+    try
+    {
+      return searchResultsDone;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of unbind requests that have been received.
+   *
+   * @return  The number of unbind requests that have been received.
+   */
+  public long getUnbindRequests()
+  {
+    assert debugEnter(CLASS_NAME, "getUnbindRequests");
+
+    readLock.lock();
+
+    try
+    {
+      return unbindRequests;
+    }
+    finally
+    {
+      readLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the parent statistics tracker that will also be updated whenever
+   * this tracker is updated.
+   *
+   * @return  The parent statistics tracker, or {@code null} if there is none.
+   */
+  public LDAPStatistics getParent()
+  {
+    assert debugEnter(CLASS_NAME, "getParent");
+
+    return parent;
+  }
 }
 
