@@ -32,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -448,22 +449,48 @@ public class InstallDS
             serverSocket.setReuseAddress(true);
             serverSocket.bind(socketAddress);
             serverSocket.close();
-            break;
+
+            try
+            {
+              Socket socket = new Socket("127.0.0.1", ldapPortNumber);
+              socket.close();
+              if ((ldapPortNumber <= 1024) && (! isWindows))
+              {
+                msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
+                message = getMessage(msgID, ldapPortNumber);
+                System.err.println(wrapText(message, MAX_LINE_WIDTH));
+              }
+              else
+              {
+                msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
+                message = getMessage(msgID, ldapPortNumber);
+                System.err.println(wrapText(message, MAX_LINE_WIDTH));
+              }
+
+              continue;
+            }
+            catch (Exception e)
+            {
+              // This is expected, so no action should be taken.
+              break;
+            }
           }
           catch (Exception e)
           {
-            if (ldapPortNumber <= 1024)
+            if ((ldapPortNumber <= 1024) && (! isWindows))
             {
               msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
-              message = getMessage(msgID, ldapPortNumber, e.getMessage());
+              message = getMessage(msgID, ldapPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
             else
             {
               msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
-              message = getMessage(msgID, ldapPortNumber, e.getMessage());
+              message = getMessage(msgID, ldapPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
+
+            continue;
           }
         }
       }
