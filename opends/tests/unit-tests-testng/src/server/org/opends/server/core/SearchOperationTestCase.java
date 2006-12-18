@@ -236,13 +236,6 @@ public class SearchOperationTestCase extends OperationTestCase
        ArrayList<LDAPControl> controls)
        throws IOException, LDAPException, ASN1Exception, InterruptedException
   {
-    // Since we are going to be watching the post-response count, we need to
-    // wait for the server to become idle before kicking off the next request to
-    // ensure that any remaining post-response processing from the previous
-    // operation has completed.
-    assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
-
-
     // Establish a connection to the server.
     Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
     try
@@ -252,6 +245,13 @@ public class SearchOperationTestCase extends OperationTestCase
       r.setIOTimeout(1500000);
 
       bindAsManager(w, r);
+
+      // Since we are going to be watching the post-response count, we need to
+      // wait for the server to become idle before kicking off the next request
+      // to ensure that any remaining post-response processing from the previous
+      // operation has completed.
+      assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
+
 
       InvocationCounterPlugin.resetAllCounters();
 

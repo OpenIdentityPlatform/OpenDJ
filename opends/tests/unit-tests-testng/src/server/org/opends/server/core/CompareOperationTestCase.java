@@ -598,13 +598,6 @@ public class CompareOperationTestCase extends OperationTestCase
   @Test(groups = "slow")
   public void testCompareWriteLock() throws Exception
   {
-    // Since we are going to be watching the post-response count, we need to
-    // wait for the server to become idle before kicking off the next request to
-    // ensure that any remaining post-response processing from the previous
-    // operation has completed.
-    assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
-
-
     // We need the operation to be run in a separate thread because we are going
     // to write lock the entry in the test case thread and check that the
     // compare operation does not proceed.
@@ -627,6 +620,12 @@ public class CompareOperationTestCase extends OperationTestCase
       message = LDAPMessage.decode(r.readElement().decodeAsSequence());
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+
+      // Since we are going to be watching the post-response count, we need to
+      // wait for the server to become idle before kicking off the next request
+      // to ensure that any remaining post-response processing from the previous
+      // operation has completed.
+      assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
 
 
       Lock writeLock = LockManager.lockWrite(entry.getDN());
