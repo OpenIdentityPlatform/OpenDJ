@@ -28,13 +28,10 @@
 package org.opends.quicksetup.uninstaller;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -670,8 +667,8 @@ public class Uninstaller
       /* Create these objects to resend the stop process output to the details
        * area.
        */
-      new StopReader(err, true);
-      new StopReader(out, false);
+      StopReader errorReader = new StopReader(err, true);
+      StopReader outputReader = new StopReader(out, false);
 
       int returnValue = process.waitFor();
 
@@ -688,12 +685,11 @@ public class Uninstaller
            */
           int nTries = 10;
           boolean stopped = false;
-          String testPath = Utils.getInstallPathFromClasspath()+File.separator+
-          "locks"+File.separator+"server.lock";
-          File testFile = new File(testPath);
+
           for (int i=0; i<nTries && !stopped; i++)
           {
-            stopped = canWriteFile(testFile);
+            stopped = !Utils.isServerRunning(
+                Utils.getInstallPathFromClasspath());
             if (!stopped)
             {
               String msg =
@@ -1104,8 +1100,6 @@ public class Uninstaller
    */
   private class StopReader
   {
-    private UninstallException ex;
-
     private boolean isFirstLine;
 
     /**
@@ -1150,50 +1144,17 @@ public class Uninstaller
           } catch (IOException ioe)
           {
             String errorMsg = getThrowableMsg(errorTag, ioe);
-            ex =
-                new UninstallException(UninstallException.Type.STOP_ERROR,
-                    errorMsg, ioe);
+            notifyListeners(errorMsg);
 
           } catch (Throwable t)
           {
             String errorMsg = getThrowableMsg(errorTag, t);
-            ex =
-                new UninstallException(UninstallException.Type.STOP_ERROR,
-                    errorMsg, t);
+            notifyListeners(errorMsg);
           }
         }
       });
       t.start();
     }
-
-    /**
-     * Returns the UninstallException that occurred reading the Stop error and
-     * output or <CODE>null</CODE> if no exception occurred.
-     * @return the exception that occurred reading or <CODE>null</CODE> if
-     * no exception occurred.
-     */
-    public UninstallException getException()
-    {
-      return ex;
-    }
-  }
-
-  private boolean canWriteFile(File file)
-  {
-    boolean canWriteFile = false;
-    Writer output = null;
-    try {
-      //use buffering
-      //FileWriter always assumes default encoding is OK!
-      output = new BufferedWriter( new FileWriter(file) );
-      output.write("test");
-      output.close();
-      canWriteFile = true;
-    }
-    catch (Throwable t)
-    {
-    }
-    return canWriteFile;
   }
 
   /**

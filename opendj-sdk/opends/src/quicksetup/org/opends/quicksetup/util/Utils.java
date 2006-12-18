@@ -31,6 +31,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -38,9 +39,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.io.Writer;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -176,6 +179,22 @@ public class Utils
       }
       serverSocket.bind(socketAddress);
       canUseAsPort = true;
+
+      serverSocket.close();
+
+      /* Try to create a socket because sometimes even if we can create a server
+       * socket there is already someone listening to the port (is the case
+       * of products as Sun DS 6.0).
+       */
+      try
+      {
+        new Socket("localhost", port);
+        canUseAsPort = false;
+
+      } catch (IOException ioe)
+      {
+      }
+
     } catch (IOException ex)
     {
       canUseAsPort = false;
@@ -1155,6 +1174,62 @@ public class Utils
       }
     }
     return outsideLogs;
+  }
+
+  /**
+   * Returns if the server is running on the given path.
+   * @param serverPath the installation path of the server.
+   * @return <CODE>true</CODE> if the server is running and <CODE>false</CODE>
+   * otherwise.
+   */
+  public static boolean isServerRunning(String serverPath)
+  {
+    boolean isServerRunning;
+    if (isWindows())
+    {
+      String testPath = serverPath+File.separator+
+      "locks"+File.separator+"server.lock";
+      File testFile = new File(testPath);
+
+      boolean canWriteFile = false;
+      Writer output = null;
+      try {
+        //use buffering
+        //FileWriter always assumes default encoding is OK!
+        output = new BufferedWriter( new FileWriter(testFile) );
+        output.write("test");
+        output.close();
+        output = new BufferedWriter( new FileWriter(testFile) );
+        output.write("");
+        output.close();
+
+        canWriteFile = true;
+
+      }
+      catch (Throwable t)
+      {
+      }
+      finally
+      {
+        if (output != null)
+        {
+          try
+          {
+            output.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+      }
+      isServerRunning = !canWriteFile;
+    }
+    else
+    {
+      isServerRunning = fileExists(serverPath+File.separator+
+          "logs"+File.separator+"server.pid");
+    }
+    return isServerRunning;
   }
 
   /**

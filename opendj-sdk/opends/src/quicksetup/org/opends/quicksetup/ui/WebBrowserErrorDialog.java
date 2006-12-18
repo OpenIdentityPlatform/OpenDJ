@@ -41,6 +41,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
+import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.WebBrowserException;
@@ -84,6 +85,10 @@ public class WebBrowserErrorDialog extends JDialog
   public void packAndShow()
   {
     pack();
+    int minWidth = (int) getPreferredSize().getWidth();
+    int minHeight = (int) getPreferredSize().getHeight();
+    addComponentListener(new MinimumSizeComponentListener(this,
+        minWidth, minHeight));
     Utils.centerOnComponent(this, parent);
     setVisible(true);
   }
@@ -124,6 +129,7 @@ public class WebBrowserErrorDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     Insets pInsets = UIFactory.getCurrentStepPanelInsets();
     gbc.insets.left = 0;
+    gbc.fill = GridBagConstraints.BOTH;
     String msg = getMsg("error-browser-display-msg", new String[]
       { url });
     JTextComponent tf =

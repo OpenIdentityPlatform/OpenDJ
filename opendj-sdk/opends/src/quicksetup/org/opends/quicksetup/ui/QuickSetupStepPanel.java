@@ -65,8 +65,9 @@ implements HyperlinkListener
 
   private ProgressMessageFormatter formatter;
 
-  // We can use a HashMap (not multi-thread safe) because all
-  // the calls to this object are done in the event-thread.
+  /* We can use a HashMap (not multi-thread safe) because all
+  the calls to this object are done in the event-thread.
+  */
   private HashMap<String, URLWorker> hmURLWorkers =
       new HashMap<String, URLWorker>();
 

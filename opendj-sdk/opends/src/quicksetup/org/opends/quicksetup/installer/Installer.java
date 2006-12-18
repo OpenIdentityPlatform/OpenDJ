@@ -926,9 +926,9 @@ public abstract class Installer
          * message id informing that it started. So it seems that everything
          * went fine.
          *
-         * However in Windows we can have issues with the firewalls.  Just check
-         * if we can connect to the server.  Try 5 times with an interval of
-         * 1 second between try.
+         * However we can have issues with the firewalls or do not have rights
+         * to connect.  Just check if we can connect to the server.
+         * Try 5 times with an interval of 1 second between try.
          */
         boolean connected = false;
         for (int i=0; i<5 && !connected; i++)
@@ -958,9 +958,18 @@ public abstract class Installer
         }
         if (!connected)
         {
-          String[] arg = {String.valueOf(userData.getServerPort())};
-          throw new InstallException(InstallException.Type.START_ERROR,
-              getMsg("error-starting-server-in-windows", arg), null);
+          if (Utils.isWindows())
+          {
+            String[] arg = {String.valueOf(userData.getServerPort())};
+            throw new InstallException(InstallException.Type.START_ERROR,
+                getMsg("error-starting-server-in-windows", arg), null);
+          }
+          else
+          {
+            String[] arg = {String.valueOf(userData.getServerPort())};
+            throw new InstallException(InstallException.Type.START_ERROR,
+                getMsg("error-starting-server-in-unix", arg), null);
+          }
         }
       }
 

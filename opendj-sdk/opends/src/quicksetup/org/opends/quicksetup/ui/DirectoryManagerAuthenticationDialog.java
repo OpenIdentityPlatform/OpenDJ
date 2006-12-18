@@ -94,10 +94,6 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     this.parent = parent;
     this.installStatus = installStatus;
     getContentPane().add(createPanel());
-//  TODO: find a way to calculate this dynamically
-    setPreferredSize(new Dimension(500, 300));
-    addComponentListener(new MinimumSizeComponentListener(this,
-        500, 300));
   }
 
   /**
@@ -117,10 +113,17 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
    */
   public void packAndShow()
   {
+    /*
+     * TODO: find a way to calculate this dynamically.  This is done to avoid
+     * all the text in a single line.
+     */
+    setPreferredSize(new Dimension(500, 300));
+    addComponentListener(new MinimumSizeComponentListener(this,
+        500, 300));
+    getRootPane().setDefaultButton(shutDownButton);
     pack();
     Utils.centerOnComponent(this, parent);
     tfPwd.requestFocusInWindow();
-    getRootPane().setDefaultButton(shutDownButton);
     setVisible(true);
   }
 
@@ -226,10 +229,20 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
+    JPanel p3 = new JPanel(new GridBagLayout());
+    p3.setOpaque(false);
     tfPwd = UIFactory.makeJPasswordField(null,
         getMsg("shutdown-directory-manager-pwd-tooltip"),
         UIFactory.PASSWORD_FIELD_SIZE, UIFactory.TextStyle.PASSWORD_FIELD);
     p2.add(tfPwd, gbc);
+    p2.add(p3, gbc);
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.weightx = 0.0;
+    p3.add(tfPwd, gbc);
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.weightx = 1.0;
+    p3.add(Box.createHorizontalGlue(), gbc);
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets = UIFactory.getEmptyInsets();
@@ -398,23 +411,6 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
               pwdInvalid = true;
               possibleCauses.add(getMsg("empty-pwd"));
             }
-            if (possibleCauses.size() > 0)
-            {
-              // Message with causes
-              String[] arg = {
-                  Utils.getStringFromCollection(possibleCauses, "\n")
-              };
-              displayError(
-                  getMsg("cannot-connect-to-shutdown-with-cause", arg),
-                  getMsg("error-title"));
-            }
-            else
-            {
-              // Generic message
-              displayError(
-                  getMsg("cannot-connect-to-shutdown-without-cause"),
-                  getMsg("error-title"));
-            }
 
             if (dnInvalid)
             {
@@ -436,6 +432,24 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
             {
               UIFactory.setTextStyle(lPwd,
                   UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+            }
+
+            if (possibleCauses.size() > 0)
+            {
+              // Message with causes
+              String[] arg = {
+                  Utils.getStringFromCollection(possibleCauses, "\n")
+              };
+              displayError(
+                  getMsg("cannot-connect-to-shutdown-with-cause", arg),
+                  getMsg("error-title"));
+            }
+            else
+            {
+              // Generic message
+              displayError(
+                  getMsg("cannot-connect-to-shutdown-without-cause"),
+                  getMsg("error-title"));
             }
           }
           else
