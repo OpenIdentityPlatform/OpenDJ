@@ -9089,12 +9089,13 @@ public class ToolMessages
                     "On which port would you like the Directory Server to " +
                     "accept connections from LDAP clients?");
     registerMessage(MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT,
-                    "ERROR:  Unable to bind to port %d:  %s.  This port may " +
-                    "already be in use, or if you are a nonroot user then " +
-                    "you may not be allowed to use port numbers 1024 or " +
-                    "below.");
+                    "ERROR:  Unable to bind to port %d.  This port may " +
+                    "already be in use, or you may not have permission to " +
+                    "bind to it.  On UNIX-based operating systems, non-root " +
+                    "users may not be allowed to bind to ports 1 through " +
+                    "1024.");
     registerMessage(MSGID_INSTALLDS_CANNOT_BIND_TO_PORT,
-                    "ERROR:  Unable to bind to port %d:  %s.  This port may " +
+                    "ERROR:  Unable to bind to port %d.  This port may " +
                     "already be in use, or you may not have permission to " +
                     "bind to it.");
     registerMessage(MSGID_INSTALLDS_PROMPT_ROOT_DN,
