@@ -119,6 +119,31 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case : Check Password-->
+        <testcase name="'Security: Pwd Storage CLEAR: Check Pwd'">
+          <sequence>
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=jwalker,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'      : 'userpassword' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'CLEARdogleg' }
+            </call>
+          
+          </sequence>
+        </testcase>
+
         <!--- Test case: Admin Reset To SSHA Storage Scheme -->
         <testcase name="'Security: Pwd Storage CLEAR: Postamble'">
           <sequence>
