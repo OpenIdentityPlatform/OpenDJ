@@ -1172,6 +1172,9 @@ public class TestModifyDNOperation extends OperationTestCase
       {
         InvocationCounterPlugin.resetAllCounters();
 
+        long modifyDNRequests  = ldapStatistics.getModifyDNRequests();
+        long modifyDNResponses = ldapStatistics.getModifyDNResponses();
+
         ModifyDNRequestProtocolOp modifyRequest =
           new ModifyDNRequestProtocolOp(
                new ASN1OctetString(entry.getDN().toString()),
@@ -1191,6 +1194,10 @@ public class TestModifyDNOperation extends OperationTestCase
         assertEquals(InvocationCounterPlugin.getPostOperationCount(), 0);
         // The post response might not have been called yet.
         assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
+
+        assertEquals(ldapStatistics.getModifyDNRequests(), modifyDNRequests+1);
+        assertEquals(ldapStatistics.getModifyDNResponses(),
+                     modifyDNResponses+1);
       } finally
       {
         LockManager.unlock(entry.getDN(), writeLock);

@@ -33,6 +33,9 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.ConnectionHandler;
+import org.opends.server.protocols.ldap.LDAPConnectionHandler;
+import org.opends.server.protocols.ldap.LDAPStatistics;
 import org.opends.server.types.Control;
 import org.opends.server.types.ResultCode;
 
@@ -46,6 +49,14 @@ import static org.testng.Assert.*;
 public abstract class OperationTestCase
        extends CoreTestCase
 {
+  // The LDAPStatistics object associated with the LDAP connection handler.
+  protected LDAPStatistics ldapStatistics;
+
+  // The LDAPStatistics object associated with the LDAPS connection handler.
+  protected LDAPStatistics ldapsStatistics;
+
+
+
   /**
    * Ensures that the Directory Server is running.
    *
@@ -56,6 +67,25 @@ public abstract class OperationTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
+
+    for (ConnectionHandler ch : DirectoryServer.getConnectionHandlers())
+    {
+      if (ch instanceof LDAPConnectionHandler)
+      {
+        LDAPConnectionHandler lch = (LDAPConnectionHandler) ch;
+        if (lch.useSSL())
+        {
+          ldapsStatistics = lch.getStatTracker();
+        }
+        else
+        {
+          ldapStatistics = lch.getStatTracker();
+        }
+      }
+    }
+
+    assertNotNull(ldapStatistics);
+    assertNotNull(ldapsStatistics);
   }
 
 

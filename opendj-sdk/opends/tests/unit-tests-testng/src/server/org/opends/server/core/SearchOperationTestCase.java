@@ -255,6 +255,11 @@ public class SearchOperationTestCase extends OperationTestCase
 
       InvocationCounterPlugin.resetAllCounters();
 
+      long searchRequests   = ldapStatistics.getSearchRequests();
+      long searchEntries    = ldapStatistics.getSearchResultEntries();
+      long searchReferences = ldapStatistics.getSearchResultReferences();
+      long searchesDone     = ldapStatistics.getSearchResultsDone();
+
       LDAPMessage message;
       message = new LDAPMessage(2, searchRequest, controls);
       w.writeElement(message.encode());
@@ -269,9 +274,11 @@ public class SearchOperationTestCase extends OperationTestCase
         {
           case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
             searchResultEntry = message.getSearchResultEntryProtocolOp();
+            searchEntries++;
             break;
 
           case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
+            searchReferences++;
             break;
 
           case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
@@ -279,9 +286,16 @@ public class SearchOperationTestCase extends OperationTestCase
             assertEquals(searchResultDone.getResultCode(),
                          LDAPResultCode.SUCCESS);
             assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
+            searchesDone++;
             break;
         }
       }
+
+      assertEquals(ldapStatistics.getSearchRequests(), searchRequests+1);
+      assertEquals(ldapStatistics.getSearchResultEntries(), searchEntries);
+      assertEquals(ldapStatistics.getSearchResultReferences(),
+                   searchReferences);
+      assertEquals(ldapStatistics.getSearchResultsDone(), searchesDone);
 
       return searchResultEntry;
     }

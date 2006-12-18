@@ -1605,6 +1605,22 @@ public class LDAPConnectionHandler
 
 
   /**
+   * Indicates whether this connection handler should use SSL to communicate
+   * with clients.
+   *
+   * @return  {@code true} if this connection handler should use SSL to
+   *          communicate with clients, or {@code false} if not.
+   */
+  public boolean useSSL()
+  {
+    assert debugEnter(CLASS_NAME, "useSSL");
+
+    return useSSL;
+  }
+
+
+
+  /**
    * Retrieves the SSL client authentication policy for this connection handler.
    *
    * @return  The SSL client authentication policy for this connection handler.
