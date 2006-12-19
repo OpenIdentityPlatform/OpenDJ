@@ -1,0 +1,1662 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="last_login"/>
+
+  <function name="last_login">
+
+      <sequence>
+
+        <!--- Test Case : Check for ds-cfg-idle-lockout-interval -->
+        <testcase name="'Security: Last Login: Preamble'">
+          <sequence>
+            <message>
+               'Security: Last Login: Preamble - Checking existence of ds-cfg-idle-lockout-interval'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'   : 'ds-cfg-idle-lockout-interval:0 seconds',
+                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin enable last login attribute only-->
+        <testcase name="'Security: Last Login: Admin Enable Last Login Attr Only'">
+          <sequence>
+            <message>
+               'Security: Last Login: Admin Enable Last Login Attribute Only'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: User Binding With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'destroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Checking for Absence of Last Login Time'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'      : 'ds-pwp-last-login-time' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'     : 'ds-pwp-last-login-time' }
+            </call>
+          
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin enable last login format only -->
+        <testcase name="'Security: Last Login: Admin Enable Last Login Format Only'">
+          <sequence>
+            <message>
+               'Security: Last Login: Admin Disable Last Login Attribute Only'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Admin Enable Last Login Format Only'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-format.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: User Binding With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'destroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Checking for Absence of Last Login Time'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'      : 'ds-pwp-last-login-time' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'     : 'ds-pwp-last-login-time' }
+            </call>
+          
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Admin enable both last login attribute and format-->
+        <testcase name="'Security: Last Login: Admin Enable Last Login Attr And Format'">
+          <sequence>
+            <message>
+               'Security: Last Login: Admin Enable Last Login Attribute And Format'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: User Binding With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'destroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Checking for Absence of Last Login Time'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'      : 'ds-pwp-last-login-time' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'ds-pwp-last-login-time' }
+            </call>
+          
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Long Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Long Idle Lockout'">
+          <sequence>
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 1. Check User Bind'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'destroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 2. Admin Changing Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 3. User Binding Before Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'destroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 4. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 5. User Binding After Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'destroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1}
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Reset Idle Lockout'">
+          <sequence>
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 2. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'destroy',
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+  
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 3. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 4. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'destroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Password Change Override -->
+        <testcase name="'Security: Last Login: Long Idle Lockout - Pwd Change Override'">
+          <sequence>
+            <message>
+               'Security: Last Login: Long Idle Lockout - Password Change Override Step 1. Check User Bind'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'destroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Password Change Override Step 2. Admin Changing Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Password Change Override Step 3. User Binding Before Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'destroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 4. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 30000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Long Idle Lockout - Password Change Override Step 5. User Changing Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 6. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 30000 }
+            </call>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 7. User Binding After Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Reset Idle Lockout 2'">
+          <sequence>
+            <message>
+               'Security: Last Login: Reset Idle Lockout 2 Step 1. Admin Resetting Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout 2 Step 2. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy',
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+  
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Reset Idle Lockout 2 Step 3. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout 2 Step 4. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind Reset Last Login Time -->
+        <testcase name="'Security: Last Login: Long Idle Lockout - User Bind Reset'">
+          <sequence>
+            <message>
+               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 1. Check User Bind'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 2. Admin Changing Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 3. User Binding Before Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 4. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 30000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 5. User Bind To Reset Last Login Time'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 6. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 30000 }
+            </call>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 7. User Binding After Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Reset Idle Lockout 3'">
+          <sequence>
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 2. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy',
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+  
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 3. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 4. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Long Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Long Idle Lockout - Disabled Last Login'">
+          <sequence>
+            <message>
+               'Security: Last Login: Long Idle Lockout - Disabled Last Login Step 1. Disable Last Login'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Disabled Last Login Step 2. Check User Bind'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Disabled Last Login Step 3. Admin Changing Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Disabled Last Login  Step 4. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Reset Idle Lockout 4'">
+          <sequence>
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 1. Enable Last Login - Attribute'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 2. Admin Resetting Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 3. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy',
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+  
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 4. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 5. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Long Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Long Idle Lockout - Disabled Last Login 2'">
+          <sequence>
+            <message>
+               'Security: Last Login: Long Idle Lockout - Disabled Last Login 2 Step 1. Disable Last Login'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-format.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Disabled Last Login 2 Step 2. Check User Bind'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Disabled Last Login 2 Step 3. Admin Changing Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Disabled Last Login  2 Step 4. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Reset Idle Lockout 5'">
+          <sequence>
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 1. Enable Last Login - Attribute'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-format.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 2. Admin Resetting Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 3. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy',
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+  
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 4. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 5. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Long Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Long Idle Lockout - Repeat'">
+          <sequence>
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 1. Check User Bind'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 2. Admin Changing Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 3. User Binding Before Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 4. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Long Idle Lockout Step 5. User Binding After Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1}
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Reset Idle Lockout 6'">
+          <sequence>
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 2. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy',
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+  
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 3. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 4. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Long Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Long Idle Lockout - Pwd Change Override 2'">
+          <sequence>
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 1. Check User Bind'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 2. Admin Changing Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 3. User Binding Before Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 4. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 5. User Changing Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 6. User Binding After Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'anotherdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Reset Idle Lockout 7'">
+          <sequence>
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 2. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'anotherdestroy',
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+  
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 3. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Reset Idle Lockout Step 4. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'anotherdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Long Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Long Idle Lockout - Pwd Change Override 3'">
+          <sequence>
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 1. Disable Last Login'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-format.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 2. Check User Bind'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'anotherdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 3. Admin Changing Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 4. User Binding Before Idle Lockout'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'anotherdestroy' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 1">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 5. Admin Changing Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login3.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Pwd Override 3 Step 6. User Binding After Admin Pwd Change'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'lastdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <testcase name="'Security: Last Login: Postamble'">
+          <sequence>
+            <message>
+               'Security: Last Login: Postamble Step 1. Admin Resetting Idle Lockout Interval'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Postamble Step 2. Admin Disabling Last Login Time Attribute'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Postamble Step 3. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'lastdestroy',
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+  
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Last Login: Postamble Step 4. Sleep'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds'   : 60000 }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: Last Login: Postamble Step 5. User Binding'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'lastdestroy' ,
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+
+          </sequence>
+        </testcase>
+
+        <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>
