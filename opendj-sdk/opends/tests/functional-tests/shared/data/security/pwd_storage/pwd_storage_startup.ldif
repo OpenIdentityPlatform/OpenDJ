@@ -33,30 +33,10 @@ ou: password tests
 objectclass: top
 objectclass: organizationalunit
 
-dn: ou=Groups, ou=password tests,  o=Pwd Storage Tests, dc=example,dc=com
-objectclass: top
-objectclass: organizationalunit
-ou: Groups
-
-dn: cn=Directory Administrators, ou=Groups, ou=password tests,  o=Pwd Storage Tests, dc=example,dc=com
-cn: Directory Administrators
-objectclass: top
-objectclass: groupofuniquenames
-ou: Groups
-uniquemember: uid=kvaughan, ou=People, ou=password tests,  o=Pwd Storage Tests, dc=example,dc=com
-uniquemember: uid=rdaugherty, ou=People, ou=password tests,  o=Pwd Storage Tests, dc=example,dc=com
-uniquemember: uid=hmiller, ou=People, ou=password tests,  o=Pwd Storage Tests, dc=example,dc=com
-
 dn: ou=People, ou=password tests,  o=Pwd Storage Tests, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: People
-
-dn: ou=Special Users,ou=password tests,  o=Pwd Storage Tests, dc=example,dc=com
-objectclass: top
-objectclass: organizationalUnit
-ou: Special Users
-description: Special Administrative Accounts
 
 dn: uid=scarter, ou=People, ou=password tests,  o=Pwd Storage Tests, dc=example,dc=com
 cn: Sam Carter

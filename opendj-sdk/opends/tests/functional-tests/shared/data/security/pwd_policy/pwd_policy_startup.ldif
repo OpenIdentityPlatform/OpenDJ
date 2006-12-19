@@ -33,30 +33,10 @@ ou: password tests
 objectclass: top
 objectclass: organizationalunit
 
-dn: ou=Groups, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-objectclass: top
-objectclass: organizationalunit
-ou: Groups
-
-dn: cn=Directory Administrators, ou=Groups, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-cn: Directory Administrators
-objectclass: top
-objectclass: groupofuniquenames
-ou: Groups
-uniquemember: uid=kvaughan, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-uniquemember: uid=rdaugherty, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-uniquemember: uid=hmiller, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-
 dn: ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: People
-
-dn: ou=Special Users,ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-objectclass: top
-objectclass: organizationalUnit
-ou: Special Users
-description: Special Administrative Accounts
 
 dn: uid=scarter, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
 cn: Sam Carter
@@ -2757,46 +2737,4 @@ telephonenumber: +1 408 555 4668
 facsimiletelephonenumber: +1 408 555 0111
 roomnumber: 3445
 userpassword: befitting
-
-dn: cn=Accounting Managers,ou=groups,ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-objectclass: top
-objectclass: groupOfUniqueNames
-cn: Accounting Managers
-ou: groups
-uniquemember: uid=scarter, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-uniquemember: uid=tmorris, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-description: People who can manage accounting entries
-
-dn: cn=HR Managers,ou=groups,ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-objectclass: top
-objectclass: groupOfUniqueNames
-cn: HR Managers
-ou: groups
-uniquemember: uid=kvaughan, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-uniquemember: uid=cschmith, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-description: People who can manage HR entries
-
-dn: cn=QA Managers,ou=groups,ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-objectclass: top
-objectclass: groupOfUniqueNames
-cn: QA Managers
-ou: groups
-uniquemember: uid=abergin, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-uniquemember: uid=jwalker, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-description: People who can manage QA entries
-
-dn: cn=PD Managers,ou=groups,ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-objectclass: top
-objectclass: groupOfUniqueNames
-cn: PD Managers
-ou: groups
-uniquemember: uid=kwinters, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-uniquemember: uid=trigden, ou=People, ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-description: People who can manage engineer entries
-
-dn: ou=Netscape Servers,ou=password tests,  o=Pwd Policy Tests, dc=example,dc=com
-objectclass: top
-objectclass: organizationalUnit
-ou: Netscape Servers
-description: Standard branch for SuiteSpot Server registration
 
