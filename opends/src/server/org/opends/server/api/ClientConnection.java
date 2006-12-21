@@ -31,6 +31,7 @@ package org.opends.server.api;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.api.plugin.IntermediateResponsePluginResult;
@@ -42,6 +43,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.SearchResultEntry;
@@ -905,6 +907,82 @@ public abstract class ClientConnection
    *          the associated connection handler.
    */
   public abstract String getMonitorSummary();
+
+
+
+  /**
+   * Indicates whether the user associated with this client connection
+   * should be considered a member of the specified group, optionally
+   * evaluated within the context of the provided operation.  If an
+   * operation is given, then the determination should be made based
+   * on the authorization identity for that operation.  If the
+   * operation is {@code null}, then the determination should be made
+   * based on the authorization identity for this client connection.
+   * Note that this is a point-in-time determination and the caller
+   * must not cache the result.
+   *
+   * @param  group      The group for which to make the determination.
+   * @param  operation  The operation to use to obtain the
+   *                    authorization identity for which to make the
+   *                    determination, or {@code null} if the
+   *                    authorization identity should be obtained from
+   *                    this client connection.
+   *
+   * @return  {@code true} if the target user is currently a member of
+   *          the specified group, or {@code false} if not.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                             to make the determination.
+   */
+  public boolean isMemberOf(Group group, Operation operation)
+         throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "isMemberOf", String.valueOf(group),
+                      String.valueOf(operation));
+
+    if (operation == null)
+    {
+      return group.isMember(authenticationInfo.getAuthorizationDN());
+    }
+    else
+    {
+      return group.isMember(operation.getAuthorizationDN());
+    }
+  }
+
+
+
+  /**
+   * Retrieves the set of groups in which the user associated with
+   * this client connection may be considered to be a member.  If an
+   * operation is provided, then the determination should be made
+   * based on the authorization identity for that operation.  If the
+   * operation is {@code null}, then it should be made based on the
+   * authorization identity for this client connection.  Note that
+   * this is a point-in-time determination and the caller must not
+   * cache the result.
+   *
+   * @param  operation  The operation to use to obtain the
+   *                    authorization identity for which to retrieve
+   *                    the associated groups, or {@code null} if the
+   *                    authorization identity should be obtained from
+   *                    this client connection.
+   *
+   * @return  The set of groups in which the target user is currently
+   *          a member.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to make the determination.
+   */
+  public Set<Group> getGroups(Operation operation)
+         throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "getGroups",
+                      String.valueOf(operation));
+
+    // NYI -- Add a mechanism for making this determination.
+    return java.util.Collections.<Group>emptySet();
+  }
 
 
 
