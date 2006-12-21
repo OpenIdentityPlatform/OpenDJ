@@ -1,0 +1,318 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ */
+package org.opends.server.api;
+
+
+
+import java.util.List;
+
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.MemberList;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
+
+import static org.opends.server.loggers.Debug.*;
+
+
+
+/**
+ * This class defines the set of methods that must be implemented by a
+ * Directory Server group.  It is expected that there will be a number
+ * of different types of groups (e.g., legacy static and dynamic
+ * groups, as well as enhanced groups and virtual static groups).  The
+ * following operations may be performed on an OpenDS group:
+ * <UL>
+ *   <LI>Determining whether a given user is a member of this
+ *       group</LI>
+ *   <LI>Determining the set of members for this group, optionally
+ *       filtered based on some set of criteria.</LI>
+ *   <LI>Retrieving or updating the set of nested groups for this
+ *       group, if the underlying group type supports nesting).</LI>
+ *   <LI>Updating the set of members for this group, if the underlying
+ *       group type provides the ability to explicitly add or remove
+ *       members.</LI>
+ * </UL>
+ */
+public abstract class Group
+{
+  /**
+   * The fully-qualified name of this class for debugging purposes.
+   */
+  private static final String CLASS_NAME =
+       "org.opends.server.api.Group";
+
+
+
+  /**
+   * Retrieves the DN of the entry that contains the definition for
+   * this group.
+   *
+   * @return  The DN of the entry that contains the definition for
+   *          this group.
+   */
+  public abstract DN getGroupDN();
+
+
+
+  /**
+   * Indicates whether this group supports nesting other groups, such
+   * that the members of the nested groups will also be considered
+   * members of this group.
+   *
+   * @return  {@code true} if this group supports nesting other
+   *          groups, or {@code false} if it does not.
+   */
+  public abstract boolean supportsNestedGroups();
+
+
+
+  /**
+   * Retrieves a list of the DNs of any nested groups whose members
+   * should be considered members of this group.
+   *
+   * @return  A list of the DNs of any nested groups whose members
+   *          should be considered members of this group.
+   */
+  public abstract List<DN> getNestedGroupDNs();
+
+
+
+  /**
+   * Attempts to add the provided group DN as a nested group within
+   * this group.  The change should be committed to persistent storage
+   * through an internal operation.
+   *
+   * @param  nestedGroupDN  The DN of the group that should be added
+   *                        to the set of nested groups for this
+   *                        group.
+   *
+   * @throws  UnsupportedOperationException  If this group does not
+   *                                         support nesting.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to nest the provided group DN.
+   */
+  public abstract void addNestedGroup(DN nestedGroupDN)
+         throws UnsupportedOperationException, DirectoryException;
+
+
+
+  /**
+   * Attempts to remove the provided group as a nested group within
+   * this group.  The change should be committed to persistent storage
+   * through an internal operation.
+   *
+   * @param  nestedGroupDN  The DN of the group that should be removed
+   *                        from the set of nested groups for this
+   *                        group.
+   *
+   * @throws  UnsupportedOperationException  If this group does not
+   *                                         support nesting.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to nest the provided group DN.
+   */
+  public abstract void removeNestedGroup(DN nestedGroupDN)
+         throws UnsupportedOperationException, DirectoryException;
+
+
+
+  /**
+   * Indicates whether the user with the specified DN is a member of
+   * this group.  Note that this is a point-in-time determination and
+   * the caller must not cache the result.
+   *
+   * @param  userDN  The DN of the user for which to make the
+   *                 determination.
+   *
+   * @return  {@code true} if the specified user is currently a member
+   *          of this group, or {@code false} if not.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to make the determination.
+   */
+  public abstract boolean isMember(DN userDN)
+         throws DirectoryException;
+
+
+
+  /**
+   * Indicates whether the user described by the provided user entry
+   * is a member of this group.  Note that this is a point-in-time
+   * determination and the caller must not cache the result.
+   *
+   * @param  userEntry  The entry for the user for which to make the
+   *                    determination.
+   *
+   * @return  {@code true} if the specified user is currently a member
+   *          of this group, or {@code false} if not.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to make the determination.
+   */
+  public abstract boolean isMember(Entry userEntry)
+         throws DirectoryException;
+
+
+
+  /**
+   * Retrieves an iterator that may be used to cursor through the
+   * entries of the members contained in this group.  Note that this
+   * is a point-in-time determination, and the caller must not cache
+   * the result.
+   *
+   * @return  An iterator that may be used to cursor through the
+   *          entries of the members contained in this group.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to retrieve the set of members.
+   */
+  public MemberList getMembers()
+         throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "getMembers");
+
+    return getMembers(null, null, null);
+  }
+
+
+
+  /**
+   * Retrieves an iterator that may be used to cursor through the
+   * entries of the members contained in this group.  It may
+   * optionally retrieve a subset of the member entries based on a
+   * given set of criteria.  Note that this is a point-in-time
+   * determination, and the caller must not cache the result.
+   *
+   * @param  baseDN  The base DN that should be used when determining
+   *                 whether a given entry will be returned.  If this
+   *                 is {@code null}, then all entries will be
+   *                 considered in the scope of the criteria.
+   * @param  scope   The scope that should be used when determining
+   *                 whether a given entry will be returned.  It must
+   *                 not be {@code null} if the provided base DN is
+   *                 not {@code null}.  The scope will be ignored if
+   *                 no base DN is provided.
+   * @param  filter  The filter that should be used when determining
+   *                 whether a given entry will be returned.  If this
+   *                 is {@code null}, then any entry in the scope of
+   *                 the criteria will be included in the results.
+   *
+   * @return  An iterator that may be used to cursor through the
+   *          entries of the members contained in this group.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to retrieve the set of members.
+   */
+  public abstract MemberList getMembers(DN baseDN, SearchScope scope,
+                                        SearchFilter filter)
+         throws DirectoryException;
+
+
+
+  /**
+   * Indicates whether it is possible to alter the member list for
+   * this group (e.g., in order to add members to the group or remove
+   * members from it).
+   *
+   * @return  {@code true} if it is possible to add members to this
+   *          group, or {@code false} if not.
+   */
+  public abstract boolean mayAlterMemberList();
+
+
+
+  /**
+   * Attempts to add the provided user as a member of this group.  The
+   * change should be committed to persistent storage through an
+   * internal operation.
+   *
+   * @param  userEntry  The entry for the user to be added as a member
+   *                    of this group.
+   *
+   * @throws  UnsupportedOperationException  If this group does not
+   *                                         support altering the
+   *                                         member list.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to add the provided user as a member
+   *                              of this group.
+   */
+  public abstract void addMember(Entry userEntry)
+         throws UnsupportedOperationException, DirectoryException;
+
+
+
+  /**
+   * Attempts to remove the specified user as a member of this group.
+   * The change should be committed to persistent storage through an
+   * internal operation.
+   *
+   * @param  userDN  The DN of the user to remove as a member of this
+   *                 group.
+   *
+   * @throws  UnsupportedOperationException  If this group does not
+   *                                         support altering the
+   *                                         member list.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to remove the provided user as a
+   *                              member of this group.
+   */
+  public abstract void removeMember(DN userDN)
+         throws UnsupportedOperationException, DirectoryException;
+
+
+
+  /**
+   * Retrieves a string representation of this group.
+   *
+   * @return  A string representation of this group.
+   */
+  public String toString()
+  {
+    assert debugEnter(CLASS_NAME, "toString");
+
+    StringBuilder buffer = new StringBuilder();
+    toString(buffer);
+    return buffer.toString();
+  }
+
+
+
+  /**
+   * Appends a string representation of this group to the provided
+   * buffer.
+   *
+   * @param  buffer  The buffer to which the string representation
+   *                 should be appended.
+   */
+  public abstract void toString(StringBuilder buffer);
+}
+
