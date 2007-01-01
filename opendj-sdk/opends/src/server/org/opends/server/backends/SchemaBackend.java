@@ -64,6 +64,7 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
@@ -1023,8 +1024,7 @@ public class SchemaBackend
 
     // If we've gotten here, then everything looks OK.  Add the new schema
     // elements to the 99-user.ldif file and swing the new schema into place.
-    String schemaDirPath = DirectoryServer.getServerRoot() + File.separator +
-                           PATH_SCHEMA_DIR;
+    String schemaDirPath = SchemaConfigManager.getSchemaDirectoryPath();
     File userSchemaFile = new File(schemaDirPath, FILE_USER_SCHEMA_ELEMENTS);
     Entry userSchemaEntry = null;
 
@@ -1701,8 +1701,7 @@ public class SchemaBackend
 
     // Get the path to the directory in which the schema files reside and
     // then get a list of all the files in that directory.
-    String schemaDirPath = DirectoryServer.getServerRoot() + File.separator +
-                           PATH_SCHEMA_DIR;
+    String schemaDirPath = SchemaConfigManager.getSchemaDirectoryPath();
     File[] schemaFiles;
     try
     {
@@ -2104,8 +2103,7 @@ public class SchemaBackend
     // try to verify the archive.  If we are not going to verify only, then
     // move the current schema directory out of the way so we can keep it around
     // to restore if a problem occurs.
-    String schemaDirPath   = DirectoryServer.getServerRoot() + File.separator +
-                             PATH_SCHEMA_DIR;
+    String schemaDirPath   = SchemaConfigManager.getSchemaDirectoryPath();
     File   schemaDir       = new File(schemaDirPath);
     String backupDirPath   = null;
     File   schemaBackupDir = null;

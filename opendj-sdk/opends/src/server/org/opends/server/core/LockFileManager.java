@@ -440,6 +440,29 @@ public class LockFileManager
 
 
   /**
+   * Retrieves the path to the directory that should be used to hold the lock
+   * files.
+   *
+   * @return  The path to the directory that should be used to hold the lock
+   *          files.
+   */
+  public static String getLockDirectoryPath()
+  {
+    assert debugEnter(CLASS_NAME, "getLockFileDirectory");
+
+    String lockDirectory = System.getProperty(PROPERTY_LOCK_DIRECTORY);
+    if ((lockDirectory == null) || (lockDirectory.length() == 0))
+    {
+      lockDirectory = DirectoryServer.getServerRoot() + File.separator +
+                      LOCKS_DIRECTORY;
+    }
+
+    return lockDirectory;
+  }
+
+
+
+  /**
    * Retrieves the filename that should be used for the lock file for the
    * Directory Server instance.
    *
@@ -451,9 +474,7 @@ public class LockFileManager
     assert debugEnter(CLASS_NAME, "getServerLockFileName");
 
     StringBuilder buffer = new StringBuilder();
-    buffer.append(DirectoryServer.getServerRoot());
-    buffer.append(File.separator);
-    buffer.append(LOCKS_DIRECTORY);
+    buffer.append(getLockDirectoryPath());
     buffer.append(File.separator);
     buffer.append(SERVER_LOCK_FILE_NAME);
     buffer.append(LOCK_FILE_SUFFIX);
@@ -479,9 +500,7 @@ public class LockFileManager
                       String.valueOf(backend));
 
     StringBuilder buffer = new StringBuilder();
-    buffer.append(DirectoryServer.getServerRoot());
-    buffer.append(File.separator);
-    buffer.append(LOCKS_DIRECTORY);
+    buffer.append(getLockDirectoryPath());
     buffer.append(File.separator);
     buffer.append(BACKEND_LOCK_FILE_PREFIX);
     buffer.append(backend.getBackendID());
