@@ -122,6 +122,27 @@ public class SchemaConfigManager
 
 
   /**
+   * Retrieves the path to the directory containing the server schema files.
+   *
+   * @return  The path to the directory containing the server schema files.
+   */
+  public static String getSchemaDirectoryPath()
+  {
+    assert debugEnter(CLASS_NAME, "getSchemaDirectoryPath");
+
+    String schemaDirPath = System.getProperty(PROPERTY_SCHEMA_DIRECTORY);
+    if ((schemaDirPath == null) || (schemaDirPath.length() == 0))
+    {
+      schemaDirPath = DirectoryServer.getServerRoot() + File.separator +
+                      PATH_SCHEMA_DIR;
+    }
+
+    return schemaDirPath;
+  }
+
+
+
+  /**
    * Retrieves a reference to the schema information that has been read from the
    * server configuration.  Note that this information will not be complete
    * until the <CODE>initializeMatchingRules</CODE>,
@@ -625,8 +646,7 @@ public class SchemaConfigManager
     // Construct the path to the directory that should contain the schema files
     // and make sure that it exists and is a directory.  Get a list of the files
     // in that directory sorted in alphabetic order.
-    String schemaDirPath = DirectoryServer.getServerRoot() + File.separator +
-                           PATH_SCHEMA_DIR;
+    String schemaDirPath = getSchemaDirectoryPath();
     File schemaDir = new File(schemaDirPath);
     String[] fileNames;
 

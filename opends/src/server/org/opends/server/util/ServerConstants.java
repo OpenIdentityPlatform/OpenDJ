@@ -2131,6 +2131,30 @@ public class ServerConstants
 
 
   /**
+   * The name of the system property that can be used to specify the path to the
+   * directory in which the server lock files should be written.  If this is not
+   * set, then the server will use a directory named "locks" below the server
+   * root.  Note that if the server is ever started with a different lock file
+   * directory than was used for the previous startup, then the server
+   * administrator must ensure that the instance is not already running.
+   */
+  public static final String PROPERTY_LOCK_DIRECTORY =
+       "org.opends.server.LockDirectory";
+
+
+
+  /**
+   * The name of the system property that can be used to specify the path to the
+   * directory in which the schema configuration files may be found.  If this is
+   * not set, then the server wiill use a directory named "schema" below the
+   * server root.
+   */
+  public static final String PROPERTY_SCHEMA_DIRECTORY =
+       "org.opends.server.SchemaDirectory";
+
+
+
+  /**
    * The name of a command-line script used to launch an administrative tool.
    */
   public static final String PROPERTY_SCRIPT_NAME =
