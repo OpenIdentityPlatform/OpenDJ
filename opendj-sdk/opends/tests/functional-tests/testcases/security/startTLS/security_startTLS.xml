@@ -77,6 +77,10 @@
         <call function="'bob_startTLS'" />
 
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/startTLS/security_force_pwd_change_startTLS.xml' % (TESTS_DIR)"/>
+        <call function="'force_pwd_change_startTLS'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/security/startTLS/security_teardown_startTLS.xml' % (TESTS_DIR)"/>
         <call function="'teardown_startTLS'" />
 
