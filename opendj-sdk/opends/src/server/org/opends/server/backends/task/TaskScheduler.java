@@ -37,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.api.AlertGenerator;
@@ -55,6 +56,7 @@ import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.LDIFException;
@@ -1448,7 +1450,83 @@ public class TaskScheduler
 
 
   /**
-   * Retrieves the scheduled task entry with the provided DN.
+   * Attempts to acquire a write lock on the specified entry, trying as many
+   * times as necessary until the lock has been acquired.
+   *
+   * @param  entryDN  The DN of the entry for which to acquire the write lock.
+   *
+   * @return  The write lock that has been acquired for the entry.
+   */
+  Lock writeLockEntry(DN entryDN)
+  {
+    assert debugEnter(CLASS_NAME, "lockEntry", String.valueOf(entryDN));
+
+    Lock lock = LockManager.lockWrite(entryDN);
+    while (lock == null)
+    {
+      lock = LockManager.lockWrite(entryDN);
+    }
+
+    return lock;
+  }
+
+
+
+  /**
+   * Attempts to acquire a read lock on the specified entry, trying up to five
+   * times before failing.
+   *
+   * @param  entryDN  The DN of the entry for which to acquire the read lock.
+   *
+   * @return  The read lock that has been acquired for the entry.
+   *
+   * @throws  DirectoryException  If the read lock cannot be acquired.
+   */
+  Lock readLockEntry(DN entryDN)
+       throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "lockEntry", String.valueOf(entryDN));
+
+    Lock lock = LockManager.lockRead(entryDN);
+    for (int i=0; ((lock == null) && (i < 4)); i++)
+    {
+      lock = LockManager.lockRead(entryDN);
+    }
+
+    if (lock == null)
+    {
+      int    msgID   = MSGID_BACKEND_CANNOT_LOCK_ENTRY;
+      String message = getMessage(msgID, String.valueOf(entryDN));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, msgID);
+    }
+    else
+    {
+      return lock;
+    }
+  }
+
+
+
+  /**
+   * Releases the lock held on the specified entry.
+   *
+   * @param  entryDN  The DN of the entry for which the lock is held.
+   * @param  lock     The lock held on the entry.
+   */
+  void unlockEntry(DN entryDN, Lock lock)
+  {
+    assert debugEnter(CLASS_NAME, "unlockEntry", String.valueOf(entryDN),
+                      String.valueOf(lock));
+
+    LockManager.unlock(entryDN, lock);
+  }
+
+
+
+  /**
+   * Retrieves the scheduled task entry with the provided DN.  The caller should
+   * hold a read lock on the target entry.
    *
    * @param  scheduledTaskEntryDN  The entry DN that indicates which scheduled
    *                               task entry to retrieve.
@@ -1516,13 +1594,23 @@ public class TaskScheduler
     {
       for (Task t : tasks.values())
       {
-        Entry e = t.getTaskEntry();
-        if (filter.matchesEntry(e))
+        DN taskEntryDN = t.getTaskEntryDN();
+        Lock lock = readLockEntry(taskEntryDN);
+
+        try
         {
-          if (! searchOperation.returnEntry(e, null))
+          Entry e = t.getTaskEntry();
+          if (filter.matchesEntry(e))
           {
-            return false;
+            if (! searchOperation.returnEntry(e, null))
+            {
+              return false;
+            }
           }
+        }
+        finally
+        {
+          unlockEntry(taskEntryDN, lock);
         }
       }
 
@@ -1601,7 +1689,8 @@ public class TaskScheduler
 
 
   /**
-   * Retrieves the recurring task entry with the provided DN.
+   * Retrieves the recurring task entry with the provided DN.  The caller should
+   * hold a read lock on the target entry.
    *
    * @param  recurringTaskEntryDN  The entry DN that indicates which recurring
    *                               task entry to retrieve.
@@ -1669,13 +1758,23 @@ public class TaskScheduler
     {
       for (RecurringTask rt : recurringTasks.values())
       {
-        Entry e = rt.getRecurringTaskEntry();
-        if (filter.matchesEntry(e))
+        DN recurringTaskEntryDN = rt.getRecurringTaskEntryDN();
+        Lock lock = readLockEntry(recurringTaskEntryDN);
+
+        try
         {
-          if (! searchOperation.returnEntry(e, null))
+          Entry e = rt.getRecurringTaskEntry();
+          if (filter.matchesEntry(e))
           {
-            return false;
+            if (! searchOperation.returnEntry(e, null))
+            {
+              return false;
+            }
           }
+        }
+        finally
+        {
+          unlockEntry(recurringTaskEntryDN, lock);
         }
       }
 
