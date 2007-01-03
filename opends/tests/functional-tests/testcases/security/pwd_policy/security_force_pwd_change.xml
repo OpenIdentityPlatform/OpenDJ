@@ -262,10 +262,17 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult  }
+            </call>
+          </sequence>
+        </testcase>
 
+
+        <!--- Test Case : User Search With Old Pwd -->
+        <testcase name="'Security: Pwd Change: Old Pwd - Search'">
+          <sequence>
             <message>
                'Security: Pwd Change: User Searching With Old Password'
             </message>
@@ -280,10 +287,120 @@
                 'extraParams'      : '-s base' }
             </call>
 
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1  }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Add With Old Pwd -->
+        <testcase name="'Security: Pwd Change: Old Pwd - Add'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: User Adding Attr With Old Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'pizza' ,
+                'entryToBeModified'   : '%s/security/pwd_policy/user_add_attr.ldif' % STAGED_DATA_DIR }
+            </call>
+
             <if expr="RC != 1">
                 <tcstatus result="'fail'"/>
             </if>
 
+            <message>
+               'Security: Pwd Change: Checking For Existence of User-added Attribute'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'   : 'pager:+1 999 555-1212',
+                'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 16  }
+            </call>
+          </sequence>
+        </testcase>
+
+     <!--- Test Case : User Delete With Old Pwd -->
+        <testcase name="'Security: Pwd Change: Old Pwd - Delete'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: User Deleting Attr With Old Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'pizza' ,
+                'entryToBeModified'   : '%s/security/pwd_policy/user_del_attr.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 1">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: Pwd Change: Checking For Existence of User-deleted Attribute'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'   : 'roomnumber:4612',
+                'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+     <!--- Test Case : User Delete With Old Pwd -->
+        <testcase name="'Security: Pwd Change: Old Pwd - Compare'">
+          <sequence>
+            <message>
+               'Security: Pwd Change: Checking For Existence of User Attribute'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'pizza' ,
+                'attrToBeCompared'   : 'l:Sunnyvale',
+                'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1  }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Search With Assigned Pwd -->
+        <testcase name="'Security: Pwd Change: Search With Assigned Pwd'">
+          <sequence>
             <message>
                'Security: Pwd Change: User Searching With Assigned Password'
             </message>
