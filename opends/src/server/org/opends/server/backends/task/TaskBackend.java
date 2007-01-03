@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConfigurableComponent;
@@ -888,43 +889,61 @@ public class TaskBackend
       }
       else if (parentDN.equals(scheduledTaskParentDN))
       {
-        Entry e = taskScheduler.getScheduledTaskEntry(baseDN);
-        if (e == null)
-        {
-          int    msgID   = MSGID_TASKBE_SEARCH_NO_SUCH_TASK;
-          String message = getMessage(msgID, String.valueOf(baseDN));
-          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-                                       msgID, scheduledTaskParentDN, null);
-        }
+        Lock lock = taskScheduler.readLockEntry(baseDN);
 
-        if (((searchScope == SearchScope.BASE_OBJECT) ||
-             (searchScope == SearchScope.WHOLE_SUBTREE)) &&
-            searchFilter.matchesEntry(e))
+        try
         {
-          searchOperation.returnEntry(e, null);
-        }
+          Entry e = taskScheduler.getScheduledTaskEntry(baseDN);
+          if (e == null)
+          {
+            int    msgID   = MSGID_TASKBE_SEARCH_NO_SUCH_TASK;
+            String message = getMessage(msgID, String.valueOf(baseDN));
+            throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
+                                         msgID, scheduledTaskParentDN, null);
+          }
 
-        return;
+          if (((searchScope == SearchScope.BASE_OBJECT) ||
+               (searchScope == SearchScope.WHOLE_SUBTREE)) &&
+              searchFilter.matchesEntry(e))
+          {
+            searchOperation.returnEntry(e, null);
+          }
+
+          return;
+        }
+        finally
+        {
+          taskScheduler.unlockEntry(baseDN, lock);
+        }
       }
       else if (parentDN.equals(recurringTaskParentDN))
       {
-        Entry e = taskScheduler.getRecurringTaskEntry(baseDN);
-        if (e == null)
-        {
-          int    msgID   = MSGID_TASKBE_SEARCH_NO_SUCH_RECURRING_TASK;
-          String message = getMessage(msgID, String.valueOf(baseDN));
-          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-                                       msgID, recurringTaskParentDN, null);
-        }
+        Lock lock = taskScheduler.readLockEntry(baseDN);
 
-        if (((searchScope == SearchScope.BASE_OBJECT) ||
-             (searchScope == SearchScope.WHOLE_SUBTREE)) &&
-            searchFilter.matchesEntry(e))
+        try
         {
-          searchOperation.returnEntry(e, null);
-        }
+          Entry e = taskScheduler.getRecurringTaskEntry(baseDN);
+          if (e == null)
+          {
+            int    msgID   = MSGID_TASKBE_SEARCH_NO_SUCH_RECURRING_TASK;
+            String message = getMessage(msgID, String.valueOf(baseDN));
+            throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
+                                         msgID, recurringTaskParentDN, null);
+          }
 
-        return;
+          if (((searchScope == SearchScope.BASE_OBJECT) ||
+               (searchScope == SearchScope.WHOLE_SUBTREE)) &&
+              searchFilter.matchesEntry(e))
+          {
+            searchOperation.returnEntry(e, null);
+          }
+
+          return;
+        }
+        finally
+        {
+          taskScheduler.unlockEntry(baseDN, lock);
+        }
       }
       else
       {

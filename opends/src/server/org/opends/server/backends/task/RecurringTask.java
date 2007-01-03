@@ -37,6 +37,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -62,6 +63,9 @@ public class RecurringTask
        "org.opends.server.backends.task.RecurringTask";
 
 
+
+  // The DN of the entry that actually defines this task.
+  private DN recurringTaskEntryDN;
 
   // The entry that actually defines this task.
   private Entry recurringTaskEntry;
@@ -97,8 +101,9 @@ public class RecurringTask
     assert debugConstructor(CLASS_NAME, String.valueOf(taskScheduler),
                             String.valueOf(recurringTaskEntry));
 
-    this.taskScheduler      = taskScheduler;
-    this.recurringTaskEntry = recurringTaskEntry;
+    this.taskScheduler        = taskScheduler;
+    this.recurringTaskEntry   = recurringTaskEntry;
+    this.recurringTaskEntryDN = recurringTaskEntry.getDN();
 
 
     // Get the recurring task ID from the entry.  If there isn't one, then fail.
@@ -273,6 +278,20 @@ public class RecurringTask
     assert debugEnter(CLASS_NAME, "getRecurringTaskID");
 
     return recurringTaskID;
+  }
+
+
+
+  /**
+   * Retrieves the DN of the entry containing the data for this recurring task.
+   *
+   * @return  The DN of the entry containing the data for this recurring task.
+   */
+  public DN getRecurringTaskEntryDN()
+  {
+    assert debugEnter(CLASS_NAME, "getRecurringTaskEntryDN");
+
+    return recurringTaskEntryDN;
   }
 
 

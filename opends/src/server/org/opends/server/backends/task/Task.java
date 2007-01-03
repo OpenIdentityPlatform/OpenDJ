@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -44,6 +45,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
@@ -74,6 +76,9 @@ public abstract class Task
        "org.opends.server.backends.task.Task";
 
 
+
+  // The DN for the task entry.
+  private DN taskEntryDN;
 
   // The entry that actually defines this task.
   private Entry taskEntry;
@@ -141,8 +146,9 @@ public abstract class Task
 
     this.taskScheduler = taskScheduler;
     this.taskEntry     = taskEntry;
+    this.taskEntryDN   = taskEntry.getDN();
 
-    String taskDN = taskEntry.getDN().toString();
+    String taskDN = taskEntryDN.toString();
 
     logMessageCounter = 0;
 
@@ -438,6 +444,20 @@ public abstract class Task
 
 
   /**
+   * Retrieves the DN of the entry containing the definition for this task.
+   *
+   * @return  The DN of the entry containing the definition for this task.
+   */
+  public final DN getTaskEntryDN()
+  {
+    assert debugEnter(CLASS_NAME, "getTaskEntryDN");
+
+    return taskEntryDN;
+  }
+
+
+
+  /**
    * Retrieves the entry containing the definition for this task.
    *
    * @return  The entry containing the definition for this task.
@@ -507,22 +527,32 @@ public abstract class Task
   {
     assert debugEnter(CLASS_NAME, "setTaskState", String.valueOf(taskState));
 
-    this.taskState = taskState;
+    Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
-    AttributeType type =
-         DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
-    if (type == null)
+    try
     {
-      type = DirectoryServer.getDefaultAttributeType(ATTR_TASK_STATE);
+      this.taskState = taskState;
+
+      AttributeType type =
+           DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
+      if (type == null)
+      {
+        type = DirectoryServer.getDefaultAttributeType(ATTR_TASK_STATE);
+      }
+
+      LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>();
+      values.add(new AttributeValue(type,
+                                    new ASN1OctetString(taskState.toString())));
+
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(type, ATTR_TASK_STATE, values));
+      taskEntry.putAttribute(type, attrList);
     }
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(type,
-                                  new ASN1OctetString(taskState.toString())));
-
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(type, ATTR_TASK_STATE, values));
-    taskEntry.putAttribute(type, attrList);
+    finally
+    {
+      taskScheduler.unlockEntry(taskEntryDN, lock);
+    }
   }
 
 
@@ -574,27 +604,37 @@ public abstract class Task
     assert debugEnter(CLASS_NAME, "setActualStartTime",
                       String.valueOf(actualStartTime));
 
-    this.actualStartTime = actualStartTime;
+    Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
-    AttributeType type = DirectoryServer.getAttributeType(
-                              ATTR_TASK_ACTUAL_START_TIME.toLowerCase());
-    if (type == null)
+    try
     {
-      type = DirectoryServer.getDefaultAttributeType(
-                  ATTR_TASK_ACTUAL_START_TIME);
+      this.actualStartTime = actualStartTime;
+
+      AttributeType type = DirectoryServer.getAttributeType(
+                                ATTR_TASK_ACTUAL_START_TIME.toLowerCase());
+      if (type == null)
+      {
+        type = DirectoryServer.getDefaultAttributeType(
+                    ATTR_TASK_ACTUAL_START_TIME);
+      }
+
+      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      Date d = new Date(actualStartTime);
+      ASN1OctetString s = new ASN1OctetString(dateFormat.format(d));
+
+      LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>();
+      values.add(new AttributeValue(type, s));
+
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(type, ATTR_TASK_ACTUAL_START_TIME, values));
+      taskEntry.putAttribute(type, attrList);
     }
-
-    SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    Date d = new Date(actualStartTime);
-    ASN1OctetString s = new ASN1OctetString(dateFormat.format(d));
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(type, s));
-
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(type, ATTR_TASK_ACTUAL_START_TIME, values));
-    taskEntry.putAttribute(type, attrList);
+    finally
+    {
+      taskScheduler.unlockEntry(taskEntryDN, lock);
+    }
   }
 
 
@@ -629,26 +669,37 @@ public abstract class Task
     assert debugEnter(CLASS_NAME, "setCompletionTime",
                       String.valueOf(completionTime));
 
-    this.completionTime = completionTime;
+    Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
-    AttributeType type = DirectoryServer.getAttributeType(
-                              ATTR_TASK_COMPLETION_TIME.toLowerCase());
-    if (type == null)
+    try
     {
-      type = DirectoryServer.getDefaultAttributeType(ATTR_TASK_COMPLETION_TIME);
+      this.completionTime = completionTime;
+
+      AttributeType type = DirectoryServer.getAttributeType(
+                                ATTR_TASK_COMPLETION_TIME.toLowerCase());
+      if (type == null)
+      {
+        type =
+             DirectoryServer.getDefaultAttributeType(ATTR_TASK_COMPLETION_TIME);
+      }
+
+      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      Date d = new Date(completionTime);
+      ASN1OctetString s = new ASN1OctetString(dateFormat.format(d));
+
+      LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>();
+      values.add(new AttributeValue(type, s));
+
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(type, ATTR_TASK_COMPLETION_TIME, values));
+      taskEntry.putAttribute(type, attrList);
     }
-
-    SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    Date d = new Date(completionTime);
-    ASN1OctetString s = new ASN1OctetString(dateFormat.format(d));
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(type, s));
-
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(type, ATTR_TASK_COMPLETION_TIME, values));
-    taskEntry.putAttribute(type, attrList);
+    finally
+    {
+      taskScheduler.unlockEntry(taskEntryDN, lock);
+    }
   }
 
 
@@ -756,10 +807,11 @@ public abstract class Task
                       String.valueOf(severity), String.valueOf(messageID),
                       String.valueOf(messageString));
 
-    StringBuilder buffer = new StringBuilder();
+    Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
-    synchronized (logMessages)
+    try
     {
+      StringBuilder buffer = new StringBuilder();
       buffer.append("[");
       buffer.append(TimeThread.getLocalTime());
       buffer.append("] severity=\"");
@@ -808,6 +860,10 @@ public abstract class Task
         values.add(new AttributeValue(type, new ASN1OctetString(message)));
         attrList.add(new Attribute(type, ATTR_TASK_LOG_MESSAGES, values));
       }
+    }
+    finally
+    {
+      taskScheduler.unlockEntry(taskEntryDN, lock);
     }
   }
 
