@@ -57,7 +57,7 @@
 
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
-                  'expectedString'     : 'SSHA512' }
+                  'expectedString'     : 'SSHA' }
             </call>
           
           </sequence>
