@@ -51,6 +51,10 @@
 	<call function="'security_pwd_policy'" />
 
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/pwd_policy_root/security_pwd_policy_root.xml' % (TESTS_DIR)"/>
+	<call function="'security_pwd_policy_root'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/security/pwd_validator/security_pwd_validator.xml' % (TESTS_DIR)"/>
 	<call function="'security_pwd_validator'" />
 
