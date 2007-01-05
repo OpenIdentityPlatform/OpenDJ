@@ -273,49 +273,32 @@
 
       <!-- Transform Report XML into HTML -->
       <script>
-        htmlfile= '%s/results.html' % logdir
-        xml2htmlname= 'xmlToHtml'
-        xml2htmldir= '%s/java/%s' % (TESTS_SHARED_DIR,xml2htmlname)
-        xml2htmlclass= '%s/%s.class' % (xml2htmldir,xml2htmlname)
-        xml2htmljava = '%s/%s.java' % (xml2htmldir,xml2htmlname)
         xslfile= '%s/xsl/gen-alltests-report.xsl' % TESTS_SHARED_DIR
+        htmlfile= '%s/results.html' % logdir
       </script>
-
-      <stafcmd name="'STAF Command: Check for xml2html transformer'">
-        <location>'%s' % (STAF_LOCAL_HOSTNAME)</location>
-        <service>'fs'</service>
-        <request>
-          'GET ENTRY %s TYPE' % xml2htmlclass
-        </request>
-      </stafcmd>
-
-      <if expr="RC == 48">
-        <sequence>
-          <message log="1" level="'Error'">
-            'XML transformer (%s) does not exist.' % xml2htmlclass
-          </message>
-          <return>1</return>
-        </sequence>
-      </if>
-
-      <process name="'Transform Report XML into HTML'">
-        <location>'%s' % STAF_LOCAL_HOSTNAME</location>
-        <command>'%s/bin/java' % STAF_JAVA_HOME</command>
-        <parms>'-cp %s xmlToHtml %s %s %s' % (xml2htmldir,xslfile,xmlfile,htmlfile)</parms>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
-      <if expr="RC == 0">
-        <message>
-          'HTML Report Written to %s.' % htmlfile
-        </message>
-      <else>
-        <message log="1" level="'Error'">
-          'Failed to write HTML Report. RC: %s, STAFResult: %s, STAXResult: %s' % (RC,STAFResult,STAXResult)
-        </message>
-      </else>
-      </if>
+      
+      <message>
+        'Writing HTML (with stylesheet %s) Report to %s.' % (xslfile,htmlfile)
+      </message>
+      
+      <script>
+        from java.io import FileInputStream
+        from java.io import FileOutputStream
+        from java.io import ByteArrayOutputStream
+      
+        from javax.xml.transform import TransformerFactory
+        from javax.xml.transform.stream import StreamSource
+        from javax.xml.transform.stream import StreamResult
+  
+        xslSource = StreamSource(FileInputStream("%s" % xslfile))
+        xslTemplate = TransformerFactory.newInstance().newTemplates(xslSource)
+        transformer = xslTemplate.newTransformer()
+  
+        source = StreamSource(FileInputStream("%s" % xmlfile))
+        result = StreamResult(FileOutputStream("%s" % htmlfile))
+  
+        transformer.transform(source, result)      
+      </script>
 
     </sequence>
 
