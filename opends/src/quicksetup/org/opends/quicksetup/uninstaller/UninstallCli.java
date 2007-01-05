@@ -79,8 +79,6 @@ class UninstallCli
   static int BUG = 5;
 
   private static String LINE_SEPARATOR = System.getProperty("line.separator");
-  static int MAX_LINE_WIDTH = 80;
-
 
   private String[] args;
 
@@ -126,7 +124,7 @@ class UninstallCli
               {
                 System.out.print(
                     org.opends.server.util.StaticUtils.wrapText(ev.getNewLogs(),
-                        MAX_LINE_WIDTH));
+                        Utils.getCommandLineMaxLineWidth()));
               }
             });
         uninstaller.start();
@@ -1092,13 +1090,13 @@ class UninstallCli
   private static String getMsg(String key)
   {
     return org.opends.server.util.StaticUtils.wrapText(getI18n().getMsg(key),
-        MAX_LINE_WIDTH);
+        Utils.getCommandLineMaxLineWidth());
   }
 
   private static String getMsg(String key, String[] args)
   {
     return org.opends.server.util.StaticUtils.wrapText(
-        getI18n().getMsg(key, args), MAX_LINE_WIDTH);
+        getI18n().getMsg(key, args), Utils.getCommandLineMaxLineWidth());
   }
 
   private static ResourceProvider getI18n()

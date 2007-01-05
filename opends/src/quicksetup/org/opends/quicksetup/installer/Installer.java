@@ -41,6 +41,7 @@ import javax.naming.NamingException;
 import org.opends.quicksetup.event.InstallProgressUpdateEvent;
 import org.opends.quicksetup.event.InstallProgressUpdateListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
@@ -1039,10 +1040,20 @@ public abstract class Installer
     hmSummary.put(InstallProgressStep.STARTING_SERVER,
         getFormattedSummary(getMsg("summary-starting")));
 
-    String[] arg = {formatter.getFormattedText(getInstallationPath())};
+    String cmd;
+    if (Utils.isWindows())
+    {
+      cmd = "bin"+File.separator+"statuspanel.bat";
+    }
+    else
+    {
+      cmd = "bin"+File.separator+"statuspanel";
+    }
+    cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
+    String[] args = {formatter.getFormattedText(getInstallationPath()), cmd};
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
         getFormattedSuccess(
-            getMsg("summary-install-finished-successfully", arg)));
+            getMsg("summary-install-finished-successfully", args)));
     hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,
         getFormattedError(getMsg("summary-install-finished-with-error")));
   }

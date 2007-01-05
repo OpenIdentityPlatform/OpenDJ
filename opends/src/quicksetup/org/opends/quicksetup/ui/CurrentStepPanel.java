@@ -34,6 +34,7 @@ import java.util.HashMap;
 
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Step;
+import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.installer.InstallProgressDescriptor;
 import org.opends.quicksetup.installer.UserInstallData;
@@ -164,6 +165,31 @@ class CurrentStepPanel extends QuickSetupPanel
 
     setPreferredSize(new Dimension(minWidth, minHeight));
     setMinimumSize(new Dimension(minWidth, minHeight));
+  }
+
+  /**
+   * Adds a button listener.  All the button listeners will be notified when
+   * the buttons are clicked (by the user or programatically).
+   * @param l the ButtonActionListener to be added.
+   */
+  public void addButtonActionListener(ButtonActionListener l)
+  {
+    for (Step s : hmPanels.keySet())
+    {
+      getPanel(s).addButtonActionListener(l);
+    }
+  }
+
+  /**
+   * Removes a button listener.
+   * @param l the ButtonActionListener to be removed.
+   */
+  public void removeButtonActionListener(ButtonActionListener l)
+  {
+    for (Step s : hmPanels.keySet())
+    {
+      getPanel(s).removeButtonActionListener(l);
+    }
   }
 
   /**

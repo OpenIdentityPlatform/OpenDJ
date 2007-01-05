@@ -72,6 +72,8 @@ public class Utils
 {
   private static final int BUFFER_SIZE = 1024;
 
+  private static final int MAX_LINE_WIDTH = 80;
+
   private static final String[] OPEN_DS_JAR_RELATIVE_PATHS =
     { "lib/quicksetup.jar", "lib/OpenDS.jar", "lib/je.jar" };
 
@@ -950,6 +952,8 @@ public class Utils
    */
   public static String getInstallPathFromClasspath()
   {
+    String installPath;
+
     /* Get the install path from the Class Path */
     String sep = System.getProperty("path.separator");
     String[] classPaths = System.getProperty("java.class.path").split(sep);
@@ -969,7 +973,20 @@ public class Utils
     File f = new File(path).getAbsoluteFile();
     File binariesDir = f.getParentFile();
 
-    return binariesDir.getParent();
+    /*
+     * Do a best effort to avoid having a relative representation (for
+     * instance to avoid having ../../../).
+     */
+    try
+    {
+      installPath = binariesDir.getParentFile().getCanonicalPath();
+    }
+    catch (IOException ioe)
+    {
+      // Best effort
+      installPath = binariesDir.getParent();
+    }
+    return installPath;
   }
 
   /**
@@ -1309,5 +1326,16 @@ public class Utils
       }
     }
     return (InitialLdapContext) pair[0];
+  }
+
+  /**
+   * Returns the max size in character of a line to be displayed in the command
+   * line.
+   * @return the max size in character of a line to be displayed in the command
+   * line.
+   */
+  public static int getCommandLineMaxLineWidth()
+  {
+    return MAX_LINE_WIDTH;
   }
 }

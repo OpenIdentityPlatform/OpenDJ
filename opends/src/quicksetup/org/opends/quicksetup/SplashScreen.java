@@ -41,12 +41,18 @@ import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 
 /**
- * This is the class that is called to launch QuickSetup.  It will display a
- * splash screen and in the background it will create QuickSetup object.
+ * This is the class that displays a splash screen and in the background it will
+ * create QuickSetup object.
+ *
+ * The main method of this class is directly called by the Java Web Start
+ * mechanism to launch the JWS setup.
  *
  * This class tries to minimize the time to be displayed. So it does the loading
  * of the setup class in runtime once we already have displayed the splash
  * screen. This is why the quickSetup variable is of type Object.
+ *
+ * This class can be reused by simply overwriting the methods
+ * constructApplication() and displayApplication().
  */
 public class SplashScreen extends Window
 {
@@ -54,11 +60,9 @@ public class SplashScreen extends Window
 
   private Image image;
 
-  private static SplashScreen splash;
+  private Object quickSetup;
 
-  private static Object quickSetup;
-
-  private static Class<?> quickSetupClass;
+  private Class<?> quickSetupClass;
 
   // Constant for the display of the splash screen
   private static final int MIN_SPLASH_DISPLAY = 3000;
@@ -70,21 +74,8 @@ public class SplashScreen extends Window
    */
   public static void main(String[] args)
   {
-    if (SwingUtilities.isEventDispatchThread())
-    {
-      final String[] fArgs = args;
-      Thread t = new Thread(new Runnable()
-      {
-        public void run()
-        {
-          mainOutsideEventThread(fArgs);
-        }
-      });
-      t.start();
-    } else
-    {
-      mainOutsideEventThread(args);
-    }
+    SplashScreen screen = new SplashScreen();
+    screen.display(args);
   }
 
   /**
@@ -104,10 +95,10 @@ public class SplashScreen extends Window
   }
 
   /**
-   * Private constructor to force to use the main method.
+   * Protected constructor to force to use the main method.
    *
    */
-  private SplashScreen()
+  protected SplashScreen()
   {
     super(new Frame());
     try
@@ -130,6 +121,31 @@ public class SplashScreen extends Window
   }
 
   /**
+   * The method used to display the splash screen.  It will also call create
+   * the application associated with this SplashScreen and display it.
+   * It can be called from the event thread and outside the event thread.
+   * @param args arguments to be passed to the method QuickSetup.initialize
+   */
+  protected void display(String[] args)
+  {
+    if (SwingUtilities.isEventDispatchThread())
+    {
+      final String[] fArgs = args;
+      Thread t = new Thread(new Runnable()
+      {
+        public void run()
+        {
+          mainOutsideEventThread(fArgs);
+        }
+      });
+      t.start();
+    } else
+    {
+      mainOutsideEventThread(args);
+    }
+  }
+
+  /**
    * This method creates the image directly instead of using UIFactory to reduce
    * class loading.
    * @return the splash image.
@@ -148,30 +164,29 @@ public class SplashScreen extends Window
    *
    * @param args arguments to be passed to the method QuickSetup.initialize.
    */
-  private static void mainOutsideEventThread(String[] args)
+  private void mainOutsideEventThread(String[] args)
   {
     displaySplashScreen();
     long splashDisplayStartTime = System.currentTimeMillis();
-    constructQuickSetup(args);
+    constructApplication(args);
     sleepIfNecessary(splashDisplayStartTime);
     disposeSplashScreen();
-    displayQuickSetup();
+    displayApplication();
   }
 
   /**
    * This methods displays the splash screen.
    * This method assumes that is being called outside the event thread.
    */
-  private static void displaySplashScreen()
+  private void displaySplashScreen()
   {
-    splash = new SplashScreen();
     try
     {
       SwingUtilities.invokeAndWait(new Runnable()
       {
         public void run()
         {
-          splash.setVisible(true);
+          setVisible(true);
         }
       });
     } catch (Exception ex)
@@ -181,11 +196,13 @@ public class SplashScreen extends Window
   }
 
   /**
-   * This methods constructs the QuickSetup object.
+   * This methods constructs the objects before displaying them.
    * This method assumes that is being called outside the event thread.
-   * @param args arguments to be passed to the method QuickSetup.initialize.
+   * This method can be overwritten by subclasses to construct other objects
+   * different than the Quick Setup.
+   * @param args arguments passed in the main of this class.
    */
-  private static void constructQuickSetup(String[] args)
+  protected void constructApplication(String[] args)
   {
     try
     {
@@ -207,8 +224,10 @@ public class SplashScreen extends Window
    * This method displays the QuickSetup dialog.
    * @see QuickSetup.display.
    * This method assumes that is being called outside the event thread.
+   * This method can be overwritten by subclasses to construct other objects
+   * different than the Quick Setup.
    */
-  private static void displayQuickSetup()
+  protected void displayApplication()
   {
     try
     {
@@ -237,7 +256,7 @@ public class SplashScreen extends Window
    * Disposes the splash screen.
    * This method assumes that is being called outside the event thread.
    */
-  private static void disposeSplashScreen()
+  private void disposeSplashScreen()
   {
     try
     {
@@ -245,8 +264,8 @@ public class SplashScreen extends Window
       {
         public void run()
         {
-          splash.setVisible(false);
-          splash.dispose();
+          setVisible(false);
+          dispose();
         }
       });
     } catch (Exception ex)
@@ -262,7 +281,7 @@ public class SplashScreen extends Window
    * @param splashDisplayStartTime the time in milliseconds when the splash
    * screen started displaying.
    */
-  private static void sleepIfNecessary(long splashDisplayStartTime)
+  private void sleepIfNecessary(long splashDisplayStartTime)
   {
     long t2 = System.currentTimeMillis();
 

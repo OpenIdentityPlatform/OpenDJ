@@ -93,7 +93,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   public String getFormattedError(String text, boolean applyMargin)
   {
     String html =
-        UIFactory.getIconHtml(UIFactory.IconType.ERROR)
+        UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE)
             + SPACE
             + SPACE
             + UIFactory.applyFontToHtml(getHtml(text),
@@ -120,7 +120,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   public String getFormattedWarning(String text, boolean applyMargin)
   {
     String html =
-        UIFactory.getIconHtml(UIFactory.IconType.WARNING)
+        UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE)
             + SPACE
             + SPACE
             + UIFactory.applyFontToHtml(getHtml(text),
@@ -146,7 +146,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   {
     // Note: the text we get already is in HTML form
     String html =
-        UIFactory.getIconHtml(UIFactory.IconType.INFORMATION) + SPACE
+        UIFactory.getIconHtml(UIFactory.IconType.INFORMATION_LARGE) + SPACE
         + SPACE + UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
 
     String result = UIFactory.applySuccessfulBackgroundToHtml(html);
@@ -279,7 +279,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
         closeDiv, false));
 
     String html =
-        UIFactory.getIconHtml(UIFactory.IconType.ERROR) + SPACE + SPACE
+        UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE) + SPACE + SPACE
             + buf.toString();
 
     String result;

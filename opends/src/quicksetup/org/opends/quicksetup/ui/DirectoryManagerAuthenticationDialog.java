@@ -185,7 +185,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.anchor = GridBagConstraints.NORTHWEST;
     gbc.insets = UIFactory.getCurrentStepPanelInsets();
-    p1.add(UIFactory.makeJLabel(UIFactory.IconType.WARNING_LARGE, null,
+    p1.add(UIFactory.makeJLabel(UIFactory.IconType.INFORMATION_LARGE, null,
         UIFactory.TextStyle.NO_STYLE), gbc);
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
@@ -195,6 +195,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     JTextComponent textPane =
       UIFactory.makeHtmlPane(msg, UIFactory.INSTRUCTIONS_FONT);
     textPane.setOpaque(false);
+    textPane.setEditable(false);
     p1.add(textPane, gbc);
 
     JPanel p2 = new JPanel(new GridBagLayout());

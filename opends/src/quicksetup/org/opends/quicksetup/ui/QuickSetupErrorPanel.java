@@ -39,6 +39,7 @@ import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 
@@ -56,13 +57,14 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
       new HashSet<ButtonActionListener>();
 
   private JButton quitButton;
+  private JButton continueButton;
 
   /**
    * Constructor of the QuickSetupErrorPanel.
    *
-   * @param htmlMsg the error message to be displayed.
+   * @param installStatus the current install status.
    */
-  public QuickSetupErrorPanel(String htmlMsg)
+  public QuickSetupErrorPanel(CurrentInstallStatus installStatus)
   {
     JPanel p1 = new JPanel(new GridBagLayout());
     p1.setBackground(UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
@@ -78,8 +80,10 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
     gbc.fill = GridBagConstraints.BOTH;
     gbc.insets.left = 0;
     JTextComponent tf =
-        UIFactory.makeHtmlPane(htmlMsg, UIFactory.INSTRUCTIONS_FONT);
+        UIFactory.makeHtmlPane(installStatus.getInstallationMsg(),
+            UIFactory.INSTRUCTIONS_FONT);
     tf.setOpaque(false);
+    tf.setEditable(false);
     p1.add(tf, gbc);
 
     gbc.weighty = 1.0;
@@ -91,29 +95,53 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.weightx = 1.0;
     gbc.insets = UIFactory.getEmptyInsets();
-    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.gridwidth = 3;
     p2.add(Box.createHorizontalGlue(), gbc);
     quitButton =
         UIFactory.makeJButton(getMsg("quit-button-label"),
             getMsg("quit-button-install-tooltip"));
 
-    final ButtonName fButtonName = ButtonName.QUIT;
+    final ButtonName fQuitButtonName = ButtonName.QUIT;
 
-    ActionListener actionListener = new ActionListener()
+    ActionListener quitListener = new ActionListener()
     {
       public void actionPerformed(ActionEvent ev)
       {
-        ButtonEvent be = new ButtonEvent(ev.getSource(), fButtonName);
+        ButtonEvent be = new ButtonEvent(ev.getSource(), fQuitButtonName);
         for (ButtonActionListener li : buttonListeners)
         {
           li.buttonActionPerformed(be);
         }
       }
     };
-    quitButton.addActionListener(actionListener);
+    quitButton.addActionListener(quitListener);
+
+    continueButton =
+      UIFactory.makeJButton(getMsg("continue-button-label"),
+          getMsg("continue-button-install-tooltip"));
+    final ButtonName fContinueButtonName = ButtonName.CONTINUE_INSTALL;
+
+    ActionListener continueListener = new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ev)
+      {
+        ButtonEvent be = new ButtonEvent(ev.getSource(), fContinueButtonName);
+        for (ButtonActionListener li : buttonListeners)
+        {
+          li.buttonActionPerformed(be);
+        }
+      }
+    };
+    continueButton.addActionListener(continueListener);
 
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
+
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    p2.add(continueButton, gbc);
+    continueButton.setVisible(installStatus.canOverwriteCurrentInstall());
+
+    gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     p2.add(quitButton, gbc);
 
@@ -157,5 +185,14 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
   public JButton getQuitButton()
   {
     return quitButton;
+  }
+
+  /**
+   * Returns the continue install button.
+   * @return the continue install button.
+   */
+  public JButton getContinueInstallButton()
+  {
+    return continueButton;
   }
 }
