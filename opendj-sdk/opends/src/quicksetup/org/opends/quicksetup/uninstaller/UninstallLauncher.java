@@ -210,13 +210,13 @@ public class UninstallLauncher
   private static String getMsg(String key)
   {
     return org.opends.server.util.StaticUtils.wrapText(getI18n().getMsg(key),
-        UninstallCli.MAX_LINE_WIDTH);
+        Utils.getCommandLineMaxLineWidth());
   }
 
   private static String getMsg(String key, String[] args)
   {
     return org.opends.server.util.StaticUtils.wrapText(
-        getI18n().getMsg(key, args), UninstallCli.MAX_LINE_WIDTH);
+        getI18n().getMsg(key, args), Utils.getCommandLineMaxLineWidth());
   }
 
   private static ResourceProvider getI18n()

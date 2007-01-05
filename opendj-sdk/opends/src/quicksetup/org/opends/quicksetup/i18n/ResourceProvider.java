@@ -49,7 +49,11 @@ public class ResourceProvider
   private static final String BUNDLE_NAME =
       "org.opends.quicksetup.resources.Resources";
 
-  private ResourceProvider()
+  /**
+   * This constructor is protected to be able to subclass.
+   *
+   */
+  protected ResourceProvider()
   {
   }
 

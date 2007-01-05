@@ -46,6 +46,10 @@ public enum ButtonName
    */
   QUIT,
   /**
+   * The Continue with install button.
+   */
+  CONTINUE_INSTALL,
+  /**
    * The Close button.
    */
   CLOSE,
@@ -56,5 +60,9 @@ public enum ButtonName
   /**
    * The Cancel button.
    */
-  CANCEL
+  CANCEL,
+  /**
+   * The Launch Status Panel button.
+   */
+  LAUNCH_STATUS_PANEL
 }

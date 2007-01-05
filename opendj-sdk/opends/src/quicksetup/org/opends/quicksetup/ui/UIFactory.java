@@ -77,6 +77,11 @@ public class UIFactory
   public static final int HORIZONTAL_INSET_BETWEEN_BUTTONS = 5;
 
   /**
+   * Specifies the horizontal inset for the control panel sub section.
+   */
+  public static final int HORIZONTAL_INSET_CONTROL_PANEL_SUBSECTION = 20;
+
+  /**
    * Specifies the top inset for the steps.
    */
   public static final int TOP_INSET_STEP = 15;
@@ -140,6 +145,11 @@ public class UIFactory
    * Specifies the top inset for the browse button.
    */
   public static final int TOP_INSET_BROWSE = 5;
+
+  /**
+   * Specifies the top inset for the control panel sub section.
+   */
+  public static final int TOP_INSET_CONTROL_PANEL_SUBSECTION = 30;
 
   /**
    * Specifies the right inset for background image.
@@ -293,10 +303,15 @@ public class UIFactory
   public static final Color PASSWORD_FIELD_COLOR = Color.BLACK;
 
   /**
+   * Specifies the panel border color.
+   */
+  public static final Color PANEL_BORDER_COLOR = new Color(204, 204, 204);
+
+  /**
    * Specifies the current step panel border.
    */
   public static final Border CURRENT_STEP_PANEL_BORDER =
-    BorderFactory.createMatteBorder(0, 2, 2, 0, new Color(204, 204, 204));
+    BorderFactory.createMatteBorder(0, 2, 2, 0, PANEL_BORDER_COLOR);
 
   /**
    * Specifies the text area border.
@@ -308,7 +323,7 @@ public class UIFactory
    * Specifies the dialog border.
    */
   public static final Border DIALOG_PANEL_BORDER =
-    BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(204, 204, 204));
+    BorderFactory.createMatteBorder(0, 0, 2, 0, PANEL_BORDER_COLOR);
 
   /**
    * Specifies the font for the step which is not the current one in the steps
@@ -498,17 +513,41 @@ public class UIFactory
      */
     WARNING,
     /**
-     * The error icon.
-     */
-    ERROR,
-    /**
      * The warning large icon.
      */
     WARNING_LARGE,
     /**
+     * The error icon.
+     */
+    ERROR,
+    /**
+     * The error large icon.
+     */
+    ERROR_LARGE,
+    /**
      * The information icon.
      */
     INFORMATION,
+    /**
+     * The information large icon.
+     */
+    INFORMATION_LARGE,
+    /**
+     * Icon of OpenDS.
+     */
+    OPENDS_SMALL,
+    /**
+     * Icon to create subsection title in Status Panel.
+     */
+    SUBSECTION_LEFT,
+    /**
+     * Icon to create subsection title in Status Panel.
+     */
+    SUBSECTION_RIGHT,
+    /**
+     * Question icon.
+     */
+    HELP_SMALL,
     /**
      * No icon.
      */
@@ -1194,12 +1233,36 @@ public class UIFactory
       key = "information-icon";
       break;
 
+    case INFORMATION_LARGE:
+      key = "information-large-icon";
+      break;
+
+    case OPENDS_SMALL:
+      key = "opends-small-icon";
+      break;
+
+    case SUBSECTION_LEFT:
+      key = "subsection-left-icon";
+      break;
+
+    case SUBSECTION_RIGHT:
+      key = "subsection-right-icon";
+      break;
+
+    case HELP_SMALL:
+      key = "help-small-icon";
+      break;
+
     case ERROR:
       key = "error-icon";
       break;
 
+    case ERROR_LARGE:
+      key = "error-large-icon";
+      break;
+
     default:
-      throw new IllegalArgumentException("Unknow iconName: " + iconType);
+      throw new IllegalArgumentException("Unknown iconName: " + iconType);
     }
     return getParentPackagePath() + "/" + getMsg(key);
   }
@@ -1235,19 +1298,43 @@ public class UIFactory
       break;
 
     case WARNING:
-      description = "warning-icon-description";
+      description = getMsg("warning-icon-description");
       break;
 
     case WARNING_LARGE:
-      description = "warning-icon-description";
+      description = getMsg("warning-icon-description");
       break;
 
     case ERROR:
-      description = "error-icon-description";
+      description = getMsg("error-icon-description");
+      break;
+
+    case ERROR_LARGE:
+      description = getMsg("error-icon-description");
       break;
 
     case INFORMATION:
-      description = "information-icon-description";
+      description = getMsg("information-icon-description");
+      break;
+
+    case INFORMATION_LARGE:
+      description = getMsg("information-icon-description");
+      break;
+
+    case OPENDS_SMALL:
+      description = getMsg("opends-small-icon-description");
+      break;
+
+    case SUBSECTION_LEFT:
+      description = getMsg("subsection-left-icon-description");
+      break;
+
+    case SUBSECTION_RIGHT:
+      description = getMsg("subsection-right-icon-description");
+      break;
+
+    case HELP_SMALL:
+      description = getMsg("help-small-icon-description");
       break;
 
     case NO_ICON:
@@ -1255,8 +1342,9 @@ public class UIFactory
       break;
 
     default:
-      throw new IllegalArgumentException("Unknow iconName: " + iconType);
+      throw new IllegalArgumentException("Unknown iconName: " + iconType);
     }
+
     return description;
   }
 
@@ -1291,28 +1379,52 @@ public class UIFactory
       break;
 
     case WARNING:
-      tooltip = "warning-icon-tooltip";
+      tooltip = getMsg("warning-icon-tooltip");
       break;
 
     case WARNING_LARGE:
-      tooltip = "warning-icon-tooltip";
+      tooltip = getMsg("warning-icon-tooltip");
       break;
 
     case ERROR:
-      tooltip = "error-icon-tooltip";
+      tooltip = getMsg("error-icon-tooltip");
+      break;
+
+    case ERROR_LARGE:
+      tooltip = getMsg("error-icon-tooltip");
       break;
 
     case INFORMATION:
-      tooltip = "information-icon-tooltip";
+      tooltip = getMsg("information-icon-tooltip");
       break;
 
+    case INFORMATION_LARGE:
+      tooltip = getMsg("information-icon-tooltip");
+      break;
+
+    case OPENDS_SMALL:
+      tooltip = null;
+      break;
+
+    case SUBSECTION_LEFT:
+      tooltip = null;
+      break;
+
+    case SUBSECTION_RIGHT:
+      tooltip = null;
+      break;
+
+    case HELP_SMALL:
+      tooltip = null;
+      break;
     case NO_ICON:
       tooltip = null;
       break;
 
     default:
-      throw new IllegalArgumentException("Unknow iconName: " + iconType);
+      throw new IllegalArgumentException("Unknown iconName: " + iconType);
     }
+
     return tooltip;
   }
 

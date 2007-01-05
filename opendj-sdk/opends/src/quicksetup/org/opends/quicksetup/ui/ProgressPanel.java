@@ -30,6 +30,8 @@ package org.opends.quicksetup.ui;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.Box;
 import javax.swing.JEditorPane;
@@ -40,6 +42,8 @@ import javax.swing.JScrollPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
+import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.installer.InstallProgressDescriptor;
 import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
@@ -87,9 +91,22 @@ public class ProgressPanel extends QuickSetupStepPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
-    progressBarLabel =
-        UIFactory.makeHtmlPane(getMsg("progressbar-initial-label"),
-            UIFactory.PROGRESS_FONT);
+    progressBarLabel = UIFactory.makeHtmlPane(
+        getMsg("progressbar-initial-label"), UIFactory.PROGRESS_FONT);
+    progressBarLabel.setOpaque(false);
+    progressBarLabel.setEditable(false);
+    CustomHTMLEditorKit htmlEditor = new CustomHTMLEditorKit();
+    htmlEditor.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ev)
+      {
+        // Assume is the authentication button.
+        ButtonEvent be = new ButtonEvent(ev.getSource(),
+            ButtonName.LAUNCH_STATUS_PANEL);
+        notifyButtonListeners(be);
+      }
+    });
+    progressBarLabel.setEditorKit(htmlEditor);
     progressBarLabel.addHyperlinkListener(this);
     panel.add(progressBarLabel, gbc);
 
@@ -159,9 +176,15 @@ public class ProgressPanel extends QuickSetupStepPanel
    */
   public void displayProgress(InstallProgressDescriptor descriptor)
   {
-    progressBarLabel.setText(UIFactory.applyFontToHtml(descriptor
-        .getProgressBarMsg(), UIFactory.PROGRESS_FONT));
     InstallProgressStep status = descriptor.getProgressStep();
+    String summaryText = UIFactory.applyFontToHtml(descriptor
+        .getProgressBarMsg(), UIFactory.PROGRESS_FONT);
+    if (status == InstallProgressStep.FINISHED_SUCCESSFULLY)
+    {
+      summaryText = "<form>"+summaryText+"</form>";
+    }
+    progressBarLabel.setText(summaryText);
+
     if ((status == InstallProgressStep.FINISHED_WITH_ERROR)
         || (status == InstallProgressStep.FINISHED_SUCCESSFULLY))
     {
@@ -182,9 +205,15 @@ public class ProgressPanel extends QuickSetupStepPanel
    */
   public void displayProgress(UninstallProgressDescriptor descriptor)
   {
-    progressBarLabel.setText(UIFactory.applyFontToHtml(descriptor
-        .getProgressBarMsg(), UIFactory.PROGRESS_FONT));
     UninstallProgressStep status = descriptor.getProgressStep();
+    String summaryText = UIFactory.applyFontToHtml(descriptor
+        .getProgressBarMsg(), UIFactory.PROGRESS_FONT);
+    if (status == UninstallProgressStep.FINISHED_SUCCESSFULLY)
+    {
+      summaryText = "<form>"+summaryText+"</form>";
+    }
+    progressBarLabel.setText(summaryText);
+
     if ((status == UninstallProgressStep.FINISHED_WITH_ERROR)
         || (status == UninstallProgressStep.FINISHED_SUCCESSFULLY))
     {

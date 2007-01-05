@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup.ui;
 
+import java.awt.event.ComponentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashSet;
@@ -87,6 +88,8 @@ public class QuickSetupDialog
   private HashSet<ButtonActionListener> buttonListeners =
       new HashSet<ButtonActionListener>();
 
+  private boolean forceToDisplaySetup;
+
   /**
    * Constructor of QuickSetupDialog.
    * @param defaultUserData the default values to be proposed to the user in
@@ -123,10 +126,10 @@ public class QuickSetupDialog
             // Simulate a quit button event
             notifyButtonEvent(ButtonName.QUIT);
           }
-        } else if (isInstalled())
+        } else if (isInstalled() && !forceToDisplaySetup)
         {
           // Simulate a close button event
-          notifyButtonEvent(ButtonName.CLOSE);
+          notifyButtonEvent(ButtonName.QUIT);
         } else
         {
           if (getDisplayedStep() == Step.PROGRESS)
@@ -166,18 +169,55 @@ public class QuickSetupDialog
     if (isUninstall())
     {
       setFocusOnButton(ButtonName.FINISH);
-    } else if (!isInstalled())
+    } else if (!isInstalled() || forceToDisplaySetup)
     {
       setFocusOnButton(ButtonName.NEXT);
     } else
     {
-      setFocusOnButton(ButtonName.QUIT);
+      if (installStatus.canOverwriteCurrentInstall())
+      {
+        setFocusOnButton(ButtonName.CONTINUE_INSTALL);
+      }
+      else
+      {
+        setFocusOnButton(ButtonName.QUIT);
+      }
     }
 
     frame.addComponentListener(new MinimumSizeComponentListener(frame,
         minWidth, minHeight));
 
     frame.setVisible(true);
+  }
+
+  /**
+   * This method is called when we detected that there is something installed
+   * we inform of this to the user and the user wants to proceed with the
+   * installation destroying the contents of the data and the configuration
+   * in the current installation.
+   *
+   */
+  public void forceToDisplaySetup()
+  {
+    forceToDisplaySetup = true;
+    frame.getContentPane().removeAll();
+    frame.getContentPane().add(getFramePanel());
+    frame.pack();
+    Utils.centerOnScreen(frame);
+    setFocusOnButton(ButtonName.NEXT);
+    int minWidth = (int) frame.getPreferredSize().getWidth();
+    int minHeight = (int) frame.getPreferredSize().getHeight();
+
+    ComponentListener[] listeners = frame.getComponentListeners();
+    for (int i=0; i<listeners.length; i++)
+    {
+      if (listeners[i] instanceof MinimumSizeComponentListener)
+      {
+        frame.removeComponentListener(listeners[i]);
+      }
+    }
+    frame.addComponentListener(new MinimumSizeComponentListener(frame,
+        minWidth, minHeight));
   }
 
   /**
@@ -221,7 +261,7 @@ public class QuickSetupDialog
         setButtonEnabled(ButtonName.CLOSE, false);
         break;
       }
-    } else if (!isInstalled())
+    } else if (!isInstalled() || forceToDisplaySetup)
     {
       // First call the panels to do the required updates on their layout
       getButtonsPanel().setDisplayedStep(step);
@@ -380,16 +420,11 @@ public class QuickSetupDialog
    */
   public void addButtonActionListener(ButtonActionListener l)
   {
-    if (isUninstall())
-    {
-      getButtonsPanel().addButtonActionListener(l);
-    } else if (isInstalled())
-    {
-      getInstalledPanel().addButtonActionListener(l);
-    } else
-    {
-      getButtonsPanel().addButtonActionListener(l);
-    }
+    getButtonsPanel().addButtonActionListener(l);
+    getInstalledPanel().addButtonActionListener(l);
+    getButtonsPanel().addButtonActionListener(l);
+    getCurrentStepPanel().addButtonActionListener(l);
+
     buttonListeners.add(l);
   }
 
@@ -402,7 +437,7 @@ public class QuickSetupDialog
     if (isUninstall())
     {
       getButtonsPanel().removeButtonActionListener(l);
-    } else if (isInstalled())
+    } else if (isInstalled() && !forceToDisplaySetup)
     {
       getInstalledPanel().removeButtonActionListener(l);
     } else
@@ -519,7 +554,7 @@ public class QuickSetupDialog
                 getButtonsPanel());
       }
       p = framePanel;
-    } else if (isInstalled())
+    } else if (isInstalled() && !forceToDisplaySetup)
     {
       p = getInstalledPanel();
     } else
@@ -598,11 +633,14 @@ public class QuickSetupDialog
     if (isUninstall())
     {
       button = getButtonsPanel().getButton(buttonName);
-    } else if (isInstalled())
+    } else if (isInstalled() && !forceToDisplaySetup)
     {
       if (buttonName == ButtonName.QUIT)
       {
         button = getInstalledPanel().getQuitButton();
+      } else if (buttonName == ButtonName.CONTINUE_INSTALL)
+      {
+        button = getInstalledPanel().getContinueInstallButton();
       } else
       {
         throw new IllegalStateException("Invalid button name " + buttonName
@@ -686,8 +724,7 @@ public class QuickSetupDialog
   {
     if (installedPanel == null)
     {
-      installedPanel =
-          new QuickSetupErrorPanel(installStatus.getInstallationMsg());
+      installedPanel = new QuickSetupErrorPanel(installStatus);
     }
     return installedPanel;
   }

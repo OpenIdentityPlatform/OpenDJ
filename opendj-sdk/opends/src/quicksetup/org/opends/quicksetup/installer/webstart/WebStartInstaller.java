@@ -129,6 +129,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties
    */
   private void doInstall()
   {
+    PrintStream origErr = System.err;
+    PrintStream origOut = System.out;
     try
     {
       PrintStream err = new ErrorPrintStream();
@@ -195,6 +197,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties
       String msg = getFormattedError(ex, true);
       notifyListeners(msg);
     }
+    System.setErr(origErr);
+    System.setOut(origOut);
   }
 
   /**

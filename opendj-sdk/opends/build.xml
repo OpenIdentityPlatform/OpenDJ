@@ -80,6 +80,11 @@
   <property name="quicksetup.src.dir" location="src/quicksetup"       />
   <property name="quicksetup.classes.dir"
             location="${build.dir}/quicksetup/classes"                />
+	
+	<!-- Properties for use with the Status Panel.                      -->
+	  <property name="statuspanel.src.dir" location="src/statuspanel"       />
+	  <property name="statuspanel.classes.dir"
+	            location="${build.dir}/statuspanel/classes"                />
 
   <!-- Properties for code coverage testing.                            -->
   <property name="coverage.dir"         location="build/coverage"            />
@@ -232,17 +237,23 @@
     <taskdef resource="checkstyletask.properties"
          classpath="${checkstyle.dir}/checkstyle-all-4.1.jar" />
 
-  	<checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+    <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
       <fileset dir="${src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
-	
+
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
       <fileset dir="${quicksetup.src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
+  	
+  	<checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+  	         failOnViolation="true">
+  	      <fileset dir="${statuspanel.src.dir}" includes="**/*.java" />
+  	      <formatter type="plain" />
+  	    </checkstyle>
 
     <checkstyle config="${checkstyle.dir}/opends-doctarget-checkstyle.xml"
          failOnViolation="true">
@@ -270,7 +281,7 @@
 
 
   <!-- Compile the Directory Server source files. -->
-  <target name="cleancompile" depends="cleaninit,compile,compilequicksetup"
+  <target name="cleancompile" depends="cleaninit,compile,compilequicksetup,compilestatuspanel"
        description="Recompile the Directory Server source files.">
   </target>
 
@@ -322,6 +333,28 @@
                includes="**/DynamicConstants.class **/SetupUtils.class" />
     </copy>
   </target>
+	
+	<!-- Compile the Status Panel source files. -->
+	  <target name="compilestatuspanel" depends="compilequicksetup"
+	          description="Compile the Status Panel source files.">
+
+	    <mkdir dir="${statuspanel.classes.dir}" />
+	    <javac srcdir="${statuspanel.src.dir}" destdir="${statuspanel.classes.dir}"
+	         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+	         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+	         memoryMaximumSize="${MEM}">
+	      <compilerarg value="-Xlint:all" />
+
+	      <classpath>
+	        <pathelement path="${classes.dir}"/>
+	        <pathelement path="${quicksetup.classes.dir}"/>
+	      </classpath>
+	    </javac>
+	    <copy todir="${statuspanel.classes.dir}">
+	      <fileset dir="${statuspanel.src.dir}"
+	               includes="**/*.properties, **/*.gif, **/*.png" />
+	    </copy>
+	  </target>
 
   <!--
    ! Rebuild the Directory Server without destroying any existing configuration
@@ -351,6 +384,7 @@
     <delete file="${pdir}.zip" />
     <delete dir="${quicksetup.classes.dir}" />
     <delete file="${package.dir}/lib/quicksetup.jar" />
+  	<delete file="${package.dir}/lib/statuspanel.jar" />
     
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
@@ -401,6 +435,29 @@
     <!-- Generate the quicksetup.jar file -->
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
+  	
+    <!-- Recreate the controlpanel classes directory and recompile into it. -->
+    <mkdir dir="${controlpanel.classes.dir}" />
+    <javac srcdir="${controlpanel.src.dir}" destdir="${controlpanel.classes.dir}" optimize="true"
+        debug="on" debuglevel="lines,source" source="1.5" target="1.5"
+        deprecation="true" fork="true" memoryInitialSize="${MEM}"
+        memoryMaximumSize="${MEM}">
+        <compilerarg value="-Xlint:all" />
+        <classpath>
+            <fileset dir="${pdir}/lib">
+                <include name="OpenDS.jar" />
+            </fileset>
+        </classpath>
+    </javac>
+
+    <copy todir="${controlpanel.classes.dir}">
+        <fileset dir="${controlpanel.src.dir}"
+            includes="**/*.properties, **/*.gif, **/*.png"/>
+    </copy>
+            	
+  	<!-- Generate the statuspanel.jar file -->
+  	    <jar jarfile="${pdir}/lib/statuspanel.jar"
+  	         basedir="${statuspanel.classes.dir}" compress="true" index="true" />
   </target>
 
 
@@ -436,6 +493,9 @@
     
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
+  	
+  	<jar jarfile="${pdir}/lib/statuspanel.jar"
+  	         basedir="${statuspanel.classes.dir}" compress="true" index="true" />
          
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.jar" />

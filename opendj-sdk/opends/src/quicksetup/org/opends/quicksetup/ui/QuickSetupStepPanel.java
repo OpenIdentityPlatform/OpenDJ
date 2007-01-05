@@ -32,6 +32,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 import javax.swing.Box;
 import javax.swing.JEditorPane;
@@ -41,6 +42,8 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
 
+import org.opends.quicksetup.event.ButtonActionListener;
+import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.installer.InstallProgressDescriptor;
 import org.opends.quicksetup.installer.LabelFieldDescriptor;
@@ -62,6 +65,9 @@ public abstract class QuickSetupStepPanel extends QuickSetupPanel
 implements HyperlinkListener
 {
   private Component inputPanel;
+
+  private HashSet<ButtonActionListener> buttonListeners =
+    new HashSet<ButtonActionListener>();
 
   private ProgressMessageFormatter formatter;
 
@@ -190,6 +196,37 @@ implements HyperlinkListener
     return height;
   }
 
+
+  /**
+   * Adds a button listener.  All the button listeners will be notified when
+   * the buttons are clicked (by the user or programatically).
+   * @param l the ButtonActionListener to be added.
+   */
+  public void addButtonActionListener(ButtonActionListener l)
+  {
+    buttonListeners.add(l);
+  }
+
+  /**
+   * Removes a button listener.
+   * @param l the ButtonActionListener to be removed.
+   */
+  public void removeButtonActionListener(ButtonActionListener l)
+  {
+    buttonListeners.remove(l);
+  }
+
+  /**
+   * Notifies the button action listeners that an event occurred.
+   * @param ev the button event to be notified.
+   */
+  protected void notifyButtonListeners(ButtonEvent ev)
+  {
+    for (ButtonActionListener l : buttonListeners)
+    {
+      l.buttonActionPerformed(ev);
+    }
+  }
   /**
    * Creates the layout of the panel.
    *

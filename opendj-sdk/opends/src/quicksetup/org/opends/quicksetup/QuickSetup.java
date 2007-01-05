@@ -27,10 +27,12 @@
 
 package org.opends.quicksetup;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.SwingUtilities;
@@ -197,12 +199,20 @@ UninstallProgressUpdateListener
       quitClicked();
       break;
 
+    case CONTINUE_INSTALL:
+      continueInstallClicked();
+      break;
+
     case PREVIOUS:
       previousClicked();
       break;
 
     case CANCEL:
       cancelClicked();
+      break;
+
+    case LAUNCH_STATUS_PANEL:
+      launchStatusPanelClicked();
       break;
 
     default:
@@ -557,6 +567,25 @@ UninstallProgressUpdateListener
   }
 
   /**
+   * Method called when user clicks 'Continue' button in the case where there
+   * is something installed.
+   */
+  private void continueInstallClicked()
+  {
+    Step cStep = getCurrentStep();
+    switch (cStep)
+    {
+    case WELCOME:
+      getDialog().forceToDisplaySetup();
+      setCurrentStep(Step.WELCOME);
+      break;
+    default:
+      throw new IllegalStateException(
+          "Continue only can be clicked on WELCOME step");
+    }
+  }
+
+  /**
    * Method called when user clicks 'Close' button of the wizard.
    *
    */
@@ -610,6 +639,64 @@ UninstallProgressUpdateListener
       throw new IllegalStateException(
           "Cancel only can be clicked on CONFIRM_UNINSTALL step");
     }
+  }
+
+  private void launchStatusPanelClicked()
+  {
+    BackgroundTask worker = new BackgroundTask()
+    {
+      public Object processBackgroundTask() throws UserInstallDataException
+      {
+        try
+        {
+          String cmd = Utils.isWindows()?"statuspanel.bat":"statuspanel";
+          String serverPath;
+          if (Utils.isWebStart())
+          {
+            serverPath = getUserInstallData().getServerLocation();
+          }
+          else
+          {
+            serverPath = Utils.getInstallPathFromClasspath();
+          }
+          cmd = Utils.getPath(serverPath, "bin"+File.separator+cmd);
+          ProcessBuilder pb = new ProcessBuilder(new String[]{cmd});
+          Map<String, String> env = pb.environment();
+          env.put("JAVA_HOME", System.getProperty("java.home"));
+          /* Remove JAVA_BIN to be sure that we use the JVM running the
+           * uninstaller JVM to stop the server.
+           */
+          env.remove("JAVA_BIN");
+          Process process = pb.start();
+          int returnValue = process.waitFor();
+
+          if (returnValue != 0)
+          {
+            throw new Error(getMsg("could-not-launch-status-panel-msg"));
+          }
+        }
+        catch (Throwable t)
+        {
+          // This looks like a bug
+          t.printStackTrace();
+          throw new Error(getMsg("could-not-launch-status-panel-msg"));
+        }
+        return null;
+      }
+
+      public void backgroundTaskCompleted(Object returnValue,
+          Throwable throwable)
+      {
+        getDialog().workerFinished();
+
+        if (throwable != null)
+        {
+          displayError(throwable.getMessage(), getMsg("error-title"));
+        }
+      }
+    };
+    getDialog().workerStarted();
+    worker.startBackgroundTask();
   }
 
   /**

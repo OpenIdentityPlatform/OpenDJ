@@ -52,6 +52,8 @@ public class CurrentInstallStatus
 {
   private boolean isInstalled;
 
+  private boolean canOverwriteCurrentInstall;
+
   private String installationMsg;
 
   private String configFileContents;
@@ -77,24 +79,18 @@ public class CurrentInstallStatus
       isInstalled = false;
     } else
     {
+      boolean dbFileExists = false;
       ArrayList<String> msgs = new ArrayList<String>();
 
       if (isServerRunning())
       {
-        if (isConfigFileModified() || (getPort() != 389))
-        {
-          /*
-           * If the config file is not modified and the port is 389 the common
-           * case is that there is already a server running on the default port,
-           * so it does not correspond to this install.
-           */
-          msgs.add(getMsg("installstatus-serverrunning", new String[]
+        msgs.add(getMsg("installstatus-serverrunning", new String[]
             { String.valueOf(getPort()) }));
-        }
       }
 
       if (dbFilesExist())
       {
+        dbFileExists = true;
         msgs.add(getMsg("installstatus-dbfileexist"));
       }
 
@@ -102,8 +98,14 @@ public class CurrentInstallStatus
       {
         msgs.add(getMsg("installstatus-configfilemodified"));
       }
+      canOverwriteCurrentInstall = (msgs.size() == 1) && dbFileExists;
       isInstalled = msgs.size() > 0;
-      if (isInstalled)
+      if (canOverwriteCurrentInstall)
+      {
+        installationMsg =
+          getMsg("installstatus-canoverwritecurrentinstall-msg");
+      }
+      else if (isInstalled)
       {
         StringBuffer buf = new StringBuffer();
         buf.append("<ul>");
@@ -131,6 +133,18 @@ public class CurrentInstallStatus
   public boolean isInstalled()
   {
     return isInstalled;
+  }
+
+  /**
+   * Indicates can overwrite current install.
+   *
+   * @return <CODE>true</CODE> if there is something installed under the
+   *         binaries that we are running and we can overwrite it and
+   *         <CODE>false</CODE> if not.
+   */
+  public boolean canOverwriteCurrentInstall()
+  {
+    return canOverwriteCurrentInstall;
   }
 
   /**
