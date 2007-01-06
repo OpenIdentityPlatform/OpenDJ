@@ -7507,6 +7507,17 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if the connection to the
+   * Directory Server is closed while attempting to read the bind response from
+   * the server.  This does not take any arguments.
+   */
+  public static final int
+       MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 789;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8030,6 +8041,9 @@ public class ToolMessages
 
     registerMessage(MSGID_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND,
                     "Cannot send the simple bind request:  %s.");
+    registerMessage(MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE,
+                    "The connection to the Directory Server was closed " +
+                    "before the bind response could be read.");
     registerMessage(MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE,
                     "Cannot read the bind response from the server:  " +
                     "%s.");
