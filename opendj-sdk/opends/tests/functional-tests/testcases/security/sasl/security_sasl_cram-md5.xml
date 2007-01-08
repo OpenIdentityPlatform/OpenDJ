@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!---
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
+ -->
+<stax>
+
+  <defaultcall function="sasl_cram-md5"/>
+
+  <function name="sasl_cram-md5">
+
+      <sequence>
+
+        <!--- Test case: CRAM-MD5 SASL Mechanism -->
+        <testcase name="'Security: SASL CRAM-MD5: Preamble'">
+          <sequence>
+            <message>
+               'Security: SASL CRAM-MD5: Preamble Step 1 - Admin Changing Pwd Storage to CLEAR'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/sasl/admin_change_CLEAR.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: SASL CRAM-MD5: Preamble Step 2 - Admin Changing User Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With CRAM-MD5 SASL Mechanism-->
+        <testcase name="'Security: SASL CRAM-MD5: User (u:) Binding With CRAM-MD5 SASL Mech'">
+          <sequence>
+            <message>
+               'Security: SASL CRAM-MD5: User (u:) Binding With CRAM-MD5 SASL Mechanism'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=CRAM-MD5 -o authid=u:jrunner -w frogleg' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With CRAM-MD5 SASL Mechanism-->
+        <testcase name="'Security: SASL CRAM-MD5: User (dn:) Binding With CRAM-MD5 SASL Mech'">
+          <sequence>
+            <message>
+               'Security: SASL CRAM-MD5: User (dn:) Binding With CRAM-MD5 SASL Mechanism'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:uid=jrunner,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With CRAM-MD5 SASL Mechanism-->
+        <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding'">
+          <sequence>
+            <message>
+               'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding With CRAM-MD5 SASL Mechanism'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=CRAM-MD5 -o authid=u:jcrawler -w frogleg' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With CRAM-MD5 SASL Mechanism-->
+        <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (dn:) Binding'">
+          <sequence>
+            <message>
+               'Security: SASL CRAM-MD5: User With Duplicate uid (dn:) Binding With CRAM-MD5 SASL Mechanism'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:uid=jcrawler,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With CRAM-MD5 SASL Mechanism-->
+        <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding 2'">
+          <sequence>
+            <message>
+               'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding With CRAM-MD5 SASL Mechanism After Deleting Dupe Entry'
+            </message>
+
+           <call function="'DeleteEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=jcrawler,ou=People,ou=Level One,o=SASL Tests,dc=example,dc=com' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding With CRAM-MD5 SASL Mechanism'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=CRAM-MD5 -o authid=u:jcrawler -w frogleg' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <!--- Test case: CRAM-MD5 SASL Mechanism -->
+        <testcase name="'Security: SASL CRAM-MD5: Postamble'">
+          <sequence>
+            <message>
+               'Security: SASL CRAM-MD5: Postamble Step 1 - Admin Changing Pwd Storage to SSHA'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/sasl/admin_change_SSHA.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: SASL CRAM-MD5: Postamble Step 2 - Admin Changing User Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: SASL CRAM-MD5: Postamble Step 3 - User (dn:) Binding With CRAM-MD5 SASL Mechanism'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:uid=jrunner,ou=People,o=SASL Tests,dc=example,dc=com" -w catleg' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
+            </call>
+          </sequence>
+        </testcase>
+
+        <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>
