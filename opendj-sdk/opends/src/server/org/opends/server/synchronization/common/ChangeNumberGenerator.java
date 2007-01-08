@@ -121,7 +121,7 @@ public class ChangeNumberGenerator
       if (lastTime > rcvdTime)
         return;
       else
-        lastTime = lastTime++;
+        lastTime = rcvdTime++;
     }
   }
 }
