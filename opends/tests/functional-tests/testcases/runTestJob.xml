@@ -300,6 +300,49 @@
         transformer.transform(source, result)      
       </script>
 
+      <if expr="SEND_MAIL_AFTER_TEST_RUN == 'TRUE'">
+
+        <sequence>
+
+          <message>
+            'Sending Email Test Report to %s.' % SEND_MAIL_TO
+          </message>
+
+          <script>
+            MailToList= SEND_MAIL_TO.split(",")
+            MailSubject= 'OpenDS Test Report for %s' % STAF_REMOTE_HOSTNAME
+            MailSendTo= ' '
+          </script>
+
+          <iterate var="Recipient" in="MailToList">
+            <script>
+             MailSendTo='to %s %s' % (Recipient,MailSendTo)
+            </script>
+          </iterate>
+          
+          <stafcmd name="'STAF Command: Send test report %s' % MailSendTo">
+            <location>'%s' % STAF_LOCAL_HOSTNAME </location>
+            <service>'email'</service>
+            <request>
+              'send %s contenttype "text/html" file %s subject "%s" noheader' % (MailSendTo,htmlfile,MailSubject)
+            </request>
+          </stafcmd>
+
+          <if expr="RC != 0">
+            <message log="1" level="'Error'">
+              'Send test report failed. RC: %s STAFResult: %s' % (RC,STAFResult)
+            </message>
+          <else>
+            <message>
+              'Send test report successful. RC: %s' % (RC)
+            </message>
+          </else>
+          </if>
+
+        </sequence>
+
+      </if>
+
     </sequence>
 
   </function>
