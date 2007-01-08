@@ -819,8 +819,10 @@ public class UpdateOperationTest extends SynchronizationTestCase
   }
 
   /**
-   * Check that the entry with the given dn has the given valueString value
-   * for the given attrTypeStr attribute type.
+   *  Get the entryUUID for a given DN.
+   *  
+   * @throws Exception if the entry does not exist or does not have
+   *                   an entryUUID.
    */
   private String getEntryUUID(DN dn) throws Exception
   {
@@ -870,7 +872,10 @@ public class UpdateOperationTest extends SynchronizationTestCase
       {
         LockManager.unlock(dn, lock);
       }
+      count --;
     }
+    if (found == null)
+      throw new Exception("Entry: " + dn + " Could not be found.");
     return found;
   }
 
