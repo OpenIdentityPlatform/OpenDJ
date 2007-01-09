@@ -40,6 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.api.ConfigurableComponent;
@@ -112,7 +113,7 @@ public class SynchronizationDomain extends DirectoryThread
     new TreeMap<ChangeNumber, UpdateMessage>();
   private int numRcvdUpdates = 0;
   private int numSentUpdates = 0;
-  private int numProcessedUpdates = 0;
+  private AtomicInteger numProcessedUpdates = new AtomicInteger();
   private int debugCount = 0;
   private PersistentServerState state;
   private int numReplayedPostOpCalled = 0;
@@ -921,10 +922,7 @@ public class SynchronizationDomain extends DirectoryThread
    */
   public void incProcessedUpdates()
   {
-    synchronized (this)
-    {
-      numProcessedUpdates++;
-    }
+    numProcessedUpdates.incrementAndGet();
   }
 
   /**
@@ -934,7 +932,7 @@ public class SynchronizationDomain extends DirectoryThread
    */
   public int getNumProcessedUpdates()
   {
-    return numProcessedUpdates;
+    return numProcessedUpdates.get();
   }
 
   /**
