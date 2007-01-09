@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -364,7 +364,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = attributeType.toString();
+      String valueString = attributeType.getDefinition();
       ASN1OctetString rawValue = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -401,7 +401,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = attributeType.toString();
+      String valueString = attributeType.getDefinition();
       ASN1OctetString rawValue = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -556,7 +556,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = objectClass.toString();
+      String valueString = objectClass.getDefinition();
       ASN1OctetString rawValue = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -592,7 +592,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = objectClass.toString();
+      String valueString = objectClass.getDefinition();
       ASN1OctetString rawValue = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -1821,7 +1821,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = matchingRuleUse.toString();
+      String valueString = matchingRuleUse.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -1853,7 +1853,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = matchingRuleUse.toString();
+      String valueString = matchingRuleUse.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -1989,7 +1989,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = ditContentRule.toString();
+      String valueString = ditContentRule.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -2021,7 +2021,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = ditContentRule.toString();
+      String valueString = ditContentRule.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -2234,7 +2234,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = ditStructureRule.toString();
+      String valueString = ditStructureRule.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -2269,7 +2269,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = ditStructureRule.toString();
+      String valueString = ditStructureRule.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -2496,7 +2496,7 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = nameForm.toString();
+      String valueString = nameForm.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
@@ -2531,11 +2531,249 @@ public class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = nameForm.toString();
+      String valueString = nameForm.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
            new ASN1OctetString(toLowerCase(valueString));
       nameFormSet.remove(new AttributeValue(rawValue, normValue));
+    }
+  }
+
+
+
+  /**
+   * Recursively rebuilds all schema elements that are dependent upon
+   * the provided element.  This must be invoked whenever an existing
+   * schema element is modified in order to ensure that any elements
+   * that depend on it should also be recreated to reflect the change.
+   * <BR><BR>
+   * The following conditions create dependencies between schema
+   * elements:
+   * <UL>
+   *   <LI>If an attribute type references a superior attribute type,
+   *       then it is dependent upon that superior attribute
+   *       type.</LI>
+   *   <LI>If an objectclass requires or allows an attribute type,
+   *       then it is dependent upon that attribute type.</LI>
+   *   <LI>If a name form requires or allows an attribute type in the
+   *       RDN, then it is dependent upon that attribute type.</LI>
+   *   <LI>If a DIT content rule requires, allows, or forbids the use
+   *       of an attribute type, then it is dependent upon that
+   *       attribute type.</LI>
+   *   <LI>If a matching rule use references an attribute type, then
+   *       it is dependent upon that attribute type.</LI>
+   *   <LI>If an objectclass references a superior objectclass, then
+   *       it is dependent upon that superior objectclass.</LI>
+   *   <LI>If a name form references a structural objectclass, then it
+   *       is dependent upon that objectclass.</LI>
+   *   <LI>If a DIT content rule references a structural or auxiliary
+   *       objectclass, then it is dependent upon that
+   *       objectclass.</LI>
+   *   <LI>If a DIT structure rule references a name form, then it is
+   *       dependent upon that name form.</LI>
+   *   <LI>If a DIT structure rule references a superior DIT structure
+   *       rule, then it is dependent upon that superior DIT structure
+   *       rule.</LI>
+   * </UL>
+   *
+   * @param  element  The element for which to recursively rebuild all
+   *                  dependent elements.
+   *
+   * @throws  DirectoryException  If a problem occurs while rebuilding
+   *                              any of the schema elements.
+   */
+  public final void rebuildDependentElements(
+                         SchemaFileElement element)
+         throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "rebuildDependentElements",
+                      String.valueOf(element));
+
+    try
+    {
+      rebuildDependentElements(element, 0);
+    }
+    catch (DirectoryException de)
+    {
+      // If we got an error as a result of a circular reference, then
+      // we want to make sure that the schema element we call out is
+      // the one that is at the root of the problem.
+      if (de.getErrorMessageID() ==
+          MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE)
+      {
+        int    msgID   = MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE;
+        String message = getMessage(msgID, element.getDefinition());
+        throw new DirectoryException(de.getResultCode(), message,
+                                     msgID, de);
+      }
+
+
+      // It wasn't a circular reference error, so just re-throw the
+      // exception.
+      throw de;
+    }
+  }
+
+
+
+  /**
+   * Recursively rebuilds all schema elements that are dependent upon
+   * the provided element, increasing the depth for each level of
+   * recursion to protect against errors due to circular references.
+   *
+   * @param  element  The element for which to recursively rebuild all
+   *                  dependent elements.
+   * @param  depth    The current recursion depth.
+   *
+   * @throws  DirectoryException  If a problem occurs while rebuilding
+   *                              any of the schema elements.
+   */
+  private final void rebuildDependentElements(
+                          SchemaFileElement element, int depth)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "rebuildDependentElements",
+                      String.valueOf(element), String.valueOf(depth));
+
+    if (depth > 20)
+    {
+      // FIXME -- Is this an appropriate maximum depth for detecting
+      // circular references?
+      int    msgID   = MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE;
+      String message = getMessage(msgID, element.getDefinition());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                   message, msgID);
+    }
+
+
+    // Figure out what type of element we're dealing with and make the
+    // appropriate determinations for that element.
+    if (element instanceof AttributeType)
+    {
+      AttributeType t = (AttributeType) element;
+
+      for (AttributeType at : attributeTypes.values())
+      {
+        if ((at.getSuperiorType() != null) &&
+            at.getSuperiorType().equals(t))
+        {
+          AttributeType newAT = at.recreateFromDefinition();
+          deregisterAttributeType(at);
+          registerAttributeType(newAT, true);
+          rebuildDependentElements(at, depth+1);
+        }
+      }
+
+      for (ObjectClass oc : objectClasses.values())
+      {
+        if (oc.getRequiredAttributes().contains(t) ||
+            oc.getOptionalAttributes().contains(t))
+        {
+          ObjectClass newOC = oc.recreateFromDefinition();
+          deregisterObjectClass(oc);
+          registerObjectClass(newOC, true);
+          rebuildDependentElements(oc, depth+1);
+        }
+      }
+
+      for (NameForm nf : nameFormsByOC.values())
+      {
+        if (nf.getRequiredAttributes().contains(t) ||
+            nf.getOptionalAttributes().contains(t))
+        {
+          NameForm newNF = nf.recreateFromDefinition();
+          deregisterNameForm(nf);
+          registerNameForm(newNF, true);
+          rebuildDependentElements(nf, depth+1);
+        }
+      }
+
+      for (DITContentRule dcr : ditContentRules.values())
+      {
+        if (dcr.getRequiredAttributes().contains(t) ||
+            dcr.getOptionalAttributes().contains(t) ||
+            dcr.getProhibitedAttributes().contains(t))
+        {
+          DITContentRule newDCR = dcr.recreateFromDefinition();
+          deregisterDITContentRule(dcr);
+          registerDITContentRule(newDCR, true);
+          rebuildDependentElements(dcr, depth+1);
+        }
+      }
+
+      for (MatchingRuleUse mru : matchingRuleUses.values())
+      {
+        if (mru.getAttributes().contains(t))
+        {
+          MatchingRuleUse newMRU = mru.recreateFromDefinition();
+          deregisterMatchingRuleUse(mru);
+          registerMatchingRuleUse(newMRU, true);
+          rebuildDependentElements(mru, depth+1);
+        }
+      }
+    }
+    else if (element instanceof ObjectClass)
+    {
+      ObjectClass c = (ObjectClass) element;
+
+      for (ObjectClass oc : objectClasses.values())
+      {
+        if ((oc.getSuperiorClass() != null) &&
+            oc.getSuperiorClass().equals(c))
+        {
+          ObjectClass newOC = oc.recreateFromDefinition();
+          deregisterObjectClass(oc);
+          registerObjectClass(newOC, true);
+          rebuildDependentElements(oc, depth+1);
+        }
+      }
+
+      NameForm nf = nameFormsByOC.get(c);
+      if (nf != null)
+      {
+        NameForm newNF = nf.recreateFromDefinition();
+        deregisterNameForm(nf);
+        registerNameForm(newNF, true);
+        rebuildDependentElements(nf, depth+1);
+      }
+
+      for (DITContentRule dcr : ditContentRules.values())
+      {
+        if (dcr.getStructuralClass().equals(c) ||
+            dcr.getAuxiliaryClasses().contains(c))
+        {
+          DITContentRule newDCR = dcr.recreateFromDefinition();
+          deregisterDITContentRule(dcr);
+          registerDITContentRule(newDCR, true);
+          rebuildDependentElements(dcr, depth+1);
+        }
+      }
+    }
+    else if (element instanceof NameForm)
+    {
+      NameForm n = (NameForm) element;
+      DITStructureRule dsr = ditStructureRulesByNameForm.get(n);
+      if (dsr != null)
+      {
+        DITStructureRule newDSR = dsr.recreateFromDefinition();
+        deregisterDITStructureRule(dsr);
+        registerDITStructureRule(newDSR, true);
+        rebuildDependentElements(dsr, depth+1);
+      }
+    }
+    else if (element instanceof DITStructureRule)
+    {
+      DITStructureRule d = (DITStructureRule) element;
+      for (DITStructureRule dsr : ditStructureRulesByID.values())
+      {
+        if (dsr.getSuperiorRules().contains(d))
+        {
+          DITStructureRule newDSR = dsr.recreateFromDefinition();
+          deregisterDITStructureRule(dsr);
+          registerDITStructureRule(newDSR, true);
+          rebuildDependentElements(dsr, depth+1);
+        }
+      }
     }
   }
 

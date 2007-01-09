@@ -22,16 +22,21 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
 
 
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.opends.server.schema.DITStructureRuleSyntax;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
@@ -39,6 +44,7 @@ import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -46,7 +52,8 @@ import static org.opends.server.util.StaticUtils.*;
  * This class defines a DIT structure rule, which is used to indicate
  * the types of children that entries may have.
  */
-public class DITStructureRule
+public final class DITStructureRule
+       implements SchemaFileElement
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -57,38 +64,39 @@ public class DITStructureRule
 
 
   // Indicates whether this DIT structure rule is declared "obsolete".
-  private boolean isObsolete;
+  private final boolean isObsolete;
+
+  // The rule ID for this DIT structure rule.
+  private final int ruleID;
+
+  // The name form for this DIT structure rule.
+  private final NameForm nameForm;
 
   // The set of additional name-value pairs associated with this DIT
   // structure rule.
-  private ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-               extraProperties;
+  private final Map<String,List<String>> extraProperties;
 
   // The set of names for this DIT structure rule, in a mapping
   // between the all-lowercase form and the user-defined form.
-  private ConcurrentHashMap<String,String> names;
+  private final Map<String,String> names;
 
   // The set of superior DIT structure rules.
-  private CopyOnWriteArraySet<DITStructureRule> superiorRules;
+  private final Set<DITStructureRule> superiorRules;
 
-  // The rule ID for this DIT structure rule.
-  private int ruleID;
-
-  // The name form for this DIT structure rule.
-  private NameForm nameForm;
+  // The definition string for this DIT structure rule.
+  private final String definition;
 
   // The description for this DIT structure rule.
-  private String description;
-
-  // The path to the schema file that contains this DIT structure rule
-  // definition.
-  private String schemaFile;
+  private final String description;
 
 
 
   /**
    * Creates a new DIT structure rule with the provided information.
    *
+   * @param  definition       The definition string used to create
+   *                          this DIT structure rule.  It must not be
+   *                          {@code null}.
    * @param  names            The set of names for this DIT structure
    *                          rule, mapping the lowercase names to the
    *                          user-defined values.
@@ -104,33 +112,104 @@ public class DITStructureRule
    * @param  extraProperties  The set of "extra" properties associated
    *                          with this DIT structure rules.
    */
-  public DITStructureRule(ConcurrentHashMap<String,String> names,
-              int ruleID, String description,  boolean isObsolete,
-              NameForm nameForm,
-              CopyOnWriteArraySet<DITStructureRule> superiorRules,
-              ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-                   extraProperties)
+  public DITStructureRule(String definition, Map<String,String> names,
+                          int ruleID, String description,
+                          boolean isObsolete, NameForm nameForm,
+                          Set<DITStructureRule> superiorRules,
+                          Map<String,List<String>> extraProperties)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(names),
-                              String.valueOf(ruleID),
-                              String.valueOf(description),
-                              String.valueOf(isObsolete),
-                              String.valueOf(nameForm),
-                              String.valueOf(superiorRules),
-                              String.valueOf(extraProperties)
-                            });
+    assert debugConstructor(CLASS_NAME, String.valueOf(definition),
+                            String.valueOf(names),
+                            String.valueOf(ruleID),
+                            String.valueOf(description),
+                            String.valueOf(isObsolete),
+                            String.valueOf(nameForm),
+                            String.valueOf(superiorRules),
+                            String.valueOf(extraProperties));
 
-    this.names           = names;
-    this.ruleID          = ruleID;
-    this.description     = description;
-    this.isObsolete      = isObsolete;
-    this.nameForm        = nameForm;
-    this.superiorRules   = superiorRules;
-    this.schemaFile      = null;
-    this.extraProperties = extraProperties;
+    ensureNotNull(definition);
+
+    this.definition  = definition;
+    this.ruleID      = ruleID;
+    this.description = description;
+    this.isObsolete  = isObsolete;
+    this.nameForm    = nameForm;
+
+    if ((names == null) || names.isEmpty())
+    {
+      this.names = new LinkedHashMap<String,String>(0);
+    }
+    else
+    {
+      this.names = new LinkedHashMap<String,String>(names);
+    }
+
+    if ((superiorRules == null) || superiorRules.isEmpty())
+    {
+      this.superiorRules = new LinkedHashSet<DITStructureRule>(0);
+    }
+    else
+    {
+      this.superiorRules =
+           new LinkedHashSet<DITStructureRule>(superiorRules);
+    }
+
+    if ((extraProperties == null) || extraProperties.isEmpty())
+    {
+      this.extraProperties =
+           new LinkedHashMap<String,List<String>>(0);
+    }
+    else
+    {
+      this.extraProperties =
+           new LinkedHashMap<String,List<String>>(extraProperties);
+    }
+  }
+
+
+
+  /**
+   * Retrieves the definition string used to create this DIT structure
+   * rule.
+   *
+   * @return  The definition string used to create this DIT structure
+   *          rule.
+   */
+  public String getDefinition()
+  {
+    assert debugEnter(CLASS_NAME, "getDefinition");
+
+    return definition;
+  }
+
+
+
+  /**
+   * Creates a new instance of this DIT structure rule based on the
+   * definition string.  It will also preserve other state information
+   * associated with this DIT structure rule that is not included in
+   * the definition string (e.g., the name of the schema file with
+   * which it is associated).
+   *
+   * @return  The new instance of this DIT structure rule based on the
+   *          definition string.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to create a new DIT structure rule
+   *                              instance from the definition string.
+   */
+  public DITStructureRule recreateFromDefinition()
+         throws DirectoryException
+  {
+    ByteString value  = ByteStringFactory.create(definition);
+    Schema     schema = DirectoryConfig.getSchema();
+
+    DITStructureRule dsr =
+         DITStructureRuleSyntax.decodeDITStructureRule(value, schema,
+                                                       false);
+    dsr.setSchemaFile(getSchemaFile());
+
+    return dsr;
   }
 
 
@@ -144,29 +223,11 @@ public class DITStructureRule
    * @return  The set of names that may be used to reference this DIT
    *          structure rule.
    */
-  public ConcurrentHashMap<String,String> getNames()
+  public Map<String,String> getNames()
   {
     assert debugEnter(CLASS_NAME, "getNames");
 
     return names;
-  }
-
-
-
-  /**
-   * Specifies the set of names that may be used to reference this DIT
-   * structure rule.  The provided set must contain a mapping between
-   * each name in all lowercase characters and the name in a
-   * user-defined form (which may include mixed capitalization).
-   *
-   * @param  names  The set of names that may be used to reference
-   *                this attribute type.
-   */
-  public void setNames(ConcurrentHashMap<String,String> names)
-  {
-    assert debugEnter(CLASS_NAME, "setNames", String.valueOf(names));
-
-    this.names = names;
   }
 
 
@@ -177,8 +238,8 @@ public class DITStructureRule
    * @param  lowerName  The lowercase name for which to make the
    *                    determination.
    *
-   * @return  <CODE>true</CODE> if the specified name is assigned to
-   *          this DIT structure rule, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the specified name is assigned to this
+   *          DIT structure rule, or {@code false} if not.
    */
   public boolean hasName(String lowerName)
   {
@@ -186,41 +247,6 @@ public class DITStructureRule
                       String.valueOf(lowerName));
 
     return names.containsKey(lowerName);
-  }
-
-
-
-  /**
-   * Adds the specified name to the set of names for this DIT
-   * structure rule.
-   *
-   * @param  name  The name to add to the set of names for this DIT
-   *               structure rule.
-   */
-  public void addName(String name)
-  {
-    assert debugEnter(CLASS_NAME, "addName", String.valueOf(name));
-
-    String lowerName = toLowerCase(name);
-    names.put(lowerName, name);
-  }
-
-
-
-  /**
-   * Removes the specified name from the set of names for this DIT
-   * structure rule.  This will have no effect if the specified name
-   * is not associated with this attribute type.
-   *
-   * @param  lowerName  The lowercase name to remove from the set of
-   *                    names for this DIT structure rule.
-   */
-  public void removeName(String lowerName)
-  {
-    assert debugEnter(CLASS_NAME, "removeName",
-                      String.valueOf(lowerName));
-
-    names.remove(lowerName);
   }
 
 
@@ -235,21 +261,6 @@ public class DITStructureRule
     assert debugEnter(CLASS_NAME, "getRuleID");
 
     return ruleID;
-  }
-
-
-
-  /**
-   * Specifies the rule ID for this DIT structure rule.
-   *
-   * @param  ruleID  The rule ID for this DIT structure rule.
-   */
-  public void setRuleID(int ruleID)
-  {
-    assert debugEnter(CLASS_NAME, "setRuleID",
-                      String.valueOf(ruleID));
-
-    this.ruleID = ruleID;
   }
 
 
@@ -278,44 +289,25 @@ public class DITStructureRule
 
 
   /**
-   * Indicates whether this DIT structure rule has the specified name
-   * or rule ID.
-   *
-   * @param  lowerValue  The lowercase value for which to make the
-   *                     determination.
-   *
-   * @return  <CODE>true</CODE> if the provided value matches the rule
-   *          ID or one of the names assigned to this DIT structure
-   *          rule, or <CODE>false</CODE> if not.
-   */
-  public boolean hasNameOrOID(String lowerValue)
-  {
-    assert debugEnter(CLASS_NAME, "hasNameOrOID",
-                      String.valueOf(lowerValue));
-
-    if (names.containsKey(lowerValue))
-    {
-      return true;
-    }
-
-    return lowerValue.equals(String.valueOf(ruleID));
-  }
-
-
-
-  /**
    * Retrieves the path to the schema file that contains the
    * definition for this DIT structure rule.
    *
    * @return  The path to the schema file that contains the definition
-   *          for this DIT structure rule, or <CODE>null</CODE> if it
+   *          for this DIT structure rule, or {@code null} if it
    *          is not known or if it is not stored in any schema file.
    */
   public String getSchemaFile()
   {
     assert debugEnter(CLASS_NAME, "getSchemaFile");
 
-    return schemaFile;
+    List<String> values =
+         extraProperties.get(SCHEMA_PROPERTY_FILENAME);
+    if ((values == null) || values.isEmpty())
+    {
+      return null;
+    }
+
+    return values.get(0);
   }
 
 
@@ -332,7 +324,7 @@ public class DITStructureRule
     assert debugEnter(CLASS_NAME, "setSchemaFile",
                       String.valueOf(schemaFile));
 
-    this.schemaFile = schemaFile;
+    setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
 
@@ -352,20 +344,6 @@ public class DITStructureRule
 
 
   /**
-   * Specifies the description for this DIT structure rule.
-   *
-   * @param  description  The description for this DIT structure rule.
-   */
-  public void setDescription(String description)
-  {
-    assert debugEnter(CLASS_NAME, "setDescription", description);
-
-    this.description = description;
-  }
-
-
-
-  /**
    * Retrieves the name form for this DIT structure rule.
    *
    * @return  The name form for this DIT structure rule.
@@ -375,21 +353,6 @@ public class DITStructureRule
     assert debugEnter(CLASS_NAME, "getNameForm");
 
     return nameForm;
-  }
-
-
-
-  /**
-   * Specifies the name form for this DIT structure rule.
-   *
-   * @param  nameForm  The name form for this DIT structure rule.
-   */
-  public void setNameForm(NameForm nameForm)
-  {
-    assert debugEnter(CLASS_NAME, "setNameForm",
-                      String.valueOf(nameForm));
-
-    this.nameForm = nameForm;
   }
 
 
@@ -415,7 +378,7 @@ public class DITStructureRule
    *
    * @return  The set of superior rules for this DIT structure rule.
    */
-  public CopyOnWriteArraySet<DITStructureRule> getSuperiorRules()
+  public Set<DITStructureRule> getSuperiorRules()
   {
     assert debugEnter(CLASS_NAME, "getSuperiorRules");
 
@@ -428,8 +391,8 @@ public class DITStructureRule
    * Indicates whether this DIT structure rule has one or more
    * superior rules.
    *
-   * @return  <CODE>true</CODE> if this DIT structure rule has one or
-   *          more superior rules, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this DIT structure rule has one or more
+   *          superior rules, or {@code false} if not.
    */
   public boolean hasSuperiorRules()
   {
@@ -441,62 +404,10 @@ public class DITStructureRule
 
 
   /**
-   * Specifies the set of superior rules for this DIT structure rule.
-   *
-   * @param  superiorRules  The set of superior rules for this DIT
-   *                        structure rule.
-   */
-  public void setSuperiorRules(CopyOnWriteArraySet<DITStructureRule>
-                                    superiorRules)
-  {
-    assert debugEnter(CLASS_NAME, "setSuperiorRules",
-                      String.valueOf(superiorRules));
-
-    this.superiorRules = superiorRules;
-  }
-
-
-
-  /**
-   * Adds the provided rule as a superior rule for this DIT structure
-   * rule.
-   *
-   * @param  superiorRule  The superior rule to add to this DIT
-   *                       structure rule.
-   */
-  public void addSuperiorRule(DITStructureRule superiorRule)
-  {
-    assert debugEnter(CLASS_NAME, "addSuperiorRule",
-                      String.valueOf(superiorRule));
-
-    superiorRules.add(superiorRule);
-  }
-
-
-
-  /**
-   * Removes the provided rule as a superior rule for this DIT
-   * structure rule.  It will have no effect if the provided rule is
-   * not a superior rule for this DIT structure rule.
-   *
-   * @param  superiorRule  The superior rule to remove from this DIT
-   *                       structure rule.
-   */
-  public void removeSuperiorRule(DITStructureRule superiorRule)
-  {
-    assert debugEnter(CLASS_NAME, "removeSuperiorRule",
-                      String.valueOf(superiorRule));
-
-    superiorRules.remove(superiorRule);
-  }
-
-
-
-  /**
    * Indicates whether this DIT structure rule is declared "obsolete".
    *
-   * @return  <CODE>true</CODE> if this DIT structure rule is declared
-   *          "obsolete", or <CODE>false</CODE> if not.
+   * @return  {@code true} if this DIT structure rule is declared
+   *          "obsolete", or {@code false} if not.
    */
   public boolean isObsolete()
   {
@@ -508,33 +419,15 @@ public class DITStructureRule
 
 
   /**
-   * Specifies whether this DIT structure rule is declared "obsolete".
-   *
-   * @param  isObsolete  Specifies whether this DIT structure rule is
-   *                     declared "obsolete".
-   */
-  public void setObsolete(boolean isObsolete)
-  {
-    assert debugEnter(CLASS_NAME, "setObsolete",
-                      String.valueOf(isObsolete));
-
-    this.isObsolete = isObsolete;
-  }
-
-
-
-  /**
    * Retrieves a mapping between the names of any extra non-standard
    * properties that may be associated with this DIT structure rule
-   * and the value for that property.  The caller may alter the
-   * contents of this mapping.
+   * and the value for that property.
    *
    * @return  A mapping between the names of any extra non-standard
    *          properties that may be associated with this DIT
    *          structure rule and the value for that property.
    */
-  public ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-              getExtraProperties()
+  public Map<String,List<String>> getExtraProperties()
   {
     assert debugEnter(CLASS_NAME, "getExtraProperties");
 
@@ -551,16 +444,75 @@ public class DITStructureRule
    *                       to retrieve the value.
    *
    * @return  The value of the specified "extra" property for this DIT
-   *          structure rule, or <CODE>null</CODE> if no such property
-   *          is defined.
+   *          structure rule, or {@code null} if no such property is
+   *          defined.
    */
-  public CopyOnWriteArrayList<String>
-              getExtraProperty(String propertyName)
+  public List<String> getExtraProperty(String propertyName)
   {
     assert debugEnter(CLASS_NAME, "getExtraProperty",
                       String.valueOf(propertyName));
 
     return extraProperties.get(propertyName);
+  }
+
+
+
+  /**
+   * Specifies the provided "extra" property for this DIT structure
+   * rule.
+   *
+   * @param  name   The name for the "extra" property.  It must not be
+   *                {@code null}.
+   * @param  value  The value for the "extra" property, or
+   *                {@code null} if the property is to be removed.
+   */
+  public void setExtraProperty(String name, String value)
+  {
+    assert debugEnter(CLASS_NAME, "setExtraProperty",
+                      String.valueOf(name), String.valueOf(value));
+
+    ensureNotNull(name);
+
+    if (value == null)
+    {
+      extraProperties.remove(name);
+    }
+    else
+    {
+      LinkedList<String> values = new LinkedList<String>();
+      values.add(value);
+
+      extraProperties.put(name, values);
+    }
+  }
+
+
+
+  /**
+   * Specifies the provided "extra" property for this DIT structure
+   * rule.
+   *
+   * @param  name    The name for the "extra" property.  It must not
+   *                 be {@code null}.
+   * @param  values  The set of value for the "extra" property, or
+   *                 {@code null} if the property is to be removed.
+   */
+  public void setExtraProperty(String name, List<String> values)
+  {
+    assert debugEnter(CLASS_NAME, "setExtraProperty",
+                      String.valueOf(name), String.valueOf(values));
+
+    ensureNotNull(name);
+
+    if ((values == null) || values.isEmpty())
+    {
+      extraProperties.remove(name);
+    }
+    else
+    {
+      LinkedList<String> valuesCopy = new LinkedList<String>(values);
+      extraProperties.put(name, valuesCopy);
+    }
   }
 
 
@@ -572,8 +524,8 @@ public class DITStructureRule
    *
    * @param  o  The object for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided object is equal to
-   *          this attribute, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided object is equal to this
+   *          attribute, or {@code false} if not.
    */
   public boolean equals(Object o)
   {
@@ -718,8 +670,13 @@ public class DITStructureRule
     {
       for (String property : extraProperties.keySet())
       {
-        CopyOnWriteArrayList<String> valueList =
-             extraProperties.get(property);
+        if ((! includeFileElement) &&
+            property.equals(SCHEMA_PROPERTY_FILENAME))
+        {
+          continue;
+        }
+
+        List<String> valueList = extraProperties.get(property);
 
         buffer.append(" ");
         buffer.append(property);
@@ -744,16 +701,6 @@ public class DITStructureRule
           buffer.append(")");
         }
       }
-    }
-
-    if (includeFileElement && (schemaFile != null) &&
-        (! extraProperties.containsKey(SCHEMA_PROPERTY_FILENAME)))
-    {
-      buffer.append(" ");
-      buffer.append(SCHEMA_PROPERTY_FILENAME);
-      buffer.append(" '");
-      buffer.append(schemaFile);
-      buffer.append("'");
     }
 
     buffer.append(" )");

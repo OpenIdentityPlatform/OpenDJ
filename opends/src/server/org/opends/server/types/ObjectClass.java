@@ -22,15 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
 
-
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
-import static org.opends.server.util.ServerConstants.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +36,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.opends.server.schema.ObjectClassSyntax;
+
+import static org.opends.server.loggers.Debug.debugConstructor;
+import static org.opends.server.loggers.Debug.debugEnter;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -58,7 +61,10 @@ import java.util.Set;
  * fields are accessed via their getters or via the
  * {@link #toString()} methods.
  */
-public final class ObjectClass extends CommonSchemaElements {
+public final class ObjectClass
+       extends CommonSchemaElements
+       implements SchemaFileElement
+{
   /**
    * The fully-qualified name of this class for debugging purposes.
    */
@@ -89,6 +95,9 @@ public final class ObjectClass extends CommonSchemaElements {
   // contain any attribute.
   private final boolean isExtensibleObject;
 
+  // The definition string used to create this objectclass.
+  private final String definition;
+
 
 
   /**
@@ -100,62 +109,65 @@ public final class ObjectClass extends CommonSchemaElements {
    * from the set of <code>names</code> will be used as the primary
    * name.
    *
+   * @param definition
+   *          The definition string used to create this objectclass.
+   *          It must not be {@code null}.
    * @param primaryName
    *          The primary name for this objectclass, or
-   *          <code>null</code> if there is no primary name.
+   *          {@code null} if there is no primary name.
    * @param names
    *          The set of names that may be used to reference this
-   *          objectclass, or <code>null</code> if there are no
-   *          name.
+   *          objectclass.
    * @param oid
-   *          The OID for this objectclass (must not be
-   *          <code>null</code>).
+   *          The OID for this objectclass.  It must not be
+   *          {@code null}.
    * @param description
-   *          The description for this objectclass, or
-   *          <code>null</code> if there is no description.
+   *          The description for this objectclass, or {@code null} if
+   *          there is no description.
    * @param superiorClass
-   *          The superior class for this objectclass, or
-   *          <code>null</code> if there is no superior object
-   *          classes.
+   *          The superior class for this objectclass, or {@code null}
+   *          if there is no superior object class.
    * @param requiredAttributes
    *          The set of required attribute types for this
-   *          objectclass, or <code>null</code> if there are no
-   *          required attribute types.
+   *          objectclass.
    * @param optionalAttributes
    *          The set of optional attribute types for this
-   *          objectclass, or <code>null</code> if there are no
-   *          optional attribute types.
+   *          objectclass.
    * @param objectClassType
    *          The objectclass type for this objectclass, or
-   *          <code>null</code> to default to structural.
+   *          {@code null} to default to structural.
    * @param isObsolete
    *          Indicates whether this objectclass is declared
    *          "obsolete".
    * @param extraProperties
-   *          A set of extra properties for this objectclass, or
-   *          <code>null</code> if there are no extra properties.
-   * @throws NullPointerException
-   *           If the <code>oid</code> is <code>null</code>.
+   *          A set of extra properties for this objectclass.
    */
-  public ObjectClass(String primaryName, Collection<String> names,
-      String oid, String description, ObjectClass superiorClass,
-      Set<AttributeType> requiredAttributes,
-      Set<AttributeType> optionalAttributes,
-      ObjectClassType objectClassType, boolean isObsolete,
-      Map<String, List<String>> extraProperties)
-      throws NullPointerException {
-
+  public ObjectClass(String definition, String primaryName,
+                     Collection<String> names, String oid,
+                     String description, ObjectClass superiorClass,
+                     Set<AttributeType> requiredAttributes,
+                     Set<AttributeType> optionalAttributes,
+                     ObjectClassType objectClassType,
+                     boolean isObsolete,
+                     Map<String, List<String>> extraProperties)
+  {
     super(primaryName, names, oid, description, isObsolete,
         extraProperties);
 
     assert debugConstructor(CLASS_NAME, String.valueOf(primaryName),
-        String.valueOf(names), String.valueOf(oid), String
-            .valueOf(description), String.valueOf(superiorClass),
-        String.valueOf(requiredAttributes), String
-            .valueOf(optionalAttributes), String
-            .valueOf(objectClassType), String.valueOf(isObsolete),
-        String.valueOf(extraProperties));
+                            String.valueOf(names),
+                            String.valueOf(oid),
+                            String.valueOf(description),
+                            String.valueOf(superiorClass),
+                            String.valueOf(requiredAttributes),
+                            String.valueOf(optionalAttributes),
+                            String.valueOf(objectClassType),
+                            String.valueOf(isObsolete),
+                            String.valueOf(extraProperties));
 
+    ensureNotNull(definition, oid);
+
+    this.definition    = definition;
     this.superiorClass = superiorClass;
 
     // Set flag indicating whether or not this object class allows any
@@ -209,6 +221,49 @@ public final class ObjectClass extends CommonSchemaElements {
     } else {
       this.objectClassType = ObjectClassType.STRUCTURAL;
     }
+  }
+
+
+
+  /**
+   * Retrieves the definition string used to create this objectclass.
+   *
+   * @return  The definition string used to create this objectclass.
+   */
+  public String getDefinition()
+  {
+    assert debugEnter(CLASS_NAME, "getDefinition");
+
+    return definition;
+  }
+
+
+
+  /**
+   * Creates a new instance of this objectclass based on the
+   * definition string.  It will also preserve other state information
+   * associated with this objectclass that is not included in the
+   * definition string (e.g., the name of the schema file with which
+   * it is associated).
+   *
+   * @return  The new instance of this objectclass based on the
+   *          definition string.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to create a new objectclass instance
+   *                              from the definition string.
+   */
+  public ObjectClass recreateFromDefinition()
+         throws DirectoryException
+  {
+    ByteString value  = ByteStringFactory.create(definition);
+    Schema     schema = DirectoryConfig.getSchema();
+
+    ObjectClass oc = ObjectClassSyntax.decodeObjectClass(value,
+                                                         schema);
+    oc.setSchemaFile(getSchemaFile());
+
+    return oc;
   }
 
 

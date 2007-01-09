@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -31,17 +31,20 @@ package org.opends.server.types;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.schema.AttributeTypeSyntax;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -60,7 +63,9 @@ import static org.opends.server.util.ServerConstants.*;
  * ordering will be preserved when the associated fields are accessed
  * via their getters or via the {@link #toString()} methods.
  */
-public final class AttributeType extends CommonSchemaElements
+public final class AttributeType
+       extends CommonSchemaElements
+       implements SchemaFileElement
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -102,6 +107,9 @@ public final class AttributeType extends CommonSchemaElements
   // The ordering matching rule for this attribute type.
   private final OrderingMatchingRule orderingMatchingRule;
 
+  // The definition string used to create this attribute type.
+  private final String definition;
+
   // The substring matching rule for this attribute type.
   private final SubstringMatchingRule substringMatchingRule;
 
@@ -115,6 +123,9 @@ public final class AttributeType extends CommonSchemaElements
    * from the set of <code>names</code> will be used as the primary
    * name.
    *
+   * @param definition
+   *          The definition string used to create this attribute
+   *          type.  It must not be {@code null}.
    * @param primaryName
    *          The primary name for this attribute type, or
    *          <code>null</code> if there is no primary name.
@@ -122,8 +133,8 @@ public final class AttributeType extends CommonSchemaElements
    *          The full set of names for this attribute type, or
    *          <code>null</code> if there are no names.
    * @param oid
-   *          The OID for this attribute type (must not be
-   *          <code>null</code>).
+   *          The OID for this attribute type.  It must not be
+   *          {@code null}.
    * @param description
    *          The description for the attribute type, or
    *          <code>null</code> if there is no description.
@@ -150,7 +161,7 @@ public final class AttributeType extends CommonSchemaElements
    *          Indicates whether this attribute type is declared
    *          "single-value".
    */
-  public AttributeType(String primaryName,
+  public AttributeType(String definition, String primaryName,
                        Collection<String> typeNames,
                        String oid, String description,
                        AttributeType superiorType,
@@ -160,7 +171,7 @@ public final class AttributeType extends CommonSchemaElements
                        boolean isNoUserModification,
                        boolean isObsolete, boolean isSingleValue)
   {
-    this(primaryName, typeNames, oid, description,
+    this(definition, primaryName, typeNames, oid, description,
         superiorType, syntax, null, null, null,
         null, attributeUsage, isCollective,
         isNoUserModification, isObsolete, isSingleValue, null);
@@ -176,6 +187,9 @@ public final class AttributeType extends CommonSchemaElements
    * from the set of <code>names</code> will be used as the primary
    * name.
    *
+   * @param definition
+   *          The definition string used to create this attribute
+   *          type.  It must not be {@code null}.
    * @param primaryName
    *          The primary name for this attribute type, or
    *          <code>null</code> if there is no primary name.
@@ -183,8 +197,8 @@ public final class AttributeType extends CommonSchemaElements
    *          The full set of names for this attribute type, or
    *          <code>null</code> if there are no names.
    * @param oid
-   *          The OID for this attribute type (must not be
-   *          <code>null</code>).
+   *          The OID for this attribute type.  It must not be
+   *          {@code null}.
    * @param description
    *          The description for the attribute type, or
    *          <code>null</code> if there is no description.
@@ -225,10 +239,8 @@ public final class AttributeType extends CommonSchemaElements
    * @param extraProperties
    *          A set of extra properties for this attribute type, or
    *          <code>null</code> if there are no extra properties.
-   * @throws NullPointerException
-   *           If the provided OID was <code>null</code>.
    */
-  public AttributeType(String primaryName,
+  public AttributeType(String definition, String primaryName,
                        Collection<String> typeNames,
                        String oid, String description,
                        AttributeType superiorType,
@@ -243,12 +255,13 @@ public final class AttributeType extends CommonSchemaElements
                        boolean isNoUserModification,
                        boolean isObsolete, boolean isSingleValue,
                        Map<String,List<String>> extraProperties)
-                       throws NullPointerException
   {
     super(primaryName, typeNames, oid, description, isObsolete,
         extraProperties);
 
-    assert debugConstructor(CLASS_NAME,String.valueOf(primaryName),
+    assert debugConstructor(CLASS_NAME,
+                              String.valueOf(definition),
+                              String.valueOf(primaryName),
                               String.valueOf(typeNames),
                               String.valueOf(oid),
                               String.valueOf(description),
@@ -265,6 +278,9 @@ public final class AttributeType extends CommonSchemaElements
                               String.valueOf(isSingleValue),
                               String.valueOf(extraProperties));
 
+    ensureNotNull(definition, oid);
+
+    this.definition   = definition;
     this.superiorType = superiorType;
     this.isCollective = isCollective;
     this.isNoUserModification = isNoUserModification;
@@ -347,6 +363,51 @@ public final class AttributeType extends CommonSchemaElements
     {
       isObjectClassType = hasName(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     }
+  }
+
+
+
+  /**
+   * Retrieves the definition string used to create this attribute
+   * type.
+   *
+   * @return  The definition string used to create this attribute
+   *          type.
+   */
+  public String getDefinition()
+  {
+    assert debugEnter(CLASS_NAME, "getDefinition");
+
+    return definition;
+  }
+
+
+
+  /**
+   * Creates a new instance of this attribute type based on the
+   * definition string.  It will also preserve other state information
+   * associated with this attribute type that is not included in the
+   * definition string (e.g., the name of the schema file with which
+   * it is associated).
+   *
+   * @return  The new instance of this attribute type based on the
+   *          definition string.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to create a new attribute type
+   *                              instance from the definition string.
+   */
+  public AttributeType recreateFromDefinition()
+         throws DirectoryException
+  {
+    ByteString value  = ByteStringFactory.create(definition);
+    Schema     schema = DirectoryServer.getSchema();
+
+    AttributeType at =
+         AttributeTypeSyntax.decodeAttributeType(value, schema);
+    at.setSchemaFile(getSchemaFile());
+
+    return at;
   }
 
 

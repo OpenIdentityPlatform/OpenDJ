@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -1392,6 +1392,55 @@ public class ServerConstants
    */
   public static final String ALERT_TYPE_UNCAUGHT_EXCEPTION =
        "org.opends.server.UncaughtException";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
+   * notification generated if a problem occurs while creating copies of the
+   * existing schema configuration files and a problem occurs that leaves the
+   * schema configuration in a potentially inconsistent state.
+   */
+  public static final String ALERT_DESCRIPTION_CANNOT_COPY_SCHEMA_FILES =
+      "This alert type will be used to notify administrators if a problem " +
+      "occurs while attempting to create copies of the existing schema " +
+      "configuration files before making a schema update, and the schema " +
+      "configuration is left in a potentially inconsistent state.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if a problem occurs while creating copies of the existing schema
+   * files in a manner that may leave the schema configuration inconsistent.
+   */
+  public static final String ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES =
+       "org.opends.server.CannotCopySchemaFiles";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
+   * notification generated if a problem occurs while writing new versions of
+   * the server schema configuration files and a problem occurs that leaves the
+   * schema configuration in a potentially inconsistent state.
+   */
+  public static final String ALERT_DESCRIPTION_CANNOT_WRITE_NEW_SCHEMA_FILES =
+      "This alert type will be used to notify administrators if a problem " +
+      "occurs while attempting to write new verisons of the server schema " +
+      "configuration files, and the schema configuration is left in a " +
+      "potentially inconsistent state.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if a problem occurs while writing new versions of the server
+   * schema files in a manner that may leave the schema configuration
+   * inconsistent.
+   */
+  public static final String ALERT_TYPE_CANNOT_WRITE_NEW_SCHEMA_FILES =
+       "org.opends.server.CannotWriteNewSchemaFiles";
 
 
 

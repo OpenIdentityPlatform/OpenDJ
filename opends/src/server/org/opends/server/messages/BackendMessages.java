@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.messages;
 
@@ -2364,12 +2364,600 @@ public class BackendMessages
 
   /**
    * The message ID for the message that will be used if an error occurs while
-   * trying to write an updated schema file.  This takes two arguments, which
-   * are the path to the schema file and a string representation of the
-   * exception that was caught.
+   * trying to write an updated schema file.  This takes a single argument,
+   * which is a string representation of the exception that was caught.
    */
   public static final int MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA =
        CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 222;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode a new name form.  This takes two arguments, which
+   * are the name form string and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 223;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode a new DIT content rule.  This takes two arguments,
+   * which are the DIT content rule string and a message explaining the problem
+   * that occurred.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 224;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode a new DIT structure rule.  This takes two arguments,
+   * which are the DIT structure rule string and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 225;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode a new matching rule use.  This takes two arguments,
+   * which are the matching rule use string and a message explaining the problem
+   * that occurred.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 226;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * remove all values for a given attribute type.  This takes a single
+   * argument, which is the name of that attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DELETE_NO_VALUES =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 227;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new attribute type that conflicts with multiple existing attribute
+   * types.  This takes three arguments, which are the name or OID of the new
+   * attribute type, and the name or OID of the two attribute types that were
+   * found to conflict with the new type.
+   */
+  public static final int
+       MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_ATTRTYPE =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 228;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new attribute type that references an undefined superior attribute
+   * type.  This takes two arguments, which are the name or OID of the new
+   * attribute type and the name or OID of the superior attribute type.
+   */
+  public static final int
+       MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_ATTRIBUTE_TYPE =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 229;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new objectclas that conflicts with multiple existing objectclasses.
+   * This takes three arguments, which are the name or OID of the new
+   * objectclass, and the name or OID of the two objectclasses that were found
+   * to conflict with the new objectclass.
+   */
+  public static final int
+       MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_OBJECTCLASS =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 230;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new name form that conflicts with multiple existing name forms.  This
+   * takes three arguments, which are the name or OID of the new name form, and
+   * the name or OID of the two name forms that were found to conflict with the
+   * new name form.
+   */
+  public static final int
+       MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_NAME_FORM =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 231;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new name form that references an undefined structural objectclass.
+   * This takes two arguments, which are the name or OID of the new name form
+   * and the name or OID of the undefined objectclass.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_NF_UNDEFINED_STRUCTURAL_OC =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 232;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new name form that references an undefined required attribute type.
+   * This takes two arguments, which are the name or OID of the new name form
+   * and the name or OID of the undefined attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_NF_UNDEFINED_REQUIRED_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 233;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new name form that references an undefined optional attribute type.
+   * This takes two arguments, which are the name or OID of the new name form
+   * and the name or OID of the undefined attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_NF_UNDEFINED_OPTIONAL_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 234;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT content rule that conflicts with multiple existing DIT
+   * content rules.  This takes three arguments, which are the name of the new
+   * DIT content rule, and the names of the two DIT content rules that were
+   * found to conflict with the new DIT content rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DCR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 235;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT content rule that references a structural objectclass which
+   * is already referenced by an existing DIT copntent rule.  This takes three
+   * arguments, which are the name of the new DIT content rule, the name or OID
+   * of the structural objectclass, and the name of the conflicting DIT content
+   * rule.
+   */
+  public static final int
+       MSGID_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 236;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT content rule that references a structural objectclass which
+   * is not defined in the server schema.  This takes two arguments, which are
+   * the name of the new DIT content rule and the name or OID of the undefined
+   * objectclass.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_STRUCTURAL_OC =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 237;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT content rule that references an auxiliary objectclass which
+   * is not defined in the server schema.  This takes two arguments, which are
+   * the name of the new DIT content rule and the name or OID of the undefined
+   * objectclass.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 238;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT content rule that references a required attribute type
+   * which is not defined in the server schema.  This takes two arguments, which
+   * are the name of the new DIT content rule and the name or OID of the
+   * undefined attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_REQUIRED_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 239;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT content rule that references an optional attribute type
+   * which is not defined in the server schema.  This takes two arguments, which
+   * are the name of the new DIT content rule and the name or OID of the
+   * undefined attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_OPTIONAL_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 240;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT content rule that references a prohibited attribute type
+   * which is not defined in the server schema.  This takes two arguments, which
+   * are the name of the new DIT content rule and the name or OID of the
+   * undefined attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_PROHIBITED_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 241;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT structure rule that conflicts with multiple existing DIT
+   * structure rules.  This takes three arguments, which are the name or rule ID
+   * of the new DIT structure rule, and the names or rule IDs of the two DIT
+   * structure rules that were found to conflict with the new DIT structure
+   * rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DSR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 242;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT structure rule that references a name form that is already
+   * referenced by another DIT structure rule.  This takes three arguemnts,
+   * which are the name or rule ID of the new DIT structure rule, the name or
+   * OID of the name form, and the name or rule ID of the conflicting DIT
+   * structure rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_NAME_FORM_CONFLICT_FOR_ADD_DSR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 243;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT structure rule that references a name form that is not
+   * defined in the server schema.  This takes two arguments, which are the name
+   * or rule ID of the new DIT structure rule and the name or OID of the
+   * undefined name form.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DSR_UNDEFINED_NAME_FORM =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 244;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new matching rule use that conflicts with multiple existing matching
+   * rule uses.  This takes three arguments, which are the name of the new
+   * matching rule use, and the names of the two matching rule uses that were
+   * found to conflict with the new matching rule use.
+   */
+  public static final int
+       MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 245;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new matching rule use that references a matching rule that is already
+   * associated with another matching rule use.  This takes three arguments,
+   * which are the name of the new matching rule use, the name or OID of the
+   * matching rule, and the name of the conflicting matching rule use.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 246;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new matching rule use that references an attribute type that is not
+   * defined in the server schema.  This takes two arguments, which are the
+   * name of the new matching rule use and the name or OID of the undefined
+   * attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_MRU_UNDEFINED_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 247;
+
+
+
+  /**
+   * The message ID for the message that will be used if a circular reference
+   * is detected in the superior chain for an attribute type.  This takes a
+   * single argument, which is the name or OID of the attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_AT =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 248;
+
+
+
+  /**
+   * The message ID for the message that will be used if a circular reference
+   * is detected in the superior chain for an objectclass.  This takes a single
+   * argument, which is the name or OID of the objectclass.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_OC =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 249;
+
+
+
+  /**
+   * The message ID for the message that will be used if a circular reference
+   * is detected in the superior chain for a DIT structure rule.  This takes a
+   * single argument, which is the name or rule ID of the DIT structure rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_DSR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 250;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create copies of the current schema files, but the server was
+   * able to properly clean up after itself.  This takes a single argument,
+   * which is a string representation of the exception that was caught.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 251;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create copies of the current schema files, and the server was
+   * not able to properly clean up after itself.  This takes a single argument,
+   * which is a string representation of the exception that was caught.
+   */
+  public static final int
+       MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 252;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to write the new schema files, but the server was able to properly
+   * clean up after itself.  This takes a single argument,  which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 253;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to write the new schema files, and the server was not able to
+   * properly clean up after itself.  This takes a single argument, which is a
+   * string representation of the exception that was caught.
+   */
+  public static final int
+       MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 254;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * an attribute type from the schema fails because there is no such attribute
+   * type defined.  This takes a single argument, which is the name or OID of
+   * the attribute type to remove.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 255;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * an attribute type from the schema fails because it is the superior type for
+   * another attribute type.  This takes two arguments, which are the name or
+   * OID of the attribute type to remove, and the name or OID of the subordinate
+   * attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_AT_SUPERIOR_TYPE =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 256;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * an attribute type from the schema fails because the attribute type is
+   * referenced by an objectclass.  This takes two arguments, which are the name
+   * or OID of the attribute type and the name or OID of the objectclass.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_OC =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 257;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * an attribute type from the schema fails because the attribute type is
+   * referenced by a name form.  This takes two arguments, which are the name or
+   * OID of the attribute type and the name or OID of the name form.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_NF =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 258;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * an attribute type from the schema fails because the attribute type is
+   * referenced by a DIT content rule.  This takes two arguments, which are the
+   * name or OID of the attribute type and the name of the DIT content rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_DCR =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 259;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * an attribute type from the schema fails because the attribute type is
+   * referenced by a matching rule use.  This takes two arguments, which are the
+   * name or OID of the attribute type and the name of the matching rule use.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_MR_USE =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 260;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * an objectclass from the schema fails because there is no such objectclass
+   * defined.  This takes a single argument, which is the name or OID of the
+   * objectclass to remove.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 261;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * an objectclass from the schema fails because it is the superior class for
+   * another objectclass.  This takes two arguments, which are the name or OID
+   * of the objectclass to remove, and the name or OID of the subordinate
+   * objectclass.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 262;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * an objectclass from the schema fails because the objectclass is referenced
+   * by a name form.  This takes two arguments, which are the name or OID of the
+   * objectclass and the name or OID of the name form.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_OC_IN_NF =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 263;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * an objectclass from the schema fails because the objectclass is referenced
+   * by a DIT content rule.  This takes two arguments, which are the name or OID
+   * of the objectclass and the name of the DIT content rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_OC_IN_DCR =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 264;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * a name form from the schema fails because there is no such name form
+   * defined.  This takes a single argument, which is the name or OID of the
+   * name form to remove.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 265;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * a name form from the schema fails because the name form is referenced by a
+   * DIT structure rule.  This takes two arguments, which are the name or OID
+   * of the name form and the name or rule ID of the DIT structure rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_NF_IN_DSR =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 266;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * a DIT content rule from the schema fails because there is no such DIT
+   * content rule defined.  This takes a single argument, which is the name of
+   * the DIT content rule to remove.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 267;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * a DIT structure rule from the schema fails because there is no such DIT
+   * structure rule defined.  This takes a single argument, which is the name or
+   * rule ID of the DIT structure rule to remove.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 268;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * a DIT structure rule from the schema fails because it is the superior rule
+   * for another DIT structure rule.  This takes two arguments, which are the
+   * name or rule ID of the DIT structure rule to remove, and the name or rule
+   * ID of the subordinate rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_DSR_SUPERIOR_RULE =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 269;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt to remove
+   * a matching rule use from the schema fails because there is no such matching
+   * rule use defined.  This takes a single argument, which is the name of the
+   * matching rule use to remove.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 270;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new name form that references an objectclass that is not structural.
+   * This takes two arguments, which are the name or OID of the new name form
+   * and the name or OID of the objectclass.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_NF_OC_NOT_STRUCTURAL =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 271;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new DIT content rule that references an objectclass that is not
+   * structural.  This takes two arguments, which are the name of the new DIT
+   * content rule and the name or OID of the objectclass.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_OC_NOT_STRUCTURAL =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 272;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new name form that references a structural objectclass which is
+   * already referenced by an existing name form.  This takes three arguments,
+   * which are the name or OID of the new name form, the name or OID of the
+   * structural objectclass, and the name or OID of the conflicting name form.
+   */
+  public static final int
+       MSGID_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_NF =
+            CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 273;
 
 
 
@@ -2609,12 +3197,9 @@ public class BackendMessages
     registerMessage(MSGID_SCHEMA_DELETE_MODTYPE_NOT_SUPPORTED,
                     "The schema backend does not currently support removing " +
                     "existing schema elements.");
-    // FIXME -- Change the below message once we support removing schema
-    // elements.
     registerMessage(MSGID_SCHEMA_INVALID_MODIFICATION_TYPE,
                     "The schema backend does not support the %s modification " +
-                    "type.  It is currently only possible to add new schema " +
-                    "elements.");
+                    "type.");
     registerMessage(MSGID_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE,
                     "The schema backend does not support the modification of " +
                     "the %s attribute type.  Only attribute types, object " +
@@ -2630,6 +3215,21 @@ public class BackendMessages
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS,
                     "An error occurred while attempting to decode the object " +
                     "class \"%s\":  %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM,
+                    "An error occurred while attempting to decode the name " +
+                    "form \"%s\":  %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR,
+                    "An error occurred while attempting to decode the DIT " +
+                    "content rule \"%s\":  %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR,
+                    "An error occurred while attempting to decode the DIT " +
+                    "structure rule \"%s\":  %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE,
+                    "An error occurred while attempting to decode the " +
+                    "matching rule use \"%s\":  %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DELETE_NO_VALUES,
+                    "The server will not allow removing all values for the " +
+                    "%s attribute type in the server schema.");
     registerMessage(MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS,
                     "Unable to add objectclass %s because its superior " +
                     "class of %s is not defined in the server schema.");
@@ -2648,7 +3248,7 @@ public class BackendMessages
                     "of schema file %s:  %s.");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA,
                     "An error occurred while attepting to write the updated " +
-                    "schema file %s:  %s.");
+                    "schema:  %s.");
     registerMessage(MSGID_SCHEMA_MODIFY_DN_NOT_SUPPORTED,
                     "Unwilling to rename entry \"%s\" because modify DN " +
                     "operations are not supported in the schema backend.");
@@ -2710,6 +3310,188 @@ public class BackendMessages
                     "An error occurred while attempting to update the backup " +
                     "descriptor file %s with information about the schema " +
                     "backup:  %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_ATTRTYPE,
+                    "Unable to add attribute type %s because it conflicts " +
+                    "with multiple existing attribute types (%s and " +
+                    "%s).");
+    registerMessage(MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_ATTRIBUTE_TYPE,
+                    "Unable to add attribute type %s because it references " +
+                    "superior attribute type %s which is not defined in the " +
+                    "server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_OBJECTCLASS,
+                    "Unable to add objectclass %s because it conflicts with " +
+                    "multiple existing objectclasses (%s and %s).");
+    registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_NAME_FORM,
+                    "Unable to add name form %s because it conflicts with " +
+                    "multiple existing name forms (%s and %s).");
+    registerMessage(MSGID_SCHEMA_MODIFY_NF_UNDEFINED_STRUCTURAL_OC,
+                    "Unable to add name form %s because it references " +
+                    "structural objectclass %s which is not defined in the " +
+                    "server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_NF_OC_NOT_STRUCTURAL,
+                    "Unable to add name form %s because it references " +
+                    "objectclass %s which is defined in the server schema " +
+                    "but is not a structural objectclass.");
+    registerMessage(MSGID_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_NF,
+                    "Unable to add name form %s because it references " +
+                    "structural objectclass %s which is already associated " +
+                    "with another name form %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_NF_UNDEFINED_REQUIRED_ATTR,
+                    "Unable to add name form %s because it references " +
+                    "required attribute type %s which is not defined in the " +
+                    "server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_NF_UNDEFINED_OPTIONAL_ATTR,
+                    "Unable to add name form %s because it references " +
+                    "optional attribute type %s which is not defined in the " +
+                    "server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DCR,
+                    "Unable to add DIT content rule %s because it conflicts " +
+                    "with multiple existing DIT content rules (%s and %s).");
+    registerMessage(MSGID_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR,
+                    "Unable to add DIT content rule %s because it " +
+                    "references structural objectclass %s which is already " +
+                    "associated with another DIT content rule %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_STRUCTURAL_OC,
+                    "Unable to add DIT content rule %s because it " +
+                    "references structural objectclass %s which is not " +
+                    "defined in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_OC_NOT_STRUCTURAL,
+                    "Unable to add DIT content rule %s because it " +
+                    "references structural objectclass %s which is defined " +
+                    "in the server schema but is not structural.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC,
+                    "Unable to add DIT content rule %s because it " +
+                    "references auxiliary objectclass %s which is not " +
+                    "defined in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_REQUIRED_ATTR,
+                    "Unable to add DIT content rule %s because it " +
+                    "references required attribute type %s which is not " +
+                    "defined in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_OPTIONAL_ATTR,
+                    "Unable to add DIT content rule %s because it " +
+                    "references optional attribute type %s which is not " +
+                    "defined in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_PROHIBITED_ATTR,
+                    "Unable to add DIT content rule %s because it " +
+                    "references prohibited attribute type %s which is not " +
+                    "defined in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DSR,
+                    "Unable to add DIT structure rule %s because it " +
+                    "conflicts with multiple existing DIT structure rules " +
+                    "(%s and %s).");
+    registerMessage(MSGID_SCHEMA_MODIFY_NAME_FORM_CONFLICT_FOR_ADD_DSR,
+                    "Unable to add DIT structure rule %s because it " +
+                    "references name form %s which is already associated " +
+                    "with another DIT structure rule %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DSR_UNDEFINED_NAME_FORM,
+                    "Unable to add DIT structure rule %s because it " +
+                    "references name form %s which is not defined in the " +
+                    "server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE,
+                    "Unable to add matching rule use %s because it " +
+                    "conflicts with multiple existing matching rule uses " +
+                    "(%s and %s).");
+    registerMessage(MSGID_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE,
+                    "Unable to add matching rule use %s because it " +
+                    "references matching rule %s which is already associated " +
+                    "with another matching rule use %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_MRU_UNDEFINED_ATTR,
+                    "Unable to add matching rule use %s because it " +
+                    "references attribute type %s which is not defined in " +
+                    "the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_AT,
+                    "Circular reference detected for attribute type %s in " +
+                    "which the superior type chain references the " +
+                    "attribute type itself.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_OC,
+                    "Circular reference detected for objectclass %s in which " +
+                    "the superior class chain references the objectclass " +
+                    "itself.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_DSR,
+                    "Circular reference detected for DIT structure rule %s " +
+                    "in which the superior rule chain references the DIT " +
+                    "structure rule itself.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED,
+                    "An error occurred while attempting to create copies " +
+                    "of the existing schema files before applying the " +
+                    "updates:  %s.  The server was able to restore the " +
+                    "original schema configuration, so no additional " +
+                    "cleanup should be required.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED,
+                    "An error occurred while attempting to create copies " +
+                    "of the existing schema files before applying the " +
+                    "updates:  %s.  A problem also occurred when attempting " +
+                    "to restore the original schema configuration, so the " +
+                    "server may be left in an inconsistent state and could " +
+                    "require manual cleanup.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED,
+                    "An error occurred while attempting to write new " +
+                    "versions of the server schema files:  %s.   The server " +
+                    "was able to restore the original schema configuration, " +
+                    "so no additional cleanup should be required.");
+    registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED,
+                    "An error occrred while attempting to write new " +
+                    "versions of the server schema files:  %s.  A problem " +
+                    "also occured when attempting to restore the original " +
+                    "schema configuration, so the server may be left in an " +
+                    "inconsistent state and could require manual cleanup.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE,
+                    "Unable to remove attribute type %s from the server " +
+                    "schema because no such attribute type is defined.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_AT_SUPERIOR_TYPE,
+                    "Unable to remove attribute type %s from the server " +
+                    "schema because it is referenced as the superior type " +
+                    "for attribute type %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_OC,
+                    "Unable to remove attribute type %s from the server " +
+                    "schema because it is referenced as a required or " +
+                    "optional attribute type in objectclass %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_NF,
+                    "Unable to remove attribute type %s from the server " +
+                    "schema because it is referenced as a required or " +
+                    "optional attribute type in name form %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_DCR,
+                    "Unable to remove attribute type %s from the server " +
+                    "schema because it is referenced as a required, " +
+                    "optional, or prohibited attribute type in DIT content " +
+                    "rule %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_MR_USE,
+                    "Unable to remove attribute type %s from the server " +
+                    "schema because it is referenced by matching rule use %s");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS,
+                    "Unable to remove objectclass %s from the server schema " +
+                    "because no such objectclass is defined.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS,
+                    "Unable to remove objectclass %s from the server schema " +
+                    "because it is referenced as the superior class for " +
+                    "objectclass %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_OC_IN_NF,
+                    "Unable to remove objectclass %s from the server schema " +
+                    "because it is referenced as the structural class for " +
+                    "name form %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_OC_IN_DCR,
+                    "Unable to remove objectclass %s from the server schema " +
+                    "because it is referenced as a structural or auxiliary " +
+                    "class for DIT content rule %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM,
+                    "Unable to remove name form %s from the server schema " +
+                    "because no such name form is defined.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NF_IN_DSR,
+                    "Unable to remove name form %s from the server schema " +
+                    "because it is referenced by DIT structure rule %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR,
+                    "Unable to remove DIT content rule %s from the server " +
+                    "schema because no such DIT content rule is defined.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR,
+                    "Unable to remove DIT structure rule %s from the server " +
+                    "schema because no such DIT structure rule is defined.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_DSR_SUPERIOR_RULE,
+                    "Unable to remove DIT structure rule %s from the server " +
+                    "schema because it is referenced as a superior rule for " +
+                    "DIT structure rule %s.");
+    registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE,
+                    "Unable to remove matching rule use %s from the server " +
+                    "schema because no such matching rule use is defined.");
 
 
     registerMessage(MSGID_SCHEMA_RESTORE_NO_SUCH_BACKUP,

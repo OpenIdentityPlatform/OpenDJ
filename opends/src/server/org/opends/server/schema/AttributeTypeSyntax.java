@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -926,12 +926,12 @@ public class AttributeTypeSyntax
     }
 
 
-    return new AttributeType(primaryName, typeNames, oid, description,
-                             superiorType, syntax, approximateMatchingRule,
-                             equalityMatchingRule, orderingMatchingRule,
-                             substringMatchingRule, attributeUsage,
-                             isCollective, isNoUserModification, isObsolete,
-                             isSingleValue, extraProperties);
+    return new AttributeType(value.stringValue(), primaryName, typeNames, oid,
+                             description, superiorType, syntax,
+                             approximateMatchingRule, equalityMatchingRule,
+                             orderingMatchingRule, substringMatchingRule,
+                             attributeUsage, isCollective, isNoUserModification,
+                             isObsolete, isSingleValue, extraProperties);
   }
 
 

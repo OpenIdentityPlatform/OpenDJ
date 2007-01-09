@@ -22,20 +22,26 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
 
 
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.opends.server.schema.NameFormSyntax;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -45,7 +51,8 @@ import static org.opends.server.util.StaticUtils.*;
  * and/or may be used in the RDN of an entry with a given structural
  * objectclass.
  */
-public class NameForm
+public final class NameForm
+       implements SchemaFileElement
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -56,49 +63,52 @@ public class NameForm
 
 
   // Indicates whether this name form is declared "obsolete".
-  private boolean isObsolete;
+  private final boolean isObsolete;
 
   // The set of additional name-value pairs associated with this name
   // form definition.
-  private ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-               extraProperties;
+  private final Map<String,List<String>> extraProperties;
 
   // The mapping between the lowercase names and the user-provided
   // names for this name form.
-  private ConcurrentHashMap<String,String> names;
-
-  // The set of optional attribute types for this name form.
-  private CopyOnWriteArraySet<AttributeType> optionalAttributes;
-
-  // The set of required attribute types for this name form.
-  private CopyOnWriteArraySet<AttributeType> requiredAttributes;
+  private final Map<String,String> names;
 
   // The reference to the structural objectclass for this name form.
-  private ObjectClass structuralClass;
+  private final ObjectClass structuralClass;
+
+  // The set of optional attribute types for this name form.
+  private final Set<AttributeType> optionalAttributes;
+
+  // The set of required attribute types for this name form.
+  private final Set<AttributeType> requiredAttributes;
+
+  // The definition string used to create this name form.
+  private final String definition;
 
   // The description for this name form.
-  private String description;
+  private final String description;
 
   // The OID for this name form.
-  private String oid;
-
-  // The path to the schema file that contains the definition for this
-  // name form.
-  private String schemaFile;
+  private final String oid;
 
 
 
   /**
    * Creates a new name form definition with the provided information.
    *
+   * @param  definition          The definition string used to create
+   *                             this name form.  It must not be
+   *                             {@code null}.
    * @param  names               The set of names that may be used to
    *                             reference this name form.
-   * @param  oid                 The OID for this name form.
+   * @param  oid                 The OID for this name form.  It must
+   *                             not be {@code null}.
    * @param  description         The description for this name form.
    * @param  isObsolete          Indicates whether this name form is
    *                             declared "obsolete".
    * @param  structuralClass     The structural objectclass with which
-   *                             this name form is associated.
+   *                             this name form is associated.  It
+   *                             must not be {@code null}.
    * @param  requiredAttributes  The set of required attribute types
    *                             for this name form.
    * @param  optionalAttributes  The set of optional attribute types
@@ -106,36 +116,111 @@ public class NameForm
    * @param  extraProperties     A set of extra properties for this
    *                             name form.
    */
-  public NameForm(ConcurrentHashMap<String,String> names, String oid,
-              String description, boolean isObsolete,
-              ObjectClass structuralClass,
-              CopyOnWriteArraySet<AttributeType> requiredAttributes,
-              CopyOnWriteArraySet<AttributeType> optionalAttributes,
-              ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-                   extraProperties)
+  public NameForm(String definition, Map<String,String> names,
+                  String oid, String description, boolean isObsolete,
+                  ObjectClass structuralClass,
+                  Set<AttributeType> requiredAttributes,
+                  Set<AttributeType> optionalAttributes,
+                  Map<String,List<String>> extraProperties)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(names),
-                              String.valueOf(oid),
-                              String.valueOf(description),
-                              String.valueOf(isObsolete),
-                              String.valueOf(structuralClass),
-                              String.valueOf(requiredAttributes),
-                              String.valueOf(optionalAttributes),
-                              String.valueOf(extraProperties)
-                            });
+    assert debugConstructor(CLASS_NAME, String.valueOf(definition),
+                            String.valueOf(names),
+                            String.valueOf(oid),
+                            String.valueOf(description),
+                            String.valueOf(isObsolete),
+                            String.valueOf(structuralClass),
+                            String.valueOf(requiredAttributes),
+                            String.valueOf(optionalAttributes),
+                            String.valueOf(extraProperties));
 
-    this.names              = names;
-    this.oid                = oid;
-    this.description        = description;
-    this.isObsolete         = isObsolete;
-    this.structuralClass    = structuralClass;
-    this.requiredAttributes = requiredAttributes;
-    this.optionalAttributes = optionalAttributes;
-    this.schemaFile         = null;
-    this.extraProperties    = extraProperties;
+    ensureNotNull(definition, oid, structuralClass);
+
+    this.definition      = definition;
+    this.oid             = oid;
+    this.description     = description;
+    this.isObsolete      = isObsolete;
+    this.structuralClass = structuralClass;
+
+    if ((names == null) || names.isEmpty())
+    {
+      this.names = new LinkedHashMap<String,String>(0);
+    }
+    else
+    {
+      this.names = new LinkedHashMap<String,String>(names);
+    }
+
+    if ((requiredAttributes == null) || requiredAttributes.isEmpty())
+    {
+      this.requiredAttributes = new LinkedHashSet<AttributeType>(0);
+    }
+    else
+    {
+      this.requiredAttributes =
+           new LinkedHashSet<AttributeType>(requiredAttributes);
+    }
+
+    if ((optionalAttributes == null) || optionalAttributes.isEmpty())
+    {
+      this.optionalAttributes = new LinkedHashSet<AttributeType>(0);
+    }
+    else
+    {
+      this.optionalAttributes =
+           new LinkedHashSet<AttributeType>(optionalAttributes);
+    }
+
+    if ((extraProperties == null) || extraProperties.isEmpty())
+    {
+      this.extraProperties =
+           new LinkedHashMap<String,List<String>>(0);
+    }
+    else
+    {
+      this.extraProperties =
+           new LinkedHashMap<String,List<String>>(extraProperties);
+    }
+  }
+
+
+
+  /**
+   * Retrieves the definition string used to create this name form.
+   *
+   * @return  The definition string used to create this name form.
+   */
+  public String getDefinition()
+  {
+    assert debugEnter(CLASS_NAME, "getDefinition");
+
+    return definition;
+  }
+
+
+
+  /**
+   * Creates a new instance of this name form based on the definition
+   * string.  It will also preserve other state information associated
+   * with this name form that is not included in the definition string
+   * (e.g., the name of the schema file with which it is associated).
+   *
+   * @return  The new instance of this name form based on the
+   *          definition string.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to create a new name form instance
+   *                              from the definition string.
+   */
+  public NameForm recreateFromDefinition()
+         throws DirectoryException
+  {
+    ByteString value  = ByteStringFactory.create(definition);
+    Schema     schema = DirectoryConfig.getSchema();
+
+    NameForm nf = NameFormSyntax.decodeNameForm(value, schema);
+    nf.setSchemaFile(getSchemaFile());
+
+    return nf;
   }
 
 
@@ -149,29 +234,11 @@ public class NameForm
    * @return  The set of names that may be used to reference this
    *          name form.
    */
-  public ConcurrentHashMap<String,String> getNames()
+  public Map<String,String> getNames()
   {
     assert debugEnter(CLASS_NAME, "getNames");
 
     return names;
-  }
-
-
-
-  /**
-   * Specifies the set of names that may be used to reference this
-   * name form.  The provided set must provide a mapping between each
-   * name in all lowercase characters and that name in a user-defined
-   * form (which may include mixed capitalization).
-   *
-   * @param  names  The set of names that may be used to reference
-   *                this name form.
-   */
-  public void setNames(ConcurrentHashMap<String,String> names)
-  {
-    assert debugEnter(CLASS_NAME, "setNames", String.valueOf(names));
-
-    this.names = names;
   }
 
 
@@ -183,9 +250,8 @@ public class NameForm
    * @param  lowerName  The name for which to make the determination,
    *                    in all lowercase characters.
    *
-   * @return  <CODE>true</CODE> if the provided lowercase name may be
-   *          used to reference this name form, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the provided lowercase name may be used
+   *          to reference this name form, or {@code false} if not.
    */
   public boolean hasName(String lowerName)
   {
@@ -193,41 +259,6 @@ public class NameForm
                       String.valueOf(lowerName));
 
     return names.containsKey(lowerName);
-  }
-
-
-
-  /**
-   * Adds the provided name to the set of names that may be used to
-   * reference this name form.
-   *
-   * @param  name  The name to add to the set of names that may be
-   *               used to reference this name form.
-   */
-  public void addName(String name)
-  {
-    assert debugEnter(CLASS_NAME, "addName", String.valueOf(name));
-
-    String lowerName = toLowerCase(name);
-    names.put(lowerName, name);
-  }
-
-
-
-  /**
-   * Removes the provided lowercase name from the set of names that
-   * may be used to reference this name form.
-   *
-   * @param  lowerName  The name to remove from the set of names that
-   *                    may be used to reference this name form, in
-   *                    all lowercase characters.
-   */
-  public void removeName(String lowerName)
-  {
-    assert debugEnter(CLASS_NAME, "removeName",
-                      String.valueOf(lowerName));
-
-    names.remove(lowerName);
   }
 
 
@@ -242,20 +273,6 @@ public class NameForm
     assert debugEnter(CLASS_NAME, "getOID");
 
     return oid;
-  }
-
-
-
-  /**
-   * Specifies the OID for this name form.
-   *
-   * @param  oid  The OID for this name form.
-   */
-  public void setOID(String oid)
-  {
-    assert debugEnter(CLASS_NAME, "setOID", String.valueOf(oid));
-
-    this.oid = oid;
   }
 
 
@@ -292,9 +309,9 @@ public class NameForm
    * @param  lowerValue  The value, in all lowercase characters, that
    *                     may be used to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided lowercase value is one
-   *          of the names or the OID of this name form, or
-   *          <CODE>false</CODE> if it is not.
+   * @return  {@code true} if the provided lowercase value is one of
+   *          the names or the OID of this name form, or {@code false}
+   *          if it is not.
    */
   public boolean hasNameOrOID(String lowerValue)
   {
@@ -316,14 +333,21 @@ public class NameForm
    * definition for this name form.
    *
    * @return  The path to the schema file that contains the definition
-   *          for this name form, or <CODE>null</CODE> if it is not
-   *          known or if it is not stored in any schema file.
+   *          for this name form, or {@code null} if it is not known
+   *          or if it is not stored in any schema file.
    */
   public String getSchemaFile()
   {
     assert debugEnter(CLASS_NAME, "getSchemaFile");
 
-    return schemaFile;
+    List<String> values =
+         extraProperties.get(SCHEMA_PROPERTY_FILENAME);
+    if ((values == null) || values.isEmpty())
+    {
+      return null;
+    }
+
+    return values.get(0);
   }
 
 
@@ -340,7 +364,7 @@ public class NameForm
     assert debugEnter(CLASS_NAME, "setSchemaFile",
                       String.valueOf(schemaFile));
 
-    this.schemaFile = schemaFile;
+    setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
 
@@ -348,29 +372,14 @@ public class NameForm
   /**
    * Retrieves the description for this name form.
    *
-   * @return  The description for this name form, or <CODE>null</CODE>
-   *          if there is none.
+   * @return  The description for this name form, or {@code true} if
+   *          there is none.
    */
   public String getDescription()
   {
     assert debugEnter(CLASS_NAME, "getDescription");
 
     return description;
-  }
-
-
-
-  /**
-   * Specifies the description for this name form.
-   *
-   * @param  description  The description for this name form.
-   */
-  public void setDescription(String description)
-  {
-    assert debugEnter(CLASS_NAME, "setDescription",
-                      String.valueOf(description));
-
-    this.description = description;
   }
 
 
@@ -392,27 +401,11 @@ public class NameForm
 
 
   /**
-   * Specifies the structural objectclass for this name form.
-   *
-   * @param  structuralClass  The structural objectclass for this name
-   *                          form.
-   */
-  public void setStructuralClass(ObjectClass structuralClass)
-  {
-    assert debugEnter(CLASS_NAME, "setStructuralClass",
-                      String.valueOf(structuralClass));
-
-    this.structuralClass = structuralClass;
-  }
-
-
-
-  /**
    * Retrieves the set of required attributes for this name form.
    *
    * @return  The set of required attributes for this name form.
    */
-  public CopyOnWriteArraySet<AttributeType> getRequiredAttributes()
+  public Set<AttributeType> getRequiredAttributes()
   {
     assert debugEnter(CLASS_NAME, "getRequiredAttributes");
 
@@ -428,9 +421,8 @@ public class NameForm
    * @param  attributeType  The attribute type for which to make the
    *                        determination.
    *
-   * @return  <CODE>true</CODE> if the provided attribute type is
-   *          required by this name form, or <CODE>false</CODE> if
-   *          not.
+   * @return  {@code true} if the provided attribute type is required
+   *          by this name form, or {@code false} if not.
    */
   public boolean isRequired(AttributeType attributeType)
   {
@@ -443,62 +435,11 @@ public class NameForm
 
 
   /**
-   * Specifies the set of required attributes for this name form.
-   *
-   * @param  requiredAttributes  The set of required attributes for
-   *                             this name form.
-   */
-  public void setRequiredAttributes(CopyOnWriteArraySet<AttributeType>
-                                         requiredAttributes)
-  {
-    assert debugEnter(CLASS_NAME, "setRequiredAttributes",
-                      String.valueOf(requiredAttributes));
-
-    this.requiredAttributes = requiredAttributes;
-  }
-
-
-
-  /**
-   * Adds the provided attribute to the set of required attributes for
-   * this name form.
-   *
-   * @param  attributeType  The attribute type to add to the set of
-   *                        required attributes for this name form.
-   */
-  public void addRequiredAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "addRequiredAttribute",
-                      String.valueOf(attributeType));
-
-    requiredAttributes.add(attributeType);
-  }
-
-
-
-  /**
-   * Removes the provided attribute from the set of required
-   * attributes for this name form.
-   *
-   * @param  attributeType  The attribute type to remove from the set
-   *                        of required attributes for this name form.
-   */
-  public void removeRequiredAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "removeRequiredAttribute",
-                      String.valueOf(attributeType));
-
-    requiredAttributes.remove(attributeType);
-  }
-
-
-
-  /**
    * Retrieves the set of optional attributes for this name form.
    *
    * @return  The set of optional attributes for this name form.
    */
-  public CopyOnWriteArraySet<AttributeType> getOptionalAttributes()
+  public Set<AttributeType> getOptionalAttributes()
   {
     assert debugEnter(CLASS_NAME, "getOptionalAttributes");
 
@@ -514,9 +455,8 @@ public class NameForm
    * @param  attributeType  The attribute type for which to make the
    *                        determination.
    *
-   * @return  <CODE>true</CODE> if the provided attribute type is
-   *          optional for this name form, or <CODE>false</CODE> if
-   *          not.
+   * @return  {@code true} if the provided attribute type is optional
+   *          for this name form, or {@code false} if not.
    */
   public boolean isOptional(AttributeType attributeType)
   {
@@ -529,66 +469,15 @@ public class NameForm
 
 
   /**
-   * Specifies the set of optional attributes for this name form.
-   *
-   * @param  optionalAttributes  The set of optional attributes for
-   *                             this name form.
-   */
-  public void setOptionalAttributes(CopyOnWriteArraySet<AttributeType>
-                                         optionalAttributes)
-  {
-    assert debugEnter(CLASS_NAME, "setOptionalAttributes",
-                      String.valueOf(optionalAttributes));
-
-    this.optionalAttributes = optionalAttributes;
-  }
-
-
-
-  /**
-   * Adds the provided attribute to the set of optional attributes for
-   * this name form.
-   *
-   * @param  attributeType  The attribute type to add to the set of
-   *                        optional attributes for this name form.
-   */
-  public void addOptionalAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "addOptionalAttribute",
-                      String.valueOf(attributeType));
-
-    optionalAttributes.add(attributeType);
-  }
-
-
-
-  /**
-   * Removes the provided attribute from the set of optional
-   * attributes for this name form.
-   *
-   * @param  attributeType  The attribute type to remove from the set
-   *                        optional attributes for this name form.
-   */
-  public void removeOptionalAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "removeOptionalAttribute",
-                      String.valueOf(attributeType));
-
-    optionalAttributes.remove(attributeType);
-  }
-
-
-
-  /**
    * Indicates whether the provided attribute type is in the list of
    * required or optional attributes for this name form.
    *
    * @param  attributeType  The attribute type for which to make the
    *                        determination.
    *
-   * @return  <CODE>true</CODE> if the provided attribute type is
-   *          required or allowed for this name form, or
-   *          <CODE>false</CODE> if it is not.
+   * @return  {@code true} if the provided attribute type is required
+   *          or optional for this name form, or {@code false} if it
+   *          is not.
    */
   public boolean isRequiredOrOptional(AttributeType attributeType)
   {
@@ -604,8 +493,8 @@ public class NameForm
   /**
    * Indicates whether this name form is declared "obsolete".
    *
-   * @return  <CODE>true</CODE> if this name form is declared
-   *          "obsolete", or <CODE>false</CODE> if it is not.
+   * @return  {@code true} if this name form is declared
+   *          "obsolete", or {@code false} if it is not.
    */
   public boolean isObsolete()
   {
@@ -617,33 +506,15 @@ public class NameForm
 
 
   /**
-   * Specifies whether this name form is declared "obsolete".
-   *
-   * @param  isObsolete  Specifies whether this name form is declared
-   *                     "obsolete".
-   */
-  public void setObsolete(boolean isObsolete)
-  {
-    assert debugEnter(CLASS_NAME, "setObsolete",
-                      String.valueOf(isObsolete));
-
-    this.isObsolete = isObsolete;
-  }
-
-
-
-  /**
    * Retrieves a mapping between the names of any extra non-standard
    * properties that may be associated with this name form and the
-   * value for that property.  The caller may alter the contents of
-   * this mapping.
+   * value for that property.
    *
    * @return  A mapping between the names of any extra non-standard
    *          properties that may be associated with this name form
    *          and the value for that property.
    */
-  public ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-              getExtraProperties()
+  public Map<String,List<String>> getExtraProperties()
   {
     assert debugEnter(CLASS_NAME, "getExtraProperties");
 
@@ -660,16 +531,73 @@ public class NameForm
    *                       to retrieve the value.
    *
    * @return  The value of the specified "extra" property for this
-   *          name form, or <CODE>null</CODE> if no such property is
+   *          name form, or {@code null} if no such property is
    *          defined.
    */
-  public CopyOnWriteArrayList<String>
-              getExtraProperty(String propertyName)
+  public List<String> getExtraProperty(String propertyName)
   {
     assert debugEnter(CLASS_NAME, "getExtraProperty",
                       String.valueOf(propertyName));
 
     return extraProperties.get(propertyName);
+  }
+
+
+
+  /**
+   * Specifies the provided "extra" property for this name form.
+   *
+   * @param  name   The name for the "extra" property.  It must not be
+   *                {@code null}.
+   * @param  value  The value for the "extra" property, or
+   *                {@code null} if the property is to be removed.
+   */
+  public void setExtraProperty(String name, String value)
+  {
+    assert debugEnter(CLASS_NAME, "setExtraProperty",
+                      String.valueOf(name), String.valueOf(value));
+
+    ensureNotNull(name);
+
+    if (value == null)
+    {
+      extraProperties.remove(name);
+    }
+    else
+    {
+      LinkedList<String> values = new LinkedList<String>();
+      values.add(value);
+
+      extraProperties.put(name, values);
+    }
+  }
+
+
+
+  /**
+   * Specifies the provided "extra" property for this name form.
+   *
+   * @param  name    The name for the "extra" property.  It must not
+   *                 be {@code null}.
+   * @param  values  The set of value for the "extra" property, or
+   *                 {@code null} if the property is to be removed.
+   */
+  public void setExtraProperty(String name, List<String> values)
+  {
+    assert debugEnter(CLASS_NAME, "setExtraProperty",
+                      String.valueOf(name), String.valueOf(values));
+
+    ensureNotNull(name);
+
+    if ((values == null) || values.isEmpty())
+    {
+      extraProperties.remove(name);
+    }
+    else
+    {
+      LinkedList<String> valuesCopy = new LinkedList<String>(values);
+      extraProperties.put(name, valuesCopy);
+    }
   }
 
 
@@ -681,8 +609,8 @@ public class NameForm
    *
    * @param  o  The object for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided object is equal to
-   *          this name form, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided object is equal to this
+   *          name form, or {@code true} if not.
    */
   public boolean equals(Object o)
   {
@@ -861,8 +789,13 @@ public class NameForm
     {
       for (String property : extraProperties.keySet())
       {
-        CopyOnWriteArrayList<String> valueList =
-             extraProperties.get(property);
+        if ((! includeFileElement) &&
+            property.equals(SCHEMA_PROPERTY_FILENAME))
+        {
+          continue;
+        }
+
+        List<String> valueList = extraProperties.get(property);
 
         buffer.append(" ");
         buffer.append(property);
@@ -887,16 +820,6 @@ public class NameForm
           buffer.append(")");
         }
       }
-    }
-
-    if (includeFileElement && (schemaFile != null) &&
-        (! extraProperties.containsKey(SCHEMA_PROPERTY_FILENAME)))
-    {
-      buffer.append(" ");
-      buffer.append(SCHEMA_PROPERTY_FILENAME);
-      buffer.append(" '");
-      buffer.append(schemaFile);
-      buffer.append("'");
     }
 
     buffer.append(" )");

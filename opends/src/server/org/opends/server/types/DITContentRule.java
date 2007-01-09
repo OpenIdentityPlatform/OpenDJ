@@ -22,16 +22,21 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
 
 
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.opends.server.schema.DITContentRuleSyntax;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
@@ -39,6 +44,7 @@ import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -48,7 +54,8 @@ import static org.opends.server.util.StaticUtils.*;
  * given structural objectclass, and also indicates which auxiliary
  * classes that may be included in the entry.
  */
-public class DITContentRule
+public final class DITContentRule
+       implements SchemaFileElement
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -59,40 +66,38 @@ public class DITContentRule
 
 
   // Indicates whether this content rule is declared "obsolete".
-  private boolean isObsolete;
+  private final boolean isObsolete;
 
   // The set of additional name-value pairs associated with this
   // content rule definition.
-  private ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-               extraProperties;
+  private final Map<String,List<String>> extraProperties;
 
   // The set of names for this DIT content rule, in a mapping between
   // the all-lowercase form and the user-defined form.
-  private ConcurrentHashMap<String,String> names;
+  private final Map<String,String> names;
+
+  // The structural objectclass for this DIT content rule.
+  private final ObjectClass structuralClass;
 
   // The set of auxiliary objectclasses that entries with this content
   // rule may contain, in a mapping between the objectclass and the
   // user-defined name for that class.
-  private CopyOnWriteArraySet<ObjectClass> auxiliaryClasses;
+  private final Set<ObjectClass> auxiliaryClasses;
 
   // The set of optional attribute types for this DIT content rule.
-  private CopyOnWriteArraySet<AttributeType> optionalAttributes;
+  private final Set<AttributeType> optionalAttributes;
 
   // The set of prohibited attribute types for this DIT content rule.
-  private CopyOnWriteArraySet<AttributeType> prohibitedAttributes;
+  private final Set<AttributeType> prohibitedAttributes;
 
   // The set of required attribute types for this DIT content rule.
-  private CopyOnWriteArraySet<AttributeType> requiredAttributes;
+  private final Set<AttributeType> requiredAttributes;
 
-  // The structural objectclass for this DIT content rule.
-  private ObjectClass structuralClass;
+  // The definition string used to create this DIT content rule.
+  private final String definition;
 
-  // The description for this attribute type.
-  private String description;
-
-  // The path to the schema file that contains this DIT content rule
-  // definition.
-  private String schemaFile;
+  // The description for this DIT content rule.
+  private final String description;
 
 
 
@@ -100,8 +105,12 @@ public class DITContentRule
    * Creates a new DIT content rule definition with the provided
    * information.
    *
+   * @param  definition            The definition string used to
+   *                               create this DIT content rule.  It
+   *                               must not be {@code null}.
    * @param  structuralClass       The structural objectclass for this
-   *                               DIT content rule.
+   *                               DIT content rule.  It must not be
+   *                               {@code null}.
    * @param  names                 The set of names that may be used
    *                               to reference this DIT content rule.
    * @param  description           The description for this DIT
@@ -119,41 +128,139 @@ public class DITContentRule
    * @param  extraProperties       A set of extra properties for this
    *                               DIT content rule.
    */
-  public DITContentRule(ObjectClass structuralClass,
-              ConcurrentHashMap<String,String> names,
-              String description,
-              CopyOnWriteArraySet<ObjectClass> auxiliaryClasses,
-              CopyOnWriteArraySet<AttributeType> requiredAttributes,
-              CopyOnWriteArraySet<AttributeType> optionalAttributes,
-              CopyOnWriteArraySet<AttributeType> prohibitedAttributes,
-              boolean isObsolete,
-              ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-                   extraProperties)
+  public DITContentRule(String definition,
+                        ObjectClass structuralClass,
+                        Map<String,String> names, String description,
+                        Set<ObjectClass> auxiliaryClasses,
+                        Set<AttributeType> requiredAttributes,
+                        Set<AttributeType> optionalAttributes,
+                        Set<AttributeType> prohibitedAttributes,
+                        boolean isObsolete,
+                        Map<String,List<String>> extraProperties)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(structuralClass),
-                              String.valueOf(names),
-                              String.valueOf(description),
-                              String.valueOf(auxiliaryClasses),
-                              String.valueOf(requiredAttributes),
-                              String.valueOf(optionalAttributes),
-                              String.valueOf(prohibitedAttributes),
-                              String.valueOf(isObsolete),
-                              String.valueOf(extraProperties)
-                            });
+    assert debugConstructor(CLASS_NAME, String.valueOf(definition),
+                            String.valueOf(structuralClass),
+                            String.valueOf(names),
+                            String.valueOf(description),
+                            String.valueOf(auxiliaryClasses),
+                            String.valueOf(requiredAttributes),
+                            String.valueOf(optionalAttributes),
+                            String.valueOf(prohibitedAttributes),
+                            String.valueOf(isObsolete),
+                            String.valueOf(extraProperties));
 
-    this.structuralClass      = structuralClass;
-    this.names                = names;
-    this.description          = description;
-    this.auxiliaryClasses     = auxiliaryClasses;
-    this.requiredAttributes   = requiredAttributes;
-    this.optionalAttributes   = optionalAttributes;
-    this.prohibitedAttributes = prohibitedAttributes;
-    this.isObsolete           = isObsolete;
-    this.schemaFile           = null;
-    this.extraProperties      = extraProperties;
+    ensureNotNull(definition, structuralClass);
+
+    this.definition      = definition;
+    this.structuralClass = structuralClass;
+    this.description     = description;
+    this.isObsolete      = isObsolete;
+
+    if ((names == null) || names.isEmpty())
+    {
+      this.names = new LinkedHashMap<String,String>(0);
+    }
+    else
+    {
+      this.names = new LinkedHashMap<String,String>(names);
+    }
+
+    if ((auxiliaryClasses == null) || auxiliaryClasses.isEmpty())
+    {
+      this.auxiliaryClasses = new LinkedHashSet<ObjectClass>(0);
+    }
+    else
+    {
+      this.auxiliaryClasses =
+           new LinkedHashSet<ObjectClass>(auxiliaryClasses);
+    }
+
+    if ((requiredAttributes == null) || requiredAttributes.isEmpty())
+    {
+      this.requiredAttributes = new LinkedHashSet<AttributeType>(0);
+    }
+    else
+    {
+      this.requiredAttributes =
+           new LinkedHashSet<AttributeType>(requiredAttributes);
+    }
+
+    if ((optionalAttributes == null) || optionalAttributes.isEmpty())
+    {
+      this.optionalAttributes = new LinkedHashSet<AttributeType>(0);
+    }
+    else
+    {
+      this.optionalAttributes =
+           new LinkedHashSet<AttributeType>(optionalAttributes);
+    }
+
+    if ((prohibitedAttributes == null) ||
+        prohibitedAttributes.isEmpty())
+    {
+      this.prohibitedAttributes = new LinkedHashSet<AttributeType>(0);
+    }
+    else
+    {
+      this.prohibitedAttributes =
+           new LinkedHashSet<AttributeType>(prohibitedAttributes);
+    }
+
+    if ((extraProperties == null) || extraProperties.isEmpty())
+    {
+      this.extraProperties =
+           new LinkedHashMap<String,List<String>>(0);
+    }
+    else
+    {
+      this.extraProperties =
+           new LinkedHashMap<String,List<String>>(extraProperties);
+    }
+  }
+
+
+
+  /**
+   * Retrieves the definition string used to create this DIT content
+   * rule.
+   *
+   * @return  The definition string used to create this DIT content
+   *          rule.
+   */
+  public String getDefinition()
+  {
+    assert debugEnter(CLASS_NAME, "getDefinition");
+
+    return definition;
+  }
+
+
+
+  /**
+   * Creates a new instance of this DIT content rule based on the
+   * definition string.  It will also preserve other state information
+   * associated with this DIT content rule that is not included in the
+   * definition string (e.g., the name of the schema file with which
+   * it is associated).
+   *
+   * @return  The new instance of this DIT content rule based on the
+   *          definition string.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to create a new DIT content rule
+   *                              instance from the definition string.
+   */
+  public DITContentRule recreateFromDefinition()
+         throws DirectoryException
+  {
+    ByteString value  = ByteStringFactory.create(definition);
+    Schema     schema = DirectoryConfig.getSchema();
+
+    DITContentRule dcr =
+         DITContentRuleSyntax.decodeDITContentRule(value, schema);
+    dcr.setSchemaFile(getSchemaFile());
+
+    return dcr;
   }
 
 
@@ -173,22 +280,6 @@ public class DITContentRule
 
 
   /**
-   * Specifies the structural objectclass for this DIT content rule.
-   *
-   * @param  structuralClass  The structural objectclass for this DIT
-   *                          content rule.
-   */
-  public void setStructuralClass(ObjectClass structuralClass)
-  {
-    assert debugEnter(CLASS_NAME, "setStructuralClass",
-                      String.valueOf(structuralClass));
-
-    this.structuralClass = structuralClass;
-  }
-
-
-
-  /**
    * Retrieves the set of names that may be used to reference this DIT
    * content rule.  The returned object will be a mapping between each
    * name in all lowercase characters and that name in a user-defined
@@ -197,7 +288,7 @@ public class DITContentRule
    * @return  The set of names that may be used to reference this DIT
    *          content rule.
    */
-  public ConcurrentHashMap<String,String> getNames()
+  public Map<String,String> getNames()
   {
     assert debugEnter(CLASS_NAME, "getNames");
 
@@ -211,7 +302,7 @@ public class DITContentRule
    * rule.
    *
    * @return  The primary name to use to reference this DIT content
-   *          rule, or <CODE>null</CODE> if there is none.
+   *          rule, or {@code null} if there is none.
    */
   public String getName()
   {
@@ -230,33 +321,15 @@ public class DITContentRule
 
 
   /**
-   * Specifies the set of names that may be used to reference this DIT
-   * content rule.  The provided set must provide a mapping between
-   * each name in all lowercase characters and that name in a
-   * user-defined form (which may include mixed capitalization).
-   *
-   * @param  names  The set of names that may be used to reference
-   *                this DIT content rule.
-   */
-  public void setNames(ConcurrentHashMap<String,String> names)
-  {
-    assert debugEnter(CLASS_NAME, "setNames", String.valueOf(names));
-
-    this.names = names;
-  }
-
-
-
-  /**
    * Indicates whether the provided lowercase name may be used to
    * reference this DIT content rule.
    *
    * @param  lowerName  The name for which to make the determination,
    *                    in all lowercase characters.
    *
-   * @return  <CODE>true</CODE> if the provided lowercase name may be
-   *          used to reference this DIT content rule, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided lowercase name may be used
+   *          to reference this DIT content rule, or {@code false} if
+   *          not.
    */
   public boolean hasName(String lowerName)
   {
@@ -269,62 +342,34 @@ public class DITContentRule
 
 
   /**
-   * Adds the provided name to the set of names that may be used to
-   * reference this DIT content rule.
-   *
-   * @param  name  The name to add to the set of names that may be
-   *               used to reference this DIT content rule.
-   */
-  public void addName(String name)
-  {
-    assert debugEnter(CLASS_NAME, "addName", String.valueOf(name));
-
-    String lowerName = toLowerCase(name);
-    names.put(lowerName, name);
-  }
-
-
-
-  /**
-   * Removes the provided lowercase name from the set of names that
-   * may be used to reference this DIT content rule.
-   *
-   * @param  lowerName  The name to remove from the set of names that
-   *                    may be used to reference this DIT content
-   *                    rule, in all lowercase characters.
-   */
-  public void removeName(String lowerName)
-  {
-    assert debugEnter(CLASS_NAME, "removeName",
-                      String.valueOf(lowerName));
-
-    names.remove(lowerName);
-  }
-
-
-
-  /**
-   * Retrieves the path to the schema file that contains the
+   * Retrieves the name of the schema file that contains the
    * definition for this DIT content rule.
    *
-   * @return  The path to the schema file that contains the definition
-   *          for this DIT content rule, or <CODE>null</CODE> if it is
-   *          not known or if it is not stored in any schema file.
+   * @return  The name of the schema file that contains the definition
+   *          for this DIT content rule, or {@code null} if it is not
+   *          known or if it is not stored in any schema file.
    */
   public String getSchemaFile()
   {
     assert debugEnter(CLASS_NAME, "getSchemaFile");
 
-    return schemaFile;
+    List<String> values =
+         extraProperties.get(SCHEMA_PROPERTY_FILENAME);
+    if ((values == null) || values.isEmpty())
+    {
+      return null;
+    }
+
+    return values.get(0);
   }
 
 
 
   /**
-   * Specifies the path to the schema file that contains the
+   * Specifies the name of the schema file that contains the
    * definition for this DIT content rule.
    *
-   * @param  schemaFile  The path to the schema file that contains the
+   * @param  schemaFile  The name of the schema file that contains the
    *                     definition for this DIT content rule.
    */
   public void setSchemaFile(String schemaFile)
@@ -332,7 +377,7 @@ public class DITContentRule
     assert debugEnter(CLASS_NAME, "setSchemaFile",
                       String.valueOf(schemaFile));
 
-    this.schemaFile = schemaFile;
+    setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
 
@@ -341,7 +386,7 @@ public class DITContentRule
    * Retrieves the description for this DIT content rule.
    *
    * @return  The description for this DIT content rule, or
-   *          <CODE>null</CODE> if there is none.
+   *          {@code null} if there is none.
    */
   public String getDescription()
   {
@@ -353,85 +398,17 @@ public class DITContentRule
 
 
   /**
-   * Specifies the description for this DIT content rule.
-   *
-   * @param  description  The description for this DIT content rule.
-   */
-  public void setDescription(String description)
-  {
-    assert debugEnter(CLASS_NAME, "setDescription",
-                      String.valueOf(description));
-
-    this.description = description;
-  }
-
-
-
-  /**
    * Retrieves the set of auxiliary objectclasses that may be used for
    * entries associated with this DIT content rule.
    *
    * @return  The set of auxiliary objectclasses that may be used for
    *          entries associated with this DIT content rule.
    */
-  public CopyOnWriteArraySet<ObjectClass> getAuxiliaryClasses()
+  public Set<ObjectClass> getAuxiliaryClasses()
   {
     assert debugEnter(CLASS_NAME, "getAuxiliaryClasses");
 
     return auxiliaryClasses;
-  }
-
-
-
-  /**
-   * Specifies the set of auxiliary objectclasses that may be used for
-   * entries associated with this DIT content rule.
-   *
-   * @param  auxiliaryClasses  The set of auxiliary objectclasses that
-   *                           may be used for entries associated with
-   *                           this DIT content rule.
-   */
-  public void setAuxiliaryClasses(
-                   CopyOnWriteArraySet<ObjectClass> auxiliaryClasses)
-  {
-    assert debugEnter(CLASS_NAME, "setAuxiliaryClasses",
-                      String.valueOf(auxiliaryClasses));
-
-    this.auxiliaryClasses = auxiliaryClasses;
-  }
-
-
-
-  /**
-   * Adds the specified auxiliary objectclass to this DIT content
-   * rule.
-   *
-   * @param  auxiliaryClass  The auxiliary class to add to this DIT
-   *                         content rule.
-   */
-  public void addAuxiliaryClass(ObjectClass auxiliaryClass)
-  {
-    assert debugEnter(CLASS_NAME, "addAuxiliaryClass",
-                      String.valueOf(auxiliaryClass));
-
-    auxiliaryClasses.add(auxiliaryClass);
-  }
-
-
-
-  /**
-   * Removes the specified auxiliary objectclass from this DIT content
-   * rule.
-   *
-   * @param  auxiliaryClass  The auxiliary class to remove from this
-   *                         DIT content rule.
-   */
-  public void removeAuxiliaryClass(ObjectClass auxiliaryClass)
-  {
-    assert debugEnter(CLASS_NAME, "removeAuxiliaryClass",
-                      String.valueOf(auxiliaryClass));
-
-    auxiliaryClasses.remove(auxiliaryClass);
   }
 
 
@@ -443,9 +420,9 @@ public class DITContentRule
    * @param  auxiliaryClass  The auxiliary objectclass for which to
    *                         make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided auxiliary objectclass
-   *          is allowed for use by this DIT content rule, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided auxiliary objectclass is
+   *          allowed for use by this DIT content rule, or
+   *          {@code false} if not.
    */
   public boolean isAllowedAuxiliaryClass(ObjectClass auxiliaryClass)
   {
@@ -463,7 +440,7 @@ public class DITContentRule
    * @return  The set of required attributes for this DIT content
    *          rule.
    */
-  public CopyOnWriteArraySet<AttributeType> getRequiredAttributes()
+  public Set<AttributeType> getRequiredAttributes()
   {
     assert debugEnter(CLASS_NAME, "getRequiredAttributes");
 
@@ -479,9 +456,8 @@ public class DITContentRule
    * @param  attributeType  The attribute type for which to make the
    *                        determination.
    *
-   * @return  <CODE>true</CODE> if the provided attribute type is
-   *          required by this DIT content rule, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the provided attribute type is required
+   *          by this DIT content rule, or {@code false} if not.
    */
   public boolean isRequired(AttributeType attributeType)
   {
@@ -494,67 +470,13 @@ public class DITContentRule
 
 
   /**
-   * Specifies the set of required attributes for this DIT content
-   * rule.
-   *
-   * @param  requiredAttributes  The set of required attributes for
-   *                             this DIT content rule.
-   */
-  public void setRequiredAttributes(CopyOnWriteArraySet<AttributeType>
-                                         requiredAttributes)
-  {
-    assert debugEnter(CLASS_NAME, "setRequiredAttributes",
-                      String.valueOf(requiredAttributes));
-
-    this.requiredAttributes = requiredAttributes;
-  }
-
-
-
-  /**
-   * Adds the provided attribute to the set of required attributes for
-   * this DIT content rule.
-   *
-   * @param  attributeType  The attribute type to add to the set of
-   *                        required attributes for this DIT content
-   *                        rule.
-   */
-  public void addRequiredAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "addRequiredAttribute",
-                      String.valueOf(attributeType));
-
-    requiredAttributes.add(attributeType);
-  }
-
-
-
-  /**
-   * Removes the provided attribute from the set of required
-   * attributes for this DIT content rule.
-   *
-   * @param  attributeType  The attribute type to remove from the set
-   *                        of required attributes for this DIT
-   *                        content rule.
-   */
-  public void removeRequiredAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "removeRequiredAttribute",
-                      String.valueOf(attributeType));
-
-    requiredAttributes.remove(attributeType);
-  }
-
-
-
-  /**
    * Retrieves the set of optional attributes for this DIT content
    * rule.
    *
    * @return  The set of optional attributes for this DIT content
    *          rule.
    */
-  public CopyOnWriteArraySet<AttributeType> getOptionalAttributes()
+  public Set<AttributeType> getOptionalAttributes()
   {
     assert debugEnter(CLASS_NAME, "getOptionalAttributes");
 
@@ -570,9 +492,8 @@ public class DITContentRule
    * @param  attributeType  The attribute type for which to make the
    *                        determination.
    *
-   * @return  <CODE>true</CODE> if the provided attribute type is
-   *          optional for this DIT content rule, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided attribute type is optional
+   *          for this DIT content rule, or {@code false} if not.
    */
   public boolean isOptional(AttributeType attributeType)
   {
@@ -585,69 +506,15 @@ public class DITContentRule
 
 
   /**
-   * Specifies the set of optional attributes for this DIT content
-   * rule.
-   *
-   * @param  optionalAttributes  The set of optional attributes for
-   *                             this DIT content rule.
-   */
-  public void setOptionalAttributes(CopyOnWriteArraySet<AttributeType>
-                                         optionalAttributes)
-  {
-    assert debugEnter(CLASS_NAME, "setOptionalAttributes",
-                      String.valueOf(optionalAttributes));
-
-    this.optionalAttributes = optionalAttributes;
-  }
-
-
-
-  /**
-   * Adds the provided attribute to the set of optional attributes for
-   * this DIT content rule.
-   *
-   * @param  attributeType  The attribute type to add to the set of
-   *                        optional attributes for this DIT content
-   *                        rule.
-   */
-  public void addOptionalAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "addOptionalAttribute",
-                      String.valueOf(attributeType));
-
-    optionalAttributes.add(attributeType);
-  }
-
-
-
-  /**
-   * Removes the provided attribute from the set of optional
-   * attributes for this DIT content rule.
-   *
-   * @param  attributeType  The attribute type to remove from the set
-   *                        of optional attributes for this DIT
-   *                        content rule.
-   */
-  public void removeOptionalAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "removeOptionalAttribute",
-                      String.valueOf(attributeType));
-
-    optionalAttributes.remove(attributeType);
-  }
-
-
-
-  /**
    * Indicates whether the provided attribute type is in the list of
    * required or optional attributes for this DIT content rule.
    *
    * @param  attributeType  The attribute type for which to make the
    *                        determination.
    *
-   * @return  <CODE>true</CODE> if the provided attribute type is
-   *          required or allowed for this DIT content rule, or
-   *          <CODE>false</CODE> if it is not.
+   * @return  {@code true} if the provided attribute type is required
+   *          or allowed for this DIT content rule, or {@code false}
+   *          if it is not.
    */
   public boolean isRequiredOrOptional(AttributeType attributeType)
   {
@@ -672,9 +539,9 @@ public class DITContentRule
    *                        allowed for an objectclass will be
    *                        acceptable.
    *
-   * @return  <CODE>true</CODE> if the provided attribute type is
-   *          required or allowed for this DIT content rule, or
-   *          <CODE>false</CODE> if it is not.
+   * @return  {@code true} if the provided attribute type is required
+   *          or allowed for this DIT content rule, or {@code false}
+   *          if it is not.
    */
   public boolean isRequiredOrOptional(AttributeType attributeType,
                                       boolean acceptEmpty)
@@ -702,7 +569,7 @@ public class DITContentRule
    * @return  The set of prohibited attributes for this DIT content
    *          rule.
    */
-  public CopyOnWriteArraySet<AttributeType> getProhibitedAttributes()
+  public Set<AttributeType> getProhibitedAttributes()
   {
     assert debugEnter(CLASS_NAME, "getProhibitedAttributes");
 
@@ -718,9 +585,9 @@ public class DITContentRule
    * @param  attributeType  The attribute type for which to make the
    *                        determination.
    *
-   * @return  <CODE>true</CODE> if the provided attribute type is
-   *          prohibited for this DIT content rule, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided attribute type is
+   *          prohibited for this DIT content rule, or {@code false}
+   *          if not.
    */
   public boolean isProhibited(AttributeType attributeType)
   {
@@ -733,65 +600,10 @@ public class DITContentRule
 
 
   /**
-   * Specifies the set of prohibited attributes for this DIT content
-   * rule.
-   *
-   * @param  prohibitedAttributes  The set of prohibited attributes
-   *                               for this DIT content rule.
-   */
-  public void setProhibitedAttributes(
-                   CopyOnWriteArraySet<AttributeType>
-                       prohibitedAttributes)
-  {
-    assert debugEnter(CLASS_NAME, "setProhibitedAttributes",
-                      String.valueOf(prohibitedAttributes));
-
-    this.prohibitedAttributes = prohibitedAttributes;
-  }
-
-
-
-  /**
-   * Adds the provided attribute to the set of prohibited attributes
-   * for this DIT content rule.
-   *
-   * @param  attributeType  The attribute type to add to the set of
-   *                        prohibited attributes for this DIT
-   *                        content rule.
-   */
-  public void addProhibitedAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "addProhibitedAttribute",
-                      String.valueOf(attributeType));
-
-    prohibitedAttributes.add(attributeType);
-  }
-
-
-
-  /**
-   * Removes the provided attribute from the set of prohibited
-   * attributes for this DIT content rule.
-   *
-   * @param  attributeType  The attribute type to remove from the set
-   *                        of prohibited attributes for this DIT
-   *                        content rule.
-   */
-  public void removeProhibitedAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "removeProhibitedAttribute",
-                      String.valueOf(attributeType));
-
-    prohibitedAttributes.remove(attributeType);
-  }
-
-
-
-  /**
    * Indicates whether this DIT content rule is declared "obsolete".
    *
-   * @return  <CODE>true</CODE> if this DIT content rule is declared
-   *          "obsolete", or <CODE>false</CODE> if it is not.
+   * @return  {@code true} if this DIT content rule is declared
+   *          "obsolete", or {@code false} if it is not.
    */
   public boolean isObsolete()
   {
@@ -803,33 +615,15 @@ public class DITContentRule
 
 
   /**
-   * Specifies whether this DIT content rule is declared "obsolete".
-   *
-   * @param  isObsolete  Specifies whether this DIT content rule is
-   *                     declared "obsolete".
-   */
-  public void setObsolete(boolean isObsolete)
-  {
-    assert debugEnter(CLASS_NAME, "setObsolete",
-                      String.valueOf(isObsolete));
-
-    this.isObsolete = isObsolete;
-  }
-
-
-
-  /**
    * Retrieves a mapping between the names of any extra non-standard
    * properties that may be associated with this DIT content rule and
-   * the value for that property.  The caller may alter the contents
-   * of this mapping.
+   * the value for that property.
    *
    * @return  A mapping between the names of any extra non-standard
    *          properties that may be associated with this DIT content
    *          rule and the value for that property.
    */
-  public ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-              getExtraProperties()
+  public Map<String,List<String>> getExtraProperties()
   {
     assert debugEnter(CLASS_NAME, "getExtraProperties");
 
@@ -846,16 +640,75 @@ public class DITContentRule
    *                       to retrieve the value.
    *
    * @return  The value of the specified "extra" property for this DIT
-   *          content rule, or <CODE>null</CODE> if no such property
-   *          is defined.
+   *          content rule, or {@code null} if no such property is
+   *          defined.
    */
-  public CopyOnWriteArrayList<String>
-              getExtraProperty(String propertyName)
+  public List<String> getExtraProperty(String propertyName)
   {
     assert debugEnter(CLASS_NAME, "getExtraProperty",
                       String.valueOf(propertyName));
 
     return extraProperties.get(propertyName);
+  }
+
+
+
+  /**
+   * Specifies the provided "extra" property for this DIT content
+   * rule.
+   *
+   * @param  name   The name for the "extra" property.  It must not be
+   *                {@code null}.
+   * @param  value  The value for the "extra" property, or
+   *                {@code null} if the property is to be removed.
+   */
+  public void setExtraProperty(String name, String value)
+  {
+    assert debugEnter(CLASS_NAME, "setExtraProperty",
+                      String.valueOf(name), String.valueOf(value));
+
+    ensureNotNull(name);
+
+    if (value == null)
+    {
+      extraProperties.remove(name);
+    }
+    else
+    {
+      LinkedList<String> values = new LinkedList<String>();
+      values.add(value);
+
+      extraProperties.put(name, values);
+    }
+  }
+
+
+
+  /**
+   * Specifies the provided "extra" property for this DIT content
+   * rule.
+   *
+   * @param  name    The name for the "extra" property.  It must not
+   *                 be {@code null}.
+   * @param  values  The set of value for the "extra" property, or
+   *                 {@code null} if the property is to be removed.
+   */
+  public void setExtraProperty(String name, List<String> values)
+  {
+    assert debugEnter(CLASS_NAME, "setExtraProperty",
+                      String.valueOf(name), String.valueOf(values));
+
+    ensureNotNull(name);
+
+    if ((values == null) || values.isEmpty())
+    {
+      extraProperties.remove(name);
+    }
+    else
+    {
+      LinkedList<String> valuesCopy = new LinkedList<String>(values);
+      extraProperties.put(name, valuesCopy);
+    }
   }
 
 
@@ -871,8 +724,8 @@ public class DITContentRule
    *
    * @param  o  The object for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided object is equal to
-   *          this DIT content rule, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided object is equal to
+   *          this DIT content rule, or {@code false} if not.
    */
   public boolean equals(Object o)
   {
@@ -1112,8 +965,13 @@ public class DITContentRule
     {
       for (String property : extraProperties.keySet())
       {
-        CopyOnWriteArrayList<String> valueList =
-             extraProperties.get(property);
+        if ((! includeFileElement) &&
+            property.equals(SCHEMA_PROPERTY_FILENAME))
+        {
+          continue;
+        }
+
+        List<String> valueList = extraProperties.get(property);
 
         buffer.append(" ");
         buffer.append(property);
@@ -1138,16 +996,6 @@ public class DITContentRule
           buffer.append(")");
         }
       }
-    }
-
-    if (includeFileElement && (schemaFile != null) &&
-        (! extraProperties.containsKey(SCHEMA_PROPERTY_FILENAME)))
-    {
-      buffer.append(" ");
-      buffer.append(SCHEMA_PROPERTY_FILENAME);
-      buffer.append(" '");
-      buffer.append(schemaFile);
-      buffer.append("'");
     }
 
     buffer.append(" )");

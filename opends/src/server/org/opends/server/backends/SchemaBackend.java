@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -43,6 +44,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -52,8 +55,10 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.Mac;
 
+import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConfigurableComponent;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
@@ -67,6 +72,10 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.schema.AttributeTypeSyntax;
+import org.opends.server.schema.DITContentRuleSyntax;
+import org.opends.server.schema.DITStructureRuleSyntax;
+import org.opends.server.schema.MatchingRuleUseSyntax;
+import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -77,6 +86,8 @@ import org.opends.server.types.BackupInfo;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DITContentRule;
+import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
@@ -85,16 +96,21 @@ import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
+import org.opends.server.types.SchemaFileElement;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.DynamicConstants;
-import org.opends.server.util.LDIFReader;
+import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -114,7 +130,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class SchemaBackend
        extends Backend
-       implements ConfigurableComponent
+       implements ConfigurableComponent, AlertGenerator
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -844,7 +860,8 @@ public class SchemaBackend
     // elements, nor will we allow modification of any other attributes.  Make
     // sure that the included modify operation is acceptable within these
     // constraints.
-    List<Modification> mods = modifyOperation.getModifications();
+    ArrayList<Modification> mods =
+         new ArrayList<Modification>(modifyOperation.getModifications());
     if (mods.isEmpty())
     {
       // There aren't any modifications, so we don't need to do anything.
@@ -852,11 +869,15 @@ public class SchemaBackend
     }
 
     Schema newSchema = DirectoryServer.getSchema().duplicate();
-    LinkedList<AttributeType> newAttrTypes = new LinkedList<AttributeType>();
-    LinkedList<ObjectClass> newObjectClasses = new LinkedList<ObjectClass>();
+    TreeSet<String> modifiedSchemaFiles = new TreeSet<String>();
+    LinkedHashSet<SchemaFileElement> dependentElements =
+         new LinkedHashSet<SchemaFileElement>();
 
+    int pos = -1;
     for (Modification m : mods)
     {
+      pos++;
+
       if (m.isInternal())
       {
         // We don't need to do anything for internal modifications (e.g., like
@@ -864,300 +885,2025 @@ public class SchemaBackend
         continue;
       }
 
+
+      // Determine the type of modification to perform.  We will support add and
+      // delete operations in the schema, and we will also support the ability
+      // to add a schema element that already exists and treat it as a
+      // replacement of that existing element.
+      Attribute     a  = m.getAttribute();
+      AttributeType at = a.getAttributeType();
       switch (m.getModificationType())
       {
         case ADD:
-          // This is fine, as long as there aren't any conflicts later.
+          LinkedHashSet<AttributeValue> values = a.getValues();
+          if (values.isEmpty())
+          {
+            continue;
+          }
+
+          if (at.equals(attributeTypesType))
+          {
+            for (AttributeValue v : values)
+            {
+              AttributeType type;
+              try
+              {
+                type = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
+                                                               newSchema);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              addAttributeType(type, newSchema, modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(objectClassesType))
+          {
+            for (AttributeValue v : values)
+            {
+              ObjectClass oc;
+              try
+              {
+                oc = ObjectClassSyntax.decodeObjectClass(v.getValue(),
+                                                         newSchema);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              addObjectClass(oc, newSchema, modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(nameFormsType))
+          {
+            for (AttributeValue v : values)
+            {
+              NameForm nf;
+              try
+              {
+                nf = NameFormSyntax.decodeNameForm(v.getValue(), newSchema);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              addNameForm(nf, newSchema, modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(ditContentRulesType))
+          {
+            for (AttributeValue v : values)
+            {
+              DITContentRule dcr;
+              try
+              {
+                dcr = DITContentRuleSyntax.decodeDITContentRule(v.getValue(),
+                                                                newSchema);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              addDITContentRule(dcr, newSchema, modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(ditStructureRulesType))
+          {
+            for (AttributeValue v : values)
+            {
+              DITStructureRule dsr;
+              try
+              {
+                dsr = DITStructureRuleSyntax.decodeDITStructureRule(
+                           v.getValue(), newSchema, false);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              addDITStructureRule(dsr, newSchema, modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(matchingRuleUsesType))
+          {
+            for (AttributeValue v : values)
+            {
+              MatchingRuleUse mru;
+              try
+              {
+                mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v.getValue(),
+                                                                  newSchema);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              addMatchingRuleUse(mru, newSchema, modifiedSchemaFiles);
+            }
+          }
+          else
+          {
+            int    msgID   = MSGID_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE;
+            String message = getMessage(msgID, a.getName());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID);
+          }
+
           break;
 
+
         case DELETE:
-          // FIXME -- We need to support this.
-          int    msgID   = MSGID_SCHEMA_DELETE_MODTYPE_NOT_SUPPORTED;
-          String message = getMessage(msgID);
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                       msgID);
+          values = a.getValues();
+          if (values.isEmpty())
+          {
+            int    msgID   = MSGID_SCHEMA_MODIFY_DELETE_NO_VALUES;
+            String message = getMessage(msgID, a.getName());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID);
+          }
 
-        case REPLACE:
-          // FIXME -- Should we support this?
-        case INCREMENT:
+          if (at.equals(attributeTypesType))
+          {
+            for (AttributeValue v : values)
+            {
+              AttributeType type;
+              try
+              {
+                type = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
+                                                               newSchema);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              removeAttributeType(type, newSchema, mods, pos,
+                                  modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(objectClassesType))
+          {
+            for (AttributeValue v : values)
+            {
+              ObjectClass oc;
+              try
+              {
+                oc = ObjectClassSyntax.decodeObjectClass(v.getValue(),
+                                                         newSchema);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              removeObjectClass(oc, newSchema, mods, pos, modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(nameFormsType))
+          {
+            for (AttributeValue v : values)
+            {
+              NameForm nf;
+              try
+              {
+                nf = NameFormSyntax.decodeNameForm(v.getValue(), newSchema);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              removeNameForm(nf, newSchema, mods, pos, modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(ditContentRulesType))
+          {
+            for (AttributeValue v : values)
+            {
+              DITContentRule dcr;
+              try
+              {
+                dcr = DITContentRuleSyntax.decodeDITContentRule(v.getValue(),
+                                                                newSchema);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              removeDITContentRule(dcr, newSchema, mods, pos,
+                                   modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(ditStructureRulesType))
+          {
+            for (AttributeValue v : values)
+            {
+              DITStructureRule dsr;
+              try
+              {
+                dsr = DITStructureRuleSyntax.decodeDITStructureRule(
+                           v.getValue(), newSchema, false);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              removeDITStructureRule(dsr, newSchema, mods, pos,
+                                     modifiedSchemaFiles);
+            }
+          }
+          else if (at.equals(matchingRuleUsesType))
+          {
+            for (AttributeValue v : values)
+            {
+              MatchingRuleUse mru;
+              try
+              {
+                mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v.getValue(),
+                                                                  newSchema);
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "replaceEntry", de);
+
+                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE;
+                String message = getMessage(msgID, v.getStringValue(),
+                                            de.getErrorMessage());
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID, de);
+              }
+
+              removeMatchingRuleUse(mru, newSchema, mods, pos,
+                                    modifiedSchemaFiles);
+            }
+          }
+          else
+          {
+            int    msgID   = MSGID_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE;
+            String message = getMessage(msgID, a.getName());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID);
+          }
+
+          break;
+
+
         default:
-          // FIXME -- Make sure to update this message once we support
-          // schema deletes and possibly replace.
-          msgID   = MSGID_SCHEMA_INVALID_MODIFICATION_TYPE;
-          message = getMessage(msgID, m.getModificationType());
+          int    msgID   = MSGID_SCHEMA_INVALID_MODIFICATION_TYPE;
+          String message = getMessage(msgID, m.getModificationType());
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
                                        msgID);
       }
-
-
-      // At the present time, we will only allow modification of the
-      // attributeTypes and objectClasses attributes.
-      Attribute     a = m.getAttribute();
-      AttributeType t = a.getAttributeType();
-      if (t.equals(attributeTypesType))
-      {
-        for (AttributeValue v : a.getValues())
-        {
-          AttributeType newType;
-          try
-          {
-            newType = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
-                                                              newSchema);
-          }
-          catch (DirectoryException de)
-          {
-            assert debugException(CLASS_NAME, "replaceEntry", de);
-
-            int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
-            String message = getMessage(msgID, v.getStringValue(),
-                                        de.getErrorMessage());
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, de);
-          }
-
-          try
-          {
-            newSchema.registerAttributeType(newType, false);
-            newAttrTypes.add(newType);
-          }
-          catch (DirectoryException de)
-          {
-            assert debugException(CLASS_NAME, "replaceEntry", de);
-
-            int    msgID   = MSGID_SCHEMA_MODIFY_ATTRTYPE_ALREADY_EXISTS;
-            String message = getMessage(msgID, newType.getNameOrOID(),
-                                        de.getErrorMessage());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID, de);
-          }
-        }
-      }
-      else if (t.equals(objectClassesType))
-      {
-        for (AttributeValue v : a.getValues())
-        {
-          ObjectClass newClass;
-          try
-          {
-            newClass = ObjectClassSyntax.decodeObjectClass(v.getValue(),
-                                                           newSchema);
-          }
-          catch (DirectoryException de)
-          {
-            assert debugException(CLASS_NAME, "replaceEntry", de);
-
-            int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
-            String message = getMessage(msgID, v.getStringValue(),
-                                        de.getErrorMessage());
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, de);
-          }
-
-          // If there is a superior class, then make sure it is defined.
-          ObjectClass superiorClass = newClass.getSuperiorClass();
-          if (superiorClass != null)
-          {
-            String lowerName = toLowerCase(superiorClass.getNameOrOID());
-            if (! newSchema.hasObjectClass(lowerName))
-            {
-              int msgID = MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS;
-              String message = getMessage(msgID, newClass.getNameOrOID(),
-                                          superiorClass.getNameOrOID());
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                           message, msgID);
-            }
-          }
-
-          // Make sure that all the associated attribute types are defined.
-          for (AttributeType at : newClass.getRequiredAttributes())
-          {
-            String lowerName = toLowerCase(at.getNameOrOID());
-            if (! newSchema.hasAttributeType(lowerName))
-            {
-              int    msgID   = MSGID_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR;
-              String message = getMessage(msgID, newClass.getNameOrOID(),
-                                          at.getNameOrOID());
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                           message, msgID);
-            }
-          }
-
-          for (AttributeType at : newClass.getOptionalAttributes())
-          {
-            String lowerName = toLowerCase(at.getNameOrOID());
-            if (! newSchema.hasAttributeType(lowerName))
-            {
-              int    msgID   = MSGID_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR;
-              String message = getMessage(msgID, newClass.getNameOrOID(),
-                                          at.getNameOrOID());
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                           message, msgID);
-            }
-          }
-
-          try
-          {
-            newSchema.registerObjectClass(newClass, false);
-            newObjectClasses.add(newClass);
-          }
-          catch (DirectoryException de)
-          {
-            assert debugException(CLASS_NAME, "replaceEntry", de);
-
-            int    msgID   = MSGID_SCHEMA_MODIFY_OBJECTCLASS_ALREADY_EXISTS;
-            String message = getMessage(msgID, newClass.getNameOrOID(),
-                                        de.getErrorMessage());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID, de);
-          }
-        }
-      }
-      else
-      {
-        int    msgID   = MSGID_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE;
-        String message = getMessage(msgID, a.getName());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
-      }
     }
 
 
-    // If we've gotten here, then everything looks OK.  Add the new schema
-    // elements to the 99-user.ldif file and swing the new schema into place.
-    String schemaDirPath = SchemaConfigManager.getSchemaDirectoryPath();
-    File userSchemaFile = new File(schemaDirPath, FILE_USER_SCHEMA_ELEMENTS);
-    Entry userSchemaEntry = null;
-
-    if (userSchemaFile.exists())
-    {
-      // There's already a set of user-defined schema elements, so we'll need to
-      // add these new elements to that set.
-      LDIFReader ldifReader = null;
-      try
-      {
-        LDIFImportConfig importConfig =
-             new LDIFImportConfig(userSchemaFile.getAbsolutePath());
-        ldifReader = new LDIFReader(importConfig);
-
-        userSchemaEntry = ldifReader.readEntry(true);
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "replaceEntry", e);
-
-        int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_READ_EXISTING_USER_SCHEMA;
-        String message = getMessage(msgID, userSchemaFile.getAbsolutePath(),
-                                    stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
-      }
-      finally
-      {
-        if (ldifReader != null)
-        {
-          ldifReader.close();
-        }
-      }
-    }
-
-    if (userSchemaEntry == null)
-    {
-      // This could happen if there was no user schema file or if it was there
-      // but didn't have any entries.  At any rate, create a new, empty entry.
-      userSchemaEntry = createEmptySchemaEntry();
-    }
-
-
-    // Add all of the new schema elements to the entry.
-    if (! newAttrTypes.isEmpty())
-    {
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>();
-      for (AttributeType t : newAttrTypes)
-      {
-        StringBuilder buffer = new StringBuilder();
-        t.toString(buffer, false);
-        values.add(new AttributeValue(attributeTypesType, buffer.toString()));
-      }
-
-      Attribute attrTypeAttribute = new Attribute(attributeTypesType,
-                                                  ATTR_ATTRIBUTE_TYPES, values);
-      LinkedList<AttributeValue> duplicateValues =
-           new LinkedList<AttributeValue>();
-      userSchemaEntry.addAttribute(attrTypeAttribute, duplicateValues);
-    }
-
-    if (! newObjectClasses.isEmpty())
-    {
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>();
-      for (ObjectClass oc : newObjectClasses)
-      {
-        StringBuilder buffer = new StringBuilder();
-        oc.toString(buffer, false);
-        values.add(new AttributeValue(attributeTypesType, buffer.toString()));
-      }
-
-      Attribute ocAttribute = new Attribute(objectClassesType,
-                                            ATTR_OBJECTCLASSES, values);
-      LinkedList<AttributeValue> duplicateValues =
-           new LinkedList<AttributeValue>();
-      userSchemaEntry.addAttribute(ocAttribute, duplicateValues);
-    }
-
-
-    // Swing the new schema into place.
+    // If we've gotten here, then everything looks OK.  We'll re-write all
+    // impacted schema files by first creating them in a temporary location
+    // and then replacing the existing schema files with the new versions.
+    // If all that goes successfully, then activate the new schema.
+    HashMap<String,File> tempSchemaFiles = new HashMap<String,File>();
     try
     {
-      File tempSchemaFile = new File(userSchemaFile.getAbsolutePath() + ".tmp");
-      LDIFExportConfig exportConfig =
-           new LDIFExportConfig(tempSchemaFile.getAbsolutePath(),
-                                ExistingFileBehavior.OVERWRITE);
-
-      LDIFWriter writer = null;
-      try
+      for (String schemaFile : modifiedSchemaFiles)
       {
-        writer = new LDIFWriter(exportConfig);
-        writer.writeEntry(userSchemaEntry);
-      }
-      finally
-      {
-        if (writer != null)
-        {
-          writer.close();
-        }
+        File tempSchemaFile = writeTempSchemaFile(newSchema, schemaFile);
+        tempSchemaFiles.put(schemaFile, tempSchemaFile);
       }
 
-      File oldSchemaFile = null;
-      if (userSchemaFile.exists())
-      {
-        oldSchemaFile = new File(userSchemaFile.getAbsolutePath() + ".old");
-        if (oldSchemaFile.exists())
-        {
-          oldSchemaFile.delete();
-        }
-
-        userSchemaFile.renameTo(oldSchemaFile);
-      }
-
-      tempSchemaFile.renameTo(userSchemaFile);
-
-      if (oldSchemaFile != null)
-      {
-        oldSchemaFile.delete();
-      }
-
+      installSchemaFiles(tempSchemaFiles);
       DirectoryServer.setSchema(newSchema);
+    }
+    catch (DirectoryException de)
+    {
+      assert debugException(CLASS_NAME, "replaceEntry", de);
+
+      throw de;
     }
     catch (Exception e)
     {
       assert debugException(CLASS_NAME, "replaceEntry", e);
 
       int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA;
-      String message = getMessage(msgID, userSchemaFile.getAbsolutePath(),
-                                  stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
+    }
+    finally
+    {
+      cleanUpTempSchemaFiles(tempSchemaFiles);
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required for adding the provided attribute type to
+   * the given schema, replacing an existing type if necessary, and ensuring all
+   * other metadata is properly updated.
+   *
+   * @param  attributeType        The attribute type to add or replace in the
+   *                              server schema.
+   * @param  schema               The schema to which the attribute type should
+   *                              be added.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to add
+   *                              the provided attribute type to the server
+   *                              schema.
+   */
+  private void addAttributeType(AttributeType attributeType, Schema schema,
+                                Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "addAttributeType",
+                      String.valueOf(attributeType), String.valueOf(schema),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // First, see if the specified attribute type already exists.  We'll check
+    // the OID and all of the names, which means that it's possible there could
+    // be more than one match (although if there is, then we'll refuse the
+    // operation).
+    AttributeType existingType =
+         schema.getAttributeType(attributeType.getOID());
+    for (String name : attributeType.getNormalizedNames())
+    {
+      AttributeType t = schema.getAttributeType(name);
+      if (t == null)
+      {
+        continue;
+      }
+      else if (existingType == null)
+      {
+        existingType = t;
+      }
+      else if (existingType != t)
+      {
+        // NOTE:  We really do want to use "!=" instead of "! t.equals()"
+        // because we want to check whether it's the same object instance, not
+        // just a logical equivalent.
+        int msgID = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_ATTRTYPE;
+        String message = getMessage(msgID, attributeType.getNameOrOID(),
+                                    existingType.getNameOrOID(),
+                                    t.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // Make sure that the new attribute type doesn't reference an undefined
+    // superior attribute type.
+    AttributeType superiorType = attributeType.getSuperiorType();
+    if (superiorType != null)
+    {
+      if (! schema.hasAttributeType(superiorType.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_ATTRIBUTE_TYPE;
+        String message = getMessage(msgID, attributeType.getNameOrOID(),
+                                    superiorType.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // If there is no existing type, then we're adding a new attribute.
+    // Otherwise, we're replacing an existing one.
+    if (existingType == null)
+    {
+      schema.registerAttributeType(attributeType, false);
+      String schemaFile = attributeType.getSchemaFile();
+      if ((schemaFile == null) || (schemaFile.length() == 0))
+      {
+        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        attributeType.setSchemaFile(schemaFile);
+      }
+
+      modifiedSchemaFiles.add(schemaFile);
+    }
+    else
+    {
+      schema.deregisterAttributeType(existingType);
+      schema.registerAttributeType(attributeType, false);
+      schema.rebuildDependentElements(existingType);
+
+      if ((attributeType.getSchemaFile() == null) ||
+          (attributeType.getSchemaFile().length() == 0))
+      {
+        String schemaFile = existingType.getSchemaFile();
+        if ((schemaFile == null) || (schemaFile.length() == 0))
+        {
+          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        }
+
+        attributeType.setSchemaFile(schemaFile);
+        modifiedSchemaFiles.add(schemaFile);
+      }
+      else
+      {
+        String newSchemaFile = attributeType.getSchemaFile();
+        String oldSchemaFile = existingType.getSchemaFile();
+        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+        }
+        else
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+          modifiedSchemaFiles.add(oldSchemaFile);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required to remove the provided attribute type from
+   * the server schema, ensuring all other metadata is properly updated.  Note
+   * that this method will first check to see whether the same attribute type
+   * will be later added to the server schema with an updated definition, and if
+   * so then the removal will be ignored because the later add will be handled
+   * as a replace.  If the attribute type will not be replaced with a new
+   * definition, then this method will ensure that there are no other schema
+   * elements that depend on the attribute type before allowing it to be
+   * removed.
+   *
+   * @param  attributeType        The attribute type to remove from the server
+   *                              schema.
+   * @param  schema               The schema from which the attribute type
+   *                              should be removed.
+   * @param  modifications        The full set of modifications to be processed
+   *                              against the server schema.
+   * @param  currentPosition      The position of the modification currently
+   *                              being performed.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to remove
+   *                              the provided attribute type from the server
+   *                              schema.
+   */
+  private void removeAttributeType(AttributeType attributeType, Schema schema,
+                                   ArrayList<Modification> modifications,
+                                   int currentPosition,
+                                   Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "removeAttributeType",
+                      String.valueOf(attributeType), String.valueOf(schema),
+                      String.valueOf(modifications),
+                      String.valueOf(currentPosition),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // See if the specified attribute type is actually defined in the server
+    // schema.  If not, then fail.
+    AttributeType removeType = schema.getAttributeType(attributeType.getOID());
+    if ((removeType == null) || (! removeType.equals(attributeType)))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE;
+      String message = getMessage(msgID, attributeType.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // See if there is another modification later to add the attribute type back
+    // into the schema.  If so, then it's a replace and we should ignore the
+    // remove because adding it back will handle the replace.
+    for (int i=currentPosition+1; i < modifications.size(); i++)
+    {
+      Modification m = modifications.get(i);
+      Attribute    a = m.getAttribute();
+
+      if ((m.getModificationType() != ModificationType.ADD) ||
+          (! a.getAttributeType().equals(attributeTypesType)))
+      {
+        continue;
+      }
+
+      for (AttributeValue v : a.getValues())
+      {
+        AttributeType at;
+        try
+        {
+          at = AttributeTypeSyntax.decodeAttributeType(v.getValue(), schema);
+        }
+        catch (DirectoryException de)
+        {
+          assert debugException(CLASS_NAME, "removeAttributeType", de);
+
+          int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
+          String message = getMessage(msgID, v.getStringValue(),
+                                      de.getErrorMessage());
+          throw new DirectoryException(
+                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                         msgID, de);
+        }
+
+        if (attributeType.getOID().equals(at.getOID()))
+        {
+          // We found a match where the attribute type is added back later, so
+          // we don't need to do anything else here.
+          return;
+        }
+      }
+    }
+
+
+    // Make sure that the attribute type isn't used as the superior type for
+    // any other attributes.
+    for (AttributeType at : schema.getAttributeTypes().values())
+    {
+      AttributeType superiorType = at.getSuperiorType();
+      if ((superiorType != null) && superiorType.equals(removeType))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_AT_SUPERIOR_TYPE;
+        String message = getMessage(msgID, removeType.getNameOrOID(),
+                                    superiorType.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // Make sure that the attribute type isn't used as a required or optional
+    // attribute type in any objectclass.
+    for (ObjectClass oc : schema.getObjectClasses().values())
+    {
+      if (oc.getRequiredAttributes().contains(removeType) ||
+          oc.getOptionalAttributes().contains(removeType))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_OC;
+        String message = getMessage(msgID, removeType.getNameOrOID(),
+                                    oc.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // Make sure that the attribute type isn't used as a required or optional
+    // attribute type in any name form.
+    for (NameForm nf : schema.getNameFormsByObjectClass().values())
+    {
+      if (nf.getRequiredAttributes().contains(removeType) ||
+          nf.getOptionalAttributes().contains(removeType))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_NF;
+        String message = getMessage(msgID, removeType.getNameOrOID(),
+                                    nf.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // Make sure that the attribute type isn't used as a required, optional, or
+    // prohibited attribute type in any DIT content rule.
+    for (DITContentRule dcr : schema.getDITContentRules().values())
+    {
+      if (dcr.getRequiredAttributes().contains(removeType) ||
+          dcr.getOptionalAttributes().contains(removeType) ||
+          dcr.getProhibitedAttributes().contains(removeType))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_DCR;
+        String message = getMessage(msgID, removeType.getNameOrOID(),
+                                    dcr.getName());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // Make sure that the attribute type isn't referenced by any matching rule
+    // use.
+    for (MatchingRuleUse mru : schema.getMatchingRuleUses().values())
+    {
+      if (mru.getAttributes().contains(removeType))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_MR_USE;
+        String message = getMessage(msgID, removeType.getNameOrOID(),
+                                    mru.getName());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // If we've gotten here, then it's OK to remove the attribute type from
+    // the schema.
+    schema.deregisterAttributeType(removeType);
+    String schemaFile = removeType.getSchemaFile();
+    if (schemaFile != null)
+    {
+      modifiedSchemaFiles.add(schemaFile);
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required for adding the provided objectclass to the
+   * given schema, replacing an existing class if necessary, and ensuring
+   * all other metadata is properly updated.
+   *
+   * @param  objectClass          The objectclass to add or replace in the
+   *                              server schema.
+   * @param  schema               The schema to which the objectclass should be
+   *                              added.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to add
+   *                              the provided objectclass to the server schema.
+   */
+  private void addObjectClass(ObjectClass objectClass, Schema schema,
+                              Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "addObjectClass", String.valueOf(objectClass),
+                      String.valueOf(schema),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // First, see if the specified objectclass already exists.  We'll check the
+    // OID and all of the names, which means that it's possible there could be
+    // more than one match (although if there is, then we'll refuse the
+    // operation).
+    ObjectClass existingClass =
+         schema.getObjectClass(objectClass.getOID());
+    for (String name : objectClass.getNormalizedNames())
+    {
+      ObjectClass oc = schema.getObjectClass(name);
+      if (oc == null)
+      {
+        continue;
+      }
+      else if (existingClass == null)
+      {
+        existingClass = oc;
+      }
+      else if (existingClass != oc)
+      {
+        // NOTE:  We really do want to use "!=" instead of "! t.equals()"
+        // because we want to check whether it's the same object instance, not
+        // just a logical equivalent.
+        int msgID = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_OBJECTCLASS;
+        String message = getMessage(msgID, objectClass.getNameOrOID(),
+                                    existingClass.getNameOrOID(),
+                                    oc.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // Make sure that the new objectclass doesn't reference an undefined
+    // superior class, or an undefined required or optional attribute type.
+    ObjectClass superiorClass = objectClass.getSuperiorClass();
+    if (superiorClass != null)
+    {
+      if (! schema.hasObjectClass(superiorClass.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS;
+        String message = getMessage(msgID, objectClass.getNameOrOID(),
+                                    superiorClass.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+    for (AttributeType at : objectClass.getRequiredAttributes())
+    {
+      if (! schema.hasAttributeType(at.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR;
+        String message = getMessage(msgID, objectClass.getNameOrOID(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+    for (AttributeType at : objectClass.getOptionalAttributes())
+    {
+      if (! schema.hasAttributeType(at.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR;
+        String message = getMessage(msgID, objectClass.getNameOrOID(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // If there is no existing class, then we're adding a new objectclass.
+    // Otherwise, we're replacing an existing one.
+    if (existingClass == null)
+    {
+      schema.registerObjectClass(objectClass, false);
+      String schemaFile = objectClass.getSchemaFile();
+      if ((schemaFile == null) || (schemaFile.length() == 0))
+      {
+        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        objectClass.setSchemaFile(schemaFile);
+      }
+
+      modifiedSchemaFiles.add(schemaFile);
+    }
+    else
+    {
+      schema.deregisterObjectClass(existingClass);
+      schema.registerObjectClass(objectClass, false);
+      schema.rebuildDependentElements(existingClass);
+
+      if ((objectClass.getSchemaFile() == null) ||
+          (objectClass.getSchemaFile().length() == 0))
+      {
+        String schemaFile = existingClass.getSchemaFile();
+        if ((schemaFile == null) || (schemaFile.length() == 0))
+        {
+          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        }
+
+        objectClass.setSchemaFile(schemaFile);
+        modifiedSchemaFiles.add(schemaFile);
+      }
+      else
+      {
+        String newSchemaFile = objectClass.getSchemaFile();
+        String oldSchemaFile = existingClass.getSchemaFile();
+        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+        }
+        else
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+          modifiedSchemaFiles.add(oldSchemaFile);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required to remove the provided objectclass from the
+   * server schema, ensuring all other metadata is properly updated.  Note that
+   * this method will first check to see whether the same objectclass will be
+   * later added to the server schema with an updated definition, and if so then
+   * the removal will be ignored because the later add will be handled as a
+   * replace.  If the objectclass will not be replaced with a new definition,
+   * then this method will ensure that there are no other schema elements that
+   * depend on the objectclass before allowing it to be removed.
+   *
+   * @param  objectClass          The objectclass to remove from the server
+   *                              schema.
+   * @param  schema               The schema from which the objectclass should
+   *                              be removed.
+   * @param  modifications        The full set of modifications to be processed
+   *                              against the server schema.
+   * @param  currentPosition      The position of the modification currently
+   *                              being performed.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to remove
+   *                              the provided objectclass from the server
+   *                              schema.
+   */
+  private void removeObjectClass(ObjectClass objectClass, Schema schema,
+                                 ArrayList<Modification> modifications,
+                                 int currentPosition,
+                                 Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "removeObjectClass",
+                      String.valueOf(objectClass), String.valueOf(schema),
+                      String.valueOf(modifications),
+                      String.valueOf(currentPosition),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // See if the specified objectclass is actually defined in the server
+    // schema.  If not, then fail.
+    ObjectClass removeClass = schema.getObjectClass(objectClass.getOID());
+    if ((removeClass == null) || (! removeClass.equals(objectClass)))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS;
+      String message = getMessage(msgID, objectClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // See if there is another modification later to add the objectclass back
+    // into the schema.  If so, then it's a replace and we should ignore the
+    // remove because adding it back will handle the replace.
+    for (int i=currentPosition+1; i < modifications.size(); i++)
+    {
+      Modification m = modifications.get(i);
+      Attribute    a = m.getAttribute();
+
+      if ((m.getModificationType() != ModificationType.ADD) ||
+          (! a.getAttributeType().equals(objectClassesType)))
+      {
+        continue;
+      }
+
+      for (AttributeValue v : a.getValues())
+      {
+        ObjectClass oc;
+        try
+        {
+          oc = ObjectClassSyntax.decodeObjectClass(v.getValue(), schema);
+        }
+        catch (DirectoryException de)
+        {
+          assert debugException(CLASS_NAME, "removeObjectClass", de);
+
+          int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
+          String message = getMessage(msgID, v.getStringValue(),
+                                      de.getErrorMessage());
+          throw new DirectoryException(
+                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                         msgID, de);
+        }
+
+        if (objectClass.getOID().equals(oc.getOID()))
+        {
+          // We found a match where the objectClass is added back later, so we
+          // don't need to do anything else here.
+          return;
+        }
+      }
+    }
+
+
+    // Make sure that the objectclass isn't used as the superior class for any
+    // other objectclass.
+    for (ObjectClass oc : schema.getObjectClasses().values())
+    {
+      ObjectClass superiorClass = oc.getSuperiorClass();
+      if ((superiorClass != null) && superiorClass.equals(removeClass))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS;
+        String message = getMessage(msgID, removeClass.getNameOrOID(),
+                                    superiorClass.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // Make sure that the objectclass isn't used as the structural class for
+    // any name form.
+    NameForm nf = schema.getNameForm(removeClass);
+    if (nf != null)
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_OC_IN_NF;
+      String message = getMessage(msgID, removeClass.getNameOrOID(),
+                                  nf.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // Make sure that the objectclass isn't used as a structural or auxiliary
+    // class for any DIT content rule.
+    for (DITContentRule dcr : schema.getDITContentRules().values())
+    {
+      if (dcr.getStructuralClass().equals(removeClass) ||
+          dcr.getAuxiliaryClasses().contains(removeClass))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_OC_IN_DCR;
+        String message = getMessage(msgID, removeClass.getNameOrOID(),
+                                    dcr.getName());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // If we've gotten here, then it's OK to remove the objectclass from the
+    // schema.
+    schema.deregisterObjectClass(removeClass);
+    String schemaFile = removeClass.getSchemaFile();
+    if (schemaFile != null)
+    {
+      modifiedSchemaFiles.add(schemaFile);
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required for adding the provided name form to the
+   * the given schema, replacing an existing name form if necessary, and
+   * ensuring all other metadata is properly updated.
+   *
+   * @param  nameForm             The name form to add or replace in the server
+   *                              schema.
+   * @param  schema               The schema to which the name form should be
+   *                              added.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to add
+   *                              the provided name form to the server schema.
+   */
+  private void addNameForm(NameForm nameForm, Schema schema,
+                           Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "addNameForm", String.valueOf(nameForm),
+                      String.valueOf(schema),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // First, see if the specified name form already exists.  We'll check the
+    // OID and all of the names, which means that it's possible there could be
+    // more than one match (although if there is, then we'll refuse the
+    // operation).
+    NameForm existingNF =
+         schema.getNameForm(nameForm.getOID());
+    for (String name : nameForm.getNames().keySet())
+    {
+      NameForm nf = schema.getNameForm(name);
+      if (nf == null)
+      {
+        continue;
+      }
+      else if (existingNF == null)
+      {
+        existingNF = nf;
+      }
+      else if (existingNF != nf)
+      {
+        // NOTE:  We really do want to use "!=" instead of "! t.equals()"
+        // because we want to check whether it's the same object instance, not
+        // just a logical equivalent.
+        int msgID = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_NAME_FORM;
+        String message = getMessage(msgID, nameForm.getNameOrOID(),
+                                    existingNF.getNameOrOID(),
+                                    nf.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // Make sure that the new name form doesn't reference an undefined
+    // structural class, or an undefined required or optional attribute type.
+    ObjectClass structuralClass = nameForm.getStructuralClass();
+    if (! schema.hasObjectClass(structuralClass.getOID()))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_NF_UNDEFINED_STRUCTURAL_OC;
+      String message = getMessage(msgID, nameForm.getNameOrOID(),
+                                  structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+    if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_NF_OC_NOT_STRUCTURAL;
+      String message = getMessage(msgID, nameForm.getNameOrOID(),
+                                  structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+    NameForm existingNFForClass = schema.getNameForm(structuralClass);
+    if ((existingNFForClass != null) && (existingNFForClass != existingNF))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_NF;
+      String message = getMessage(msgID, nameForm.getNameOrOID(),
+                                  structuralClass.getNameOrOID(),
+                                  existingNFForClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+    for (AttributeType at : nameForm.getRequiredAttributes())
+    {
+      if (! schema.hasAttributeType(at.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_NF_UNDEFINED_REQUIRED_ATTR;
+        String message = getMessage(msgID, nameForm.getNameOrOID(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+    for (AttributeType at : nameForm.getOptionalAttributes())
+    {
+      if (! schema.hasAttributeType(at.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_NF_UNDEFINED_OPTIONAL_ATTR;
+        String message = getMessage(msgID, nameForm.getNameOrOID(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // If there is no existing class, then we're adding a new name form.
+    // Otherwise, we're replacing an existing one.
+    if (existingNF == null)
+    {
+      schema.registerNameForm(nameForm, false);
+      String schemaFile = nameForm.getSchemaFile();
+      if ((schemaFile == null) || (schemaFile.length() == 0))
+      {
+        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        nameForm.setSchemaFile(schemaFile);
+      }
+
+      modifiedSchemaFiles.add(schemaFile);
+    }
+    else
+    {
+      schema.deregisterNameForm(existingNF);
+      schema.registerNameForm(nameForm, false);
+      schema.rebuildDependentElements(existingNF);
+
+      if ((nameForm.getSchemaFile() == null) ||
+          (nameForm.getSchemaFile().length() == 0))
+      {
+        String schemaFile = existingNF.getSchemaFile();
+        if ((schemaFile == null) || (schemaFile.length() == 0))
+        {
+          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        }
+
+        nameForm.setSchemaFile(schemaFile);
+        modifiedSchemaFiles.add(schemaFile);
+      }
+      else
+      {
+        String newSchemaFile = nameForm.getSchemaFile();
+        String oldSchemaFile = existingNF.getSchemaFile();
+        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+        }
+        else
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+          modifiedSchemaFiles.add(oldSchemaFile);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required to remove the provided name form from the
+   * server schema, ensuring all other metadata is properly updated.  Note that
+   * this method will first check to see whether the same name form will be
+   * later added to the server schema with an updated definition, and if so then
+   * the removal will be ignored because the later add will be handled as a
+   * replace.  If the name form will not be replaced with a new definition, then
+   * this method will ensure that there are no other schema elements that depend
+   * on the name form before allowing it to be removed.
+   *
+   * @param  nameForm             The name form to remove from the server
+   *                              schema.
+   * @param  schema               The schema from which the name form should be
+   *                              be removed.
+   * @param  modifications        The full set of modifications to be processed
+   *                              against the server schema.
+   * @param  currentPosition      The position of the modification currently
+   *                              being performed.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to remove
+   *                              the provided name form from the server schema.
+   */
+  private void removeNameForm(NameForm nameForm, Schema schema,
+                              ArrayList<Modification> modifications,
+                              int currentPosition,
+                              Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "removeNameForm",
+                      String.valueOf(nameForm), String.valueOf(schema),
+                      String.valueOf(modifications),
+                      String.valueOf(currentPosition),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // See if the specified name form is actually defined in the server schema.
+    // If not, then fail.
+    NameForm removeNF = schema.getNameForm(nameForm.getOID());
+    if ((removeNF == null) || (! removeNF.equals(nameForm)))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM;
+      String message = getMessage(msgID, nameForm.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // See if there is another modification later to add the name form back
+    // into the schema.  If so, then it's a replace and we should ignore the
+    // remove because adding it back will handle the replace.
+    for (int i=currentPosition+1; i < modifications.size(); i++)
+    {
+      Modification m = modifications.get(i);
+      Attribute    a = m.getAttribute();
+
+      if ((m.getModificationType() != ModificationType.ADD) ||
+          (! a.getAttributeType().equals(nameFormsType)))
+      {
+        continue;
+      }
+
+      for (AttributeValue v : a.getValues())
+      {
+        NameForm nf;
+        try
+        {
+          nf = NameFormSyntax.decodeNameForm(v.getValue(), schema);
+        }
+        catch (DirectoryException de)
+        {
+          assert debugException(CLASS_NAME, "removeNameForm", de);
+
+          int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
+          String message = getMessage(msgID, v.getStringValue(),
+                                      de.getErrorMessage());
+          throw new DirectoryException(
+                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                         msgID, de);
+        }
+
+        if (nameForm.getOID().equals(nf.getOID()))
+        {
+          // We found a match where the name form is added back later, so we
+          // don't need to do anything else here.
+          return;
+        }
+      }
+    }
+
+
+    // Make sure that the name form isn't referenced by any DIT structure
+    // rule.
+    DITStructureRule dsr = schema.getDITStructureRule(removeNF);
+    if (dsr != null)
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NF_IN_DSR;
+      String message = getMessage(msgID, removeNF.getNameOrOID(),
+                                  dsr.getNameOrRuleID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // If we've gotten here, then it's OK to remove the name form from the
+    // schema.
+    schema.deregisterNameForm(removeNF);
+    String schemaFile = removeNF.getSchemaFile();
+    if (schemaFile != null)
+    {
+      modifiedSchemaFiles.add(schemaFile);
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required for adding the provided DIT content rule to
+   * the given schema, replacing an existing rule if necessary, and ensuring
+   * all other metadata is properly updated.
+   *
+   * @param  ditContentRule       The DIT content rule to add or replace in the
+   *                              server schema.
+   * @param  schema               The schema to which the DIT content rule
+   *                              should be be added.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to add
+   *                              the provided DIT content rule to the server
+   *                              schema.
+   */
+  private void addDITContentRule(DITContentRule ditContentRule, Schema schema,
+                                 Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "addDITContentRule",
+                      String.valueOf(ditContentRule), String.valueOf(schema),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // First, see if the specified DIT content rule already exists.  We'll check
+    // all of the names, which means that it's possible there could be more than
+    // one match (although if there is, then we'll refuse the operation).
+    DITContentRule existingDCR = null;
+    for (DITContentRule dcr : schema.getDITContentRules().values())
+    {
+      for (String name : ditContentRule.getNames().keySet())
+      {
+        if (dcr.hasName(name))
+        {
+          if (existingDCR == null)
+          {
+            existingDCR = dcr;
+            break;
+          }
+          else
+          {
+            int    msgID   = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DCR;
+            String message = getMessage(msgID, ditContentRule.getName(),
+                                        existingDCR.getName(),
+                                        dcr.getName());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID);
+          }
+        }
+      }
+    }
+
+
+    // Get the structural class for the new DIT content rule and see if there's
+    // already an existing rule that is associated with that class.  If there
+    // is, then it will only be acceptable if it's the DIT content rule that we
+    // are replacing (in which case we really do want to use the "!=" operator).
+    ObjectClass structuralClass = ditContentRule.getStructuralClass();
+    DITContentRule existingRuleForClass =
+         schema.getDITContentRule(structuralClass);
+    if ((existingRuleForClass != null) && (existingRuleForClass != existingDCR))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR;
+      String message = getMessage(msgID, ditContentRule.getName(),
+                                  structuralClass.getNameOrOID(),
+                                  existingRuleForClass.getName());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // Make sure that the new DIT content rule doesn't reference an undefined
+    // structural or auxiliaryclass, or an undefined required, optional, or
+    // prohibited attribute type.
+    if (! schema.hasObjectClass(structuralClass.getOID()))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_STRUCTURAL_OC;
+      String message = getMessage(msgID, ditContentRule.getName(),
+                                  structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+    if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OC_NOT_STRUCTURAL;
+      String message = getMessage(msgID, ditContentRule.getName(),
+                                  structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+    for (ObjectClass oc : ditContentRule.getAuxiliaryClasses())
+    {
+      if (! schema.hasObjectClass(oc.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC;
+        String message = getMessage(msgID, ditContentRule.getName(),
+                                    oc.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+    for (AttributeType at : ditContentRule.getRequiredAttributes())
+    {
+      if (! schema.hasAttributeType(at.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_REQUIRED_ATTR;
+        String message = getMessage(msgID, ditContentRule.getName(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+    for (AttributeType at : ditContentRule.getOptionalAttributes())
+    {
+      if (! schema.hasAttributeType(at.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_OPTIONAL_ATTR;
+        String message = getMessage(msgID, ditContentRule.getName(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+    for (AttributeType at : ditContentRule.getProhibitedAttributes())
+    {
+      if (! schema.hasAttributeType(at.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_PROHIBITED_ATTR;
+        String message = getMessage(msgID, ditContentRule.getName(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // If there is no existing rule, then we're adding a new DIT content rule.
+    // Otherwise, we're replacing an existing one.
+    if (existingDCR == null)
+    {
+      schema.registerDITContentRule(ditContentRule, false);
+      String schemaFile = ditContentRule.getSchemaFile();
+      if ((schemaFile == null) || (schemaFile.length() == 0))
+      {
+        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        ditContentRule.setSchemaFile(schemaFile);
+      }
+
+      modifiedSchemaFiles.add(schemaFile);
+    }
+    else
+    {
+      schema.deregisterDITContentRule(existingDCR);
+      schema.registerDITContentRule(ditContentRule, false);
+      schema.rebuildDependentElements(existingDCR);
+
+      if ((ditContentRule.getSchemaFile() == null) ||
+          (ditContentRule.getSchemaFile().length() == 0))
+      {
+        String schemaFile = existingDCR.getSchemaFile();
+        if ((schemaFile == null) || (schemaFile.length() == 0))
+        {
+          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        }
+
+        ditContentRule.setSchemaFile(schemaFile);
+        modifiedSchemaFiles.add(schemaFile);
+      }
+      else
+      {
+        String newSchemaFile = ditContentRule.getSchemaFile();
+        String oldSchemaFile = existingDCR.getSchemaFile();
+        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+        }
+        else
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+          modifiedSchemaFiles.add(oldSchemaFile);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required to remove the provided DIT content rule
+   * from the server schema, ensuring all other metadata is properly updated.
+   * Note that this method will first check to see whether the same rule will be
+   * later added to the server schema with an updated definition, and if so then
+   * the removal will be ignored because the later add will be handled as a
+   * replace.  If the DIT content rule will not be replaced with a new
+   * definition, then this method will ensure that there are no other schema
+   * elements that depend on the rule before allowing it to be removed.
+   *
+   * @param  ditContentRule       The DIT content rule to remove from the server
+   *                              schema.
+   * @param  schema               The schema from which the DIT content rule
+   *                              should be removed.
+   * @param  modifications        The full set of modifications to be processed
+   *                              against the server schema.
+   * @param  currentPosition      The position of the modification currently
+   *                              being performed.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to remove
+   *                              the provided DIT content rule from the server
+   *                              schema.
+   */
+  private void removeDITContentRule(DITContentRule ditContentRule,
+                                    Schema schema,
+                                    ArrayList<Modification> modifications,
+                                    int currentPosition,
+                                    Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "removeDITContentRule",
+                      String.valueOf(ditContentRule), String.valueOf(schema),
+                      String.valueOf(modifications),
+                      String.valueOf(currentPosition),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // See if the specified DIT content rule is actually defined in the server
+    // schema.  If not, then fail.
+    DITContentRule removeDCR =
+         schema.getDITContentRule(ditContentRule.getStructuralClass());
+    if ((removeDCR == null) || (! removeDCR.equals(ditContentRule)))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR;
+      String message = getMessage(msgID, ditContentRule.getName());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // Since DIT content rules don't have any dependencies, then we don't need
+    // to worry about the difference between a remove or a replace.  We can
+    // just remove the DIT content rule now, and if it is added back later then
+    // there still won't be any conflict.
+    schema.deregisterDITContentRule(removeDCR);
+    String schemaFile = removeDCR.getSchemaFile();
+    if (schemaFile != null)
+    {
+      modifiedSchemaFiles.add(schemaFile);
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required for adding the provided DIT structure rule
+   * to the given schema, replacing an existing rule if necessary, and ensuring
+   * all other metadata is properly updated.
+   *
+   * @param  ditStructureRule     The DIT structure rule to add or replace in
+   *                              the server schema.
+   * @param  schema               The schema to which the DIT structure rule
+   *                              should be be added.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to add
+   *                              the provided DIT structure rule to the server
+   *                              schema.
+   */
+  private void addDITStructureRule(DITStructureRule ditStructureRule,
+                                   Schema schema,
+                                   Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "addDITStructureRule",
+                      String.valueOf(ditStructureRule), String.valueOf(schema),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // First, see if the specified DIT structure rule already exists.  We'll
+    // check the rule ID and all of the names, which means that it's possible
+    // there could be more than one match (although if there is, then we'll
+    // refuse the operation).
+    DITStructureRule existingDSR =
+         schema.getDITStructureRule(ditStructureRule.getRuleID());
+    for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
+    {
+      for (String name : ditStructureRule.getNames().keySet())
+      {
+        if (dsr.hasName(name))
+        {
+          // We really do want to use the "!=" operator here because it's
+          // acceptable if we find match for the same object instance.
+          if ((existingDSR != null) && (existingDSR != dsr))
+          {
+            int    msgID   = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DSR;
+            String message = getMessage(msgID,
+                                        ditStructureRule.getNameOrRuleID(),
+                                        existingDSR.getNameOrRuleID(),
+                                        dsr.getNameOrRuleID());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID);
+          }
+        }
+      }
+    }
+
+
+    // Get the name form for the new DIT structure rule and see if there's
+    // already an existing rule that is associated with that name form.  If
+    // there is, then it will only be acceptable if it's the DIT structure rule
+    // that we are replacing (in which case we really do want to use the "!="
+    // operator).
+    NameForm nameForm = ditStructureRule.getNameForm();
+    DITStructureRule existingRuleForNameForm =
+         schema.getDITStructureRule(nameForm);
+    if ((existingRuleForNameForm != null) &&
+        (existingRuleForNameForm != existingDSR))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_NAME_FORM_CONFLICT_FOR_ADD_DSR;
+      String message = getMessage(msgID, ditStructureRule.getNameOrRuleID(),
+                                  nameForm.getNameOrOID(),
+                                  existingRuleForNameForm.getNameOrRuleID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // Make sure that the new DIT structure rule doesn't reference an undefined
+    // name form or superior DIT structure rule.
+    if (! schema.hasNameForm(nameForm.getOID()))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_DSR_UNDEFINED_NAME_FORM;
+      String message = getMessage(msgID, ditStructureRule.getNameOrRuleID(),
+                                  nameForm.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // If there is no existing rule, then we're adding a new DIT structure rule.
+    // Otherwise, we're replacing an existing one.
+    if (existingDSR == null)
+    {
+      schema.registerDITStructureRule(ditStructureRule, false);
+      String schemaFile = ditStructureRule.getSchemaFile();
+      if ((schemaFile == null) || (schemaFile.length() == 0))
+      {
+        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        ditStructureRule.setSchemaFile(schemaFile);
+      }
+
+      modifiedSchemaFiles.add(schemaFile);
+    }
+    else
+    {
+      schema.deregisterDITStructureRule(existingDSR);
+      schema.registerDITStructureRule(ditStructureRule, false);
+      schema.rebuildDependentElements(existingDSR);
+
+      if ((ditStructureRule.getSchemaFile() == null) ||
+          (ditStructureRule.getSchemaFile().length() == 0))
+      {
+        String schemaFile = existingDSR.getSchemaFile();
+        if ((schemaFile == null) || (schemaFile.length() == 0))
+        {
+          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        }
+
+        ditStructureRule.setSchemaFile(schemaFile);
+        modifiedSchemaFiles.add(schemaFile);
+      }
+      else
+      {
+        String newSchemaFile = ditStructureRule.getSchemaFile();
+        String oldSchemaFile = existingDSR.getSchemaFile();
+        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+        }
+        else
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+          modifiedSchemaFiles.add(oldSchemaFile);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required to remove the provided DIT structure rule
+   * from the server schema, ensuring all other metadata is properly updated.
+   * Note that this method will first check to see whether the same rule will be
+   * later added to the server schema with an updated definition, and if so then
+   * the removal will be ignored because the later add will be handled as a
+   * replace.  If the DIT structure rule will not be replaced with a new
+   * definition, then this method will ensure that there are no other schema
+   * elements that depend on the rule before allowing it to be removed.
+   *
+   * @param  ditStructureRule     The DIT structure rule to remove from the
+   *                              server schema.
+   * @param  schema               The schema from which the DIT structure rule
+   *                              should be removed.
+   * @param  modifications        The full set of modifications to be processed
+   *                              against the server schema.
+   * @param  currentPosition      The position of the modification currently
+   *                              being performed.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to remove
+   *                              the provided DIT structure rule from the
+   *                              server schema.
+   */
+  private void removeDITStructureRule(DITStructureRule ditStructureRule,
+                                      Schema schema,
+                                      ArrayList<Modification> modifications,
+                                      int currentPosition,
+                                      Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "removeDITStructureRule",
+                      String.valueOf(ditStructureRule), String.valueOf(schema),
+                      String.valueOf(modifications),
+                      String.valueOf(currentPosition),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // See if the specified DIT structure rule is actually defined in the server
+    // schema.  If not, then fail.
+    DITStructureRule removeDSR =
+         schema.getDITStructureRule(ditStructureRule.getRuleID());
+    if ((removeDSR == null) || (! removeDSR.equals(ditStructureRule)))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR;
+      String message = getMessage(msgID, ditStructureRule.getNameOrRuleID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // See if there is another modification later to add the DIT structure rule
+    // back into the schema.  If so, then it's a replace and we should ignore
+    // the remove because adding it back will handle the replace.
+    for (int i=currentPosition+1; i < modifications.size(); i++)
+    {
+      Modification m = modifications.get(i);
+      Attribute    a = m.getAttribute();
+
+      if ((m.getModificationType() != ModificationType.ADD) ||
+          (! a.getAttributeType().equals(ditStructureRulesType)))
+      {
+        continue;
+      }
+
+      for (AttributeValue v : a.getValues())
+      {
+        DITStructureRule dsr;
+        try
+        {
+          dsr = DITStructureRuleSyntax.decodeDITStructureRule(
+                     v.getValue(), schema, false);
+        }
+        catch (DirectoryException de)
+        {
+          assert debugException(CLASS_NAME, "removeDITStructureRule", de);
+
+          int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
+          String message = getMessage(msgID, v.getStringValue(),
+                                      de.getErrorMessage());
+          throw new DirectoryException(
+                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                         msgID, de);
+        }
+
+        if (ditStructureRule.getRuleID() == dsr.getRuleID())
+        {
+          // We found a match where the DIT structure rule is added back later,
+          // so we don't need to do anything else here.
+          return;
+        }
+      }
+    }
+
+
+    // Make sure that the DIT structure rule isn't the superior for any other
+    // DIT structure rule.
+    for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
+    {
+      if (dsr.getSuperiorRules().contains(removeDSR))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_DSR_SUPERIOR_RULE;
+        String message = getMessage(msgID, removeDSR.getNameOrRuleID(),
+                                    dsr.getNameOrRuleID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // If we've gotten here, then it's OK to remove the DIT structure rule from
+    // the schema.
+    schema.deregisterDITStructureRule(removeDSR);
+    String schemaFile = removeDSR.getSchemaFile();
+    if (schemaFile != null)
+    {
+      modifiedSchemaFiles.add(schemaFile);
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required for adding the provided matching rule use
+   * to the given schema, replacing an existing use if necessary, and ensuring
+   * all other metadata is properly updated.
+   *
+   * @param  matchingRuleUse      The matching rule use to add or replace in the
+   *                              server schema.
+   * @param  schema               The schema to which the matching rule use
+   *                              should be added.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to add
+   *                              the provided matching rule use to the server
+   *                              schema.
+   */
+  private void addMatchingRuleUse(MatchingRuleUse matchingRuleUse,
+                                  Schema schema,
+                                  Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "addMatchingRuleUse",
+                      String.valueOf(matchingRuleUse), String.valueOf(schema),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // First, see if the specified matching rule use already exists.  We'll
+    // check all of the names, which means that it's possible that there could
+    // be more than one match (although if there is, then we'll refuse the
+    // operation).
+    MatchingRuleUse existingMRU = null;
+    for (MatchingRuleUse mru : schema.getMatchingRuleUses().values())
+    {
+      for (String name : matchingRuleUse.getNames().keySet())
+      {
+        if (mru.hasName(name))
+        {
+          if (existingMRU == null)
+          {
+            existingMRU = mru;
+            break;
+          }
+          else
+          {
+            int msgID = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE;
+            String message = getMessage(msgID, matchingRuleUse.getName(),
+                                        existingMRU.getName(), mru.getName());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID);
+          }
+        }
+      }
+    }
+
+
+    // Get the matching rule for the new matching rule use and see if there's
+    // already an existing matching rule use that is associated with that
+    // matching rule.  If there is, then it will only be acceptable if it's the
+    // matching rule use that we are replacing (in which case we really do want
+    // to use the "!=" operator).
+    MatchingRule matchingRule = matchingRuleUse.getMatchingRule();
+    MatchingRuleUse existingMRUForRule =
+         schema.getMatchingRuleUse(matchingRule);
+    if ((existingMRUForRule != null) && (existingMRUForRule != existingMRU))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE;
+      String message = getMessage(msgID, matchingRuleUse.getName(),
+                                  matchingRule.getNameOrOID(),
+                                  existingMRUForRule.getName());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // Make sure that the new matching rule use doesn't reference an undefined
+    // attribute type.
+    for (AttributeType at : matchingRuleUse.getAttributes())
+    {
+      if (! schema.hasAttributeType(at.getOID()))
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_MRU_UNDEFINED_ATTR;
+        String message = getMessage(msgID, matchingRuleUse.getName(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+
+    // If there is no existing matching rule use, then we're adding a new one.
+    // Otherwise, we're replacing an existing matching rule use.
+    if (existingMRU == null)
+    {
+      schema.registerMatchingRuleUse(matchingRuleUse, false);
+      String schemaFile = matchingRuleUse.getSchemaFile();
+      if ((schemaFile == null) || (schemaFile.length() == 0))
+      {
+        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        matchingRuleUse.setSchemaFile(schemaFile);
+      }
+
+      modifiedSchemaFiles.add(schemaFile);
+    }
+    else
+    {
+      schema.deregisterMatchingRuleUse(existingMRU);
+      schema.registerMatchingRuleUse(matchingRuleUse, false);
+      schema.rebuildDependentElements(existingMRU);
+
+      if ((matchingRuleUse.getSchemaFile() == null) ||
+          (matchingRuleUse.getSchemaFile().length() == 0))
+      {
+        String schemaFile = existingMRU.getSchemaFile();
+        if ((schemaFile == null) || (schemaFile.length() == 0))
+        {
+          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+        }
+
+        matchingRuleUse.setSchemaFile(schemaFile);
+        modifiedSchemaFiles.add(schemaFile);
+      }
+      else
+      {
+        String newSchemaFile = matchingRuleUse.getSchemaFile();
+        String oldSchemaFile = existingMRU.getSchemaFile();
+        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+        }
+        else
+        {
+          modifiedSchemaFiles.add(newSchemaFile);
+          modifiedSchemaFiles.add(oldSchemaFile);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Handles all processing required to remove the provided matching rule use
+   * from the server schema, ensuring all other metadata is properly updated.
+   * Note that this method will first check to see whether the same matching
+   * rule use will be later added to the server schema with an updated
+   * definition, and if so then the removal will be ignored because the later
+   * add will be handled as a replace.  If the matching rule use will not be
+   * replaced with a new definition, then this method will ensure that there are
+   * no other schema elements that depend on the matching rule use before
+   * allowing it to be removed.
+   *
+   * @param  matchingRuleUse      The matching rule use to remove from the
+   *                              server schema.
+   * @param  schema               The schema from which the matching rule use
+   *                              should be removed.
+   * @param  modifications        The full set of modifications to be processed
+   *                              against the server schema.
+   * @param  currentPosition      The position of the modification currently
+   *                              being performed.
+   * @param  modifiedSchemaFiles  The names of the schema files containing
+   *                              schema elements that have been updated as part
+   *                              of the schema modification.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to remove
+   *                              the provided matching rule use from the server
+   *                              schema.
+   */
+  private void removeMatchingRuleUse(MatchingRuleUse matchingRuleUse,
+                                     Schema schema,
+                                     ArrayList<Modification> modifications,
+                                     int currentPosition,
+                                     Set<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "removeMatchingRuleUse",
+                      String.valueOf(matchingRuleUse), String.valueOf(schema),
+                      String.valueOf(modifications),
+                      String.valueOf(currentPosition),
+                      String.valueOf(modifiedSchemaFiles));
+
+
+    // See if the specified DIT content rule is actually defined in the server
+    // schema.  If not, then fail.
+    MatchingRuleUse removeMRU =
+         schema.getMatchingRuleUse(matchingRuleUse.getMatchingRule());
+    if ((removeMRU == null) || (! removeMRU.equals(matchingRuleUse)))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE;
+      String message = getMessage(msgID, matchingRuleUse.getName());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+
+    // Since matching rule uses don't have any dependencies, then we don't need
+    // to worry about the difference between a remove or a replace.  We can
+    // just remove the DIT content rule now, and if it is added back later then
+    // there still won't be any conflict.
+    schema.deregisterMatchingRuleUse(removeMRU);
+    String schemaFile = removeMRU.getSchemaFile();
+    if (schemaFile != null)
+    {
+      modifiedSchemaFiles.add(schemaFile);
     }
   }
 
@@ -1211,6 +2957,661 @@ public class SchemaBackend
     }
 
     return new Entry(dn, objectClasses,  userAttributes, operationalAttributes);
+  }
+
+
+
+
+  /**
+   * Writes a temporary version of the specified schema file.
+   *
+   * @param  schema      The schema from which to take the definitions to be
+   *                     written.
+   * @param  schemaFile  The name of the schema file to be written.
+   *
+   * @throws  DirectoryException  If an unexpected problem occurs while
+   *                              identifying the schema definitions to include
+   *                              in the schema file.
+   *
+   * @throws  IOException  If an unexpected error occurs while attempting to
+   *                       write the temporary schema file.
+   *
+   * @throws  LDIFException  If an unexpected problem occurs while generating
+   *                         the LDIF representation of the schema entry.
+   */
+  private File writeTempSchemaFile(Schema schema, String schemaFile)
+          throws DirectoryException, IOException, LDIFException
+  {
+    assert debugEnter(CLASS_NAME, "writeTempSchemaFile", String.valueOf(schema),
+                      String.valueOf(schemaFile));
+
+
+    // Start with an empty schema entry.
+    Entry schemaEntry = createEmptySchemaEntry();
+
+
+    // Add all of the appropriate attribute types to the schema entry.  We need
+    // to be careful of the ordering to ensure that any superior types in the
+    // same file are written before the subordinate types.
+    HashSet<AttributeType> addedTypes = new HashSet<AttributeType>();
+    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    for (AttributeType at : schema.getAttributeTypes().values())
+    {
+      if (schemaFile.equals(at.getSchemaFile()))
+      {
+        addAttrTypeToSchemaFile(schema, schemaFile, at, values, addedTypes, 0);
+      }
+    }
+
+    if (! values.isEmpty())
+    {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(attributeTypesType,
+                                 attributeTypesType.getPrimaryName(), values));
+      schemaEntry.putAttribute(attributeTypesType, attrList);
+    }
+
+
+    // Add all of the appropriate objectclasses to the schema entry.  We need
+    // to be careful of the ordering to ensure that any superior classes in the
+    // same file are written before the subordinate classes.
+    HashSet<ObjectClass> addedClasses = new HashSet<ObjectClass>();
+    values = new LinkedHashSet<AttributeValue>();
+    for (ObjectClass oc : schema.getObjectClasses().values())
+    {
+      if (schemaFile.equals(oc.getSchemaFile()))
+      {
+        addObjectClassToSchemaFile(schema, schemaFile, oc, values, addedClasses,
+                                   0);
+      }
+    }
+
+    if (! values.isEmpty())
+    {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(objectClassesType,
+                                 objectClassesType.getPrimaryName(), values));
+      schemaEntry.putAttribute(objectClassesType, attrList);
+    }
+
+
+    // Add all of the appropriate name forms to the schema entry.  Since there
+    // is no hierarchical relationship between name forms, we don't need to
+    // worry about ordering.
+    values = new LinkedHashSet<AttributeValue>();
+    for (NameForm nf : schema.getNameFormsByObjectClass().values())
+    {
+      if (schemaFile.equals(nf.getSchemaFile()))
+      {
+        values.add(new AttributeValue(nameFormsType, nf.getDefinition()));
+      }
+    }
+
+    if (! values.isEmpty())
+    {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(nameFormsType,
+                                 nameFormsType.getPrimaryName(), values));
+      schemaEntry.putAttribute(nameFormsType, attrList);
+    }
+
+
+    // Add all of the appropriate DIT content rules to the schema entry.  Since
+    // there is no hierarchical relationship between DIT content rules, we don't
+    // need to worry about ordering.
+    values = new LinkedHashSet<AttributeValue>();
+    for (DITContentRule dcr : schema.getDITContentRules().values())
+    {
+      if (schemaFile.equals(dcr.getSchemaFile()))
+      {
+        values.add(new AttributeValue(ditContentRulesType,
+                                      dcr.getDefinition()));
+      }
+    }
+
+    if (! values.isEmpty())
+    {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(ditContentRulesType,
+                                 ditContentRulesType.getPrimaryName(), values));
+      schemaEntry.putAttribute(ditContentRulesType, attrList);
+    }
+
+
+    // Add all of the appropriate DIT structure rules to the schema entry.  We
+    // need to be careful of the ordering to ensure that any superior rules in
+    // the same file are written before the subordinate rules.
+    HashSet<DITStructureRule> addedDSRs = new HashSet<DITStructureRule>();
+    values = new LinkedHashSet<AttributeValue>();
+    for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
+    {
+      if (schemaFile.equals(dsr.getSchemaFile()))
+      {
+        addDITStructureRuleToSchemaFile(schema, schemaFile, dsr, values,
+                                        addedDSRs, 0);
+      }
+    }
+
+    if (! values.isEmpty())
+    {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(ditStructureRulesType,
+                                 ditStructureRulesType.getPrimaryName(),
+                                 values));
+      schemaEntry.putAttribute(ditStructureRulesType, attrList);
+    }
+
+
+    // Add all of the appropriate matching rule uses to the schema entry.  Since
+    // there is no hierarchical relationship between matching rule uses, we
+    // don't need to worry about ordering.
+    values = new LinkedHashSet<AttributeValue>();
+    for (MatchingRuleUse mru : schema.getMatchingRuleUses().values())
+    {
+      if (schemaFile.equals(mru.getSchemaFile()))
+      {
+        values.add(new AttributeValue(matchingRuleUsesType,
+                                      mru.getDefinition()));
+      }
+    }
+
+    if (! values.isEmpty())
+    {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(matchingRuleUsesType,
+                                 matchingRuleUsesType.getPrimaryName(),
+                                 values));
+      schemaEntry.putAttribute(matchingRuleUsesType, attrList);
+    }
+
+
+    // Create a temporary file to which we can write the schema entry.
+    File tempFile = File.createTempFile(schemaFile, "temp");
+    LDIFExportConfig exportConfig =
+         new LDIFExportConfig(tempFile.getAbsolutePath(),
+                              ExistingFileBehavior.OVERWRITE);
+    LDIFWriter ldifWriter = new LDIFWriter(exportConfig);
+    ldifWriter.writeEntry(schemaEntry);
+    ldifWriter.close();
+
+    return tempFile;
+  }
+
+
+
+  /**
+   * Adds the definition for the specified attribute type to the provided set of
+   * attribute values, recursively adding superior types as appropriate.
+   *
+   * @param  schema         The schema containing the attribute type.
+   * @param  schemaFile     The schema file with which the attribute type is
+   *                        associated.
+   * @param  attributeType  The attribute type whose definition should be added
+   *                        to the value set.
+   * @param  values         The set of values for attribute type definitions
+   *                        already added.
+   * @param  addedTypes     The set of attribute types whose definitions have
+   *                        already been added to the set of values.
+   * @param  depth          A depth counter to use in an attempt to detect
+   *                        circular references.
+   */
+  private void addAttrTypeToSchemaFile(Schema schema, String schemaFile,
+                                       AttributeType attributeType,
+                                       LinkedHashSet<AttributeValue> values,
+                                       HashSet<AttributeType> addedTypes,
+                                       int depth)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "addAttrTypeToSchemaFile",
+                      String.valueOf(schema), String.valueOf(schemaFile),
+                      String.valueOf(attributeType), String.valueOf(values),
+                      String.valueOf(addedTypes), String.valueOf(depth));
+
+    if (depth > 20)
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_AT;
+      String message = getMessage(msgID, attributeType.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+    if (addedTypes.contains(attributeType))
+    {
+      return;
+    }
+
+    AttributeType superiorType = attributeType.getSuperiorType();
+    if ((superiorType != null) &&
+        schemaFile.equals(superiorType.getSchemaFile()) &&
+        (! addedTypes.contains(superiorType)))
+    {
+      addAttrTypeToSchemaFile(schema, schemaFile, superiorType, values,
+                              addedTypes, depth+1);
+    }
+
+    values.add(new AttributeValue(attributeTypesType,
+                                  attributeType.getDefinition()));
+    addedTypes.add(attributeType);
+  }
+
+
+
+  /**
+   * Adds the definition for the specified objectclass to the provided set of
+   * attribute values, recursively adding superior classes as appropriate.
+   *
+   * @param  schema        The schema containing the objectclass.
+   * @param  schemaFile    The schema file with which the objectclass is
+   *                       associated.
+   * @param  objectClass   The objectclass whose definition should be added to
+   *                       the value set.
+   * @param  values        The set of values for objectclass definitions
+   *                       already added.
+   * @param  addedClasses  The set of objectclasses whose definitions have
+   *                       already been added to the set of values.
+   * @param  depth         A depth counter to use in an attempt to detect
+   *                       circular references.
+   */
+  private void addObjectClassToSchemaFile(Schema schema, String schemaFile,
+                                          ObjectClass objectClass,
+                                          LinkedHashSet<AttributeValue> values,
+                                          HashSet<ObjectClass> addedClasses,
+                                          int depth)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "addObjectClassToSchemaFile",
+                      String.valueOf(schema), String.valueOf(schemaFile),
+                      String.valueOf(objectClass), String.valueOf(values),
+                      String.valueOf(addedClasses), String.valueOf(depth));
+
+    if (depth > 20)
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_OC;
+      String message = getMessage(msgID, objectClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+    if (addedClasses.contains(objectClass))
+    {
+      return;
+    }
+
+    ObjectClass superiorClass = objectClass.getSuperiorClass();
+    if ((superiorClass != null) &&
+        schemaFile.equals(superiorClass.getSchemaFile()) &&
+        (! addedClasses.contains(superiorClass)))
+    {
+      addObjectClassToSchemaFile(schema, schemaFile, superiorClass, values,
+                                 addedClasses, depth+1);
+    }
+
+    values.add(new AttributeValue(objectClassesType,
+                                  objectClass.getDefinition()));
+    addedClasses.add(objectClass);
+  }
+
+
+
+  /**
+   * Adds the definition for the specified DIT structure rule to the provided
+   * set of attribute values, recursively adding superior rules as appropriate.
+   *
+   * @param  schema            The schema containing the DIT structure rule.
+   * @param  schemaFile        The schema file with which the DIT structure rule
+   *                           is associated.
+   * @param  ditStructureRule  The DIT structure rule whose definition should be
+   *                           added to the value set.
+   * @param  values            The set of values for DIT structure rule
+   *                           definitions already added.
+   * @param  addedDSRs         The set of DIT structure rules whose definitions
+   *                           have already been added added to the set of
+   *                           values.
+   * @param  depth             A depth counter to use in an attempt to detect
+   *                           circular references.
+   */
+  private void addDITStructureRuleToSchemaFile(Schema schema, String schemaFile,
+                    DITStructureRule ditStructureRule,
+                    LinkedHashSet<AttributeValue> values,
+                    HashSet<DITStructureRule> addedDSRs, int depth)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "addDITStructureRuleToSchemaFile",
+                      String.valueOf(schema), String.valueOf(schemaFile),
+                      String.valueOf(ditStructureRule), String.valueOf(values),
+                      String.valueOf(addedDSRs), String.valueOf(depth));
+
+    if (depth > 20)
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_DSR;
+      String message = getMessage(msgID, ditStructureRule.getNameOrRuleID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+
+    if (addedDSRs.contains(ditStructureRule))
+    {
+      return;
+    }
+
+    for (DITStructureRule dsr : ditStructureRule.getSuperiorRules())
+    {
+      if (schemaFile.equals(dsr.getSchemaFile()) && (! addedDSRs.contains(dsr)))
+      {
+        addDITStructureRuleToSchemaFile(schema, schemaFile, dsr, values,
+                                        addedDSRs, depth+1);
+      }
+    }
+
+    values.add(new AttributeValue(ditStructureRulesType,
+                                  ditStructureRule.getDefinition()));
+    addedDSRs.add(ditStructureRule);
+  }
+
+
+
+  /**
+   * Moves the specified temporary schema files in place of the active versions.
+   * If an error occurs in the process, then this method will attempt to restore
+   * the original schema files if possible.
+   *
+   * @param  tempSchemaFiles  The set of temporary schema files to be activated.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to
+   *                              install the temporary schema files.
+   */
+  private void installSchemaFiles(HashMap<String,File> tempSchemaFiles)
+          throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "installSchemaFiles",
+                      String.valueOf(tempSchemaFiles));
+
+
+    // Create lists that will hold the three types of files we'll be dealing
+    // with (the temporary files that will be installed, the installed schema
+    // files, and the previously-installed schema files).
+    ArrayList<File> installedFileList = new ArrayList<File>();
+    ArrayList<File> tempFileList      = new ArrayList<File>();
+    ArrayList<File> origFileList      = new ArrayList<File>();
+
+    File schemaDir = new File(SchemaConfigManager.getSchemaDirectoryPath());
+
+    for (String name : tempSchemaFiles.keySet())
+    {
+      installedFileList.add(new File(schemaDir, name));
+      tempFileList.add(tempSchemaFiles.get(name));
+      origFileList.add(new File(schemaDir, name + ".orig"));
+    }
+
+
+    // If there are any old ".orig" files laying around from a previous
+    // attempt, then try to clean them up.
+    for (File f : origFileList)
+    {
+      if (f.exists())
+      {
+        f.delete();
+      }
+    }
+
+
+    // Copy all of the currently-installed files with a ".orig" extension.  If
+    // this fails, then try to clean up the copies.
+    try
+    {
+      for (int i=0; i < installedFileList.size(); i++)
+      {
+        File installedFile = installedFileList.get(i);
+        File origFile      = origFileList.get(i);
+
+        if (installedFile.exists())
+        {
+          copyFile(installedFile, origFile);
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "installSchemaFiles", e);
+
+      boolean allCleaned = true;
+      for (File f : origFileList)
+      {
+        try
+        {
+          if (f.exists())
+          {
+            if (! f.delete())
+            {
+              allCleaned = false;
+            }
+          }
+        }
+        catch (Exception e2)
+        {
+          assert debugException(CLASS_NAME, "installSchemaFiles", e2);
+
+          allCleaned = false;
+        }
+      }
+
+      if (allCleaned)
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, msgID, e);
+      }
+      else
+      {
+        int msgID = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+
+        DirectoryServer.sendAlertNotification(this,
+                             ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES, msgID,
+                             message);
+
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, msgID, e);
+      }
+    }
+
+
+    // Try to copy all of the temporary files into place over the installed
+    // files.  If this fails, then try to restore the originals.
+    try
+    {
+      for (int i=0; i < installedFileList.size(); i++)
+      {
+        File installedFile = installedFileList.get(i);
+        File tempFile      = tempFileList.get(i);
+        copyFile(tempFile, installedFile);
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "installSchemaFiles", e);
+
+      for (File f : installedFileList)
+      {
+        try
+        {
+          if (f.exists())
+          {
+            f.delete();
+          }
+        }
+        catch (Exception e2)
+        {
+          assert debugException(CLASS_NAME, "installSchemaFiles", e2);
+        }
+      }
+
+      boolean allRestored = true;
+      for (int i=0; i < installedFileList.size(); i++)
+      {
+        File installedFile = installedFileList.get(i);
+        File origFile      = origFileList.get(i);
+
+        try
+        {
+          if (origFile.exists())
+          {
+            if (! origFile.renameTo(installedFile))
+            {
+              allRestored = false;
+            }
+          }
+        }
+        catch (Exception e2)
+        {
+          assert debugException(CLASS_NAME, "installSchemaFiles", e2);
+
+          allRestored = false;
+        }
+      }
+
+      if (allRestored)
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, msgID, e);
+      }
+      else
+      {
+        int msgID = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+
+        DirectoryServer.sendAlertNotification(this,
+                             ALERT_TYPE_CANNOT_WRITE_NEW_SCHEMA_FILES, msgID,
+                             message);
+
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, msgID, e);
+      }
+    }
+
+
+    // At this point, we're committed to the schema change, so we can't throw
+    // any more exceptions, but all we have left is to clean up the original and
+    // temporary files.
+    for (File f : origFileList)
+    {
+      try
+      {
+        if (f.exists())
+        {
+          f.delete();
+        }
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "installSchemaFiles", e);
+      }
+    }
+
+    for (File f : tempFileList)
+    {
+      try
+      {
+        if (f.exists())
+        {
+          f.delete();
+        }
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "installSchemaFiles", e);
+      }
+    }
+  }
+
+
+
+  /**
+   * Creates a copy of the specified file.
+   *
+   * @param  from  The source file to be copied.
+   * @param  to    The destination file to be created.
+   *
+   * @throws  IOException  If a problem occurs.
+   */
+  private void copyFile(File from, File to)
+          throws IOException
+  {
+    assert debugEnter(CLASS_NAME, "copyFile", String.valueOf(from),
+                      String.valueOf(to));
+
+    byte[]           buffer        = new byte[4096];
+    FileInputStream  inputStream   = null;
+    FileOutputStream outputStream  = null;
+    try
+    {
+      inputStream  = new FileInputStream(from);
+      outputStream = new FileOutputStream(to, false);
+
+      int bytesRead = inputStream.read(buffer);
+      while (bytesRead > 0)
+      {
+        outputStream.write(buffer, 0, bytesRead);
+        bytesRead = inputStream.read(buffer);
+      }
+    }
+    finally
+    {
+      if (inputStream != null)
+      {
+        try
+        {
+          inputStream.close();
+        }
+        catch (Exception e)
+        {
+          assert debugException(CLASS_NAME, "copyFile", e);
+        }
+      }
+
+      if (outputStream != null)
+      {
+        outputStream.close();
+      }
+    }
+  }
+
+
+
+  /**
+   * Performs any necessary cleanup in an attempt to delete any temporary schema
+   * files that may have been left over after trying to install the new schema.
+   *
+   * @param  tempSchemaFiles  The set of temporary schema files that have been
+   *                          created and are candidates for cleanup.
+   */
+  private void cleanUpTempSchemaFiles(HashMap<String,File> tempSchemaFiles)
+  {
+    assert debugEnter(CLASS_NAME, "cleanUpTempSchemaFiles",
+                      String.valueOf(tempSchemaFiles));
+
+    if ((tempSchemaFiles == null) || tempSchemaFiles.isEmpty())
+    {
+      return;
+    }
+
+    for (File f : tempSchemaFiles.values())
+    {
+      try
+      {
+        if (f.exists())
+        {
+          f.delete();
+        }
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "cleanUpTempSchemaFiles", e);
+      }
+    }
   }
 
 
@@ -2794,6 +5195,64 @@ public class SchemaBackend
                       String.valueOf(showAllAttributes));
 
     this.showAllAttributes = showAllAttributes;
+  }
+
+
+
+  /**
+   * Retrieves the DN of the configuration entry with which this alert generator
+   * is associated.
+   *
+   * @return  The DN of the configuration entry with which this alert generator
+   *          is associated.
+   */
+  public DN getComponentEntryDN()
+  {
+    assert debugEnter(CLASS_NAME, "getComponentEntryDN");
+
+    return configEntryDN;
+  }
+
+
+
+  /**
+   * Retrieves the fully-qualified name of the Java class for this alert
+   * generator implementation.
+   *
+   * @return  The fully-qualified name of the Java class for this alert
+   *          generator implementation.
+   */
+  public String getClassName()
+  {
+    assert debugEnter(CLASS_NAME, "getClassName");
+
+    return CLASS_NAME;
+  }
+
+
+
+  /**
+   * Retrieves information about the set of alerts that this generator may
+   * produce.  The map returned should be between the notification type for a
+   * particular notification and the human-readable description for that
+   * notification.  This alert generator must not generate any alerts with types
+   * that are not contained in this list.
+   *
+   * @return  Information about the set of alerts that this generator may
+   *          produce.
+   */
+  public LinkedHashMap<String,String> getAlerts()
+  {
+    assert debugEnter(CLASS_NAME, "getAlerts");
+
+    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+
+    alerts.put(ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES,
+               ALERT_DESCRIPTION_CANNOT_COPY_SCHEMA_FILES);
+    alerts.put(ALERT_TYPE_CANNOT_WRITE_NEW_SCHEMA_FILES,
+               ALERT_DESCRIPTION_CANNOT_WRITE_NEW_SCHEMA_FILES);
+
+    return alerts;
   }
 }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
 
@@ -110,9 +110,15 @@ public final class EntryUUIDPlugin
                                                         false);
     if (at == null)
     {
-      at = new AttributeType(ENTRYUUID, Collections.singleton(ENTRYUUID),
-                             ENTRYUUID, null, null,
-                             DirectoryConfig.getDefaultAttributeSyntax(),
+      String definition =
+           "( 1.3.6.1.1.16.4 NAME 'entryUUID' DESC 'UUID of the entry' " +
+           "EQUALITY uuidMatch ORDERING uuidOrderingMatch " +
+           "SYNTAX 1.3.6.1.1.16.1 SINGLE-VALUE NO-USER-MODIFICATION " +
+           "USAGE directoryOperation X-ORIGIN 'RFC 4530' )";
+
+      at = new AttributeType(definition, ENTRYUUID,
+                             Collections.singleton(ENTRYUUID), ENTRYUUID, null,
+                             null, DirectoryConfig.getDefaultAttributeSyntax(),
                              AttributeUsage.DIRECTORY_OPERATION, false, true,
                              false, true);
     }

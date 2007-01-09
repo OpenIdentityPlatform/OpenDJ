@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -31,6 +31,7 @@ package org.opends.server.types;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -112,9 +113,163 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     protected ObjectClass buildInstance(String primaryName,
         Collection<String> names, String oid, String description,
         boolean isObsolete, Map<String, List<String>> extraProperties) {
-      return new ObjectClass(primaryName, names, oid, description,
-          superior, requiredAttributeTypes, optionalAttributeTypes,
-          objectClassType, isObsolete, extraProperties);
+
+      StringBuilder definition = new StringBuilder();
+      definition.append("( ");
+      definition.append(oid);
+
+      LinkedHashSet<String> nameSet = new LinkedHashSet<String>();
+      if (primaryName != null)
+      {
+        nameSet.add(primaryName);
+      }
+
+      if (names != null)
+      {
+        for (String name : names)
+        {
+          nameSet.add(name);
+        }
+      }
+
+      if (! nameSet.isEmpty())
+      {
+        if (nameSet.size() == 1)
+        {
+          definition.append(" NAME '");
+          definition.append(nameSet.iterator().next());
+          definition.append("'");
+        }
+        else
+        {
+          Iterator<String> iterator = nameSet.iterator();
+
+          definition.append(" NAME ( '");
+          definition.append(iterator.next());
+
+          while (iterator.hasNext())
+          {
+            definition.append("' '");
+            definition.append(iterator.next());
+          }
+
+          definition.append("' )");
+        }
+      }
+
+      if (description != null)
+      {
+        definition.append(" DESC '");
+        definition.append(description);
+        definition.append("'");
+      }
+
+      if (isObsolete)
+      {
+        definition.append(" OBSOLETE");
+      }
+
+      if (superior != null)
+      {
+        definition.append(" SUP ");
+        definition.append(superior.getNameOrOID());
+      }
+
+      if (objectClassType != null)
+      {
+        definition.append(" ");
+        definition.append(objectClassType.toString());
+      }
+
+      if ((requiredAttributeTypes != null) &&
+          (! requiredAttributeTypes.isEmpty()))
+      {
+        if (requiredAttributeTypes.size() == 1)
+        {
+          definition.append(" MUST ");
+          definition.append(
+               requiredAttributeTypes.iterator().next().getNameOrOID());
+        }
+        else
+        {
+          Iterator<AttributeType> iterator = requiredAttributeTypes.iterator();
+
+          definition.append(" MUST ( ");
+          definition.append(iterator.next().getNameOrOID());
+          while (iterator.hasNext())
+          {
+            definition.append(" $ ");
+            definition.append(iterator.next().getNameOrOID());
+          }
+          definition.append(" )");
+        }
+      }
+
+      if ((optionalAttributeTypes != null) &&
+          (! optionalAttributeTypes.isEmpty()))
+      {
+        if (optionalAttributeTypes.size() == 1)
+        {
+          definition.append(" MUST ");
+          definition.append(
+               optionalAttributeTypes.iterator().next().getNameOrOID());
+        }
+        else
+        {
+          Iterator<AttributeType> iterator = optionalAttributeTypes.iterator();
+
+          definition.append(" MUST ( ");
+          definition.append(iterator.next().getNameOrOID());
+          while (iterator.hasNext())
+          {
+            definition.append(" $ ");
+            definition.append(iterator.next().getNameOrOID());
+          }
+          definition.append(" )");
+        }
+      }
+
+      if (extraProperties != null)
+      {
+        for (String property : extraProperties.keySet())
+        {
+          List<String> values = extraProperties.get(property);
+          if ((values == null) || values.isEmpty())
+          {
+            continue;
+          }
+          else if (values.size() == 1)
+          {
+            definition.append(" ");
+            definition.append(property);
+            definition.append(" '");
+            definition.append(values.get(0));
+            definition.append("'");
+          }
+          else
+          {
+            definition.append(" ");
+            definition.append(property);
+            definition.append(" (");
+            for (String value : values)
+            {
+              definition.append(" '");
+              definition.append(value);
+              definition.append("'");
+            }
+
+            definition.append(" )");
+          }
+        }
+      }
+
+      definition.append(" )");
+
+
+      return new ObjectClass(definition.toString(), primaryName, names, oid,
+                             description, superior, requiredAttributeTypes,
+                             optionalAttributeTypes, objectClassType,
+                             isObsolete, extraProperties);
     }
 
 
@@ -219,7 +374,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     Set<AttributeType> emptySet = Collections.emptySet();
     Map<String, List<String>> emptyMap = Collections.emptyMap();
 
-    new ObjectClass("test", Collections.singleton("test"), null,
+    new ObjectClass(null, "test", Collections.singleton("test"), null,
         "description", DirectoryServer.getTopObjectClass(), emptySet,
         emptySet, ObjectClassType.STRUCTURAL, false, emptyMap);
   }
@@ -235,7 +390,8 @@ public final class TestObjectClass extends TestCommonSchemaElements {
    */
   @Test
   public void testConstructorDefault() throws Exception {
-    ObjectClass type = new ObjectClass(null, null, "1.2.3", null,
+    String definition = "( 1.2.3 )";
+    ObjectClass type = new ObjectClass(definition, null, null, "1.2.3", null,
         null, null, null, null, false, null);
 
     Assert.assertNull(type.getPrimaryName());
