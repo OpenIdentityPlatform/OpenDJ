@@ -137,7 +137,7 @@ public class StatusPanelDialog extends JFrame
         quitClicked();
       }
     });
-    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     UIFactory.IconType ic;
     if (Utils.isMacOS())
     {

@@ -320,7 +320,7 @@ public class Utils
    */
   public static boolean isMacOS()
   {
-    return containsOsProperty("Mac OS");
+    return containsOsProperty("mac os");
   }
 
   /**
