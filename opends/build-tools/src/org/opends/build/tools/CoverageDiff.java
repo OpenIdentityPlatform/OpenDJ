@@ -143,7 +143,8 @@ public class CoverageDiff extends Task {
     }
     catch(IOException ie)
     {
-      throw new BuildException("An error occured while processing diff output: " + ie.toString(), ie);
+      System.out.println("ERROR: An error occured while processing diff output: " + ie.toString() + " Quitting...");
+      return;
     }
   }
 
