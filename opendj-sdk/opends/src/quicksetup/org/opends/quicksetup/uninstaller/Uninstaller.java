@@ -667,8 +667,8 @@ public class Uninstaller
       /* Create these objects to resend the stop process output to the details
        * area.
        */
-      StopReader errorReader = new StopReader(err, true);
-      StopReader outputReader = new StopReader(out, false);
+      new StopReader(err, true);
+      new StopReader(out, false);
 
       int returnValue = process.waitFor();
 

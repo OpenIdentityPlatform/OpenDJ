@@ -213,12 +213,6 @@ public class UninstallLauncher
         Utils.getCommandLineMaxLineWidth());
   }
 
-  private static String getMsg(String key, String[] args)
-  {
-    return org.opends.server.util.StaticUtils.wrapText(
-        getI18n().getMsg(key, args), Utils.getCommandLineMaxLineWidth());
-  }
-
   private static ResourceProvider getI18n()
   {
     return ResourceProvider.getInstance();

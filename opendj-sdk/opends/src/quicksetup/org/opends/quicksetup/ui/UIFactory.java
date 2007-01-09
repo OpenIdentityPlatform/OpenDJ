@@ -664,6 +664,8 @@ public class UIFactory
       b.setToolTipText(tooltip);
     }
 
+    b.setOpaque(false);
+
     return b;
   }
 

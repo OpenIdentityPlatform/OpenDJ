@@ -36,6 +36,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.CurrentInstallStatus;
@@ -144,7 +145,7 @@ public class QuickSetupDialog
         }
       }
     });
-    frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     UIFactory.IconType ic;
     if (Utils.isMacOS())
     {
