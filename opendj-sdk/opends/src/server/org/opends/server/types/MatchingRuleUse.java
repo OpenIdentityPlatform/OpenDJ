@@ -22,22 +22,27 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
 
 
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.opends.server.api.MatchingRule;
+import org.opends.server.schema.MatchingRuleUseSyntax;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -47,7 +52,8 @@ import static org.opends.server.util.StaticUtils.*;
  * the set of attribute types that may be used for a given matching
  * rule.
  */
-public class MatchingRuleUse
+public final class MatchingRuleUse
+       implements SchemaFileElement
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -58,32 +64,30 @@ public class MatchingRuleUse
 
 
   // Indicates whether this matching rule use is declared "obsolete".
-  private boolean isObsolete;
+  private final boolean isObsolete;
+
+  // The set of additional name-value pairs associated with this
+  // matching rule use definition.
+  private final Map<String,List<String>> extraProperties;
 
   // The set of names that may be used to refer to this matching rule
   // use, mapped between their all-lowercase representations and the
   // user-defined representations.
-  private ConcurrentHashMap<String,String> names;
-
-  // The set of attribute types with which this matching rule use is
-  // associated.
-  private CopyOnWriteArraySet<AttributeType> attributes;
-
-  // The set of additional name-value pairs associated with this
-  // matching rule use definition.
-  private ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-               extraProperties;
+  private final Map<String,String> names;
 
   // The matching rule with which this matching rule use is
   // associated.
-  private MatchingRule matchingRule;
+  private final MatchingRule matchingRule;
+
+  // The set of attribute types with which this matching rule use is
+  // associated.
+  private final Set<AttributeType> attributes;
+
+  // The definition string used to create this matching rule use.
+  private final String definition;
 
   // The description for this matching rule use.
-  private String description;
-
-  // The path to the schema file that contains this matching rule use
-  // definition.
-  private String schemaFile;
+  private final String description;
 
 
 
@@ -91,8 +95,11 @@ public class MatchingRuleUse
    * Creates a new matching rule use definition with the provided
    * information.
    *
+   * @param  definition       The definition string used to create
+   *                          this matching rule use.  It must not be
+   *                          {@code null}.
    * @param  matchingRule     The matching rule for this matching rule
-   *                          use.
+   *                          use.  It must not be {@code null}.
    * @param  names            The set of names for this matching rule
    *                          use.
    * @param  description      The description for this matching rule
@@ -104,32 +111,100 @@ public class MatchingRuleUse
    * @param  extraProperties  A set of "extra" properties that may be
    *                          associated with this matching rule use.
    */
-  public MatchingRuleUse(MatchingRule matchingRule,
-              ConcurrentHashMap<String,String> names,
-              String description, boolean isObsolete,
-              CopyOnWriteArraySet<AttributeType> attributes,
-              ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-                   extraProperties)
+  public MatchingRuleUse(String definition, MatchingRule matchingRule,
+                         Map<String,String> names, String description,
+                         boolean isObsolete,
+                         Set<AttributeType> attributes,
+                         Map<String,List<String>> extraProperties)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(matchingRule),
-                              String.valueOf(names),
-                              String.valueOf(description),
-                              String.valueOf(isObsolete),
-                              String.valueOf(attributes),
-                              String.valueOf(extraProperties)
-                            });
+    assert debugConstructor(CLASS_NAME, String.valueOf(definition),
+                            String.valueOf(matchingRule),
+                            String.valueOf(names),
+                            String.valueOf(description),
+                            String.valueOf(isObsolete),
+                            String.valueOf(attributes),
+                            String.valueOf(extraProperties));
+
+    ensureNotNull(definition, matchingRule);
+
+    this.definition   = definition;
+    this.matchingRule = matchingRule;
+    this.description  = description;
+    this.isObsolete   = isObsolete;
+
+    if ((names == null) || names.isEmpty())
+    {
+      this.names = new LinkedHashMap<String,String>(0);
+    }
+    else
+    {
+      this.names = new LinkedHashMap<String,String>(names);
+    }
+
+    if ((attributes == null) || attributes.isEmpty())
+    {
+      this.attributes = new LinkedHashSet<AttributeType>(0);
+    }
+    else
+    {
+      this.attributes = new LinkedHashSet<AttributeType>(attributes);
+    }
+
+    if ((extraProperties == null) || extraProperties.isEmpty())
+    {
+      this.extraProperties =
+           new LinkedHashMap<String,List<String>>(0);
+    }
+    else
+    {
+      this.extraProperties =
+           new LinkedHashMap<String,List<String>>(extraProperties);
+    }
+  }
 
 
-    this.matchingRule    = matchingRule;
-    this.names           = names;
-    this.description     = description;
-    this.isObsolete      = isObsolete;
-    this.attributes      = attributes;
-    this.schemaFile      = null;
-    this.extraProperties = extraProperties;
+
+  /**
+   * Retrieves the definition string used to create this matching rule
+   * use.
+   *
+   * @return  The definition string used to create this matching rule
+   *          use.
+   */
+  public String getDefinition()
+  {
+    assert debugEnter(CLASS_NAME, "getDefinition");
+
+    return definition;
+  }
+
+
+
+  /**
+   * Creates a new instance of this matching rule use based on the
+   * definition string.  It will also preserve other state information
+   * associated with this matching rule use that is not included in
+   * the definition string (e.g., the name of the schema file with
+   * which it is associated).
+   *
+   * @return  The new instance of this matching rule use based on the
+   *          definition string.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to create a new matching rule use
+   *                              instance from the definition string.
+   */
+  public MatchingRuleUse recreateFromDefinition()
+         throws DirectoryException
+  {
+    ByteString value  = ByteStringFactory.create(definition);
+    Schema     schema = DirectoryConfig.getSchema();
+
+    MatchingRuleUse mru =
+         MatchingRuleUseSyntax.decodeMatchingRuleUse(value, schema);
+    mru.setSchemaFile(getSchemaFile());
+
+    return mru;
   }
 
 
@@ -149,29 +224,13 @@ public class MatchingRuleUse
 
 
   /**
-   * Specifies the matching rule for this matching rule use.
-   *
-   * @param  matchingRule  The matching rule for this matching rule
-   *                       use.
-   */
-  public void setMatchingRule(MatchingRule matchingRule)
-  {
-    assert debugEnter(CLASS_NAME, "setMatchingRule",
-                      String.valueOf(matchingRule));
-
-    this.matchingRule = matchingRule;
-  }
-
-
-
-  /**
    * Retrieves the set of names for this matching rule use.  The
    * mapping will be between the names in all lowercase form and the
    * names in the user-defined form.
    *
    * @return  The set of names for this matching rule use.
    */
-  public ConcurrentHashMap<String,String> getNames()
+  public Map<String,String> getNames()
   {
     assert debugEnter(CLASS_NAME, "getNames");
 
@@ -185,7 +244,7 @@ public class MatchingRuleUse
    * rule use.
    *
    * @return  The primary name to use when referencing this matching
-   *          rule use, or <CODE>null</CODE> if there is none.
+   *          rule use, or {@code null} if there is none.
    */
   public String getName()
   {
@@ -209,8 +268,8 @@ public class MatchingRuleUse
    * @param  lowerName  The name for which to make the determination,
    *                    formatted in all lowercase characters.
    *
-   * @return  <CODE>true</CODE> if this matching rule use has the
-   *          specified name, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this matching rule use has the specified
+   *          name, or {@code false} if not.
    */
   public boolean hasName(String lowerName)
   {
@@ -223,69 +282,25 @@ public class MatchingRuleUse
 
 
   /**
-   * Specifies the set of names for this matching rule use as a
-   * mapping between the names in all lowercase form and the names in
-   * the user-defined form.
-   *
-   * @param  names  The set of names for this matching rule use.
-   */
-  public void setNames(ConcurrentHashMap<String,String> names)
-  {
-    assert debugEnter(CLASS_NAME, "setNames", String.valueOf(names));
-
-    this.names = names;
-  }
-
-
-
-  /**
-   * Adds the provided name to the set of names for this matching rule
-   * use.
-   *
-   * @param  name  The name to add to the set of names for this
-   *               matching rule use.
-   */
-  public void addName(String name)
-  {
-    assert debugEnter(CLASS_NAME, "addName", String.valueOf(name));
-
-    names.put(toLowerCase(name), name);
-  }
-
-
-
-  /**
-   * Removes the provided name from the set of names for this matching
-   * rule use.  This will have no effect if the specified name is not
-   * associated with this matching rule use.
-   *
-   * @param  lowerName  The name to remove from the set of names for
-   *                    this matching rule use, in all lowercase
-   *                    characters.
-   */
-  public void removeName(String lowerName)
-  {
-    assert debugEnter(CLASS_NAME, "removeName",
-                      String.valueOf(lowerName));
-
-    names.remove(lowerName);
-  }
-
-
-
-  /**
    * Retrieves the path to the schema file that contains the
    * definition for this matching rule use.
    *
    * @return  The path to the schema file that contains the definition
-   *          for this matching rule use, or <CODE>null</CODE> if it
-   *          is not known or if it is not stored in any schema file.
+   *          for this matching rule use, or {@code null} if it is not
+   *          known or if it is not stored in any schema file.
    */
   public String getSchemaFile()
   {
     assert debugEnter(CLASS_NAME, "getSchemaFile");
 
-    return schemaFile;
+    List<String> values =
+         extraProperties.get(SCHEMA_PROPERTY_FILENAME);
+    if ((values == null) || values.isEmpty())
+    {
+      return null;
+    }
+
+    return values.get(0);
   }
 
 
@@ -302,7 +317,7 @@ public class MatchingRuleUse
     assert debugEnter(CLASS_NAME, "setSchemaFile",
                       String.valueOf(schemaFile));
 
-    this.schemaFile = schemaFile;
+    setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
 
@@ -311,7 +326,7 @@ public class MatchingRuleUse
    * Retrieves the description for this matching rule use.
    *
    * @return  The description for this matching rule use, or
-   *          <CODE>null</CODE> if there is none.
+   *          {@code null} if there is none.
    */
   public String getDescription()
   {
@@ -323,25 +338,10 @@ public class MatchingRuleUse
 
 
   /**
-   * Specifies the description for this matching rule use.
-   *
-   * @param  description  The description for this matching rule use.
-   */
-  public void setDescription(String description)
-  {
-    assert debugEnter(CLASS_NAME, "setDescription",
-                      String.valueOf(description));
-
-    this.description = description;
-  }
-
-
-
-  /**
    * Indicates whether this matching rule use is declared "obsolete".
    *
-   * @return  <CODE>true</CODE> if this matching rule use is declared
-   *          "obsolete", or <CODE>false</CODE> if it is not.
+   * @return  {@code true} if this matching rule use is declared
+   *          "obsolete", or {@code false} if it is not.
    */
   public boolean isObsolete()
   {
@@ -353,29 +353,13 @@ public class MatchingRuleUse
 
 
   /**
-   * Specifies whether this matching rule use is declared "obsolete".
-   *
-   * @param  isObsolete  Specifies whether this matching rule use is
-   *                     declared "obsolete".
-   */
-  public void setObsolete(boolean isObsolete)
-  {
-    assert debugEnter(CLASS_NAME, "setObsolete",
-                      String.valueOf(isObsolete));
-
-    this.isObsolete = isObsolete;
-  }
-
-
-
-  /**
    * Retrieves the set of attributes associated with this matching
    * rule use.
    *
    * @return  The set of attributes associated with this matching
    *          rule use.
    */
-  public CopyOnWriteArraySet<AttributeType> getAttributes()
+  public Set<AttributeType> getAttributes()
   {
     assert debugEnter(CLASS_NAME, "getAttributes");
 
@@ -391,9 +375,9 @@ public class MatchingRuleUse
    * @param  attributeType  The attribute type for which to make the
    *                        determination.
    *
-   * @return  <CODE>true</CODE> if the provided attribute type is
-   *          referenced by this matching rule use, or
-   *          <CODE>false</CODE> if it is not.
+   * @return  {@code true} if the provided attribute type is
+   *          referenced by this matching rule use, or {@code false}
+   *          if it is not.
    */
   public boolean appliesToAttribute(AttributeType attributeType)
   {
@@ -406,71 +390,15 @@ public class MatchingRuleUse
 
 
   /**
-   * Specifies the set of attributes for this matching rule use.
-   *
-   * @param  attributes  The set of attributes for this matching rule
-   *                     use.
-   */
-  public void setAttributes(
-                   CopyOnWriteArraySet<AttributeType> attributes)
-  {
-    assert debugEnter(CLASS_NAME, "setAttributes",
-                      String.valueOf(attributes));
-
-    this.attributes = attributes;
-  }
-
-
-
-  /**
-   * Adds the provided attribute type to the set of attributes for
-   * this matching rule use.  This will have no effect if the provided
-   * attribute type is already associated with this matching rule use.
-   *
-   * @param  attributeType  The attribute type to add to the set of
-   *                        attributes for this matching rule use.
-   */
-  public void addAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "addAttribute",
-                      String.valueOf(attributeType));
-
-    attributes.add(attributeType);
-  }
-
-
-
-  /**
-   * Removes the provided attribute type from the set of attributes
-   * for this matching rule use.  This will have no effect if the
-   * provided attribute type is not associated with this matching rule
-   * use.
-   *
-   * @param  attributeType  The attribute type to remove from the set
-   *                        of attributes for this matching rule use.
-   */
-  public void removeAttribute(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "addAttribute",
-                      String.valueOf(attributeType));
-
-    attributes.remove(attributeType);
-  }
-
-
-
-  /**
    * Retrieves a mapping between the names of any extra non-standard
    * properties that may be associated with this matching rule use and
-   * the value for that property.  The caller may alter the contents
-   * of this mapping.
+   * the value for that property.
    *
    * @return  A mapping between the names of any extra non-standard
    *          properties that may be associated with this matching
    *          rule use and the value for that property.
    */
-  public ConcurrentHashMap<String,CopyOnWriteArrayList<String>>
-              getExtraProperties()
+  public Map<String,List<String>> getExtraProperties()
   {
     assert debugEnter(CLASS_NAME, "getExtraProperties");
 
@@ -487,16 +415,75 @@ public class MatchingRuleUse
    *                       to retrieve the value.
    *
    * @return  The value of the specified "extra" property for this
-   *          matching rule use, or <CODE>null</CODE> if no such
-   *          property is defined.
+   *          matching rule use, or {@code null} if no such property
+   *          is defined.
    */
-  public CopyOnWriteArrayList<String>
-              getExtraProperty(String propertyName)
+  public List<String> getExtraProperty(String propertyName)
   {
     assert debugEnter(CLASS_NAME, "getExtraProperty",
                       String.valueOf(propertyName));
 
     return extraProperties.get(propertyName);
+  }
+
+
+
+  /**
+   * Specifies the provided "extra" property for this matching rule
+   * use.
+   *
+   * @param  name   The name for the "extra" property.  It must not be
+   *                {@code null}.
+   * @param  value  The value for the "extra" property, or
+   *                {@code null} if the property is to be removed.
+   */
+  public void setExtraProperty(String name, String value)
+  {
+    assert debugEnter(CLASS_NAME, "setExtraProperty",
+                      String.valueOf(name), String.valueOf(value));
+
+    ensureNotNull(name);
+
+    if (value == null)
+    {
+      extraProperties.remove(name);
+    }
+    else
+    {
+      LinkedList<String> values = new LinkedList<String>();
+      values.add(value);
+
+      extraProperties.put(name, values);
+    }
+  }
+
+
+
+  /**
+   * Specifies the provided "extra" property for this matching rule
+   * use.
+   *
+   * @param  name    The name for the "extra" property.  It must not
+   *                 be {@code null}.
+   * @param  values  The set of value for the "extra" property, or
+   *                 {@code null} if the property is to be removed.
+   */
+  public void setExtraProperty(String name, List<String> values)
+  {
+    assert debugEnter(CLASS_NAME, "setExtraProperty",
+                      String.valueOf(name), String.valueOf(values));
+
+    ensureNotNull(name);
+
+    if ((values == null) || values.isEmpty())
+    {
+      extraProperties.remove(name);
+    }
+    else
+    {
+      LinkedList<String> valuesCopy = new LinkedList<String>(values);
+      extraProperties.put(name, valuesCopy);
+    }
   }
 
 
@@ -508,8 +495,8 @@ public class MatchingRuleUse
    *
    * @param  o  The object for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided object is equal to
-   *          this matching rule use, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided object is equal to this
+   *          matching rule use, or {@code false} if not.
    */
   public boolean equals(Object o)
   {
@@ -647,8 +634,13 @@ public class MatchingRuleUse
     {
       for (String property : extraProperties.keySet())
       {
-        CopyOnWriteArrayList<String> valueList =
-             extraProperties.get(property);
+        if ((! includeFileElement) &&
+            property.equals(SCHEMA_PROPERTY_FILENAME))
+        {
+          continue;
+        }
+
+        List<String> valueList = extraProperties.get(property);
 
         buffer.append(" ");
         buffer.append(property);
@@ -673,16 +665,6 @@ public class MatchingRuleUse
           buffer.append(")");
         }
       }
-    }
-
-    if (includeFileElement && (schemaFile != null) &&
-        (! extraProperties.containsKey(SCHEMA_PROPERTY_FILENAME)))
-    {
-      buffer.append(" ");
-      buffer.append(SCHEMA_PROPERTY_FILENAME);
-      buffer.append(" '");
-      buffer.append(schemaFile);
-      buffer.append("'");
     }
 
     buffer.append(" )");

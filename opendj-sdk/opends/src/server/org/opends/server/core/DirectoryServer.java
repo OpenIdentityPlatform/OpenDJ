@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -2905,10 +2905,16 @@ public class DirectoryServer
          directoryServer.schema.getObjectClass(TOP_OBJECTCLASS_NAME);
     if (objectClass == null)
     {
-      objectClass = new ObjectClass(TOP_OBJECTCLASS_NAME, Collections
-          .singleton(TOP_OBJECTCLASS_NAME), TOP_OBJECTCLASS_OID,
-          TOP_OBJECTCLASS_DESCRIPTION, null, null, null,
-          ObjectClassType.ABSTRACT, false, null);
+      String definition =
+           "( 2.5.6.0 NAME 'top' ABSTRACT MUST objectClass " +
+           "X-ORIGIN 'RFC 2256' )";
+
+      objectClass = new ObjectClass(definition, TOP_OBJECTCLASS_NAME,
+                                    Collections.singleton(TOP_OBJECTCLASS_NAME),
+                                    TOP_OBJECTCLASS_OID,
+                                    TOP_OBJECTCLASS_DESCRIPTION, null, null,
+                                    null, ObjectClassType.ABSTRACT, false,
+                                    null);
     }
 
     return objectClass;
@@ -2937,10 +2943,13 @@ public class DirectoryServer
     ObjectClass objectClass = directoryServer.schema.getObjectClass(lowerName);
     if (objectClass == null)
     {
-      objectClass = new ObjectClass(name,
-          Collections.singleton(name), lowerName, null,
-          getTopObjectClass(), null, null, ObjectClassType.ABSTRACT,
-          false, null);
+      String oid        = lowerName + "-oid";
+      String definition = "( " + oid + " NAME '" + name + "' ABSTRACT )";
+
+      objectClass = new ObjectClass(definition, name,
+                                    Collections.singleton(name), oid, null,
+                                    getTopObjectClass(), null, null,
+                                    ObjectClassType.ABSTRACT, false, null);
     }
 
     return objectClass;
@@ -3109,8 +3118,12 @@ public class DirectoryServer
           }
         }
 
+        String definition =
+             "( 2.5.4.0 NAME 'objectClass' EQUALITY objectIdentifierMatch " +
+             "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 X-ORIGIN 'RFC 2256' )";
+
         directoryServer.objectClassAttributeType =
-             new AttributeType("objectClass",
+             new AttributeType(definition, "objectClass",
                                Collections.singleton("objectClass"),
                                OBJECTCLASS_ATTRIBUTE_TYPE_OID, null, null,
                                oidSyntax, AttributeUsage.USER_APPLICATIONS,
@@ -3172,9 +3185,12 @@ public class DirectoryServer
                       String.valueOf(name));
 
 
-    String lowerName = toLowerCase(name);
-    return new AttributeType(name, Collections.singleton(name),
-                             lowerName, null, null, syntax,
+    String oid        = toLowerCase(name) + "-oid";
+    String definition = "( " + oid + " NAME '" + name + "' SYNTAX " +
+                        syntax.getOID() + " )";
+
+    return new AttributeType(definition, name, Collections.singleton(name),
+                             oid, null, null, syntax,
                              AttributeUsage.USER_APPLICATIONS, false, false,
                              false, false);
   }

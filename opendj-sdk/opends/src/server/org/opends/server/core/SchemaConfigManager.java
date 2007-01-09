@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -1247,7 +1247,8 @@ public class SchemaConfigManager
             DITStructureRule dsr;
             try
             {
-              dsr = dsrSyntax.decodeDITStructureRule(v.getValue(), schema);
+              dsr = dsrSyntax.decodeDITStructureRule(v.getValue(), schema,
+                                                     false);
               dsr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
               dsr.setSchemaFile(schemaFile);
             }

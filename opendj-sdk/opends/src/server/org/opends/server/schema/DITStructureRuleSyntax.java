@@ -22,16 +22,16 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
 
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.List;
 
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
@@ -281,7 +281,7 @@ public class DITStructureRuleSyntax
     // acceptable.
     try
     {
-      decodeDITStructureRule(value, DirectoryServer.getSchema());
+      decodeDITStructureRule(value, DirectoryServer.getSchema(), true);
       return true;
     }
     catch (DirectoryException de)
@@ -302,10 +302,16 @@ public class DITStructureRuleSyntax
    * should not be in order to allow the desired capitalization to be
    * preserved).
    *
-   * @param  value   The ASN.1 octet string containing the value to decode (it
-   *                 does not need to be normalized).
-   * @param  schema  The schema to use to resolve references to other schema
-   *                 elements.
+   * @param  value                 The ASN.1 octet string containing the value
+   *                               to decode (it does not need to be
+   *                               normalized).
+   * @param  schema                The schema to use to resolve references to
+   *                               other schema elements.
+   * @param  allowUnknownElements  Indicates whether to allow values that
+   *                               reference a name form and/or superior rules
+   *                               which are not defined in the server schema.
+   *                               This should only be true when called by
+   *                               {@code valueIsAcceptable}.
    *
    * @return  The decoded DIT structure rule definition.
    *
@@ -313,7 +319,8 @@ public class DITStructureRuleSyntax
    *                              DIT structure rule definition.
    */
   public static DITStructureRule decodeDITStructureRule(ByteString value,
-                                                        Schema schema)
+                                      Schema schema,
+                                      boolean allowUnknownElements)
          throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "decodeDITStructureRule",
@@ -428,14 +435,14 @@ public class DITStructureRuleSyntax
     // out what it is and how to treat what comes after it, then repeat until
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
-    ConcurrentHashMap<String,String> names =
-         new ConcurrentHashMap<String,String>();
+    LinkedHashMap<String,String> names = new LinkedHashMap<String,String>();
     String description = null;
     boolean isObsolete = false;
     NameForm nameForm = null;
-    CopyOnWriteArraySet<DITStructureRule> superiorRules = null;
-    ConcurrentHashMap<String,CopyOnWriteArrayList<String>> extraProperties =
-         new ConcurrentHashMap<String,CopyOnWriteArrayList<String>>();
+    boolean nameFormGiven = false;
+    LinkedHashSet<DITStructureRule> superiorRules = null;
+    LinkedHashMap<String,List<String>> extraProperties =
+         new LinkedHashMap<String,List<String>>();
 
 
     while (true)
@@ -533,8 +540,9 @@ public class DITStructureRuleSyntax
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
 
+        nameFormGiven = true;
         nameForm = schema.getNameForm(woidBuffer.toString());
-        if (nameForm == null)
+        if ((nameForm == null) && (! allowUnknownElements))
         {
           int    msgID   = MSGID_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
           String message = getMessage(msgID, valueStr, woidBuffer.toString());
@@ -605,10 +613,14 @@ public class DITStructureRuleSyntax
                  schema.getDITStructureRule(supRuleID);
             if (superiorRule == null)
             {
-              int msgID = MSGID_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
-              String message = getMessage(msgID, valueStr, supRuleID);
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+              if (! allowUnknownElements)
+              {
+                int    msgID   = MSGID_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
+                String message = getMessage(msgID, valueStr, supRuleID);
+                throw new DirectoryException(
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
+                               msgID);
+              }
             }
             else
             {
@@ -698,10 +710,13 @@ public class DITStructureRuleSyntax
           DITStructureRule superiorRule = schema.getDITStructureRule(supRuleID);
           if (superiorRule == null)
           {
-            int msgID = MSGID_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
-            String message = getMessage(msgID, valueStr, supRuleID);
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+            if (! allowUnknownElements)
+            {
+              int    msgID   = MSGID_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
+              String message = getMessage(msgID, valueStr, supRuleID);
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                           message, msgID);
+            }
           }
           else
           {
@@ -724,7 +739,7 @@ public class DITStructureRuleSyntax
           }
         }
 
-        superiorRules = new CopyOnWriteArraySet<DITStructureRule>(superiorList);
+        superiorRules = new LinkedHashSet<DITStructureRule>(superiorList);
       }
       else
       {
@@ -732,15 +747,15 @@ public class DITStructureRuleSyntax
         // either a single value in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        CopyOnWriteArrayList<String> valueList =
-             new CopyOnWriteArrayList<String>();
+        LinkedList<String> valueList =
+             new LinkedList<String>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
       }
     }
 
 
-    if (nameForm == null)
+    if ((nameForm == null) && (! nameFormGiven))
     {
       int    msgID   = MSGID_ATTR_SYNTAX_DSR_NO_NAME_FORM;
       String message = getMessage(msgID, valueStr);
@@ -749,8 +764,9 @@ public class DITStructureRuleSyntax
     }
 
 
-    return new DITStructureRule(names, ruleID, description, isObsolete,
-                                nameForm, superiorRules, extraProperties);
+    return new DITStructureRule(value.stringValue(), names, ruleID, description,
+                                isObsolete, nameForm, superiorRules,
+                                extraProperties);
   }
 
 
@@ -1170,7 +1186,7 @@ public class DITStructureRuleSyntax
    *                              the value.
    */
   private static int readExtraParameterValues(String valueStr,
-                          CopyOnWriteArrayList<String> valueList, int startPos)
+                          List<String> valueList, int startPos)
           throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "readExtraParameterValues",

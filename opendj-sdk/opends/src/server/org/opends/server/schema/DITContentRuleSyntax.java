@@ -22,16 +22,16 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
 
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.List;
 
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
@@ -503,20 +503,19 @@ public class DITContentRuleSyntax
     // out what it is and how to treat what comes after it, then repeat until
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
-    ConcurrentHashMap<String,String> names =
-         new ConcurrentHashMap<String,String>();
+    LinkedHashMap<String,String> names = new LinkedHashMap<String,String>();
     String description = null;
     boolean isObsolete = false;
-    CopyOnWriteArraySet<ObjectClass> auxiliaryClasses =
-         new CopyOnWriteArraySet<ObjectClass>();
-    CopyOnWriteArraySet<AttributeType> requiredAttributes =
-         new CopyOnWriteArraySet<AttributeType>();
-    CopyOnWriteArraySet<AttributeType> optionalAttributes =
-         new CopyOnWriteArraySet<AttributeType>();
-    CopyOnWriteArraySet<AttributeType> prohibitedAttributes =
-         new CopyOnWriteArraySet<AttributeType>();
-    ConcurrentHashMap<String,CopyOnWriteArrayList<String>> extraProperties =
-         new ConcurrentHashMap<String,CopyOnWriteArrayList<String>>();
+    LinkedHashSet<ObjectClass> auxiliaryClasses =
+         new LinkedHashSet<ObjectClass>();
+    LinkedHashSet<AttributeType> requiredAttributes =
+         new LinkedHashSet<AttributeType>();
+    LinkedHashSet<AttributeType> optionalAttributes =
+         new LinkedHashSet<AttributeType>();
+    LinkedHashSet<AttributeType> prohibitedAttributes =
+         new LinkedHashSet<AttributeType>();
+    LinkedHashMap<String,List<String>> extraProperties =
+         new LinkedHashMap<String,List<String>>();
 
 
     while (true)
@@ -943,16 +942,15 @@ public class DITContentRuleSyntax
         // either a single value in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        CopyOnWriteArrayList<String> valueList =
-             new CopyOnWriteArrayList<String>();
+        LinkedList<String> valueList = new LinkedList<String>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
       }
     }
 
 
-    return new DITContentRule(structuralClass, names, description,
-                              auxiliaryClasses, requiredAttributes,
+    return new DITContentRule(value.stringValue(), structuralClass, names,
+                              description, auxiliaryClasses, requiredAttributes,
                               optionalAttributes, prohibitedAttributes,
                               isObsolete, extraProperties);
   }
@@ -1374,7 +1372,8 @@ public class DITContentRuleSyntax
    *                              the value.
    */
   private static int readExtraParameterValues(String valueStr,
-                          CopyOnWriteArrayList<String> valueList, int startPos)
+                                              List<String> valueList,
+                                              int startPos)
           throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "readExtraParameterValues",

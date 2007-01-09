@@ -22,13 +22,15 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
 
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -139,12 +141,157 @@ public final class TestAttributeType extends TestCommonSchemaElements {
     protected AttributeType buildInstance(String primaryName,
         Collection<String> names, String oid, String description,
         boolean isObsolete, Map<String, List<String>> extraProperties) {
-      return new AttributeType(primaryName, names, oid, description,
-          superiorType, syntax, approximateMatchingRule,
-          equalityMatchingRule, orderingMatchingRule,
-          substringMatchingRule, attributeUsage, isCollective,
-          isNoUserModification, isObsolete, isSingleValue,
-          extraProperties);
+
+      StringBuilder definition = new StringBuilder();
+      definition.append("( ");
+      definition.append(oid);
+
+      LinkedHashSet<String> nameSet = new LinkedHashSet<String>();
+      if (primaryName != null)
+      {
+        nameSet.add(primaryName);
+      }
+
+      if (names != null)
+      {
+        for (String name : names)
+        {
+          nameSet.add(name);
+        }
+      }
+
+      if (! nameSet.isEmpty())
+      {
+        if (nameSet.size() == 1)
+        {
+          definition.append(" NAME '");
+          definition.append(nameSet.iterator().next());
+          definition.append("'");
+        }
+        else
+        {
+          Iterator<String> iterator = nameSet.iterator();
+
+          definition.append(" NAME ( '");
+          definition.append(iterator.next());
+
+          while (iterator.hasNext())
+          {
+            definition.append("' '");
+            definition.append(iterator.next());
+          }
+
+          definition.append("' )");
+        }
+      }
+
+      if (description != null)
+      {
+        definition.append(" DESC '");
+        definition.append(description);
+        definition.append("'");
+      }
+
+      if (isObsolete)
+      {
+        definition.append(" OBSOLETE");
+      }
+
+      if (superiorType != null)
+      {
+        definition.append(" SUP ");
+        definition.append(superiorType.getNameOrOID());
+      }
+
+      if (equalityMatchingRule != null)
+      {
+        definition.append(" EQUALITY ");
+        definition.append(equalityMatchingRule.getNameOrOID());
+      }
+
+      if (orderingMatchingRule != null)
+      {
+        definition.append(" ORDERING ");
+        definition.append(orderingMatchingRule.getNameOrOID());
+      }
+
+      if (substringMatchingRule != null)
+      {
+        definition.append(" SUBSTR ");
+        definition.append(substringMatchingRule.getNameOrOID());
+      }
+
+      if (syntax != null)
+      {
+        definition.append(" SYNTAX ");
+        definition.append(syntax.getOID());
+      }
+
+      if (isSingleValue)
+      {
+        definition.append(" SINGLE-VALUE");
+      }
+
+      if (isCollective)
+      {
+        definition.append(" COLLECTIVE");
+      }
+
+      if (isNoUserModification)
+      {
+        definition.append(" NO-USER-MODIFICATIOn");
+      }
+
+      if (attributeUsage != null)
+      {
+        definition.append(" USAGE ");
+        definition.append(attributeUsage.toString());
+      }
+
+      if (extraProperties != null)
+      {
+        for (String property : extraProperties.keySet())
+        {
+          List<String> values = extraProperties.get(property);
+          if ((values == null) || values.isEmpty())
+          {
+            continue;
+          }
+          else if (values.size() == 1)
+          {
+            definition.append(" ");
+            definition.append(property);
+            definition.append(" '");
+            definition.append(values.get(0));
+            definition.append("'");
+          }
+          else
+          {
+            definition.append(" ");
+            definition.append(property);
+            definition.append(" (");
+            for (String value : values)
+            {
+              definition.append(" '");
+              definition.append(value);
+              definition.append("'");
+            }
+
+            definition.append(" )");
+          }
+        }
+      }
+
+      definition.append(" )");
+
+
+      return new AttributeType(definition.toString(), primaryName, names, oid,
+                               description, superiorType, syntax,
+                               approximateMatchingRule, equalityMatchingRule,
+                               orderingMatchingRule, substringMatchingRule,
+                               attributeUsage, isCollective,
+                               isNoUserModification, isObsolete, isSingleValue,
+                               extraProperties);
     }
 
 
@@ -283,7 +430,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
    */
   @Test(expectedExceptions = NullPointerException.class)
   public void testSimpleConstructorNPE() throws Exception {
-    new AttributeType(null, null, null, null, null, null, null,
+    new AttributeType(null, null, null, null, null, null, null, null,
         false, false, false, false);
   }
 
@@ -298,7 +445,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
    */
   @Test(expectedExceptions = NullPointerException.class)
   public void testComplexConstructorNPE() throws Exception {
-    new AttributeType(null, null, null, null, null, null, null, null,
+    new AttributeType(null, null, null, null, null, null, null, null, null,
         null, null, null, false, false, false, false, null);
   }
 
@@ -313,7 +460,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
    */
   @Test
   public void testComplexConstructorDefault() throws Exception {
-    AttributeType type = new AttributeType(null, null, "1.2.3", null,
+    AttributeType type = new AttributeType("", null, null, "1.2.3", null,
         null, null, null, null, null, null, null, false, false,
         false, false, null);
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -32,10 +32,12 @@ import static org.opends.server.loggers.Debug.debugConstructor;
 import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.Validator.*;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +61,12 @@ import java.util.Map;
  * Where ordered sets of names, or extra properties are provided, the
  * ordering will be preserved when the associated fields are accessed
  * via their getters or via the {@link #toString()} methods.
+ * <p>
+ * Note that these schema elements are not completely immutable, as
+ * the set of extra properties for the schema element may be altered
+ * after the element is created.  Among other things, this allows the
+ * associated schema file to be edited so that an element created over
+ * protocol may be associated with a particular schema file.
  */
 public abstract class CommonSchemaElements {
   /**
@@ -316,10 +324,10 @@ public abstract class CommonSchemaElements {
 
 
   /**
-   * Retrieves the path to the schema file that contains the
+   * Retrieves the name of the schema file that contains the
    * definition for this schema definition.
    *
-   * @return The path to the schema file that contains the definition
+   * @return The name of the schema file that contains the definition
    *         for this schema definition, or <code>null</code> if it
    *         is not known or if it is not stored in any schema file.
    */
@@ -333,6 +341,25 @@ public abstract class CommonSchemaElements {
     }
 
     return null;
+  }
+
+
+
+  /**
+   * Specifies the name of the schema file that contains the
+   * definition for this schema element.  If a schema file is already
+   * defined in the set of extra properties, then it will be
+   * overwritten.  If the provided schema file value is {@code null},
+   * then any existing schema file definition will be removed.
+   *
+   * @param  schemaFile  The name of the schema file that contains the
+   *                     definition for this schema element.
+   */
+  public final void setSchemaFile(String schemaFile) {
+    assert debugEnter(CLASS_NAME, "setSchemaFile",
+                      String.valueOf(schemaFile));
+
+    setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
 
@@ -396,6 +423,72 @@ public abstract class CommonSchemaElements {
         .valueOf(name));
 
     return extraProperties.get(name);
+  }
+
+
+
+  /**
+   * Sets the value for an "extra" property for this schema element.
+   * If a property already exists with the specified name, then it
+   * will be overwritten.  If the value is {@code null}, then any
+   * existing property with the given name will be removed.
+   *
+   * @param  name   The name for the "extra" property.  It must not be
+   *                {@code null}.
+   * @param  value  The value for the "extra" property.  If it is
+   *                {@code null}, then any existing definition will be
+   *                removed.
+   */
+  public final void setExtraProperty(String name, String value) {
+    assert debugEnter(CLASS_NAME, "setExtraProperty",
+                      String.valueOf(name), String.valueOf(value));
+
+    ensureNotNull(name);
+
+    if (value == null)
+    {
+      extraProperties.remove(name);
+    }
+    else
+    {
+      LinkedList<String> values = new LinkedList<String>();
+      values.add(value);
+
+      extraProperties.put(name, values);
+    }
+  }
+
+
+
+  /**
+   * Sets the values for an "extra" property for this schema element.
+   * If a property already exists with the specified name, then it
+   * will be overwritten.  If the set of values is {@code null} or
+   * empty, then any existing property with the given name will be
+   * removed.
+   *
+   * @param  name    The name for the "extra" property.  It must not
+   *                 be {@code null}.
+   * @param  values  The set of values for the "extra" property.  If
+   *                 it is {@code null} or empty, then any existing
+   *                 definition will be removed.
+   */
+  public final void setExtraProperty(String name,
+                                     List<String> values) {
+    assert debugEnter(CLASS_NAME, "setExtraProperty",
+                      String.valueOf(name), String.valueOf(values));
+
+    ensureNotNull(name);
+
+    if ((values == null) || values.isEmpty())
+    {
+      extraProperties.remove(name);
+    }
+    else
+    {
+      LinkedList<String> valuesCopy = new LinkedList<String>(values);
+      extraProperties.put(name, valuesCopy);
+    }
   }
 
 

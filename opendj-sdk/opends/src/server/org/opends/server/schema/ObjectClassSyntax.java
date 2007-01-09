@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -807,9 +807,10 @@ public class ObjectClassSyntax
     }
 
 
-    return new ObjectClass(primaryName, names, oid, description, superiorClass,
-                           requiredAttributes, optionalAttributes,
-                           objectClassType, isObsolete, extraProperties);
+    return new ObjectClass(value.stringValue(), primaryName, names, oid,
+                           description, superiorClass, requiredAttributes,
+                           optionalAttributes, objectClassType, isObsolete,
+                           extraProperties);
   }
 
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.messages;
 
@@ -6057,6 +6057,16 @@ public class CoreMessages
        CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 578;
 
 
+  /**
+   * The message ID for the message that will be used if a circular reference is
+   * detected when attempting to rebuild schema element dependencies.  This
+   * takes a single argument, which is the definition string for the schema
+   * element that triggered the circular reference error.
+   */
+  public static final int MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 579;
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined
@@ -6751,6 +6761,11 @@ public class CoreMessages
                     "Unable to register name form %s with the server schema " +
                     "because its name %s conflicts with the name for an " +
                     "existing name form %s.");
+    registerMessage(MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE,
+                    "Unable to update the schema element with definition " +
+                    "\"%s\" because a circular reference was identified " +
+                    "when attempting to rebuild other schema elements " +
+                    "dependent upon it.");
 
 
     registerMessage(MSGID_ADD_OP_INVALID_SYNTAX,
