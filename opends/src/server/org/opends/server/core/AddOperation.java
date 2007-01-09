@@ -2049,14 +2049,14 @@ addProcessing:
       }
       finally
       {
-        if (parentLock != null)
-        {
-          LockManager.unlock(parentDN, parentLock);
-        }
-
         if (entryLock != null)
         {
           LockManager.unlock(entryDN, entryLock);
+        }
+
+        if (parentLock != null)
+        {
+          LockManager.unlock(parentDN, parentLock);
         }
 
 
