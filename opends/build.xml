@@ -85,6 +85,11 @@
 	  <property name="statuspanel.src.dir" location="src/statuspanel"       />
 	  <property name="statuspanel.classes.dir"
 	            location="${build.dir}/statuspanel/classes"                />
+  
+  <!-- Properties for coverage diff reports                        -->
+  <property name="cvgdiff.dir" location="build/diff"                />
+  <property name="cvgdiff.report.dir" 
+            location="${cvgdiff.dir}/report"                        />
 
   <!-- Properties for code coverage testing.                            -->
   <property name="coverage.dir"         location="build/coverage"            />
@@ -727,6 +732,45 @@
     </javac>
  
     <!-- Prep the TestNG XML file -->
+
+    <condition property="test.groups" value="exclude=slow">
+      <not>
+        <or>
+          <isset property="test.groups" />
+          <isset property="test.packages" />
+          <isset property="test.classes" />
+          <isset property="test.methods" />
+        </or>
+      </not>
+    </condition>
+
+    <condition property="test.packages" value="org.opends.server.*">
+      <not>
+        <or>
+          <isset property="test.packages" />
+          <isset property="test.classes" />
+          <isset property="test.methods" />
+        </or>
+      </not>
+    </condition>
+
+    <condition property="test.classes" value="">
+      <not>
+        <or>
+          <isset property="test.classes" />
+          <isset property="test.methods" />
+        </or>
+      </not>
+    </condition>
+
+    <condition property="test.methods" value="">
+      <not>
+        <or>
+          <isset property="test.methods" />
+        </or>
+      </not>
+    </condition>
+        
     <mkdir dir="${unittest.resource.dir}" />
     <typedef name="preptestng" classname="org.opends.build.tools.PrepTestNG"
         classpath="${build.dir}/build-tools/build-tools.jar" />
@@ -743,7 +787,49 @@
 
   </target>
 
+  <!-- Generate coverage diff report -->
+  <target name="coveragediff">
+    <condition property="test.diff.srcpath" value="">
+      <not>
+        <isset property="test.diff.srcpath" />
+      </not>
+    </condition>
 
+    <condition property="test.diff.svnpath" value="">
+      <not>
+        <isset property="test.diff.svnpath" />
+      </not>
+    </condition>
+  
+    <condition property="test.diff.enabled" value="true">
+      <not>
+        <isset property="test.diff.disable" />
+      </not>
+    </condition>
+
+    <condition property="test.diff.enabled" value="false">
+      <isset property="test.diff.disable" />
+    </condition>
+
+    <mkdir dir="${cvgdiff.report.dir}" />
+    <taskdef name="coveragediff" classname="org.opends.build.tools.CoverageDiff">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+        <fileset dir="${emma.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <coveragediff emmadatapath="${coverage.data.dir}"
+                  outputpath="${cvgdiff.report.dir}"
+                  diffpath="${basedir}/${test.diff.srcpath}"
+                  svnpath="${test.diff.svnpath}" 
+                  enabled="${test.diff.enabled}" />
+
+  </target> 
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="enableTestNGAssertions">
@@ -752,8 +838,8 @@
 
   <!-- Execute Directory Server TestNG unit tests specified from CLI -->
   <target name="testcustom"
-          depends="testinit,runtests"
           description="Execute the Directory Server TestNG unit tests specified from CLI.">
+    <echo message="This target is deprecated. Please use the test target as it now supports the test.* properties." /> 
   </target>
 
   <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
@@ -765,26 +851,26 @@
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
-          depends="prepdefaulttest,testinit,runtests"
+          depends="testinit,runtests"
           description="Execute the Directory Server TestNG unit tests in text mode.">
   </target>
 
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report. -->
   <target name="testwithcoverage"
-          depends="coverage,test"
+          depends="coverage,test,coveragediff"
           description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.">
   </target>
 
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report and slow tests. -->
   <target name="testallwithcoverage"
-          depends="coverage,testall"
+          depends="coverage,testall,coveragediff"
           description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.">
   </target>
 
   <!-- Execute the Directory Server TestNG unit tests specified from CLI in text mode with a coverage report. -->
   <target name="testcustomwithcoverage"
-          depends="coverage,testcustom"
           description="Execute the Directory Server TestNG unit tests specified from CLI in text mode with a coverage report.">
+    <echo message="This target is deprecated. Please use the testwithcoverage target as it now supports the test.* properties." />
   </target>
 
   <!-- Internal target to execute the Directory Server TestNG unit tests in text mode after everything has been initialized. -->
@@ -857,19 +943,8 @@
 
   </target>
 
-  <!-- Internal target used to set the properties for the preptestng task -->
-  <target name="prepdefaulttest">
-    <property name="test.groups" value="exclude=slow" />
-    <property name="test.packages" value="org.opends.server.*" />
-    <property name="test.classes" value="" />
-    <property name="test.methods" value="" />
-  </target>
-
   <target name="prepdefaultalltest">
     <property name="test.groups" value="" />
-    <property name="test.packages" value="org.opends.server.*" />
-    <property name="test.classes" value="" />
-    <property name="test.methods" value="" />
   </target>
 
   <target name="testreport"
