@@ -1,59 +1,163 @@
 package org.opends.build.tools;
 
-import com.vladium.emma.*;
 import com.vladium.emma.report.*;
+import com.vladium.emma.report.html.doc.*;
 import com.vladium.emma.data.*;
 import com.vladium.util.IntObjectMap;
 
 import java.io.*;
-import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.*;
 
-public class CoverageDiff {
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.BuildException;
+
+public class CoverageDiff extends Task {
 
 
-  private static boolean verbose = false;
+  private boolean verbose = false;
+  private boolean enabled = true;
 
-  public static void main(String[] args) {
+  private final int COVERED_MOD_EXE_LINES = 0;
+  private final int MOD_EXE_LINES = 1;
+  private final int MOD_LINES = 2;
+  private final int DEL_LINES = 3;
 
-    if(args.length < 1 || args[0] == null)
+  private final String ENCODING = "ISO-8859-1";
+  private final int IO_BUF_SIZE = 32 * 1024;
+  private final LinkedHashMap<String, SrcFileItem> emmaSrcMap =
+      new LinkedHashMap<String, SrcFileItem>();
+  private final LinkedHashMap<String, Double[]> modCoverageMap =
+      new LinkedHashMap<String, Double[]>();
+
+  private final String CSS = "TABLE,TD,TH {border-style:solid; border-color:black;} " +
+            "TD,TH {background:white;margin:0;line-height:100%;padding-left:0.5em;padding-right:0.5em;} " +
+            "TD {border-width:0 1px 0 0;} TH {border-width:1px 1px 1px 0;} " +
+            "TR TD.h {color:red;} " +
+            "TABLE {border-spacing:0; border-collapse:collapse;border-width:0 0 1px 1px;} " +
+            "P,H1,H2,H3,TH {font-family:verdana,arial,sans-serif;font-size:10pt;} " +
+            "TD {font-family:courier,monospace;font-size:10pt;} " +
+            "TABLE.hdft {border-spacing:0;border-collapse:collapse;border-style:none;} " +
+            "TABLE.hdft TH,TABLE.hdft TD {border-style:none;line-height:normal;} " +
+            "TABLE.hdft TH.tl,TABLE.hdft TD.tl {background:#6699CC;color:white;} " +
+            "TABLE.hdft TD.nv {background:#6633DD;color:white;} " +
+            ".nv A:link {color:white;} .nv A:visited {color:white;} " +
+            ".nv A:active {color:yellow;} " +
+            "TABLE.hdft A:link {color:white;} " +
+            "TABLE.hdft A:visited {color:white;} " +
+            "TABLE.hdft A:active {color:yellow;} " +
+            ".in {color:#356085;} " +
+            "TABLE.s TD {padding-left:0.25em;padding-right:0.25em;} " +
+            "TABLE.s TD.ddt {padding-left:0.25em;padding-right:0.25em;color:#AAAAAA;}" +
+            "TABLE.s TD.ds {padding-left:0.25em;padding-right:0.25em;text-align:right;background:#F0F0F0;} " +
+            "TABLE.s TD.dm {padding-left:0.25em;padding-right:0.25em;text-align:right;background:#BCCFF9;} " +
+            "TABLE.s TD.dd {padding-left:0.25em;padding-right:0.25em;text-align:right;background:#AAAAAA;color:#FFFFFF} " +
+            "TABLE.s TH {padding-left:0.25em;padding-right:0.25em;text-align:left;background:#F0F0F0;} " +
+            "TABLE.s TD.cz {background:#FF9999;} " +
+            "TABLE.s TD.cp {background:#FFFF88;} " +
+            "TABLE.s TD.cc {background:#CCFFCC;} " +
+            "A:link {color:#0000EE;text-decoration:none;} " +
+            "A:visited {color:#0000EE;text-decoration:none;} " +
+            "A:hover {color:#0000EE;text-decoration:underline;} " +
+            "TABLE.cn {border-width:0 0 1px 0;} " +
+            "TABLE.s {border-width:1px 0 1px 1px;} " +
+            "TD.h {color:red;border-width:0 1px 0 0;} " +
+            "TD.f {border-width:0 1px 0 1px;} " +
+            "TD.hf {color:red;border-width:0 1px 0 1px;} " +
+            "TH.f {border-width:1px 1px 1px 1px;} " +
+            "TR.cis TD {background:#F0F0F0;} " +
+            "TR.cis TD {border-width:1px 1px 1px 0;} " +
+            "TR.cis TD.h {color:red;border-width:1px 1px 1px 0;} " +
+            "TR.cis TD.f {border-width:1px 1px 1px 1px;} " +
+            "TR.cis TD.hf {color:red;border-width:1px 1px 1px 1px;} " +
+            "TD.b {border-style:none;background:transparent;line-height:50%;}  " +
+            "TD.bt {border-width:1px 0 0 0;background:transparent;line-height:50%;} " +
+            "TR.o TD {background:#F0F0F0;}" +
+            "TABLE.it {border-style:none;}" +
+            "TABLE.it TD,TABLE.it TH {border-style:none;}";
+
+  private File emmaDataPath;
+  private File outputPath;
+  private File diffPath;
+  private File svnPath;
+
+  public void setEmmaDataPath(String file)
+  {
+    emmaDataPath = new File(file);
+  }
+
+  public void setOutputPath(String file)
+  {
+    outputPath = new File(file);
+  }
+
+  public void setDiffPath(String file)
+  {
+    diffPath = new File(file);
+  }
+
+  public void setSvnPath(String file)
+  {
+    svnPath = new File(file);
+  }
+
+  public void setVerbose(String bol)
+  {
+    verbose = bol.toLowerCase().equals("true");
+  }
+
+  public void setEnabled(String bol)
+  {
+    enabled = bol.toLowerCase().equals("true");
+  }
+
+  public void execute() throws BuildException
+  {
+    if(emmaDataPath == null)
     {
-      System.out.println("Please specify emma data location");
+      throw new BuildException("emmaDataPath attribute is not set. It must be set to the path of the EMMA data directory");
+    }
+    if(outputPath == null)
+    {
+      throw new BuildException("outputPath attribute is not set. It must be set to a valid directory where the report will be generated");
+    }
+
+    if(!enabled)
+    {
       return;
     }
+
     IReportDataView emmaDataView = null;
     try
     {
-      emmaDataView = loadEmmaData(new File(args[0].trim()));
-
+        emmaDataView = loadEmmaData(emmaDataPath);
     }
     catch(IOException ie)
     {
-      System.out.println("An error occured while loading EMMA data: " + ie.toString());
+      System.out.println("WARNING: An error occured while loading EMMA " +
+          "data. Report will not contain any coverage information.");
     }
 
-    if(emmaDataView == null)
+    try
     {
-      System.out.println(System.in);
+      processDiffOutput(getDiffOutputReader(), emmaDataView);
     }
-    else
+    catch(IOException ie)
     {
-      try
-      {
-        processDiffOutput(new BufferedReader(new InputStreamReader(System.in)), emmaDataView);
-      }
-      catch(IOException ie)
-      {
-        System.out.println("An error occured while processing diff output: " + ie.toString());
-      }
+      throw new BuildException("An error occured while processing diff output: " + ie.toString(), ie);
     }
   }
 
 
-  private static IReportDataView loadEmmaData(File emmaCoverageDataDir) throws IOException {
+  private IReportDataView loadEmmaData(File emmaCoverageDataDir) throws IOException
+  {
+    if(emmaCoverageDataDir == null)
+    {
+      throw new IOException("Emma Converage Data Directory is null");
+    }
+
     File[] emmaCoverageDataFiles = emmaCoverageDataDir.listFiles();
     int emmaCoverageDataFileCount = 0;
-    IReportDataView m_view = null;
+    IReportDataView m_view;
     IMetaData mdata = null;
     ICoverageData cdata = null;
 
@@ -68,8 +172,7 @@ public class CoverageDiff {
 
     // merge all data files:
 
-    for (int f = 0; f < emmaCoverageDataFiles.length; ++f) {
-      final File dataFile = emmaCoverageDataFiles[f];
+    for (final File dataFile : emmaCoverageDataFiles) {
       if (verbose)
         System.out.println("processing input file [" + dataFile.getAbsolutePath() + "] ...");
 
@@ -128,34 +231,81 @@ public class CoverageDiff {
     final IReportDataModel model = IReportDataModel.Factory.create (mdata, cdata);
     m_view = model.getView (IReportDataView.HIER_SRC_VIEW);
 
-    if (verbose) {
-      if (mdata != null) {
-        System.out.println("  merged metadata contains " + mdata.size() + " entries");
-      }
+    if (verbose)
+    {
+      System.out.println("  merged metadata contains " + mdata.size() + " entries");
+      System.out.println("  merged coverage data contains " + cdata.size() + " entries");
 
-      if (cdata != null) {
-        System.out.println("  merged coverage data contains " + cdata.size() + " entries");
-      }
     }
 
     return m_view;
   }
 
-  private static BufferedReader getDiffOutputReader() throws IOException {
+  private BufferedReader getDiffOutputReader() throws IOException {
 
-    Process child = Runtime.getRuntime().exec("svn diff");
+    StringBuilder svnExecCommand = new StringBuilder();
+
+    if(svnPath != null && svnPath.isAbsolute() && svnPath.isFile())
+    {
+      svnExecCommand.append(svnPath.getAbsolutePath());
+    }
+    else
+    {
+      //Just hope its in the path
+      svnExecCommand.append("svn");
+    }
+
+    //First verify svn is in path
+    final Process checkChild = Runtime.getRuntime().exec(svnExecCommand + " --version");
+    
+    try
+    {
+      checkChild.waitFor();
+    }
+    catch(InterruptedException ie)
+    {
+      throw new IOException("svn --version process interrupted");
+    }
+
+    if(checkChild.exitValue() != 0)
+    {
+      throw new IOException("Error returned from SVN call");
+    }
+    checkChild.destroy();
+
+    svnExecCommand.append(" diff ");
+
+    if(diffPath != null)
+    {
+      svnExecCommand.append(diffPath);
+    }
+
+
+    final Process child = Runtime.getRuntime().exec(svnExecCommand.toString());
     InputStream diffOutputStream = child.getInputStream();
-    BufferedReader diffOutput = new BufferedReader(
-        new InputStreamReader(diffOutputStream));
-    return diffOutput;
-
+    return new BufferedReader(new InputStreamReader(diffOutputStream));
   }
 
-  private static void processDiffOutput(BufferedReader diffOutput,
+  private void processDiffOutput(BufferedReader diffOutput,
                                         IReportDataView emmaDataView)
       throws IOException {
 
-    String line = diffOutput.readLine();
+    File file = new File(outputPath, "index.html");
+    BufferedWriter writer =
+        new BufferedWriter (new OutputStreamWriter (
+            new FileOutputStream (file), ENCODING), IO_BUF_SIZE);
+    HTMLWriter out = new HTMLWriter(writer);
+
+    System.out.println("Writing report to [" + file.toString() + "]");
+
+    String title = "Coverage Diff Report (generated ";
+    title = title + new Date(System.currentTimeMillis ());
+    title = title + " )";
+
+    HTMLDocument page = new HTMLDocument (title, ENCODING);
+    page.addStyle (CSS);
+
+        String line = diffOutput.readLine();
     ArrayList<String> diffOutputFile = new ArrayList<String>();
 
     while(line != null)
@@ -163,7 +313,7 @@ public class CoverageDiff {
       //Diffed file
       if(line.length() >6 && line.substring(0, 6).equals("Index:"))
       {
-        processDiffOutputFile(diffOutputFile, emmaDataView);
+        processDiffOutputFile(page, diffOutputFile, emmaDataView);
         diffOutputFile = new ArrayList<String>();
         diffOutputFile.add(line);
       }
@@ -174,10 +324,108 @@ public class CoverageDiff {
 
       line = diffOutput.readLine();
     }
-    processDiffOutputFile(diffOutputFile, emmaDataView);
+    processDiffOutputFile(page, diffOutputFile, emmaDataView);
+
+    IElementList overallStats = new ElementList();
+
+    final IElement statTitle = IElement.Factory.create (Tag.Hs[1]);
+    statTitle.setText("OVERALL STATS SUMMARY", true);
+
+    overallStats.add(statTitle);
+
+    final HTMLTable statsTable = new HTMLTable (null, null, null, "0");
+    statsTable.setClass ("it");
+    {
+      HTMLTable.IRow row = statsTable.newRow ();
+      row.newCell ().setText ("base directory:", true);
+      row.newCell ().setText ("" + diffPath.toString(), true);
+
+      row = statsTable.newRow ();
+      row.newCell ().setText ("total files modified:", true);
+      row.newCell ().setText ("" + emmaSrcMap.keySet().size(), false);
+
+      Double[] overallModCoverage = new Double[4];
+      overallModCoverage[COVERED_MOD_EXE_LINES] = 0.0;
+      overallModCoverage[MOD_EXE_LINES] = 0.0;
+      overallModCoverage[MOD_LINES] = 0.0;
+      overallModCoverage[DEL_LINES] = 0.0;
+
+      Double[] modCoverage;
+      for (Double[] doubles : modCoverageMap.values()) {
+        modCoverage = doubles;
+
+        if (modCoverage != null) {
+          overallModCoverage[COVERED_MOD_EXE_LINES] += modCoverage[COVERED_MOD_EXE_LINES];
+          overallModCoverage[MOD_EXE_LINES] += modCoverage[MOD_EXE_LINES];
+          overallModCoverage[MOD_LINES] += modCoverage[MOD_LINES];
+          overallModCoverage[DEL_LINES] += modCoverage[DEL_LINES];
+        }
+      }
+      String modCoverageStr = "";
+      if(overallModCoverage[MOD_EXE_LINES] > 0)
+      {
+        modCoverageStr =
+            String.valueOf(overallModCoverage[COVERED_MOD_EXE_LINES]/overallModCoverage[MOD_EXE_LINES]*100) + "% ";
+      }
+      modCoverageStr = modCoverageStr + "(" +
+          overallModCoverage[COVERED_MOD_EXE_LINES] + "/" +
+          overallModCoverage[MOD_EXE_LINES] +")";
+      row = statsTable.newRow ();
+      row.newCell ().setText ("total lines modified:", true);
+      row.newCell ().setText ("" + overallModCoverage[MOD_LINES], true);
+      row = statsTable.newRow ();
+      row.newCell ().setText ("total lines removed:", true);
+      row.newCell ().setText ("" + overallModCoverage[DEL_LINES], true);
+      row = statsTable.newRow ();
+      row.newCell ().setText ("coverage for modified executable lines:", true);
+      row.newCell ().setText ("" + modCoverageStr, true);
+    }
+
+    overallStats.add(statsTable);
+
+    final IElement coverageTitle = IElement.Factory.create (Tag.Hs[1]);
+    statTitle.setText("OVERALL DIFF SUMMARY", true);
+
+    overallStats.add(coverageTitle);
+
+    HTMLTable summaryTable = new HTMLTable ("100%", null, null, "0");
+    if(emmaDataView != null)
+    {
+      addHeaderRow(emmaDataView.getRoot(), summaryTable, true);
+    }
+    else
+    {
+      addHeaderRow(null, summaryTable, true);
+    }
+
+    Set<Map.Entry<String, SrcFileItem>> items = emmaSrcMap.entrySet();
+    Map.Entry<String, SrcFileItem> item;
+    boolean odd = true;
+
+    for (Map.Entry<String, SrcFileItem> item1 : items) {
+      item = item1;
+
+      if (item != null) {
+        final String fileName = item.getKey();
+        final SrcFileItem srcFileItem = item.getValue();
+        final Double[] modCoverage = modCoverageMap.get(fileName);
+
+        addItemRow(fileName, srcFileItem, modCoverage, odd, summaryTable, createHREF(fileName), true, true);
+
+        odd = !odd;
+      }
+    }
+
+    overallStats.add(summaryTable);
+
+    page.setHeader(overallStats);
+
+    page.emit(out);
+    out.flush();
   }
 
-  private static void processDiffOutputFile(ArrayList<String> diffFile,
+  private void processDiffOutputFile(HTMLDocument html,
+                                            ArrayList<String> diffFile,
                                             IReportDataView emmaDataView)
       throws IOException
   {
@@ -185,126 +433,164 @@ public class CoverageDiff {
     {
       return;
     }
-    
+
+    Double[] modCoverage = new Double[4];
+    modCoverage[COVERED_MOD_EXE_LINES] = 0.0;
+    modCoverage[MOD_EXE_LINES] = 0.0;
+    modCoverage[MOD_LINES] = 0.0;
+    modCoverage[DEL_LINES] = 0.0;
+
     String fileHeader = diffFile.get(0);
 
+    //Try to get the package information if its a Java file
     File srcFilePath = new File(fileHeader.substring(7));
-    FileInputStream srcFile = new FileInputStream(srcFilePath);
-    String srcFilePackage = parseJavaPackage(srcFile);
-    SrcFileItem emmaSourceItem = getEmmaSrcItem(emmaDataView.getRoot(),
-                  srcFilePackage, srcFilePath.getName());
-
-    if(emmaSourceItem == null)
+    SrcFileItem emmaSourceItem = null;
+    if(srcFilePath.isFile())
     {
-      System.out.println(fileHeader);
-      System.out.println("Coverage: Not Available");
-      for(int i = 1; i < diffFile.size(); i++)
+      FileInputStream srcFile = new FileInputStream(srcFilePath);
+      String srcFilePackage = parseJavaPackage(srcFile);
+      if(emmaDataView != null)
       {
-        System.out.println(diffFile.get(i));
+        emmaSourceItem = getEmmaSrcItem(emmaDataView.getRoot(),
+                  srcFilePackage, srcFilePath.getName());
       }
+    }
+
+    //Figure out the flag for the working copy.
+    String workingCopyFlag = null;
+    String otherCopyFlag = null;
+
+    String firstFileLine = diffFile.get(2);
+    String secondFileLine = diffFile.get(3);
+    String revisionStr = "unknown";
+
+
+    HTMLTable srcTable = null;
+
+    if(firstFileLine.endsWith("(working copy)"))
+    {
+      workingCopyFlag = firstFileLine.substring(0, 1);
     }
     else
     {
-      System.out.println(fileHeader);
+      otherCopyFlag = firstFileLine.substring(0, 1);
+      revisionStr = firstFileLine.substring(firstFileLine.lastIndexOf("("));
+    }
 
-      System.out.print("Coverage: ");
-      String name;
-      StringBuffer buf = new StringBuffer();
-      for(int i = 1; i <= 4; i++)
+    if(secondFileLine.endsWith("(working copy)"))
+    {
+      workingCopyFlag = secondFileLine.substring(0, 1);
+    }
+    else
+    {
+      otherCopyFlag = secondFileLine.substring(0, 1);
+      revisionStr = secondFileLine.substring(secondFileLine.lastIndexOf("("));
+    }
+
+    if(firstFileLine.endsWith("(revision 0)") &&
+        secondFileLine.endsWith("(revision 0)"))
+    {
+      workingCopyFlag = "+";
+      otherCopyFlag = "-";
+    }
+
+    if(workingCopyFlag == null || otherCopyFlag == null)
+    {
+      throw new IOException("Error occured while parsing diff output");
+    }
+    else
+    {
+      srcTable = new HTMLTable ("100%", null, null, "0");
+      srcTable.setClass("s");
+
+      ArrayList<String> diffOutputChunk = new ArrayList<String>();
+      Double[] chunkModCoverage;
+
+      for(int i = 4; i < diffFile.size(); i++)
       {
-        buf.setLength(0);
-        emmaSourceItem.getAttribute(i, 0).format(emmaSourceItem, buf);
-        name = emmaSourceItem.getAttribute(i, 0).getName();
-        System.out.print(name);
-        for(int j = 0; j < buf.length() - name.length() + 1; j++)
+        //Found a chunk indicator.
+        if(diffFile.get(i).startsWith("@@"))
         {
-          System.out.print(" ");
-        }
-      }
-      System.out.print("\n          ");
-      for(int i = 1; i <= 4; i++)
-      {
-        buf.setLength(0);
-        emmaSourceItem.getAttribute(i, 0).format(emmaSourceItem, buf);
-        System.out.print(buf + " ");
-      }
-      System.out.println("");
-
-      System.out.println(diffFile.get(1));
-
-      //Figure out the flag for the working copy.
-      String workingCopyFlag = null;
-      String otherCopyFlag = null;
-
-      String firstFileLine = diffFile.get(2);
-      String secondFileLine = diffFile.get(3);
-      System.out.println(firstFileLine);
-      System.out.println(secondFileLine);
-
-      if(firstFileLine.endsWith("(working copy)"))
-      {
-        workingCopyFlag = firstFileLine.substring(0, 1);
-      }
-      else
-      {
-        otherCopyFlag = firstFileLine.substring(0, 1);
-      }
-
-      if(secondFileLine.endsWith("(working copy)"))
-      {
-        workingCopyFlag = secondFileLine.substring(0, 1);
-      }
-      else
-      {
-        otherCopyFlag = secondFileLine.substring(0, 1);
-      }
-
-      if(firstFileLine.endsWith("(revision 0)") &&
-          secondFileLine.endsWith("(revision 0)"))
-      {
-        workingCopyFlag = "+";
-        otherCopyFlag = "-";
-      }
-
-      if(workingCopyFlag == null || otherCopyFlag == null ||
-          srcFilePackage == null)
-      {
-        for(int i = 4; i < diffFile.size(); i++)
-        {
-          System.out.println(diffFile.get(i));
-        }
-      }
-      else
-      {
-
-        ArrayList<String> diffOutputChunk = new ArrayList<String>();
-
-        for(int i = 4; i < diffFile.size(); i++)
-        {
-          //Found a chunk indicator.
-          if(diffFile.get(i).startsWith("@@"))
-          {
-            processDiffOutputFileChunk(diffOutputChunk, workingCopyFlag,
+          chunkModCoverage = processDiffOutputFileChunk(srcTable, diffOutputChunk, workingCopyFlag,
                 otherCopyFlag, emmaSourceItem);
-            diffOutputChunk = new ArrayList<String>();
-            diffOutputChunk.add(diffFile.get(i));
-          }
-          //Not any of the above so this line must be diffed text
-          else
-          {
-            diffOutputChunk.add(diffFile.get(i));
-          }
-        }
 
-        //Finishing process whatever we have queued up
-        processDiffOutputFileChunk(diffOutputChunk, workingCopyFlag,
-            otherCopyFlag, emmaSourceItem);
+          if(chunkModCoverage != null)
+          {
+            modCoverage[COVERED_MOD_EXE_LINES] += chunkModCoverage[COVERED_MOD_EXE_LINES];
+            modCoverage[MOD_EXE_LINES] += chunkModCoverage[MOD_EXE_LINES];
+            modCoverage[MOD_LINES] += chunkModCoverage[MOD_LINES];
+            modCoverage[DEL_LINES] += chunkModCoverage[DEL_LINES];
+          }
+
+          diffOutputChunk = new ArrayList<String>();
+          diffOutputChunk.add(diffFile.get(i));
+        }
+        //Not any of the above so this line must be diffed text
+        else
+        {
+          diffOutputChunk.add(diffFile.get(i));
+        }
+      }
+
+      //Finishing process whatever we have queued up
+      chunkModCoverage = processDiffOutputFileChunk(srcTable, diffOutputChunk, workingCopyFlag,
+          otherCopyFlag, emmaSourceItem);
+      if(chunkModCoverage != null)
+      {
+        modCoverage[COVERED_MOD_EXE_LINES] += chunkModCoverage[COVERED_MOD_EXE_LINES];
+        modCoverage[MOD_EXE_LINES] += chunkModCoverage[MOD_EXE_LINES];
+        modCoverage[MOD_LINES] += chunkModCoverage[MOD_LINES];
+        modCoverage[DEL_LINES] += chunkModCoverage[DEL_LINES];
       }
     }
 
+    final IElement a = IElement.Factory.create (Tag.A);
+    a.getAttributes ().set (Attribute.NAME, createHREF(srcFilePath.toString()));
+
+    html.add(a);
+
+    final IElement itemname = IElement.Factory.create (Tag.SPAN);
+    {
+      itemname.setText (toRelativePath(srcFilePath.toString()), true);
+      itemname.setClass ("in");
+    }
+
+    final IElementList title = new ElementList ();
+    {
+      title.add (new Text ("DIFF SUMMARY FOR SOURCE FILE [", true));
+      title.add (itemname);
+      title.add (new Text ("] against ", true));
+      title.add (new Text (revisionStr, true));
+    }
+
+    html.addH (1, title, null);
+
+    if(emmaSourceItem != null)
+    {
+      final HTMLTable coverageTable = new HTMLTable ("100%", null, null, "0");
+      addHeaderRow(emmaSourceItem, coverageTable, false);
+      addItemRow(srcFilePath.toString(), emmaSourceItem, modCoverage, false, coverageTable, null, false, false);
+
+      html.add(coverageTable);
+
+      html.addEmptyP();
+    }
+    else
+    {
+      html.addH(2, "Coverage Information Not Available", null);
+    }
+
+    if(srcTable != null)
+    {
+      html.add(srcTable);
+    }
+
+    emmaSrcMap.put(srcFilePath.toString(), emmaSourceItem);
+    modCoverageMap.put(srcFilePath.toString(), modCoverage);
   }
 
-  private static void processDiffOutputFileChunk(ArrayList<String> diffChunk,
+  private Double[] processDiffOutputFileChunk(HTMLTable table,
+                                                 ArrayList<String> diffChunk,
                                                  String workingCopyFlag,
                                                  String otherCopyFlag,
                                                  SrcFileItem emmaSrcItem)
@@ -312,13 +598,19 @@ public class CoverageDiff {
 
     if(diffChunk.size() <= 0)
     {
-      return;
+      return null;
     }
 
     int workingCopyBegin;
     int workingCopyRange;
     int otherCopyBegin;
     int otherCopyRange;
+    
+    Double[] modCoverage = new Double[4];
+    modCoverage[COVERED_MOD_EXE_LINES] = 0.0;
+    modCoverage[MOD_EXE_LINES] = 0.0;
+    modCoverage[MOD_LINES] = 0.0;
+    modCoverage[DEL_LINES] = 0.0;
 
     IntObjectMap lineCoverageMap = null;
     if(emmaSrcItem != null)
@@ -327,7 +619,6 @@ public class CoverageDiff {
     }
 
     String chunkHeader = diffChunk.get(0);
-    System.out.println(chunkHeader);
 
     int workingCopyBeginIdx = chunkHeader.indexOf(workingCopyFlag);
     int workingCopyCommaIdx = chunkHeader.indexOf(",", workingCopyBeginIdx);
@@ -346,52 +637,90 @@ public class CoverageDiff {
 
     String chunkLine;
     SrcFileItem.LineCoverageData lCoverageData = null;
-    int workingCopyLineIncrement = 0;
-    int otherCopyLineIncrement = 0;
+    int workingCopyLine = workingCopyBegin;
+    int otherCopyLine = otherCopyBegin;
+
+    final HTMLTable.IRow chunkRow = table.newTitleRow();
+    final HTMLTable.ICell chunkCell = chunkRow.newCell();
+    chunkCell.setColspan(2);
+    chunkCell.setText("Lines " + workingCopyBegin + " - " +
+        String.valueOf(workingCopyLine + workingCopyRange), true);
+
     for(int i = 1; i < diffChunk.size(); i++)
     {
       chunkLine = diffChunk.get(i);
-      //System.out.print(workingCopyBegin + workingCopyLineIncrement + " ");
+
       if(lineCoverageMap != null)
       {
-        lCoverageData = (SrcFileItem.LineCoverageData) lineCoverageMap.get (workingCopyBegin + workingCopyLineIncrement);
+        lCoverageData = (SrcFileItem.LineCoverageData) lineCoverageMap.get (workingCopyLine);
       }
 
-      if(!chunkLine.startsWith(otherCopyFlag) && lCoverageData != null)
-      {
+      final HTMLTable.IRow srcRow = table.newRow();
+      final HTMLTable.ICell lineNumCell = srcRow.newCell();
+      final HTMLTable.ICell lineTxtCell = srcRow.newCell();
 
-        switch(lCoverageData.m_coverageStatus)
+      lineTxtCell.setText(chunkLine.substring(1), true);
+
+      //This line is either a modified line or a unchanged line
+      if(!chunkLine.startsWith(otherCopyFlag))
+      {
+        lineNumCell.setText(String.valueOf(workingCopyLine), true);
+
+        //Determine if this line is a modified line or a unchange line
+        if(chunkLine.startsWith(workingCopyFlag))
         {
-          case SrcFileItem.LineCoverageData.LINE_COVERAGE_ZERO:
-            System.out.println(chunkLine.charAt(0) + "N" + chunkLine.substring(1));
-            break;
-          case SrcFileItem.LineCoverageData.LINE_COVERAGE_PARTIAL:
-            System.out.println(chunkLine.charAt(0) + "P" + chunkLine.substring(1));
-            break;
-          case SrcFileItem.LineCoverageData.LINE_COVERAGE_COMPLETE:
-            System.out.println(chunkLine.charAt(0) + "C" + chunkLine.substring(1));
-            break;
-          default:
-            System.out.println(chunkLine.charAt(0) + "U" + chunkLine.substring(1));
+          lineNumCell.setClass("dm");
+          modCoverage[MOD_LINES] ++;
+        }
+        else
+        {
+          lineNumCell.setClass("ds");
+        }
+
+        if(lCoverageData != null)
+        {
+          modCoverage[MOD_EXE_LINES] ++;
+          switch(lCoverageData.m_coverageStatus)
+          {
+            case SrcFileItem.LineCoverageData.LINE_COVERAGE_ZERO:
+              lineTxtCell.setClass ("cz");
+              break;
+
+            case SrcFileItem.LineCoverageData.LINE_COVERAGE_PARTIAL:
+              lineTxtCell.setClass ("cp");
+              modCoverage[COVERED_MOD_EXE_LINES] += 0.5;
+              break;
+
+            case SrcFileItem.LineCoverageData.LINE_COVERAGE_COMPLETE:
+              lineTxtCell.setClass ("cc");
+              modCoverage[COVERED_MOD_EXE_LINES] ++;
+              break;
+            default:
+          }
         }
       }
       else
       {
-        System.out.println(chunkLine.charAt(0) + " " + chunkLine.substring(1));
+        lineNumCell.setClass("dd");
+        lineNumCell.setText(String.valueOf(otherCopyLine), true);
+        lineTxtCell.setClass("ddt");
+        modCoverage[DEL_LINES] ++;
       }
 
       if(!chunkLine.startsWith(otherCopyFlag))
       {
-        workingCopyLineIncrement++;
+        workingCopyLine++;
       }
       if(!chunkLine.startsWith(workingCopyFlag))
       {
-        otherCopyLineIncrement++;
+        otherCopyLine++;
       }
     }
+
+    return modCoverage;
   }
 
-  private static String parseJavaPackage(FileInputStream srcFile)
+  private String parseJavaPackage(FileInputStream srcFile)
       throws IOException {
 
     BufferedReader srcFileReader = new BufferedReader(
@@ -406,7 +735,7 @@ public class CoverageDiff {
         int endIdx = line.indexOf(";", beginIdx);
         if(endIdx > -1)
         {
-          return  line.substring(beginIdx + 7, endIdx).trim();
+          return line.substring(beginIdx + 7, endIdx).trim();
         }
       }
       line = srcFileReader.readLine();
@@ -415,10 +744,15 @@ public class CoverageDiff {
     return null;
   }
 
-  private static SrcFileItem getEmmaSrcItem(IItem rootItem,
+  private  SrcFileItem getEmmaSrcItem(IItem rootItem,
                                       String srcPackageName,
                                       String srcFileName)
   {
+    if(rootItem == null || srcPackageName == null || srcFileName == null)
+    {
+      return null;
+    }
+    
     for(Iterator packages = rootItem.getChildren(); packages.hasNext();)
     {
       IItem packageItem = (IItem)packages.next();
@@ -435,5 +769,152 @@ public class CoverageDiff {
       }
     }
     return null;
+  }
+
+  private void addHeaderRow (final IItem item, final HTMLTable table, boolean includeName)
+  {
+
+    // header row:
+    final HTMLTable.IRow header = table.newTitleRow ();
+
+    if(includeName)
+    {
+      final HTMLTable.ICell nameCell = header.newCell();
+      nameCell.setText("File", true);
+    }
+
+    for (int c = 1; c <= 4; ++ c)
+    {
+      IItemAttribute attr = null;
+
+      if(item != null)
+      {
+        attr = item.getAttribute (c, 0);
+      }
+
+      if (attr != null)
+      {
+        final HTMLTable.ICell cell = header.newCell ();
+
+        cell.setText (attr.getName (), true);
+      }
+      else
+      {
+        final HTMLTable.ICell cell = header.newCell ();
+        cell.setText (" ", true);
+      }
+
+    }
+
+    if(item != null)
+    {
+      final HTMLTable.ICell cell = header.newCell();
+      cell.setText("mod lines, %", true);
+    }
+    else
+    {
+      final HTMLTable.ICell cell = header.newCell ();
+      cell.setText (" ", true);
+    }
+
+  }
+
+  /*
+     * No header row, just data rows.
+     */
+  private void addItemRow (final String fileName,
+                           final IItem item,
+                           final Double[] modCoverage,
+                           final boolean odd,
+                           final HTMLTable table,
+                           final String nameHREF,
+                           final boolean anchor,
+                           final boolean includeName)
+  {
+    final HTMLTable.IRow row = table.newRow ();
+    if (odd) row.setClass ("o");
+
+    if(includeName)
+    {
+      final HTMLTable.ICell nameCell = row.newCell();
+      if(nameHREF != null)
+      {
+        final String fullHREFName = anchor ? "#".concat (nameHREF) : nameHREF;
+        nameCell.add(new HyperRef(fullHREFName, toRelativePath(fileName), true));
+      }
+      else
+      {
+        nameCell.setText(fileName, true);
+      }
+    }
+
+    final StringBuffer buf = new StringBuffer (11);
+
+    for (int c = 1; c <=4; ++ c)
+    {
+      IItemAttribute attr = null;
+
+      if(item != null)
+      {
+        attr = item.getAttribute (c, 0);
+      }
+
+      if (attr != null)
+      {
+        final HTMLTable.ICell cell = row.newCell ();
+
+
+        //final boolean fail = (m_metrics [attrID] > 0) && ! attr.passes (item, m_metrics [attrID]);
+
+        buf.setLength (0);
+        attr.format (item, buf);
+
+        cell.setText (buf.toString (), true);
+        //if (fail) cell.setClass (CSS_DATA_HIGHLIGHT);
+
+      }
+      else
+      {
+
+        final HTMLTable.ICell cell = row.newCell ();
+        cell.setText (" ", true);
+      }
+    }
+
+    if(item != null && modCoverage != null)
+    {
+      String modCoverageStr = "";
+      if(modCoverage[1] > 0)
+      {
+        modCoverageStr = String.valueOf(modCoverage[0]/modCoverage[1]*100) + "% ";
+      }
+      modCoverageStr = modCoverageStr + "(" + modCoverage[0] + "/" + modCoverage[1] +")";
+
+      final HTMLTable.ICell cell = row.newCell();
+      cell.setText(modCoverageStr, true);
+    }
+    else
+    {
+      final HTMLTable.ICell cell = row.newCell ();
+      cell.setText (" ", true);
+    }
+  }
+
+  private String createHREF(String name)
+  {
+    if(name == null)
+    {
+      return null;
+    }
+
+    name = name.replaceAll("[/,\\,(,),.]", "_");
+
+    return name;
+
+  }
+
+  private String toRelativePath(String file)
+  {
+    return file.substring(diffPath.toString().length()+1);
   }
 }
