@@ -441,9 +441,9 @@
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
   	
-    <!-- Recreate the controlpanel classes directory and recompile into it. -->
-    <mkdir dir="${controlpanel.classes.dir}" />
-    <javac srcdir="${controlpanel.src.dir}" destdir="${controlpanel.classes.dir}" optimize="true"
+    <!-- Recreate the statuspanel classes directory and recompile into it. -->
+    <mkdir dir="${statuspanel.classes.dir}" />
+    <javac srcdir="${statuspanel.src.dir}" destdir="${statuspanel.classes.dir}" optimize="true"
         debug="on" debuglevel="lines,source" source="1.5" target="1.5"
         deprecation="true" fork="true" memoryInitialSize="${MEM}"
         memoryMaximumSize="${MEM}">
@@ -455,8 +455,8 @@
         </classpath>
     </javac>
 
-    <copy todir="${controlpanel.classes.dir}">
-        <fileset dir="${controlpanel.src.dir}"
+    <copy todir="${statuspanel.classes.dir}">
+        <fileset dir="${statuspanel.src.dir}"
             includes="**/*.properties, **/*.gif, **/*.png"/>
     </copy>
             	
