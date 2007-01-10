@@ -1728,7 +1728,7 @@ public class DigestMD5SASLMechanismHandler
     // If everything has been successful, then apply any changes that were made.
     if (resultCode == ResultCode.SUCCESS)
     {
-      if ((newIdentityMapperDN != null) && (identityMapper != null))
+      if ((newIdentityMapperDN != null) && (newIdentityMapper != null))
       {
         identityMapperDN = newIdentityMapperDN;
         identityMapper   = newIdentityMapper;
