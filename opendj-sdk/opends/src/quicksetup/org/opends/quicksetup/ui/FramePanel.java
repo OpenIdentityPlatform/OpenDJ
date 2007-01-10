@@ -149,38 +149,37 @@ class FramePanel extends JPanel
    */
   protected void paintComponent(Graphics g)
   {
-    if (isOpaque())
-    { // paint background
+      // paint background
       g.setColor(UIFactory.DEFAULT_BACKGROUND);
       int width = getWidth();
       int height = getHeight();
-      int buttonsTotalHeight =
-          buttonsPanel.getHeight() + buttonsPanelVerticalInsets;
-      int stepsPanelTotalWidth =
-          stepsPanel.getWidth() + stepsPanelHorizontalInsets;
+      int buttonsTotalHeight = buttonsPanel.getHeight()
+      + buttonsPanelVerticalInsets;
+      int stepsPanelTotalWidth = stepsPanel.getWidth()
+      + stepsPanelHorizontalInsets;
 
       g.fillRect(0, 0, stepsPanelTotalWidth, height);
       g.fillRect(stepsPanelTotalWidth, height - buttonsTotalHeight, width,
-          height);
+              height);
       g.setColor(UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
       g.fillRect(stepsPanelTotalWidth, 0, width, height - buttonsTotalHeight);
-    }
 
-    if (backgroundIcon != null)
-    {
-      // Draw the icon over and over, right aligned.
-      // Copy the Graphics object, which is actually
-      // a Graphics2D object. Cast it so we can
-      // set alpha composite.
-      Graphics2D g2d = (Graphics2D) g.create();
+      if (backgroundIcon != null)
+      {
+          // Draw the icon over and over, right aligned.
+          // Copy the Graphics object, which is actually
+          // a Graphics2D object. Cast it so we can
+          // set alpha composite.
+          Graphics2D g2d = (Graphics2D) g.create();
 
-      g2d.setComposite(AlphaComposite
-          .getInstance(AlphaComposite.SRC_OVER, 0.1f));
+          g2d.setComposite(AlphaComposite.getInstance(
+                  AlphaComposite.SRC_OVER, 0.1f));
 
-      backgroundIcon.paintIcon(this, g2d, UIFactory.LEFT_INSET_BACKGROUND,
-          UIFactory.TOP_INSET_BACKGROUND);
+          backgroundIcon.paintIcon(this, g2d,
+                  UIFactory.LEFT_INSET_BACKGROUND,
+                  UIFactory.TOP_INSET_BACKGROUND);
 
-      g2d.dispose(); //clean up
-    }
+          g2d.dispose(); //clean up
+      }
   }
 }
