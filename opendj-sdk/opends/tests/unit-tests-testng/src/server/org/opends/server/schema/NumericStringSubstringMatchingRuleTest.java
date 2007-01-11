@@ -57,8 +57,7 @@ public class NumericStringSubstringMatchingRuleTest extends
         {"123456789", new String[] {"9"}, true },
         {"123456789", new String[] {"1"}, true },
         {"123456789", new String[] {"0"}, false },
-       // disabled because of  issue 731
-       // {"123456789", new String[] {"    "}, false },
+        {"123456789", new String[] {"    "}, true },
         {"123456789", new String[] {"0123"}, false },
     };
   }
