@@ -332,6 +332,12 @@ public class NumericStringSubstringMatchingRule
 
         int end = valueLength - anyLength;
         boolean match = false;
+        if (anyLength == 0)
+        {
+          // empty element is not considered as unmatching
+          match = true;
+          continue;
+        }
         for (; pos <= end; pos++)
         {
           if (anyBytes[0] == valueBytes[pos])
