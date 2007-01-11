@@ -554,7 +554,6 @@ dn: cn=Directory String First Component Equality Matching Rule,cn=Matching Rules
 objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
-objectClass: ds-cfg-equality-matching-rule
 cn: Directory String First Component Equality Matching Rule
 ds-cfg-matching-rule-class: org.opends.server.schema.DirectoryStringFirstComponentEqualityMatchingRule
 ds-cfg-matching-rule-enabled: true
