@@ -26,8 +26,17 @@
  */
 package org.opends.server.schema;
 
-import org.opends.server.api.AttributeSyntax;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringFactory;
+
+import static org.testng.Assert.*;
 
 /**
  * Test the AttributeTypeSyntax.
@@ -55,7 +64,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
         {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP 1.2" +
           " EQUALITY 2.3 ORDERING 5.6 SUBSTR 7.8 SYNTAX 9.1 SINGLE-VALUE" +
           " COLLECTIVE NO-USER-MODIFICATION USAGE directoryOperations )",
-          true},        
+          true},
         {"(1.2.8.5 NAME 'testtype' DESC 'full type')",
               true},
         {"(1.2.8.5 USAGE directoryOperations )",
@@ -63,4 +72,51 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
     };
   }
 
+
+
+  /**
+   * Tests the use of the "X-APPROX" extension to specify a particular
+   * approximate matching rule.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testXAPPROXExtension()
+         throws Exception
+  {
+    // Create and register the approximate matching rule for testing purposes.
+    EqualLengthApproximateMatchingRule testApproxRule =
+         new EqualLengthApproximateMatchingRule();
+    testApproxRule.initializeMatchingRule(null);
+    DirectoryServer.registerApproximateMatchingRule(testApproxRule, false);
+
+
+    // Get a reference to the attribute type syntax implementation in the
+    // server.
+    AttributeTypeSyntax attrTypeSyntax =
+      (AttributeTypeSyntax)
+      DirectoryServer.getAttributeSyntax("1.3.6.1.4.1.1466.115.121.1.3", false);
+    assertNotNull(attrTypeSyntax);
+
+
+    // Create an attribute type definition and verify that it is acceptable.
+    ByteString definition = ByteStringFactory.create(
+      "( testxapproxtype-oid NAME 'testXApproxType' " +
+           "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
+           "X-APPROX 'equalLengthApproximateMatch' )");
+    StringBuilder invalidReason = new StringBuilder();
+    assertTrue(attrTypeSyntax.valueIsAcceptable(definition, invalidReason),
+               invalidReason.toString());
+
+
+    // Verify that we can decode the attribute type and that it has the
+    // correct approximate matching rule.
+    AttributeType attrType =
+         AttributeTypeSyntax.decodeAttributeType(definition,
+                                                 DirectoryServer.getSchema());
+    assertNotNull(attrType);
+    assertNotNull(attrType.getApproximateMatchingRule());
+    assertEquals(attrType.getApproximateMatchingRule(), testApproxRule);
+  }
 }
+

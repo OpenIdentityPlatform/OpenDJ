@@ -1909,6 +1909,14 @@ public class ServerConstants
 
 
   /**
+   * The name of the schema extension that will be used to specify the
+   * approximate matching rule that should be used for a given attribute type.
+   */
+  public static final String SCHEMA_PROPERTY_APPROX_RULE = "X-APPROX";
+
+
+
+  /**
    * The name of the schema property that will be used to specify the path to
    * the schema file from which the schema element was loaded.
    */
