@@ -55,6 +55,7 @@ import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -628,31 +629,6 @@ public class AttributeTypeSyntax
         isNoUserModification    = superiorType.isNoUserModification();
         attributeUsage          = superiorType.getUsage();
       }
-      else if (lowerTokenName.equals("approx") ||
-               lowerTokenName.equals("approximate"))
-      {
-        // This specifies the name or OID of the approximate matching rule to
-        // use for this attribute type.
-        StringBuilder woidBuffer = new StringBuilder();
-        pos = readWOID(lowerStr, woidBuffer, pos);
-        ApproximateMatchingRule amr =
-             schema.getApproximateMatchingRule(woidBuffer.toString());
-        if (amr == null)
-        {
-          // This is bad because we have no idea what the approximate matching
-          // rule should be.  Log a message and go with the default matching
-          // rule for the associated syntax.
-          int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR;
-          String message = getMessage(msgID, String.valueOf(oid),
-                                      String.valueOf(woidBuffer));
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
-        }
-        else
-        {
-          approximateMatchingRule = amr;
-        }
-      }
       else if (lowerTokenName.equals("equality"))
       {
         // This specifies the name or OID of the equality matching rule to use
@@ -922,6 +898,30 @@ public class AttributeTypeSyntax
         List<String> valueList = new ArrayList<String>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
+      }
+    }
+
+    List<String> approxRules = extraProperties.get(SCHEMA_PROPERTY_APPROX_RULE);
+    if ((approxRules != null) && (! approxRules.isEmpty()))
+    {
+      String ruleName  = approxRules.get(0);
+      String lowerName = toLowerCase(ruleName);
+      ApproximateMatchingRule amr =
+           schema.getApproximateMatchingRule(lowerName);
+      if (amr == null)
+      {
+        // This is bad because we have no idea what the approximate matching
+        // rule should be.  Log a message and go with the default matching
+        // rule for the associated syntax.
+        int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR;
+        String message = getMessage(msgID, String.valueOf(oid),
+                                    String.valueOf(ruleName));
+        logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                 message, msgID);
+      }
+      else
+      {
+        approximateMatchingRule = amr;
       }
     }
 
