@@ -377,18 +377,24 @@ public class CoverageDiff extends Task {
       String modCoverageStr = "";
       if(overallModCoverage[MOD_EXE_LINES] > 0)
       {
-        modCoverageStr =
-            String.valueOf(overallModCoverage[COVERED_MOD_EXE_LINES]/overallModCoverage[MOD_EXE_LINES]*100) + "% ";
+        modCoverageStr = String.format("%d%% (%.1f/%.1f)",
+            (int)(overallModCoverage[COVERED_MOD_EXE_LINES]/overallModCoverage[MOD_EXE_LINES]*100),
+            overallModCoverage[COVERED_MOD_EXE_LINES],
+            overallModCoverage[MOD_EXE_LINES]);
       }
-      modCoverageStr = modCoverageStr + "(" +
-          overallModCoverage[COVERED_MOD_EXE_LINES] + "/" +
-          overallModCoverage[MOD_EXE_LINES] +")";
+      else
+      {
+        modCoverageStr = String.format("%d%% (%.1f/%.1f)", 100,
+            overallModCoverage[COVERED_MOD_EXE_LINES],
+            overallModCoverage[MOD_EXE_LINES]);
+      }
+
       row = statsTable.newRow ();
       row.newCell ().setText ("total lines modified:", true);
-      row.newCell ().setText ("" + overallModCoverage[MOD_LINES], true);
+      row.newCell ().setText ("" + overallModCoverage[MOD_LINES].intValue(), true);
       row = statsTable.newRow ();
       row.newCell ().setText ("total lines removed:", true);
-      row.newCell ().setText ("" + overallModCoverage[DEL_LINES], true);
+      row.newCell ().setText ("" + overallModCoverage[DEL_LINES].intValue(), true);
       row = statsTable.newRow ();
       row.newCell ().setText ("coverage for modified executable lines:", true);
       row.newCell ().setText ("" + modCoverageStr, true);
@@ -412,20 +418,21 @@ public class CoverageDiff extends Task {
     }
 
     Set<Map.Entry<String, SrcFileItem>> items = emmaSrcMap.entrySet();
-    Map.Entry<String, SrcFileItem> item;
     boolean odd = true;
+    int count = 0;
 
-    for (Map.Entry<String, SrcFileItem> item1 : items) {
-      item = item1;
+    for (Map.Entry<String, SrcFileItem> item : items) {
 
       if (item != null) {
         final String fileName = item.getKey();
         final SrcFileItem srcFileItem = item.getValue();
         final Double[] modCoverage = modCoverageMap.get(fileName);
 
-        addItemRow(fileName, srcFileItem, modCoverage, odd, summaryTable, createHREF(fileName), true, true);
+        addItemRow(fileName, srcFileItem, modCoverage, odd, summaryTable,
+            "s" + count, true, true);
 
         odd = !odd;
+        count++;
       }
     }
 
@@ -468,6 +475,7 @@ public class CoverageDiff extends Task {
                   srcFilePackage, srcFilePath.getName());
       }
     }
+
 
     //Figure out the flag for the working copy.
     String workingCopyFlag = null;
@@ -558,7 +566,7 @@ public class CoverageDiff extends Task {
     }
 
     final IElement a = IElement.Factory.create (Tag.A);
-    a.getAttributes ().set (Attribute.NAME, createHREF(srcFilePath.toString()));
+    a.getAttributes ().set (Attribute.NAME, "s" + emmaSrcMap.keySet().size());
 
     html.add(a);
 
@@ -688,33 +696,34 @@ public class CoverageDiff extends Task {
         {
           lineNumCell.setClass("dm");
           modCoverage[MOD_LINES] ++;
+
+          if(lCoverageData != null)
+          {
+            modCoverage[MOD_EXE_LINES] ++;
+            switch(lCoverageData.m_coverageStatus)
+            {
+              case SrcFileItem.LineCoverageData.LINE_COVERAGE_ZERO:
+                lineTxtCell.setClass ("cz");
+                break;
+
+              case SrcFileItem.LineCoverageData.LINE_COVERAGE_PARTIAL:
+                lineTxtCell.setClass ("cp");
+                modCoverage[COVERED_MOD_EXE_LINES] += 0.5;
+                break;
+
+              case SrcFileItem.LineCoverageData.LINE_COVERAGE_COMPLETE:
+                lineTxtCell.setClass ("cc");
+                modCoverage[COVERED_MOD_EXE_LINES] ++;
+                break;
+              default:
+            }
+          }
         }
         else
         {
           lineNumCell.setClass("ds");
         }
 
-        if(lCoverageData != null)
-        {
-          modCoverage[MOD_EXE_LINES] ++;
-          switch(lCoverageData.m_coverageStatus)
-          {
-            case SrcFileItem.LineCoverageData.LINE_COVERAGE_ZERO:
-              lineTxtCell.setClass ("cz");
-              break;
-
-            case SrcFileItem.LineCoverageData.LINE_COVERAGE_PARTIAL:
-              lineTxtCell.setClass ("cp");
-              modCoverage[COVERED_MOD_EXE_LINES] += 0.5;
-              break;
-
-            case SrcFileItem.LineCoverageData.LINE_COVERAGE_COMPLETE:
-              lineTxtCell.setClass ("cc");
-              modCoverage[COVERED_MOD_EXE_LINES] ++;
-              break;
-            default:
-          }
-        }
       }
       else
       {
@@ -903,9 +912,16 @@ public class CoverageDiff extends Task {
       String modCoverageStr = "";
       if(modCoverage[1] > 0)
       {
-        modCoverageStr = String.valueOf(modCoverage[0]/modCoverage[1]*100) + "% ";
+        modCoverageStr = String.format("%d%% (%.1f/%.1f)",
+            (int)(modCoverage[COVERED_MOD_EXE_LINES]/modCoverage[MOD_EXE_LINES]*100),
+            modCoverage[COVERED_MOD_EXE_LINES], modCoverage[MOD_EXE_LINES]);
       }
-      modCoverageStr = modCoverageStr + "(" + modCoverage[0] + "/" + modCoverage[1] +")";
+      else
+      {
+        modCoverageStr = String.format("%d%% (%.1f/%.1f)", 100,
+            modCoverage[COVERED_MOD_EXE_LINES],
+            modCoverage[MOD_EXE_LINES]);
+      }
 
       final HTMLTable.ICell cell = row.newCell();
       cell.setText(modCoverageStr, true);
