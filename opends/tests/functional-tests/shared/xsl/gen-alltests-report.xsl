@@ -59,7 +59,17 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       <xsl:value-of select="'100%'"/>
     </xsl:attribute>
     <xsl:attribute name="bgcolor">
-      <xsl:value-of select="'lightgreen'"/>
+      <xsl:choose>
+        <xsl:when test="$percent-tests &lt; 80">
+          <xsl:value-of select="'red'" />
+        </xsl:when>
+        <xsl:when test="$percent-tests &lt; 90">
+          <xsl:value-of select="'yellow'" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="'lightgreen'" />
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:attribute>
     <xsl:element name="tr">
       <xsl:element name="td">
