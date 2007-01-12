@@ -80,6 +80,10 @@
         <call function="'sasl_cram-md5'" />
 
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/sasl/security_sasl_digest-md5.xml' % (TESTS_DIR)"/>
+        <call function="'sasl_digest-md5'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/security/sasl/security_teardown_sasl.xml' % (TESTS_DIR)"/>
         <call function="'teardown_sasl'" />
 

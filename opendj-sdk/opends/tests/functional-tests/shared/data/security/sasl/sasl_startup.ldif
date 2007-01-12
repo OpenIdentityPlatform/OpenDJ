@@ -241,6 +241,24 @@ facsimiletelephonenumber: +1 408 555 1992
 roomnumber: 3915
 userpassword: dogleg
 
+dn: uid=jsprinter, ou=People, o=SASL Tests, dc=example,dc=com
+cn: John Sprinter
+sn: Sprinter
+givenname: John
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+l: Cupertino
+uid: jsprinter
+mail: jsprinter@example.com
+telephonenumber: +1 408 555 1476
+facsimiletelephonenumber: +1 408 555 1992
+roomnumber: 3915
+userpassword: dogleg
+
 dn: uid=jrunner, ou=People, o=SASL Tests, dc=example,dc=com
 cn: John Runner
 sn: Runner
@@ -362,6 +380,70 @@ ou: People
 l: Cupertino
 uid: jcrawler
 mail: jcrawler@example.com
+telephonenumber: +1 408 555 1476
+facsimiletelephonenumber: +1 408 555 1992
+roomnumber: 3915
+userpassword: dogleg
+
+dn: o=SASL Realm Tests, dc=example,dc=com
+objectclass: top
+objectclass: organization
+o: SASL Realm Tests
+
+dn: ou=People, o=SASL Realm Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+
+dn: uid=cschmith, ou=People, o=SASL Realm Tests, dc=example,dc=com
+cn: Chris Schmith
+sn: Schmith
+givenname: Chris
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Human Resources
+ou: People
+l: Santa Clara
+uid: cschmith
+mail: cschmith@example.com
+telephonenumber: +1 408 555 8011
+facsimiletelephonenumber: +1 408 555 4774
+roomnumber: 0416
+userpassword: hypotenuse
+
+dn: uid=jwalleye, ou=People, o=SASL Realm Tests, dc=example,dc=com
+cn: Judy Walleye
+sn: Walleye
+givenname: Judy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: jwalleye
+mail: jwalleye@example.com
+telephonenumber: +1 408 555 0319
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 1033
+userpassword: linear
+
+dn: uid=jsprinter, ou=People, o=SASL Realm Tests, dc=example,dc=com
+cn: John Sprinter
+sn: Sprinter
+givenname: John
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+l: Cupertino
+uid: jsprinter
+mail: jsprinter@example.com
 telephonenumber: +1 408 555 1476
 facsimiletelephonenumber: +1 408 555 1992
 roomnumber: 3915
