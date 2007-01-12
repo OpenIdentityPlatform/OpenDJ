@@ -313,7 +313,29 @@
 
       <sequence>
 
-        <stafcmd name="'STAF Command: Recursively Delete Folder'">
+      <stafcmd name="'STAF Command: Get Folder Attributes'">
+        <location>'%s' % (hostname)</location>
+        <service>'fs'</service>
+        <request>'GET ENTRY %s TYPE' % (foldername)</request>
+      </stafcmd>
+
+      <if expr="RC == 48">
+        <sequence>
+          <message log="1">
+            'Folder does not exist, do not delete it.'
+          </message>
+          <return>0</return>
+        </sequence>
+        <else>
+          <sequence>
+            <message log="1">
+              'Folder exists, will delete it'
+            </message>
+          </sequence>
+        </else>
+      </if>
+
+      <stafcmd name="'STAF Command: Recursively Delete Folder'">
           <location>'%s' % (hostname)</location>
           <service>'fs'</service>
           <request>
