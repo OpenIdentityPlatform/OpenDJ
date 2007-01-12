@@ -29,13 +29,17 @@ package org.opends.server.types.operation;
 
 
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultReference;
 
 
 
@@ -147,5 +151,38 @@ public interface PreOperationSearchOperation
    *          operation.
    */
   public LinkedHashSet<String> getAttributes();
+
+
+
+  /**
+   * Returns the provided entry to the client.
+   *
+   * @param  entry     The entry that should be returned.
+   * @param  controls  The set of controls to include with the entry
+   *                   (may be {@code null} if no controls should be
+   *                   included with the entry).
+   *
+   * @return  {@code true} if the caller should continue processing
+   *          the search request and sending additional entries and
+   *          references, or {@code false} if not for some reason
+   *          (e.g., the size limit has been reached or the search has
+   *          been abandoned).
+   */
+  public boolean returnEntry(Entry entry, List<Control> controls);
+
+
+
+  /**
+   * Returns the provided search result reference to the client.
+   *
+   * @param  reference  The search reference that should be returned.
+   *
+   * @return  {@code true} if the caller should continue processing
+   *          the search request and sending additional entries and
+   *          references, or {@code false} if not for some reason
+   *          (e.g., the size limit has been reached or the search has
+   *          been abandoned).
+   */
+  public boolean returnReference(SearchResultReference reference);
 }
 
