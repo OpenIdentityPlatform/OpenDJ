@@ -39,8 +39,8 @@
             'noOfMilliSeconds' : 2000 }
         </call>
 
-        <!--- Test Case : True False Filters 1 -->
-        <testcase name="'Core: True False Filters 1'">
+        <!--- Test Case : True False Filters: And Filter -->
+        <testcase name="'Core: True False Filters: And Filter'">
           <sequence>
             <message>
                'Core TFF1: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character '
@@ -63,8 +63,8 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : True False Filters 2 -->
-        <testcase name="'Core: True False Filters 2'">
+        <!--- Test Case : True False Filters: Or Filter -->
+        <testcase name="'Core: True False Filters: Or Filter'">
           <sequence>
             <message>
                'Core TFF2: Check the response of OpenDS when an ldap search request is conducted with a single pipe character'
@@ -86,8 +86,8 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : True False Filters 3 -->
-        <testcase name="'Core: True False Filters 3'">
+        <!--- Test Case : True False Filters: And Filter Entry Not Exists -->
+        <testcase name="'Core: True False Filters: And Filter Entry Not Exists'">
           <sequence>
             <message>
                'Core TFF3: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character for a non-existent entry'
@@ -110,8 +110,8 @@
            </sequence>
         </testcase>
  
-        <!--- Test Case : True False Filters 4 -->
-        <testcase name="'Core: True False Filters 4'">
+        <!--- Test Case : True False Filters: Or Filter Entry Not Exists -->
+        <testcase name="'Core: True False Filters: Or Filter Entry Not Exists'">
           <sequence>
             <message>
                'Core TFF4: Check the response of OpenDS when an ldap search request is conducted with a single pipe character for a non-existent entry'

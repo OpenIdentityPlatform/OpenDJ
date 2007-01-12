@@ -67,7 +67,7 @@
         </call>
 
         <!--- Test Case : Add Quickstart Entries -->
-        <testcase name="'Quickstart:AddQuickstartEntries'">
+        <testcase name="'Quickstart: Add : Quick Start Entries'">
           <sequence>
             <message>
                'Quickstart: Adding quickstart entries'

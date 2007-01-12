@@ -141,7 +141,7 @@
             else:
               errorfh.write('No match element %s.\n' % element)
 
-          if level == 'Stop':
+          elif level == 'Stop':
 
             tcpattern=re.compile("(Testcase): (.*), ElapsedTime: (.*)")
             tcmatch = tcpattern.search(message)
@@ -164,7 +164,7 @@
             else:
               errorfh.write('No match element %s.\n' % element)
 
-          if level == 'Status':
+          elif level == 'Status':
 
             tcpattern=re.compile("(Testcase): (.*), Pass: (.*), Fail: (.*), ElapsedTime: (.*), NumStarts: (.*)")
             tcmatch = tcpattern.search(message)
@@ -189,6 +189,9 @@
 
             else:
               errorfh.write('No match element %s.\n' % element)
+          
+          else:
+            errorfh.write('Bad element %s.\n' % element)
 
         </script>
       </iterate>
@@ -217,6 +220,10 @@
 
           if testDict.has_key(tcname):
 
+            tcnamesplit=tcname.split(":")
+            testgroup=tcnamesplit[0]
+            testsuite=tcnamesplit[1]
+            
             if testDict[tcname].has_key('pass'):
               tcpass=testDict[tcname]['pass']
             else:
@@ -252,7 +259,11 @@
           else:
             tcresult='fail'
 
-          xmlfh.write('      &lt;testcase name="%s" result="%s" start="%s" stop="%s" duration="%s"/&gt;\n' % (tcname,tcresult,tcstart,tcstop,tcduration))
+          xmlfh.write('      &lt;testgroup name="%s"&gt;\n' % testgroup)
+          xmlfh.write('        &lt;testsuite name="%s"&gt;\n' % testsuite)
+          xmlfh.write('          &lt;testcase name="%s" result="%s" start="%s" stop="%s" duration="%s"/&gt;\n' % (tcname,tcresult,tcstart,tcstop,tcduration))
+          xmlfh.write('        &lt;/testsuite&gt;\n')
+          xmlfh.write('      &lt;/testgroup&gt;\n')
       </script> 
  
       <!-- XML Report Post -->
@@ -296,7 +307,7 @@
   
         source = StreamSource(FileInputStream("%s" % xmlfile))
         result = StreamResult(FileOutputStream("%s" % htmlfile))
-  
+        
         transformer.transform(source, result)      
       </script>
 

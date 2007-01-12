@@ -39,8 +39,8 @@
             'noOfMilliSeconds' : 2000 }
         </call>
 
-        <!--- Test Case : Search Size Limit 1 -->
-        <testcase name="'Core: Search Size Limit 1'">
+        <!--- Test Case : Search Size Limit: Size Limit Exceeded -->
+        <testcase name="'Core: Search Size Limit: Size Limit Exceeded'">
           <sequence>
             <message>
                'Core SSzL1: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined in the command line and the search size is exceeed '
@@ -52,7 +52,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '-z 150' }
                 
             </call>
@@ -65,8 +65,8 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Search Size Limit 2 -->
-        <testcase name="'Core: Search Size Limit 2'">
+        <!--- Test Case : Search Size Limit: Size Limit Not Exceeded -->
+        <testcase name="'Core: Search Size Limit: Size Limit Not Exceeded'">
           <sequence>
             <message>
                'Core SSzL2: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined in the command line and the search size is not exceeed'
@@ -78,7 +78,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '-z 151' }
                 
             </call>
@@ -90,8 +90,8 @@
           </sequence>
         </testcase>
         
-         <!--- Test Case : Search Size Limit 3 -->
-        <testcase name="'Core: Search Size Limit 3'">
+         <!--- Test Case : Search Size Limit: Server Wide Size Limit 5 -->
+        <testcase name="'Core: Search Size Limit: Server Wide Size Limit 5'">
           <sequence>
             <message>
                'Core SSzL3: Change the server-wide search size limit to 5'
@@ -112,8 +112,8 @@
           </sequence>
         </testcase> 
       
-                <!--- Test Case : Search Size Limit 4 -->
-        <testcase name="'Core: Search Size Limit 4'">
+        <!--- Test Case : Search Size Limit: Server Wide Size Limit Exceeded  -->
+        <testcase name="'Core: Search Size Limit: Server Wide Size Limit Exceeded'">
           <sequence>
             <message>
                'Core SSzL4: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined by the server-wide parameter, ds-cfg-size-limit, and the search size limit is exceeded'
@@ -123,7 +123,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
                 
             </call>
@@ -136,8 +136,8 @@
           </sequence>
         </testcase>
         
-                 <!--- Test Case : Search Size Limit 5 -->
-        <testcase name="'Core: Search Size Limit 5'">
+        <!--- Test Case : Search Size Limit: Server Wide Size Limit 1000-->
+        <testcase name="'Core: Search Size Limit: Server Wide Size Limit 1000'">
           <sequence>
             <message>
                'Core SSzL5: Change the server-wide search size limit to 1000'
@@ -158,8 +158,8 @@
           </sequence>
         </testcase>
         
-                <!--- Test Case : Search Size Limit 6 -->
-        <testcase name="'Core: Search Size Limit 6'">
+        <!--- Test Case : Search Size Limit: Server Wide Size Limit Not Exceeded -->
+        <testcase name="'Core: Search Size Limit: Server Wide Size Limit Not Exceeded '">
           <sequence>
             <message>
                'Core SSzL6: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined by the server-wide parameter, ds-cfg-size-limit, and the search size limit is not exceeded'
@@ -169,7 +169,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
                 
             </call>
@@ -181,8 +181,8 @@
           </sequence>
         </testcase>
         
-                         <!--- Test Case : Search Size Limit 7 -->
-        <testcase name="'Core: Search Size Limit 7'">
+        <!--- Test Case : Search Size Limit: Directory Manager Size Limit 5 -->
+        <testcase name="'Core: Search Size Limit: Directory Manager Size Limit 5'">
           <sequence>
             <message>
                'Core SSzL7: Change the search size limit for cn=Directory Manager to 5'
@@ -203,8 +203,8 @@
           </sequence>
         </testcase>
         
-                        <!--- Test Case : Search Size Limit 8 -->
-        <testcase name="'Core: Search Size Limit 8'">
+        <!--- Test Case : Search Size Limit: User Specific Size Limit Exceeded -->
+        <testcase name="'Core: Search Size Limit: User Specific Size Limit Exceeded'">
           <sequence>
             <message>
                'Core SSzL8: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined by the user-specific parameter, ds-rlim-size-limit, and the search size limit is exceeded'
@@ -216,7 +216,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
                 
             </call>
@@ -229,8 +229,8 @@
           </sequence>
         </testcase>
         
-                                <!--- Test Case : Search Size Limit 9 -->
-        <testcase name="'Core: Search Size Limit 9'">
+        <!--- Test Case : Search Size Limit: Size Limit Not Applicable  -->
+        <testcase name="'Core: Search Size Limit: Size Limit Not Applicable'">
           <sequence>
             <message>
                'Core SSzL9: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined by the user-specific parameter, ds-rlim-size-limit, and the search is conducted as a bind to a different user'
@@ -240,7 +240,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
                 
             </call>
@@ -252,8 +252,8 @@
           </sequence>
         </testcase>
         
-                                 <!--- Test Case : Search Size Limit 10 -->
-        <testcase name="'Core: Search Size Limit 10'">
+        <!--- Test Case : Search Size Limit: Modify Directory Manager Limit -1 -->
+        <testcase name="'Core: Search Size Limit: Modify Directory Manager Limit -1'">
           <sequence>
             <message>
                'Core SSzL10: Change the search size limit for cn=Directory Manager to -1'
@@ -274,8 +274,8 @@
           </sequence>
         </testcase>
         
-                                        <!--- Test Case : Search Size Limit 11 -->
-        <testcase name="'Core: Search Size Limit 11'">
+        <!--- Test Case : Search Size Limit: No Size Limit -->
+        <testcase name="'Core: Search Size Limit: No Size Limit'">
           <sequence>
             <message>
                'Core SSzL11: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined as "unlimited" by the user-specific parameter, ds-rlim-size-limit, equal to -1 and the search is against 1150 entries'
@@ -287,7 +287,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
                 
             </call>

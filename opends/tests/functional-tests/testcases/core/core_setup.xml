@@ -39,8 +39,8 @@
             'noOfMilliSeconds' : 2000 }
         </call>
 
-          <!--- Test Case : Add required entries -->
-        <testcase name="'Core: Add required entries'">
+        <!--- Test Case : Setup: Add required entries -->
+        <testcase name="'Core: Setup: Add Core Entries'">
           <sequence>
             <message>
                'Add entries that are required for the Core Tests'
@@ -61,8 +61,8 @@
           </sequence>
         </testcase>
         
-           <!--- Test Case : To add 1000 extra entries that are required for some of the Core Tests -->
-        <testcase name="'Core: Add 1000 extra entries'">
+        <!--- Test Case : To add 1000 extra entries that are required for some of the Core Tests -->
+        <testcase name="'Core: Setup: Add 1000 Core Entries'">
           <sequence>
             <message>
                'Add 1000 extra entries that are required for some of the Core Tests'

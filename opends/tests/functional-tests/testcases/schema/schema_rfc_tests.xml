@@ -39,11 +39,11 @@
             'noOfMilliSeconds' : 2000 }
         </call>
        
-        <!--- Test Case : Schema RFC Test 1 -->
-        <testcase name="'Schema: RFC Test 1'">
+        <!--- Test Case : Schema RFC Test 2079 -->
+        <testcase name="'Core: Schema: RFC 2079'">
           <sequence>
             <message>
-               'Schema RFC1: Add an entry that is covered by rfc 2079'
+               'Schema: Add an entry that is covered by rfc 2079'
             </message>
 
             <call function="'addEntry'">
@@ -61,11 +61,11 @@
           </sequence>
         </testcase> 
       
-        <!--- Test Case : Schema RFC Test 2 -->
-        <testcase name="'Schema: RFC Test 2'">
+        <!--- Test Case : Schema RFC Test 2247 -->
+        <testcase name="'Core: Schema: RFC 2247 1'">
           <sequence>
             <message>
-               'Schema RFC2: Add an entry that is covered by rfc 2247'
+               'Schema: Add an entry that is covered by rfc 2247'
             </message>
 
             <call function="'addEntry'">
@@ -83,11 +83,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 3 -->
-        <testcase name="'Schema: RFC Test 3'">
+        <!--- Test Case : Schema RFC Test 2247 -->
+        <testcase name="'Core: Schema: RFC 2247 2'">
           <sequence>
             <message>
-               'Schema RFC3: Add an entry that is covered by rfc 2247'
+               'Schema: Add an entry that is covered by rfc 2247'
             </message>
 
             <call function="'addEntry'">
@@ -105,11 +105,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 4 -->
-        <testcase name="'Schema: RFC Test 4'">
+        <!--- Test Case : Schema RFC Test 2247 -->
+        <testcase name="'Core: Schema: RFC 2247 3'">
           <sequence>
             <message>
-               'Schema RFC4: Add an entry that is covered by rfc 2247'
+               'Schema: Add an entry that is covered by rfc 2247'
             </message>
 
             <call function="'addEntry'">
@@ -128,11 +128,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 5 -->
-        <testcase name="'Schema: RFC Test 5'">
+        <!--- Test Case : Schema RFC 2247 -->
+        <testcase name="'Core: Schema: RFC 2247 4'">
           <sequence>
             <message>
-               'Schema RFC5: Add an entry that is covered by rfc 2247'
+               'Schema: Add an entry that is covered by rfc 2247'
             </message>
 
             <call function="'addEntry'">
@@ -151,11 +151,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 6 -->
-        <testcase name="'Schema: RFC Test 6'">
+        <!--- Test Case : Schema RFC 2247 -->
+        <testcase name="'Core: Schema: RFC 2247 5'">
           <sequence>
             <message>
-               'Schema RFC6: Add an entry that is covered by rfc 2247'
+               'Schema: Add an entry that is covered by rfc 2247'
             </message>
 
             <call function="'addEntry'">
@@ -174,11 +174,11 @@
           </sequence>
         </testcase>   
  
-        <!--- Test Case : Schema RFC Test 7 -->
-        <testcase name="'Schema: RFC Test 7'">
+        <!--- Test Case : Schema RFC Test 2377 -->
+        <testcase name="'Core: Schema: RFC 2377'">
           <sequence>
             <message>
-               'Schema RFC7: Add an entry that is covered by rfc 2377'
+               'Schema: Add an entry that is covered by rfc 2377'
             </message>
 
             <call function="'addEntry'">
@@ -196,11 +196,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 8 -->
-        <testcase name="'Schema: RFC Test 8'">
+        <!--- Test Case : Schema RFC Test 2798 -->
+        <testcase name="'Core: Schema: RFC 2798'">
           <sequence>
             <message>
-               'Schema RFC8: Add an entry that is covered by rfc 2798'
+               'Schema: Add an entry that is covered by rfc 2798'
             </message>
 
             <call function="'addEntry'">
@@ -218,11 +218,11 @@
           </sequence>
         </testcase> 
         
-        <!--- Test Case : Schema RFC Test 9 -->
-        <testcase name="'Schema: RFC Test 9'">
+        <!--- Test Case : Schema RFC 3045 -->
+        <testcase name="'Core: Schema: RFC 3045 1'">
           <sequence>
             <message>
-               'Schema RFC9: Modify an entry that is covered by rfc 3045'
+               'Schema: Modify an entry that is covered by rfc 3045'
             </message>
             
             <call function="'modifyEntry'">
@@ -241,11 +241,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 10 -->
-        <testcase name="'Schema: RFC Test 10'">
+        <!--- Test Case : Schema RFC 3045 -->
+        <testcase name="'Core: Schema: RFC 3045 2'">
           <sequence>
             <message>
-               'Schema RFC10: Modify an entry that is covered by rfc 3045'
+               'Schema: Modify an entry that is covered by rfc 3045'
             </message>
             
             <call function="'modifyEntry'">
@@ -264,11 +264,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 11 -->
-        <testcase name="'Schema: RFC Test 11'">
+        <!--- Test Case : Schema RFC 4403 -->
+        <testcase name="'Core: Schema: RFC 4403 1'">
           <sequence>
             <message>
-               'Schema RFC11: Add an entry that is covered by rfc 4403'
+               'Schema: Add an entry that is covered by rfc 4403'
             </message>
 
             <call function="'addEntry'">
@@ -286,11 +286,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 12 -->
-        <testcase name="'Schema: RFC Test 12'">
+        <!--- Test Case : Schema RFC 4403 -->
+        <testcase name="'Core: Schema: RFC 4403 2'">
           <sequence>
             <message>
-               'Schema RFC12: Add an entry that is covered by rfc 4403'
+               'Schema: Add an entry that is covered by rfc 4403'
             </message>
 
             <call function="'addEntry'">
@@ -308,11 +308,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 13 -->
-        <testcase name="'Schema: RFC Test 13'">
+        <!--- Test Case : Schema RFC Test 4403 -->
+        <testcase name="'Core: Schema: RFC 4403 3'">
           <sequence>
             <message>
-               'Schema RFC13: Add an entry that is covered by rfc 4403'
+               'Schema: Add an entry that is covered by rfc 4403'
             </message>
 
             <call function="'addEntry'">
@@ -331,11 +331,11 @@
           </sequence>
         </testcase>  
  
-        <!--- Test Case : Schema RFC Test 14 -->
-        <testcase name="'Schema: RFC Test 14'">
+        <!--- Test Case : Schema RFC Test 4403 -->
+        <testcase name="'Core: Schema: RFC 4403 4'">
           <sequence>
             <message>
-               'Schema RFC14: Add an entry that is covered by rfc 4403'
+               'Schema: Add an entry that is covered by rfc 4403'
             </message>
 
             <call function="'addEntry'">
@@ -353,11 +353,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 15 -->
-        <testcase name="'Schema: RFC Test 15'">
+        <!--- Test Case : Schema RFC Test 4403 -->
+        <testcase name="'Core: Schema: RFC 4403 5'">
           <sequence>
             <message>
-               'Schema RFC15: Add an entry that is covered by rfc 4403'
+               'Schema: Add an entry that is covered by rfc 4403'
             </message>
 
             <call function="'addEntry'">
@@ -376,11 +376,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 16 -->
-        <testcase name="'Schema: RFC Test 16'">
+        <!--- Test Case : Schema RFC Test 2307 -->
+        <testcase name="'Core: Schema: Draft Howard RFC 2307bis 1'">
           <sequence>
             <message>
-               'Schema RFC16: Add an entry that is covered by draft-howard-rfc2307bis'
+               'Schema: Add an entry that is covered by draft-howard-rfc2307bis'
             </message>
 
             <call function="'addEntry'">
@@ -398,11 +398,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 17 -->
-        <testcase name="'Schema: RFC Test 17'">
+        <!--- Test Case : Schema RFC 2307 -->
+        <testcase name="'Core: Schema: Draft Howard RFC 2307bis 2'">
           <sequence>
             <message>
-               'Schema RFC17: Add an entry that is covered by draft-howard-rfc2307bis'
+               'Schema: Add an entry that is covered by draft-howard-rfc2307bis'
             </message>
 
             <call function="'addEntry'">
@@ -421,11 +421,11 @@
           </sequence>
         </testcase>  
     
-        <!--- Test Case : Schema RFC Test 18 -->
-        <testcase name="'Schema: RFC Test 18'">
+        <!--- Test Case : Schema RFC 2307 -->
+        <testcase name="'Core: Schema: Draft Howard RFC 2307bis 1'">
           <sequence>
             <message>
-               'Schema RFC18: Add an entry that is covered by draft-howard-rfc2307bis'
+               'Schema: Add an entry that is covered by draft-howard-rfc2307bis'
             </message>
 
             <call function="'addEntry'">
@@ -443,11 +443,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 19 -->
-        <testcase name="'Schema: RFC Test 19'">
+        <!--- Test Case : Schema RFC Test 2307 -->
+        <testcase name="'Core: Schema: Draft Howard RFC 2307bis 1'">
           <sequence>
             <message>
-               'Schema RFC19: Add an entry that is covered by draft-howard-rfc2307bis'
+               'Schema: Add an entry that is covered by draft-howard-rfc2307bis'
             </message>
 
             <call function="'addEntry'">
@@ -466,11 +466,11 @@
           </sequence>
         </testcase>  
    
-        <!--- Test Case : Schema RFC Test 20 -->
-        <testcase name="'Schema: RFC Test 20'">
+        <!--- Test Case : Schema RFC draft-furseth-ldap-untypedobject -->
+        <testcase name="'Core: Schema: Draft Furseth LDAP Untypedobject'">
           <sequence>
             <message>
-               'Schema RFC20: Add an entry that is covered by draft-furseth-ldap-untypedobject'
+               'Schema: Add an entry that is covered by draft-furseth-ldap-untypedobject'
             </message>
 
             <call function="'addEntry'">
@@ -488,11 +488,11 @@
           </sequence>
         </testcase> 
        
-        <!--- Test Case : Schema RFC Test 21 -->
-        <testcase name="'Schema: RFC Test 21'">
+        <!--- Test Case : Schema RFC draft-good-ldap-changelog -->
+        <testcase name="'Core: Schema: Draft Good LDAP Changelog 1'">
           <sequence>
             <message>
-               'Schema RFC21: Add an entry that is covered by draft-good-ldap-changelog'
+               'Schema: Add an entry that is covered by draft-good-ldap-changelog'
             </message>
 
             <call function="'addEntry'">
@@ -510,11 +510,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 22 -->
-        <testcase name="'Schema: RFC Test 22'">
+        <!--- Test Case : Schema RFC draft-good-ldap-changelog -->
+        <testcase name="'Core: Schema: Draft Good LDAP Changelog 2'">
           <sequence>
             <message>
-               'Schema RFC22: Add an entry that is covered by draft-good-ldap-changelog'
+               'Schema: Add an entry that is covered by draft-good-ldap-changelog'
             </message>
 
             <call function="'addEntry'">
@@ -532,11 +532,11 @@
           </sequence>
         </testcase>  
     
-        <!--- Test Case : Schema RFC Test 23 -->
-        <testcase name="'Schema: RFC Test 23'">
+        <!--- Test Case : Schema RFC draft-good-ldap-changelog -->
+        <testcase name="'Core: Schema: Draft Good LDAP Changelog 2'">
           <sequence>
             <message>
-               'Schema RFC23: Add an entry that is covered by draft-good-ldap-changelog'
+               'Schema: Add an entry that is covered by draft-good-ldap-changelog'
             </message>
 
             <call function="'addEntry'">
@@ -554,11 +554,11 @@
           </sequence>
         </testcase> 
   
-        <!--- Test Case : Schema RFC Test 24 -->
-        <testcase name="'Schema: RFC Test 24'">
+        <!--- Test Case : Schema RFC Test draft-howard-namedobject -->
+        <testcase name="'Core: Schema: Draft Howard NamedObject 1'">
           <sequence>
             <message>
-               'Schema RFC24: Add an entry that is covered by draft-howard-namedobject'
+               'Schema: Add an entry that is covered by draft-howard-namedobject'
             </message>
 
             <call function="'addEntry'">
@@ -576,11 +576,11 @@
           </sequence>
         </testcase>  
       
-        <!--- Test Case : Schema RFC Test 25 -->
-        <testcase name="'Schema: RFC Test 25'">
+        <!--- Test Case : Schema RFC Test draft-howard-namedobject -->
+        <testcase name="'Core: Schema: Draft Howard NamedObject 2'">
           <sequence>
             <message>
-               'Schema RFC25: Add an entry that is covered by draft-howard-namedobject'
+               'Schema: Add an entry that is covered by draft-howard-namedobject'
             </message>
 
             <call function="'addEntry'">
@@ -598,11 +598,11 @@
           </sequence>
         </testcase>  
     
-        <!--- Test Case : Schema RFC Test 26 -->
-        <testcase name="'Schema: RFC Test 26'">
+        <!--- Test Case : Schema RFC Test draft-ietf-ldup-subentry -->
+        <testcase name="'Core: Schema: Draft IETF LDUP Subentry 1'">
           <sequence>
             <message>
-               'Schema RFC26: Add an entry that is covered by draft-ietf-ldup-subentry'
+               'Schema: Add an entry that is covered by draft-ietf-ldup-subentry'
             </message>
 
             <call function="'addEntry'">
@@ -620,11 +620,11 @@
           </sequence>
         </testcase> 
         
-        <!--- Test Case : Schema RFC Test 27 -->
-        <testcase name="'Schema: RFC Test 27'">
+        <!--- Test Case : Schema RFC Test draft-ietf-ldup-subentry -->
+        <testcase name="'Core: Schema: Draft IETF LDUP Subentry 2'">
           <sequence>
             <message>
-               'Schema RFC27: Add an entry that is covered by draft-ietf-ldup-subentry'
+               'Schema: Add an entry that is covered by draft-ietf-ldup-subentry'
             </message>
 
             <call function="'addEntry'">
@@ -642,11 +642,11 @@
           </sequence>
         </testcase>
    
-        <!--- Test Case : Schema RFC Test 28 -->
-        <testcase name="'Schema: RFC Test 28'">
+        <!--- Test Case : Schema RFC Test draft-ietf-ldup-subentry -->
+        <testcase name="'Core: Schema: Draft IETF LDUP Subentry 3'">
           <sequence>
             <message>
-               'Schema RFC28: Add an entry that is covered by draft-ietf-ldup-subentry'
+               'Schema: Add an entry that is covered by draft-ietf-ldup-subentry'
             </message>
 
             <call function="'addEntry'">
@@ -665,11 +665,11 @@
           </sequence>
         </testcase>  
    
-        <!--- Test Case : Schema RFC Test 29 -->
-        <testcase name="'Schema: RFC Test 29'">
+        <!--- Test Case : Schema Disable Schema Checking -->
+        <testcase name="'Core: Schema: Disable Schema Checking'">
           <sequence>
             <message>
-               'Schema RFC29: Disable schema checking'
+               'Schema: Disable schema checking'
             </message>
             
             <call function="'modifyEntry'">
@@ -687,11 +687,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 30 -->
-        <testcase name="'Schema: RFC Test 30'">
+        <!--- Test Case : Schema: Enable Schema Checking' -->
+        <testcase name="'Core: Schema: Enable Schema Checking'">
           <sequence>
             <message>
-               'Schema RFC30: Enable schema checking'
+               'Schema: Enable Schema Checking'
             </message>
             
             <call function="'modifyEntry'">
@@ -709,11 +709,11 @@
           </sequence>
         </testcase>
                 
-        <!--- Test Case : Schema RFC Test 31 -->
-        <testcase name="'Schema: RFC Test 31'">
+        <!--- Test Case : Schema: Disable Syntax Checking -->
+        <testcase name="'Core: Schema: Disable Syntax Checking'">
           <sequence>
             <message>
-               'Schema RFC31: Disable schema checking'
+               'Schema: Disable syntax checking'
             </message>
             
             <call function="'modifyEntry'">
@@ -731,11 +731,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 32 -->
-        <testcase name="'Schema: RFC Test 32'">
+        <!--- Test Case : Schema: Disable Syntax Checking -->
+        <testcase name="'Core: Schema: Disable Syntax Checking'">
           <sequence>
             <message>
-               'Schema RFC32:  Enable schema checking'
+               'Schema:  Enable syntax checking'
             </message>
             
             <call function="'modifyEntry'">
@@ -753,11 +753,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 33 -->
-        <testcase name="'Schema: RFC Test 33'">
+        <!--- Test Case : Schema RFC Test draft-ietf-zeilenga-ldap-cosine -->
+        <testcase name="'Core: Schema: Draft IETF Zeilenga LDAP COSINE 1'">
           <sequence>
             <message>
-               'Schema RFC33: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
+               'Schema: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
             </message>
 
             <call function="'addEntry'">
@@ -775,11 +775,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 34 -->
-        <testcase name="'Schema: RFC Test 34'">
+        <!--- Test Case : Schema RFC Test draft-ietf-zeilenga-ldap-cosine -->
+        <testcase name="'Core: Schema: Draft IETF Zeilenga LDAP COSINE 2'">
           <sequence>
             <message>
-               'Schema RFC34: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
+               'Schema: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
             </message>
 
             <call function="'addEntry'">
@@ -797,11 +797,11 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema RFC Test 35 -->
-        <testcase name="'Schema: RFC Test 35'">
+        <!--- Test Case : Schema RFC Test draft-ietf-zeilenga-ldap-cosine -->
+        <testcase name="'Core: Schema: Draft IETF Zeilenga LDAP COSINE 3'">
           <sequence>
             <message>
-               'Schema RFC35: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
+               'Schema: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
             </message>
 
             <call function="'addEntry'">
@@ -820,10 +820,10 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Schema: RFC 2739 Add1 Test 36'">
+        <testcase name="'Core: Schema: RFC 2739'">
           <sequence>
             <message>
-               'Schema RFC36: Add an entry that is covered by rfc 2739'
+               'Schema: Add an entry that is covered by rfc 2739'
             </message>
 
             <call function="'addEntry'">
@@ -860,10 +860,10 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Schema: RFC 2714 Add1 Test 37'">
+        <testcase name="'Core: Schema: RFC 2714 1'">
           <sequence>
             <message>
-               'Schema RFC37: Add an entry that is covered by rfc 2714'
+               'Schema: Add an entry that is covered by rfc 2714'
             </message>
 
             <call function="'addEntry'">
@@ -882,10 +882,10 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Schema: RFC 2714 Add2 Test 38'">
+        <testcase name="'Core: Schema: RFC 2714 2'">
           <sequence>
             <message>
-               'Schema RFC38: Add an entry that is covered by rfc 2714'
+               'Schema: Add an entry that is covered by rfc 2714'
             </message>
 
             <call function="'addEntry'">
@@ -921,10 +921,10 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Schema: RFC 2713 Add1 Test 39'">
+        <testcase name="'Core: Schema: RFC 2713'">
           <sequence>
             <message>
-               'Schema RFC39: Add an entry that is covered by rfc 2713'
+               'Schema: Add an entry that is covered by rfc 2713'
             </message>
 
             <call function="'addEntry'">

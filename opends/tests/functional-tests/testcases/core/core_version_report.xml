@@ -40,7 +40,7 @@
         </call>
 
         <!--- Test Case : Version Report 1 -->
-        <testcase name="'Core: Version Report 1'">
+        <testcase name="'Core: Version Report: Search Version'">
           <sequence>
             <message>
                'Core VR1:  Check the response of OpenDS when an ldap search request is conducted for the current version of OpenDS '
