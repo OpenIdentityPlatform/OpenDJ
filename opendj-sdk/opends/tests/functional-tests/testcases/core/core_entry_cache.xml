@@ -39,8 +39,8 @@
             'noOfMilliSeconds' : 2000 }
         </call>
 
-        <!--- Test Case : Entry Cache 1 -->
-        <testcase name="'Core: Entry Cache 1'">
+        <!--- Test Case : Entry Cache: Default Search -->
+        <testcase name="'Core: Entry Cache: Default Search'">
           <sequence>
             <message>
                'Check the response of OpenDS when an ldap search request is conducted with a single pipe character ("|") for an existing entry'
@@ -64,8 +64,8 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Entry Cache 2 -->
-        <testcase name="'Core: Entry Cache 2'">
+        <!--- Test Case : Entry Cache: Enable Default -->
+        <testcase name="'Core: Entry Cache: Enable Default'">
           <sequence>
             <message>
                'Enable the default entry cache'
@@ -86,8 +86,8 @@
           </sequence>
         </testcase>
         
-                <!--- Test Case : Entry Cache 3 -->
-        <testcase name="'Core: Entry Cache 3'">
+        <!--- Test Case : Entry Cache: Add Attributes -->
+        <testcase name="'Core: Entry Cache: Add Attributes'">
           <sequence>
             <message>
                'Add three attributes to cn=Entry Cache,cn=config'
@@ -108,8 +108,8 @@
           </sequence>
         </testcase>
         
-                       <!--- Test Case : Entry Cache 4 -->
-        <testcase name="'Core: Entry Cache 4'">
+        <!--- Test Case : Entry Cache: Attribute Already Exists -->
+        <testcase name="'Core: Entry Cache: Attribute Already Exists'">
           <sequence>
             <message>
                'Add one attribute that is not allowed under cn=Entry Cache,cn=config'
@@ -129,9 +129,10 @@
                   'expected'   : 65 }
             </call>
           </sequence>
-        </testcase> 
-                               <!--- Test Case : Entry Cache 5 -->
-        <testcase name="'Core: Entry Cache 5'">
+        </testcase>
+         
+        <!--- Test Case : Entry Cache: FIFO Cache-->
+        <testcase name="'Core: Entry Cache: FIFO Cache'">
           <sequence>
             <message>
                'Add second entry cache which is an object of the ds-cfg-fifo-entry-cache class'
@@ -151,8 +152,9 @@
             </call>
           </sequence>
         </testcase>
-                                       <!--- Test Case : Entry Cache 6 -->
-        <testcase name="'Core: Entry Cache 6'">
+        
+        <!--- Test Case : Entry Cache: Search -->
+        <testcase name="'Core: Entry Cache: Cache Search'">
           <sequence>
             <message>
                'Check the response of OpenDS when an ldap search request is conducted'

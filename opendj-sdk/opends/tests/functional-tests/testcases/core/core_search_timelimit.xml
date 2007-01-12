@@ -39,8 +39,8 @@
             'noOfMilliSeconds' : 2000 }
         </call>
 
-        <!--- Test Case : Search Time Limit 1 -->
-        <testcase name="'Core: Search Time Limit 1'">
+        <!--- Test Case : Search Time Limit: Time Limit Exceeded -->
+        <testcase name="'Core: Search Time Limit: Time Limit Exceeded'">
           <sequence>
             <message>
                'Core STmL1: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined in the command line and the search time is exceeeded'
@@ -52,7 +52,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '-l 1' }
                 
             </call>
@@ -65,8 +65,8 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Search Time Limit 2 -->
-        <testcase name="'Core: Search Time Limit 2'">
+        <!--- Test Case : Search Time Limit: Time Limit Not Exceeded -->
+        <testcase name="'Core: Search Time Limit: Time Limit Not Exceeded'">
           <sequence>
             <message>
                'Core STmL2: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined in the command line and the search time is not exceeed'
@@ -78,7 +78,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '-l 100' }
                 
             </call>
@@ -90,8 +90,8 @@
           </sequence>
         </testcase>
         
-         <!--- Test Case : Search Time Limit 3 -->
-        <testcase name="'Core: Search Time Limit 3'">
+         <!--- Test Case : Search Time Limit: Server Wide Time Limit 1 -->
+        <testcase name="'Core: Search Time Limit: Server Wide Time Limit 1'">
           <sequence>
             <message>
                'Core STmL3: Change the server-wide search time limit to 1'
@@ -112,8 +112,8 @@
           </sequence>
         </testcase> 
       
-                <!--- Test Case : Search Time Limit 4 -->
-        <testcase name="'Core: Search Time Limit 4'">
+        <!--- Test Case : Search Time Limit: Server Wide Time Limit Exceeded -->
+        <testcase name="'Core: Search Time Limit: Server Wide Time Limit Exceeded'">
           <sequence>
             <message>
                'Core STmL4: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is exceeded'
@@ -123,7 +123,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
                 
             </call>
@@ -136,8 +136,8 @@
           </sequence>
         </testcase>
         
-                 <!--- Test Case : Search Time Limit 5 -->
-        <testcase name="'Core: Search Time Limit 5'">
+        <!--- Test Case : Search Time Limit: Server Wide Time Limit 60 -->
+        <testcase name="'Core: Search Time Limit: Server Wide Time Limit 60'">
           <sequence>
             <message>
                'Core STmL5: Change the server-wide search time limit to 60'
@@ -158,8 +158,8 @@
           </sequence>
         </testcase>
         
-                <!--- Test Case : Search Time Limit 6 -->
-        <testcase name="'Core: Search Time Limit 6'">
+        <!--- Test Case : Search Time Limit: Server Wide Time Limit Not Exceeded -->
+        <testcase name="'Core: Search Time Limit: Server Wide Time Limit Not Exceeded'">
           <sequence>
             <message>
                'Core STmL6: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is not exceeded'
@@ -169,7 +169,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
                 
             </call>
@@ -181,8 +181,8 @@
           </sequence>
         </testcase>
         
-                         <!--- Test Case : Search Time Limit 7 -->
-        <testcase name="'Core: Search Time Limit 7'">
+        <!--- Test Case : Search Time Limit: Directory Manager Time Limit 1 -->
+        <testcase name="'Core: Search Time Limit: Directory Manager Time Limit 1'">
           <sequence>
             <message>
                'Core STmL7: Change the search time limit for cn=Directory Manager to 1'
@@ -203,8 +203,8 @@
           </sequence>
         </testcase>
         
-                        <!--- Test Case : Search Time Limit 8 -->
-        <testcase name="'Core: Search Time Limit 8'">
+        <!--- Test Case : Search Time Limit: User Specific Time Limit Exceeded -->
+        <testcase name="'Core: Search Time Limit: User Specific Time Limit Exceeded'">
           <sequence>
             <message>
                'Core STmL8: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter, ds-rlim-time-limit, and the search time limit is exceeded'
@@ -216,7 +216,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
                 
             </call>
@@ -229,8 +229,8 @@
           </sequence>
         </testcase>
         
-                                <!--- Test Case : Search Time Limit 9 -->
-        <testcase name="'Core: Search Time Limit 9'">
+        <!--- Test Case : Search Time Limit: Time Limit Not Applicable -->
+        <testcase name="'Core: Search Time Limit: Time Limit Not Applicable'">
           <sequence>
             <message>
                'Core STmL9: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter, ds-rlim-time-limit, and the search is conducted as a bind to a different user'
@@ -240,7 +240,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
                 
             </call>
@@ -252,8 +252,8 @@
           </sequence>
         </testcase>
         
-                                 <!--- Test Case : Search Time Limit 10 -->
-        <testcase name="'Core: Search Time Limit 10'">
+        <!--- Test Case : Search Time Limit: Directory Manager Time Limit 60 -->
+        <testcase name="'Core: Search Time Limit: Directory Manager Time Limit 60'">
           <sequence>
             <message>
                'Core STmL10: Change the search time limit for cn=Directory Manager to 60'
@@ -274,8 +274,8 @@
           </sequence>
         </testcase>
         
-                                        <!--- Test Case : Search Time Limit 11 -->
-        <testcase name="'Core: Search Time Limit 11'">
+        <!--- Test Case : Search Time Limit: No Time Limit -->
+        <testcase name="'Core: Search Time Limit: No Time Limit'">
           <sequence>
             <message>
                'Core STmL11: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter ds-rlim-time-limit, equal to 60 and the search is conducted against 1150 entries'
@@ -287,7 +287,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
                 
             </call>

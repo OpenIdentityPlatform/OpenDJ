@@ -40,7 +40,7 @@
         </call>
 
           <!--- Test Case : Add required entries -->
-        <testcase name="'Schema: Add required entries'">
+        <testcase name="'Core: Schema: Add required entries'">
           <sequence>
             <message>
                'Add entries that are required for the Schema Tests'

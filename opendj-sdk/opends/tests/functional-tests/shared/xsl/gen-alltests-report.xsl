@@ -35,7 +35,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   
   <!--- Test Report Header Variables -->
   <xsl:variable name="identification"     select="qa/functional-tests/identification"/>
-  <xsl:variable name="testcase"     select="qa/functional-tests/results/testcase"/>
+  <xsl:variable name="testcase"     select="qa/functional-tests/results/testgroup/testsuite/testcase"/>
   <xsl:variable name="total-tests"  select="count($testcase)"/>
   <xsl:variable name="pass-tests"   select="count($testcase[@result='pass'])"/>
   <xsl:variable name="fail-tests"   select="count($testcase[@result='fail'])"/>
@@ -272,7 +272,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
       </xsl:element>
 
-    <xsl:for-each select="qa/functional-tests/results/testcase">
+    <xsl:for-each select="$testcase">
 
       <xsl:element name="tr">
         <xsl:attribute name="bgcolor">
