@@ -112,6 +112,8 @@ public class CoverageDiff extends Task {
 
   public void execute() throws BuildException
   {
+    long start = System.currentTimeMillis();
+    verboseOut("Starting to execute coveragediff.");
     if(emmaDataPath == null)
     {
       throw new BuildException("emmaDataPath attribute is not set. It must be set to the path of the EMMA data directory");
@@ -130,6 +132,7 @@ public class CoverageDiff extends Task {
     try
     {
         emmaDataView = loadEmmaData(emmaDataPath);
+        verboseOut("Loaded EMMA data.");
     }
     catch(IOException ie)
     {
@@ -146,6 +149,7 @@ public class CoverageDiff extends Task {
       System.out.println("ERROR: An error occured while processing diff output: " + ie.toString() + " Quitting...");
       return;
     }
+    System.out.println("Coverage diff completed in " + (System.currentTimeMillis() - start) + " ms.");
   }
 
 
@@ -167,22 +171,20 @@ public class CoverageDiff extends Task {
       throw new IOException("No EMMA data files found");
     }
 
-    if (verbose) System.out.println("processing input files ...");
+    verboseOut("processing input files ...");
 
-    final long start = verbose ? System.currentTimeMillis() : 0;
+    final long start = System.currentTimeMillis();
 
     // merge all data files:
 
     for (final File dataFile : emmaCoverageDataFiles) {
-      if (verbose)
-        System.out.println("processing input file [" + dataFile.getAbsolutePath() + "] ...");
+      verboseOut("processing input file [" + dataFile.getAbsolutePath() + "] ...");
 
       final IMergeable[] fileData = DataFactory.load(dataFile);
 
       final IMetaData _mdata = (IMetaData) fileData[DataFactory.TYPE_METADATA];
       if (_mdata != null) {
-        if (verbose)
-          System.out.println("  loaded " + _mdata.size() + " metadata entries");
+        verboseOut("  loaded " + _mdata.size() + " metadata entries");
 
         if (mdata == null)
           mdata = _mdata;
@@ -192,8 +194,7 @@ public class CoverageDiff extends Task {
 
       final ICoverageData _cdata = (ICoverageData) fileData[DataFactory.TYPE_COVERAGEDATA];
       if (_cdata != null) {
-        if (verbose)
-          System.out.println("  loaded " + _cdata.size() + " coverage data entries");
+        verboseOut("  loaded " + _cdata.size() + " coverage data entries");
 
         if (cdata == null)
           cdata = _cdata;
@@ -204,11 +205,7 @@ public class CoverageDiff extends Task {
       ++emmaCoverageDataFileCount;
     }
 
-    if (verbose) {
-      final long end = System.currentTimeMillis();
-
-      System.out.println(emmaCoverageDataFileCount + " file(s) read and merged in " + (end - start) + " ms");
-    }
+    verboseOut(emmaCoverageDataFileCount + " file(s) read and merged in " + (System.currentTimeMillis() - start) + " ms");
 
     if ((mdata == null) || mdata.isEmpty()) {
       System.out.println("nothing to do: no metadata found in any of the data files");
@@ -232,12 +229,8 @@ public class CoverageDiff extends Task {
     final IReportDataModel model = IReportDataModel.Factory.create (mdata, cdata);
     m_view = model.getView (IReportDataView.HIER_SRC_VIEW);
 
-    if (verbose)
-    {
-      System.out.println("  merged metadata contains " + mdata.size() + " entries");
-      System.out.println("  merged coverage data contains " + cdata.size() + " entries");
-
-    }
+    verboseOut("  merged metadata contains " + mdata.size() + " entries");
+    verboseOut("  merged coverage data contains " + cdata.size() + " entries");
 
     return m_view;
   }
@@ -246,21 +239,35 @@ public class CoverageDiff extends Task {
 
     StringBuilder svnExecCommand = new StringBuilder();
 
+    verboseOut("svnPath = " + svnPath);
     if(svnPath != null && svnPath.isAbsolute() && svnPath.isFile())
     {
       svnExecCommand.append(svnPath.getAbsolutePath());
     }
     else
     {
-      //Just hope its in the path
-      svnExecCommand.append("svn");
+      //Just hope its in the path.  On Windows, we need to look for svn.exe instead of just svn.
+      if (System.getProperty("os.name").toLowerCase().indexOf("windows") >= 0) {
+        svnExecCommand.append("svn.exe");
+      } else {
+        svnExecCommand.append("svn");
+      }
     }
 
     //First verify svn is in path
-    final Process checkChild = Runtime.getRuntime().exec(svnExecCommand + " --version");
-    
+    final Process checkChild = Runtime.getRuntime().exec(new String[]{svnExecCommand.toString(), "--version"});
+
+    verboseOut("Waiting for '" + svnExecCommand + " --version' to complete.");
+
     try
     {
+      // We have to consume the output of the process (at least on Windows).
+      BufferedReader reader =
+              new BufferedReader(new InputStreamReader(checkChild.getInputStream()));
+      while (reader.readLine() != null) {
+        // Skip over the output of the process
+      }
+
       checkChild.waitFor();
     }
     catch(InterruptedException ie)
@@ -268,12 +275,17 @@ public class CoverageDiff extends Task {
       throw new IOException("svn --version process interrupted");
     }
 
+    verboseOut("'" + svnExecCommand + " --version' has completed.");
+
     if(checkChild.exitValue() != 0)
     {
       throw new IOException("Error returned from SVN call");
     }
     checkChild.destroy();
 
+    List<String> cmdArray = new ArrayList<String>();
+    // TODO: ideally, this should build up a command arg array instead of a single string
+    // to guard against svn having spaces in the path.  But that isn't too likely
     svnExecCommand.append(" diff ");
 
     if(diffPath != null)
@@ -281,7 +293,7 @@ public class CoverageDiff extends Task {
       svnExecCommand.append(diffPath);
     }
 
-
+    verboseOut("About to execute " + svnExecCommand.toString());
     final Process child = Runtime.getRuntime().exec(svnExecCommand.toString());
     InputStream diffOutputStream = child.getInputStream();
     return new BufferedReader(new InputStreamReader(diffOutputStream));
@@ -306,7 +318,7 @@ public class CoverageDiff extends Task {
     HTMLDocument page = new HTMLDocument (title, ENCODING);
     page.addStyle (CSS);
 
-        String line = diffOutput.readLine();
+    String line = diffOutput.readLine();
     ArrayList<String> diffOutputFile = new ArrayList<String>();
 
     while(line != null)
@@ -660,7 +672,11 @@ public class CoverageDiff extends Task {
       final HTMLTable.ICell lineNumCell = srcRow.newCell();
       final HTMLTable.ICell lineTxtCell = srcRow.newCell();
 
-      lineTxtCell.setText(chunkLine.substring(1), true);
+      if (chunkLine.length() == 0) {
+        lineTxtCell.setText(" ", true);
+      } else {
+        lineTxtCell.setText(chunkLine.substring(1), true);
+      }
 
       //This line is either a modified line or a unchanged line
       if(!chunkLine.startsWith(otherCopyFlag))
@@ -917,5 +933,14 @@ public class CoverageDiff extends Task {
   private String toRelativePath(String file)
   {
     return file.substring(diffPath.toString().length()+1);
+  }
+
+  // How does this get enabled?
+  private void verboseOut(Object msg)
+  {
+    if (verbose)
+    {
+      System.out.println(msg.toString());
+    }
   }
 }
