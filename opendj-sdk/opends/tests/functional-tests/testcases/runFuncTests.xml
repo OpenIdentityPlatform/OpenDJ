@@ -79,7 +79,6 @@
         file="'%s/testcases/quickstart/quickstart.xml' % (TESTS_DIR)" />
       <call function="'main_quickstart'" />
 
-<!--
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/security/security.xml' % (TESTS_DIR)" />
       <call function="'main_security'" />
@@ -96,7 +95,6 @@
         file="'%s/testcases/schema/schema.xml' % (TESTS_DIR)" />
       <call function="'main_schema'" />
 
--->
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/cleanup/cleanup.xml' % (TESTS_DIR)" />
       <call function="'main_cleanup'" />
