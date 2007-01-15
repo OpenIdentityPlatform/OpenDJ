@@ -111,7 +111,7 @@ public class JmxConnectTest extends JmxTestCase
    * credentials are OK and refused when the credentials are invalid.
    *
    */
-  @Test(enabled = true, dataProvider="simpleConnect")
+  @Test(enabled = false, dataProvider="simpleConnect")
   public void simpleConnect(String user, String password,
       boolean expectedResult) throws Exception
   {
@@ -147,7 +147,7 @@ public class JmxConnectTest extends JmxTestCase
    * Test simple JMX get.
    *
    */
-  @Test(enabled = true, dataProvider="simpleGet")
+  @Test(enabled = false, dataProvider="simpleGet")
   public void simpleGet(String dn, String attributeName, Object value)
      throws Exception
   {
@@ -173,7 +173,7 @@ public class JmxConnectTest extends JmxTestCase
   /**
    * Test setting some config attribute through jmx.
    */
-  @Test(enabled = true)
+  @Test(enabled = false)
   public void simpleSet() throws Exception
   {
     OpendsJmxConnector connector = connect("cn=directory manager", "password",
@@ -208,7 +208,7 @@ public class JmxConnectTest extends JmxTestCase
    *
    * @throws Exception
    */
-  @Test(enabled = true)
+  @Test(enabled = false)
   public void disable() throws Exception
   {
     
@@ -277,7 +277,7 @@ public class JmxConnectTest extends JmxTestCase
    * Test changing JMX port through LDAP
    * @throws Exception
    */
-  @Test(enabled=true)
+  @Test(enabled=false)
   public void changePort() throws Exception
   {
     // Connect to the JMX service and get the current port
@@ -352,7 +352,7 @@ public class JmxConnectTest extends JmxTestCase
    * credentials are OK and refused when the credentials are invalid.
    *
    */
-  @Test(enabled=true)
+  @Test(enabled=false)
   public void sslConnect() throws Exception
   {
     // configure the JMX ssl key manager
