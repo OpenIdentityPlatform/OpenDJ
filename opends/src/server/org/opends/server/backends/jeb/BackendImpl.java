@@ -577,7 +577,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   {
     assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
-    return null;  //NYI
+    return new HashSet<String>();  //NYI
   }
 
 
