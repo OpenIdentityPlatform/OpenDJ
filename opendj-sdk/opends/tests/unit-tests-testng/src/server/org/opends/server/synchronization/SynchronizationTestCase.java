@@ -41,7 +41,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.synchronization.common.ServerState;
 import org.opends.server.synchronization.plugin.ChangelogBroker;
 import org.opends.server.synchronization.plugin.MultimasterSynchronization;
 import org.opends.server.synchronization.plugin.PersistentServerState;
@@ -53,7 +52,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
 /**
- * An abstract class that all synchronization unit test should extend.
+ * An abstract class that all synchronization unit test should extend. 
  */
 @Test(groups = { "precommit", "synchronization" })
 public abstract class SynchronizationTestCase extends DirectoryServerTestCase
@@ -92,7 +91,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
 
   /**
    * Set up the environment for performing the tests in this suite.
-   *
+   * 
    * @throws Exception
    *         If the environment could not be set up.
    */
@@ -101,23 +100,21 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
   {
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
-
+    
     // Create an internal connection
     connection = new InternalClientConnection();
   }
-
+  
   /**
    * Open a changelog session to the local Changelog server.
    *
    */
   protected ChangelogBroker openChangelogSession(
-      final DN baseDn, short serverId, int window_size,
-      int port, int timeout, boolean emptyOldChanges)
+      final DN baseDn, short serverId, int window_size, int port, int timeout)
           throws Exception, SocketException
   {
     PersistentServerState state = new PersistentServerState(baseDn);
-    if (emptyOldChanges)
-      state.loadState();
+    state.loadState();
     ChangelogBroker broker = new ChangelogBroker(
         state, baseDn, serverId, 0, 0, 0, 0, window_size);
     ArrayList<String> servers = new ArrayList<String>(1);
@@ -125,45 +122,22 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     broker.start(servers);
     if (timeout != 0)
       broker.setSoTimeout(timeout);
-    if (emptyOldChanges)
+    /*
+     * loop receiving update until there is nothing left
+     * to make sure that message from previous tests have been consumed.
+     */
+    try
     {
-      /*
-       * loop receiving update until there is nothing left
-       * to make sure that message from previous tests have been consumed.
-       */
-      try
+      while (true)
       {
-        while (true)
-        {
-          broker.receive();
-        }
+        broker.receive();
       }
-      catch (Exception e)
-      { }
     }
+    catch (Exception e)
+    { }
     return broker;
   }
   
-  /**
-   * Open a new session to the Changelog Server 
-   * starting with a given ServerState.
-   */
-  protected ChangelogBroker openChangelogSession(
-      final DN baseDn, short serverId, int window_size,
-      int port, int timeout, ServerState state)
-          throws Exception, SocketException
-  {
-    ChangelogBroker broker = new ChangelogBroker(
-        state, baseDn, serverId, 0, 0, 0, 0, window_size);
-    ArrayList<String> servers = new ArrayList<String>(1);
-    servers.add("localhost:" + port);
-    broker.start(servers);
-    if (timeout != 0)
-      broker.setSoTimeout(timeout);
-    
-    return broker;
-  }
-
   /**
    * suppress all the entries created by the tests in this class
    */
@@ -175,11 +149,11 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     {
       while (true)
       {
-        DN dn = entryList.removeLast();
+        DN dn = entryList.removeLast(); 
         op = new DeleteOperation(connection, InternalClientConnection
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,
             dn);
-
+       
         op.run();;
       }
     }
@@ -198,7 +172,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
   public void classCleanUp() throws Exception
   {
     DirectoryServer.setCheckSchema(schemaCheck);
-
+  
     // WORKAROUND FOR BUG #639 - BEGIN -
     if (mms != null)
     {
@@ -206,7 +180,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
       mms.finalizeSynchronizationProvider();
     }
     // WORKAROUND FOR BUG #639 - END -
-
+  
     cleanEntries();
   }
 
@@ -222,7 +196,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     assertNotNull(DirectoryServer.getConfigEntry(DN
         .decode(synchroPluginStringDN)),
         "Unable to add the Multimaster synchronization plugin");
-
+  
     // WORKAROUND FOR BUG #639 - BEGIN -
     DN dn = DN.decode(synchroPluginStringDN);
     ConfigEntry mmsConfigEntry = DirectoryServer.getConfigEntry(dn);
@@ -238,14 +212,14 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     }
     DirectoryServer.registerSynchronizationProvider(mms);
     // WORKAROUND FOR BUG #639 - END -
-
+  
     //
     // Add the changelog server
     DirectoryServer.getConfigHandler().addEntry(changeLogEntry, null);
     assertNotNull(DirectoryServer.getConfigEntry(changeLogEntry.getDN()),
         "Unable to add the changeLog server");
     entryList.add(changeLogEntry.getDN());
-
+  
     //
     // We also have a replicated suffix (synchronization domain)
     DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);

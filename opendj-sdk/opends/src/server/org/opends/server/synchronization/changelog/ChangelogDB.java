@@ -170,6 +170,10 @@ public class ChangelogDB
   public ChangelogCursor openReadCursor(ChangeNumber changeNumber)
                 throws DatabaseException, Exception
   {
+    if (changeNumber == null)
+      changeNumber = readFirstChange();
+    if (changeNumber == null)
+      return null;
     return new ChangelogCursor(changeNumber);
   }
 
@@ -315,16 +319,13 @@ public class ChangelogDB
     {
       cursor = db.openCursor(txn, null);
 
-      if (startingChangeNumber != null)
-      {
-        key = new ChangelogKey(startingChangeNumber);
-        data = new DatabaseEntry();
+      DatabaseEntry key = new ChangelogKey(startingChangeNumber);
+      DatabaseEntry data = new DatabaseEntry();
 
-        if (cursor.getSearchKey(key, data, LockMode.DEFAULT) !=
-          OperationStatus.SUCCESS)
-        {
-          throw new Exception("ChangeNumber not available");
-        }
+      if (cursor.getSearchKey(key, data, LockMode.DEFAULT) !=
+        OperationStatus.SUCCESS)
+      {
+        throw new Exception("ChangeNumber not available");
       }
     }
 
@@ -372,7 +373,7 @@ public class ChangelogDB
     }
 
     /**
-     * Get the next ChangeNumber in the database from this Cursor.
+     * Get the next ChangeNumber inthe database from this Cursor.
      *
      * @return The next ChangeNumber in the database from this cursor.
      * @throws DatabaseException In case of underlying database problem.
