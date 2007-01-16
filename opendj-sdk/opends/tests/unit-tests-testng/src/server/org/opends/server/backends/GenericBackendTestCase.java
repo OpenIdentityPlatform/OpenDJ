@@ -160,8 +160,7 @@ public class GenericBackendTestCase
   @Test(dataProvider = "backends")
   public void testGetSupportedFeatures(Backend b)
   {
-//    FIXME:  We can't currently check for not null due to issue #1104.
-//    assertNotNull(b.getSupportedFeatures());
+    assertNotNull(b.getSupportedFeatures());
     b.getSupportedFeatures();
   }
 
