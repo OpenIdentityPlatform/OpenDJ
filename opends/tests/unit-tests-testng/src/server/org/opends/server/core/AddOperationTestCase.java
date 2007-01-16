@@ -584,7 +584,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessRaw()
+  public void testInternalAddSuccessRaw()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -618,7 +618,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessProcessed()
+  public void testInternalAddSuccessProcessed()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -649,7 +649,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureMalformedDN()
+  public void testInternalAddFailureMalformedDN()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -682,7 +682,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureAlreadyExists()
+  public void testInternalAddFailureAlreadyExists()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -715,7 +715,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureNoSuchSuffix()
+  public void testInternalAddFailureNoSuchSuffix()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -748,7 +748,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureNoSuchSuffixParent()
+  public void testInternalAddFailureNoSuchSuffixParent()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -781,7 +781,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureNoSuchParent()
+  public void testInternalAddFailureNoSuchParent()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -887,7 +887,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureUndefinedObjectClass()
+  public void testInternalAddFailureUndefinedObjectClass()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -921,7 +921,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessfulWithOperationalAttribute()
+  public void testInternalAddSuccessfulWithOperationalAttribute()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -960,7 +960,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessfulDisjointAttribute()
+  public void testInternalAddSuccessfulDisjointAttribute()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1002,7 +1002,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessfulWithRawAttributeOptions()
+  public void testInternalAddSuccessfulWithRawAttributeOptions()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1044,7 +1044,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessfulWithRawAttributeOptionsOnlyOptions()
+  public void testInternalAddSuccessfulWithRawAttributeOptionsOnlyOptions()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1082,7 +1082,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessfulWithAttributeOptions()
+  public void testInternalAddSuccessfulWithAttributeOptions()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1123,7 +1123,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureRootDSE()
+  public void testInternalAddFailureRootDSE()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1156,7 +1156,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessfulWithMissingRDNAttributes()
+  public void testInternalAddSuccessfulWithMissingRDNAttributes()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1189,7 +1189,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureWithMissingRDNAttributes()
+  public void testInternalAddFailureWithMissingRDNAttributes()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1222,7 +1222,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessfulWithMissingParentObjectClass()
+  public void testInternalAddSuccessfulWithMissingParentObjectClass()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1274,7 +1274,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureNoObjectClasses()
+  public void testInternalAddFailureNoObjectClasses()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1302,7 +1302,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureOnlyAbstractObjectClass()
+  public void testInternalAddFailureOnlyAbstractObjectClass()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1331,7 +1331,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureNoStructuralObjectClass()
+  public void testInternalAddFailureNoStructuralObjectClass()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1361,7 +1361,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureMultipleStructuralObjectClasses()
+  public void testInternalAddFailureMultipleStructuralObjectClasses()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1393,7 +1393,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureMissingRequiredAttribute()
+  public void testInternalAddFailureMissingRequiredAttribute()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1428,7 +1428,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureMissingRequiredAttributeExtensibleObject()
+  public void testInternalAddFailureMissingRequiredAttributeExtensibleObject()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1464,7 +1464,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureDisallowedAttribute()
+  public void testInternalAddFailureDisallowedAttribute()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1502,7 +1502,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessfulDisallowedAttributeExtensibleObject()
+  public void testInternalAddSuccessfulDisallowedAttributeExtensibleObject()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1541,7 +1541,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureServerCompletelyReadOnly()
+  public void testInternalAddFailureServerCompletelyReadOnly()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1581,7 +1581,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessServerExternallyReadOnly()
+  public void testInternalAddSuccessServerExternallyReadOnly()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1690,7 +1690,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddFailureBackendCompletelyReadOnly()
+  public void testInternalAddFailureBackendCompletelyReadOnly()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1731,7 +1731,7 @@ public class AddOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testIntenalAddSuccessBackendExternallyReadOnly()
+  public void testInternalAddSuccessBackendExternallyReadOnly()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
