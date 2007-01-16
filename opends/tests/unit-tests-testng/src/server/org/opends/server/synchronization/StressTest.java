@@ -112,7 +112,7 @@ public class StressTest extends SynchronizationTestCase
     cleanEntries();
 
     ChangelogBroker broker =
-      openChangelogSession(baseDn, (short) 18, 100, 8989, 5000);
+      openChangelogSession(baseDn, (short) 18, 100, 8989, 5000, true);
     Monitor monitor = new Monitor("stress test monitor");
     DirectoryServer.registerMonitorProvider(monitor);
 
