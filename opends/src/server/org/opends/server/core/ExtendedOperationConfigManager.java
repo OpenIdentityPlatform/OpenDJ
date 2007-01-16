@@ -548,6 +548,27 @@ public class ExtendedOperationConfigManager
       }
 
 
+      // If the extended operation handler defines any supported controls and/or
+      // features, then register them with the server.
+      Set<String> controlOIDs = handler.getSupportedControls();
+      if (controlOIDs != null)
+      {
+        for (String oid : controlOIDs)
+        {
+          DirectoryServer.registerSupportedControl(oid);
+        }
+      }
+
+      Set<String> featureOIDs = handler.getSupportedFeatures();
+      if (featureOIDs != null)
+      {
+        for (String oid : featureOIDs)
+        {
+          DirectoryServer.registerSupportedFeature(oid);
+        }
+      }
+
+
       handlers.put(configEntryDN, handler);
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
