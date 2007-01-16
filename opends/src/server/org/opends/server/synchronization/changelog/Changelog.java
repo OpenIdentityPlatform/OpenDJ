@@ -418,7 +418,7 @@ public class Changelog implements Runnable, ConfigurableComponent
 
       ServerHandler handler = new ServerHandler(
                                       new SocketSession(socket), queueSize);
-     handler.start(baseDn, serverId, this.serverURL, rcvWindow, this);
+      handler.start(baseDn, serverId, serverURL, rcvWindow, this);
     }
     catch (IOException e)
     {
@@ -545,7 +545,6 @@ public class Changelog implements Runnable, ConfigurableComponent
     }
 
     dbEnv.shutdown();
-    DirectoryServer.deregisterConfigurableComponent(this);
   }
 
 

@@ -249,7 +249,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
      * This must use a serverId different from the LDAP server ID
      */
     ChangelogBroker broker =
-      openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
+      openChangelogSession(baseDn, (short) 2, 100, 8989, 1000);
 
     /*
      * Create a Change number generator to generate new changenumbers
@@ -562,7 +562,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     cleanEntries();
 
     ChangelogBroker broker =
-      openChangelogSession(baseDn, (short) 27, 100, 8989, 1000, true);
+      openChangelogSession(baseDn, (short) 27, 100, 8989, 1000);
     try {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
 
@@ -964,7 +964,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     Thread.sleep(2000);
     ChangelogBroker broker =
-      openChangelogSession(baseDn, (short) 11, 100, 8989, 1000, true);
+      openChangelogSession(baseDn, (short) 11, 100, 8989, 1000);
     try
     {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 11, 0);

@@ -81,7 +81,6 @@ public class DbHandler implements Runnable
   private boolean shutdown = false;
   private boolean done = false;
   private DirectoryThread thread = null;
-  private Object flushLock = new Object();
 
   /**
    * Creates a New dbHandler associated to a given LDAP server.
@@ -205,12 +204,6 @@ public class DbHandler implements Runnable
   public ChangelogIterator generateIterator(ChangeNumber changeNumber)
                            throws DatabaseException, Exception
   {
-    /*
-     * make sure to flush some changes in the database so that
-     * we don't create the iterator on an empty database when the
-     * dbHandler has just been started.
-     */
-    flush();
     return new ChangelogIterator(serverId, db, changeNumber);
   }
 
@@ -327,22 +320,17 @@ public class DbHandler implements Runnable
       while ((size < 5000 ) &&  (!finished))
       {
         ChangeNumber changeNumber = cursor.nextChangeNumber();
-        if (changeNumber != null)
+        if ((changeNumber != null) && (!changeNumber.equals(lastChange))
+            && (changeNumber.older(trimDate)))
         {
-          if ((!changeNumber.equals(lastChange))
-              && (changeNumber.older(trimDate)))
-          {
-            size++;
-            cursor.delete();
-          }
-          else
-          {
-            firstChange = changeNumber;
-            finished = true;
-          }
+          size++;
+          cursor.delete();
         }
         else
+        {
+          firstChange = changeNumber;
           finished = true;
+        }
       }
 
       cursor.close();
@@ -362,21 +350,19 @@ public class DbHandler implements Runnable
 
     do
     {
-      synchronized(flushLock)
-      {
-        // get N messages to save in the DB
-        List<UpdateMessage> changes = getChanges(500);
+      // get N messages to save in the DB
+      List<UpdateMessage> changes = getChanges(500);
 
-        // if no more changes to save exit immediately.
-        if ((changes == null) || ((size = changes.size()) == 0))
-          return;
+      // if no more changes to save exit immediately.
+      if ((changes == null) || ((size = changes.size()) == 0))
+        return;
 
-        // save the change to the stable storage.
-        db.addEntries(changes);
+      // save the change to the stable storage.
+      db.addEntries(changes);
 
-        // remove the changes from the list of changes to be saved.
-        clear(changes.size());
-      }
+      // remove the changes from the list of changes to be saved.
+      clear(changes.size());
+
     } while (size >=500);
   }
 
@@ -401,17 +387,19 @@ public class DbHandler implements Runnable
       attributes.add(new Attribute("changelog-database",
                                    String.valueOf(serverId)));
       attributes.add(new Attribute("base-dn", baseDn.toString()));
-      if (firstChange != null)
+      ChangeNumber first = getFirstChange();
+      ChangeNumber last = getLastChange();
+      if (first != null)
       {
-        Date firstTime = new Date(firstChange.getTime());
+        Date firstTime = new Date(first.getTime());
         attributes.add(new Attribute("first-change",
-            firstChange.toString() + " " + firstTime.toString()));
+            first.toString() + " " + firstTime.toString()));
       }
-      if (lastChange != null)
+      if (last != null)
       {
-        Date lastTime = new Date(lastChange.getTime());
+        Date lastTime = new Date(last.getTime());
         attributes.add(new Attribute("last-change",
-            lastChange.toString() + " " + lastTime.toString()));
+            last.toString() + " " + lastTime.toString()));
       }
 
       return attributes;

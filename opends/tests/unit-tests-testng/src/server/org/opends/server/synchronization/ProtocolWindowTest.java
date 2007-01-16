@@ -99,7 +99,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     ChangelogBroker broker = openChangelogSession(baseDn, (short) 13,
-        WINDOW_SIZE, 8989, 1000, true);
+        WINDOW_SIZE, 8989, 1000);
 
     try {
       

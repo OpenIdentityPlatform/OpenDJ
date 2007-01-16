@@ -118,18 +118,57 @@ public class PersistentServerState extends ServerState
       return;
 
     savedStatus = true;
-    ResultCode resultCode = updateStateEntry();
-    if (resultCode != ResultCode.SUCCESS)
+
+    ArrayList<ASN1OctetString> values = this.toASN1ArrayList();
+
+    if (values.size() == 0)
+      return;
+
+    LDAPAttribute attr =
+      new LDAPAttribute(SYNCHRONIZATION_STATE, values);
+    LDAPModification mod = new LDAPModification(ModificationType.REPLACE, attr);
+    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>(1);
+    mods.add(mod);
+
+    boolean done = false;
+    while (!done)
     {
-      if (resultCode == ResultCode.NO_SUCH_OBJECT)
+      /*
+       * Generate a modify operation on the Server State Entry :
+       * cn=ffffffff-ffffffff-ffffffff-ffffffff, baseDn
+       */
+      ModifyOperation op =
+        new ModifyOperation(conn, InternalClientConnection.nextOperationID(),
+            InternalClientConnection.nextMessageID(),
+            new ArrayList<Control>(0), serverStateAsn1Dn,
+            mods);
+      op.setInternalOperation(true);
+      op.setSynchronizationOperation(true);
+
+      op.run();
+      ResultCode resultCode = op.getResultCode();
+      if (resultCode != ResultCode.SUCCESS)
       {
-        createStateEntry();
+        if (resultCode == ResultCode.NO_SUCH_OBJECT)
+        {
+          createStateEntry();
+        }
+        else
+        {
+          savedStatus = false;
+          int msgID = MSGID_ERROR_UPDATING_RUV;
+          String message = getMessage(msgID,
+              op.getResultCode().getResultCodeName(),
+              op.toString(), op.getErrorMessage(),
+              baseDn.toString());
+          logError(ErrorLogCategory.SYNCHRONIZATION,
+              ErrorLogSeverity.SEVERE_ERROR,
+              message, msgID);
+          break;
+        }
       }
       else
-      {
-        savedStatus = false;
-
-      }
+        done = true;
     }
   }
 
@@ -255,51 +294,6 @@ public class PersistentServerState extends ServerState
           ErrorLogSeverity.SEVERE_ERROR,
           message, msgID);
     }
-  }
-
-  /**
-   * Save the current values of this PersistentState object
-   * in the appropiate entry of the database.
-   *
-   * @return a ResultCode indicating if the method was successfull.
-   */
-  private ResultCode updateStateEntry()
-  {
-    /*
-     * Generate a modify operation on the Server State Entry :
-     * cn=ffffffff-ffffffff-ffffffff-ffffffff, baseDn
-     */
-    ArrayList<ASN1OctetString> values = this.toASN1ArrayList();
-
-    if (values.size() == 0)
-      return ResultCode.SUCCESS;
-
-    LDAPAttribute attr =
-      new LDAPAttribute(SYNCHRONIZATION_STATE, values);
-    LDAPModification mod = new LDAPModification(ModificationType.REPLACE, attr);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>(1);
-    mods.add(mod);
-
-    ModifyOperation op =
-      new ModifyOperation(conn, InternalClientConnection.nextOperationID(),
-          InternalClientConnection.nextMessageID(),
-          new ArrayList<Control>(0), serverStateAsn1Dn,
-          mods);
-    op.setInternalOperation(true);
-    op.setSynchronizationOperation(true);
-
-    op.run();
-
-    ResultCode result = op.getResultCode();
-    if (result != ResultCode.SUCCESS)
-    {
-      int msgID = MSGID_ERROR_UPDATING_RUV;
-      String message = getMessage(msgID, op.getResultCode().getResultCodeName(),
-          op.toString(), op.getErrorMessage(), baseDn.toString());
-      logError(ErrorLogCategory.SYNCHRONIZATION, ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
-    }
-    return result;
   }
 
   /**
