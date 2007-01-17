@@ -722,4 +722,13 @@ public final class TestCaseUtils {
 
     return f.getAbsolutePath();
   }
+
+  /** Convenience method so we don't have to catch InterruptedException everywhere. */
+  public static void sleep(long ms) {
+    try {
+      Thread.sleep(ms);
+    } catch (InterruptedException e) {
+      // Ignore it.
+    }
+  }
 }

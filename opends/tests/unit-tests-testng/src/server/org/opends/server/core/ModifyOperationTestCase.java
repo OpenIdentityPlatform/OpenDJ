@@ -35,6 +35,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterMethod;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -69,6 +70,18 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 public class ModifyOperationTestCase
        extends OperationTestCase
 {
+
+  // Some of the tests disable the backends, so we reenable them here.
+  @AfterMethod(alwaysRun=true)
+  public void reenableBackend() throws DirectoryException {
+    Object[][] backendBaseDNs = getBaseDNs();
+    for (int i = 0; i < backendBaseDNs.length; i++) {
+      String backendBaseDN = backendBaseDNs[i][0].toString();
+      Backend b = DirectoryServer.getBackend(DN.decode(backendBaseDN));
+      b.setWritabilityMode(WritabilityMode.ENABLED);
+    }
+  }
+
   /**
    * Retrieves a set of modify operations that may be used for testing.
    *
@@ -279,7 +292,6 @@ public class ModifyOperationTestCase
 
   @DataProvider(name = "baseDNs")
   public Object[][] getBaseDNs()
-         throws Exception
   {
     return new Object[][] {
          { "dc=example,dc=com"},
@@ -3564,7 +3576,7 @@ public class ModifyOperationTestCase
     assertFalse(modifyResponse.getResultCode() == 0);
 
     assertEquals(ldapStatistics.getModifyRequests(), modifyRequests+1);
-    assertEquals(ldapStatistics.getModifyResponses(), modifyResponses+1);
+    waitForModifyResponsesStat(modifyResponses+1);
   }
 
 
@@ -3758,7 +3770,7 @@ public class ModifyOperationTestCase
     assertFalse(modifyResponse.getResultCode() == 0);
 
     assertEquals(ldapStatistics.getModifyRequests(), modifyRequests+1);
-    assertEquals(ldapStatistics.getModifyResponses(), modifyResponses+1);
+    waitForModifyResponsesStat(modifyResponses+1);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
   }
@@ -3957,7 +3969,7 @@ public class ModifyOperationTestCase
     assertFalse(modifyResponse.getResultCode() == 0);
 
     assertEquals(ldapStatistics.getModifyRequests(), modifyRequests+1);
-    assertEquals(ldapStatistics.getModifyResponses(), modifyResponses+1);
+    waitForModifyResponsesStat(modifyResponses+1);
 
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
@@ -4371,5 +4383,6 @@ responseLoop:
       s.close();
     } catch (Exception e) {}
   }
+
 }
 

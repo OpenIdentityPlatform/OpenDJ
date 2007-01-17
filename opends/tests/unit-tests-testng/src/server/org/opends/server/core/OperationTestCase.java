@@ -33,6 +33,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPStatistics;
@@ -432,6 +433,38 @@ public abstract class OperationTestCase
     {
       assertFalse(operation.getResponseControls().contains(c));
     }
+  }
+
+  /**
+   * Checking ldapStatistics.getModifyResponses() too soon can lead to
+   * problems since we can see the response before the statistic is
+   * incremented, so we're a little more forgiving.
+   */
+  protected void waitForModifyResponsesStat(long expectedValue)
+  {
+    for (int i = 0; i < 10; i++) {
+      if (ldapStatistics.getModifyResponses() == expectedValue) {
+        return;
+      }
+      TestCaseUtils.sleep(100);
+    }
+    assertEquals(ldapStatistics.getModifyResponses(), expectedValue);
+  }
+
+  /**
+   * Checking ldapStatistics.getAddResponses() too soon can lead to
+   * problems since we can see the response before the statistic is
+   * incremented, so we're a little more forgiving.
+   */
+  protected void waitForAddResponsesStat(long expectedValue)
+  {
+    for (int i = 0; i < 10; i++) {
+      if (ldapStatistics.getAddResponses() == expectedValue) {
+        return;
+      }
+      TestCaseUtils.sleep(100);
+    }
+    assertEquals(ldapStatistics.getAddResponses(), expectedValue);
   }
 }
 
