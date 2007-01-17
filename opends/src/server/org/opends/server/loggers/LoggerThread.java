@@ -97,7 +97,12 @@ public class LoggerThread extends DirectoryThread
       try
       {
         sleep(time);
-      } catch(Exception e)
+      }
+      catch(InterruptedException e)
+      {
+        // We expect this to happen.
+      }
+      catch(Exception e)
       {
         assert debugException(CLASS_NAME, "run", e);
       }

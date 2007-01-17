@@ -276,7 +276,7 @@ public class DoubleMetaphoneApproximateMatchingRule
           // neither an 'E' nor an 'I' except in "BACHER" and "MACHER".
           if ((pos > 1) &&
               (! isVowel(posMinusTwo = valueString.charAt(pos-2))) &&
-              hasSubstring(valueString, pos-1, pos+2, "ACH") &&
+              hasSubstring(valueString, pos-1, "ACH") &&
               ((posPlusTwo = valueString.charAt(pos+2)) != 'I') &&
               ((posPlusTwo != 'E') ||
                ((valueString.charAt(pos+3) == 'R') &&
@@ -289,7 +289,7 @@ public class DoubleMetaphoneApproximateMatchingRule
 
 
           // Check for a special case of "caesar", which will be maped to 'S'.
-          if ((pos == 0) && hasSubstring(valueString, pos+1, pos+5, "AESAR"))
+          if ((pos == 0) && hasSubstring(valueString, pos+1, "AESAR"))
           {
             metaphone.append("S");
             pos += 2;
@@ -301,7 +301,7 @@ public class DoubleMetaphoneApproximateMatchingRule
           if ((posPlusOne = valueString.charAt(pos+1)) == 'H')
           {
             // Check for "chia" as in "chianti" and map to 'K'.
-            if (hasSubstring(valueString, pos+2, pos+4, "IA"))
+            if (hasSubstring(valueString, pos+2, "IA"))
             {
               metaphone.append("K");
               pos += 2;
@@ -309,7 +309,7 @@ public class DoubleMetaphoneApproximateMatchingRule
             }
 
             // Check for "chae" as in "michael" and map to 'K'.
-            if (hasSubstring(valueString, pos+2, pos+4, "AE"))
+            if (hasSubstring(valueString, pos+2, "AE"))
             {
               metaphone.append("K");
               pos += 2;
@@ -318,13 +318,13 @@ public class DoubleMetaphoneApproximateMatchingRule
 
             // Check for a Greek root at the beginning of the value like
             // chemistry or chorus and map to 'K'.
-            if ((pos == 0) && (! hasSubstring(valueString, 2, 5, "ORE")) &&
-                (hasSubstring(valueString, 2, 6, "ARAC") ||
-                 hasSubstring(valueString, 2, 6, "ARIS") ||
-                 hasSubstring(valueString, 2, 4, "OR") ||
-                 hasSubstring(valueString, 2, 4, "YM") ||
-                 hasSubstring(valueString, 2, 4, "IA") ||
-                 hasSubstring(valueString, 2, 4, "EM")))
+            if ((pos == 0) && (! hasSubstring(valueString, 2, "ORE")) &&
+                (hasSubstring(valueString, 2, "ARAC") ||
+                 hasSubstring(valueString, 2, "ARIS") ||
+                 hasSubstring(valueString, 2, "OR") ||
+                 hasSubstring(valueString, 2, "YM") ||
+                 hasSubstring(valueString, 2, "IA") ||
+                 hasSubstring(valueString, 2, "EM")))
             {
               metaphone.append("K");
               pos += 2;
@@ -335,9 +335,9 @@ public class DoubleMetaphoneApproximateMatchingRule
             // Check for "CH" values that produce a "KH" sound that will be
             // mapped to 'K'.
             if (isGermanic(valueString) ||
-                hasSubstring(valueString, pos-2, pos+4, "ORCHES") ||
-                hasSubstring(valueString, pos-2, pos+4, "ARCHIT") ||
-                hasSubstring(valueString, pos-2, pos+4, "ORCHID") ||
+                hasSubstring(valueString, pos-2, "ORCHES") ||
+                hasSubstring(valueString, pos-2, "ARCHIT") ||
+                hasSubstring(valueString, pos-2, "ORCHID") ||
                 ((posPlusTwo = valueString.charAt(pos+2)) == 'T') ||
                 (posPlusTwo == 'S') ||
                 (((pos == 0) ||
@@ -359,7 +359,7 @@ public class DoubleMetaphoneApproximateMatchingRule
             // All other "CH" values.
             if (pos > 0)
             {
-              if (hasSubstring(valueString, 0, 2, "MC"))
+              if (hasSubstring(valueString, 0, "MC"))
               {
                 metaphone.append("K");
               }
@@ -380,7 +380,7 @@ public class DoubleMetaphoneApproximateMatchingRule
 
           // Check for "CZ" as in "czerny" but not "wicz" and map to 'S'.
           if ((posPlusOne == 'Z') &&
-              (! hasSubstring(valueString, pos-2, pos, "WI")))
+              (! hasSubstring(valueString, pos-2, "WI")))
           {
             metaphone.append("S");
             pos += 2;
@@ -406,8 +406,8 @@ public class DoubleMetaphoneApproximateMatchingRule
                 (! ((posPlusTwo == 'H') && valueString.charAt(pos+3) == 'U')))
             {
               if (((pos == 1) && (valueString.charAt(pos-1) == 'A')) ||
-                  hasSubstring(valueString, pos-1, pos+3, "UCCEE") ||
-                  hasSubstring(valueString, pos-1, pos+3, "UCCES"))
+                  hasSubstring(valueString, pos-1, "UCCEE") ||
+                  hasSubstring(valueString, pos-1, "UCCES"))
               {
                 // Values like "accident", "accede", and "succeed".
                 metaphone.append("K");
@@ -619,7 +619,7 @@ public class DoubleMetaphoneApproximateMatchingRule
             }
             else
             {
-              if ((! hasSubstring(valueString, pos+2, pos+4, "EY")) &&
+              if ((! hasSubstring(valueString, pos+2, "EY")) &&
                   (! isSlavoGermanic(valueString)))
               {
                 metaphone.append("N");
@@ -666,11 +666,11 @@ public class DoubleMetaphoneApproximateMatchingRule
               (posPlusOne == 'Y')) &&
               ((posMinusOne = valueString.charAt(pos-1)) != 'E') &&
               (posMinusOne != 'I') &&
-              (! hasSubstring(valueString, 0, 6, "DANGER")) &&
-              (! hasSubstring(valueString, 0, 6, "RANGER")) &&
-              (! hasSubstring(valueString, 0, 6, "MANGER")) &&
-              (! hasSubstring(valueString, pos-1, pos+2, "RGY")) &&
-              (! hasSubstring(valueString, pos-1, pos+2, "OGY")))
+              (! hasSubstring(valueString, 0, "DANGER")) &&
+              (! hasSubstring(valueString, 0, "RANGER")) &&
+              (! hasSubstring(valueString, 0, "MANGER")) &&
+              (! hasSubstring(valueString, pos-1, "RGY")) &&
+              (! hasSubstring(valueString, pos-1, "OGY")))
           {
             metaphone.append("K");
             pos += 2;
@@ -681,12 +681,12 @@ public class DoubleMetaphoneApproximateMatchingRule
           // Check for Italian uses like 'biaggi" and map to 'J'.
           if ((posPlusOne == 'E') || (posPlusOne == 'I') ||
               (posPlusOne == 'Y') ||
-              hasSubstring(valueString, pos-1, pos+3, "AGGI") ||
-              hasSubstring(valueString, pos-1, pos+3, "OGGI"))
+              hasSubstring(valueString, pos-1, "AGGI") ||
+              hasSubstring(valueString, pos-1, "OGGI"))
           {
             // Germanic uses will be mapped to 'K'.
             if (isGermanic(valueString) ||
-                hasSubstring(valueString, pos+1, pos+3, "ET"))
+                hasSubstring(valueString, pos+1, "ET"))
             {
               metaphone.append("K");
             }
@@ -732,14 +732,14 @@ public class DoubleMetaphoneApproximateMatchingRule
 
         case 'J':
           // Take care of obvious Spanish uses that should map to 'H'.
-          if (hasSubstring(valueString, 0, 4, "SAN "))
+          if (hasSubstring(valueString, 0, "SAN "))
           {
             metaphone.append("H");
             pos++;
             break;
           }
 
-          if (hasSubstring(valueString, pos, pos+4, "JOSE"))
+          if (hasSubstring(valueString, pos, "JOSE"))
           {
             if ((pos == 0) && (valueString.charAt(pos+4) == ' '))
             {
@@ -803,10 +803,10 @@ public class DoubleMetaphoneApproximateMatchingRule
           {
             pos++;
           }
-          else if (hasSubstring(valueString, pos-1, pos+2, "UMB"))
+          else if (hasSubstring(valueString, pos-1, "UMB"))
           {
             if (((pos+1) == last) ||
-                hasSubstring(valueString, pos+2, pos+4, "ER"))
+                hasSubstring(valueString, pos+2, "ER"))
             {
               pos++;
             }
@@ -868,9 +868,9 @@ public class DoubleMetaphoneApproximateMatchingRule
         case 'R':
           // Ignore R at the end of French words.
           if ((pos == last) && (! isSlavoGermanic(valueString)) &&
-              hasSubstring(valueString, pos-2, pos, "IE") &&
-              (! hasSubstring(valueString, pos-4, pos-2, "ME")) &&
-              (! hasSubstring(valueString, pos-4, pos-2, "MA")))
+              hasSubstring(valueString, pos-2, "IE") &&
+              (! hasSubstring(valueString, pos-4, "ME")) &&
+              (! hasSubstring(valueString, pos-4, "MA")))
           {
             pos++;
             break;
@@ -891,8 +891,8 @@ public class DoubleMetaphoneApproximateMatchingRule
 
         case 'S':
           // Special cases like isle and carlysle will be silent.
-          if (hasSubstring(valueString, pos-1, pos+2, "ISL") ||
-              hasSubstring(valueString, pos-1, pos+2, "YSL"))
+          if (hasSubstring(valueString, pos-1, "ISL") ||
+              hasSubstring(valueString, pos-1, "YSL"))
           {
             pos++;
             break;
@@ -900,7 +900,7 @@ public class DoubleMetaphoneApproximateMatchingRule
 
 
           // Special case of sugar mapped to 'X'.
-          if (hasSubstring(valueString, pos+1, pos+5, "UGAR"))
+          if (hasSubstring(valueString, pos+1, "UGAR"))
           {
             metaphone.append("X");
             pos++;
@@ -911,10 +911,10 @@ public class DoubleMetaphoneApproximateMatchingRule
           // SH is generally mapped to 'X', but not in Germanic cases.
           if ((posPlusOne = valueString.charAt(pos+1)) == 'H')
           {
-            if (hasSubstring(valueString, pos+1, pos+5, "HEIM") ||
-                hasSubstring(valueString, pos+1, pos+5, "HOEK") ||
-                hasSubstring(valueString, pos+1, pos+5, "HOLM") ||
-                hasSubstring(valueString, pos+1, pos+5, "HOLZ"))
+            if (hasSubstring(valueString, pos+1, "HEIM") ||
+                hasSubstring(valueString, pos+1, "HOEK") ||
+                hasSubstring(valueString, pos+1, "HOLM") ||
+                hasSubstring(valueString, pos+1, "HOLZ"))
             {
               metaphone.append("S");
             }
@@ -929,8 +929,8 @@ public class DoubleMetaphoneApproximateMatchingRule
 
 
           // Italian and Armenian cases will map to "S".
-          if (hasSubstring(valueString, pos+1, pos+3, "IO") ||
-              hasSubstring(valueString, pos+1, pos+3, "IA"))
+          if (hasSubstring(valueString, pos+1, "IO") ||
+              hasSubstring(valueString, pos+1, "IA"))
           {
             metaphone.append("S");
             pos += 3;
@@ -964,10 +964,10 @@ public class DoubleMetaphoneApproximateMatchingRule
           {
             if ((posPlusTwo = valueString.charAt(pos+2)) == 'H')
             {
-              if (hasSubstring(valueString, pos+3, pos+5, "OO") ||
-                  hasSubstring(valueString, pos+3, pos+5, "UY") ||
-                  hasSubstring(valueString, pos+3, pos+5, "ED") ||
-                  hasSubstring(valueString, pos+3, pos+5, "EM"))
+              if (hasSubstring(valueString, pos+3, "OO") ||
+                  hasSubstring(valueString, pos+3, "UY") ||
+                  hasSubstring(valueString, pos+3, "ED") ||
+                  hasSubstring(valueString, pos+3, "EM"))
               {
                 metaphone.append("SK");
               }
@@ -997,8 +997,8 @@ public class DoubleMetaphoneApproximateMatchingRule
           // Ignore a trailing S in French words.  All others will be mapped to
           // 'S'.
           if (! ((pos == last) &&
-                 (hasSubstring(valueString, pos-2, pos, "AI") ||
-                  hasSubstring(valueString, pos-2, pos, "OI"))))
+                 (hasSubstring(valueString, pos-2, "AI") ||
+                  hasSubstring(valueString, pos-2, "OI"))))
           {
             metaphone.append("S");
           }
@@ -1014,9 +1014,9 @@ public class DoubleMetaphoneApproximateMatchingRule
 
         case 'T':
           // "TION", "TIA", and "TCH" will be mapped to 'X'.
-          if (hasSubstring(valueString, pos, pos+4, "TION") ||
-              hasSubstring(valueString, pos, pos+3, "TIA") ||
-              hasSubstring(valueString, pos, pos+3, "TCH"))
+          if (hasSubstring(valueString, pos, "TION") ||
+              hasSubstring(valueString, pos, "TIA") ||
+              hasSubstring(valueString, pos, "TCH"))
           {
             metaphone.append("X");
             pos += 3;
@@ -1030,8 +1030,8 @@ public class DoubleMetaphoneApproximateMatchingRule
               ((posPlusOne == 'T') && (valueString.charAt(pos+2) == 'H')))
           {
             if (isGermanic(valueString) ||
-                hasSubstring(valueString, pos+2, pos+4, "OM") ||
-                hasSubstring(valueString, pos+2, pos+4, "AM"))
+                hasSubstring(valueString, pos+2, "OM") ||
+                hasSubstring(valueString, pos+2, "AM"))
             {
               metaphone.append("T");
             }
@@ -1092,8 +1092,8 @@ public class DoubleMetaphoneApproximateMatchingRule
 
 
           // A Polish value like WICZ or WITZ should be mapped to TS.
-          if (hasSubstring(valueString, pos+1, pos+4, "WICZ") ||
-              hasSubstring(valueString, pos+1, pos+4, "WITZ"))
+          if (hasSubstring(valueString, pos+1, "WICZ") ||
+              hasSubstring(valueString, pos+1, "WITZ"))
           {
             metaphone.append("TS");
             pos += 4;
@@ -1109,10 +1109,10 @@ public class DoubleMetaphoneApproximateMatchingRule
         case 'X':
           // X maps to KS except at the end of French words.
           if (! ((pos == last) &&
-                 (hasSubstring(valueString, pos-3, pos, "IAU") ||
-                  hasSubstring(valueString, pos-3, pos, "EAU") ||
-                  hasSubstring(valueString, pos-2, pos, "AU") ||
-                  hasSubstring(valueString, pos-2, pos, "OU"))))
+                 (hasSubstring(valueString, pos-3, "IAU") ||
+                  hasSubstring(valueString, pos-3, "EAU") ||
+                  hasSubstring(valueString, pos-2, "AU") ||
+                  hasSubstring(valueString, pos-2, "OU"))))
           {
             metaphone.append("KS");
           }
@@ -1206,24 +1206,35 @@ public class DoubleMetaphoneApproximateMatchingRule
    *                    determination.
    * @param  start      The position in the value at which to start the
    *                    comparison.
-   * @param  end        The position in the value at which to stop the
-   *                    comparison.  This character will not actually be
-   *                    compared against the provided substring.
    * @param  substring  The substring to compare against the specified value
    *                    range.
    *
    * @return  <CODE>true</CODE> if the specified portion of the value matches
    *          the given substring, or <CODE>false</CODE> if it does not.
    */
-  private boolean hasSubstring(String value, int start, int end,
+  private boolean hasSubstring(String value, int start,
                                String substring)
   {
     assert debugEnter(CLASS_NAME, "hasSubstring", String.valueOf(value),
-                      String.valueOf(start), String.valueOf(end),
+                      String.valueOf(start),
                       String.valueOf(substring));
 
     try
     {
+      // This can happen since a lot of the rules "look behind" and
+      // rightfully don't check if it's the first character
+      if (start < 0) {
+        return false;
+      }
+
+      int end = start + substring.length();
+
+      // value isn't big enough to do the comparison
+      if (end > value.length())
+      {
+        return false;
+      }
+
       for (int i=0,pos=start; pos < end; i++,pos++)
       {
         if (value.charAt(pos) != substring.charAt(i))

@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.Collection;
 
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -175,7 +176,7 @@ public class LDAPFilter
     {
       case AND:
       case OR:
-        List<SearchFilter> comps = filter.getFilterComponents();
+        Collection<SearchFilter> comps = filter.getFilterComponents();
         filterComponents = new ArrayList<LDAPFilter>(comps.size());
         for (SearchFilter f : comps)
         {

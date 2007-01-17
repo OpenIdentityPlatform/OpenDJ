@@ -787,7 +787,7 @@ public class Attribute
     ByteString normalizedValue;
     try
     {
-      normalizedValue = value.getNormalizedValue();
+      normalizedValue = matchingRule.normalizeValue(value.getValue());
     }
     catch (Exception e)
     {
@@ -803,7 +803,7 @@ public class Attribute
     {
       try
       {
-        ByteString nv = v.getNormalizedValue();
+        ByteString nv = matchingRule.normalizeValue(v.getValue());
         if (matchingRule.approximatelyMatch(nv, normalizedValue))
         {
           return ConditionResult.TRUE;

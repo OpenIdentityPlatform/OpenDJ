@@ -553,7 +553,8 @@ public class TraditionalWorkQueue
     }
     catch (InterruptedException ie)
     {
-      assert debugException(CLASS_NAME, "retryNextOperation", ie);
+      // This is somewhat expected so don't log.
+      //      assert debugException(CLASS_NAME, "retryNextOperation", ie);
 
       // If this occurs, then the worker thread must have been interrupted for
       // some reason.  This could be because the Directory Server is shutting
