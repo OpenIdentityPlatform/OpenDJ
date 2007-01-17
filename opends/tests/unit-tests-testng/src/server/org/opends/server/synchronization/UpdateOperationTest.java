@@ -31,8 +31,11 @@ import static org.opends.server.loggers.Error.logError;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.TestCaseUtils;
@@ -41,6 +44,7 @@ import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.synchronization.common.ChangeNumberGenerator;
 import org.opends.server.synchronization.plugin.ChangelogBroker;
+import org.opends.server.synchronization.plugin.Historical;
 import org.opends.server.synchronization.protocol.AddMsg;
 import org.opends.server.synchronization.protocol.DeleteMsg;
 import org.opends.server.synchronization.protocol.ModifyDNMsg;
@@ -52,6 +56,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
+import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -539,6 +544,99 @@ public class UpdateOperationTest extends SynchronizationTestCase
     // check that the delete operation has been applied
     assertNull(resultEntry,
         "The DELETE synchronization message was not replayed");
+
+    /*
+     * When replaying add operations it is possible that the parent entry has
+     * been renamed before and that another entry have taken the former dn of
+     * the parent entry. In such case the synchronization replay code should 
+     * detect that the parent has been renamed and should add the entry below
+     * the new dn of the parent (thus changing the original dn with which the 
+     * entry had been created)
+     *
+     * Steps
+     * - create parent entry 1 with baseDn1
+     * - create Add Msg for user1 with parent entry 1 UUID
+     * - MODDN parent entry 1 to baseDn2 in the LDAP server
+     * - add new parent entry 2 with baseDn1
+     * - publish msg
+     * - check that the Dn has been changed to baseDn2 in the msg received 
+     */
+
+    // - create parent entry 1 with baseDn1
+    String[] topEntries = new String[1];
+    topEntries[0] = "dn: ou=baseDn1,"+baseDn+"\n" + "objectClass: top\n"
+    + "objectClass: organizationalUnit\n"
+    + "entryUUID: 55555555-5555-5555-5555-555555555555\n";
+    Entry entry;
+    for (int i = 0; i < topEntries.length; i++)
+    {
+      entry = TestCaseUtils.entryFromLdifString(topEntries[i]);
+      AddOperation addOp = new AddOperation(connection,
+          InternalClientConnection.nextOperationID(), InternalClientConnection
+          .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
+          entry.getUserAttributes(), entry.getOperationalAttributes());
+      addOp.setInternalOperation(true);
+      addOp.run();
+      entryList.add(entry.getDN());
+    }
+    resultEntry = getEntry(
+        DN.decode("ou=baseDn1,"+baseDn), 10000, true);
+    assertNotNull(resultEntry,
+        "Entry not added: ou=baseDn1,"+baseDn);
+
+    // - create Add Msg for user1 with parent entry 1 UUID
+    addMsg = new AddMsg(gen.NewChangeNumber(),
+        "uid=new person,ou=baseDn1,"+baseDn,
+        user1entryUUID,
+        getEntryUUID(DN.decode("ou=baseDn1,"+baseDn)),
+        personWithUUIDEntry.getObjectClassAttribute(),
+        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+
+    // - MODDN parent entry 1 to baseDn2 in the LDAP server
+    ModifyDNOperation modDNOp = new ModifyDNOperation(connection,
+        InternalClientConnection.nextOperationID(), InternalClientConnection
+        .nextMessageID(), null, 
+        DN.decode("ou=baseDn1,"+baseDn),
+        RDN.decode("ou=baseDn2"), true, 
+        baseDn);
+    modDNOp.run();
+    entryList.add(DN.decode("ou=baseDn2,"+baseDn));
+
+    resultEntry = getEntry(
+        DN.decode("ou=baseDn2,"+baseDn), 10000, true);
+    assertNotNull(resultEntry,
+        "Entry not moved from ou=baseDn1,"+baseDn+" to ou=baseDn2,"+baseDn);
+
+    // - add new parent entry 2 with baseDn1
+    String p2 = new String("dn: ou=baseDn1,"+baseDn+"\n" + "objectClass: top\n"
+        + "objectClass: organizationalUnit\n"
+        + "entryUUID: 66666666-6666-6666-6666-666666666666\n");
+    entry = TestCaseUtils.entryFromLdifString(p2);
+    AddOperation addOp = new AddOperation(connection,
+        InternalClientConnection.nextOperationID(), InternalClientConnection
+        .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
+        entry.getUserAttributes(), entry.getOperationalAttributes());
+    addOp.setInternalOperation(true);
+    addOp.run();
+    entryList.add(entry.getDN());
+
+
+    // - publish msg
+    broker.publish(addMsg);
+
+    // - check that the Dn has been changed to baseDn2
+    resultEntry = getEntry(
+        DN.decode("uid=new person,ou=baseDn1,"+baseDn), 10000, true);
+    assertNull(resultEntry,
+        "The ADD synchronization message was applied under ou=baseDn1,"+baseDn);
+
+    resultEntry = getEntry(
+        DN.decode("uid=new person,ou=baseDn2,"+baseDn), 10000, true);
+    assertNotNull(resultEntry,
+        "The ADD synchronization message was NOT applied under ou=baseDn2,"+baseDn);
+    entryList.add(resultEntry.getDN());
+
+
     broker.stop();
   }
 
@@ -690,7 +788,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
        */
       Entry resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
       assertNotNull(resultEntry,
-      "The send ADD synchronization message was not applied");
+      "The send ADD synchronization message was not applied for "+personWithUUIDEntry.getDN().toString());
       entryList.add(resultEntry.getDN());
 
       /*
