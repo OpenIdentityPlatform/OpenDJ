@@ -532,6 +532,30 @@ public class SynchronizationDomain extends DirectoryThread
         addOperation.setResultCode(ResultCode.SUCCESS);
         return new SynchronizationProviderResult(false);
       }
+
+      /* The parent entry may have been renamed here since the change was done
+       * on the first server, and another entry have taken the former dn
+       * of the parent entry
+       */
+
+      // There is a potential of perfs improvement here
+      // if we could avoid the following parent entry retrieval
+      DN parentDnFromCtx = findEntryDN(ctx.getParentUid());
+
+      if (parentDnFromCtx != null)
+      {
+        DN entryDN = addOperation.getEntryDN();
+        DN parentDnFromEntryDn = entryDN.getParentDNInSuffix();
+        if ((parentDnFromEntryDn != null)
+            && (!parentDnFromCtx.equals(parentDnFromEntryDn)))
+        {
+          // parentEntry has been renamed
+          // Synchronization name conflict resolution is expected to fix that
+          // later in the flow
+          addOperation.setResultCode(ResultCode.NO_SUCH_OBJECT);
+          return new SynchronizationProviderResult(false);
+        }
+      }
     }
     return new SynchronizationProviderResult(true);
   }
@@ -1397,7 +1421,7 @@ public class SynchronizationDomain extends DirectoryThread
    * Solve a conflict detected when replaying a ADD operation.
    *
    * @param op The operation that triggered the conflict detection.
-   * @param msg The operation that triggered the conflict detection.
+   * @param msg The message that triggered the conflict detection.
    * @return true if the process is completed, false if it must continue.
    * @throws Exception When the operation is not valid.
    */
