@@ -1376,6 +1376,24 @@ public final class StaticUtils
   }
 
 
+  /**
+   * Return true if and only if o1 and o2 are both null or o1.equals(o2).
+   *
+   * @param o1 the first object to compare
+   * @param o2 the second object to compare
+   * @return true iff o1 and o2 are equal
+   */
+  public static boolean objectsAreEqual(Object o1, Object o2)
+  {
+    if (o1 == null)
+    {
+      return (o2 == null);
+    }
+    else
+    {
+      return o1.equals(o2);
+    }
+  }
 
   /**
    * Retrieves a stack trace from the provided exception as a single-line
@@ -3113,7 +3131,6 @@ public final class StaticUtils
 
     return stringList;
   }
-
 
 
   /**

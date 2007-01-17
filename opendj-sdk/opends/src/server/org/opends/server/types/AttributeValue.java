@@ -347,7 +347,14 @@ public class AttributeValue
     {
       if (attributeType == null)
       {
-        return normalizedValue.hashCode();
+        if (normalizedValue != null)
+        {
+          return normalizedValue.hashCode();
+        }
+        else
+        {
+          return value.hashCode();
+        }
       }
       else
       {

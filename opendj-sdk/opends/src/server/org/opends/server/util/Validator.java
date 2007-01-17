@@ -65,7 +65,7 @@ import org.opends.server.messages.UtilityMessages;
  * happens before the method is invoked cannot be eliminated, e.g.
  * <code>Validator.ensureTrue(someExpensiveCheck())</code> will always invoke
  * <code>someExpensiveCheck()</code>.  When this code is on the critical path,
- * and we do not expect the validation to failure, you can guard the call with
+ * and we do not expect the validation to fail, you can guard the call with
  * an <code>assert</code> because each method returns true, and this code will
  * only be executed when asserts are enabled.
  * <p>

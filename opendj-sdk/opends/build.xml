@@ -32,8 +32,6 @@
   </description>
 
 
-
-
   <!-- General server-wide properties                               -->
   <property name="src.dir"        location="src/server"              />
   <property name="build.dir"      location="build"                   />
@@ -120,10 +118,8 @@
   <property name="dynconstants.stubfile"
         location="${resource.dir}/DynamicConstants.java.stubs" />
 
+
   <property file="PRODUCT"                                                />
-
-
-
 
   <!-- Create a package bundle containing the DSML library. -->
   <target name="dsml" depends="predsml,package"
@@ -807,6 +803,12 @@
       </not>
     </condition>
 
+    <condition property="test.diff.verbose" value="false">
+      <not>
+        <isset property="test.diff.verbose" />
+      </not>
+    </condition>
+
     <condition property="test.diff.enabled" value="false">
       <isset property="test.diff.disable" />
     </condition>
@@ -827,7 +829,8 @@
                   outputpath="${cvgdiff.report.dir}"
                   diffpath="${basedir}/${test.diff.srcpath}"
                   svnpath="${test.diff.svnpath}" 
-                  enabled="${test.diff.enabled}" />
+                  enabled="${test.diff.enabled}"
+                  verbose="${test.diff.verbose}" />
 
   </target> 
 
@@ -837,39 +840,37 @@
   </target>
 
   <!-- Execute Directory Server TestNG unit tests specified from CLI -->
-  <target name="testcustom"
-          description="Execute the Directory Server TestNG unit tests specified from CLI.">
+  <target name="testcustom">
     <echo message="This target is deprecated. Please use the test target as it now supports the test.* properties." /> 
   </target>
 
   <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
   <target name="testall"
           depends="enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
-          description="Run all of the TestNG tests.">
+          description="Run all of the TestNG tests with assertions enabled.  See 'testwithcoverage' for properties you can set.">
   </target>
 
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
           depends="testinit,runtests"
-          description="Execute the Directory Server TestNG unit tests in text mode.">
+          description="Execute the Directory Server TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=true' to suppress output from the unit tests.">
   </target>
 
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report. -->
   <target name="testwithcoverage"
           depends="coverage,test,coveragediff"
-          description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.">
+          description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.  Use -Dtest.packages, -Dtest.classes, or -Dtest.methods to control which unit tests are run.  Use -Dtest.diff.srcpath to control which src files show up in the coverage diff.  See the 'test' package for other properties you can set.">
   </target>
 
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report and slow tests. -->
   <target name="testallwithcoverage"
           depends="coverage,testall,coveragediff"
-          description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.">
+          description="The same as 'testwithcoverage' except 'testall' is run instead of 'test'.">
   </target>
 
   <!-- Execute the Directory Server TestNG unit tests specified from CLI in text mode with a coverage report. -->
-  <target name="testcustomwithcoverage"
-          description="Execute the Directory Server TestNG unit tests specified from CLI in text mode with a coverage report.">
+  <target name="testcustomwithcoverage">
     <echo message="This target is deprecated. Please use the testwithcoverage target as it now supports the test.* properties." />
   </target>
 

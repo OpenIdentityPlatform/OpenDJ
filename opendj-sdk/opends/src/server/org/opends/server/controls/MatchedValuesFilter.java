@@ -1844,9 +1844,12 @@ public class MatchedValuesFilter
         {
           try
           {
-            return approximateMatchingRule.approximatelyMatch(
-                        assertionValue.getNormalizedValue(),
-                        value.getNormalizedValue());
+            ByteString nv1 =  approximateMatchingRule.normalizeValue(
+                    assertionValue.getNormalizedValue());
+            ByteString nv2 =  approximateMatchingRule.normalizeValue(
+                    value.getNormalizedValue());
+
+            return approximateMatchingRule.approximatelyMatch(nv1, nv2);
           }
           catch (Exception e)
           {

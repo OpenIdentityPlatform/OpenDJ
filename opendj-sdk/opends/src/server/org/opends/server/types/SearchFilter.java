@@ -34,6 +34,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.Collection;
+import java.util.Collections;
 
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -64,38 +67,38 @@ public class SearchFilter
 
 
   // The attribute type for this filter.
-  private AttributeType attributeType;
+  private final AttributeType attributeType;
 
   // The assertion value for this filter.
-  private AttributeValue assertionValue;
+  private final AttributeValue assertionValue;
 
   // Indicates whether to match on DN attributes for extensible match
   // filters.
-  private boolean dnAttributes;
+  private final boolean dnAttributes;
 
   // The subFinal element for substring filters.
-  private ByteString subFinalElement;
+  private final ByteString subFinalElement;
 
   // The subInitial element for substring filters.
-  private ByteString subInitialElement;
+  private final ByteString subInitialElement;
 
   // The search filter type for this filter.
-  private FilterType filterType;
+  private final FilterType filterType;
 
   // The set of subAny components for substring filters.
-  private List<ByteString> subAnyElements;
+  private final List<ByteString> subAnyElements;
 
   // The set of filter components for AND and OR filters.
-  private List<SearchFilter> filterComponents;
+  private final LinkedHashSet<SearchFilter> filterComponents;
 
   // The not filter component for this search filter.
-  private SearchFilter notComponent;
+  private final SearchFilter notComponent;
 
   // The set of options for the attribute type in this filter.
-  private Set<String> attributeOptions;
+  private final Set<String> attributeOptions;
 
   // The matching rule ID for this search filter.
-  private String matchingRuleID;
+  private final String matchingRuleID;
 
 
 
@@ -122,9 +125,11 @@ public class SearchFilter
    * @param  dnAttributes       Indicates whether to match on DN
    *                            attributes for extensible match
    *                            filters.
+   *
+   * FIXME: this should be private.
    */
   public SearchFilter(FilterType filterType,
-                      List<SearchFilter> filterComponents,
+                      Collection<SearchFilter> filterComponents,
                       SearchFilter notComponent,
                       AttributeType attributeType,
                       Set<String> attributeOptions,
@@ -150,9 +155,21 @@ public class SearchFilter
                               String.valueOf(dnAttributes)
                             });
 
+    // This used to happen in getSubAnyElements, but we do it here
+    // so that we can make this.subAnyElements final.
+    if (subAnyElements == null) {
+      subAnyElements = new ArrayList<ByteString>(0);
+    }
+
+    // This used to happen in getFilterComponents, but we do it here
+    // so that we can make this.filterComponents final.
+    if (filterComponents == null) {
+      filterComponents = Collections.emptyList();
+    }
 
     this.filterType        = filterType;
-    this.filterComponents  = filterComponents;
+    this.filterComponents  =
+            new LinkedHashSet<SearchFilter>(filterComponents);
     this.notComponent      = notComponent;
     this.attributeType     = attributeType;
     this.attributeOptions  = attributeOptions;
@@ -163,7 +180,6 @@ public class SearchFilter
     this.matchingRuleID    = matchingRuleID;
     this.dnAttributes      = dnAttributes;
   }
-
 
 
   /**
@@ -2185,18 +2201,13 @@ public class SearchFilter
 
   /**
    * Retrieves the set of filter components for this AND or OR filter.
-   * The returned list may be modified by the caller.
+   * The returned list can be modified by the caller.
    *
    * @return  The set of filter components for this AND or OR filter.
    */
-  public List<SearchFilter> getFilterComponents()
+  public Set<SearchFilter> getFilterComponents()
   {
     assert debugEnter(CLASS_NAME, "getFilterComponents");
-
-    if (filterComponents == null)
-    {
-      filterComponents = new ArrayList<SearchFilter>(0);
-    }
 
     return filterComponents;
   }
@@ -2234,21 +2245,6 @@ public class SearchFilter
 
 
   /**
-   * Specifies the attribute type for this filter.
-   *
-   * @param  attributeType  The attribute type for this filter.
-   */
-  public void setAttributeType(AttributeType attributeType)
-  {
-    assert debugEnter(CLASS_NAME, "setAttributeType",
-                      String.valueOf(attributeType));
-
-    this.attributeType = attributeType;
-  }
-
-
-
-  /**
    * Retrieves the assertion value for this filter.
    *
    * @return  The assertion value for this filter, or
@@ -2259,21 +2255,6 @@ public class SearchFilter
     assert debugEnter(CLASS_NAME, "getAssertionValue");
 
     return assertionValue;
-  }
-
-
-
-  /**
-   * Specifies the assertion value for this filter.
-   *
-   * @param  assertionValue  The assertion value for this filter.
-   */
-  public void setAssertionValue(AttributeValue assertionValue)
-  {
-    assert debugEnter(CLASS_NAME, "setAssertionValue",
-                      String.valueOf(assertionValue));
-
-    this.assertionValue = assertionValue;
   }
 
 
@@ -2294,22 +2275,6 @@ public class SearchFilter
 
 
   /**
-   * Specifies the subInitial element for this substring filter.
-   *
-   * @param  subInitialElement  The subInitial element for this
-   *                            substring filter.
-   */
-  public void setSubInitialElement(ByteString subInitialElement)
-  {
-    assert debugEnter(CLASS_NAME, "setSubInitialElement",
-                      String.valueOf(subInitialElement));
-
-    this.subInitialElement = subInitialElement;
-  }
-
-
-
-  /**
    * Retrieves the set of subAny elements for this substring filter.
    * The returned list may be altered by the caller.
    *
@@ -2318,11 +2283,6 @@ public class SearchFilter
   public List<ByteString> getSubAnyElements()
   {
     assert debugEnter(CLASS_NAME, "getSubAnyElements");
-
-    if (subAnyElements == null)
-    {
-      subAnyElements = new ArrayList<ByteString>(0);
-    }
 
     return subAnyElements;
   }
@@ -2344,22 +2304,6 @@ public class SearchFilter
 
 
   /**
-   * Specifies the subFinal element for this substring filter.
-   *
-   * @param  subFinalElement  The subFinal element for this substring
-   *                          filter.
-   */
-  public void setSubFinalElement(ByteString subFinalElement)
-  {
-    assert debugEnter(CLASS_NAME, "setSubFinalElement",
-                      String.valueOf(subFinalElement));
-
-    this.subFinalElement = subFinalElement;
-  }
-
-
-
-  /**
    * Retrieves the matching rule ID for this extensible matching
    * filter.
    *
@@ -2376,23 +2320,6 @@ public class SearchFilter
 
 
   /**
-   * Specifies the matching rule ID for this extensible matching
-   * filter.
-   *
-   * @param  matchingRuleID  The matching rule ID for this extensible
-   *                         matching filter.
-   */
-  public void setMatchingRuleID(String matchingRuleID)
-  {
-    assert debugEnter(CLASS_NAME, "setMatchingRuleID",
-                      String.valueOf(matchingRuleID));
-
-    this.matchingRuleID = matchingRuleID;
-  }
-
-
-
-  /**
    * Retrieves the dnAttributes flag for this extensible matching
    * filter.
    *
@@ -2404,23 +2331,6 @@ public class SearchFilter
     assert debugEnter(CLASS_NAME, "getDNAttributes");
 
     return dnAttributes;
-  }
-
-
-
-  /**
-   * Specifies the value of the dnAttributes flag for this extensible
-   * matching filter.
-   *
-   * @param  dnAttributes  The value of the dnAttributes flag for this
-   *                       extensible matching filter.
-   */
-  public void setDNAttributes(boolean dnAttributes)
-  {
-    assert debugEnter(CLASS_NAME, "setDNAttributes",
-                      String.valueOf(dnAttributes));
-
-    this.dnAttributes = dnAttributes;
   }
 
 
@@ -3619,7 +3529,6 @@ public class SearchFilter
   }
 
 
-
   /**
    * Indicates whether this search filter is equal to the provided
    * object.
@@ -3721,18 +3630,12 @@ outerComponentLoop:
           return false;
         }
 
-outerSubAnyLoop:
-        for (ByteString outer : subAnyElements)
-        {
-          for (ByteString inner : f.subAnyElements)
-          {
-            if (outer.equals(inner))
-            {
-              continue outerSubAnyLoop;
-            }
+        for (int i = 0; i < subAnyElements.size(); i++) {
+          ByteString sub1 = subAnyElements.get(i);
+          ByteString sub2 = f.subAnyElements.get(i);
+          if (!sub1.equals(sub2)) {
+            return false;
           }
-
-          return false;
         }
 
         return true;
@@ -3803,7 +3706,6 @@ outerSubAnyLoop:
         return false;
     }
   }
-
 
 
   /**

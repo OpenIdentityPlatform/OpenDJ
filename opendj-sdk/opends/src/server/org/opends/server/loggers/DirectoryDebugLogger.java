@@ -481,7 +481,7 @@ public class DirectoryDebugLogger extends DebugLogger
     {
       StringBuilder buffer = new StringBuilder();
       buffer.append("classname=").append(className).
-        append(" methodname=").append(methodName).append(' ').
+        append(" methodname=").append(methodName).append("\n").
         append( StaticUtils.stackTraceToString(exception));
 
       debugLogger.log(DirectoryLogLevel.ERROR, buffer.toString());
