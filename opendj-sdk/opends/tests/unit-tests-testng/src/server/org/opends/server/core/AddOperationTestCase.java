@@ -35,6 +35,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterMethod;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -64,6 +65,7 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.WritabilityMode;
+import org.opends.server.types.DirectoryException;
 
 import static org.testng.Assert.*;
 
@@ -78,6 +80,14 @@ import static org.opends.server.util.ServerConstants.*;
 public class AddOperationTestCase
        extends OperationTestCase
 {
+
+  // Some of the tests disable the backends, so we reenable them here.
+  @AfterMethod(alwaysRun=true)
+  public void reenableBackend() throws DirectoryException {
+    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    b.setWritabilityMode(WritabilityMode.ENABLED);
+  }
+
   /**
    * Retrieves a set of add operations that may be used for testing.
    *
@@ -870,7 +880,7 @@ public class AddOperationTestCase
     assertFalse(addResponse.getResultCode() == 0);
 
     assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
-    assertEquals(ldapStatistics.getAddResponses(), addResponses+1);
+    waitForAddResponsesStat(addResponses+1);
 
     try
     {
@@ -1671,7 +1681,7 @@ public class AddOperationTestCase
     assertFalse(addResponse.getResultCode() == 0);
 
     assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
-    assertEquals(ldapStatistics.getAddResponses(), addResponses+1);
+    waitForAddResponsesStat(addResponses+1);
 
     try
     {
@@ -1823,7 +1833,7 @@ public class AddOperationTestCase
     assertFalse(addResponse.getResultCode() == 0);
 
     assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
-    assertEquals(ldapStatistics.getAddResponses(), addResponses+1);
+    waitForAddResponsesStat(addResponses+1);
 
     try
     {
