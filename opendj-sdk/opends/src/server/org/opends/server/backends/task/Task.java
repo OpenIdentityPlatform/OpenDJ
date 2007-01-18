@@ -57,6 +57,7 @@ import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import org.opends.server.messages.MessageHandler;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -786,14 +787,84 @@ public abstract class Task
     return logMessages;
   }
 
+  /**
+   * Writes a message to the error log using the provided information.
+   * Tasks should use this method to log messages to the error log instead of
+   * the one in <code>org.opends.server.loggers.Error</code> to ensure the
+   * messages are included in the ds-task-log-message attribute.
+   *
+   * @param  category  The category that may be used to determine whether to
+   *                   actually log this message.
+   * @param  severity  The severity that may be used to determine whether to
+   *                   actually log this message.
+   * @param  errorID   The error ID that uniquely identifies the provided format
+   *                   string.
+   */
+  protected void logError(ErrorLogCategory category,
+                              ErrorLogSeverity severity, int errorID)
+  {
+    String message = MessageHandler.getMessage(errorID);
 
+    addLogMessage(severity, errorID, message);
+    org.opends.server.loggers.Error.logError(category, severity, errorID);
+  }
+
+
+
+  /**
+   * Writes a message to the error log using the provided information.
+   * Tasks should use this method to log messages to the error log instead of
+   * the one in <code>org.opends.server.loggers.Error</code> to ensure the
+   * messages are included in the ds-task-log-message attribute.
+   *
+   * @param  category  The category that may be used to determine whether to
+   *                   actually log this message.
+   * @param  severity  The severity that may be used to determine whether to
+   *                   actually log this message.
+   * @param  errorID   The error ID that uniquely identifies the provided format
+   *                   string.
+   * @param  args      The set of arguments to use for the provided format
+   *                   string.
+   */
+  protected void logError(ErrorLogCategory category,
+                              ErrorLogSeverity severity, int errorID,
+                              Object... args)
+  {
+    String message = MessageHandler.getMessage(errorID);
+
+    addLogMessage(severity, errorID, message);
+    org.opends.server.loggers.Error.logError(category, severity, errorID, args);
+  }
+
+
+
+  /**
+   * Writes a message to the error log using the provided information.
+   * Tasks should use this method to log messages to the error log instead of
+   * the one in <code>org.opends.server.loggers.Error</code> to ensure the
+   * messages are included in the ds-task-log-message attribute.
+   *
+   * @param  category  The category that may be used to determine whether to
+   *                   actually log this message.
+   * @param  severity  The severity that may be used to determine whether to
+   *                   actually log this message.
+   * @param  message   The message to be logged.
+   * @param  errorID   The error ID that uniquely identifies the format string
+   *                   used to generate the provided message.
+   */
+  protected void logError(ErrorLogCategory category,
+                              ErrorLogSeverity severity, String message,
+                              int errorID)
+  {
+    addLogMessage(severity, errorID, message);
+    org.opends.server.loggers.Error.logError(category, severity, message,
+        errorID);
+  }
 
   /**
    * Adds a log message to the set of messages logged by this task.  This method
    * should not be called directly by tasks, but rather will be called
-   * indirectly through a specialized task logger.  If a task needs to log a
-   * message, then it should use one of the <CODE>logError</CODE> methods in
-   * the <CODE>org.opends.server.loggers.Error</CODE> class.    It does not
+   * indirectly through the logError methods in this class. It does not
    * automatically persist the updated task information to disk.
    *
    * @param  severity       The severity level for the log message.
