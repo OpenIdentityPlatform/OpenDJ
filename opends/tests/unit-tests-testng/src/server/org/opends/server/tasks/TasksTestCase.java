@@ -147,10 +147,10 @@ public class TasksTestCase extends DirectoryServerTestCase {
     resultEntry.getAttributeValues(logMessagesType,
                                    DirectoryStringSyntax.DECODER,
                                    logMessages);
-    if (logMessages.size() == 0)
+    if (taskState != TaskState.COMPLETED_SUCCESSFULLY &&
+        logMessages.size() == 0)
     {
-      // NYI see issue 647.
-//      fail("No log messages were written to the task entry");
+      fail("No log messages were written to the task entry on a failed task");
     }
   }
 
