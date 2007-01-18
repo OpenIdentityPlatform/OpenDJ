@@ -923,8 +923,8 @@
       <jvmarg value="-Demma.coverage.out.merge=false" />
       <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}" />
       <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
-      <jvmarg value="-Xmx${MEM}" />
       <jvmarg value="-Xms${MEM}" />
+      <jvmarg value="-Xmx256M" />
       <xmlfileset dir="${unittest.resource.dir}" includes="testng.xml" />
     </testng>
 
