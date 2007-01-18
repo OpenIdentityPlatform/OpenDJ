@@ -431,6 +431,13 @@ public class SynchronizationDomain extends DirectoryThread
         {
           /* was enabled and moved to disabled */
           broker.suspendReceive();
+          // FIXME Need a way to stop these threads.
+          // Setting the shutdown flag does not stop them until they have
+          // consumed and discarded one more message each.
+//          for (ListenerThread thread : synchroThreads)
+//          {
+//            thread.shutdown();
+//          }
           synchroThreads.clear();
         }
         receiveStatus = newReceiveStatus;
@@ -1012,7 +1019,7 @@ public class SynchronizationDomain extends DirectoryThread
      * TODO : need to make number of thread configurable
      * TODO : need to handle operation dependencies
      */
-    for (int i=0; i<10; i++)
+    for (int i=0; i<listenerThreadNumber; i++)
     {
       ListenerThread myThread = new ListenerThread(this);
       myThread.start();

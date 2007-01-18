@@ -181,7 +181,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,
             dn);
 
-        op.run();;
+        op.run();
       }
     }
     catch (NoSuchElementException e) {
