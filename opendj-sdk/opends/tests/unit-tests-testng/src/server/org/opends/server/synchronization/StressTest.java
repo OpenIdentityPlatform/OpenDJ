@@ -89,7 +89,7 @@ public class StressTest extends SynchronizationTestCase
   private String changeLogStringDN;
 
   private BrokerReader reader = null;
-  
+
   /**
    * A "person" entry
    */
@@ -106,13 +106,13 @@ public class StressTest extends SynchronizationTestCase
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
         "Starting Synchronization StressTest : fromServertoBroker" , 1);
-    
+
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
     final int TOTAL_MESSAGES = 1000;
     cleanEntries();
 
     ChangelogBroker broker =
-      openChangelogSession(baseDn, (short) 18, 100, 8989, 5000);
+      openChangelogSession(baseDn, (short) 18, 100, 8989, 5000, true);
     Monitor monitor = new Monitor("stress test monitor");
     DirectoryServer.registerMonitorProvider(monitor);
 
@@ -212,7 +212,7 @@ public class StressTest extends SynchronizationTestCase
 
     // Create an internal connection
     connection = new InternalClientConnection();
-    
+
     // Disable schema check
     schemaCheck = DirectoryServer.checkSchema();
     DirectoryServer.setCheckSchema(false);
@@ -411,7 +411,7 @@ public class StressTest extends SynchronizationTestCase
       return count;
     }
   }
-  
+
   private class Monitor extends MonitorProvider
   {
     protected Monitor(String threadName)
@@ -445,7 +445,7 @@ public class StressTest extends SynchronizationTestCase
     public void updateMonitorData()
     {
       // nothing to do
-    
+
     }
 
     @Override
@@ -453,7 +453,7 @@ public class StressTest extends SynchronizationTestCase
     throws ConfigException, InitializationException
     {
       // nothing to do
-    
+
     }
 
     @Override
@@ -463,7 +463,7 @@ public class StressTest extends SynchronizationTestCase
       return 0;
     }
 
-    
-    
+
+
   }
 }

@@ -340,6 +340,7 @@ public class Changelog implements Runnable, ConfigurableComponent
       {
         newSocket =  listenSocket.accept();
         newSocket.setReceiveBufferSize(1000000);
+        newSocket.setTcpNoDelay(true);
         ServerHandler handler = new ServerHandler(
                                      new SocketSession(newSocket), queueSize);
         handler.start(null, serverId, serverURL, rcvWindow, this);
@@ -414,11 +415,12 @@ public class Changelog implements Runnable, ConfigurableComponent
                      InetAddress.getByName(hostname), Integer.parseInt(port));
       Socket socket = new Socket();
       socket.setReceiveBufferSize(1000000);
+      socket.setTcpNoDelay(true);
       socket.connect(ServerAddr, 500);
 
       ServerHandler handler = new ServerHandler(
                                       new SocketSession(socket), queueSize);
-      handler.start(baseDn, serverId, serverURL, rcvWindow, this);
+     handler.start(baseDn, serverId, this.serverURL, rcvWindow, this);
     }
     catch (IOException e)
     {
@@ -545,6 +547,7 @@ public class Changelog implements Runnable, ConfigurableComponent
     }
 
     dbEnv.shutdown();
+    DirectoryServer.deregisterConfigurableComponent(this);
   }
 
 

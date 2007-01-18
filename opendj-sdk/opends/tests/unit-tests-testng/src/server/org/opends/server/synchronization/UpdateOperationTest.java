@@ -84,7 +84,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
   private String user1entrysecondUUID;
 
   private String user1entryUUID;
-  
+
   /**
    * A "person" entry
    */
@@ -254,7 +254,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
      * This must use a serverId different from the LDAP server ID
      */
     ChangelogBroker broker =
-      openChangelogSession(baseDn, (short) 2, 100, 8989, 1000);
+      openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
 
     /*
      * Create a Change number generator to generate new changenumbers
@@ -660,7 +660,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     cleanEntries();
 
     ChangelogBroker broker =
-      openChangelogSession(baseDn, (short) 27, 100, 8989, 1000);
+      openChangelogSession(baseDn, (short) 27, 100, 8989, 1000, true);
     try {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
 
@@ -883,7 +883,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
           break;
         }
       }
-      
+
       if (lock == null)
       {
         throw new Exception("could not lock entry " + dn);
@@ -892,8 +892,8 @@ public class UpdateOperationTest extends SynchronizationTestCase
       try
       {
         newEntry = DirectoryServer.getEntry(personWithUUIDEntry.getDN());
-      
-     
+
+
         if (newEntry == null)
           fail("The entry " + personWithUUIDEntry.getDN() +
           " has incorrectly been deleted from the database.");
@@ -903,13 +903,13 @@ public class UpdateOperationTest extends SynchronizationTestCase
         AttributeType attrType =
           DirectoryServer.getAttributeType(attrTypeStr, true);
         found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
-       
+
       }
       finally
       {
         LockManager.unlock(dn, lock);
       }
-      
+
       if (found != hasAttribute)
         Thread.sleep(100);
     } while ((--count > 0) && (found != hasAttribute));
@@ -918,7 +918,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
   /**
    *  Get the entryUUID for a given DN.
-   *  
+   *
    * @throws Exception if the entry does not exist or does not have
    *                   an entryUUID.
    */
@@ -932,7 +932,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     while ((count> 0) && (found == null))
     {
       Thread.sleep(100);
-      
+
       Lock lock = null;
       for (int i=0; i < 3; i++)
       {
@@ -942,7 +942,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
           break;
         }
       }
-      
+
       if (lock == null)
       {
         throw new Exception("could not lock entry " + dn);
@@ -951,7 +951,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       try
       {
         newEntry = DirectoryServer.getEntry(dn);
-    
+
         if (newEntry != null)
         {
           List<Attribute> tmpAttrList = newEntry.getAttribute("entryuuid");
@@ -991,11 +991,11 @@ public class UpdateOperationTest extends SynchronizationTestCase
     while ((count> 0) && (found != exist))
     {
       Thread.sleep(200);
-      
+
       found = DirectoryServer.entryExists(dn);
       count--;
     }
-    
+
     Lock lock = null;
     for (int i=0; i < 3; i++)
     {
@@ -1005,7 +1005,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
         break;
       }
     }
-    
+
     if (lock == null)
     {
       throw new Exception("could not lock entry " + dn);
@@ -1062,7 +1062,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     Thread.sleep(2000);
     ChangelogBroker broker =
-      openChangelogSession(baseDn, (short) 11, 100, 8989, 1000);
+      openChangelogSession(baseDn, (short) 11, 100, 8989, 1000, true);
     try
     {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 11, 0);
