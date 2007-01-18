@@ -108,6 +108,12 @@ public class BackupManager
   public static final String ZIPENTRY_UNCHANGED_LOGFILES = "unchanged.txt";
 
   /**
+   * The name of a dummy entry in the backup archive file that will act
+   * as a placeholder in case a backup is done on an empty backend.
+   */
+  public static final String ZIPENTRY_EMPTY_PLACEHOLDER = "empty.placeholder";
+
+  /**
    * The fully-qualified name of this class for debugging purposes.
    */
   private static final String CLASS_NAME =
@@ -436,7 +442,27 @@ public class BackupManager
       message = getMessage(msgID, backendDir.getAbsolutePath(),
                            stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+          message, msgID, e);
+    }
+
+    // Check to see if backend is empty. If so, insert placeholder entry into
+    // archive
+    if(logFiles.length <= 0)
+    {
+      try
+      {
+        ZipEntry emptyPlaceholder = new ZipEntry(ZIPENTRY_EMPTY_PLACEHOLDER);
+        zipStream.putNextEntry(emptyPlaceholder);
+      }
+      catch (IOException e)
+      {
+        assert debugException(CLASS_NAME, "createBackup", e);
+        msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
+        message = getMessage(msgID, ZIPENTRY_EMPTY_PLACEHOLDER,
+            stackTraceToSingleLineString(e));
+        throw new DirectoryException(
+            DirectoryServer.getServerErrorResultCode(), message, msgID, e);
+      }
     }
 
     // Sort the log files from oldest to youngest since this is the order
@@ -987,6 +1013,15 @@ public class BackupManager
     while (zipEntry != null)
     {
       String name = zipEntry.getName();
+
+      if (name.equals(ZIPENTRY_EMPTY_PLACEHOLDER))
+      {
+        // This entry is treated specially to indicate a backup of an empty
+        // backend was attempted.
+
+        zipEntry = zipStream.getNextEntry();
+        continue;
+      }
 
       if (name.equals(ZIPENTRY_UNCHANGED_LOGFILES))
       {
