@@ -95,14 +95,14 @@ public class ProtocolWindowTest extends SynchronizationTestCase
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
         "Starting synchronization ProtocolWindowTest : saturateAndRestart" , 1);
-    
+
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     ChangelogBroker broker = openChangelogSession(baseDn, (short) 13,
-        WINDOW_SIZE, 8989, 1000);
+        WINDOW_SIZE, 8989, 1000, true);
 
     try {
-      
+
       /* Test that changelog monitor and synchro plugin monitor informations
        * publish the correct window size.
        * This allows both the check the monitoring code and to test that
@@ -111,7 +111,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
       Thread.sleep(1500);
       assertTrue(checkWindows(WINDOW_SIZE));
       assertTrue(checkChangelogQueueSize(CHANGELOG_QUEUE_SIZE));
-      
+
       // Create an Entry (add operation) that will be later used in the test.
       Entry tmp = personEntry.duplicate();
       AddOperation addOp = new AddOperation(connection,
@@ -138,7 +138,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
         "The received ADD synchronization message is not for the excepted DN");
 
       // send (2 * window + changelog queue) modify operations
-      // so that window + changelog queue get stuck in the changelog queue 
+      // so that window + changelog queue get stuck in the changelog queue
       int count = WINDOW_SIZE * 2 + CHANGELOG_QUEUE_SIZE;
       processModify(count);
 
@@ -173,7 +173,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
   /**
    * Check that the Changelog queue size has correctly been configured
    * by reading the monitoring information.
-   * @throws LDAPException 
+   * @throws LDAPException
    */
   private boolean checkChangelogQueueSize(int changelog_queue_size)
           throws LDAPException
@@ -188,7 +188,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
 
   /**
    * Check that the window configuration has been successfull
-   * by reading the monitoring information and checking 
+   * by reading the monitoring information and checking
    * that we do have 2 entries with the configured max-rcv-window.
    */
   private boolean checkWindows(int windowSize) throws LDAPException
@@ -200,7 +200,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
     return (op.getEntriesSent() == 3);
   }
-  
+
   /**
    * Search that the changelog has stopped sending changes after
    * having reach the limit of the window size.
@@ -216,7 +216,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
     if (op.getEntriesSent() != 1)
       return false;
-    
+
     op = connection.processSearch(
         new ASN1OctetString("cn=monitor"),
         SearchScope.WHOLE_SUBTREE,

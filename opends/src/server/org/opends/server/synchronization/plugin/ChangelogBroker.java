@@ -184,6 +184,7 @@ public class ChangelogBroker implements InternalSearchListener
               InetAddress.getByName(hostname), Integer.parseInt(port));
           Socket socket = new Socket();
           socket.setReceiveBufferSize(1000000);
+          socket.setTcpNoDelay(true);
           socket.connect(ServerAddr, 500);
           session = new SocketSession(socket);
 
