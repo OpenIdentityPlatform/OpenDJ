@@ -613,13 +613,13 @@ public class UpdateOperationTest extends SynchronizationTestCase
     delMsg =
       new DeleteMsg("entryUUID = " + user1entrysecondUUID + "+" +
           DN.decode(user1dn).getRDN().toString() +
-          "ou=People,dc=example,dc=com",
+          ",ou=People,dc=example,dc=com",
           gen.NewChangeNumber(), user1entrysecondUUID);
     broker.publish(delMsg);
     resultEntry = getEntry(
           DN.decode("entryUUID = " + user1entrysecondUUID + "+" +
               DN.decode(user1dn).getRDN().toString() +
-              "ou=People,dc=example,dc=com"), 10000, false);
+              ",ou=People,dc=example,dc=com"), 10000, false);
 
     // check that the delete operation has been applied
     assertNull(resultEntry,
