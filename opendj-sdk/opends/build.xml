@@ -130,7 +130,7 @@
 
 
   <!-- The build target that should be used before committing code. -->
-  <target name="precommit" depends="checkstyle,dsml,javadoc,clean,test"
+  <target name="precommit" depends="checkstyle,clean,dsml,javadoc,testwithcoverage"
        description="Perform all processing needed before committing code." />
 
 
@@ -153,7 +153,7 @@
 
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="checkstyle,dsml,javadoc,coverage,testall"
+       depends="checkstyle,dsml,javadoc,testallwithcoverage"
        description="Build using all defined targets." />
 
 
