@@ -3674,6 +3674,71 @@ public class SchemaBackendTestCase
 
 
   /**
+   * Tests to ensure that the schema subentry includes the lastmod attributes
+   * and that the modifiersName and modifyTimestamp attributes get updated when
+   * the schema is modified.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testLastModAttributes()
+         throws Exception
+  {
+    Entry schemaEntry = DirectoryServer.getEntry(DN.decode("cn=schema"));
+    assertNotNull(schemaEntry);
+
+    AttributeType cnType =
+         DirectoryServer.getAttributeType("creatorsname", true);
+    AttributeType ctType =
+         DirectoryServer.getAttributeType("createtimestamp", true);
+    AttributeType mnType =
+         DirectoryServer.getAttributeType("modifiersname", true);
+    AttributeType mtType =
+         DirectoryServer.getAttributeType("modifytimestamp", true);
+
+    assertTrue(schemaEntry.hasAttribute(cnType));
+    assertTrue(schemaEntry.hasAttribute(ctType));
+    assertTrue(schemaEntry.hasAttribute(mnType));
+    assertTrue(schemaEntry.hasAttribute(mtType));
+
+    AttributeValue oldMTValue =
+         schemaEntry.getAttribute(mtType).get(0).getValues().iterator().next();
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testlastmodattributes-oid " +
+              "NAME 'testLastModAttributes' " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+
+    schemaEntry = DirectoryServer.getEntry(DN.decode("cn=schema"));
+    assertNotNull(schemaEntry);
+    assertTrue(schemaEntry.hasAttribute(cnType));
+    assertTrue(schemaEntry.hasAttribute(ctType));
+    assertTrue(schemaEntry.hasAttribute(mnType));
+    assertTrue(schemaEntry.hasAttribute(mtType));
+
+    AttributeValue newMTValue =
+         schemaEntry.getAttribute(mtType).get(0).getValues().iterator().next();
+    assertFalse(oldMTValue.equals(newMTValue));
+  }
+
+
+
+  /**
    * Tests the {@code exportLDIF} method with a valid configuration.
    *
    * @throws  Exception  If an unexpected problem occurs.

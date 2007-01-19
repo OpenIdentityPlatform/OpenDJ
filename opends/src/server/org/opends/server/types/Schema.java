@@ -172,6 +172,14 @@ public class Schema
   // The set of pre-encoded objectclass representations.
   private LinkedHashSet<AttributeValue> objectClassSet;
 
+  // The oldest modification timestamp for any schema configuration
+  // file.
+  private long oldestModificationTime;
+
+  // The youngest modification timestamp for any schema configuration
+  // file.
+  private long youngestModificationTime;
+
 
 
   /**
@@ -214,6 +222,9 @@ public class Schema
     matchingRuleUseSet  = new LinkedHashSet<AttributeValue>();
     nameFormSet         = new LinkedHashSet<AttributeValue>();
     objectClassSet      = new LinkedHashSet<AttributeValue>();
+
+    oldestModificationTime   = System.currentTimeMillis();
+    youngestModificationTime = oldestModificationTime;
   }
 
 
@@ -2542,6 +2553,77 @@ public class Schema
 
 
   /**
+   * Retrieves the modification timestamp for the file in the schema
+   * configuration directory with the oldest last modified time.
+   *
+   * @return  The modification timestamp for the file in the schema
+   *          configuration directory with the oldest last modified
+   *          time.
+   */
+  public long getOldestModificationTime()
+  {
+    assert debugEnter(CLASS_NAME, "getOldestModificationTime");
+
+    return oldestModificationTime;
+  }
+
+
+
+  /**
+   * Sets the modification timestamp for the oldest file in the schema
+   * configuration directory.
+   *
+   * @param  oldestModificationTime  The modification timestamp for
+   *                                 the oldest file in the schema
+   *                                 configuration directory.
+   */
+  public void setOldestModificationTime(long oldestModificationTime)
+  {
+    assert debugEnter(CLASS_NAME, "setOldestModificationTime",
+                      String.valueOf(oldestModificationTime));
+
+    this.oldestModificationTime = oldestModificationTime;
+  }
+
+
+
+  /**
+   * Retrieves the modification timestamp for the file in the schema
+   * configuration directory with the youngest last modified time.
+   *
+   * @return  The modification timestamp for the file in the schema
+   *          configuration directory with the youngest last modified
+   *          time.
+   */
+  public long getYoungestModificationTime()
+  {
+    assert debugEnter(CLASS_NAME, "getYoungestModificationTime");
+
+    return youngestModificationTime;
+  }
+
+
+
+  /**
+   * Sets the modification timestamp for the youngest file in the
+   * schema configuration directory.
+   *
+   * @param  youngestModificationTime  The modification timestamp for
+   *                                   the youngest file in the schema
+   *                                   configuration directory.
+   */
+  public void setYoungestModificationTime(
+                   long youngestModificationTime)
+  {
+    assert debugEnter(CLASS_NAME, "setYoungestModificationTime",
+                      String.valueOf(youngestModificationTime));
+
+    this.youngestModificationTime = youngestModificationTime;
+  }
+
+
+
+  /**
    * Recursively rebuilds all schema elements that are dependent upon
    * the provided element.  This must be invoked whenever an existing
    * schema element is modified in order to ensure that any elements
@@ -2817,6 +2899,8 @@ public class Schema
     dupSchema.matchingRuleUseSet.addAll(matchingRuleUseSet);
     dupSchema.nameFormSet.addAll(nameFormSet);
     dupSchema.objectClassSet.addAll(objectClassSet);
+    dupSchema.oldestModificationTime   = oldestModificationTime;
+    dupSchema.youngestModificationTime = youngestModificationTime;
 
     return dupSchema;
   }
