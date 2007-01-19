@@ -74,6 +74,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
+import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
@@ -148,6 +149,12 @@ public class SchemaBackend
   // types.
   private AttributeType attributeTypesType;
 
+  // The attribute type that will be used to hold the schema creation timestamp.
+  private AttributeType createTimestampType;
+
+  // The attribute type that will be used to hold the schema creator's name.
+  private AttributeType creatorsNameType;
+
   // The attribute type that will be used to include the defined DIT content
   // rules.
   private AttributeType ditContentRulesType;
@@ -167,24 +174,43 @@ public class SchemaBackend
   // uses.
   private AttributeType matchingRuleUsesType;
 
+  // The attribute that will be used to hold the schema modifier's name.
+  private AttributeType modifiersNameType;
+
+  // The attribute type that will be used to hold the schema modification
+  // timestamp.
+  private AttributeType modifyTimestampType;
+
   // The attribute type that will be used to include the defined object classes.
   private AttributeType objectClassesType;
 
   // The attribute type that will be used to include the defined name forms.
   private AttributeType nameFormsType;
 
+  // The value containing DN of the user we'll say created the configuration.
+  private AttributeValue creatorsName;
+
+  // The value containing the DN of the last user to modify the configuration.
+  private AttributeValue modifiersName;
+
+  // The timestamp that will be used for the schema creation time.
+  private AttributeValue createTimestamp;
+
+  // The timestamp that will be used for the latest schema modification time.
+  private AttributeValue modifyTimestamp;
+
   // Indicates whether the attributes of the schema entry should always be
   // treated as user attributes even if they are defined as operational.
   private boolean showAllAttributes;
-
-  // The set of objectclasses that will be used in the schema entry.
-  private HashMap<ObjectClass,String> schemaObjectClasses;
 
   // The DN of the configuration entry for this backend.
   private DN configEntryDN;
 
   // The set of base DNs for this backend.
   private DN[] baseDNs;
+
+  // The set of objectclasses that will be used in the schema entry.
+  private HashMap<ObjectClass,String> schemaObjectClasses;
 
   // The set of supported controls for this backend.
   private HashSet<String> supportedControls;
@@ -262,6 +288,29 @@ public class SchemaBackend
     matchingRuleUsesType =
          DirectoryServer.getAttributeType(ATTR_MATCHING_RULE_USE_LC, true);
     nameFormsType = DirectoryServer.getAttributeType(ATTR_NAME_FORMS_LC, true);
+
+
+    // Initialize the lastmod attributes.
+    creatorsNameType =
+         DirectoryServer.getAttributeType(OP_ATTR_CREATORS_NAME_LC, true);
+    createTimestampType =
+         DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC, true);
+    modifiersNameType =
+         DirectoryServer.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC, true);
+    modifyTimestampType =
+         DirectoryServer.getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC, true);
+
+    creatorsName  = new AttributeValue(creatorsNameType, baseDNs[0].toString());
+    modifiersName =
+         new AttributeValue(modifiersNameType, baseDNs[0].toString());
+
+    long createTime = DirectoryServer.getSchema().getOldestModificationTime();
+    createTimestamp =
+         GeneralizedTimeSyntax.createGeneralizedTimeValue(createTime);
+
+    long modifyTime = DirectoryServer.getSchema().getYoungestModificationTime();
+    modifyTimestamp =
+         GeneralizedTimeSyntax.createGeneralizedTimeValue(modifyTime);
 
 
     // Get the set of user-defined attributes for the configuration entry.  Any
@@ -418,7 +467,11 @@ public class SchemaBackend
         attrType.hasName(ATTR_BACKEND_BASE_DN.toLowerCase()) ||
         attrType.hasName(ATTR_BACKEND_WRITABILITY_MODE.toLowerCase()) ||
         attrType.hasName(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES.toLowerCase()) ||
-        attrType.hasName(ATTR_COMMON_NAME))
+        attrType.hasName(ATTR_COMMON_NAME) ||
+        attrType.hasName(OP_ATTR_CREATORS_NAME_LC) ||
+        attrType.hasName(OP_ATTR_CREATE_TIMESTAMP_LC) ||
+        attrType.hasName(OP_ATTR_MODIFIERS_NAME_LC) ||
+        attrType.hasName(OP_ATTR_MODIFY_TIMESTAMP_LC))
     {
       return true;
     }
@@ -698,6 +751,36 @@ public class SchemaBackend
         userAttrs.put(matchingRuleUsesType, attrList);
       }
     }
+
+
+    // Add the lastmod attributes.
+    valueSet = new LinkedHashSet<AttributeValue>(1);
+    valueSet.add(creatorsName);
+    attrList = new ArrayList<Attribute>(1);
+    attrList.add(new Attribute(creatorsNameType, OP_ATTR_CREATORS_NAME,
+                               valueSet));
+    operationalAttrs.put(creatorsNameType, attrList);
+
+    valueSet = new LinkedHashSet<AttributeValue>(1);
+    valueSet.add(createTimestamp);
+    attrList = new ArrayList<Attribute>(1);
+    attrList.add(new Attribute(createTimestampType, OP_ATTR_CREATE_TIMESTAMP,
+                               valueSet));
+    operationalAttrs.put(createTimestampType, attrList);
+
+    valueSet = new LinkedHashSet<AttributeValue>(1);
+    valueSet.add(modifiersName);
+    attrList = new ArrayList<Attribute>(1);
+    attrList.add(new Attribute(modifiersNameType, OP_ATTR_MODIFIERS_NAME,
+                               valueSet));
+    operationalAttrs.put(modifiersNameType, attrList);
+
+    valueSet = new LinkedHashSet<AttributeValue>(1);
+    valueSet.add(modifyTimestamp);
+    attrList = new ArrayList<Attribute>(1);
+    attrList.add(new Attribute(modifyTimestampType, OP_ATTR_MODIFY_TIMESTAMP,
+                               valueSet));
+    operationalAttrs.put(modifyTimestampType, attrList);
 
 
     // Add all the user-defined attributes.
@@ -1279,6 +1362,16 @@ public class SchemaBackend
     {
       cleanUpTempSchemaFiles(tempSchemaFiles);
     }
+
+    DN authzDN = modifyOperation.getAuthorizationDN();
+    if (authzDN == null)
+    {
+      authzDN = DN.nullDN();
+    }
+
+    modifiersName = new AttributeValue(modifiersNameType, authzDN.toString());
+    modifyTimestamp = GeneralizedTimeSyntax.createGeneralizedTimeValue(
+                           System.currentTimeMillis());
   }
 
 

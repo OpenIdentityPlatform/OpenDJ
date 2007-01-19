@@ -646,8 +646,10 @@ public class SchemaConfigManager
     // Construct the path to the directory that should contain the schema files
     // and make sure that it exists and is a directory.  Get a list of the files
     // in that directory sorted in alphabetic order.
-    String schemaDirPath = getSchemaDirectoryPath();
-    File schemaDir = new File(schemaDirPath);
+    String schemaDirPath          = getSchemaDirectoryPath();
+    File schemaDir                = new File(schemaDirPath);
+    long oldestModificationTime   = -1L;
+    long youngestModificationTime = -1L;
     String[] fileNames;
 
     try
@@ -673,6 +675,19 @@ public class SchemaConfigManager
         {
           fileList.add(f.getAbsolutePath());
         }
+
+        long modificationTime = f.lastModified();
+        if ((oldestModificationTime <= 0L) ||
+            (modificationTime < oldestModificationTime))
+        {
+          oldestModificationTime = modificationTime;
+        }
+
+        if ((youngestModificationTime <= 0) ||
+            (modificationTime > youngestModificationTime))
+        {
+          youngestModificationTime = modificationTime;
+        }
       }
 
       fileNames = new String[fileList.size()];
@@ -694,6 +709,22 @@ public class SchemaConfigManager
                                   stackTraceToSingleLineString(e));
       throw new InitializationException(msgID, message, e);
     }
+
+
+    // If the oldest and youngest modification timestamps didn't get set for
+    // some reason, then set them to the current time.
+    if (oldestModificationTime <= 0)
+    {
+      oldestModificationTime = System.currentTimeMillis();
+    }
+
+    if (youngestModificationTime <= 0)
+    {
+      youngestModificationTime = oldestModificationTime;
+    }
+
+    schema.setOldestModificationTime(oldestModificationTime);
+    schema.setYoungestModificationTime(youngestModificationTime);
 
 
     // Iterate through the schema files and read them as an LDIF file containing
