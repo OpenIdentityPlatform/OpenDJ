@@ -118,19 +118,6 @@ public class StressTest extends SynchronizationTestCase
 
     try {
       /*
-       * loop receiving update until there is nothing left
-       * to make sure that message from previous tests have been consumed.
-       */
-      try
-      {
-        while (true)
-        {
-          broker.receive();
-        }
-      }
-      catch (Exception e)
-      { }
-      /*
        * Test that operations done on this server are sent to the
        * changelog server and forwarded to our changelog broker session.
        */
@@ -376,7 +363,10 @@ public class StressTest extends SynchronizationTestCase
             break;
           count ++;
         }
-      } catch (Exception e) {
+      } catch (Exception e)
+      {}
+      finally 
+      {
         synchronized (this)
         {
           finished = true;
@@ -393,16 +383,18 @@ public class StressTest extends SynchronizationTestCase
     {
       synchronized (this)
       {
-        if (finished == true)
-          return count;
-        try
+	      int i = 20;
+        while ((finished != true) && (i-- >0))
         {
-          this.wait(60);
-          return count;
-        } catch (InterruptedException e)
-        {
-          return -1;
+          try
+          {
+            this.wait(60000);
+          } catch (InterruptedException e)
+          {
+            return -1;
+          }
         }
+        return count;
       }
     }
 
