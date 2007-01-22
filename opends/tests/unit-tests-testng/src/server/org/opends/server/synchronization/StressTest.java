@@ -388,7 +388,7 @@ public class StressTest extends SynchronizationTestCase
         {
           try
           {
-            this.wait(60000);
+            this.wait(6000);
           } catch (InterruptedException e)
           {
             return -1;
