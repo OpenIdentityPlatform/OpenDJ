@@ -31,7 +31,6 @@
     file in this directory for build instructions.
   </description>
 
-
   <!-- General server-wide properties                               -->
   <property name="src.dir"        location="src/server"              />
   <property name="build.dir"      location="build"                   />
@@ -44,7 +43,7 @@
   <property name="scripts.dir"    location="${resource.dir}/bin"     />
   <property name="config.dir"     location="${resource.dir}/config"  />
 
-  <!-- Properties for build tools                                   -->  
+  <!-- Properties for build tools                                   -->
   <property name="buildtools.dir" location="build-tools"              />
   <property name="buildtools.src.dir" location="${buildtools.dir}/src" />
   <property name="buildtools.classes.dir" location="${build.dir}/build-tools/classes" />
@@ -52,7 +51,7 @@
   <!-- Properties for use in unit testing.                           -->
   <property name="unittest.testng.dir" location="tests/unit-tests-testng"/>
   <property name="unittest.testng.src.dir"
-    location="${unittest.testng.dir}/src"/>
+    location="${unittest.testng.dir}/src/server"/>
 
   <property name="unittest.classes.dir"
        location="${build.dir}/unit-tests/classes" />
@@ -78,20 +77,20 @@
   <property name="quicksetup.src.dir" location="src/quicksetup"       />
   <property name="quicksetup.classes.dir"
             location="${build.dir}/quicksetup/classes"                />
-	
-	<!-- Properties for use with the Status Panel.                      -->
-	  <property name="statuspanel.src.dir" location="src/statuspanel"       />
-	  <property name="statuspanel.classes.dir"
-	            location="${build.dir}/statuspanel/classes"                />
-  
+
+  <!-- Properties for use with the Status Panel.                      -->
+  <property name="statuspanel.src.dir" location="src/statuspanel"       />
+  <property name="statuspanel.classes.dir"
+            location="${build.dir}/statuspanel/classes"                />
+
   <!-- Properties for coverage diff reports                        -->
   <property name="cvgdiff.dir" location="build/diff"                />
-  <property name="cvgdiff.report.dir" 
+  <property name="cvgdiff.report.dir"
             location="${cvgdiff.dir}/report"                        />
 
   <!-- Properties for code coverage testing.                            -->
   <property name="coverage.dir"         location="build/coverage"            />
-  <property name="coverage.report.dir"  
+  <property name="coverage.report.dir"
             location="${coverage.dir}/reports/unit"                          />
   <property name="coverage.instr.dir"
             location="${coverage.dir}/instrumentedcode"                      />
@@ -165,8 +164,8 @@
 
     <delete dir="${build.dir}"           />
     <delete file="${dynconstants.file}"  />                           <fileset dir="${lib.dir}">
-                <include name="*.jar" />
-              </fileset>
+        <include name="*.jar" />
+      </fileset>
   </target>
 
 
@@ -226,7 +225,6 @@
         <expandproperties/>
       </filterchain>
     </copy>
-
   </target>
 
 
@@ -249,12 +247,12 @@
       <fileset dir="${quicksetup.src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
-  	
-  	<checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
-  	         failOnViolation="true">
-  	      <fileset dir="${statuspanel.src.dir}" includes="**/*.java" />
-  	      <formatter type="plain" />
-  	    </checkstyle>
+
+    <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+          failOnViolation="true">
+      <fileset dir="${statuspanel.src.dir}" includes="**/*.java" />
+      <formatter type="plain" />
+    </checkstyle>
 
     <checkstyle config="${checkstyle.dir}/opends-doctarget-checkstyle.xml"
          failOnViolation="true">
@@ -294,6 +292,7 @@
     <mkdir dir="${classes.dir}" />
 
     <javac srcdir="${src.dir}" destdir="${classes.dir}" optimize="true"
+         excludes="**/package-info.java"
          debug="on" debuglevel="lines,source" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
@@ -334,28 +333,28 @@
                includes="**/DynamicConstants.class **/SetupUtils.class" />
     </copy>
   </target>
-	
-	<!-- Compile the Status Panel source files. -->
-	  <target name="compilestatuspanel" depends="compilequicksetup"
-	          description="Compile the Status Panel source files.">
 
-	    <mkdir dir="${statuspanel.classes.dir}" />
-	    <javac srcdir="${statuspanel.src.dir}" destdir="${statuspanel.classes.dir}"
-	         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
-	         target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
-	         memoryMaximumSize="${MEM}">
-	      <compilerarg value="-Xlint:all" />
+  <!-- Compile the Status Panel source files. -->
+  <target name="compilestatuspanel" depends="compilequicksetup"
+           description="Compile the Status Panel source files.">
 
-	      <classpath>
-	        <pathelement path="${classes.dir}"/>
-	        <pathelement path="${quicksetup.classes.dir}"/>
-	      </classpath>
-	    </javac>
-	    <copy todir="${statuspanel.classes.dir}">
-	      <fileset dir="${statuspanel.src.dir}"
-	               includes="**/*.properties, **/*.gif, **/*.png" />
-	    </copy>
-	  </target>
+    <mkdir dir="${statuspanel.classes.dir}" />
+    <javac srcdir="${statuspanel.src.dir}" destdir="${statuspanel.classes.dir}"
+           optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+           target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+           memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+
+      <classpath>
+        <pathelement path="${classes.dir}"/>
+        <pathelement path="${quicksetup.classes.dir}"/>
+      </classpath>
+    </javac>
+    <copy todir="${statuspanel.classes.dir}">
+      <fileset dir="${statuspanel.src.dir}"
+               includes="**/*.properties, **/*.gif, **/*.png" />
+    </copy>
+  </target>
 
   <!--
    ! Rebuild the Directory Server without destroying any existing configuration
@@ -385,8 +384,8 @@
     <delete file="${pdir}.zip" />
     <delete dir="${quicksetup.classes.dir}" />
     <delete file="${package.dir}/lib/quicksetup.jar" />
-  	<delete file="${package.dir}/lib/statuspanel.jar" />
-    
+    <delete file="${package.dir}/lib/statuspanel.jar" />
+
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
     <javac srcdir="${src.dir}" destdir="${classes.dir}" optimize="true"
@@ -405,7 +404,7 @@
     <!-- Generate the OpenDS.jar file -->
     <jar jarfile="${pdir}/lib/OpenDS.jar"
          basedir="${classes.dir}" compress="true" index="true" />
-         
+
     <!-- Recreate the quicksetup classes directory and recompile into it. -->
     <mkdir dir="${quicksetup.classes.dir}" />
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}" optimize="true"
@@ -436,7 +435,7 @@
     <!-- Generate the quicksetup.jar file -->
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
-  	
+
     <!-- Recreate the statuspanel classes directory and recompile into it. -->
     <mkdir dir="${statuspanel.classes.dir}" />
     <javac srcdir="${statuspanel.src.dir}" destdir="${statuspanel.classes.dir}" optimize="true"
@@ -455,10 +454,10 @@
         <fileset dir="${statuspanel.src.dir}"
             includes="**/*.properties, **/*.gif, **/*.png"/>
     </copy>
-            	
-  	<!-- Generate the statuspanel.jar file -->
-  	    <jar jarfile="${pdir}/lib/statuspanel.jar"
-  	         basedir="${statuspanel.classes.dir}" compress="true" index="true" />
+
+   <!-- Generate the statuspanel.jar file -->
+   <jar jarfile="${pdir}/lib/statuspanel.jar"
+        basedir="${statuspanel.classes.dir}" compress="true" index="true" />
   </target>
 
 
@@ -491,21 +490,21 @@
 
     <jar jarfile="${pdir}/lib/OpenDS.jar"
          basedir="${classes.dir}" compress="true" index="true" />
-    
+
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
-  	
-  	<jar jarfile="${pdir}/lib/statuspanel.jar"
-  	         basedir="${statuspanel.classes.dir}" compress="true" index="true" />
-         
+
+    <jar jarfile="${pdir}/lib/statuspanel.jar"
+           basedir="${statuspanel.classes.dir}" compress="true" index="true" />
+
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.jar" />
     </copy>
 
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat"
-         eol="lf" /> 
+         eol="lf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" includes="*.bat"
-         eol="crlf" /> 
+         eol="crlf" />
 
     <copy todir="${pdir}/config">
       <fileset file="${config.dir}/*" />
@@ -537,7 +536,7 @@
          eol="crlf" />
 
     <chmod file="${pdir}/setup" perm="755" />
-  	<chmod file="${pdir}/uninstall" perm="755" />
+    <chmod file="${pdir}/uninstall" perm="755" />
     <chmod perm="755">
       <fileset dir="${pdir}/bin">
         <exclude name="*.bat"/>
@@ -726,7 +725,7 @@
         <path refid="run.classpath" />
       </classpath>
     </javac>
- 
+
     <!-- Prep the TestNG XML file -->
 
     <condition property="test.groups" value="exclude=slow">
@@ -766,7 +765,7 @@
         </or>
       </not>
     </condition>
-        
+
     <mkdir dir="${unittest.resource.dir}" />
     <typedef name="preptestng" classname="org.opends.build.tools.PrepTestNG"
         classpath="${build.dir}/build-tools/build-tools.jar" />
@@ -774,13 +773,38 @@
 
     <preptestng file="${testng.dir}/testng.xml"
                 tofile="${unittest.resource.dir}/testng.xml"
-                grouplist="${test.groups}" 
+                grouplist="${test.groups}"
                 packagelist="${test.packages}"
-                classList="${test.classes}" 
+                classList="${test.classes}"
                 methodList="${test.methods}" />
 
+    <antcall target="testinit.checkFailedTestsOnly"/>
+  </target>
 
+ <!-- If we were asked to run only the tests that failed,
+      then we overwrite the testng.xml that we just generated
+      with testng-failed.xml, which TestNG generated. -->
+  <target name="testinit.checkFailedTestsOnly" if="test.failures">
+    <!-- Ensure that some of the tests failed last time. -->
+    <available property="testng-failed.xml.exists" 
+               file="${unittest.report.dir}/testng-failed.xml"/>
+    <fail message="No unit tests failed in the previous run." 
+          unless="testng-failed.xml.exists"/>
 
+    <!-- We replace the 'Failed suite [OpenDS]' with 'OpenDS' so we
+         don't end up with 'Failed suite [Failed suite [OpenDS]]]' etc. -->
+    <replace file="${unittest.report.dir}/testng-failed.xml"
+             token="Failed suite [OpenDS]"
+             value="OpenDS"/>
+    <replace file="${unittest.report.dir}/testng-failed.xml"
+             token="default(failed)"
+             value="default"/>
+
+    <copy file="${unittest.report.dir}/testng-failed.xml"
+          tofile="${unittest.resource.dir}/testng.xml"
+          overwrite="true"/>
+  
+    <echo message="Will run the failed unit tests only"/>
   </target>
 
   <!-- Generate coverage diff report -->
@@ -796,7 +820,7 @@
         <isset property="test.diff.svnpath" />
       </not>
     </condition>
-  
+
     <condition property="test.diff.enabled" value="true">
       <not>
         <isset property="test.diff.disable" />
@@ -827,12 +851,12 @@
 
     <coveragediff emmadatapath="${coverage.data.dir}"
                   outputpath="${cvgdiff.report.dir}"
-                  diffpath="${basedir}/${test.diff.srcpath}"
-                  svnpath="${test.diff.svnpath}" 
+                  diffpath="${test.diff.srcpath}"
+                  svnpath="${test.diff.svnpath}"
                   enabled="${test.diff.enabled}"
                   verbose="${test.diff.verbose}" />
 
-  </target> 
+  </target>
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="enableTestNGAssertions">
@@ -841,20 +865,20 @@
 
   <!-- Execute Directory Server TestNG unit tests specified from CLI -->
   <target name="testcustom">
-    <echo message="This target is deprecated. Please use the test target as it now supports the test.* properties." /> 
+    <echo message="This target is deprecated. Please use the test target as it now supports the test.* properties." />
   </target>
 
   <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
   <target name="testall"
           depends="enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
-          description="Run all of the TestNG tests with assertions enabled.  See 'testwithcoverage' for properties you can set.">
+          description="Run all of the TestNG tests (including 'slow' ones) with assertions enabled.  See 'testwithcoverage' for properties you can set.">
   </target>
 
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
           depends="testinit,runtests"
-          description="Execute the Directory Server TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=true' to suppress output from the unit tests.">
+          description="Execute the Directory Server TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=false' to see the output from the unit tests.  Set '-Dtest.failures=true' to run only the tests that failed previously.">
   </target>
 
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report. -->
@@ -874,10 +898,45 @@
     <echo message="This target is deprecated. Please use the testwithcoverage target as it now supports the test.* properties." />
   </target>
 
+  <target name="testhelp" unless="disable.test.help">
+    <echo message="About to run the unit tests.  Ant options to control the tests:"/>
+    <echo message=""/>
+    <echo message="  -Dorg.opends.test.suppressOutput=false"/>
+    <echo message="      writes the unit test output to the screen"/>
+    <echo message=""/>
+    <echo message="  -Dtest.failed=true"/>
+    <echo message="      runs only the tests that failed last time"/>
+    <echo message=""/>
+    <echo message="  -Dtest.packages=org.opends.server.api"/>
+    <echo message="      for example runs only the tests in the api package"/>
+    <echo message="      For multiple packages, separate them with a ',' and "/>
+    <echo message="      quote the entire value"/>
+    <echo message=""/>
+    <echo message="  -Dtest.classes=org.opends.server.types.TestDN"/>
+    <echo message="      for example only runs the TestDN class"/>
+    <echo message="      For multiple classes, separate them with a ',' and "/>
+    <echo message="      quote the entire value"/>
+    <echo message=""/>
+    <echo message="  -Dtest.methods=org.opends.server.types.TestDN.testGetRDN"/>
+    <echo message="      for example only runs the testGetRDN method"/>
+    <echo message="      For multiple methods, separate them with a ',' and "/>
+    <echo message="      quote the entire value"/>
+    <echo message=""/>
+    <echo message="  -Dtest.diff.srcpath=src/server/org/opends/server/core"/>
+    <echo message="      for example includes only the classes in"/>
+    <echo message="      src/server/org/opends/server/core in the coveragediff report."/>
+    <echo message="      To list multiple directories or files, separate them with"/>
+    <echo message="      a space as you would an argument list to 'svn diff' and quote"/>
+    <echo message="      the whole value."/>
+    <echo message=""/>
+  </target>
+
   <!-- Internal target to execute the Directory Server TestNG unit tests in text mode after everything has been initialized. -->
   <target name="runtests">
-    <mkdir dir="${unittest.report.dir}" />
+    <antcall target="testhelp"/>
 
+    <mkdir dir="${unittest.report.dir}" />
+    
     <taskdef resource="testngtasks">
       <classpath>
         <fileset dir="${testng.lib.dir}">
@@ -895,14 +954,29 @@
 
     <!-- This sets org.opends.test.suppressOutput if and only if it's not
          already set. -->
-    <condition property="org.opends.test.suppressOutput" value="false">
+    <condition property="org.opends.test.suppressOutput" value="true">
       <not>
         <isset property="org.opends.test.suppressOutput" />
       </not>
     </condition>
-    
-    <testng outputdir="${unittest.report.dir}" haltonfailure="true"
-            enableAssert="${TESTASSERT}">
+
+    <!-- Cleanout the old reports.  Otherwise, the old testng-failed.xml 
+         will hang around even if all of the tests pass. -->
+    <delete>
+      <fileset dir="${unittest.report.dir}" includes="*"/>
+    </delete>
+
+    <!-- Our testng listener will remove this file if all of the 
+         tests passed.  This allows us to generate the coverage
+         report even if the tests failed and still fail the build. -->
+    <touch file="${unittest.report.dir}/.tests-failed-marker"/>
+
+    <testng outputdir="${unittest.report.dir}"
+            haltonfailure="false"
+            enableAssert="${TESTASSERT}"
+            listeners="org.opends.server.TestListener org.testng.reporters.FailedReporter"
+            useDefaultListeners="false"
+            suiteRunnerClass="org.opends.server.SuiteRunner">
       <classpath>
         <pathelement location="${coverage.instr.dir}" />
         <pathelement location="${classes.dir}" />
@@ -924,14 +998,22 @@
       <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}" />
       <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
       <jvmarg value="-Xms${MEM}" />
-      <jvmarg value="-Xmx256M" />
+      <jvmarg value="-Xmx${MEM}" />
       <xmlfileset dir="${unittest.resource.dir}" includes="testng.xml" />
     </testng>
 
-    <echo message="Generating unit tests coverage report..."/>
+    <!-- Our testng listener will create this file if any of the
+         tests failed.  This allows us to generate the coverage
+         report even if the tests failed. -->
+    <available property="testng.tests.failed" 
+               file="${unittest.report.dir}/.tests-failed-marker"/>
+
+    <!-- Delete all of the report suite sub-directories since we only
+         have a single suite. -->
+    <delete dir="${unittest.report.dir}/OpenDS"/>
+
     <emma enabled="${coverage.enabled}" >
       <report sourcepath="${src.dir}" >
-        <!-- <property name="verbosity.level" value="verbose" /> -->
         <fileset dir="${coverage.data.dir}" >
            <include name="unit.emma"     />
            <include name="metadata.emma" />
@@ -940,7 +1022,11 @@
         <txt outfile="${coverage.report.dir}/coverage.txt" />
         <html outfile="${coverage.report.dir}/index.html" />
       </report>
+
     </emma>
+
+    <!-- We delay failing until after the coverage report is generated. -->
+    <fail message="The unit tests failed." if="testng.tests.failed"/>
 
   </target>
 
