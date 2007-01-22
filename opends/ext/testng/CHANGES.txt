@@ -1,7 +1,75 @@
+===========================================================================
+5.4
 
-TODO
-	:Introduce ITestFactory, deprecate @Factory 
-	:Introduce Annotation Transformers
+Fixed: Ant task issue with paths containing spaces
+Added: for @BeforeGroups and @AfterGroups specifying the groups() attribute will auto-include the method
+			 into those groups by default (previously you had to also provide the value() attribute).
+Added: the load @Tests (invocationCount + threadPoolSize) are triggered simultaneous
+Fixed: reports are correctly displaying the thread info
+Added: @DataProvider name defaults to method name
+Added: support for remote protocol to pass parameter information
+Fixed: TextReporter logs information about the parameters of the test methods
+Fixed: concurrency issue in JUnitXMLReporter
+Fixed: output of JUnitXMLReporter must be CDATA
+Fixed: XML unsupported annotations/parallel attribute values are reported
+
+Eclipse plug-in
+Fixed: groups with multi-attribute javadoc annotations
+Fixed: consistent behavior for dependsOnMethods
+Fixed: consistent behavior for tests with dependsOnGroups (a warning is emitted)
+Fixed: consistent merge of configuration arguments when an existing launch configuration exists 
+===========================================================================
+5.3
+
+Fixed: use a single instance of bsh.Interpreter
+Added: @Before/@AfterMethod can declare a java.lang.reflect.Method parameter to be informed about the @Test method
+Fixed: super classes must not be listed in testng-failures.xml
+Fixed: parallel attribute must not appear if empty or null in testng-failures.xml
+Fixed: parsing for javadoc annotations is done on request only
+Added: improved multiple suite summary page report
+Added: -target option deprecated in favor of -annotations javadoc|jdk
+Fixed: filesets in the ant task didn't work if the paths have spaces in them
+Fixed: Before/After Suite were behaving wrong in parallel execution
+Added: A generic/extensible RemoteTestNG was added to the core
+Fixed: Before/AfterGroup-s were behaving wrong when using invocationCount, dataProvider and threadPoolSize
+Fixed: improved support for running different annotation type tests in the same suite
+Fixed: testng-failed.xml was generated even if there were no failures/skipps
+Fixed: -usedefaultlisteners was wrongly passed to JVM instead of TestNG options
+Added: Attribute dataProviderClass for @Test and @testng.test
+Fixed: Forgot to account for cases where both invocationCount and DataProviders are present
+Fixed: AfterGroups were invoked out of order with invocationCount and DataProviders
+Fixed: Reporter.getOutput() returned an empty array if a timeOut was specified
+Added: testng.xml now supports <suite-files>
+Added: ant task can receive several listeners
+Fixed: TESTNG-109 Skipped tests with expected exceptions are reported as failures
+Added: ant task can now select the parallel mode for running tests
+Fixed: ant task correctly deals with empty groups and excludedgroups parameters
+Added: ant task can override default suite and test names
+Added: comand line support for setting parallel mode, suite and test names
+
+Eclipse plug-in
+Added: Support for configuring per project usedefaultlisteners
+Added: Contextual drop-down menu on failures tab of the TestNG view to enable running/debugging method failure only
+Added: Suppport for configuring per project TestNG jar usage (project provided one or plugin provided one)
+
+===========================================================================
+5.2
+
+Added: "-usedefaultlisteners true/false" to command line and ant
+Added: EmailableReporter (from Paul Mendelson)
+Added: parallel can now be "methods" or "tests". Boolean version deprecated
+Added: TestNGAntTask now uses the @ syntax to invoke TestNG
+Added: Command line understands @ syntax
+Added: JUnitConverter uses the new syntax
+Added: -groups to JUnitConverter
+Fixed: Throw proper exception when a DataProvider declares parameters
+Added: completely revamped JUnit support (should run all kind of JUnit tests)
+Fixed: TESTNG-40 (Bug in testng-failed.xml generation)
+Fixed: TESTNG-106 (Failed "@BeforeSuite" method just skipps the last test in xml-file)
+Fixed: Success on 0 tests (http://forums.opensymphony.com/thread.jspa?threadID=41213)
+
+Eclipse plug-in
+Added: TESTNG-105 Automaticaly define TESTNG_HOME classpath variable
 
 ===========================================================================
 5.1
