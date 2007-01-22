@@ -77,7 +77,7 @@ public class CoverageDiff extends Task {
 
   private File emmaDataPath;
   private File outputPath;
-  private File diffPath;
+  private String diffPath;
   private File svnPath;
 
   public void setEmmaDataPath(String file)
@@ -90,9 +90,9 @@ public class CoverageDiff extends Task {
     outputPath = new File(file);
   }
 
-  public void setDiffPath(String file)
+  public void setDiffPath(String diffArgs)
   {
-    diffPath = new File(file);
+    diffPath = diffArgs;
   }
 
   public void setSvnPath(String file)
@@ -110,10 +110,21 @@ public class CoverageDiff extends Task {
     enabled = bol.toLowerCase().equals("true");
   }
 
-  public void execute() throws BuildException
+  public void execute() throws BuildException {
+    try {
+      innerExecute();
+    } catch (BuildException e) {
+      throw e;
+    } catch (Throwable e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void innerExecute() throws BuildException
   {
     long start = System.currentTimeMillis();
     verboseOut("Starting to execute coveragediff.");
+    verboseOut("diffPath='" + diffPath +"'");
     if(emmaDataPath == null)
     {
       throw new BuildException("emmaDataPath attribute is not set. It must be set to the path of the EMMA data directory");
@@ -350,7 +361,7 @@ public class CoverageDiff extends Task {
     statsTable.setClass ("it");
     {
       HTMLTable.IRow row = statsTable.newRow ();
-      row.newCell ().setText ("base directory:", true);
+      row.newCell ().setText ("svn diff arg(s):", true);
       row.newCell ().setText ("" + diffPath.toString(), true);
 
       row = statsTable.newRow ();
@@ -461,6 +472,7 @@ public class CoverageDiff extends Task {
     modCoverage[DEL_LINES] = 0.0;
 
     String fileHeader = diffFile.get(0);
+    verboseOut("fileHeader: " + diffFile);
 
     //Try to get the package information if its a Java file
     File srcFilePath = new File(fileHeader.substring(7));
@@ -483,8 +495,14 @@ public class CoverageDiff extends Task {
 
     String firstFileLine = diffFile.get(2);
     String secondFileLine = diffFile.get(3);
+    verboseOut("firstFileLine=" + firstFileLine);
+    verboseOut("secondFileLine=" + secondFileLine);
     String revisionStr = "unknown";
 
+    // Skip over binary files
+    if (firstFileLine.contains("Cannot display")) {
+      return;
+    }
 
     HTMLTable srcTable = null;
 
@@ -572,7 +590,7 @@ public class CoverageDiff extends Task {
 
     final IElement itemname = IElement.Factory.create (Tag.SPAN);
     {
-      itemname.setText (toRelativePath(srcFilePath.toString()), true);
+      itemname.setText (srcFilePath.toString(), true);
       itemname.setClass ("in");
     }
 
@@ -866,7 +884,7 @@ public class CoverageDiff extends Task {
       if(nameHREF != null)
       {
         final String fullHREFName = anchor ? "#".concat (nameHREF) : nameHREF;
-        nameCell.add(new HyperRef(fullHREFName, toRelativePath(fileName), true));
+        nameCell.add(new HyperRef(fullHREFName, fileName, true));
       }
       else
       {
@@ -933,25 +951,7 @@ public class CoverageDiff extends Task {
     }
   }
 
-  private String createHREF(String name)
-  {
-    if(name == null)
-    {
-      return null;
-    }
-
-    name = name.replaceAll("[/,\\,(,),.]", "_");
-
-    return name;
-
-  }
-
-  private String toRelativePath(String file)
-  {
-    return file.substring(diffPath.toString().length()+1);
-  }
-
-  // How does this get enabled?
+  // Enable this with -Dtest.diff.verbose=true from the commandline
   private void verboseOut(Object msg)
   {
     if (verbose)

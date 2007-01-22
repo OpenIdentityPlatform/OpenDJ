@@ -22,29 +22,25 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server;
 
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
+import org.testng.TestNG;
+import static org.opends.server.TestCaseUtils.originalSystemErr;
 
 /**
- * This class defines a base test case that should be subclassed by all
- * unit tests used by the Directory Server.
- * <p>
- * This class adds the ability to print error messages and automatically
- * have them include the class name.
+ * This class wraps TestNG so that we can force the process to exit if there
+ * is an uncaught exception (e.g. OutOfMemoryError).  
  */
-public abstract class DirectoryServerTestCase {
-  @BeforeSuite
-  public final void suppressOutput() {
-    TestCaseUtils.suppressOutput();
-  }
-
-  @AfterSuite
-  public final void shutdownServer() {
-    TestCaseUtils.shutdownServer("The current test suite has finished.");
-    TestCaseUtils.unsupressOutput();
+public class SuiteRunner {
+  public static void main(String[] args) {
+    try {
+      TestNG.main(args);
+    } catch (Throwable e) {
+      originalSystemErr.println("TestNG.main threw an expected exception:");
+      e.printStackTrace(originalSystemErr);
+      System.exit(TestNG.HAS_FAILURE);
+    }
   }
 }

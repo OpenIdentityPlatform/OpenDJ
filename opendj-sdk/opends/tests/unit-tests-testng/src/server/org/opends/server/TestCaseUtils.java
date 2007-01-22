@@ -33,6 +33,13 @@ import org.opends.server.util.LDIFReader;
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.logging.Handler;
+import java.util.logging.LogManager;
+import java.util.logging.ConsoleHandler;
 import java.net.ServerSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
@@ -51,6 +58,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OperatingSystem;
+import org.opends.server.types.NullOutputStream;
 
 import static org.testng.Assert.*;
 
@@ -651,7 +659,7 @@ public final class TestCaseUtils {
   public static String makeLdif(String... lines) {
     StringBuilder buffer = new StringBuilder();
     for (int i = 0; i < lines.length; i++) {
-      buffer.append(lines[i]).append("\n");
+      buffer.append(lines[i]).append(EOL);
     }
     return buffer.toString();
   }
@@ -730,5 +738,58 @@ public final class TestCaseUtils {
     } catch (InterruptedException e) {
       // Ignore it.
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+
+  // The set of loggers for which the console logger has been disabled.
+  private final static Map<Logger, Handler> disabledLogHandlers = new HashMap<Logger,Handler>();
+
+  /** The original System.err print stream.  Use this if you absolutely
+   *  must write something to System.err. */
+  public final static PrintStream originalSystemErr = System.err;
+
+  /** The original System.out print stream.  Use this if you absolutely
+   *  must write something to System.out. */
+  public final static PrintStream originalSystemOut = System.out;
+
+  public synchronized static void suppressOutput() {
+    String suppressStr = System.getProperty("org.opends.test.suppressOutput");
+    if ((suppressStr != null) && suppressStr.equalsIgnoreCase("true"))
+    {
+      System.setOut(NullOutputStream.printStream());
+      System.setErr(NullOutputStream.printStream());
+
+      LogManager logManager = LogManager.getLogManager();
+      Enumeration<String> loggerNames = logManager.getLoggerNames();
+      while (loggerNames.hasMoreElements())
+      {
+        String loggerName = loggerNames.nextElement();
+        Logger logger = logManager.getLogger(loggerName);
+        for (Handler h : logger.getHandlers())
+        {
+          if (h instanceof ConsoleHandler)
+          {
+            disabledLogHandlers.put(logger, h);
+            logger.removeHandler(h);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  public synchronized static void unsupressOutput() {
+    System.setOut(originalSystemOut);
+    System.setErr(originalSystemErr);
+
+    for (Logger l : disabledLogHandlers.keySet())
+    {
+      Handler h = disabledLogHandlers.get(l);
+      l.addHandler(h);
+    }
+    disabledLogHandlers.clear();
   }
 }
