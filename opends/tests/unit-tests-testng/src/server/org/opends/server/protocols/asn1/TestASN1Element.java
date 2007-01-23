@@ -189,8 +189,6 @@ public class TestASN1Element
       new Object[] { new byte[0x80] },    // The smallest 2-byte length encoding
       new Object[] { new byte[0xFF] },    // The largest 2-byte length encoding
       new Object[] { new byte[0x0100] },  // The smallest 3-byte length encoding
-      new Object[] { new byte[0xFFFF] },  // The largest 3-byte length encoding
-      new Object[] { new byte[0x010000] } // The smallest 4-byte length encoding
     };
   }
 
