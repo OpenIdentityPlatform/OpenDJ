@@ -42,6 +42,7 @@ ds-cfg-time-limit: 60 seconds
 ds-cfg-lookthrough-limit: 5000
 ds-cfg-writability-mode: enabled
 ds-cfg-bind-with-dn-requires-password: true
+ds-cfg-reject-unauthenticated-requests: false
 ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,cn=config
 
 dn: cn=Access Control Handler,cn=config
