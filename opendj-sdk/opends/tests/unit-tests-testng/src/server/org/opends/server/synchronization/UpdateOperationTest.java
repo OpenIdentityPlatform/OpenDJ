@@ -706,7 +706,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     // - check that the Dn has been changed to baseDn2
     resultEntry = getEntry(
-        DN.decode("uid=new person,ou=baseDn1,"+baseDn), 10000, true);
+        DN.decode("uid=new person,ou=baseDn1,"+baseDn), 10000, false);
     assertNull(resultEntry,
         "The ADD synchronization message was applied under ou=baseDn1,"+baseDn);
 
