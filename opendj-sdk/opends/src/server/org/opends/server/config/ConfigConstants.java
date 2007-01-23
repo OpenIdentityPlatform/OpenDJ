@@ -465,6 +465,21 @@ public class ConfigConstants
 
 
   /**
+   * The name of the configuration attribute that indicates whether an
+   * unauthenticated request should be rejected.
+   */
+  public static final String ATTR_REJECT_UNAUTHENTICATED_REQ =
+       NAME_PREFIX_CFG + "reject-unauthenticated-requests";
+
+
+  /**
+   * The default value for the reject unauthenticated request attribute.
+   */
+  public static final boolean DEFAULT_REJECT_UNAUTHENTICATED_REQ = false;
+
+
+
+  /**
    * The name of the configuration attribute that holds the fully-qualified name
    * of the Java class for the certificate mapper implementation.
    */
