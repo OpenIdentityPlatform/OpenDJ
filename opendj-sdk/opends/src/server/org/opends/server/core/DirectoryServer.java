@@ -255,6 +255,9 @@ public class DirectoryServer
   // Indicates whether the server is currently in the process of shutting down.
   private boolean shuttingDown;
 
+  // Indicates whether the server should reject unauthenticated requests.
+  private boolean rejectUnauthenticatedRequests;
+
   // The certificate mapper used to establish a mapping between client
   // certificates and user entries.
   private CertificateMapper certificateMapper;
@@ -6647,6 +6650,41 @@ public class DirectoryServer
     }
 
 
+    //Reject or accept the unauthenticated requests based on the configuration
+    // settings.
+    if(directoryServer.rejectUnauthenticatedRequests &&
+        !clientConnection.getAuthenticationInfo().isAuthenticated())
+    {
+      switch(operation.getOperationType())
+      {
+        case ADD:
+        case COMPARE:
+        case DELETE:
+        case SEARCH:
+        case MODIFY:
+        case MODIFY_DN:
+         int msgID = MSGID_REJECT_UNAUTHENTICATED_OPERATION;
+         String message = getMessage(msgID);
+         throw new DirectoryException(
+         ResultCode.UNWILLING_TO_PERFORM,message,msgID);
+        case EXTENDED:
+         ExtendedOperation extOp      = (ExtendedOperation) operation;
+         String   requestOID = extOp.getRequestOID();
+         if (!((requestOID != null) &&
+                 requestOID.equals(OID_START_TLS_REQUEST)))
+         {
+            msgID = MSGID_REJECT_UNAUTHENTICATED_OPERATION;
+            message = getMessage(msgID);
+            throw new DirectoryException(
+              ResultCode.UNWILLING_TO_PERFORM,message,msgID);
+         }
+         break;
+
+      }
+
+    }
+
+
     // If the associated user is required to change their password before
     // continuing, then make sure the associated operation is one that could
     // result in the password being changed.  If not, then reject it.
@@ -7554,6 +7592,38 @@ public class DirectoryServer
                       String.valueOf(bindWithDNRequiresPassword));
 
     directoryServer.bindWithDNRequiresPassword = bindWithDNRequiresPassword;
+  }
+
+
+
+  /**
+   * Indicates whether an unauthenticated request should be rejected.
+   *
+   * @return <CODE>true</CODE>if an unauthenticated request should be
+   *         rejected, or <CODE>false</CODE>f if not.
+   */
+  public static boolean rejectUnauthenticatedRequests()
+  {
+     assert debugEnter(CLASS_NAME, "rejectUnauthenticatedRequests");
+
+     return directoryServer.rejectUnauthenticatedRequests;
+  }
+
+  /**
+   * Specifies whether an unauthenticated request should be rejected.
+   *
+   * @param  rejectUnauthenticatedRequests   Indicates whether an
+   *                                        unauthenticated request should
+   *                                        be rejected.
+   */
+  public static void setRejectUnauthenticatedRequests(boolean
+                          rejectUnauthenticatedRequests)
+  {
+        assert debugEnter(CLASS_NAME, "rejectUnauthenticatedRequests",
+                         String.valueOf(rejectUnauthenticatedRequests));
+
+        directoryServer.rejectUnauthenticatedRequests =
+                                  rejectUnauthenticatedRequests;
   }
 
 

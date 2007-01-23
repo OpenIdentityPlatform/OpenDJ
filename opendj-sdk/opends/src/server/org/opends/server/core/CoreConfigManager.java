@@ -769,7 +769,40 @@ public class CoreConfigManager
       DirectoryServer.setBindWithDNRequiresPassword(
                            DEFAULT_BIND_WITH_DN_REQUIRES_PW);
     }
+   // Determine whether an uauthenticated request should be rejected.
 
+    msgID = MSGID_CONFIG_CORE_DESCRIPTION_REJECT_UNAUTHENTICATED_REQUESTS;
+    BooleanConfigAttribute rejectRequestStub =
+    new BooleanConfigAttribute(ATTR_REJECT_UNAUTHENTICATED_REQ,
+                              getMessage(msgID), false);
+    try
+    {
+      BooleanConfigAttribute rejectRequestAttr=
+      (BooleanConfigAttribute)
+      configRoot.getConfigAttribute(rejectRequestStub);
+      if(rejectRequestAttr== null)
+      {
+        DirectoryServer.setRejectUnauthenticatedRequests(
+                       DEFAULT_REJECT_UNAUTHENTICATED_REQ);
+      }
+      else
+      {
+        DirectoryServer.setRejectUnauthenticatedRequests(
+                       rejectRequestAttr.activeValue());
+      }
+    }
+    catch (Exception e)
+    {
+      // An error occurred, but this should not be considered fatal.  Log an
+      // error message and use the default.
+      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+         MSGID_CONFIG_CORE_REJECT_UNAUTHENTICATED_REQUESTS_INVALID,
+         String.valueOf(configEntryDN.toString()), String.valueOf(e));
+
+      DirectoryServer.setRejectUnauthenticatedRequests(
+                       DEFAULT_REJECT_UNAUTHENTICATED_REQ);
+    }
 
     DirectoryServer.registerConfigurableComponent(this);
   }
@@ -1641,6 +1674,30 @@ public class CoreConfigManager
     }
 
 
+    // See if the entry specifies whether unauthenticated requests should be
+    // rejected.
+    msgID = MSGID_CONFIG_CORE_DESCRIPTION_REJECT_UNAUTHENTICATED_REQUESTS;
+    BooleanConfigAttribute rejectRequestStub =
+    new BooleanConfigAttribute(ATTR_REJECT_UNAUTHENTICATED_REQ,
+                              getMessage(msgID), false);
+    try
+    {
+      BooleanConfigAttribute rejectRequestAttr=
+          (BooleanConfigAttribute)
+              configEntry.getConfigAttribute(rejectRequestStub);
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+
+      // An error occurred, so the provided value must not be valid.
+      msgID = MSGID_CONFIG_CORE_REJECT_UNAUTHENTICATED_REQUESTS_INVALID;
+      unacceptableReasons.add(getMessage(msgID, configEntry.getDN().toString(),
+                                         String.valueOf(e)));
+      configIsAcceptable = false;
+    }
+
+
     // Get the DN of the default password policy configuration entry.  It must
     // be provided, and the DN must be associated with a valid password policy.
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_DEFAULT_PWPOLICY_DN;
@@ -2289,6 +2346,41 @@ public class CoreConfigManager
     }
 
 
+    // Determine whether an uauthenticated request should be rejected.
+
+    boolean rejectUnauthenticatedReq = DEFAULT_REJECT_UNAUTHENTICATED_REQ;
+    msgID = MSGID_CONFIG_CORE_DESCRIPTION_REJECT_UNAUTHENTICATED_REQUESTS;
+    BooleanConfigAttribute rejectRequestStub =
+    new BooleanConfigAttribute(ATTR_REJECT_UNAUTHENTICATED_REQ,
+                              getMessage(msgID), false);
+    try
+    {
+      BooleanConfigAttribute rejectRequestAttr=
+      (BooleanConfigAttribute)
+      configEntry.getConfigAttribute(rejectRequestStub);
+      if(rejectRequestAttr!= null)
+      {
+        rejectUnauthenticatedReq = rejectRequestAttr.pendingValue();
+      }
+    }
+    catch (Exception e)
+    {
+       assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+
+      // An error occurred, so we will not allow this configuration change to
+      // take place.
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
+      }
+
+      msgID = MSGID_CONFIG_CORE_REJECT_UNAUTHENTICATED_REQUESTS_INVALID;
+      resultMessages.add(getMessage(msgID, configEntry.getDN().toString(),
+                                    String.valueOf(e)));
+    }
+
+
+
     // Ge the DN of the default password policy configuration entry.
     DN defaultPWPolicyDN = null;
     msgID = MSGID_CONFIG_CORE_DESCRIPTION_DEFAULT_PWPOLICY_DN;
@@ -2483,6 +2575,17 @@ public class CoreConfigManager
         resultMessages.add(getMessage(MSGID_CONFIG_SET_ATTRIBUTE,
                                       ATTR_DEFAULT_PWPOLICY_DN,
                                       String.valueOf(defaultPWPolicyDN),
+                                      configEntryDN.toString()));
+      }
+
+
+      DirectoryServer.setRejectUnauthenticatedRequests(
+                        rejectUnauthenticatedReq);
+      if (detailedResults)
+      {
+        resultMessages.add(getMessage(MSGID_CONFIG_SET_ATTRIBUTE,
+                                      ATTR_REJECT_UNAUTHENTICATED_REQ,
+                                      String.valueOf(rejectUnauthenticatedReq),
                                       configEntryDN.toString()));
       }
     }
