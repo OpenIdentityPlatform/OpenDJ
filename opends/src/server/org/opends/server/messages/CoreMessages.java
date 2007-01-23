@@ -6067,6 +6067,14 @@ public class CoreMessages
        CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 579;
 
 
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * do certain operations using an unauthenticated connection.
+   */
+  public static final int MSGID_REJECT_UNAUTHENTICATED_OPERATION =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 580;
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined
@@ -8208,6 +8216,10 @@ public class CoreMessages
                     "accessing entries in this portion of the hierarchy " +
                     "because of the missing entries that had been held in " +
                     "the de-registered backend.");
+    registerMessage(MSGID_REJECT_UNAUTHENTICATED_OPERATION,
+                     "Rejecting the requested operation  " +
+                     "because the connection has not been authenticated.");
+
   }
 }
 

@@ -6196,6 +6196,26 @@ public class ConfigMessages
        CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 575;
 
 
+  /**
+   * The message ID for the description of whether the server should
+   * reject unauthenticated requests.  This does not take any arguments.
+   */
+  public static final int
+      MSGID_CONFIG_CORE_DESCRIPTION_REJECT_UNAUTHENTICATED_REQUESTS =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 576;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to process the server configuration for rejecting the
+   * unauthenticated operations.This takes two arguments, which are the DN of
+   * the configuration entry and a string representation of the exception that
+   * was caught.
+   */
+  public static final int
+      MSGID_CONFIG_CORE_REJECT_UNAUTHENTICATED_REQUESTS_INVALID =
+           CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 577;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -8981,6 +9001,20 @@ public class ConfigMessages
                    "Unable to set the requested file permissions to the " +
                    "backend database directory. The requested permissions " +
                    "will result in an inaccessable database.");
+    registerMessage(
+        MSGID_CONFIG_CORE_DESCRIPTION_REJECT_UNAUTHENTICATED_REQUESTS,
+                    "Indicates whether the Directory Server should reject  " +
+                    "requests from unauthenticated clients. If this is set " +
+                    "to \"true\", then unauthenticated clients will only be "+
+                    "allowed to send bind and StartTLS requests. Changes to "+
+                    "this configuration attribute will take effect " +
+                    "immediately.");
+    registerMessage(MSGID_CONFIG_CORE_REJECT_UNAUTHENTICATED_REQUESTS_INVALID,
+                    "Configuration entry %s has an invalid value for" +
+                    "configuration attribute " +
+                    ATTR_REJECT_UNAUTHENTICATED_REQ + "(the value should " +
+                    "be either true or false)");
+
   }
 }
 
