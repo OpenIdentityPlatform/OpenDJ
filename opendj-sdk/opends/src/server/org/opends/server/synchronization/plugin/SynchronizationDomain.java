@@ -1253,11 +1253,12 @@ public class SynchronizationDomain extends DirectoryThread
   private ChangeNumber generateChangeNumber(Operation operation)
   {
     ChangeNumber changeNumber;
+
+    changeNumber = changeNumberGenerator.NewChangeNumber();
+    PendingChange change = new PendingChange(changeNumber, operation, null);
     synchronized(pendingChanges)
     {
-      changeNumber = changeNumberGenerator.NewChangeNumber();
-      pendingChanges.put(changeNumber,
-          new PendingChange(changeNumber, operation, null));
+      pendingChanges.put(changeNumber, change);
     }
     return changeNumber;
   }
