@@ -45,13 +45,11 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 
 import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -103,17 +101,10 @@ public class AttributeTypeSyntax
 
 
   /**
-   * Initializes this attribute syntax based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this attribute syntax.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
+   * {@inheritDoc}
    */
   public void initializeSyntax(ConfigEntry configEntry)
-         throws ConfigException
+         throws ConfigException, InitializationException
   {
     assert debugEnter(CLASS_NAME, "initializeSyntax",
                       String.valueOf(configEntry));
@@ -122,36 +113,37 @@ public class AttributeTypeSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE;
+      String message = getMessage(msgID, EMR_CASE_IGNORE_OID,
+                                  SYNTAX_ATTRIBUTE_TYPE_NAME);
+      throw new InitializationException(msgID, message);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE;
+      String message = getMessage(msgID, OMR_CASE_IGNORE_OID,
+                                  SYNTAX_ATTRIBUTE_TYPE_NAME);
+      throw new InitializationException(msgID, message);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE;
+      String message = getMessage(msgID, SMR_CASE_IGNORE_OID,
+                                  SYNTAX_ATTRIBUTE_TYPE_NAME);
+      throw new InitializationException(msgID, message);
     }
   }
 
 
 
   /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getSyntaxName()
   {
@@ -163,9 +155,7 @@ public class AttributeTypeSyntax
 
 
   /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getOID()
   {
@@ -177,9 +167,7 @@ public class AttributeTypeSyntax
 
 
   /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getDescription()
   {
@@ -191,12 +179,7 @@ public class AttributeTypeSyntax
 
 
   /**
-   * Retrieves the default equality matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default equality matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if equality
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
@@ -208,12 +191,7 @@ public class AttributeTypeSyntax
 
 
   /**
-   * Retrieves the default ordering matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default ordering matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if ordering
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
@@ -225,12 +203,7 @@ public class AttributeTypeSyntax
 
 
   /**
-   * Retrieves the default substring matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default substring matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if substring
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
@@ -242,12 +215,7 @@ public class AttributeTypeSyntax
 
 
   /**
-   * Retrieves the default approximate matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default approximate matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if approximate
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
@@ -260,16 +228,7 @@ public class AttributeTypeSyntax
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an attribute
-   * with this syntax.  If it is not, then the reason may be appended to the
-   * provided buffer.
-   *
-   * @param  value          The value for which to make the determination.
-   * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
-   *          this syntax, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
@@ -282,7 +241,7 @@ public class AttributeTypeSyntax
     // acceptable.
     try
     {
-      decodeAttributeType(value, DirectoryServer.getSchema());
+      decodeAttributeType(value, DirectoryServer.getSchema(), true);
       return true;
     }
     catch (DirectoryException de)
@@ -303,10 +262,16 @@ public class AttributeTypeSyntax
    * should not be in order to allow the desired capitalization to be
    * preserved).
    *
-   * @param  value   The ASN.1 octet string containing the value to decode (it
-   *                 does not need to be normalized).
-   * @param  schema  The schema to use to resolve references to other schema
-   *                 elements.
+   * @param  value                 The ASN.1 octet string containing the value
+   *                               to decode (it does not need to be
+   *                               normalized).
+   * @param  schema                The schema to use to resolve references to
+   *                               other schema elements.
+   * @param  allowUnknownElements  Indicates whether to allow values that
+   *                               reference a superior attribute type which are
+   *                               not defined in the server schema. This should
+   *                               only be true when called by
+   *                               {@code valueIsAcceptable}.
    *
    * @return  The decoded attribute type definition.
    *
@@ -314,7 +279,8 @@ public class AttributeTypeSyntax
    *                              attribute type definition.
    */
   public static AttributeType decodeAttributeType(ByteString value,
-                                                  Schema schema)
+                                                  Schema schema,
+                                                  boolean allowUnknownElements)
          throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "decodeAttributeType", String.valueOf(value));
@@ -596,17 +562,21 @@ public class AttributeTypeSyntax
         superiorType = schema.getAttributeType(woidBuffer.toString());
         if (superiorType == null)
         {
-          // This is bad because we don't know what the superior attribute type
-          // is so we can't base this attribute type on it.  Log a message and
-          // just go with the default type.
-          int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE;
-          String message = getMessage(msgID, String.valueOf(oid),
-                                      String.valueOf(woidBuffer));
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
-
-          superiorType =
-               DirectoryServer.getDefaultAttributeType(woidBuffer.toString());
+          if (allowUnknownElements)
+          {
+            superiorType = DirectoryServer.getDefaultAttributeType(
+                                                woidBuffer.toString());
+          }
+          else
+          {
+            // This is bad because we don't know what the superior attribute
+            // type is so we can't base this attribute type on it.
+            int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE;
+            String message = getMessage(msgID, String.valueOf(oid),
+                                        String.valueOf(woidBuffer));
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                         message, msgID);
+          }
         }
 
 
@@ -640,13 +610,12 @@ public class AttributeTypeSyntax
         if (emr == null)
         {
           // This is bad because we have no idea what the equality matching
-          // rule should be.  Log a message and go with the default matching
-          // rule for the associated syntax.
+          // rule should be.
           int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR;
           String message = getMessage(msgID, String.valueOf(oid),
                                       String.valueOf(woidBuffer));
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                       message, msgID);
         }
         else
         {
@@ -664,13 +633,12 @@ public class AttributeTypeSyntax
         if (omr == null)
         {
           // This is bad because we have no idea what the ordering matching
-          // rule should be.  Log a message and go with the default matching
-          // rule for the associated syntax.
+          // rule should be.
           int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR;
           String message = getMessage(msgID, String.valueOf(oid),
                                       String.valueOf(woidBuffer));
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                       message, msgID);
         }
         else
         {
@@ -688,13 +656,12 @@ public class AttributeTypeSyntax
         if (smr == null)
         {
           // This is bad because we have no idea what the substring matching
-          // rule should be.  Log a message and go with the default matching
-          // rule for the associated syntax.
+          // rule should be.
           int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR;
           String message = getMessage(msgID, String.valueOf(oid),
                                       String.valueOf(woidBuffer));
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                       message, msgID);
         }
         else
         {
@@ -794,10 +761,8 @@ public class AttributeTypeSyntax
           int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX;
           String message = getMessage(msgID, String.valueOf(oid),
                                       String.valueOf(oidBuffer));
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
-
-          syntax = DirectoryServer.getDefaultAttributeSyntax();
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                       message, msgID);
         }
 
         if (approximateMatchingRule == null)
@@ -878,15 +843,15 @@ public class AttributeTypeSyntax
         }
         else
         {
-          // This must be an illegal usage.  Log a message and use the default.
+          // This must be an illegal usage.
           attributeUsage = AttributeUsage.USER_APPLICATIONS;
 
           int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE;
           String message = getMessage(msgID, String.valueOf(oid),
                                       String.valueOf(usageBuffer),
                                       String.valueOf(attributeUsage));
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message, msgID);
         }
       }
       else
@@ -911,18 +876,73 @@ public class AttributeTypeSyntax
       if (amr == null)
       {
         // This is bad because we have no idea what the approximate matching
-        // rule should be.  Log a message and go with the default matching
-        // rule for the associated syntax.
+        // rule should be.
         int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR;
         String message = getMessage(msgID, String.valueOf(oid),
                                     String.valueOf(ruleName));
-        logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                     msgID);
       }
       else
       {
         approximateMatchingRule = amr;
       }
+    }
+
+
+    // If there is a superior type, then it must have the same usage as the
+    // subordinate type.  Also, if the superior type is collective, then so must
+    // the subordinate type be collective.
+    if (superiorType != null)
+    {
+      if (superiorType.getUsage() != attributeUsage)
+      {
+        int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE;
+        String message = getMessage(msgID, oid, String.valueOf(attributeUsage),
+                                    superiorType.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                     msgID);
+      }
+
+      if (superiorType.isCollective() != isCollective)
+      {
+        int msgID;
+        if (isCollective)
+        {
+          msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE;
+        }
+        else
+        {
+          msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE;
+        }
+
+        String message = getMessage(msgID, oid, superiorType.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                     msgID);
+      }
+    }
+
+
+    // If the attribute type is COLLECTIVE, then it must have a usage of
+    // userApplications.
+    if (isCollective && (attributeUsage != AttributeUsage.USER_APPLICATIONS))
+    {
+      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL;
+      String message = getMessage(msgID, oid);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   msgID);
+    }
+
+
+    // If the attribute type is NO-USER-MODIFICATION, then it must not have a
+    // usage of userApplications.
+    if (isNoUserModification &&
+        (attributeUsage == AttributeUsage.USER_APPLICATIONS))
+    {
+      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL;
+      String message = getMessage(msgID, oid);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   msgID);
     }
 
 

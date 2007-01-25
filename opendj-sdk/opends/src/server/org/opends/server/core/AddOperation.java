@@ -1470,7 +1470,8 @@ addProcessing:
         if (DirectoryServer.checkSchema())
         {
           StringBuilder invalidReason = new StringBuilder();
-          if (! entry.conformsToSchema(parentEntry, true, invalidReason))
+          if (! entry.conformsToSchema(parentEntry, true, true, true,
+                                       invalidReason))
           {
             setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
             setErrorMessage(invalidReason);
@@ -1597,6 +1598,48 @@ addProcessing:
                 }
 
                 break;
+            }
+          }
+
+
+          // See if the entry contains any attributes or object classes marked
+          // OBSOLETE.  If so, then reject the entry.
+          for (AttributeType at : userAttributes.keySet())
+          {
+            if (at.isObsolete())
+            {
+              int    msgID   = MSGID_ADD_ATTR_IS_OBSOLETE;
+              String message = getMessage(msgID, String.valueOf(entryDN),
+                                          at.getNameOrOID());
+              appendErrorMessage(message);
+              setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+              break addProcessing;
+            }
+          }
+
+          for (AttributeType at : operationalAttributes.keySet())
+          {
+            if (at.isObsolete())
+            {
+              int    msgID   = MSGID_ADD_ATTR_IS_OBSOLETE;
+              String message = getMessage(msgID, String.valueOf(entryDN),
+                                          at.getNameOrOID());
+              appendErrorMessage(message);
+              setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+              break addProcessing;
+            }
+          }
+
+          for (ObjectClass oc : objectClasses.keySet())
+          {
+            if (oc.isObsolete())
+            {
+              int    msgID   = MSGID_ADD_OC_IS_OBSOLETE;
+              String message = getMessage(msgID, String.valueOf(entryDN),
+                                          oc.getNameOrOID());
+              appendErrorMessage(message);
+              setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+              break addProcessing;
             }
           }
         }

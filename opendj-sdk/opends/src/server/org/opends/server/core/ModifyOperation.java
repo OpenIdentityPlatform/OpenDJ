@@ -1350,6 +1350,26 @@ modifyProcessing:
             }
           }
 
+          // If the attribute type is marked "OBSOLETE" and the modification
+          // is setting new values, then fail unless this is an internal
+          // operation or is related to synchronization in some way.
+          if (t.isObsolete())
+          {
+            if (a.hasValue() &&
+                (m.getModificationType() != ModificationType.DELETE))
+            {
+              if (! (isInternalOperation() || isSynchronizationOperation() ||
+                     m.isInternal()))
+              {
+                setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+                appendErrorMessage(getMessage(MSGID_MODIFY_ATTR_IS_OBSOLETE,
+                                              String.valueOf(entryDN),
+                                              a.getName()));
+                break modifyProcessing;
+              }
+            }
+          }
+
 
           // If the modification is updating the password attribute, then
           // perform any necessary password policy processing.  This processing
@@ -2312,7 +2332,8 @@ modifyProcessing:
         if (DirectoryServer.checkSchema())
         {
           StringBuilder invalidReason = new StringBuilder();
-          if (! modifiedEntry.conformsToSchema(null, false, invalidReason))
+          if (! modifiedEntry.conformsToSchema(null, false, false, false,
+                                               invalidReason))
           {
             setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
             appendErrorMessage(getMessage(MSGID_MODIFY_VIOLATES_SCHEMA,

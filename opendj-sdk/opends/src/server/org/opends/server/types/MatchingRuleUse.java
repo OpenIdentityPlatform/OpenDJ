@@ -201,7 +201,8 @@ public final class MatchingRuleUse
     Schema     schema = DirectoryConfig.getSchema();
 
     MatchingRuleUse mru =
-         MatchingRuleUseSyntax.decodeMatchingRuleUse(value, schema);
+         MatchingRuleUseSyntax.decodeMatchingRuleUse(value, schema,
+                                                     false);
     mru.setSchemaFile(getSchemaFile());
 
     return mru;

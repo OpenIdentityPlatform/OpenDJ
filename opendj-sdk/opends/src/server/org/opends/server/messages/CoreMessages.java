@@ -2193,9 +2193,8 @@ public class CoreMessages
   /**
    * The message ID for the message that will be used if an entry could not be
    * checked against a DIT structure rule because the server was unable to
-   * obtain a read lock on the parent entry.  This takes three arguments, which
-   * are the DN of the entry, the name of the DIT structure rule, and the DN of
-   * the parent entry.
+   * obtain a read lock on the parent entry.  This takes two arguments, which
+   * are the DN of the entry and the DN of the parent entry.
    */
   public static final int MSGID_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT =
        CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 212;
@@ -2205,9 +2204,8 @@ public class CoreMessages
   /**
    * The message ID for the message that will be used if an entry could not be
    * checked against a DIT structure rule because the server was unable to
-   * retrieve its parent entry.  This takes three arguments, which are the DN of
-   * the entry, the name of the DIT structure rule, and the DN of the parent
-   * entry.
+   * retrieve its parent entry.  This takes two arguments, which are the DN of
+   * the entry and the DN of the parent entry.
    */
   public static final int MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY =
        CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 213;
@@ -2217,9 +2215,8 @@ public class CoreMessages
   /**
    * The message ID for the message that will be used if an entry could not be
    * checked against a DIT structure rule because its parent entry did not
-   * contain a single structural objectclass.  This takes three arguments, which
-   * are the DN of the entry, the name of the DIT structure rule, and the DN of
-   * the parent entry.
+   * contain a single structural objectclass.  This takes two arguments, which
+   * are the DN of the entry and the DN of the parent entry.
    */
   public static final int MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_OC =
        CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 214;
@@ -6077,6 +6074,82 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an entry with an attribute type that is marked OBSOLETE.  This takes
+   * two arguments, which are the DN of the entry and the name of the attribute
+   * type.
+   */
+  public static final int MSGID_ADD_ATTR_IS_OBSOLETE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 581;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an entry with an objectclass that is marked OBSOLETE.  This takes two
+   * arguments, which are the DN of the entry and the name of the objectclass.
+   */
+  public static final int MSGID_ADD_OC_IS_OBSOLETE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 582;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry cannot be
+   * modified because one of the targeted attributes was marked OBSOLETE.  This
+   * takes two arguments, which are the DN of the target entry and the name of
+   * the attribute.
+   */
+  public static final int MSGID_MODIFY_ATTR_IS_OBSOLETE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 583;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an OBSOLETE objectclass to an entry.  This takes two arguments, which
+   * are the name of the objectclass and the DN of the entry.
+   */
+  public static final int MSGID_ENTRY_ADD_OBSOLETE_OC =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 584;
+
+
+
+  /**
+   * The message ID for the response message that will be used if a modify DN
+   * operation fails because the new RDN contains an attribute type which is
+   * marked OBSOLETE in the server schema.  This takes two arguments, which are
+   * the DN of the current entry and the name or OID of the obsolete attribute
+   * type.
+   */
+  public static final int MSGID_MODDN_NEWRDN_ATTR_IS_OBSOLETE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 585;
+
+
+
+  /**
+   * The message ID for the message that will be used if there was no DIT
+   * structure rule associated with an entry, but there was a DIT structure rule
+   * for its parent.  This takes two arguments, which are the DN of the entry
+   * and the DN of the parent entry.
+   */
+  public static final int MSGID_ENTRY_SCHEMA_VIOLATES_PARENT_DSR =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 586;
+
+
+
+  /**
+   * The message ID for the message that will be used if an unexpected error
+   * occurs while attempting to evaluate a DIT structure rule for an entry's
+   * parent.  This takes two arguments, which are the DN of the entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 587;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6509,19 +6582,24 @@ public class CoreMessages
                     "%s that is not allowed by DIT content rule %s.");
     registerMessage(MSGID_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT,
                     "The Directory Server was unable to evaluate entry %s to " +
-                    "determine whether it was compliant with DIT structure " +
-                    "rule %s because it was unable to obtain a read lock " +
-                    "on parent entry %s.");
+                    "determine whether it was compliant with the DIT " +
+                    "structure rule configuration because it was unable to " +
+                    "obtain a read lock on parent entry %s.");
     registerMessage(MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY,
                     "The Directory Server was unable to evaluate entry %s to " +
-                    "determine whether it was compliant with DIT structure " +
-                    "rule %s because parent entry %s either does not exist " +
-                    "or could not be retrieved.");
+                    "determine whether it was compliant with the DIT " +
+                    "structure rule configuration because parent entry %s " +
+                    "either does not exist or could not be retrieved.");
     registerMessage(MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_OC,
                     "The Directory Server was unable to evaluate entry %s to " +
-                    "determine whether it was compliant with DIT structure " +
-                    "rule %s because the parent entry %s does not appear to " +
-                    "contain a valid structural objectclass.");
+                    "determine whether it was compliant with the DIT " +
+                    "rule configuration because the parent entry %s does not " +
+                    "appear to contain a valid structural objectclass.");
+    registerMessage(MSGID_ENTRY_SCHEMA_VIOLATES_PARENT_DSR,
+                    "Entry %s is invalid according to the server schema " +
+                    "because there is no DIT structure rule that applies " +
+                    "to that entry, but there is a DIT structure rule for " +
+                    "the parent entry %s.");
     registerMessage(MSGID_ENTRY_SCHEMA_DSR_DISALLOWED_SUPERIOR_OC,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because DIT structure rule %s does not " +
@@ -6530,6 +6608,10 @@ public class CoreMessages
     registerMessage(MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR,
                     "An unexpected error occurred while attempting to check " +
                     "entry %s against DIT structure rule %s:  %s.");
+    registerMessage(MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR,
+                    "An unexpected error occurred while attempting to " +
+                    "perform DIT structure rule processing for the parent of " +
+                    "entry %s:  %s.");
     registerMessage(MSGID_ENTRY_SET_UNKNOWN_OC,
                     "Objectclass %s cannot be used in entry %s because that " +
                     "class is not defined in the Directory Server schema.");
@@ -6539,6 +6621,9 @@ public class CoreMessages
     registerMessage(MSGID_ENTRY_ADD_DUPLICATE_OC,
                     "Objectclass %s is already present in entry %s and " +
                     "cannot be added a second time.");
+    registerMessage(MSGID_ENTRY_ADD_OBSOLETE_OC,
+                    "Objectclass %s added to entry %s is marked OBSOLETE in " +
+                    "the server schema.");
     registerMessage(MSGID_ENTRY_DUPLICATE_VALUES,
                     "Unable to add one or more values to attribute %s " +
                     "because at least one of the values already exists.");
@@ -6780,6 +6865,14 @@ public class CoreMessages
                     "Entry \"%s\" contains an value \"%s\" for attribute %s " +
                     "that is invalid according to the syntax for that " +
                     "attribute:  %s.");
+    registerMessage(MSGID_ADD_ATTR_IS_OBSOLETE,
+                    "Entry \"%s\" cannot be added because it contains " +
+                    "attribute type %s which is declared OBSOLETE in the " +
+                    "server schema.");
+    registerMessage(MSGID_ADD_OC_IS_OBSOLETE,
+                    "Entry \"%s\" cannot be added because it contains " +
+                    "objectclass %s which is declared OBSOLETE in the server " +
+                    "schema.");
     registerMessage(MSGID_ADD_INVALID_PWPOLICY_DN_SYNTAX,
                     "Entry \"%s\" cannot be added because it contains an " +
                     "invalid password policy subentry DN:  %s.");
@@ -7115,6 +7208,10 @@ public class CoreMessages
                     "The modify DN operation for entry %s cannot be " +
                     "performed because the change would have violated the " +
                     "server schema:  %s.");
+    registerMessage(MSGID_MODDN_NEWRDN_ATTR_IS_OBSOLETE,
+                    "The modify DN operation for entry %s cannot be " +
+                    "performed because the new RDN includes attribute type " +
+                    "%s which is declared OBSOLETE in the server schema.");
     registerMessage(MSGID_MODDN_PREOP_INCREMENT_NO_ATTR,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because a pre-operation plugin attempted to " +
@@ -7194,6 +7291,10 @@ public class CoreMessages
                     "Entry %s cannot be modified because the modification " +
                     "attempted to update attribute %s which is defined as " +
                     "NO-USER-MODIFICATION in the server schema.");
+    registerMessage(MSGID_MODIFY_ATTR_IS_OBSOLETE,
+                    "Entry %s cannot be modified because the modification " +
+                    "attempted to set one or more new values for attribute " +
+                    "%s which is marked OBSOLETE in the server schema.");
     registerMessage(MSGID_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS,
                     "Attributes used to hold user passwords are not allowed " +
                     "to have any attribute options.");

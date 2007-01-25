@@ -992,7 +992,7 @@ public class SchemaBackend
               try
               {
                 type = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
-                                                               newSchema);
+                                                newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1017,7 +1017,7 @@ public class SchemaBackend
               try
               {
                 oc = ObjectClassSyntax.decodeObjectClass(v.getValue(),
-                                                         newSchema);
+                                                         newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1041,7 +1041,8 @@ public class SchemaBackend
               NameForm nf;
               try
               {
-                nf = NameFormSyntax.decodeNameForm(v.getValue(), newSchema);
+                nf = NameFormSyntax.decodeNameForm(v.getValue(), newSchema,
+                                                   false);
               }
               catch (DirectoryException de)
               {
@@ -1066,7 +1067,7 @@ public class SchemaBackend
               try
               {
                 dcr = DITContentRuleSyntax.decodeDITContentRule(v.getValue(),
-                                                                newSchema);
+                                                newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1116,7 +1117,7 @@ public class SchemaBackend
               try
               {
                 mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v.getValue(),
-                                                                  newSchema);
+                                                 newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1162,7 +1163,7 @@ public class SchemaBackend
               try
               {
                 type = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
-                                                               newSchema);
+                                                newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1188,7 +1189,7 @@ public class SchemaBackend
               try
               {
                 oc = ObjectClassSyntax.decodeObjectClass(v.getValue(),
-                                                         newSchema);
+                                                         newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1212,7 +1213,8 @@ public class SchemaBackend
               NameForm nf;
               try
               {
-                nf = NameFormSyntax.decodeNameForm(v.getValue(), newSchema);
+                nf = NameFormSyntax.decodeNameForm(v.getValue(), newSchema,
+                                                   false);
               }
               catch (DirectoryException de)
               {
@@ -1237,7 +1239,7 @@ public class SchemaBackend
               try
               {
                 dcr = DITContentRuleSyntax.decodeDITContentRule(v.getValue(),
-                                                                newSchema);
+                                                newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1289,7 +1291,7 @@ public class SchemaBackend
               try
               {
                 mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v.getValue(),
-                                                                  newSchema);
+                                                 newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1435,7 +1437,7 @@ public class SchemaBackend
 
 
     // Make sure that the new attribute type doesn't reference an undefined
-    // superior attribute type.
+    // or OBSOLETE superior attribute type.
     AttributeType superiorType = attributeType.getSuperiorType();
     if (superiorType != null)
     {
@@ -1447,6 +1449,56 @@ public class SchemaBackend
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
                                      msgID);
       }
+      else if (superiorType.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_ATTRIBUTE_TYPE;
+        String message = getMessage(msgID, attributeType.getNameOrOID(),
+                                    superiorType.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                     msgID);
+      }
+    }
+
+
+    // Make sure that none of the associated matching rules are marked OBSOLETE.
+    MatchingRule mr = attributeType.getEqualityMatchingRule();
+    if ((mr != null) && mr.isObsolete())
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR;
+      String message = getMessage(msgID, attributeType.getNameOrOID(),
+                                  mr.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   msgID);
+    }
+
+    mr = attributeType.getOrderingMatchingRule();
+    if ((mr != null) && mr.isObsolete())
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR;
+      String message = getMessage(msgID, attributeType.getNameOrOID(),
+                                  mr.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   msgID);
+    }
+
+    mr = attributeType.getSubstringMatchingRule();
+    if ((mr != null) && mr.isObsolete())
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR;
+      String message = getMessage(msgID, attributeType.getNameOrOID(),
+                                  mr.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   msgID);
+    }
+
+    mr = attributeType.getApproximateMatchingRule();
+    if ((mr != null) && mr.isObsolete())
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR;
+      String message = getMessage(msgID, attributeType.getNameOrOID(),
+                                  mr.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   msgID);
     }
 
 
@@ -1572,7 +1624,8 @@ public class SchemaBackend
         AttributeType at;
         try
         {
-          at = AttributeTypeSyntax.decodeAttributeType(v.getValue(), schema);
+          at = AttributeTypeSyntax.decodeAttributeType(v.getValue(), schema,
+                                                       false);
         }
         catch (DirectoryException de)
         {
@@ -1746,7 +1799,8 @@ public class SchemaBackend
 
 
     // Make sure that the new objectclass doesn't reference an undefined
-    // superior class, or an undefined required or optional attribute type.
+    // superior class, or an undefined required or optional attribute type,
+    // and that none of them are OBSOLETE.
     ObjectClass superiorClass = objectClass.getSuperiorClass();
     if (superiorClass != null)
     {
@@ -1756,6 +1810,14 @@ public class SchemaBackend
         String message = getMessage(msgID, objectClass.getNameOrOID(),
                                     superiorClass.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+      else if (superiorClass.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_OBJECTCLASS;
+        String message = getMessage(msgID, objectClass.getNameOrOID(),
+                                    superiorClass.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                      msgID);
       }
     }
@@ -1770,6 +1832,14 @@ public class SchemaBackend
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
                                      msgID);
       }
+      else if (at.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_OC_OBSOLETE_REQUIRED_ATTR;
+        String message = getMessage(msgID, objectClass.getNameOrOID(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                     msgID);
+      }
     }
 
     for (AttributeType at : objectClass.getOptionalAttributes())
@@ -1780,6 +1850,14 @@ public class SchemaBackend
         String message = getMessage(msgID, objectClass.getNameOrOID(),
                                     at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+      else if (at.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_OC_OBSOLETE_OPTIONAL_ATTR;
+        String message = getMessage(msgID, objectClass.getNameOrOID(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                      msgID);
       }
     }
@@ -1906,7 +1984,7 @@ public class SchemaBackend
         ObjectClass oc;
         try
         {
-          oc = ObjectClassSyntax.decodeObjectClass(v.getValue(), schema);
+          oc = ObjectClassSyntax.decodeObjectClass(v.getValue(), schema, false);
         }
         catch (DirectoryException de)
         {
@@ -2045,7 +2123,8 @@ public class SchemaBackend
 
 
     // Make sure that the new name form doesn't reference an undefined
-    // structural class, or an undefined required or optional attribute type.
+    // structural class, or an undefined required or optional attribute type, or
+    // that any of them are marked OBSOLETE.
     ObjectClass structuralClass = nameForm.getStructuralClass();
     if (! schema.hasObjectClass(structuralClass.getOID()))
     {
@@ -2058,6 +2137,14 @@ public class SchemaBackend
     if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
     {
       int    msgID   = MSGID_SCHEMA_MODIFY_NF_OC_NOT_STRUCTURAL;
+      String message = getMessage(msgID, nameForm.getNameOrOID(),
+                                  structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
+    if (structuralClass.isObsolete())
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_NF_OC_OBSOLETE;
       String message = getMessage(msgID, nameForm.getNameOrOID(),
                                   structuralClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -2085,6 +2172,14 @@ public class SchemaBackend
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
                                      msgID);
       }
+      else if (at.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_NF_OBSOLETE_REQUIRED_ATTR;
+        String message = getMessage(msgID, nameForm.getNameOrOID(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                     msgID);
+      }
     }
 
     for (AttributeType at : nameForm.getOptionalAttributes())
@@ -2095,6 +2190,14 @@ public class SchemaBackend
         String message = getMessage(msgID, nameForm.getNameOrOID(),
                                     at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+      else if (at.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_NF_OBSOLETE_OPTIONAL_ATTR;
+        String message = getMessage(msgID, nameForm.getNameOrOID(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                      msgID);
       }
     }
@@ -2220,7 +2323,7 @@ public class SchemaBackend
         NameForm nf;
         try
         {
-          nf = NameFormSyntax.decodeNameForm(v.getValue(), schema);
+          nf = NameFormSyntax.decodeNameForm(v.getValue(), schema, false);
         }
         catch (DirectoryException de)
         {
@@ -2363,11 +2466,36 @@ public class SchemaBackend
                                    msgID);
     }
 
+    if (structuralClass.isObsolete())
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE;
+      String message = getMessage(msgID, ditContentRule.getName(),
+                                  structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   msgID);
+    }
+
     for (ObjectClass oc : ditContentRule.getAuxiliaryClasses())
     {
       if (! schema.hasObjectClass(oc.getOID()))
       {
         int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC;
+        String message = getMessage(msgID, ditContentRule.getName(),
+                                    oc.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+      if (oc.getObjectClassType() != ObjectClassType.AUXILIARY)
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OC_NOT_AUXILIARY;
+        String message = getMessage(msgID, ditContentRule.getName(),
+                                    oc.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+      if (oc.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC;
         String message = getMessage(msgID, ditContentRule.getName(),
                                     oc.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -2385,6 +2513,14 @@ public class SchemaBackend
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
                                      msgID);
       }
+      else if (at.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR;
+        String message = getMessage(msgID, ditContentRule.getName(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                     msgID);
+      }
     }
 
     for (AttributeType at : ditContentRule.getOptionalAttributes())
@@ -2397,6 +2533,14 @@ public class SchemaBackend
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
                                      msgID);
       }
+      else if (at.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR;
+        String message = getMessage(msgID, ditContentRule.getName(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                     msgID);
+      }
     }
 
     for (AttributeType at : ditContentRule.getProhibitedAttributes())
@@ -2407,6 +2551,14 @@ public class SchemaBackend
         String message = getMessage(msgID, ditContentRule.getName(),
                                     at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+      else if (at.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR;
+        String message = getMessage(msgID, ditContentRule.getName(),
+                                    at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                      msgID);
       }
     }
@@ -2615,6 +2767,29 @@ public class SchemaBackend
                                   nameForm.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
                                    msgID);
+    }
+    if (nameForm.isObsolete())
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_DSR_OBSOLETE_NAME_FORM;
+      String message = getMessage(msgID, ditStructureRule.getNameOrRuleID(),
+                                  nameForm.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   msgID);
+    }
+
+
+    // If there are any superior rules, then make sure none of them are marked
+    // OBSOLETE.
+    for (DITStructureRule dsr : ditStructureRule.getSuperiorRules())
+    {
+      if (dsr.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_DSR_OBSOLETE_SUPERIOR_RULE;
+        String message = getMessage(msgID, ditStructureRule.getNameOrRuleID(),
+                                    dsr.getNameOrRuleID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                     msgID);
+      }
     }
 
 
@@ -2867,6 +3042,15 @@ public class SchemaBackend
                                    msgID);
     }
 
+    if (matchingRule.isObsolete())
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_MRU_OBSOLETE_MR;
+      String message = getMessage(msgID, matchingRuleUse.getName(),
+                                  matchingRule.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   msgID);
+    }
+
 
     // Make sure that the new matching rule use doesn't reference an undefined
     // attribute type.
@@ -2878,6 +3062,14 @@ public class SchemaBackend
         String message = getMessage(msgID, matchingRuleUse.getName(),
                                     at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+      else if (at.isObsolete())
+      {
+        int    msgID   = MSGID_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR;
+        String message = getMessage(msgID, matchingRuleUse.getName(),
+                                    matchingRule.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                      msgID);
       }
     }

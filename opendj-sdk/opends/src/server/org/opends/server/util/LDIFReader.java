@@ -310,7 +310,7 @@ public final class LDIFReader
       if (checkSchema)
       {
         StringBuilder invalidReason = new StringBuilder();
-        if (! entry.conformsToSchema(null, false, invalidReason))
+        if (! entry.conformsToSchema(null, false, true, false, invalidReason))
         {
           int    msgID   = MSGID_LDIF_SCHEMA_VIOLATION;
           String message = getMessage(msgID, String.valueOf(entryDN),

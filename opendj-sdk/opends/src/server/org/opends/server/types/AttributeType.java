@@ -404,7 +404,8 @@ public final class AttributeType
     Schema     schema = DirectoryServer.getSchema();
 
     AttributeType at =
-         AttributeTypeSyntax.decodeAttributeType(value, schema);
+         AttributeTypeSyntax.decodeAttributeType(value, schema,
+                                              false);
     at.setSchemaFile(getSchemaFile());
 
     return at;

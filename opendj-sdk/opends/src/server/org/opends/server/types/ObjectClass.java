@@ -260,7 +260,7 @@ public final class ObjectClass
     Schema     schema = DirectoryConfig.getSchema();
 
     ObjectClass oc = ObjectClassSyntax.decodeObjectClass(value,
-                                                         schema);
+                                            schema, false);
     oc.setSchemaFile(getSchemaFile());
 
     return oc;

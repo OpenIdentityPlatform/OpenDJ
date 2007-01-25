@@ -835,6 +835,283 @@ public class SchemaBackendTestCase
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
+   * attribute type with an undefined syntax.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAttributeTypeUndefinedSyntax()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddatundefinedsyntax-oid " +
+              "NAME 'testAddATUndefinedSyntax' " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.99999 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * attribute type with an undefined equality matching rule.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAttributeTypeUndefinedEMR()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddatundefinedemr-oid " +
+              "NAME 'testAddATUndefinedEMR' EQUALITY xxxundefinedxxx " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * attribute type with an undefined ordering matching rule.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAttributeTypeUndefinedOMR()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddatundefinedomr-oid " +
+              "NAME 'testAddATUndefinedOMR' ORDERING xxxundefinedxxx " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * attribute type with an undefined substring matching rule.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAttributeTypeUndefinedSMR()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddatundefinedsmr-oid " +
+              "NAME 'testAddATUndefinedSMR' SUBSTR xxxundefinedxxx " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * attribute type with an undefined approximate matching rule.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAttributeTypeUndefinedAMR()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddatundefinedamr-oid " +
+              "NAME 'testAddATUndefinedAMR' " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-APPROX 'xxxundefinedxxx' X-ORGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * attribute type with an invalid usage.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAttributeTypeInvalidUsage()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddatundefinedsyntax-oid " +
+              "NAME 'testAddATUndefinedSyntax' " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "USAGE xxxinvalidxxx X-ORGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * attribute type whose superior type is marked OBSOLETE in the server schema.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAttributeTypeObsoleteSuperior()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddatobsoletesuperiorsup-oid " +
+              "NAME 'testAddATObsoleteSuperiorSup' OBSOLETE " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )",
+         "attributeTypes: ( testaddatobsoletesuperior-oid " +
+              "NAME 'testAddATObsoleteSuperior' " +
+              "SUP testAddATObsoleteSuperiorSup " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * attribute type whose equality matching rule is marked OBSOLETE in the
+   * server schema.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAttributeTypeObsoleteEMR()
+         throws Exception
+  {
+    SchemaTestMatchingRule matchingRule =
+         new SchemaTestMatchingRule("testAddATObsoleteEMRMatch",
+                                    "1.3.6.1.4.1.26027.1.999.20", true);
+    DirectoryServer.registerMatchingRule(matchingRule, false);
+
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddatobsoleteemr-oid " +
+              "NAME 'testAddATObsoleteEMR' " +
+              "EQUALITY testAddATObsoleteEMRMatch " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
    * attribute type that conflicts with multiple existing types.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -1594,6 +1871,120 @@ public class SchemaBackendTestCase
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
+   * objectclass that references an obsolete superior class.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddObjectClassObsoleteSuperiorClass()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testaddocobsoletesuperiorsup-oid " +
+              "NAME 'testAddOCObsoleteSuperiorSup' OBSOLETE STRUCTURAL " +
+              "MUST cn X-ORIGIN 'SchemaBackendTestCase' )",
+         "objectClasses: ( testaddocobsoletesuperior-oid " +
+              "NAME 'testAddOCObsoleteSuperior' OBSOLETE " +
+              "SUP testAddOCObsoleteSuperiorSup STRUCTURAL MUST cn " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * objectclass that references an obsolete required attribute type.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddObjectClassObsoleteRequiredAttribute()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddocobsoleterequiredattrat-oid " +
+              "NAME 'testAddOCObsoleteRequiredAttrAT' OBSOLETE " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: objectClasses",
+         "objectClasses: ( testaddocobsoleterequiredattroc-oid " +
+              "NAME 'testAddOCObsoleteRequiredAttrOC' " +
+              "STRUCTURAL MUST testAddOCObsoleteRequiredAttrAT " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * objectclass that references an obsolete optional attribute type.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddObjectClassObsoleteOptionalAttribute()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddocobsoleteoptionalattrat-oid " +
+              "NAME 'testAddOCObsoleteOptionalAttrAT' OBSOLETE " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: objectClasses",
+         "objectClasses: ( testaddocobsoleteoptionalattroc-oid " +
+              "NAME 'testAddOCObsoleteOptionalAttrOC' " +
+              "STRUCTURAL MAY testAddOCObsoleteOptionalAttrAT " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
    * objectclass that references an undefined required attribute.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -1626,6 +2017,40 @@ public class SchemaBackendTestCase
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
+   * objectclass that references an undefined required attribute when multiple
+   * required attributes were provided.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddObjectClassMultipleUndefinedRequiredAttribute()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testaddocmultipleundefinedrequired-oid NAME " +
+              "'testAddOCMultipleUndefinedRequired' SUP top STRUCTURAL " +
+              "MUST ( cn $ xxxundefinedxxx ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
    * objectclass that references an undefined optional attribute.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -1641,6 +2066,136 @@ public class SchemaBackendTestCase
          "objectClasses: ( testaddocundefinedoptional-oid NAME " +
               "'testAddOCUndefinedOptional' SUP top STRUCTURAL " +
               "MAY undefined X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * objectclass that references an undefined optional attribute when multiple
+   * optional attributes were provided.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddObjectClassMultipleUndefinedOptionalAttribute()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testaddocmultipleundefinedoptional-oid NAME " +
+              "'testAddOCMultipleUndefinedOptional' SUP top STRUCTURAL " +
+              "MAY ( cn $ xxxundefinedxxx ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * abstract objectclass whose superior class is not abstract.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAbstractObjectClassWithNonAbstractSuperior()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testaddabstractocwithnonabstractsuperior-oid NAME " +
+              "'testAddAbstractOCWithNonAbstractSuperior' SUP person " +
+              "ABSTRACT MAY description X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * auxiliary objectclass whose superior class is structural.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAuxiliaryObjectClassWithStructuralSuperior()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testaddauxiliaryocwithstructuralsuperior-oid NAME " +
+              "'testAddAuxiliaryOCWithStructuralSuperior' SUP person " +
+              "AUXILIARY MAY description X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * structural objectclass whose superior class is auxiliary.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddStructuralObjectClassWithAuxiliarySuperior()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testaddstructuralocwithauxiliarysuperior-oid NAME " +
+              "'testAddStructuralOCWithAuxiliarySuperior' SUP posixAccount " +
+              "STRUCTURAL MAY description X-ORIGIN 'SchemaBackendTestCase' )");
 
     String[] args =
     {
@@ -1942,12 +2497,56 @@ public class SchemaBackendTestCase
               "MUST cn X-ORIGIN 'SchemaBackendTestCase')",
          "-",
          "add: nameForms",
-         "nameForms: ( testaddnameformwithundefinereqdat-oid " +
+         "nameForms: ( testaddnameformwithundefinedreqat-oid " +
               "NAME 'testAddNameFormWithUndefinedReqAT' " +
               "OC testAddNameFormWithUndefinedReqATOC MUST xxxundefinedxxx " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformwithundefinedreqat";
+    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new name
+   * form that references a required attribute type not defined in the server
+   * schema when multiple required attributes were given.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddNameFormWithMultipleUndefinedReqAT()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddnameformwithmultipleundefinedreqatoc-oid " +
+              "NAME 'testAddNameFormWithMultipleUndefinedReqATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: nameForms",
+         "nameForms: ( testaddnameformwithmultipleundefinedreqat-oid " +
+              "NAME 'testAddNameFormWithMultipleUndefinedReqAT' " +
+              "OC testAddNameFormWithMultipleUndefinedReqATOC " +
+              "MUST ( cn $ xxxundefinedxxx ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String nameFormName = "testaddnameformwithmultipleundefinedreqat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
     String[] args =
@@ -1985,12 +2584,56 @@ public class SchemaBackendTestCase
               "MUST cn X-ORIGIN 'SchemaBackendTestCase')",
          "-",
          "add: nameForms",
-         "nameForms: ( testaddnameformwithundefineoptdat-oid " +
+         "nameForms: ( testaddnameformwithundefinedoptat-oid " +
               "NAME 'testAddNameFormWithUndefinedOptAT' " +
               "OC testAddNameFormWithUndefinedOptATOC MUST cn " +
               "MAY xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformwithundefinedoptat";
+    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new name
+   * form that references an optional attribute type not defined in the server
+   * schema when multiple optional attribute types were provided.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddNameFormWithMultipleUndefinedOptAT()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddnameformwithmultipleundefinedoptatoc-oid " +
+              "NAME 'testAddNameFormWithMultipleUndefinedOptATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: nameForms",
+         "nameForms: ( testaddnameformwithmultipleundefinedoptat-oid " +
+              "NAME 'testAddNameFormWithMultipleUndefinedOptAT' " +
+              "OC testAddNameFormWithMultipleUndefinedOptATOC MUST cn " +
+              "MAY ( description $ xxxundefinedxxx ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String nameFormName = "testaddnameformwithmultipleundefinedoptat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
     String[] args =
@@ -2082,6 +2725,136 @@ public class SchemaBackendTestCase
 
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new name
+   * form whose structural objectclass is OBSOLETE rather than structural.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddNameFormWithObsoleteOC()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddnameformwithobsoleteococ-oid " +
+              "NAME 'testAddNameFormWithObsoleteOCOC' OBSOLETE SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: nameForms",
+         "nameForms: ( testaddnameformwithobsoleteoc-oid " +
+              "NAME 'testAddNameFormWithObsoleteOC' " +
+              "OC testAddNameFormWithObsoleteOCOC MUST cn " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String nameFormName = "testaddnameformwithobsoleteoc";
+    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new name
+   * form with a required attribute type that is declared OBSOLETE.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddNameFormWithObsoleteReqAT()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddnfwithobsoletereqatat-oid " +
+              "NAME 'testAddNFWithObsoleteReqATAT' OBSOLETE " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: objectClasses",
+         "objectClasses:  ( testaddnfwithobsoletereqatoc-oid " +
+              "NAME 'testAddNFWithObsoleteReqATOC' SUP top STRUCTURAL " +
+              "MUST cn X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: nameForms",
+         "nameForms: ( testaddnfwithobsoletereqatnf-oid " +
+              "NAME 'testAddNFWithObsoleteReqATNF' " +
+              "OC testAddNFWithObsoleteReqATOC " +
+              "MUST testAddNFWithObsoleteReqATAT " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new name
+   * form with an optional attribute type that is declared OBSOLETE.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddNameFormWithObsoleteOptAT()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddnfwithobsoleteoptatat-oid " +
+              "NAME 'testAddNFWithObsoleteOptATAT' OBSOLETE " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: objectClasses",
+         "objectClasses:  ( testaddnfwithobsoleteoptatoc-oid " +
+              "NAME 'testAddNFWithObsoleteOptATOC' SUP top STRUCTURAL " +
+              "MUST cn X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: nameForms",
+         "nameForms: ( testaddnfwithobsoleteoptatnf-oid " +
+              "NAME 'testAddNFWithObsoleteOptATNF' " +
+              "OC testAddNFWithObsoleteOptATOC " +
+              "MUST cn MAY testAddNFWithObsoleteOptATAT " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
 
 
@@ -2585,6 +3358,43 @@ public class SchemaBackendTestCase
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule whose structural objectclass is OBSOLETE.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleObsoleteOC()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddditcontentruleobsoleteococ-oid " +
+              "NAME 'testAddDITContentRuleObsoleteOCOC' OBSOLETE SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testaddditcontentruleobsoleteococ-oid " +
+              "NAME 'testAddDITContentRuleObsoleteOC' NOT description " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
    * content rule whose structural objectclass is already referenced by an
    * existing DIT content rule.
    *
@@ -2667,6 +3477,162 @@ public class SchemaBackendTestCase
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule with an undefined auxiliary objectclass when multiple
+   * auxiliary classes were provided.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleMultipleUndefinedAuxOC()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddditcontentrulemultundefinedauxococ-oid " +
+              "NAME 'testAddDITContentRuleMultUndefinedAuxOCOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testaddditcontentrulemultundefinedauxococ-oid " +
+              "NAME 'testAddDITContentRuleMultUndefinedAuxOC' " +
+              "AUX ( posixAccount $ xxxundefinedxxx ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule with an auxiliary objectclass that is not auxiliary.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleAuxOCNotAux()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddditcontentruleauxocnotauxoc-oid " +
+              "NAME 'testAddDITContentRuleAuxOCNotAuxOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testaddditcontentruleauxocnotaux-oid " +
+              "NAME 'testAddDITContentRuleAuxOCNotAuxOC' " +
+              "AUX person X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule with an auxiliary objectclass that is not auxiliary when
+   * multiple auxiliary classes were provided.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleMultipleAuxOCNotAux()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddditcontentrulemultipleauxocnotauxoc-oid " +
+              "NAME 'testAddDITContentRuleMultipleAuxOCNotAuxOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testaddditcontentrulemultipleauxocnotaux-oid " +
+              "NAME 'testAddDITContentRuleMultipleAuxOCNotAuxOC' " +
+              "AUX ( posixAccount $ person ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule with an auxiliary objectclass that is OBSOLETE.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleObsoleteAuxOC()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddditcontentruleobsoleteauxstructural-oid " +
+              "NAME 'testAddDITContentRuleObsoleteAuxOCStructural' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase' )",
+         "objectClasses:  ( testaddditcontentruleobsoleteauxauxiliary-oid " +
+              "NAME 'testAddDITContentRuleObsoleteAuxOCAuxiliary' OBSOLETE " +
+              "SUP top AUXILIARY MUST cn X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testaddditcontentruleobsoleteauxstructural-oid " +
+              "NAME 'testAddDITContentRuleObsoleteAuxOC' " +
+              "AUX testAddDITContentRuleObsoleteAuxOCAuxiliary " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
    * content rule that references an undefined required attribute type.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -2680,13 +3646,52 @@ public class SchemaBackendTestCase
          "changetype: modify",
          "add: objectClasses",
          "objectClasses:  ( testaddditcontentruleundefinedreqatoc-oid " +
-              "NAME 'testAddDITContentRuleAuxiliaryOCOC' SUP top STRUCTURAL " +
-              "MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+              "NAME 'testAddDITContentRuleUndefinedReqATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
          "-",
          "add: ditContentRules",
          "ditContentRules: ( testaddditcontentruleundefinedreqatoc-oid " +
               "NAME 'testAddDITContentRuleUndefinedReqAT' " +
               "MUST xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule that references an undefined required attribute type when
+   * multiple required attributes were provided.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleMultipleUndefinedReqAT()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddditcontentrulemultundefinedreqatoc-oid " +
+              "NAME 'testAddDITContentRuleMultUndefinedReqATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testaddditcontentrulemultundefinedreqatoc-oid " +
+              "NAME 'testAddDITContentMultRuleUndefinedReqAT' " +
+              "MUST ( cn $ xxxundefinedxxx ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String[] args =
     {
@@ -2717,13 +3722,52 @@ public class SchemaBackendTestCase
          "changetype: modify",
          "add: objectClasses",
          "objectClasses:  ( testaddditcontentruleundefinedoptatoc-oid " +
-              "NAME 'testAddDITContentRuleAuxiliaryOCOC' SUP top STRUCTURAL " +
-              "MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+              "NAME 'testAddDITContentRuleUndefinedOptATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
          "-",
          "add: ditContentRules",
          "ditContentRules: ( testaddditcontentruleundefinedoptatoc-oid " +
               "NAME 'testAddDITContentRuleUndefinedOptAT' " +
               "MAY xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule that references an undefined optional attribute type when
+   * multiple optional attributes were provided.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleMultipleUndefinedOptAT()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddditcontentrulemultundefinedoptatoc-oid " +
+              "NAME 'testAddDITContentRuleMultUndefinedOptATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testaddditcontentrulemultundefinedoptatoc-oid " +
+              "NAME 'testAddDITContentRuleMultUndefinedOptAT' " +
+              "MAY ( cn $ xxxundefinedxxx ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String[] args =
     {
@@ -2754,13 +3798,257 @@ public class SchemaBackendTestCase
          "changetype: modify",
          "add: objectClasses",
          "objectClasses:  ( testaddditcontentruleundefinednotatoc-oid " +
-              "NAME 'testAddDITContentRuleAuxiliaryOCOC' SUP top STRUCTURAL " +
-              "MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+              "NAME 'testAddDITContentRuleUndefinedNotATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
          "-",
          "add: ditContentRules",
          "ditContentRules: ( testaddditcontentruleundefinednotatoc-oid " +
               "NAME 'testAddDITContentRuleUndefinedNotAT' " +
               "NOT xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule that references an undefined prohibited attribute type when
+   * multiple prohibited attributes were provided.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleMultipleUndefinedNotAT()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddditcontentrulemultundefinednotatoc-oid " +
+              "NAME 'testAddDITContentRuleMultUndefinedNotATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testaddditcontentrulemultundefinednotatoc-oid " +
+              "NAME 'testAddDITContentRuleMultUndefinedNotAT' " +
+              "NOT ( description $ xxxundefinedxxx ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule that prohibits an attribute type that is required by the
+   * structural object class.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleProhibitRequiredStructuralAttribute()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testadddcrprohibitreqstructuralatoc-oid " +
+              "NAME 'testAddDCRProhibitReqStructuralATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testadddcrprohibitreqstructuralatoc-oid " +
+              "NAME 'testAddDCRProhibitReqStructuralAT' " +
+              "NOT cn X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule that prohibits an attribute type that is required by an
+   * associated auxiliary object class.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleProhibitRequiredAuxiliaryAttribute()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testadddcrprohibitreqauxiliaryatoc-oid " +
+              "NAME 'testAddDCRProhibitReqAuxiliaryATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testadddcrprohibitreqauxiliaryatoc-oid " +
+              "NAME 'testAddDCRProhibitReqAuxiliaryAT' AUX posixAccount " +
+              "NOT uid X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule with an OBSOLETE required attribute type.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleObsoleteRequiredAttributeType()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testadddcrobsoletereqatat-oid " +
+              "NAME 'testAddDCRObsoleteReqATAT' OBSOLETE " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: objectClasses",
+         "objectClasses:  ( testadddcrobsoletereqatoc-oid " +
+              "NAME 'testAddDCRObsoleteReqATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testadddcrobsoletereqatoc-oid " +
+              "NAME 'testAddDCRObsoleteReqATDCR' " +
+              "MUST testAddDCRObsoleteReqATAT " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule with an OBSOLETE optional attribute type.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleObsoleteOptionalAttributeType()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testadddcrobsoleteoptatat-oid " +
+              "NAME 'testAddDCRObsoleteOptATAT' OBSOLETE " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: objectClasses",
+         "objectClasses:  ( testadddcrobsoleteoptatoc-oid " +
+              "NAME 'testAddDCRObsoleteOptATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testadddcrobsoleteoptatoc-oid " +
+              "NAME 'testAddDCRObsoleteOptATDCR' " +
+              "MAY testAddDCRObsoleteOptATAT " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new DIT
+   * content rule with an OBSOLETE prohibited attribute type.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITContentRuleObsoleteProhibitedAttributeType()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testadddcrobsoletenotatat-oid " +
+              "NAME 'testAddDCRObsoleteNotATAT' OBSOLETE " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: objectClasses",
+         "objectClasses:  ( testadddcrobsoletenotatoc-oid " +
+              "NAME 'testAddDCRObsoleteNotATOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: ditContentRules",
+         "ditContentRules: ( testadddcrobsoletenotatoc-oid " +
+              "NAME 'testAddDCRObsoleteNotATDCR' " +
+              "NOT testAddDCRObsoleteNotATAT " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String[] args =
     {
@@ -3136,6 +4424,105 @@ public class SchemaBackendTestCase
 
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * DIT structure rule that references a name form which is OBSOLETE.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITStructureRuleObsoleteNameForm()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddditstructureruleobsoletenameformoc-oid " +
+              "NAME 'testAddDITStructureRuleObsoleteNameFormOC' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: nameForms",
+         "nameForms: ( testaddditstructureruleobsoletenameformnf-oid " +
+              "NAME 'testAddDITStructureRuleObsoleteNameFormNF' OBSOLETE " +
+              "OC testAddDITStructureRuleObsoleteNameFormOC MUST cn " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: ditStructureRules",
+         "ditStructureRules: ( 999011 " +
+              "NAME 'testAddDITStructureRuleObsoleteNameForm' " +
+              "FORM testAddDITStructureRuleObsoleteNameFormNF " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * DIT structure rule that references a superior rule which is OBSOLETE.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddDITStructureRuleObsoleteSuperiorRule()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses:  ( testaddditstructureruleobsoletesuperioroc1-oid " +
+              "NAME 'testAddDITStructureRuleObsoleteSuperiorOC1' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "objectClasses:  ( testaddditstructureruleobsoletesuperioroc2-oid " +
+              "NAME 'testAddDITStructureRuleObsoleteSuperiorOC2' SUP top " +
+              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         "-",
+         "add: nameForms",
+         "nameForms: ( testaddditstructureruleobsoletesuperiornf1-oid " +
+              "NAME 'testAddDITStructureRuleObsoleteSuperiorNF1' " +
+              "OC testAddDITStructureRuleObsoleteSuperiorOC1 MUST cn " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "nameForms: ( testaddditstructureruleobsoletesuperiornf2-oid " +
+              "NAME 'testAddDITStructureRuleObsoleteSuperiorNF2' " +
+              "OC testAddDITStructureRuleObsoleteSuperiorOC2 MUST cn " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "-",
+         "add: ditStructureRules",
+         "ditStructureRules: ( 999012 " +
+              "NAME 'testAddDITStructureRuleObsoleteSuperiorSup' OBSOLETE " +
+              "FORM testAddDITStructureRuleObsoleteSuperiorNF1 " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "ditStructureRules: ( 999013 " +
+              "NAME 'testAddDITStructureRuleObsoleteSuperiorSub' " +
+              "FORM testAddDITStructureRuleObsoleteSuperiorNF2 SUP 999012 " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
 
 
@@ -3604,6 +4991,132 @@ public class SchemaBackendTestCase
          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.16 " +
               "NAME 'testAddMatchingRuleUseATUndefined' " +
               "APPLIES xxxundefinedxxx " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * matching rule use that references an undefined attribute type.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddMatchingRuleUseAttributeTypeMultipleUndefined()
+         throws Exception
+  {
+    SchemaTestMatchingRule matchingRule =
+         new SchemaTestMatchingRule("testAddMRUATMultipleUndefinedMatch",
+                                    "1.3.6.1.4.1.26027.1.999.19");
+    DirectoryServer.registerMatchingRule(matchingRule, false);
+
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: matchingRuleUse",
+         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.19 " +
+              "NAME 'testAddMatchingRuleUseATMultipleUndefined' " +
+              "APPLIES ( cn $ xxxundefinedxxx ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * matching rule whose matching rule is OBSOLETE.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddMatchingRuleUseObsoleteMatchingRule()
+         throws Exception
+  {
+    SchemaTestMatchingRule matchingRule =
+         new SchemaTestMatchingRule("testAddMRUObsoleteMRMatch",
+                                    "1.3.6.1.4.1.26027.1.999.21", true);
+    DirectoryServer.registerMatchingRule(matchingRule, false);
+
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: matchingRuleUse",
+         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.21 " +
+              "NAME 'testAddMatchingRuleUseObsoleteMatchingRule' " +
+              "APPLIES cn X-ORIGIN 'SchemaBackendTestCase' )");
+
+    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
+   * matching rule with an associated attribute type that is marked OBSOLETE.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddMatchingRuleUseObsoleteAttributeType()
+         throws Exception
+  {
+    SchemaTestMatchingRule matchingRule =
+         new SchemaTestMatchingRule("testAddMRUObsoleteATMatch",
+                                    "1.3.6.1.4.1.26027.1.999.22");
+    DirectoryServer.registerMatchingRule(matchingRule, false);
+
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddmruobsoleteat-oid " +
+              "NAME 'testAddMRUObsoleteAT' OBSOLETE )",
+         "-",
+         "add: matchingRuleUse",
+         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.22 " +
+              "NAME 'testAddMatchingRuleUseObsoleteAttributeType' " +
+              "APPLIES testAddMRUObsoleteAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));

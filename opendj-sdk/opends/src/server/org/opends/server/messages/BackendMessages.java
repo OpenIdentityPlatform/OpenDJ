@@ -2962,6 +2962,215 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an attribute type whose superior type is OBSOLETE.  This takes two
+   * arguments, which are the name or OID of the attribute type and the name or
+   * OID of the superior type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_ATTRIBUTE_TYPE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 274;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an attribute type with a matching rule that is OBSOLETE.  This takes
+   * two arguments, which are the name or OID of the attribute type and the name
+   * or OID of the matching rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 275;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an object class whose superior class is OBSOLETE.  This takes two
+   * arguments, which are the name or OID of the object class and the name or
+   * OID of the superior class.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_OBJECTCLASS =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 276;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an object class that requires an OBSOLETE attribute type.  This takes
+   * two arguments, which are the name or OID of the object class and the name
+   * or OID of the required attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_OC_OBSOLETE_REQUIRED_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 277;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an object class that allows an OBSOLETE attribute type.  This takes
+   * two arguments, which are the name or OID of the object class and the name
+   * or OID of the optional attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_OC_OBSOLETE_OPTIONAL_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 278;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a name form whose structural object class is marked OBSOLETE.  This
+   * takes two arguments, which are the name or OID of the name form and the
+   * name or OID of the structural object class.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_NF_OC_OBSOLETE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 279;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a name form that requires an attribute type which is marked OBSOLETE.
+   * This takes two arguments, which are the name or OID of the name form and
+   * the name or OID of the required attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_NF_OBSOLETE_REQUIRED_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 280;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a name form that allows an attribute type which is marked OBSOLETE.
+   * This takes two arguments, which are the name or OID of the name form and
+   * the  name or OID of the optional attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_NF_OBSOLETE_OPTIONAL_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 281;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a DIT content rule whose structural object class is marked OBSOLETE.
+   * This takes two arguments, which are the name of the DIT content rule and
+   * the name or OID of the structural object class.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 282;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a DIT content rule with an auxiliary object class that is not declared
+   * auxiliary.  This takes two arguments, which are the name of the DIT content
+   * rule and the name or OID of the object class.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_OC_NOT_AUXILIARY =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 283;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a DIT content rule with an AUXILIARY object class that is marked
+   * OBSOLETE.  This takes two arguments, which are the name of the DIT content
+   * rule and the name or OID of the auxiliary object class.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_AUXILIARY_OC_OBSOLETE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 284;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a DIT content rule that requires an attribute type that is marked
+   * OBSOLETE.  This takes two arguments, which are the name of the DIT content
+   * rule and the name or OID of the attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 285;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a DIT content rule that allows an attribute type that is marked
+   * OBSOLETE.  This takes two arguments, which are the name of the DIT content
+   * rule and the name or OID of the attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 286;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a DIT content rule that prohibits an attribute type that is marked
+   * OBSOLETE.  This takes two arguments, which are the name of the DIT content
+   * rule and the name or OID of the attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 287;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a DIT structure rule whose associated name form is marked OBSOLETE.
+   * This takes two arguments, which are the name or rule ID of the DIT
+   * structure rule and the name or OID of the name form.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DSR_OBSOLETE_NAME_FORM =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 288;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a DIT structure rule with a superior rule that is marked OBSOLETE.
+   * This takes two arguments, which are the name or rule ID of the DIT
+   * structure rule and the name or rule ID of the superior rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DSR_OBSOLETE_SUPERIOR_RULE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 289;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a matching rule use with a matching rule that is marked OBSOLETE.  This
+   * takes two arguments, which are the name of the matching rule use and the
+   * name or OID of the matching rule.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_MRU_OBSOLETE_MR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 290;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a matching rule use with an attribute type that is marked OBSOLETE.
+   * This takes two arguments, which are the name of the matching rule use and
+   * the name or OID of the attribute type.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 291;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a DIT content rule with an auxiliary object class that is declared
+   * OBSOLETE.  This takes two arguments, which are the name of the DIT content
+   * rule and the name or OID of the object class.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 292;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -3492,6 +3701,76 @@ public class BackendMessages
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE,
                     "Unable to remove matching rule use %s from the server " +
                     "schema because no such matching rule use is defined.");
+    registerMessage(MSGID_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_ATTRIBUTE_TYPE,
+                    "Unable to add attribute type %s because the superior " +
+                    "type %s is marked as OBSOLETE in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR,
+                    "Unable to add attribute type %s because the associated " +
+                    "matching rule %s is marked as OBSOLETE in the server " +
+                    "schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_OBJECTCLASS,
+                    "Unable to add object class %s because the superior " +
+                    "class %s is marked as OBSOLETE in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_OC_OBSOLETE_REQUIRED_ATTR,
+                    "Unable to add object class %s because required " +
+                    "attribute %s is marked as OBSOLETE in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_OC_OBSOLETE_OPTIONAL_ATTR,
+                    "Unable to add object class %s because optional " +
+                    "attribute %s is marked as OBSOLETE in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_NF_OC_OBSOLETE,
+                    "Unable to add name form %s because its structural " +
+                    "object class %s is marked as OBSOLETE in the server " +
+                    "schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_NF_OBSOLETE_REQUIRED_ATTR,
+                    "Unable to add name form %s because it requires " +
+                    "attribute type %s which is marked as OBSOLETE in the " +
+                    "server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_NF_OBSOLETE_OPTIONAL_ATTR,
+                    "Unable to add name form %s because it allows " +
+                    "attribute type %s which is marked as OBSOLETE in the " +
+                    "server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE,
+                    "Unable to add DIT content rule %s because its " +
+                    "structural object class %s is marked as OBSOLETE in " +
+                    "the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_OC_NOT_AUXILIARY,
+                    "Unable to add DIT content rule %s because it references " +
+                    "auxiliary object class %s which is defined in the " +
+                    "server schema but is not an auxiliary class.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC,
+                    "Unable to add DIT content rule %s because it references " +
+                    "auxiliary object class %s which is marked as OBSOLETE " +
+                    "in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_AUXILIARY_OC_OBSOLETE,
+                    "Unable to add DIT content rule %s because it allows " +
+                    "auxiliary object class %s which is marked as OBSOLETE " +
+                    "in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR,
+                    "Unable to add DIT content rule %s because it requires " +
+                    "attribute type %s which is marked as OBSOLETE in the " +
+                    "server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR,
+                    "Unable to add DIT content rule %s because it allows " +
+                    "attribute type %s which is marked as OBSOLETE in the " +
+                    "server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR,
+                    "Unable to add DIT content rule %s because it prohibits " +
+                    "attribute type %s which is marked as OBSOLETE in the " +
+                    "server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DSR_OBSOLETE_NAME_FORM,
+                    "Unable to add DIT structure rule %s because its name " +
+                    "form %s is marked OBSOLETE in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_DSR_OBSOLETE_SUPERIOR_RULE,
+                    "Unable to add DIT structure rule %s because it " +
+                    "references superior rule %s whihc is marked as OBSOLETE " +
+                    "in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_MRU_OBSOLETE_MR,
+                    "Unable to add matching rule use %s because its matching " +
+                    "rule %s is marked OBSOLETE in the server schema.");
+    registerMessage(MSGID_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR,
+                    "Unable to add matching rule use %s because it " +
+                    "references attribute type %s which is marked as " +
+                    "OBSOLETE in the server schema.");
 
 
     registerMessage(MSGID_SCHEMA_RESTORE_NO_SUCH_BACKUP,

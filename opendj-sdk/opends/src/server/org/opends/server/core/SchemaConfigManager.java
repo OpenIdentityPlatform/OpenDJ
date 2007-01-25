@@ -986,7 +986,7 @@ public class SchemaConfigManager
             try
             {
               attrType = attrTypeSyntax.decodeAttributeType(v.getValue(),
-                                                            schema);
+                                                            schema, false);
             }
             catch (DirectoryException de)
             {
@@ -1058,7 +1058,7 @@ public class SchemaConfigManager
             ObjectClass oc;
             try
             {
-              oc = ocSyntax.decodeObjectClass(v.getValue(), schema);
+              oc = ocSyntax.decodeObjectClass(v.getValue(), schema, false);
             }
             catch (DirectoryException de)
             {
@@ -1130,7 +1130,7 @@ public class SchemaConfigManager
             NameForm nf;
             try
             {
-              nf = nfSyntax.decodeNameForm(v.getValue(), schema);
+              nf = nfSyntax.decodeNameForm(v.getValue(), schema, false);
               nf.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
               nf.setSchemaFile(schemaFile);
             }
@@ -1204,7 +1204,7 @@ public class SchemaConfigManager
             DITContentRule dcr;
             try
             {
-              dcr = dcrSyntax.decodeDITContentRule(v.getValue(), schema);
+              dcr = dcrSyntax.decodeDITContentRule(v.getValue(), schema, false);
               dcr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
               dcr.setSchemaFile(schemaFile);
             }
@@ -1353,7 +1353,8 @@ public class SchemaConfigManager
             MatchingRuleUse mru;
             try
             {
-              mru = mruSyntax.decodeMatchingRuleUse(v.getValue(), schema);
+              mru = mruSyntax.decodeMatchingRuleUse(v.getValue(), schema,
+                                                    false);
               mru.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
               mru.setSchemaFile(schemaFile);
             }
