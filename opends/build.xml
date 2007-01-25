@@ -1019,8 +1019,9 @@
            <include name="metadata.emma" />
         </fileset>
 
-        <txt outfile="${coverage.report.dir}/coverage.txt" />
+        <txt  outfile="${coverage.report.dir}/coverage.txt" />
         <html outfile="${coverage.report.dir}/index.html" />
+        <xml  outfile="${coverage.report.dir}/coverage.xml" />
       </report>
 
     </emma>
