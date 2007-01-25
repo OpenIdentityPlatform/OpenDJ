@@ -34,10 +34,10 @@
       <sequence>
 
         <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Password'">
+        <testcase name="'Security: Pwd Change: Preamble Setup'">
           <sequence>
             <message>
-               'Security: Pwd Policy: User Searching With Password'
+               'Security: Pwd Change: Preamble Step 1 - User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -50,18 +50,12 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : Admin Enable Exp Pwd No Warning -->
-        <testcase name="'Security:Pwd Change: Admin Enable Exp Pwd No Warning'">
-          <sequence>
             <message>
-               'Security: Pwd Change: Admin Enabling Exp Pwd No Warning'
+               'Security: Pwd Change: Preamble Step 2 - Admin Enabling Exp Pwd No Warning'
             </message>
 
             <call function="'modifyEntry'">
@@ -72,18 +66,12 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_exp_pwd_no_warning.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : Admin Set Pwd Time Exp -->
-        <testcase name="'Security:Pwd Change: Admin Set Pwd Time Exp'">
-          <sequence>
             <message>
-               'Security: Pwd Change: Admin Setting Pwd Time Exp'
+               'Security: Pwd Change: Preamble Step 3 -Admin Setting Pwd Time Exp'
             </message>
 
             <call function="'modifyEntry'">
@@ -101,11 +89,11 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Password'">
+        <!--- Test Case : User Search With Expired Password -->
+        <testcase name="'Security: Pwd Change: User Search With Exp Password'">
           <sequence>
             <message>
-               'Security: Pwd Policy: User Searching With Password'
+               'Security: Pwd Change: User Searching With Expired Password'
             </message>
 
             <call function="'SearchObject'">
@@ -127,7 +115,7 @@
         </testcase>
 
         <!--- Test Case : Admin Disable Exp Pwd No Warning -->
-        <testcase name="'Security:Pwd Change: Admin Disable Exp Pwd No Warning'">
+        <testcase name="'Security: Pwd Change: Admin Disable Exp Pwd No Warning'">
           <sequence>
             <message>
                'Security: Pwd Change: Admin Disabling Exp Pwd No Warning'
@@ -148,11 +136,11 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Password'">
+        <!--- Test Case : User Search With Expired Password 2-->
+        <testcase name="'Security: Pwd Change: User Search With Exp Password 2'">
           <sequence>
             <message>
-               'Security: Pwd Policy: User Searching With Password'
+               'Security: Pwd Change: User Searching With Expired Password 2'
             </message>
 
             <call function="'SearchObject'">
@@ -177,7 +165,7 @@
         </testcase>
 
         <!--- Test Case : Admin Reset Pwd Time Exp -->
-        <testcase name="'Security:Pwd Change: Admin Reset Pwd Time Exp'">
+        <testcase name="'Security: Pwd Change: Postamble Reset'">
           <sequence>
             <message>
                'Security: Pwd Change: Admin Resetting Pwd Time Exp'
@@ -191,18 +179,12 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_by_time.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Password'">
-          <sequence>
             <message>
-               'Security: Pwd Policy: User Searching With Password'
+               'Security: Pwd Change: User Searching With Password'
             </message>
 
             <call function="'SearchObject'">

@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security:Pwd Policy: Check Existence of ds-cfg-allow-user-password-changes'">
+        <testcase name="'Security: Pwd Policy: Preamble'">
           <sequence>
             <message>
                'Security: Pwd Policy: Checking existence of ds-cfg-allow-user-password-changes'
@@ -57,7 +57,7 @@
         </testcase>
 
         <!--- Test Case : User Search With Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Password'">
+        <testcase name="'Security: Pwd Policy: User Search'">
           <sequence>
             <message>
                'Security: Pwd Policy: User Searching With Password'
@@ -81,7 +81,7 @@
         </testcase>
 
         <!--- Test Case : User Search With Bad Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Bad Password'">
+        <testcase name="'Security: Pwd Policy: User Search With Bad Password'">
           <sequence>
             <message>
                'Security: Pwd Policy: User Searching With Bad Password'
@@ -106,10 +106,10 @@
         </testcase>
 
         <!--- Test Case : User Change Password With Bad Credentials -->
-        <testcase name="'Security:Pwd Policy: User Change Password With Bad Credentials'">
+        <testcase name="'Security: Pwd Policy: User With Bad Credentials Change Password '">
           <sequence>
             <message>
-               'Security: Pwd Policy: User Changing Password with Bad Credentials'
+               'Security: Pwd Policy: User with Bad Credentials Changing Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -129,7 +129,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password -->
-        <testcase name="'Security:Pwd Policy: User Change Password'">
+        <testcase name="'Security: Pwd Policy: User Change Password'">
           <sequence>
             <message>
                'Security: Pwd Policy: User Changing Password'
@@ -143,16 +143,10 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Search With Old Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Old Password'">
-          <sequence>
             <message>
                'Security: Pwd Policy: User Searching With Old Password'
             </message>
@@ -167,17 +161,10 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 1  }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 1">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Search With New Password -->
-        <testcase name="'Security:Pwd Policy: User Search With New Password'">
-          <sequence>
             <message>
                'Security: Pwd Policy: User Searching With New Password'
             </message>
@@ -200,7 +187,7 @@
         </testcase>
 
         <!--- Test Case : Admin Change Password Policy -->
-        <testcase name="'Security:Pwd Policy: Admin Change Password Policy'">
+        <testcase name="'Security: Pwd Policy: Admin Change Password Policy'">
           <sequence>
             <message>
                'Security: Pwd Policy: Admin Changing Password Policy'
@@ -214,16 +201,10 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_policy.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Reset Password -->
-        <testcase name="'Security:Pwd Policy: User Reset Password'">
-          <sequence>
             <message>
                'Security: Pwd Policy: User Resetting Password'
             </message>
@@ -245,10 +226,10 @@
         </testcase>
 
         <!--- Test Case : Admin Reset Password Policy -->
-        <testcase name="'Security:Pwd Policy: Admin Reset Password Policy'">
+        <testcase name="'Security: Pwd Policy: Postamble'">
           <sequence>
             <message>
-               'Security: Pwd Policy: Admin Resetting Password Policy'
+               'Security: Pwd Policy: Postamble Step 1 - Admin Resetting Password Policy'
             </message>
 
             <call function="'modifyEntry'">
@@ -259,18 +240,12 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_pwd_policy.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Reset Password -->
-        <testcase name="'Security:Pwd Policy: User Reset Password'">
-          <sequence>
             <message>
-               'Security: Pwd Policy: User Resetting Password'
+               'Security: Pwd Policy: Postamble Step 2 - User Resetting Password'
             </message>
 
             <call function="'modifyEntry'">
@@ -281,18 +256,12 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_reset_pwd.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Search With Old Password -->
-        <testcase name="'Security:Pwd Policy: User Search With Old Password'">
-          <sequence>
             <message>
-               'Security: Pwd Policy: User Searching With Old Password'
+               'Security: Pwd Policy: Postamble Step 3 - User Searching With Old Password'
             </message>
 
             <call function="'SearchObject'">
@@ -305,19 +274,12 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 1  }
-            </call>
-          </sequence>
-        </testcase>
+            <if expr="RC != 1">
+                <tcstatus result="'fail'"/>
+            </if>
 
-        <!--- Test Case : User Search With New Password -->
-        <testcase name="'Security:Pwd Policy: User Search With New Password'">
-          <sequence>
             <message>
-               'Security: Pwd Policy: User Searching With New Password'
+               'Security: Pwd Policy: Postamble Step 4 - User Searching With New Password'
             </message>
 
             <call function="'SearchObject'">
