@@ -46,18 +46,17 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 
 import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -105,17 +104,10 @@ public class ObjectClassSyntax
 
 
   /**
-   * Initializes this attribute syntax based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this attribute syntax.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
+   * {@inheritDoc}
    */
   public void initializeSyntax(ConfigEntry configEntry)
-         throws ConfigException
+         throws ConfigException, InitializationException
   {
     assert debugEnter(CLASS_NAME, "initializeSyntax",
                       String.valueOf(configEntry));
@@ -124,36 +116,37 @@ public class ObjectClassSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_OID, SYNTAX_OBJECTCLASS_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE;
+      String message = getMessage(msgID, EMR_CASE_IGNORE_OID,
+                                  SYNTAX_OBJECTCLASS_NAME);
+      throw new InitializationException(msgID, message);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_CASE_IGNORE_OID, SYNTAX_OBJECTCLASS_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE;
+      String message = getMessage(msgID, OMR_CASE_IGNORE_OID,
+                                  SYNTAX_OBJECTCLASS_NAME);
+      throw new InitializationException(msgID, message);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_OBJECTCLASS_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE;
+      String message = getMessage(msgID, SMR_CASE_IGNORE_OID,
+                                  SYNTAX_OBJECTCLASS_NAME);
+      throw new InitializationException(msgID, message);
     }
   }
 
 
 
   /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getSyntaxName()
   {
@@ -165,9 +158,7 @@ public class ObjectClassSyntax
 
 
   /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getOID()
   {
@@ -179,9 +170,7 @@ public class ObjectClassSyntax
 
 
   /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getDescription()
   {
@@ -193,12 +182,7 @@ public class ObjectClassSyntax
 
 
   /**
-   * Retrieves the default equality matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default equality matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if equality
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
@@ -210,12 +194,7 @@ public class ObjectClassSyntax
 
 
   /**
-   * Retrieves the default ordering matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default ordering matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if ordering
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
@@ -227,12 +206,7 @@ public class ObjectClassSyntax
 
 
   /**
-   * Retrieves the default substring matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default substring matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if substring
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
@@ -244,12 +218,7 @@ public class ObjectClassSyntax
 
 
   /**
-   * Retrieves the default approximate matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default approximate matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if approximate
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
@@ -262,16 +231,7 @@ public class ObjectClassSyntax
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an attribute
-   * with this syntax.  If it is not, then the reason may be appended to the
-   * provided buffer.
-   *
-   * @param  value          The value for which to make the determination.
-   * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
-   *          this syntax, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
@@ -284,7 +244,7 @@ public class ObjectClassSyntax
     // acceptable.
     try
     {
-      decodeObjectClass(value, DirectoryServer.getSchema());
+      decodeObjectClass(value, DirectoryServer.getSchema(), true);
       return true;
     }
     catch (DirectoryException de)
@@ -304,17 +264,25 @@ public class ObjectClassSyntax
    * octet string value does not need to be normalized (and in fact, it should
    * not be in order to allow the desired capitalization to be preserved).
    *
-   * @param  value   The ASN.1 octet string containing the value to decode (it
-   *                 does not need to be normalized).
-   * @param  schema  The schema to use to resolve references to other schema
-   *                 elements.
+   * @param  value                 The ASN.1 octet string containing the value
+   *                               to decode (it does not need to be
+   *                               normalized).
+   * @param  schema                The schema to use to resolve references to
+   *                               other schema elements.
+   * @param  allowUnknownElements  Indicates whether to allow values that
+   *                               reference a superior class or required or
+   *                               optional attribute types which are not
+   *                               defined in the server schema.  This should
+   *                               only be true when called by
+   *                               {@code valueIsAcceptable}.
    *
    * @return  The decoded objectclass definition.
    *
    * @throws  DirectoryException  If the provided value cannot be decoded as an
    *                              objectclass definition.
    */
-  public static ObjectClass decodeObjectClass(ByteString value, Schema schema)
+  public static ObjectClass decodeObjectClass(ByteString value, Schema schema,
+                                              boolean allowUnknownElements)
          throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "decodeObjectClass", String.valueOf(value));
@@ -593,17 +561,21 @@ public class ObjectClassSyntax
         superiorClass = schema.getObjectClass(woidBuffer.toString());
         if (superiorClass == null)
         {
-          // This is bad because we don't know what the superior objectclass
-          // is so we can't base this objectclass on it.  Log a message and
-          // just create a default empty superior class.
-          int    msgID   = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS;
-          String message = getMessage(msgID, String.valueOf(oid),
-                                      String.valueOf(woidBuffer));
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
-
-          superiorClass =
-               DirectoryServer.getDefaultObjectClass(woidBuffer.toString());
+          if (allowUnknownElements)
+          {
+            superiorClass =
+                 DirectoryServer.getDefaultObjectClass(woidBuffer.toString());
+          }
+          else
+          {
+            // This is bad because we don't know what the superior objectclass
+            // is so we can't base this objectclass on it.
+            int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS;
+            String message = getMessage(msgID, String.valueOf(oid),
+                                        String.valueOf(woidBuffer));
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                         message, msgID);
+          }
         }
 
 
@@ -652,17 +624,20 @@ public class ObjectClassSyntax
             AttributeType attr = schema.getAttributeType(woidBuffer.toString());
             if (attr == null)
             {
-              // This isn't good because it means that the objectclass requires
-              // an attribute type that we don't know anything about.  In this
-              // case all we can do is log a message and construct a default
-              // type.
-              int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR;
-              String message = getMessage(msgID, oid, woidBuffer.toString());
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
+              if (allowUnknownElements)
+              {
+                attr = DirectoryServer.getDefaultAttributeType(
+                                            woidBuffer.toString());
+              }
+              else
+              {
+                // This isn't good because it means that the objectclass
+                // requires an attribute type that we don't know anything about.
+                int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR;
+                String message = getMessage(msgID, oid, woidBuffer.toString());
+                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                             message, msgID);
+              }
             }
 
             attrs.add(attr);
@@ -693,16 +668,20 @@ public class ObjectClassSyntax
           AttributeType attr = schema.getAttributeType(woidBuffer.toString());
           if (attr == null)
           {
-            // This isn't good because it means that the objectclass requires an
-            // attribute type that we don't know anything about.  In this case
-            // all we can do is log a message and construct a default type.
-            int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR;
-            String message = getMessage(msgID, oid, woidBuffer.toString());
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
-
-            attr = DirectoryServer.getDefaultAttributeType(
-                                        woidBuffer.toString());
+            if (allowUnknownElements)
+            {
+              attr = DirectoryServer.getDefaultAttributeType(
+                                          woidBuffer.toString());
+            }
+            else
+            {
+              // This isn't good because it means that the objectclass requires
+              // an attribute type that we don't know anything about.
+              int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR;
+              String message = getMessage(msgID, oid, woidBuffer.toString());
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message, msgID);
+            }
           }
 
           attrs.add(attr);
@@ -729,17 +708,20 @@ public class ObjectClassSyntax
             AttributeType attr = schema.getAttributeType(woidBuffer.toString());
             if (attr == null)
             {
-              // This isn't good because it means that the objectclass allows
-              // an attribute type that we don't know anything about.  In this
-              // case all we can do is log a message and construct a default
-              // type.
-              int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR;
-              String message = getMessage(msgID, oid, woidBuffer.toString());
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
+              if (allowUnknownElements)
+              {
+                attr = DirectoryServer.getDefaultAttributeType(
+                                            woidBuffer.toString());
+              }
+              else
+              {
+                // This isn't good because it means that the objectclass allows
+                // an attribute type that we don't know anything about.
+                int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR;
+                String message = getMessage(msgID, oid, woidBuffer.toString());
+                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                             message, msgID);
+              }
             }
 
             attrs.add(attr);
@@ -770,16 +752,20 @@ public class ObjectClassSyntax
           AttributeType attr = schema.getAttributeType(woidBuffer.toString());
           if (attr == null)
           {
-            // This isn't good because it means that the objectclass allows an
-            // attribute type that we don't know anything about.  In this case
-            // all we can do is log a message and construct a default type.
-            int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR;
-            String message = getMessage(msgID, oid, woidBuffer.toString());
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
-
-            attr = DirectoryServer.getDefaultAttributeType(
-                                        woidBuffer.toString());
+            if (allowUnknownElements)
+            {
+              attr = DirectoryServer.getDefaultAttributeType(
+                                          woidBuffer.toString());
+            }
+            else
+            {
+              // This isn't good because it means that the objectclass allows an
+              // attribute type that we don't know anything about.
+              int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR;
+              String message = getMessage(msgID, oid, woidBuffer.toString());
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message, msgID);
+            }
           }
 
           attrs.add(attr);
@@ -800,11 +786,73 @@ public class ObjectClassSyntax
     }
 
 
-    // This should only happen for the "top" objectclass.
     if (superiorClass.getOID().equals(oid))
     {
+      // This should only happen for the "top" objectclass.
       superiorClass = null;
     }
+    else
+    {
+      // Make sure that the inheritance configuration is acceptable.
+      ObjectClassType superiorType = superiorClass.getObjectClassType();
+      switch (objectClassType)
+      {
+        case ABSTRACT:
+          // Abstract classes may only inherit from other abstract classes.
+          if (superiorType != ObjectClassType.ABSTRACT)
+          {
+            int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE;
+            String message = getMessage(msgID, oid, objectClassType.toString(),
+                                        superiorType.toString(),
+                                        superiorClass.getNameOrOID());
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                         message, msgID);
+          }
+          break;
+
+        case AUXILIARY:
+          // Auxiliary classes may only inherit from abstract classes or other
+          // auxiliary classes.
+          if ((superiorType != ObjectClassType.ABSTRACT) &&
+              (superiorType != ObjectClassType.AUXILIARY))
+          {
+            int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE;
+            String message = getMessage(msgID, oid, objectClassType.toString(),
+                                        superiorType.toString(),
+                                        superiorClass.getNameOrOID());
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                         message, msgID);
+          }
+          break;
+
+        case STRUCTURAL:
+          // Structural classes may only inherit from abstract classes or other
+          // structural classes.
+          if ((superiorType != ObjectClassType.ABSTRACT) &&
+              (superiorType != ObjectClassType.STRUCTURAL))
+          {
+            int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE;
+            String message = getMessage(msgID, oid, objectClassType.toString(),
+                                        superiorType.toString(),
+                                        superiorClass.getNameOrOID());
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                         message, msgID);
+          }
+
+          // Structural classes must have the "top" objectclass somewhere in the
+          // superior chain.
+          if (! superiorChainIncludesTop(superiorClass))
+          {
+            int msgID =
+                 MSGID_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP;
+            String message = getMessage(msgID, oid);
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                         message, msgID);
+          }
+          break;
+      }
+    }
+
 
 
     return new ObjectClass(value.stringValue(), primaryName, names, oid,
@@ -1340,6 +1388,36 @@ public class ObjectClassSyntax
 
 
     return startPos;
+  }
+
+
+
+  /**
+   * Indicates whether the provided objectclass or any of its superiors is equal
+   * to the "top" objectclass.
+   *
+   * @param  superiorClass  The objectclass for which to make the determination.
+   *
+   * @return  {@code true} if the provided class or any of its superiors is
+   *          equal to the "top" objectclass, or {@code false} if not.
+   */
+  private static boolean superiorChainIncludesTop(ObjectClass superiorClass)
+  {
+    assert debugEnter(CLASS_NAME, "superiorChainIncludesTop",
+                      String.valueOf(superiorClass));
+
+    if (superiorClass == null)
+    {
+      return false;
+    }
+    else if (superiorClass.hasName(OC_TOP))
+    {
+      return true;
+    }
+    else
+    {
+      return superiorChainIncludesTop(superiorClass.getSuperiorClass());
+    }
   }
 }
 

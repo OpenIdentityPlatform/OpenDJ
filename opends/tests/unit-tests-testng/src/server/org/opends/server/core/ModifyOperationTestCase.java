@@ -55,6 +55,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
@@ -4384,5 +4385,122 @@ responseLoop:
     } catch (Exception e) {}
   }
 
+
+
+  /**
+   * Tests a modify operation that attemtps to set a value for an attribute type
+   * that is marked OBSOLETE in the server schema.
+   *
+   * @param  baseDN  The base DN for the test backend.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testModifyObsoleteAttribute(String baseDN)
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testmodifyobsoleteattribute-oid " +
+              "NAME 'testModifyObsoleteAttribute' OBSOLETE " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )");
+
+    String attrName = "testmodifyobsoleteattribute";
+    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+    path = TestCaseUtils.createTempFile(
+         "dn: " + baseDN,
+         "changetype: modify",
+         "add: objectClass",
+         "objectClass: extensibleObject",
+         "-",
+         "replace: testModifyObsoleteAttribute",
+         "testModifyObsoleteAttribute: foo");
+
+    args = new String[]
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests a modify operation that attemtps to add an OBSOLETE object class to
+   * an entry.
+   *
+   * @param  baseDN  The base DN for the test backend.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testModifyAddObsoleteObjectClass(String baseDN)
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testmodifyaddobsoleteobjectclass-oid " +
+              "NAME 'testModifyAddObsoleteObjectClass' OBSOLETE " +
+              "AUXILIARY MAY description X-ORGIN 'SchemaBackendTestCase' )");
+
+    String ocName = "testmodifyaddobsoleteobjectclass";
+    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+    path = TestCaseUtils.createTempFile(
+         "dn: " + baseDN,
+         "changetype: modify",
+         "add: objectClass",
+         "objectClass: testModifyAddObsoleteObjectClass");
+
+    args = new String[]
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
 }
 

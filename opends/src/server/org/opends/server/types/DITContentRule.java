@@ -257,7 +257,8 @@ public final class DITContentRule
     Schema     schema = DirectoryConfig.getSchema();
 
     DITContentRule dcr =
-         DITContentRuleSyntax.decodeDITContentRule(value, schema);
+         DITContentRuleSyntax.decodeDITContentRule(value, schema,
+                                                   false);
     dcr.setSchemaFile(getSchemaFile());
 
     return dcr;

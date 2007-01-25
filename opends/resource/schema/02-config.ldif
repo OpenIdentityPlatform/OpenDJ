@@ -292,7 +292,8 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.83
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.84
   NAME 'ds-cfg-profiler-state' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE NO-USER-MODIFICATION X-ORIGIN 'OpenDS Directory Server' )
+  SINGLE-VALUE NO-USER-MODIFICATION USAGE directoryOperation
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.85
   NAME 'ds-cfg-profile-sample-interval' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )

@@ -47,6 +47,9 @@ import org.opends.server.types.InitializationException;
 public class SchemaTestMatchingRule
        extends EqualityMatchingRule
 {
+  // Indicates whether this matching rule should be considered OBSOLETE.
+  private boolean isObsolete;
+
   // The matching rule that will do all the real work behind the scenes.
   private CaseIgnoreEqualityMatchingRule caseIgnoreMatchingRule;
 
@@ -73,6 +76,32 @@ public class SchemaTestMatchingRule
 
     this.name = name;
     this.oid  = oid;
+
+    caseIgnoreMatchingRule = new CaseIgnoreEqualityMatchingRule();
+    caseIgnoreMatchingRule.initializeMatchingRule(null);
+    isObsolete = false;
+  }
+
+
+
+  /**
+   * Creates a new instance of this matching rule with the provided information.
+   *
+   * @param  name        The name to use for this matching rule.
+   * @param  oid         The OID to use for this matching rule.
+   * @param  isObsolete  Indicates whether this matching rule should be marked
+   *                     OBSOLETE.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public SchemaTestMatchingRule(String name, String oid, boolean isObsolete)
+         throws Exception
+  {
+    super();
+
+    this.name       = name;
+    this.oid        = oid;
+    this.isObsolete = isObsolete;
 
     caseIgnoreMatchingRule = new CaseIgnoreEqualityMatchingRule();
     caseIgnoreMatchingRule.initializeMatchingRule(null);
@@ -149,6 +178,16 @@ public class SchemaTestMatchingRule
   public String getSyntaxOID()
   {
     return caseIgnoreMatchingRule.getSyntaxOID();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isObsolete()
+  {
+    return isObsolete;
   }
 
 

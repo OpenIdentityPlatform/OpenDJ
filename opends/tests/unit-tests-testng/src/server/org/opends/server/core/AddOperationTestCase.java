@@ -53,6 +53,7 @@ import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -2270,6 +2271,181 @@ responseLoop:
     {
       s.close();
     } catch (Exception e) {}
+  }
+
+
+
+  /**
+   * Tests an add operation that attempts to add an entry with a user attribute
+   * marked OBSOLETE in the server schema.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddObsoleteUserAttribute()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(false);
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddobsoleteuserattribute-oid " +
+              "NAME 'testAddObsoleteUserAttribute' OBSOLETE " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )");
+
+    String attrName = "testaddobsoleteuserattribute";
+    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    path = TestCaseUtils.createTempFile(
+         "dn: o=test",
+         "changetype: add",
+         "objectClass: top",
+         "objectClass: organization",
+         "objectClass: extensibleObject",
+         "o: test",
+         "testAddObsoleteUserAttribute: foo");
+
+    args = new String[]
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests an add operation that attempts to add an entry with an operational
+   * attribute marked OBSOLETE in the server schema.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddObsoleteOperationalAttribute()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(false);
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddobsoleteoperationalattribute-oid " +
+              "NAME 'testAddObsoleteOperationalAttribute' OBSOLETE " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "USAGE directoryOperation X-ORGIN 'SchemaBackendTestCase' )");
+
+    String attrName = "testaddobsoleteoperationalattribute";
+    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    path = TestCaseUtils.createTempFile(
+         "dn: o=test",
+         "changetype: add",
+         "objectClass: top",
+         "objectClass: organization",
+         "objectClass: extensibleObject",
+         "o: test",
+         "testAddObsoleteOperationalAttribute: foo");
+
+    args = new String[]
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests an add operation that attempts to add an entry with an auxiliary
+   * objectclass marked OBSOLETE in the server schema.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddObsoleteObjectClass()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(false);
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testaddobsoleteobjectclass-oid " +
+              "NAME 'testAddObsoleteObjectClass' OBSOLETE AUXILIARY " +
+              "MAY description X-ORGIN 'SchemaBackendTestCase' )");
+
+    String ocName = "testaddobsoleteobjectclass";
+    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+
+    path = TestCaseUtils.createTempFile(
+         "dn: o=test",
+         "changetype: add",
+         "objectClass: top",
+         "objectClass: organization",
+         "objectClass: testAddObsoleteObjectClass",
+         "o: test");
+
+    args = new String[]
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
 }
 

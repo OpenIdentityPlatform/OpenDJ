@@ -44,14 +44,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DITStructureRule;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 
 import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -102,17 +100,10 @@ public class DITStructureRuleSyntax
 
 
   /**
-   * Initializes this attribute syntax based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this attribute syntax.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
+   * {@inheritDoc}
    */
   public void initializeSyntax(ConfigEntry configEntry)
-         throws ConfigException
+         throws ConfigException, InitializationException
   {
     assert debugEnter(CLASS_NAME, "initializeSyntax",
                       String.valueOf(configEntry));
@@ -121,36 +112,37 @@ public class DITStructureRuleSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE;
+      String message = getMessage(msgID, EMR_CASE_IGNORE_OID,
+                                  SYNTAX_DIT_STRUCTURE_RULE_NAME);
+      throw new InitializationException(msgID, message);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE;
+      String message = getMessage(msgID, OMR_CASE_IGNORE_OID,
+                                  SYNTAX_DIT_STRUCTURE_RULE_NAME);
+      throw new InitializationException(msgID, message);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE;
+      String message = getMessage(msgID, SMR_CASE_IGNORE_OID,
+                                  SYNTAX_DIT_STRUCTURE_RULE_NAME);
+      throw new InitializationException(msgID, message);
     }
   }
 
 
 
   /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getSyntaxName()
   {
@@ -162,9 +154,7 @@ public class DITStructureRuleSyntax
 
 
   /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getOID()
   {
@@ -176,9 +166,7 @@ public class DITStructureRuleSyntax
 
 
   /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getDescription()
   {
@@ -190,12 +178,7 @@ public class DITStructureRuleSyntax
 
 
   /**
-   * Retrieves the default equality matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default equality matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if equality
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
@@ -207,12 +190,7 @@ public class DITStructureRuleSyntax
 
 
   /**
-   * Retrieves the default ordering matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default ordering matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if ordering
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
@@ -224,12 +202,7 @@ public class DITStructureRuleSyntax
 
 
   /**
-   * Retrieves the default substring matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default substring matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if substring
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
@@ -241,12 +214,7 @@ public class DITStructureRuleSyntax
 
 
   /**
-   * Retrieves the default approximate matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default approximate matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if approximate
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
@@ -259,16 +227,7 @@ public class DITStructureRuleSyntax
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an attribute
-   * with this syntax.  If it is not, then the reason may be appended to the
-   * provided buffer.
-   *
-   * @param  value          The value for which to make the determination.
-   * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
-   *          this syntax, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)

@@ -44,8 +44,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
@@ -53,7 +52,6 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 
 import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -104,17 +102,10 @@ public class NameFormSyntax
 
 
   /**
-   * Initializes this attribute syntax based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this attribute syntax.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
+   * {@inheritDoc}
    */
   public void initializeSyntax(ConfigEntry configEntry)
-         throws ConfigException
+         throws ConfigException, InitializationException
   {
     assert debugEnter(CLASS_NAME, "initializeSyntax",
                       String.valueOf(configEntry));
@@ -123,36 +114,37 @@ public class NameFormSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_OID, SYNTAX_NAME_FORM_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE;
+      String message = getMessage(msgID, EMR_CASE_IGNORE_OID,
+                                  SYNTAX_NAME_FORM_NAME);
+      throw new InitializationException(msgID, message);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_CASE_IGNORE_OID, SYNTAX_NAME_FORM_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE;
+      String message = getMessage(msgID, OMR_CASE_IGNORE_OID,
+                                  SYNTAX_NAME_FORM_NAME);
+      throw new InitializationException(msgID, message);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_NAME_FORM_NAME);
+      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE;
+      String message = getMessage(msgID, SMR_CASE_IGNORE_OID,
+                                  SYNTAX_NAME_FORM_NAME);
+      throw new InitializationException(msgID, message);
     }
   }
 
 
 
   /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getSyntaxName()
   {
@@ -164,9 +156,7 @@ public class NameFormSyntax
 
 
   /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getOID()
   {
@@ -178,9 +168,7 @@ public class NameFormSyntax
 
 
   /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
+   * {@inheritDoc}
    */
   public String getDescription()
   {
@@ -192,12 +180,7 @@ public class NameFormSyntax
 
 
   /**
-   * Retrieves the default equality matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default equality matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if equality
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
@@ -209,12 +192,7 @@ public class NameFormSyntax
 
 
   /**
-   * Retrieves the default ordering matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default ordering matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if ordering
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
@@ -226,12 +204,7 @@ public class NameFormSyntax
 
 
   /**
-   * Retrieves the default substring matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default substring matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if substring
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
@@ -243,12 +216,7 @@ public class NameFormSyntax
 
 
   /**
-   * Retrieves the default approximate matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default approximate matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if approximate
-   *          matches will not be allowed for this type by default.
+   * {@inheritDoc}
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
@@ -261,16 +229,7 @@ public class NameFormSyntax
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an attribute
-   * with this syntax.  If it is not, then the reason may be appended to the
-   * provided buffer.
-   *
-   * @param  value          The value for which to make the determination.
-   * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
-   *          this syntax, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
@@ -283,7 +242,7 @@ public class NameFormSyntax
     // acceptable.
     try
     {
-      decodeNameForm(value, DirectoryServer.getSchema());
+      decodeNameForm(value, DirectoryServer.getSchema(), true);
       return true;
     }
     catch (DirectoryException de)
@@ -303,17 +262,25 @@ public class NameFormSyntax
    * octet string value does not need to be normalized (and in fact, it should
    * not be in order to allow the desired capitalization to be preserved).
    *
-   * @param  value   The ASN.1 octet string containing the value to decode (it
-   *                 does not need to be normalized).
-   * @param  schema  The reference to the Directory Server schema to use to
-   *                 decode the name form information.
+   * @param  value                 The ASN.1 octet string containing the value
+   *                               to decode (it does not need to be
+   *                               normalized).
+   * @param  schema                The schema to use to resolve references to
+   *                               other schema elements.
+   * @param  allowUnknownElements  Indicates whether to allow values that
+   *                               reference a structural objectclass and/or
+   *                               required or optional attribute types which
+   *                               are not defined in the server schema.  This
+   *                               should only be true when called by
+   *                               {@code valueIsAcceptable}.
    *
    * @return  The decoded name form definition.
    *
    * @throws  DirectoryException  If the provided value cannot be decoded as an
    *                              name form definition.
    */
-  public static NameForm decodeNameForm(ByteString value, Schema schema)
+  public static NameForm decodeNameForm(ByteString value, Schema schema,
+                                        boolean allowUnknownElements)
          throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "decodeNameForm", String.valueOf(value));
@@ -589,29 +556,34 @@ public class NameFormSyntax
         if (structuralClass == null)
         {
           // This is bad because we don't know what the structural objectclass
-          // is.  Log a message and create a default objectclass with the
-          // specified name.
-          int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS;
-          String message = getMessage(msgID, String.valueOf(oid),
-                                      String.valueOf(woidBuffer));
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-          structuralClass =
-               DirectoryServer.getDefaultObjectClass(woidBuffer.toString());
+          // is.
+          if (allowUnknownElements)
+          {
+            structuralClass = DirectoryServer.getDefaultObjectClass(
+                                                   woidBuffer.toString());
+          }
+          else
+          {
+            int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS;
+            String message = getMessage(msgID, String.valueOf(oid),
+                                        String.valueOf(woidBuffer));
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                         message, msgID);
+          }
         }
         else if (structuralClass.getObjectClassType() !=
                  ObjectClassType.STRUCTURAL)
         {
           // This is bad because the associated structural class type is not
-          // structural.  Log a message and continue.
+          // structural.
           int msgID =
                MSGID_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL;
           String message =
                getMessage(msgID, String.valueOf(oid),
                           String.valueOf(woidBuffer),
                           String.valueOf(structuralClass.getObjectClassType()));
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                       msgID);
         }
       }
       else if (lowerTokenName.equals("must"))
@@ -634,16 +606,19 @@ public class NameFormSyntax
             if (attr == null)
             {
               // This isn't good because it means that the name form requires
-              // an attribute type that we don't know anything about.  In this
-              // case all we can do is log a message and construct a default
-              // type.
-              int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
-              String message = getMessage(msgID, oid, woidBuffer.toString());
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
+              // an attribute type that we don't know anything about.
+              if (allowUnknownElements)
+              {
+                attr = DirectoryServer.getDefaultAttributeType(
+                                            woidBuffer.toString());
+              }
+              else
+              {
+                int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
+                String message = getMessage(msgID, oid, woidBuffer.toString());
+                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                             message, msgID);
+              }
             }
 
             attrs.add(attr);
@@ -675,15 +650,19 @@ public class NameFormSyntax
           if (attr == null)
           {
             // This isn't good because it means that the name form requires an
-            // attribute type that we don't know anything about.  In this case
-            // all we can do is log a message and construct a default type.
-            int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
-            String message = getMessage(msgID, oid, woidBuffer.toString());
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
-
-            attr = DirectoryServer.getDefaultAttributeType(
-                                        woidBuffer.toString());
+            // attribute type that we don't know anything about.
+            if (allowUnknownElements)
+            {
+              attr = DirectoryServer.getDefaultAttributeType(
+                                          woidBuffer.toString());
+            }
+            else
+            {
+              int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
+              String message = getMessage(msgID, oid, woidBuffer.toString());
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message, msgID);
+            }
           }
 
           attrs.add(attr);
@@ -711,16 +690,19 @@ public class NameFormSyntax
             if (attr == null)
             {
               // This isn't good because it means that the name form allows an
-              // attribute type that we don't know anything about.  In this
-              // case all we can do is log a message and construct a default
-              // type.
-              int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
-              String message = getMessage(msgID, oid, woidBuffer.toString());
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
+              // attribute type that we don't know anything about.
+              if (allowUnknownElements)
+              {
+                attr = DirectoryServer.getDefaultAttributeType(
+                                            woidBuffer.toString());
+              }
+              else
+              {
+                int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
+                String message = getMessage(msgID, oid, woidBuffer.toString());
+                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                             message, msgID);
+              }
             }
 
             attrs.add(attr);
@@ -752,15 +734,19 @@ public class NameFormSyntax
           if (attr == null)
           {
             // This isn't good because it means that the name form allows an
-            // attribute type that we don't know anything about.  In this case
-            // all we can do is log a message and construct a default type.
-            int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
-            String message = getMessage(msgID, oid, woidBuffer.toString());
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
-
-            attr = DirectoryServer.getDefaultAttributeType(
-                                        woidBuffer.toString());
+            // attribute type that we don't know anything about.
+            if (allowUnknownElements)
+            {
+              attr = DirectoryServer.getDefaultAttributeType(
+                                          woidBuffer.toString());
+            }
+            else
+            {
+              int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
+              String message = getMessage(msgID, oid, woidBuffer.toString());
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message, msgID);
+            }
           }
 
           attrs.add(attr);

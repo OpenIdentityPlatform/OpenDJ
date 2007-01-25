@@ -487,6 +487,14 @@ public class Entry
                                      message, msgID);
       }
 
+      if (oc.isObsolete())
+      {
+        int    msgID   = MSGID_ENTRY_ADD_OBSOLETE_OC;
+        String message = getMessage(msgID, name, String.valueOf(dn));
+        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
+                                     message, msgID);
+      }
+
       tmpOCMap.put(oc, name);
     }
 
@@ -2144,34 +2152,142 @@ public class Entry
    *       forms, DIT content rules, and DIT structure rules.</LI>
    * </UL>
    *
-   * @param  parentEntry     The entry that is the immediate parent of
-   *                         this entry, which may be checked for DIT
-   *                         structure rule conformance.  This may be
-   *                         <CODE>null</CODE> if there is no parent
-   *                         or if it is unavailable to the caller.
-   * @param  parentProvided  Indicates whether the caller attempted to
-   *                         provide the parent  If not, then the
-   *                         parent entry will be loaded on demand if
-   *                         it is required.
-   * @param  invalidReason   The buffer to which an explanation will
-   *                         be appended if this entry does not
-   *                         conform to the server's schema
-   *                         configuration.
+   * @param  parentEntry             The entry that is the immediate
+   *                                 parent of this entry, which may
+   *                                 be checked for DIT structure rule
+   *                                 conformance.  This may be
+   *                                 {@code null} if there is no
+   *                                 parent or if it is unavailable
+   *                                to the caller.
+   * @param  parentProvided          Indicates whether the caller
+   *                                 attempted to provide the parent.
+   *                                 If not, then the parent entry
+   *                                 will be loaded on demand if it is
+   *                                 required.
+   * @param  validateNameForms       Indicates whether to validate the
+   *                                 entry against name form
+   *                                 definitions.  This should only be
+   *                                 {@code true} for add and modify
+   *                                 DN operations, as well as for
+   *                                 for imports.
+   * @param  validateStructureRules  Indicates whether to validate the
+   *                                 entry against DIT structure rule
+   *                                 definitions.  This should only
+   *                                 be {@code true} for add and
+   *                                 modify DN operations.
+   * @param  invalidReason           The buffer to which an
+   *                                 explanation will be appended if
+   *                                 this entry does not conform to
+   *                                 the server's schema
+   *                                 configuration.
    *
-   * @return  <CODE>true</CODE> if this entry conforms to the server's
-   *          schema requirements, or <CODE>false</CODE> if it does
-   *          not.
+   * @return  {@code true} if this entry conforms to the server's
+   *          schema requirements, or {@code false} if it does not.
    */
   public boolean conformsToSchema(Entry parentEntry,
                                   boolean parentProvided,
+                                  boolean validateNameForms,
+                                  boolean validateStructureRules,
                                   StringBuilder invalidReason)
   {
     assert debugEnter(CLASS_NAME, "conformsToSchema",
                       "java.lang.StringBuilder");
 
 
-    // First, make sure that we recognize all of the objectclasses and
-    // that all of the required attributes are present.
+    // Get the structural objectclass for the entry.  If there isn't
+    // one, or if there's more than one, then see if that's OK.
+    AcceptRejectWarn structuralPolicy =
+         DirectoryServer.getSingleStructuralObjectClassPolicy();
+    ObjectClass structuralClass = null;
+    boolean multipleOCErrorLogged = false;
+    for (ObjectClass oc : objectClasses.keySet())
+    {
+      if (oc.getObjectClassType() == ObjectClassType.STRUCTURAL)
+      {
+        if ((structuralClass == null) ||
+            oc.isDescendantOf(structuralClass))
+        {
+          structuralClass = oc;
+        }
+        else if (! structuralClass.isDescendantOf(oc))
+        {
+          int msgID = MSGID_ENTRY_SCHEMA_MULTIPLE_STRUCTURAL_CLASSES;
+          String message = getMessage(msgID, String.valueOf(dn),
+                                structuralClass.getNameOrOID(),
+                                oc.getNameOrOID());
+
+          if (structuralPolicy == AcceptRejectWarn.REJECT)
+          {
+            invalidReason.append(message);
+            return false;
+          }
+          else if (structuralPolicy == AcceptRejectWarn.WARN)
+          {
+            if (! multipleOCErrorLogged)
+            {
+              logError(ErrorLogCategory.SCHEMA,
+                       ErrorLogSeverity.SEVERE_WARNING, message,
+                       msgID);
+              multipleOCErrorLogged = true;
+            }
+          }
+        }
+      }
+    }
+
+    NameForm         nameForm         = null;
+    DITContentRule   ditContentRule   = null;
+    DITStructureRule ditStructureRule = null;
+    if (structuralClass == null)
+    {
+      int msgID = MSGID_ENTRY_SCHEMA_NO_STRUCTURAL_CLASS;
+      String message = getMessage(msgID, String.valueOf(dn));
+
+      if (structuralPolicy == AcceptRejectWarn.REJECT)
+      {
+        invalidReason.append(message);
+        return false;
+      }
+      else if (structuralPolicy == AcceptRejectWarn.WARN)
+      {
+        logError(ErrorLogCategory.SCHEMA,
+                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+      }
+    }
+    else
+    {
+      ditContentRule =
+           DirectoryServer.getDITContentRule(structuralClass);
+      if ((ditContentRule != null) && ditContentRule.isObsolete())
+      {
+        ditContentRule = null;
+      }
+
+      if (validateNameForms)
+      {
+        nameForm = DirectoryServer.getNameForm(structuralClass);
+        if ((nameForm != null) && nameForm.isObsolete())
+        {
+          nameForm = null;
+        }
+
+        if (validateStructureRules && (nameForm != null))
+        {
+          ditStructureRule =
+               DirectoryServer.getDITStructureRule(nameForm);
+          if ((ditStructureRule != null) &&
+              ditStructureRule.isObsolete())
+          {
+            ditStructureRule = null;
+          }
+        }
+      }
+    }
+
+
+    // Make sure that we recognize all of the objectclasses, that all
+    // auxiliary classes are allowed by the DIT content rule, and that
+    // all attributes required by the object classes are present.
     for (ObjectClass o : objectClasses.keySet())
     {
       if (DirectoryServer.getObjectClass(o.getOID()) == null)
@@ -2181,6 +2297,26 @@ public class Entry
                                     .getNameOrOID());
         invalidReason.append(message);
         return false;
+      }
+
+      if ((o.getObjectClassType() == ObjectClassType.AUXILIARY) &&
+          (ditContentRule != null) &&
+          (! ditContentRule.getAuxiliaryClasses().contains(o)))
+      {
+        int msgID = MSGID_ENTRY_SCHEMA_DISALLOWED_AUXILIARY_CLASS;
+        String message = getMessage(msgID, String.valueOf(dn),
+                                    o.getNameOrOID(),
+                                    ditContentRule.getName());
+        if (structuralPolicy == AcceptRejectWarn.REJECT)
+        {
+          invalidReason.append(message);
+          return false;
+        }
+        else if (structuralPolicy == AcceptRejectWarn.WARN)
+        {
+          logError(ErrorLogCategory.SCHEMA,
+                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        }
       }
 
       for (AttributeType t : o.getRequiredAttributes())
@@ -2200,9 +2336,9 @@ public class Entry
     }
 
 
-    // Next, make sure all the user attributes are allowed, and make
-    // sure that if they are single-valued that they properly conform
-    // to that.
+    // Make sure all the user attributes are allowed, and make sure
+    // that if they are single-valued that they properly conform to
+    // that.
     for (AttributeType t : userAttributes.keySet())
     {
       boolean found = false;
@@ -2212,6 +2348,14 @@ public class Entry
         {
           found = true;
           break;
+        }
+      }
+
+      if ((! found) && (ditContentRule != null))
+      {
+        if (ditContentRule.isRequiredOrOptional(t))
+        {
+          found = true;
         }
       }
 
@@ -2272,158 +2416,206 @@ public class Entry
     }
 
 
-    // Optionally, make sure that the entry contains exactly one
-    // structural objectclass.
-    AcceptRejectWarn structuralPolicy =
-         DirectoryServer.getSingleStructuralObjectClassPolicy();
-    if ((structuralPolicy == AcceptRejectWarn.REJECT) ||
-        (structuralPolicy == AcceptRejectWarn.WARN))
+    // If there is a name form for this entry, then make sure that the
+    // RDN for the entry is in compliance with it.
+    if (nameForm != null)
     {
-      ObjectClass structuralClass = null;
-      for (ObjectClass oc : objectClasses.keySet())
+      RDN rdn = dn.getRDN();
+      if (rdn != null)
       {
-        if (oc.getObjectClassType() == ObjectClassType.STRUCTURAL)
+        // Make sure that all the required attributes are present.
+        for (AttributeType t : nameForm.getRequiredAttributes())
         {
-          if (structuralClass == null)
+          if (! rdn.hasAttributeType(t))
           {
-            structuralClass = oc;
-          }
-          else
-          {
-            if (oc.isDescendantOf(structuralClass))
-            {
-              // This is acceptable, but we want to make the class the
-              // new structural class.
-              structuralClass = oc;
-            }
-            else if (! structuralClass.isDescendantOf(oc))
-            {
-              // This is not acceptable because there are multiple
-              // conflicting structural classes.
-              int msgID =
-                   MSGID_ENTRY_SCHEMA_MULTIPLE_STRUCTURAL_CLASSES;
-              String message = getMessage(msgID, String.valueOf(dn),
-                                    structuralClass.getNameOrOID(),
-                                    oc.getNameOrOID());
+            int msgID = MSGID_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR;
+            String message = getMessage(msgID, String.valueOf(dn),
+                                        t.getNameOrOID(),
+                                        nameForm.getNameOrOID());
 
-              if (structuralPolicy == AcceptRejectWarn.REJECT)
-              {
-                invalidReason.append(message);
-                return false;
-              }
-              else
-              {
-                logError(ErrorLogCategory.SCHEMA,
-                         ErrorLogSeverity.SEVERE_WARNING, message,
-                         msgID);
-                break;
-              }
+            if (structuralPolicy == AcceptRejectWarn.REJECT)
+            {
+              invalidReason.append(message);
+              return false;
+            }
+            else if (structuralPolicy == AcceptRejectWarn.WARN)
+            {
+              logError(ErrorLogCategory.SCHEMA,
+                       ErrorLogSeverity.SEVERE_WARNING, message,
+                       msgID);
+            }
+          }
+        }
+
+        // Make sure that all attributes in the RDN are allowed.
+        int numAVAs = rdn.getNumValues();
+        for (int i = 0; i < numAVAs; i++)
+        {
+          AttributeType t = rdn.getAttributeType(i);
+          if (! nameForm.isRequiredOrOptional(t))
+          {
+            int    msgID   = MSGID_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR;
+            String message = getMessage(msgID, String.valueOf(dn),
+                                        t.getNameOrOID(),
+                                        nameForm.getNameOrOID());
+
+            if (structuralPolicy == AcceptRejectWarn.REJECT)
+            {
+              invalidReason.append(message);
+              return false;
+            }
+            else if (structuralPolicy == AcceptRejectWarn.WARN)
+            {
+              logError(ErrorLogCategory.SCHEMA,
+                       ErrorLogSeverity.SEVERE_WARNING, message,
+                       msgID);
             }
           }
         }
       }
+    }
 
-      if (structuralClass == null)
+
+    // If there is a DIT content rule for this entry, then make sure
+    // that the entry is in compliance with it.
+    if (ditContentRule != null)
+    {
+      // Make sure that all of the required attributes are present.
+      for (AttributeType t : ditContentRule.getRequiredAttributes())
       {
-        // This is not acceptable because the entry does not contain a
-        // structural objectclass.
-        int msgID = MSGID_ENTRY_SCHEMA_NO_STRUCTURAL_CLASS;
-        String message = getMessage(msgID, String.valueOf(dn));
+        if (! (userAttributes.containsKey(t) ||
+               operationalAttributes.containsKey(t) ||
+               t.isObjectClassType()))
+        {
+          int msgID =
+               MSGID_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR;
+          String message = getMessage(msgID, String.valueOf(dn),
+                                      t.getNameOrOID(),
+                                      ditContentRule.getName());
 
-        if (structuralPolicy == AcceptRejectWarn.REJECT)
-        {
-          invalidReason.append(message);
-          return false;
+          if (structuralPolicy == AcceptRejectWarn.REJECT)
+          {
+            invalidReason.append(message);
+            return false;
+          }
+          else if (structuralPolicy == AcceptRejectWarn.WARN)
+          {
+            logError(ErrorLogCategory.SCHEMA,
+                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          }
         }
-        else
+      }
+
+      // Make sure that none of the prohibited attributes are present.
+      for (AttributeType t : ditContentRule.getProhibitedAttributes())
+      {
+        if (userAttributes.containsKey(t) ||
+            operationalAttributes.containsKey(t))
         {
-          logError(ErrorLogCategory.SCHEMA,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          int    msgID   = MSGID_ENTRY_SCHEMA_PROHIBITED_ATTR_FOR_DCR;
+          String message = getMessage(msgID, String.valueOf(dn),
+                                      t.getNameOrOID(),
+                                      ditContentRule.getName());
+
+          if (structuralPolicy == AcceptRejectWarn.REJECT)
+          {
+            invalidReason.append(message);
+            return false;
+          }
+          else if (structuralPolicy == AcceptRejectWarn.WARN)
+          {
+            logError(ErrorLogCategory.SCHEMA,
+                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          }
+        }
+      }
+    }
+
+
+    // If there is a DIT structure rule for this entry, then make sure
+    // that the entry is in compliance with it.
+    if ((ditStructureRule != null) &&
+        ditStructureRule.hasSuperiorRules())
+    {
+      if (parentProvided)
+      {
+        if (parentEntry != null)
+        {
+          boolean dsrValid =
+               validateDITStructureRule(ditStructureRule,
+                                        structuralClass, parentEntry,
+                                        structuralPolicy,
+                                        invalidReason);
+          if (! dsrValid)
+          {
+            return false;
+          }
         }
       }
       else
       {
-        // See if there is an applicable name form definition.  If so,
-        // then make sure that the entry is compliant.
-        NameForm nameForm =
-             DirectoryServer.getNameForm(structuralClass);
-        if ((nameForm != null) && (! nameForm.isObsolete()))
+        // Get the DN of the parent entry if possible.
+        DN parentDN = dn.getParentDNInSuffix();
+        if (parentDN != null)
         {
-          RDN rdn = dn.getRDN();
-          if (rdn != null)
+          // Get the parent entry and check its structural class.
+          Lock lock = null;
+          for (int i=0; i < 3; i++)
           {
-            // Make sure that all the required attributes are present.
-            for (AttributeType t : nameForm.getRequiredAttributes())
+            lock = LockManager.lockRead(parentDN);
+            if (lock != null)
             {
-              if (! rdn.hasAttributeType(t))
-              {
-                int    msgID   =
-                     MSGID_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR;
-                String message = getMessage(msgID, String.valueOf(dn),
-                                            t.getNameOrOID(),
-                                            nameForm.getNameOrOID());
-
-                if (structuralPolicy == AcceptRejectWarn.REJECT)
-                {
-                  invalidReason.append(message);
-                  return false;
-                }
-                else
-                {
-                  logError(ErrorLogCategory.SCHEMA,
-                           ErrorLogSeverity.SEVERE_WARNING, message,
-                           msgID);
-                }
-              }
-            }
-
-            // Make sure that all attributes in the RDN are allowed.
-            int numAVAs = rdn.getNumValues();
-            for (int i = 0; i < numAVAs; i++)
-            {
-              AttributeType t = rdn.getAttributeType(i);
-              if (! nameForm.isRequiredOrOptional(t))
-              {
-                int msgID = MSGID_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR;
-                String message = getMessage(msgID, String.valueOf(dn),
-                                            t.getNameOrOID(),
-                                            nameForm.getNameOrOID());
-
-                if (structuralPolicy == AcceptRejectWarn.REJECT)
-                {
-                  invalidReason.append(message);
-                  return false;
-                }
-                else
-                {
-                  logError(ErrorLogCategory.SCHEMA,
-                           ErrorLogSeverity.SEVERE_WARNING, message,
-                           msgID);
-                }
-              }
+              break;
             }
           }
 
-
-          // See if there is a DIT structure rule that corresponds to
-          // this name form.  If so, then make sure that the entry is
-          // acceptable according to that structure rule.  Note that
-          // we will perform this check for entries that have a
-          // parent, meaning that structure rules will not be
-          // evaluated for suffix entries.  We will also only perform
-          // validation for structure rules that have superior rules,
-          // so make sure that is the case as well.
-          DITStructureRule dsr =
-               DirectoryServer.getDITStructureRule(nameForm);
-          if ((dsr != null) && (! dsr.isObsolete()) &&
-              dsr.hasSuperiorRules())
+          if (lock == null)
           {
-            if (parentProvided)
+            int msgID = MSGID_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT;
+            String message = getMessage(msgID, String.valueOf(dn),
+                                  String.valueOf(parentDN));
+
+            if (structuralPolicy == AcceptRejectWarn.REJECT)
             {
-              if (parentEntry != null)
+              invalidReason.append(message);
+              return false;
+            }
+            else if (structuralPolicy == AcceptRejectWarn.WARN)
+            {
+              logError(ErrorLogCategory.SCHEMA,
+                       ErrorLogSeverity.SEVERE_WARNING, message,
+                       msgID);
+            }
+          }
+          else
+          {
+            try
+            {
+              parentEntry = DirectoryServer.getEntry(parentDN);
+              if (parentEntry == null)
+              {
+                int msgID = MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY;
+                String message =
+                     getMessage(msgID, String.valueOf(dn),
+                                String.valueOf(parentDN));
+
+                if (structuralPolicy == AcceptRejectWarn.REJECT)
+                {
+                  invalidReason.append(message);
+                  return false;
+                }
+                else if (structuralPolicy == AcceptRejectWarn.WARN)
+                {
+                  logError(ErrorLogCategory.SCHEMA,
+                           ErrorLogSeverity.SEVERE_WARNING, message,
+                           msgID);
+                }
+              }
+              else
               {
                 boolean dsrValid =
-                     validateDITStructureRule(dsr, structuralClass,
+                     validateDITStructureRule(ditStructureRule,
+                                              structuralClass,
                                               parentEntry,
                                               structuralPolicy,
                                               invalidReason);
@@ -2433,234 +2625,190 @@ public class Entry
                 }
               }
             }
-            else
+            catch (Exception e)
             {
-              // Get the DN of the parent entry if possible.
-              DN parentDN = dn.getParentDNInSuffix();
-              if (parentDN != null)
+              assert debugException(CLASS_NAME, "conformsToSchema",
+                                    e);
+
+              int    msgID   = MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR;
+              String message =
+                   getMessage(msgID, String.valueOf(dn),
+                              ditStructureRule.getNameOrRuleID(),
+                              stackTraceToSingleLineString(e));
+
+              if (structuralPolicy == AcceptRejectWarn.REJECT)
               {
-                // Get the parent entry and check its structural
-                // class.
-                Lock lock = null;
-                for (int i=0; i < 3; i++)
-                {
-                  lock = LockManager.lockRead(parentDN);
-                  if (lock != null)
-                  {
-                    break;
-                  }
-                }
-
-                if (lock == null)
-                {
-                  int    msgID   =
-                       MSGID_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT;
-                  String message = getMessage(msgID,
-                                        String.valueOf(dn),
-                                        dsr.getNameOrRuleID(),
-                                        String.valueOf(parentDN));
-
-                  if (structuralPolicy == AcceptRejectWarn.REJECT)
-                  {
-                    invalidReason.append(message);
-                    return false;
-                  }
-                  else
-                  {
-                    logError(ErrorLogCategory.SCHEMA,
-                             ErrorLogSeverity.SEVERE_WARNING, message,
-                             msgID);
-                  }
-                }
-                else
-                {
-                  try
-                  {
-                    parentEntry = DirectoryServer.getEntry(parentDN);
-                    if (parentEntry == null)
-                    {
-                      int    msgID   =
-                           MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY;
-                      String message = getMessage(msgID,
-                                            String.valueOf(dn),
-                                            dsr.getNameOrRuleID(),
-                                            String.valueOf(parentDN));
-
-                      if (structuralPolicy == AcceptRejectWarn.REJECT)
-                      {
-                        invalidReason.append(message);
-                        return false;
-                      }
-                      else
-                      {
-                        logError(ErrorLogCategory.SCHEMA,
-                                 ErrorLogSeverity.SEVERE_WARNING,
-                                 message, msgID);
-                      }
-                    }
-                    else
-                    {
-                      boolean dsrValid =
-                           validateDITStructureRule(dsr,
-                                                    structuralClass,
-                                                    parentEntry,
-                                                    structuralPolicy,
-                                                    invalidReason);
-                      if (! dsrValid)
-                      {
-                        return false;
-                      }
-                    }
-                  }
-                  catch (Exception e)
-                  {
-                    assert debugException(CLASS_NAME,
-                                          "conformsToSchema", e);
-
-                    int    msgID   =
-                         MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR;
-                    String message =
-                         getMessage(msgID, String.valueOf(dn),
-                                    dsr.getNameOrRuleID(),
-                                    stackTraceToSingleLineString(e));
-
-                    if (structuralPolicy == AcceptRejectWarn.REJECT)
-                    {
-                      invalidReason.append(message);
-                      return false;
-                    }
-                    else
-                    {
-                      logError(ErrorLogCategory.SCHEMA,
-                               ErrorLogSeverity.SEVERE_WARNING,
-                               message, msgID);
-                    }
-                  }
-                  finally
-                  {
-                    LockManager.unlock(parentDN, lock);
-                  }
-                }
+                invalidReason.append(message);
+                return false;
               }
+              else if (structuralPolicy == AcceptRejectWarn.WARN)
+              {
+                logError(ErrorLogCategory.SCHEMA,
+                         ErrorLogSeverity.SEVERE_WARNING, message,
+                         msgID);
+              }
+            }
+            finally
+            {
+              LockManager.unlock(parentDN, lock);
             }
           }
         }
-
-
-        // See if there is an applicable DIT content rule.  If so,
-        // then make sure that the entry is compliant.
-        DITContentRule dcr =
-             DirectoryServer.getDITContentRule(structuralClass);
-        if ((dcr != null) && (! dcr.isObsolete()))
+      }
+    }
+    else if (validateStructureRules)
+    {
+      // There is no DIT structure rule for this entry, but there may
+      // be one for the parent entry.  If there is such a rule for the
+      // parent entry, then this entry will not be valid.
+      boolean parentExists = false;
+      ObjectClass parentStructuralClass = null;
+      if (parentEntry != null)
+      {
+        parentExists = true;
+        parentStructuralClass =
+             parentEntry.getStructuralObjectClass();
+      }
+      else if (! parentProvided)
+      {
+        DN parentDN = getDN().getParentDNInSuffix();
+        if (parentDN != null)
         {
-          // Make sure that the entry contains all required
-          // attributes.
-          for (AttributeType t : dcr.getRequiredAttributes())
+          // Get the parent entry and check its structural class.
+          Lock lock = null;
+          for (int i=0; i < 3; i++)
           {
-            if (userAttributes.containsKey(t) ||
-                operationalAttributes.containsKey(t) ||
-                t.isObjectClassType())
+            lock = LockManager.lockRead(parentDN);
+            if (lock != null)
             {
               break;
             }
-            else
-            {
-              int    msgID   =
-                   MSGID_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR;
-              String message = getMessage(msgID, String.valueOf(dn),
-                                          t.getNameOrOID(),
-                                          dcr.getName());
-
-              if (structuralPolicy == AcceptRejectWarn.REJECT)
-              {
-                invalidReason.append(message);
-                return false;
-              }
-              else
-              {
-                logError(ErrorLogCategory.SCHEMA,
-                         ErrorLogSeverity.SEVERE_WARNING, message,
-                         msgID);
-              }
-            }
           }
 
-          // Make sure that the entry does not contain any prohibited
-          // attributes.
-          for (AttributeType t : dcr.getProhibitedAttributes())
+          if (lock == null)
           {
-            if (userAttributes.containsKey(t) ||
-                operationalAttributes.containsKey(t))
-            {
-              int    msgID   =
-                   MSGID_ENTRY_SCHEMA_PROHIBITED_ATTR_FOR_DCR;
-              String message = getMessage(msgID, String.valueOf(dn),
-                                          t.getNameOrOID(),
-                                          dcr.getName());
+            int msgID = MSGID_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT;
+            String message = getMessage(msgID, String.valueOf(dn),
+                                  String.valueOf(parentDN));
 
-              if (structuralPolicy == AcceptRejectWarn.REJECT)
-              {
-                invalidReason.append(message);
-                return false;
-              }
-              else
-              {
-                logError(ErrorLogCategory.SCHEMA,
-                         ErrorLogSeverity.SEVERE_WARNING, message,
-                         msgID);
-              }
+            if (structuralPolicy == AcceptRejectWarn.REJECT)
+            {
+              invalidReason.append(message);
+              return false;
+            }
+            else if (structuralPolicy == AcceptRejectWarn.WARN)
+            {
+              logError(ErrorLogCategory.SCHEMA,
+                       ErrorLogSeverity.SEVERE_WARNING, message,
+                       msgID);
             }
           }
-
-          // Make sure that all user attributes are allowed.
-          for (AttributeType t : userAttributes.keySet())
+          else
           {
-            if (! dcr.isRequiredOrOptional(t, true))
+            try
             {
-              int    msgID   =
-                   MSGID_ENTRY_SCHEMA_DISALLOWED_USER_ATTR_FOR_DCR;
-              String message = getMessage(msgID, String.valueOf(dn),
-                                          t.getNameOrOID(),
-                                          dcr.getName());
-
-              if (structuralPolicy == AcceptRejectWarn.REJECT)
+              parentEntry = DirectoryServer.getEntry(parentDN);
+              if (parentEntry == null)
               {
-                invalidReason.append(message);
-                return false;
-              }
-              else
-              {
-                logError(ErrorLogCategory.SCHEMA,
-                         ErrorLogSeverity.SEVERE_WARNING, message,
-                         msgID);
-              }
-            }
-          }
-
-          // Make sure that all auxiliary objectclasses are allowed.
-          for (ObjectClass oc : objectClasses.keySet())
-          {
-            if (oc.getObjectClassType() == ObjectClassType.AUXILIARY)
-            {
-              if (! dcr.isAllowedAuxiliaryClass(oc))
-              {
-                int    msgID   =
-                     MSGID_ENTRY_SCHEMA_DISALLOWED_AUXILIARY_CLASS;
-                String message = getMessage(msgID, String.valueOf(dn),
-                                            oc.getNameOrOID(),
-                                            dcr.getName());
+                int msgID = MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY;
+                String message =
+                     getMessage(msgID, String.valueOf(dn),
+                                String.valueOf(parentDN));
 
                 if (structuralPolicy == AcceptRejectWarn.REJECT)
                 {
                   invalidReason.append(message);
                   return false;
                 }
-                else
+                else if (structuralPolicy == AcceptRejectWarn.WARN)
                 {
                   logError(ErrorLogCategory.SCHEMA,
                            ErrorLogSeverity.SEVERE_WARNING, message,
                            msgID);
                 }
+              }
+              else
+              {
+                parentExists = true;
+                parentStructuralClass =
+                     parentEntry.getStructuralObjectClass();
+              }
+            }
+            catch (Exception e)
+            {
+              assert debugException(CLASS_NAME, "conformsToSchema",
+                                    e);
+
+              int msgID =
+                   MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR;
+              String message =
+                   getMessage(msgID, String.valueOf(dn),
+                              stackTraceToSingleLineString(e));
+
+              if (structuralPolicy == AcceptRejectWarn.REJECT)
+              {
+                invalidReason.append(message);
+                return false;
+              }
+              else if (structuralPolicy == AcceptRejectWarn.WARN)
+              {
+                logError(ErrorLogCategory.SCHEMA,
+                         ErrorLogSeverity.SEVERE_WARNING, message,
+                         msgID);
+              }
+            }
+            finally
+            {
+              LockManager.unlock(parentDN, lock);
+            }
+          }
+        }
+      }
+
+      if (parentExists)
+      {
+        if (parentStructuralClass == null)
+        {
+          int    msgID   = MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_OC;
+          String message = getMessage(msgID, String.valueOf(dn),
+                                String.valueOf(parentEntry.getDN()));
+
+          if (structuralPolicy == AcceptRejectWarn.REJECT)
+          {
+            invalidReason.append(message);
+            return false;
+          }
+          else if (structuralPolicy == AcceptRejectWarn.WARN)
+          {
+            logError(ErrorLogCategory.SCHEMA,
+                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          }
+        }
+        else
+        {
+          NameForm parentNF =
+               DirectoryServer.getNameForm(parentStructuralClass);
+          if ((parentNF != null) && (! parentNF.isObsolete()))
+          {
+            DITStructureRule parentDSR =
+                 DirectoryServer.getDITStructureRule(parentNF);
+            if ((parentDSR != null) && (! parentDSR.isObsolete()))
+            {
+              int    msgID   = MSGID_ENTRY_SCHEMA_VIOLATES_PARENT_DSR;
+              String message =
+                   getMessage(msgID, String.valueOf(dn),
+                              String.valueOf(parentEntry.getDN()));
+
+              if (structuralPolicy == AcceptRejectWarn.REJECT)
+              {
+                invalidReason.append(message);
+                return false;
+              }
+              else if (structuralPolicy == AcceptRejectWarn.WARN)
+              {
+                logError(ErrorLogCategory.SCHEMA,
+                         ErrorLogSeverity.SEVERE_WARNING, message,
+                         msgID);
               }
             }
           }
@@ -2668,6 +2816,8 @@ public class Entry
       }
     }
 
+
+    // If we've gotten here, then the entry is acceptable.
     return true;
   }
 
@@ -2702,7 +2852,6 @@ public class Entry
     {
       int    msgID   = MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_OC;
       String message = getMessage(msgID, String.valueOf(dn),
-                            dsr.getNameOrRuleID(),
                             String.valueOf(parentEntry.getDN()));
 
       if (structuralPolicy == AcceptRejectWarn.REJECT)
@@ -2710,7 +2859,7 @@ public class Entry
         invalidReason.append(message);
         return false;
       }
-      else
+      else if (structuralPolicy == AcceptRejectWarn.WARN)
       {
         logError(ErrorLogCategory.SCHEMA,
                  ErrorLogSeverity.SEVERE_WARNING, message,
@@ -2740,7 +2889,7 @@ public class Entry
         invalidReason.append(message);
         return false;
       }
-      else
+      else if (structuralPolicy == AcceptRejectWarn.WARN)
       {
         logError(ErrorLogCategory.SCHEMA,
                  ErrorLogSeverity.SEVERE_WARNING, message, msgID);

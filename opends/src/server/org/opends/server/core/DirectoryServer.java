@@ -2952,7 +2952,41 @@ public class DirectoryServer
       objectClass = new ObjectClass(definition, name,
                                     Collections.singleton(name), oid, null,
                                     getTopObjectClass(), null, null,
-                                    ObjectClassType.ABSTRACT, false, null);
+                                    ObjectClassType.STRUCTURAL, false, null);
+    }
+
+    return objectClass;
+  }
+
+
+
+  /**
+   * Causes the Directory Server to construct a new auxiliary objectclass
+   * definition with the provided name and with no required or allowed
+   * attributes. This should only be used if there is no objectclass for the
+   * specified name. It will not register the created objectclass with the
+   * Directory Server.
+   *
+   * @param  name  The name to use for the objectclass, as provided by the user.
+   *
+   * @return  The constructed objectclass definition.
+   */
+  public static ObjectClass getDefaultAuxiliaryObjectClass(String name)
+  {
+    assert debugEnter(CLASS_NAME, "getDefaultObjectClass",
+                      String.valueOf(name));
+
+    String lowerName = toLowerCase(name);
+    ObjectClass objectClass = directoryServer.schema.getObjectClass(lowerName);
+    if (objectClass == null)
+    {
+      String oid        = lowerName + "-oid";
+      String definition = "( " + oid + " NAME '" + name + "' ABSTRACT )";
+
+      objectClass = new ObjectClass(definition, name,
+                                    Collections.singleton(name), oid, null,
+                                    getTopObjectClass(), null, null,
+                                    ObjectClassType.AUXILIARY, false, null);
     }
 
     return objectClass;

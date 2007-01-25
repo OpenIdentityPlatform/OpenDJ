@@ -2964,6 +2964,115 @@ public class SchemaMessages
        MSGID_ATTR_SYNTAX_ATTRSYNTAX_INVALID_EXTENSION =
             CATEGORY_MASK_SCHEMA | SEVERITY_MASK_MILD_ERROR | 265;
 
+
+
+  /**
+   * The message ID for the message that will be used if an objectclass has
+   * an invalid superior type.  This takes four arguments, which are the OID of
+   * the objectclass, the objectclass type for that class, the objectclass type
+   * type of the superior class, and the name or OID of the superior class.
+   */
+  public static final int MSGID_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE =
+       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 266;
+
+
+
+  /**
+   * The message ID for the message that will be used if a structural
+   * objectclass does not have a superior chain that includes the "top"
+   * objectclass.  This takes a single argument, which is the OID for that
+   * objectclass.
+   */
+  public static final int
+       MSGID_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP =
+            CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 267;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attribute type
+   * has a usage that is not the same as the usage of its superior type.  This
+   * takes three arguments, which is the OID of the attribute type, its
+   * attribute usage, and the name or OID of the superior type.
+   */
+  public static final int MSGID_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE =
+       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 268;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attribute type
+   * is defined as collective but the superior type is not collective.  This
+   * takes two arguments, which are the OID of the attribute type and the name
+   * or OID of the superior type.
+   */
+  public static final int
+       MSGID_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE =
+            CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 269;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attribute type
+   * is not defined as collective but the superior type is collective.  This
+   * takes two arguments, which are the OID of the attribute type and the name
+   * or OID of the superior type.
+   */
+  public static final int
+       MSGID_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE =
+            CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 270;
+
+
+
+  /**
+   * The message ID for the message that will be used if a DIT content rule
+   * description value is invalid because it prohibits an attribute type that is
+   * required by the rule's structural object class.  This takes three
+   * arguments, which are the definition of the DIT content rule, the name or
+   * OID of the prohibited attribute type, and the name or OID of the structural
+   * object class that requires it.
+   */
+  public static final int
+       MSGID_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL =
+            CATEGORY_MASK_SCHEMA | SEVERITY_MASK_MILD_ERROR | 271;
+
+
+
+  /**
+   * The message ID for the message that will be used if a DIT content rule
+   * description value is invalid because it prohibits an attribute type that is
+   * required by one the rule's allowed auxiliary object classes.  This takes
+   * three arguments, which are the definition of the DIT content rule, the name
+   * or OID of the prohibited attribute type, and the name or OID of the
+   * auxiliary object class that requires it.
+   */
+  public static final int
+       MSGID_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY =
+            CATEGORY_MASK_SCHEMA | SEVERITY_MASK_MILD_ERROR | 272;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attribute type
+   * is defined as collective but has a usage other than userApplications.  This
+   * takes a single argument, which is the OID of the attribute type.
+   */
+  public static final int MSGID_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL =
+       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 273;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attribute type
+   * is defined as NO-USER-MODIFICATION but does not have an operational usage.
+   * This takes a single argument, which is the OID of the attribute type.
+   */
+  public static final int
+       MSGID_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL =
+            CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 274;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -3244,46 +3353,60 @@ public class SchemaMessages
                     "The definition for the attribute type with OID %s " +
                     "declared a superior type with an OID of %s.  No " +
                     "attribute type with this OID exists in the server " +
-                    "schema, so the Directory Server will use a generic " +
-                    "attribute type as the superior type for this definition.");
+                    "schema.");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR,
                     "The definition for the attribute type with OID %s " +
                     "declared that approximate matching should be performed " +
                     "using the matching rule \"%s\".  No such approximate " +
                     "matching rule is configured for use in the Directory " +
-                    "Server, so the default approximate matching rule for " +
-                    "the attribute's syntax will be used.");
+                    "Server.");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR,
                     "The definition for the attribute type with OID %s " +
                     "declared that equality matching should be performed " +
                     "using the matching rule \"%s\".  No such equality " +
                     "matching rule is configured for use in the Directory " +
-                    "Server, so the default equality matching rule for the " +
-                    "attribute's syntax will be used.");
+                    "Server.");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR,
                     "The definition for the attribute type with OID %s " +
                     "declared that ordering matching should be performed " +
                     "using the matching rule \"%s\".  No such ordering " +
                     "matching rule is configured for use in the Directory " +
-                    "Server, so the default ordering matching rule for the " +
-                    "attribute's syntax will be used.");
+                    "Server.");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR,
                     "The definition for the attribute type with OID %s " +
                     "declared that substring matching should be performed " +
                     "using the matching rule \"%s\".  No such substring " +
                     "matching rule is configured for use in the Directory " +
-                    "Server, so the default substring matching rule for the " +
-                    "attribute's syntax will be used.");
+                    "Server.");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX,
                     "The definition for the attribute type with OID %s " +
                     "declared that it should have a syntax with OID %s.  No " +
                     "such syntax is configured for use in the Directory " +
-                    "Server, so the default attribute syntax will be used.");
+                    "Server.");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE,
                     "The definition for the attribute type with OID %s " +
                     "declared that it should have an attribute usage of " +
-                    "%s.  This is an invalid usage, so the default usage of " +
-                    "%s will be used.");
+                    "%s.  This is an invalid usage.");
+    registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE,
+                    "The definition for attribute type %s is invalid because " +
+                    "its attribute usage %s is not the same as the usage for " +
+                    "its superior type %s.");
+    registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE,
+                    "The definition for attribute type %s is invalid because " +
+                    "it is defined as a collective type but the superior " +
+                    "type %s is not collective.");
+    registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE,
+                    "The definition for attribute type %s is invalid because " +
+                    "it is not defined as a collective type but the superior " +
+                    "type %s is collective.");
+    registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL,
+                    "The definition for attribute type %s is invalid because " +
+                    "it is declared COLLECTIVE but does not have a usage " +
+                    "of userApplications.");
+    registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL,
+                    "The definition for attribute type %s is invalid because " +
+                    "it is declared NO-USER-MODIFICATION but does not have " +
+                    "an operational usage.");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute type description because a single quote was " +
@@ -3333,9 +3456,7 @@ public class SchemaMessages
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS,
                     "The definition for the objectclass with OID %s declared " +
                     "a superior objectclass with an OID of %s.  No " +
-                    "objectclass with this OID exists in the server schema, " +
-                    "so the Directory Server will assume it to be an empty " +
-                    "objectclass with no required or optional attributes.");
+                    "objectclass with this OID exists in the server schema.");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because a single quote was " +
@@ -3345,14 +3466,20 @@ public class SchemaMessages
                     "The definition for the objectclass with OID %s declared " +
                     "that it should include required attribute \"%s\".  No " +
                     "attribute type matching this name or OID exists in the " +
-                    "server schema, so a default attribute type with the " +
-                    "directory string syntax will be used.");
+                    "server schema.");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR,
                     "The definition for the objectclass with OID %s declared " +
                     "that it should include optional attribute \"%s\".  No " +
                     "attribute type matching this name or OID exists in the " +
-                    "server schema, so a default attribute type with the " +
-                    "directory string syntax will be used.");
+                    "server schema.");
+    registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE,
+                    "The definition for objectclass %s is invalid because it " +
+                    "has an objectclass type of %s but this is incompatible " +
+                    "with the objectclass type %s for the superior class %s.");
+    registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP,
+                    "The definition for objectclass %s is invalid because " +
+                    "it is defined as a structural class but its superior " +
+                    "chain does not include the \"top\" objectclass.");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER,
@@ -3557,8 +3684,7 @@ public class SchemaMessages
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS,
                     "The DIT content rule \"%s\" is associated with a " +
                     "structural objectclass %s that is not defined in the " +
-                    "server schema.  A default objectclass will be created " +
-                    "with this OID.");
+                    "server schema.");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL,
                     "The DIT content rule \"%s\" is associated with the " +
                     "objectclass with OID %s (%s).  This objectclass exists " +
@@ -3575,8 +3701,7 @@ public class SchemaMessages
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS,
                     "The DIT content rule \"%s\" is associated with an " +
                     "auxiliary objectclass %s that is not defined in the " +
-                    "server schema.  A default objectclass will be created " +
-                    "with this OID.");
+                    "server schema.");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY,
                     "The DIT content rule \"%s\" is associated with an " +
                     "auxiliary objectclass %s.  This objectclass exists " +
@@ -3585,18 +3710,23 @@ public class SchemaMessages
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR,
                     "The DIT content rule \"%s\" is associated with a " +
                     "required attribute type %s that is not defined in the " +
-                    "server schema.  A default attribute type will be " +
-                    "created with this name.");
+                    "server schema.");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR,
                     "The DIT content rule \"%s\" is associated with an " +
                     "optional attribute type %s that is not defined in the " +
-                    "server schema.  A default attribute type will be " +
-                    "created with this name.");
+                    "server schema.");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR,
                     "The DIT content rule \"%s\" is associated with a " +
                     "prohibited attribute type %s that is not defined in the " +
-                    "server schema.  A default attribute type will be " +
-                    "created with this name.");
+                    "server schema.");
+    registerMessage(MSGID_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL,
+                    "The DIT content rule \"%s\" is not valid because it " +
+                    "prohibits the use of attribute type %s which is " +
+                    "required by the associated structural object class %s.");
+    registerMessage(MSGID_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY,
+                    "The DIT content rule \"%s\" is not valid because it " +
+                    "prohibits the use of attribute type %s which is " +
+                    "required by the associated auxiliary object class %s.");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "content rule description because a single quote was " +
@@ -3641,8 +3771,7 @@ public class SchemaMessages
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS,
                     "The name form description \"%s\" is associated with a " +
                     "structural objectclass %s that is not defined in the " +
-                    "server schema.  A default objectclass will be created " +
-                    "with this OID.");
+                    "server schema.");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL,
                     "The name form description \"%s\" is associated with the " +
                     "objectclass with OID %s (%s).  This objectclass exists " +
@@ -3652,14 +3781,12 @@ public class SchemaMessages
                     "The definition for the name form with OID %s declared " +
                     "that it should include required attribute \"%s\".  No " +
                     "attribute type matching this name or OID exists in the " +
-                    "server schema, so a default attribute type with the " +
-                    "directory string syntax will be used.");
+                    "server schema.");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR,
                     "The definition for the name form with OID %s declared " +
                     "that it should include optional attribute \"%s\".  No " +
                     "attribute type matching this name or OID exists in the " +
-                    "server schema, so a default attribute type with the " +
-                    "directory string syntax will be used.");
+                    "server schema.");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because it does not specify the " +

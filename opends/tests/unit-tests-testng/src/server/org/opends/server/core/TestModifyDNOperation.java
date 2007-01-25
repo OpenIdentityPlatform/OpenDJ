@@ -45,6 +45,7 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
+import org.opends.server.tools.LDAPModify;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -1208,4 +1209,69 @@ public class TestModifyDNOperation extends OperationTestCase
     }
 
   }
+
+
+
+  /**
+   * Tests performing a modify DN operation in which the new RDN contains an
+   * attribute type marked OBSOLETE in the server schema.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testModifyDNWithObsoleteAttribute()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testmodifydnwithobsoleteattribute-oid " +
+              "NAME 'testModifyDNWithObsoleteAttribute' OBSOLETE " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "X-ORGIN 'SchemaBackendTestCase' )");
+
+    String attrName = "testmodifydnwithobsoleteattribute";
+    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    path = TestCaseUtils.createTempFile(
+         "dn: cn=oldrdn,o=test",
+         "changetype: add",
+         "objectClass: top",
+         "objectClass: device",
+         "objectClass: extensibleObject",
+         "cn: oldrdn",
+         "",
+         "dn: cn=oldrdn,o=test",
+         "changetype: moddn",
+         "newRDN: testModifyDNWithObsoleteAttribute=foo",
+         "deleteOldRDN: 0"
+    );
+
+    args = new String[]
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
 }
+

@@ -61,14 +61,46 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
   public Object[][] createAcceptableValues()
   {
     return new Object [][] {
-        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP 1.2" +
-          " EQUALITY 2.3 ORDERING 5.6 SUBSTR 7.8 SYNTAX 9.1 SINGLE-VALUE" +
-          " COLLECTIVE NO-USER-MODIFICATION USAGE directoryOperations )",
+        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn " +
+          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
+          " SUBSTR caseIgnoreSubstringsMatch" +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
+          " USAGE userApplications )",
+          true},
+        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE " +
+          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
+          " SUBSTR caseIgnoreSubstringsMatch" +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
+          " COLLECTIVE USAGE userApplications )",
           true},
         {"(1.2.8.5 NAME 'testtype' DESC 'full type')",
               true},
-        {"(1.2.8.5 USAGE directoryOperations )",
+        {"(1.2.8.5 USAGE directoryOperation )",
               true},
+        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn " +
+          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
+          " SUBSTR caseIgnoreSubstringsMatch" +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
+          " COLLECTIVE USAGE userApplications )",
+          false}, // Collective can't inherit from non-collective
+        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE " +
+          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
+          " SUBSTR caseIgnoreSubstringsMatch" +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
+          " COLLECTIVE USAGE directoryOperation )",
+          false}, // Collective can't be operational
+        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn " +
+          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
+          " SUBSTR caseIgnoreSubstringsMatch" +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
+          " NO-USER-MODIFICATION USAGE directoryOperation )",
+          false}, // directoryOperation can't inherit from userApplications
+        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE " +
+          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
+          " SUBSTR caseIgnoreSubstringsMatch" +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
+          " NO-USER-MODIFICATION USAGE userApplications )",
+          false}, // NO-USER-MODIFICATION can't have non-operational usage
     };
   }
 
@@ -113,7 +145,8 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
     // correct approximate matching rule.
     AttributeType attrType =
          AttributeTypeSyntax.decodeAttributeType(definition,
-                                                 DirectoryServer.getSchema());
+                                                 DirectoryServer.getSchema(),
+                                                 false);
     assertNotNull(attrType);
     assertNotNull(attrType.getApproximateMatchingRule());
     assertEquals(attrType.getApproximateMatchingRule(), testApproxRule);

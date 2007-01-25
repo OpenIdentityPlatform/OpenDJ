@@ -1486,13 +1486,27 @@ modifyDNProcessing:
         if (DirectoryServer.checkSchema())
         {
           StringBuilder invalidReason = new StringBuilder();
-          if (! newEntry.conformsToSchema(null, false, invalidReason))
+          if (! newEntry.conformsToSchema(null, false, true, true,
+                                          invalidReason))
           {
             setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
             appendErrorMessage(getMessage(MSGID_MODDN_VIOLATES_SCHEMA,
                                           String.valueOf(entryDN),
                                           String.valueOf(invalidReason)));
             break modifyDNProcessing;
+          }
+
+          for (int i=0; i < newRDNValues; i++)
+          {
+            AttributeType at = newRDN.getAttributeType(i);
+            if (at.isObsolete())
+            {
+              setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+              appendErrorMessage(getMessage(MSGID_MODDN_NEWRDN_ATTR_IS_OBSOLETE,
+                                            String.valueOf(entryDN),
+                                            at.getNameOrOID()));
+              break modifyDNProcessing;
+            }
           }
         }
 
@@ -1697,7 +1711,8 @@ modifyDNProcessing:
           if (DirectoryServer.checkSchema())
           {
             StringBuilder invalidReason = new StringBuilder();
-            if (! newEntry.conformsToSchema(null, false, invalidReason))
+            if (! newEntry.conformsToSchema(null, false, true, true,
+                                            invalidReason))
             {
               setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
 

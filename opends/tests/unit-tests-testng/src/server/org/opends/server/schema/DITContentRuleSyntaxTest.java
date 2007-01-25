@@ -53,21 +53,21 @@ public class DITContentRuleSyntaxTest extends AttributeSyntaxTest
              + "( x121Address $ telexNumber ) )", true},
         {"( 2.5.6.4 NAME 'full rule' DESC 'rule with all possible fields' "
               + " OBSOLETE"
-              + " AUX ( person )"
+              + " AUX ( posixAccount )"
               + " MUST ( cn $ sn )"
               + " MAY ( dc )"
               + " NOT ( x121Address $ telexNumber ) )"
                 , true},
         {"( 2.5.6.4 NAME 'full rule' DESC 'ommit parenthesis' "
                   + " OBSOLETE"
-                  + " AUX person "
+                  + " AUX posixAccount "
                   + " MUST cn "
                   + " MAY dc "
                   + " NOT x121Address )"
               , true},
          {"( 2.5.6.4 NAME 'full rule' DESC 'use numeric OIDs' "
                 + " OBSOLETE"
-                + " AUX 2.5.6.6"
+                + " AUX 1.3.6.1.1.1.2.0"
                 + " MUST cn "
                 + " MAY dc "
                 + " NOT x121Address )"
@@ -88,7 +88,7 @@ public class DITContentRuleSyntaxTest extends AttributeSyntaxTest
                  , false},
          {"( 2.5.6.4 NAME 'full rule' DESC 'missing closing parenthesis' "
                  + " OBSOLETE"
-                 + " AUX person "
+                 + " AUX posixAccount"
                  + " MUST cn "
                  + " MAY dc "
                  + " NOT x121Address"

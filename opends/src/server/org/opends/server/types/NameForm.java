@@ -217,7 +217,7 @@ public final class NameForm
     ByteString value  = ByteStringFactory.create(definition);
     Schema     schema = DirectoryConfig.getSchema();
 
-    NameForm nf = NameFormSyntax.decodeNameForm(value, schema);
+    NameForm nf = NameFormSyntax.decodeNameForm(value, schema, false);
     nf.setSchemaFile(getSchemaFile());
 
     return nf;
