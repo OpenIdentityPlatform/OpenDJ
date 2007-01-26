@@ -107,6 +107,9 @@ public class Entry
   // with some other object.
   private transient Object attachment;
 
+  // The schema used to govern this entry.
+  private Schema schema;
+
 
 
   /**
@@ -139,6 +142,7 @@ public class Entry
 
 
     attachment = null;
+    schema     = DirectoryServer.getSchema();
 
 
     if (dn == null)
@@ -635,6 +639,18 @@ public class Entry
       return true;
     }
 
+    if (attributeType.mayHaveSubordinateTypes())
+    {
+      for (AttributeType at : schema.getSubTypes(attributeType))
+      {
+        if (userAttributes.containsKey(at) ||
+            operationalAttributes.containsKey(at))
+        {
+          return true;
+        }
+      }
+    }
+
     return (attributeType.isObjectClassType() &&
             (! objectClasses.isEmpty()));
   }
@@ -660,21 +676,55 @@ public class Entry
                       String.valueOf(attributeType),
                       String.valueOf(attributeOptions));
 
-    List<Attribute> attributes = userAttributes.get(attributeType);
-    if (attributes == null)
+    List<Attribute> attributes;
+    if (attributeType.mayHaveSubordinateTypes())
     {
-      attributes = operationalAttributes.get(attributeType);
+      attributes = new LinkedList<Attribute>();
+      List<Attribute> attrs = userAttributes.get(attributeType);
+      if (attrs != null)
+      {
+        attributes.addAll(attrs);
+      }
+
+      attrs = operationalAttributes.get(attributeType);
+      if (attrs != null)
+      {
+        attributes.addAll(attrs);
+      }
+
+      for (AttributeType at : schema.getSubTypes(attributeType))
+      {
+        attrs = userAttributes.get(at);
+        if (attrs != null)
+        {
+          attributes.addAll(attrs);
+        }
+
+        attrs = operationalAttributes.get(at);
+        if (attrs != null)
+        {
+          attributes.addAll(attrs);
+        }
+      }
+    }
+    else
+    {
+      attributes = userAttributes.get(attributeType);
       if (attributes == null)
       {
-        if (attributeType.isObjectClassType() &&
-            (! objectClasses.isEmpty()))
+        attributes = operationalAttributes.get(attributeType);
+        if (attributes == null)
         {
-          return ((attributeOptions == null) ||
-                  attributeOptions.isEmpty());
-        }
-        else
-        {
-          return false;
+          if (attributeType.isObjectClassType() &&
+              (! objectClasses.isEmpty()))
+          {
+            return ((attributeOptions == null) ||
+                    attributeOptions.isEmpty());
+          }
+          else
+          {
+            return false;
+          }
         }
       }
     }
@@ -684,7 +734,7 @@ public class Entry
     // attribute.
     for (Attribute a : attributes)
     {
-      if (a.hasValue())
+      if (a.hasValue() && a.hasOptions(attributeOptions))
       {
         return true;
       }
@@ -712,24 +762,40 @@ public class Entry
     assert debugEnter(CLASS_NAME, "getAttribute",
                       String.valueOf(attributeType));
 
-    List<Attribute> attributes = userAttributes.get(attributeType);
-
-    if (attributes == null)
+    if (attributeType.mayHaveSubordinateTypes())
     {
-      attributes = operationalAttributes.get(attributeType);
-      if (attributes == null)
+      List<Attribute> attributes = new LinkedList<Attribute>();
+
+      List<Attribute> attrs = userAttributes.get(attributeType);
+      if (attrs != null)
       {
-        if (attributeType.isObjectClassType() &&
-            (! objectClasses.isEmpty()))
+        attributes.addAll(attrs);
+      }
+
+      attrs = operationalAttributes.get(attributeType);
+      if (attrs != null)
+      {
+        attributes.addAll(attrs);
+      }
+
+      for (AttributeType at : schema.getSubTypes(attributeType))
+      {
+        attrs = userAttributes.get(at);
+        if (attrs != null)
         {
-          attributes = new ArrayList<Attribute>(1);
-          attributes.add(getObjectClassAttribute());
-          return attributes;
+          attributes.addAll(attrs);
         }
-        else
+
+        attrs = operationalAttributes.get(at);
+        if (attrs != null)
         {
-          return null;
+          attributes.addAll(attrs);
         }
+      }
+
+      if (attributes.isEmpty())
+      {
+        return null;
       }
       else
       {
@@ -738,7 +804,34 @@ public class Entry
     }
     else
     {
-      return attributes;
+      List<Attribute> attributes = userAttributes.get(attributeType);
+
+      if (attributes == null)
+      {
+        attributes = operationalAttributes.get(attributeType);
+        if (attributes == null)
+        {
+          if (attributeType.isObjectClassType() &&
+              (! objectClasses.isEmpty()))
+          {
+            attributes = new ArrayList<Attribute>(1);
+            attributes.add(getObjectClassAttribute());
+            return attributes;
+          }
+          else
+          {
+            return null;
+          }
+        }
+        else
+        {
+          return attributes;
+        }
+      }
+      else
+      {
+        return attributes;
+      }
     }
   }
 
@@ -772,7 +865,7 @@ public class Entry
     {
       if (attr.hasNameOrOID(lowerName))
       {
-        return userAttributes.get(attr);
+        return getAttribute(attr);
       }
     }
 
@@ -780,8 +873,16 @@ public class Entry
     {
       if (attr.hasNameOrOID(lowerName))
       {
-        return operationalAttributes.get(attr);
+        return getAttribute(attr);
       }
+    }
+
+    if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
+        (! objectClasses.isEmpty()))
+    {
+      LinkedList<Attribute> attrList = new LinkedList<Attribute>();
+      attrList.add(getObjectClassAttribute());
+      return attrList;
     }
 
     return null;
@@ -811,44 +912,85 @@ public class Entry
                       String.valueOf(attributeType),
                        String.valueOf(options));
 
-    List<Attribute> attributes = userAttributes.get(attributeType);
-    if (attributes == null)
+    List<Attribute> attributes = new LinkedList<Attribute>();
+    if (attributeType.mayHaveSubordinateTypes())
     {
-      attributes = operationalAttributes.get(attributeType);
-      if (attributes == null)
+      List<Attribute> attrs = userAttributes.get(attributeType);
+      if (attrs != null)
       {
-        if (attributeType.isObjectClassType() &&
-            (! objectClasses.isEmpty()) &&
-            ((options == null) || (options.isEmpty())))
+        attributes.addAll(attrs);
+      }
+
+      attrs = operationalAttributes.get(attributeType);
+      if (attrs != null)
+      {
+        attributes.addAll(attrs);
+      }
+
+      for (AttributeType at : schema.getSubTypes(attributeType))
+      {
+        attrs = userAttributes.get(at);
+        if (attrs != null)
         {
-          attributes = new ArrayList<Attribute>(1);
-          attributes.add(getObjectClassAttribute());
-          return attributes;
+          attributes.addAll(attrs);
+        }
+
+        attrs = operationalAttributes.get(at);
+        if (attrs != null)
+        {
+          attributes.addAll(attrs);
+        }
+      }
+    }
+    else
+    {
+      List<Attribute> attrs = userAttributes.get(attributeType);
+      if (attrs == null)
+      {
+        attrs = operationalAttributes.get(attributeType);
+        if (attrs == null)
+        {
+          if (attributeType.isObjectClassType() &&
+              (! objectClasses.isEmpty()) &&
+              ((options == null) || options.isEmpty()))
+          {
+            attributes.add(getObjectClassAttribute());
+            return attributes;
+          }
+          else
+          {
+            return null;
+          }
         }
         else
         {
-          return null;
+          attributes.addAll(attrs);
         }
       }
-    }
-
-    ArrayList<Attribute> returnAttrs =
-         new ArrayList<Attribute>(attributes.size());
-    for (Attribute a : attributes)
-    {
-      if (a.hasOptions(options))
+      else
       {
-        returnAttrs.add(a);
+        attributes.addAll(attrs);
       }
     }
 
-    if (returnAttrs.isEmpty())
+
+    Iterator<Attribute> iterator = attributes.iterator();
+    while (iterator.hasNext())
+    {
+      Attribute a = iterator.next();
+      if (! a.hasOptions(options))
+      {
+        iterator.remove();
+      }
+    }
+
+    if (attributes.isEmpty())
     {
       return null;
     }
     else
     {
-      return returnAttrs;
+      return attributes;
     }
   }
 
@@ -883,52 +1025,32 @@ public class Entry
                       String.valueOf(lowerName),
                       String.valueOf(options));
 
-    List<Attribute> attrList = null;
-
     for (AttributeType attr : userAttributes.keySet())
     {
       if (attr.hasNameOrOID(lowerName))
       {
-        attrList = userAttributes.get(attr);
-        break;
+        return getAttribute(attr, options);
       }
     }
 
-    if (attrList == null)
+    for (AttributeType attr : operationalAttributes.keySet())
     {
-      for (AttributeType attr : operationalAttributes.keySet())
+      if (attr.hasNameOrOID(lowerName))
       {
-        if (attr.hasNameOrOID(lowerName))
-        {
-          attrList = operationalAttributes.get(attr);
-          break;
-        }
-      }
-
-      if (attrList == null)
-      {
-        return null;
+        return getAttribute(attr, options);
       }
     }
 
-
-    ArrayList<Attribute> returnAttrs =
-         new ArrayList<Attribute>(attrList.size());
-    for (Attribute a : attrList)
+    if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
+        ((options == null) || options.isEmpty()))
     {
-      if (a.hasOptions(options))
-      {
-        returnAttrs.add(a);
-      }
-    }
-
-    if (returnAttrs.isEmpty())
-    {
-      return null;
+      LinkedList<Attribute> attributes = new LinkedList<Attribute>();
+      attributes.add(getObjectClassAttribute());
+      return attributes;
     }
     else
     {
-      return returnAttrs;
+      return null;
     }
   }
 
@@ -1043,7 +1165,23 @@ public class Entry
     assert debugEnter(CLASS_NAME, "hasUserAttribute",
                       String.valueOf(attributeType));
 
-    return userAttributes.containsKey(attributeType);
+    if (userAttributes.containsKey(attributeType))
+    {
+      return true;
+    }
+
+    if (attributeType.mayHaveSubordinateTypes())
+    {
+      for (AttributeType at : schema.getSubTypes(attributeType))
+      {
+        if (userAttributes.containsKey(at))
+        {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
 
@@ -1065,7 +1203,38 @@ public class Entry
     assert debugEnter(CLASS_NAME, "getUserAttribute",
                       String.valueOf(attributeType));
 
-    return userAttributes.get(attributeType);
+    if (attributeType.mayHaveSubordinateTypes())
+    {
+      LinkedList<Attribute> attributes = new LinkedList<Attribute>();
+
+      List<Attribute> attrs = userAttributes.get(attributeType);
+      if (attrs != null)
+      {
+        attributes.addAll(attrs);
+      }
+
+      for (AttributeType at : schema.getSubTypes(attributeType))
+      {
+        attrs = userAttributes.get(at);
+        if (attrs != null)
+        {
+          attributes.addAll(attrs);
+        }
+      }
+
+      if (attributes.isEmpty())
+      {
+        return null;
+      }
+      else
+      {
+        return attributes;
+      }
+    }
+    else
+    {
+      return userAttributes.get(attributeType);
+    }
   }
 
 
@@ -1091,29 +1260,42 @@ public class Entry
                       String.valueOf(attributeType),
                       String.valueOf(options));
 
-    List<Attribute> attributes = userAttributes.get(attributeType);
-    if (attributes == null)
+    LinkedList<Attribute> attributes = new LinkedList<Attribute>();
+    List<Attribute> attrs = userAttributes.get(attributeType);
+    if (attrs != null)
     {
-      return null;
+      attributes.addAll(attrs);
     }
 
-    ArrayList<Attribute> returnAttrs =
-         new ArrayList<Attribute>(attributes.size());
-    for (Attribute a : attributes)
+    if (attributeType.mayHaveSubordinateTypes())
     {
-      if (a.hasOptions(options))
+      for (AttributeType at : schema.getSubTypes(attributeType))
       {
-        returnAttrs.add(a);
+        attrs = userAttributes.get(at);
+        if (attrs != null)
+        {
+          attributes.addAll(attrs);
+        }
       }
     }
 
-    if (returnAttrs.isEmpty())
+    Iterator<Attribute> iterator = attributes.iterator();
+    while (iterator.hasNext())
+    {
+      Attribute a = iterator.next();
+      if (! a.hasOptions(options))
+      {
+        iterator.remove();
+      }
+    }
+
+    if (attributes.isEmpty())
     {
       return null;
     }
     else
     {
-      return returnAttrs;
+      return attributes;
     }
   }
 
@@ -1135,20 +1317,40 @@ public class Entry
     assert debugEnter(CLASS_NAME, "duplicateUserAttribute",
                       String.valueOf(attributeType));
 
-    List<Attribute> currentList = userAttributes.get(attributeType);
-    if (currentList == null)
+    LinkedList<Attribute> attributes = new LinkedList<Attribute>();
+
+    List<Attribute> attrs = userAttributes.get(attributeType);
+    if (attrs != null)
+    {
+      for (Attribute a : attrs)
+      {
+        attributes.add(a.duplicate());
+      }
+    }
+
+    if (attributeType.mayHaveSubordinateTypes())
+    {
+      for (AttributeType at : schema.getSubTypes(attributeType))
+      {
+        attrs = userAttributes.get(at);
+        if (attrs != null)
+        {
+          for (Attribute a : attrs)
+          {
+            attributes.add(a.duplicate());
+          }
+        }
+      }
+    }
+
+    if (attributes.isEmpty())
     {
       return null;
     }
-
-    ArrayList<Attribute> duplicateList =
-         new ArrayList<Attribute>(currentList.size());
-    for (Attribute a : currentList)
+    else
     {
-      duplicateList.add(a.duplicate());
+      return attributes;
     }
-
-    return duplicateList;
   }
 
 
@@ -1230,7 +1432,7 @@ public class Entry
                       String.valueOf(options),
                       String.valueOf(omitValues));
 
-    List<Attribute> currentList = userAttributes.get(attributeType);
+    List<Attribute> currentList = getUserAttribute(attributeType);
     return duplicateAttribute(currentList, options, omitValues);
   }
 
@@ -1264,7 +1466,7 @@ public class Entry
                       String.valueOf(omitValues));
 
     List<Attribute> currentList =
-         operationalAttributes.get(attributeType);
+         getOperationalAttribute(attributeType);
     return duplicateAttribute(currentList, options, omitValues);
   }
 
@@ -1284,7 +1486,23 @@ public class Entry
     assert debugEnter(CLASS_NAME, "hasOperationalAttribute",
                       String.valueOf(attributeType));
 
-    return operationalAttributes.containsKey(attributeType);
+    if (operationalAttributes.containsKey(attributeType))
+    {
+      return true;
+    }
+
+    if (attributeType.mayHaveSubordinateTypes())
+    {
+      for (AttributeType at : schema.getSubTypes(attributeType))
+      {
+        if (operationalAttributes.containsKey(at))
+        {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
 
@@ -1307,7 +1525,39 @@ public class Entry
     assert debugEnter(CLASS_NAME, "getOperationalAttribute",
                       String.valueOf(attributeType));
 
-    return operationalAttributes.get(attributeType);
+    if (attributeType.mayHaveSubordinateTypes())
+    {
+      LinkedList<Attribute> attributes = new LinkedList<Attribute>();
+
+      List<Attribute> attrs =
+           operationalAttributes.get(attributeType);
+      if (attrs != null)
+      {
+        attributes.addAll(attrs);
+      }
+
+      for (AttributeType at : schema.getSubTypes(attributeType))
+      {
+        attrs = operationalAttributes.get(at);
+        if (attrs != null)
+        {
+          attributes.addAll(attrs);
+        }
+      }
+
+      if (attributes.isEmpty())
+      {
+        return null;
+      }
+      else
+      {
+        return attributes;
+      }
+    }
+    else
+    {
+      return operationalAttributes.get(attributeType);
+    }
   }
 
 
@@ -1334,30 +1584,42 @@ public class Entry
                       String.valueOf(attributeType),
                       String.valueOf(options));
 
-    List<Attribute> attributes =
-         operationalAttributes.get(attributeType);
-    if (attributes == null)
+    LinkedList<Attribute> attributes = new LinkedList<Attribute>();
+    List<Attribute> attrs = operationalAttributes.get(attributeType);
+    if (attrs != null)
     {
-      return null;
+      attributes.addAll(attrs);
     }
 
-    ArrayList<Attribute> returnAttrs =
-         new ArrayList<Attribute>(attributes.size());
-    for (Attribute a : attributes)
+    if (attributeType.mayHaveSubordinateTypes())
     {
-      if (a.hasOptions(options))
+      for (AttributeType at : schema.getSubTypes(attributeType))
       {
-        returnAttrs.add(a);
+        attrs = operationalAttributes.get(at);
+        if (attrs != null)
+        {
+          attributes.addAll(attrs);
+        }
       }
     }
 
-    if (returnAttrs.isEmpty())
+    Iterator<Attribute> iterator = attributes.iterator();
+    while (iterator.hasNext())
+    {
+      Attribute a = iterator.next();
+      if (! a.hasOptions(options))
+      {
+        iterator.remove();
+      }
+    }
+
+    if (attributes.isEmpty())
     {
       return null;
     }
     else
     {
-      return returnAttrs;
+      return attributes;
     }
   }
 
@@ -1380,21 +1642,40 @@ public class Entry
     assert debugEnter(CLASS_NAME, "duplicateOperationalAttribute",
                       String.valueOf(attributeType));
 
-    List<Attribute> currentList =
-         operationalAttributes.get(attributeType);
-    if (currentList == null)
+    LinkedList<Attribute> attributes = new LinkedList<Attribute>();
+
+    List<Attribute> attrs = operationalAttributes.get(attributeType);
+    if (attrs != null)
+    {
+      for (Attribute a : attrs)
+      {
+        attributes.add(a.duplicate());
+      }
+    }
+
+    if (attributeType.mayHaveSubordinateTypes())
+    {
+      for (AttributeType at : schema.getSubTypes(attributeType))
+      {
+        attrs = operationalAttributes.get(at);
+        if (attrs != null)
+        {
+          for (Attribute a : attrs)
+          {
+            attributes.add(a.duplicate());
+          }
+        }
+      }
+    }
+
+    if (attributes.isEmpty())
     {
       return null;
     }
-
-    ArrayList<Attribute> duplicateList =
-         new ArrayList<Attribute>(currentList.size());
-    for (Attribute a : currentList)
+    else
     {
-      duplicateList.add(a.duplicate());
+      return attributes;
     }
-
-    return duplicateList;
   }
 
 

@@ -28,7 +28,10 @@ package org.opends.server.types;
 
 
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.api.ApproximateMatchingRule;
@@ -71,6 +74,11 @@ public class Schema
        "org.opends.server.types.Schema";
 
 
+
+  // The set of subordinate attribute types registered within the
+  // server schema.
+  private ConcurrentHashMap<AttributeType,List<AttributeType>>
+               subordinateTypes;
 
   // The set of attribute type definitions for this schema, mapped
   // between the lowercase names and OID for the definition and the
@@ -212,6 +220,8 @@ public class Schema
          new ConcurrentHashMap<NameForm,DITStructureRule>();
     nameFormsByOC = new ConcurrentHashMap<ObjectClass,NameForm>();
     nameFormsByName = new ConcurrentHashMap<String,NameForm>();
+    subordinateTypes =
+         new ConcurrentHashMap<AttributeType,List<AttributeType>>();
 
 
     syntaxSet           = new LinkedHashSet<AttributeValue>();
@@ -371,6 +381,12 @@ public class Schema
         attributeTypes.put(name, attributeType);
       }
 
+      AttributeType superiorType = attributeType.getSuperiorType();
+      if (superiorType != null)
+      {
+        registerSubordinateType(attributeType, superiorType);
+      }
+
       // We'll use an attribute value including the normalized value
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
@@ -408,6 +424,12 @@ public class Schema
         attributeTypes.remove(name, attributeType);
       }
 
+      AttributeType superiorType = attributeType.getSuperiorType();
+      if (superiorType != null)
+      {
+        deregisterSubordinateType(attributeType, superiorType);
+      }
+
       // We'll use an attribute value including the normalized value
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
@@ -418,6 +440,112 @@ public class Schema
            new ASN1OctetString(toLowerCase(valueString));
       attributeTypeSet.remove(new AttributeValue(rawValue,
                                                  normValue));
+    }
+  }
+
+
+
+  /**
+   * Registers the provided attribute type as a subtype of the given
+   * superior attribute type, recursively following any additional
+   * elements in the superior chain.
+   *
+   * @param  attributeType  The attribute type to be registered as a
+   *                        subtype for the given superior type.
+   * @param  superiorType   The superior type for which to register
+   *                        the given attribute type as a subtype.
+   */
+  private final void registerSubordinateType(
+                          AttributeType attributeType,
+                          AttributeType superiorType)
+  {
+    assert debugEnter(CLASS_NAME, "registerSubordinateType",
+                      String.valueOf(attributeType),
+                      String.valueOf(superiorType));
+
+    List<AttributeType> subTypes = subordinateTypes.get(superiorType);
+    if (subTypes == null)
+    {
+      superiorType.setMayHaveSubordinateTypes();
+      subTypes = new LinkedList<AttributeType>();
+      subTypes.add(attributeType);
+      subordinateTypes.put(superiorType, subTypes);
+    }
+    else if (! subTypes.contains(attributeType))
+    {
+      superiorType.setMayHaveSubordinateTypes();
+      subTypes.add(attributeType);
+
+      AttributeType higherSuperior = superiorType.getSuperiorType();
+      if (higherSuperior != null)
+      {
+        registerSubordinateType(attributeType, higherSuperior);
+      }
+    }
+  }
+
+
+
+  /**
+   * Deregisters the provided attribute type as a subtype of the given
+   * superior attribute type, recursively following any additional
+   * elements in the superior chain.
+   *
+   * @param  attributeType  The attribute type to be deregistered as a
+   *                        subtype for the given superior type.
+   * @param  superiorType   The superior type for which to deregister
+   *                        the given attribute type as a subtype.
+   */
+  private final void deregisterSubordinateType(
+                          AttributeType attributeType,
+                          AttributeType superiorType)
+  {
+    assert debugEnter(CLASS_NAME, "deregisterSubordinateType",
+                      String.valueOf(attributeType),
+                      String.valueOf(superiorType));
+
+    List<AttributeType> subTypes = subordinateTypes.get(superiorType);
+    if (subTypes != null)
+    {
+      if (subTypes.remove(attributeType))
+      {
+        AttributeType higherSuperior = superiorType.getSuperiorType();
+        if (higherSuperior != null)
+        {
+          deregisterSubordinateType(attributeType, higherSuperior);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Retrieves the set of subtypes registered for the given attribute
+   * type.
+   *
+   * @param  attributeType  The attribute type for which to retrieve
+   *                        the set of registered subtypes.
+   *
+   * @return  The set of subtypes registered for the given attribute
+   *          type, or an empty set if there are no subtypes
+   *          registered for the attribute type.
+   */
+  public final Iterable<AttributeType>
+                    getSubTypes(AttributeType attributeType)
+  {
+    assert debugEnter(CLASS_NAME, "getSubordinateTypes",
+                      String.valueOf(attributeType));
+
+    List<AttributeType> subTypes =
+         subordinateTypes.get(attributeType);
+    if (subTypes == null)
+    {
+      return Collections.<AttributeType>emptyList();
+    }
+    else
+    {
+      return subTypes;
     }
   }
 
@@ -2876,6 +3004,7 @@ public class Schema
     Schema dupSchema = new Schema();
 
     dupSchema.attributeTypes.putAll(attributeTypes);
+    dupSchema.subordinateTypes.putAll(subordinateTypes);
     dupSchema.objectClasses.putAll(objectClasses);
     dupSchema.syntaxes.putAll(syntaxes);
     dupSchema.matchingRules.putAll(matchingRules);

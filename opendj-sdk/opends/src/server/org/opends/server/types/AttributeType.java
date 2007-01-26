@@ -101,6 +101,13 @@ public final class AttributeType
   // Indicates whether this attribute type is declared "single-value".
   private final boolean isSingleValue;
 
+  // Indicates whether there is a possibility that this attribute type
+  // may have one or more subtypes that list this type or one of its
+  // subtypes as a superior.  Note that this variable is intentional
+  // not declared "final", but if it ever gets set to "true", then it
+  // should never be unset back to "false".
+  private boolean mayHaveSubordinateTypes;
+
   // The equality matching rule for this attribute type.
   private final EqualityMatchingRule equalityMatchingRule;
 
@@ -286,6 +293,8 @@ public final class AttributeType
     this.isNoUserModification = isNoUserModification;
     this.isSingleValue = isSingleValue;
 
+    mayHaveSubordinateTypes = false;
+
     if (syntax == null)
     {
       if (superiorType != null)
@@ -407,6 +416,7 @@ public final class AttributeType
          AttributeTypeSyntax.decodeAttributeType(value, schema,
                                               false);
     at.setSchemaFile(getSchemaFile());
+    at.mayHaveSubordinateTypes = mayHaveSubordinateTypes;
 
     return at;
   }
@@ -424,6 +434,45 @@ public final class AttributeType
     assert debugEnter(CLASS_NAME, "getSuperiorType");
 
     return superiorType;
+  }
+
+
+
+  /**
+   * Indicates whether there is a possibility that this attribute type
+   * may have one or more subordinate attribute types defined in the
+   * server schema.  This is only intended for use by the
+   * {@code org.opends.server.types.Entry} class for the purpose of
+   * determining whether to check for subtypes when retrieving
+   * attributes.  Note that it is possible for this method to report
+   * false positives (if an attribute type that previously had one or
+   * more subordinate types no longer has any), but not false
+   * negatives.
+   *
+   * @return  {@code true} if the {@code hasSubordinateTypes} flag has
+   *          been set for this attribute type at any time since
+   *          startup, or {@code false} if not.
+   */
+  boolean mayHaveSubordinateTypes()
+  {
+    assert debugEnter(CLASS_NAME, "mayHaveSubordinateTypes");
+
+    return mayHaveSubordinateTypes;
+  }
+
+
+
+  /**
+   * Sets a flag indicating that this attribute type may have one or
+   * more subordinate attribute types defined in the server schema.
+   * This is only intended for use by the
+   * {@code org.opends.server.types.Schema} class.
+   */
+  void setMayHaveSubordinateTypes()
+  {
+    assert debugEnter(CLASS_NAME, "setMayHaveSubordinateTypes");
+
+    mayHaveSubordinateTypes = true;
   }
 
 
