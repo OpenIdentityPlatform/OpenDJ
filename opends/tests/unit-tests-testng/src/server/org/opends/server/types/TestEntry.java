@@ -26,12 +26,13 @@
  */
 package org.opends.server.types;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SubtreeSpecificationSet;
@@ -298,4 +299,715 @@ public final class TestEntry extends TypesTestCase {
 
     assertEquals(expected, result);
   }
+
+
+
+  /**
+   * Tests the {@code hasAttribute} method variants to ensure that they work
+   * properly for both attributes included directly, as well as attributes
+   * included as subtypes.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testHasAttribute()
+         throws Exception
+  {
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,ou=People,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "cn;lang-en-US: Test User",
+         "givenName: Test",
+         "givenName;lang-en-US: Test",
+         "sn: User",
+         "sn;lang-en-US: User",
+         "creatorsName: cn=Directory Manager",
+         "createTimestamp: 20070101000000Z",
+         "modifiersName: cn=Directory Manager",
+         "modifyTimestamp: 20070101000001Z");
+
+    assertTrue(e.conformsToSchema(null, false, false, false,
+                                  new StringBuilder()));
+
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
+
+    assertTrue(e.hasAttribute(ocType));
+    assertTrue(e.hasAttribute(cnType));
+    assertTrue(e.hasAttribute(nameType));
+    assertFalse(e.hasAttribute(uidType));
+    assertTrue(e.hasAttribute(mnType));
+
+    LinkedHashSet<String> options = null;
+    assertTrue(e.hasAttribute(ocType, options));
+    assertTrue(e.hasAttribute(cnType, options));
+    assertTrue(e.hasAttribute(nameType, options));
+    assertFalse(e.hasAttribute(uidType, options));
+    assertTrue(e.hasAttribute(mnType, options));
+
+    options = new LinkedHashSet<String>();
+    assertTrue(e.hasAttribute(ocType, options));
+    assertTrue(e.hasAttribute(cnType, options));
+    assertTrue(e.hasAttribute(nameType, options));
+    assertFalse(e.hasAttribute(uidType, options));
+    assertTrue(e.hasAttribute(mnType, options));
+
+    options.add("lang-en-US");
+    assertFalse(e.hasAttribute(ocType, options));
+    assertTrue(e.hasAttribute(cnType, options));
+    assertTrue(e.hasAttribute(nameType, options));
+    assertFalse(e.hasAttribute(uidType, options));
+    assertFalse(e.hasAttribute(mnType, options));
+
+    options.add("lang-en-GB");
+    assertFalse(e.hasAttribute(ocType, options));
+    assertFalse(e.hasAttribute(cnType, options));
+    assertFalse(e.hasAttribute(nameType, options));
+    assertFalse(e.hasAttribute(uidType, options));
+    assertFalse(e.hasAttribute(mnType, options));
+
+    options.clear();
+    options.add("lang-en-GB");
+    assertFalse(e.hasAttribute(ocType, options));
+    assertFalse(e.hasAttribute(cnType, options));
+    assertFalse(e.hasAttribute(nameType, options));
+    assertFalse(e.hasAttribute(uidType, options));
+    assertFalse(e.hasAttribute(mnType, options));
+  }
+
+
+
+  /**
+   * Tests the {@code hasUserAttribute} method variants to ensure that they work
+   * properly for both attributes included directly, as well as attributes
+   * included as subtypes.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testHasUserAttribute()
+         throws Exception
+  {
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,ou=People,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "cn;lang-en-US: Test User",
+         "givenName: Test",
+         "givenName;lang-en-US: Test",
+         "sn: User",
+         "sn;lang-en-US: User",
+         "creatorsName: cn=Directory Manager",
+         "createTimestamp: 20070101000000Z",
+         "modifiersName: cn=Directory Manager",
+         "modifyTimestamp: 20070101000001Z");
+
+    assertTrue(e.conformsToSchema(null, false, false, false,
+                                  new StringBuilder()));
+
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
+
+    assertFalse(e.hasUserAttribute(ocType));
+    assertTrue(e.hasUserAttribute(cnType));
+    assertTrue(e.hasUserAttribute(nameType));
+    assertFalse(e.hasUserAttribute(uidType));
+    assertFalse(e.hasUserAttribute(mnType));
+  }
+
+
+
+  /**
+   * Tests the {@code hasOperationalAttribute} method variants to ensure that
+   * they work properly for both attributes included directly, as well as
+   * attributes included as subtypes.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testHasOperationalAttribute()
+         throws Exception
+  {
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,ou=People,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "cn;lang-en-US: Test User",
+         "givenName: Test",
+         "givenName;lang-en-US: Test",
+         "sn: User",
+         "sn;lang-en-US: User",
+         "creatorsName: cn=Directory Manager",
+         "createTimestamp: 20070101000000Z",
+         "modifiersName: cn=Directory Manager",
+         "modifyTimestamp: 20070101000001Z");
+
+    assertTrue(e.conformsToSchema(null, false, false, false,
+                                  new StringBuilder()));
+
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
+
+    assertFalse(e.hasOperationalAttribute(ocType));
+    assertFalse(e.hasOperationalAttribute(cnType));
+    assertFalse(e.hasOperationalAttribute(nameType));
+    assertFalse(e.hasOperationalAttribute(uidType));
+    assertTrue(e.hasOperationalAttribute(mnType));
+  }
+
+
+
+  /**
+   * Tests the {@code getAttribute} method variants to ensure that they work
+   * properly for both attributes included directly, as well as attributes
+   * included as subtypes.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testGetAttribute()
+         throws Exception
+  {
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,ou=People,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "cn;lang-en-US: Test User",
+         "givenName: Test",
+         "givenName;lang-en-US: Test",
+         "sn: User",
+         "sn;lang-en-US: User",
+         "creatorsName: cn=Directory Manager",
+         "createTimestamp: 20070101000000Z",
+         "modifiersName: cn=Directory Manager",
+         "modifyTimestamp: 20070101000001Z");
+
+    assertTrue(e.conformsToSchema(null, false, false, false,
+                                  new StringBuilder()));
+
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
+
+    List<Attribute> attrs = e.getAttribute(ocType);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+    attrs = e.getAttribute(cnType);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 2);
+
+    attrs = e.getAttribute(nameType);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 6);
+
+    attrs = e.getAttribute(uidType);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(mnType);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+
+    attrs = e.getAttribute("objectclass");
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+    attrs = e.getAttribute("cn");
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 2);
+
+    attrs = e.getAttribute("uid");
+    assertNull(attrs);
+
+    attrs = e.getAttribute("modifiersname");
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+
+    LinkedHashSet<String> options = null;
+    attrs = e.getAttribute(ocType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+    attrs = e.getAttribute(cnType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 2);
+
+    attrs = e.getAttribute(nameType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 6);
+
+    attrs = e.getAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(mnType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+
+    attrs = e.getAttribute("objectclass", options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+    attrs = e.getAttribute("cn", options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 2);
+
+    attrs = e.getAttribute("uid", options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute("modifiersname", options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+
+    options = new LinkedHashSet<String>();
+    attrs = e.getAttribute(ocType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+    attrs = e.getAttribute(cnType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 2);
+
+    attrs = e.getAttribute(nameType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 6);
+
+    attrs = e.getAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(mnType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+
+    attrs = e.getAttribute("objectclass", options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+    attrs = e.getAttribute("cn", options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 2);
+
+    attrs = e.getAttribute("uid", options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute("modifiersname", options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+
+    options.add("lang-en-US");
+    attrs = e.getAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(cnType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+    attrs = e.getAttribute(nameType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 3);
+
+    attrs = e.getAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(mnType, options);
+    assertNull(attrs);
+
+
+    attrs = e.getAttribute("objectclass", options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute("cn", options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+    attrs = e.getAttribute("uid", options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute("modifiersname", options);
+    assertNull(attrs);
+
+
+    options.add("lang-en-GB");
+    attrs = e.getAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(cnType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(nameType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(mnType, options);
+    assertNull(attrs);
+
+
+    attrs = e.getAttribute("objectclass", options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute("cn", options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute("uid", options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute("modifiersname", options);
+    assertNull(attrs);
+
+
+    options.clear();
+    options.add("lang-en-GB");
+    attrs = e.getAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(cnType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(nameType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute(mnType, options);
+    assertNull(attrs);
+
+
+    attrs = e.getAttribute("objectclass", options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute("cn", options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute("uid", options);
+    assertNull(attrs);
+
+    attrs = e.getAttribute("modifiersname", options);
+    assertNull(attrs);
+  }
+
+
+
+  /**
+   * Tests the {@code getUserAttribute} method variants to ensure that they work
+   * properly for both attributes included directly, as well as attributes
+   * included as subtypes.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testGetUserAttribute()
+         throws Exception
+  {
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,ou=People,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "cn;lang-en-US: Test User",
+         "givenName: Test",
+         "givenName;lang-en-US: Test",
+         "sn: User",
+         "sn;lang-en-US: User",
+         "creatorsName: cn=Directory Manager",
+         "createTimestamp: 20070101000000Z",
+         "modifiersName: cn=Directory Manager",
+         "modifyTimestamp: 20070101000001Z");
+
+    assertTrue(e.conformsToSchema(null, false, false, false,
+                                  new StringBuilder()));
+
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
+
+    List<Attribute> attrs = e.getUserAttribute(ocType);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(cnType);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 2);
+
+    attrs = e.getUserAttribute(nameType);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 6);
+
+    attrs = e.getUserAttribute(uidType);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(mnType);
+    assertNull(attrs);
+
+
+    LinkedHashSet<String> options = null;
+    attrs = e.getUserAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(cnType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 2);
+
+    attrs = e.getUserAttribute(nameType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 6);
+
+    attrs = e.getUserAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(mnType, options);
+    assertNull(attrs);
+
+
+    options = new LinkedHashSet<String>();
+    attrs = e.getUserAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(cnType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 2);
+
+    attrs = e.getUserAttribute(nameType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 6);
+
+    attrs = e.getUserAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(mnType, options);
+    assertNull(attrs);
+
+
+    options.add("lang-en-US");
+    attrs = e.getUserAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(cnType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+    attrs = e.getUserAttribute(nameType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 3);
+
+    attrs = e.getUserAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(mnType, options);
+    assertNull(attrs);
+
+
+    options.add("lang-en-GB");
+    attrs = e.getUserAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(cnType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(nameType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(mnType, options);
+    assertNull(attrs);
+
+
+    options.clear();
+    options.add("lang-en-GB");
+    attrs = e.getUserAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(cnType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(nameType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getUserAttribute(mnType, options);
+    assertNull(attrs);
+  }
+
+
+
+  /**
+   * Tests the {@code getOperationalAttribute} method variants to ensure that
+   * they work properly for both attributes included directly, as well as
+   * attributes included as subtypes.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testGetOperationalAttribute()
+         throws Exception
+  {
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,ou=People,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "cn;lang-en-US: Test User",
+         "givenName: Test",
+         "givenName;lang-en-US: Test",
+         "sn: User",
+         "sn;lang-en-US: User",
+         "creatorsName: cn=Directory Manager",
+         "createTimestamp: 20070101000000Z",
+         "modifiersName: cn=Directory Manager",
+         "modifyTimestamp: 20070101000001Z");
+
+    assertTrue(e.conformsToSchema(null, false, false, false,
+                                  new StringBuilder()));
+
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
+
+    List<Attribute> attrs = e.getOperationalAttribute(ocType);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(cnType);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(nameType);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(uidType);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(mnType);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+
+    LinkedHashSet<String> options = null;
+    attrs = e.getOperationalAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(cnType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(nameType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(mnType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+
+    options = new LinkedHashSet<String>();
+    attrs = e.getOperationalAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(cnType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(nameType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(mnType, options);
+    assertNotNull(attrs);
+    assertEquals(attrs.size(), 1);
+
+
+    options.add("lang-en-US");
+    attrs = e.getOperationalAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(cnType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(nameType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(mnType, options);
+    assertNull(attrs);
+
+
+    options.add("lang-en-GB");
+    attrs = e.getOperationalAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(cnType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(nameType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(mnType, options);
+    assertNull(attrs);
+
+
+    options.clear();
+    options.add("lang-en-GB");
+    attrs = e.getOperationalAttribute(ocType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(cnType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(nameType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(uidType, options);
+    assertNull(attrs);
+
+    attrs = e.getOperationalAttribute(mnType, options);
+    assertNull(attrs);
+  }
 }
+

@@ -1469,7 +1469,8 @@ public class ServerConstants
 
 
   /**
-   * The name of the attribute type that represents the "objectclass" attribute.
+   * The name of the attribute type that represents the "objectclass" attribute,
+   * formatted in all lowercase characters.
    */
   public static final String OBJECTCLASS_ATTRIBUTE_TYPE_NAME = "objectclass";
 
