@@ -53,7 +53,7 @@
   <property name="tests.classes"
             location="${tests.build.dir}/classes"                            />
   <property name="tests.run.dir"    
-            location="${tests.build.dir}/run/${run.time}"                    />
+            location="${tests.build.dir}"                                    />
   
   <property name="lib.dir"          location="${opends.dir}/lib"             />
   <property name="ext.dir"          location="${opends.dir}/ext"             />
