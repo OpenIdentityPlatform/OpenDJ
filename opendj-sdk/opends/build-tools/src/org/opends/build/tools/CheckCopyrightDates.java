@@ -72,8 +72,7 @@ public class CheckCopyrightDates
   // A list of all the filesets to be checked.
   private LinkedList<FileSet> filesetList = new LinkedList<FileSet>();
 
-  // The path to the root of the Subversion workspace for which to retrieve the
-  // revision number.
+  // The path to the root of the Subversion workspace to check.
   private String workspace = null;
 
 
@@ -108,10 +107,8 @@ public class CheckCopyrightDates
   /**
    * Performs the appropriate processing needed for this task.  In this case,
    * it uses SVNKit to identify all modified files in the current workspace.
-   * For all source files
-   *
-   * the current revision number for the local
-   * workspace and store it in a specified property.
+   * For all source files, look for comment lines containing the word
+   * "copyright" and make sure at least one of them contains the current year.
    */
   @Override()
   public void execute()
