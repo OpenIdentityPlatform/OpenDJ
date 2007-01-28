@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 

@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2006 Sun Microsystems, Inc.
+#      Portions Copyright 2007 Sun Microsystems, Inc.
 #
 
 dn: uid=mdog,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com
