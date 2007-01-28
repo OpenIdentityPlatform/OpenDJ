@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2006 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -174,6 +174,8 @@ public class VersionMonitorProvider
                               String.valueOf(DynamicConstants.POINT_VERSION)));
     attrs.add(createAttribute("versionQualifier",
                               DynamicConstants.VERSION_QUALIFIER));
+    attrs.add(createAttribute("revisionNumber",
+                   String.valueOf(DynamicConstants.REVISION_NUMBER)));
     attrs.add(createAttribute("debugBuild",
                               String.valueOf(DynamicConstants.DEBUG_BUILD)));
     attrs.add(createAttribute("fixIDs", DynamicConstants.FIX_IDS));

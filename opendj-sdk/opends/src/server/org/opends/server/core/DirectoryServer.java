@@ -7915,6 +7915,7 @@ public class DirectoryServer
       System.out.println("Minor Version:       " + MINOR_VERSION);
       System.out.println("Point Version:       " + POINT_VERSION);
       System.out.println("Version Qualifier:   " + VERSION_QUALIFIER);
+      System.out.println("Revision Number:     " + REVISION_NUMBER);
       System.out.println("Fix IDs:             " + FIX_IDS);
       System.out.println("Debug Build:         " + DEBUG_BUILD);
       System.out.println("Build OS:            " + BUILD_OS);

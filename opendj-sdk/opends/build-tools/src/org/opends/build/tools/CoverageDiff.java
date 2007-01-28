@@ -1,3 +1,29 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
+ */
 package org.opends.build.tools;
 
 import com.vladium.emma.report.*;
@@ -10,6 +36,10 @@ import java.util.*;
 
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
+
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.wc.SVNDiffClient;
+import org.tmatesoft.svn.core.wc.SVNRevision;
 
 public class CoverageDiff extends Task {
 
@@ -78,7 +108,6 @@ public class CoverageDiff extends Task {
   private File emmaDataPath;
   private File outputPath;
   private String diffPath;
-  private File svnPath;
 
   public void setEmmaDataPath(String file)
   {
@@ -93,11 +122,6 @@ public class CoverageDiff extends Task {
   public void setDiffPath(String diffArgs)
   {
     diffPath = diffArgs;
-  }
-
-  public void setSvnPath(String file)
-  {
-    svnPath = new File(file);
   }
 
   public void setVerbose(String bol)
@@ -120,7 +144,7 @@ public class CoverageDiff extends Task {
     }
   }
 
-  private void innerExecute() throws BuildException
+  private void innerExecute() throws BuildException, SVNException
   {
     long start = System.currentTimeMillis();
     verboseOut("Starting to execute coveragediff.");
@@ -246,68 +270,21 @@ public class CoverageDiff extends Task {
     return m_view;
   }
 
-  private BufferedReader getDiffOutputReader() throws IOException {
+  private BufferedReader getDiffOutputReader()
+          throws IOException, SVNException {
+    File workspaceRoot = getProject().getBaseDir();
 
-    StringBuilder svnExecCommand = new StringBuilder();
+    SVNDiffClient svnClient = new SVNDiffClient(null, null);
 
-    verboseOut("svnPath = " + svnPath);
-    if(svnPath != null && svnPath.isAbsolute() && svnPath.isFile())
-    {
-      svnExecCommand.append(svnPath.getAbsolutePath());
-    }
-    else
-    {
-      //Just hope its in the path.  On Windows, we need to look for svn.exe instead of just svn.
-      if (System.getProperty("os.name").toLowerCase().indexOf("windows") >= 0) {
-        svnExecCommand.append("svn.exe");
-      } else {
-        svnExecCommand.append("svn");
-      }
-    }
+    File diffFile = File.createTempFile("coverage", "diff");
+    diffFile.deleteOnExit();
 
-    //First verify svn is in path
-    final Process checkChild = Runtime.getRuntime().exec(new String[]{svnExecCommand.toString(), "--version"});
+    svnClient.doDiff(workspaceRoot, SVNRevision.BASE, workspaceRoot,
+                     SVNRevision.WORKING, true, false,
+                     new FileOutputStream(diffFile));
 
-    verboseOut("Waiting for '" + svnExecCommand + " --version' to complete.");
-
-    try
-    {
-      // We have to consume the output of the process (at least on Windows).
-      BufferedReader reader =
-              new BufferedReader(new InputStreamReader(checkChild.getInputStream()));
-      while (reader.readLine() != null) {
-        // Skip over the output of the process
-      }
-
-      checkChild.waitFor();
-    }
-    catch(InterruptedException ie)
-    {
-      throw new IOException("svn --version process interrupted");
-    }
-
-    verboseOut("'" + svnExecCommand + " --version' has completed.");
-
-    if(checkChild.exitValue() != 0)
-    {
-      throw new IOException("Error returned from SVN call");
-    }
-    checkChild.destroy();
-
-    List<String> cmdArray = new ArrayList<String>();
-    // TODO: ideally, this should build up a command arg array instead of a single string
-    // to guard against svn having spaces in the path.  But that isn't too likely
-    svnExecCommand.append(" diff ");
-
-    if(diffPath != null)
-    {
-      svnExecCommand.append(diffPath);
-    }
-
-    verboseOut("About to execute " + svnExecCommand.toString());
-    final Process child = Runtime.getRuntime().exec(svnExecCommand.toString());
-    InputStream diffOutputStream = child.getInputStream();
-    return new BufferedReader(new InputStreamReader(diffOutputStream));
+    return new BufferedReader(new InputStreamReader(new FileInputStream(
+                                                             diffFile)));
   }
 
   private void processDiffOutput(BufferedReader diffOutput,
@@ -644,7 +621,7 @@ public class CoverageDiff extends Task {
     int workingCopyRange;
     int otherCopyBegin;
     int otherCopyRange;
-    
+
     Double[] modCoverage = new Double[4];
     modCoverage[COVERED_MOD_EXE_LINES] = 0.0;
     modCoverage[MOD_EXE_LINES] = 0.0;
@@ -796,7 +773,7 @@ public class CoverageDiff extends Task {
     {
       return null;
     }
-    
+
     for(Iterator packages = rootItem.getChildren(); packages.hasNext();)
     {
       IItem packageItem = (IItem)packages.next();
