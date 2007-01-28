@@ -6,6 +6,8 @@
 
 <module name="Checker">
   <module name="TreeWalker">
+    <property name="cacheFile" value="${basedir}/.checkstyle-cache/opends-doctarget-checkstyle.cache" />
+
     <!-- Ensure that all methods (including private) are documented -->
     <module name="JavadocMethod">
       <property name="scope" value="private" />
