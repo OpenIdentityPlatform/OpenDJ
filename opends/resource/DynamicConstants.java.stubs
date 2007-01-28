@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -110,6 +110,11 @@ public class DynamicConstants
    * versions.
    */
   public static final boolean DEBUG_BUILD = ${DEBUG_BUILD};
+
+  /**
+   * The Subversion revision number on which this build is based.
+   */
+  public static final long REVISION_NUMBER = ${REVISION_NUMBER};
 
   /**
    * A compact version string for this product, suitable for use in path

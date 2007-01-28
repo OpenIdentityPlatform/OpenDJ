@@ -1,0 +1,9 @@
+svnkit.level=FINE
+handlers = java.util.logging.FileHandler
+
+java.util.logging.FileHandler.pattern = %h/.svnkit/svnkit.%u.log
+java.util.logging.FileHandler.limit = 0
+java.util.logging.FileHandler.count = 1
+java.util.logging.FileHandler.append = true
+java.util.logging.FileHandler.formatter = org.tmatesoft.svn.core.internal.util.DefaultSVNDebugFormatter
+
