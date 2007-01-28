@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2006 Sun Microsystems, Inc.
+#      Portions Copyright 2007 Sun Microsystems, Inc.
 #
 
 dn: cn=Default Password Policy,cn=Password Policies,cn=config

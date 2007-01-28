@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.webstart;
@@ -654,3 +654,4 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     return getUserData().getServerLocation();
   }
 }
+

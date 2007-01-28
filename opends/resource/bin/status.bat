@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Portions Copyright 2006 Sun Microsystems, Inc.
+rem      Portions Copyright 2007 Sun Microsystems, Inc.
 
 setlocal
 
