@@ -108,8 +108,9 @@
   <property name="ant.dir" location="${ext.dir}/ant"                />
   <property name="ant.lib.dir" location="${ant.dir}/lib"            />
 
-  <!-- Properties for the checkstyle tool.                         -->
-  <property name="checkstyle.dir"  location="${ext.dir}/checkstyle" />
+  <!-- Properties for the checkstyle tool.                           -->
+  <property name="checkstyle.dir"  location="${ext.dir}/checkstyle"   />
+  <property name="checkstyle.cache.dir"  location=".checkstyle-cache" />
 
   <!-- Properties for the SVNKit tool.                         -->
   <property name="svnkit.dir"  location="${ext.dir}/svnkit" />
@@ -287,6 +288,7 @@
 
   <!-- Ensure that the source code meets basic style requirements. -->
   <target name="checkstyle" description="Perform basic source style checks">
+    <mkdir dir="${checkstyle.cache.dir}" />
 
     <taskdef resource="checkstyletask.properties"
          classpath="${checkstyle.dir}/checkstyle-all-4.1.jar" />
@@ -304,7 +306,7 @@
     </checkstyle>
 
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
-          failOnViolation="true">
+         failOnViolation="true">
       <fileset dir="${statuspanel.src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>

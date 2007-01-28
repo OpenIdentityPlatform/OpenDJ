@@ -6,6 +6,8 @@
 
 <module name="Checker">
   <module name="TreeWalker">
+    <property name="cacheFile" value="${basedir}/.checkstyle-cache/opends-functest-checkstyle.cache" />
+
     <!-- Ensure that each source file starts with the appropriate header -->
     <module name="Header">
       <property name="headerFile" value="${basedir}/ext/checkstyle/opends.sourceheader" />
