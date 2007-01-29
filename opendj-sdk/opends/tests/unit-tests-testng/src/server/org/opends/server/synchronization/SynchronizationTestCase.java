@@ -164,6 +164,45 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
 
     return broker;
   }
+  
+  /**
+   * Open a changelog session with flow control to the local Changelog server.
+   *
+   */
+  protected ChangelogBroker openChangelogSession(
+      final DN baseDn, short serverId, int window_size,
+      int port, int timeout, int maxSendQueue, int maxRcvQueue,
+      boolean emptyOldChanges)
+          throws Exception, SocketException
+  {
+    PersistentServerState state = new PersistentServerState(baseDn);
+    if (emptyOldChanges)
+      state.loadState();
+    ChangelogBroker broker = new ChangelogBroker(
+        state, baseDn, serverId, maxRcvQueue, 0, maxSendQueue, 0, window_size);
+    ArrayList<String> servers = new ArrayList<String>(1);
+    servers.add("localhost:" + port);
+    broker.start(servers);
+    if (timeout != 0)
+      broker.setSoTimeout(timeout);
+    if (emptyOldChanges)
+    {
+      /*
+       * loop receiving update until there is nothing left
+       * to make sure that message from previous tests have been consumed.
+       */
+      try
+      {
+        while (true)
+        {
+          broker.receive();
+        }
+      }
+      catch (Exception e)
+      { }
+    }
+    return broker;
+  }
 
   /**
    * suppress all the entries created by the tests in this class
