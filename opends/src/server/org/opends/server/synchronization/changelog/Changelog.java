@@ -26,12 +26,22 @@
  */
 package org.opends.server.synchronization.changelog;
 
+import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.synchronization.common.LogMessages.*;
+import static org.opends.server.util.StaticUtils.getFileForPath;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-
-import com.sleepycat.je.DatabaseException;
 
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.DirectoryThread;
@@ -48,17 +58,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.Error.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.synchronization.common.LogMessages.*;
-
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.io.File;
-import java.io.IOException;
+import com.sleepycat.je.DatabaseException;
 
 /**
  * Changelog Listener.
@@ -99,12 +99,14 @@ public class Changelog implements Runnable, ConfigurableComponent
   private ChangelogDbEnv dbEnv;
   private int rcvWindow;
   private int queueSize;
+  private String dbDirname = null;
 
   static final String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
   static final String SERVER_ID_ATTR = "ds-cfg-changelog-server-id";
   static final String CHANGELOG_PORT_ATTR = "ds-cfg-changelog-port";
   static final String WINDOW_SIZE_ATTR = "ds-cfg-window-size";
   static final String QUEUE_SIZE_ATTR = "ds-cfg-changelog-max-queue-size";
+  static final String CHANGELOG_DIR_PATH_ATTR = "ds-cfg-changelog-db-dirname";
 
   static final IntegerConfigAttribute changelogPortStub =
     new IntegerConfigAttribute(CHANGELOG_PORT_ATTR, "changelog port",
@@ -127,6 +129,11 @@ public class Changelog implements Runnable, ConfigurableComponent
   static final IntegerConfigAttribute queueSizeStub =
     new IntegerConfigAttribute(QUEUE_SIZE_ATTR, "changelog queue size",
                                false, false, false, true, 0, false, 0);
+
+  static final StringConfigAttribute dbDirnameStub =
+    new StringConfigAttribute(CHANGELOG_DIR_PATH_ATTR,
+        "changelog storage directory path", false,
+        false, true);
 
   /**
    * Check if a ConfigEntry is valid.
@@ -261,6 +268,35 @@ public class Changelog implements Runnable, ConfigurableComponent
     {
       queueSize = queueSizeAttr.activeIntValue();
       configAttributes.add(queueSizeAttr);
+    }
+
+    /*
+     * read the storage directory path attribute
+     */
+    StringConfigAttribute dbDirnameAttr =
+      (StringConfigAttribute) config.getConfigAttribute(dbDirnameStub);
+    if (dbDirnameAttr == null)
+    {
+      dbDirname = "changelogDb";
+    }
+    else
+    {
+      dbDirname = dbDirnameAttr.activeValue();
+      configAttributes.add(changelogServer);
+    }
+    // Exists or Create
+    File f = getFileForPath(dbDirname);
+    try
+    {
+      if (!f.exists())
+      {
+        f.mkdir();
+      }
+    }
+    catch (Exception e)
+    {
+      throw new ConfigException(MSGID_FILE_CHECK_CREATE_FAILED,
+          e.getMessage() + " " + getFileForPath(dbDirname));
     }
 
     initialize(changelogServerId, changelogPort);
@@ -442,10 +478,8 @@ public class Changelog implements Runnable, ConfigurableComponent
     {
       /*
        * Initialize the changelog database.
-       * TODO : the changelog db path should be configurable
        */
-      dbEnv = new ChangelogDbEnv(
-          DirectoryServer.getServerRoot() + File.separator + "changelogDb",
+      dbEnv = new ChangelogDbEnv(getFileForPath(dbDirname).getAbsolutePath(),
           this);
 
       /*
@@ -475,13 +509,13 @@ public class Changelog implements Runnable, ConfigurableComponent
     } catch (DatabaseException e)
     {
       int msgID = MSGID_COULD_NOT_INITIALIZE_DB;
-      String message = getMessage(msgID, "changelogDb");
+      String message = getMessage(msgID, dbDirname);
       logError(ErrorLogCategory.SYNCHRONIZATION, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
     } catch (ChangelogDBException e)
     {
       int msgID = MSGID_COULD_NOT_READ_DB;
-      String message = getMessage(msgID, "changelogDb");
+      String message = getMessage(msgID, dbDirname);
       message += getMessage(e.getMessageID());
       logError(ErrorLogCategory.SYNCHRONIZATION, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
