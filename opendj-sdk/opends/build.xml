@@ -133,7 +133,7 @@
 
 
   <!-- The build target that should be used before committing code. -->
-  <target name="precommit" depends="checkstyle,clean,copyrightdates,dsml,javadoc,testwithcoverage"
+  <target name="precommit" depends="checkstyle,clean,copyrightdates,eolstyle,dsml,javadoc,testwithcoverage"
        description="Perform all processing needed before committing code." />
 
 
@@ -156,7 +156,7 @@
 
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="checkstyle,clean,copyrightdates,dsml,javadoc,testallwithcoverage"
+       depends="checkstyle,clean,copyrightdates,eolstyle,dsml,javadoc,testallwithcoverage"
        description="Build using all defined targets." />
 
 
@@ -255,7 +255,7 @@
 
 
 
-  <!-- Check modified files to see any copyright updates are needed. -->
+  <!-- Check modified files to see if any copyright updates are needed. -->
   <target name="copyrightdates" depends="buildtools"
        description="Ensure updated files have the correct copyright year" >
     <taskdef name="checkcopyrightdates"
@@ -271,16 +271,43 @@
     </taskdef>
 
     <checkcopyrightdates>
-      <fileset dir="${src.dir}" includes="**/*.java" />
-      <fileset dir="${quicksetup.src.dir}" includes="**/*.java" />
-      <fileset dir="${statuspanel.src.dir}" includes="**/*.java" />
-      <fileset dir="${unittest.testng.src.dir}" includes="**/*.java" />
-      <fileset dir="${functest.testng.src.dir}" includes="**/*.java" />
+      <fileset dir="${basedir}" includes="**/*.java" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.xml" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.html" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.sh" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.bat" excludes="build/**/* " />
       <fileset dir="${basedir}" includes="**/*.ldif" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.txt" excludes="build/**/*" />
     </checkcopyrightdates>
+  </target>
+
+
+
+
+  <!-- Check added files to see if any svn:eol-style updates are needed. -->
+  <target name="eolstyle" depends="buildtools"
+       description="Ensure added files have the correct svn:eol-style" >
+    <taskdef name="checkeolstyle"
+             classname="org.opends.build.tools.CheckEOLStyle">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+        <fileset dir="${svnkit.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <checkeolstyle>
+      <fileset dir="${basedir}" includes="**/*.java" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.xml" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.html" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.sh" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.bat" excludes="build/**/* " />
+      <fileset dir="${basedir}" includes="**/*.ldif" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.txt" excludes="build/**/*" />
+    </checkeolstyle>
   </target>
 
 
