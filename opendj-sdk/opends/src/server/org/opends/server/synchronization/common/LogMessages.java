@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.synchronization.common;
 
@@ -265,6 +265,15 @@ public class LogMessages {
     CATEGORY_MASK_SYNC | SEVERITY_MASK_MILD_ERROR | 35;
 
   /**
+   * Failure when test existence or try to create directory
+   * for the changelog database.  This message takes one
+   * string argument containing details of the exception
+   * and path of the directory.
+   */
+  public static final int MSGID_FILE_CHECK_CREATE_FAILED =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_MILD_ERROR | 36;
+
+  /**
    * Register the messages from this class in the core server.
    *
    */
@@ -354,6 +363,9 @@ public class LogMessages {
         MSGID_EXCEPTION_RECEIVING_SYNCHRONIZATION_MESSAGE,
         "An Exception was caught while receiving synchronization message : %s");
     MessageHandler.registerMessage(MSGID_LOOP_REPLAYING_OPERATION,
-         "A loop was detected while replaying operation: %s");
+        "A loop was detected while replaying operation: %s");
+    MessageHandler.registerMessage(MSGID_FILE_CHECK_CREATE_FAILED,
+        "An Exception was caught while testing existence or trying " +
+        " to create the directory for the changelog database : %s");
   }
 }
