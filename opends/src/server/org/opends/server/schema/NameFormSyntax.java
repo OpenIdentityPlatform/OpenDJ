@@ -581,6 +581,7 @@ public class NameFormSyntax
           String message =
                getMessage(msgID, String.valueOf(oid),
                           String.valueOf(woidBuffer),
+                          structuralClass.getNameOrOID(),
                           String.valueOf(structuralClass.getObjectClassType()));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                        msgID);
