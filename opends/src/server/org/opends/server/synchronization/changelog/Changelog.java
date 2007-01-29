@@ -328,7 +328,7 @@ public class Changelog implements Runnable, ConfigurableComponent
       List<String> unacceptableReasons)
   {
     // TODO NYI
-    return false;
+    return true;
   }
 
   /**

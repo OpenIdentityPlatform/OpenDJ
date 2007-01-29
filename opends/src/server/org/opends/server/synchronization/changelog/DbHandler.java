@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.MonitorProvider;
@@ -206,11 +207,37 @@ public class DbHandler implements Runnable
                            throws DatabaseException, Exception
   {
     /*
-     * make sure to flush some changes in the database so that
-     * we don't create the iterator on an empty database when the
-     * dbHandler has just been started.
+     * When we create an iterator we need to make sure that we
+     * don't miss some changes because the iterator is created
+     * close to the limit of the changed that have not yet been
+     * flushed to the database.
+     * We detect this by comparing the date of the changeNumber where
+     * we want to start with the date of the first ChangeNumber
+     * of the msgQueue.
+     * If this is the case we flush the queue to the database.
      */
-    flush();
+    ChangeNumber recentChangeNumber = null;
+
+    if (changeNumber == null)
+      flush();
+
+    synchronized (msgQueue)
+    {
+      try
+      {
+        UpdateMessage msg = msgQueue.getFirst();
+        recentChangeNumber = msg.getChangeNumber();
+      }
+      catch (NoSuchElementException e)
+      {}
+    }
+
+    if ( (recentChangeNumber != null) &&
+         (recentChangeNumber.getTimeSec() - changeNumber.getTimeSec() < 2))
+    {
+      flush();
+    }
+
     return new ChangelogIterator(serverId, db, changeNumber);
   }
 
