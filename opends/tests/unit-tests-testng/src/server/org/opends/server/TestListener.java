@@ -167,6 +167,13 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
+  public void onTestStart(ITestResult tr) {
+    super.onTestStart(tr);
+    TestAccessLogger.clear();
+    TestErrorLogger.clear();
+  }
+
+
   public void onTestSuccess(ITestResult tr) {
     super.onTestSuccess(tr);
     addTestResult(tr);
@@ -194,6 +201,32 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     for (int i = 0; (parameters != null) && (i < parameters.length); i++) {
       Object parameter = parameters[i];
       failureInfo.append("parameter[" + i + "]: ").append(parameter).append(EOL);
+    }
+
+    List<String> messages = TestAccessLogger.getMessages();
+    if (! messages.isEmpty())
+    {
+      failureInfo.append(EOL);
+      failureInfo.append("Access Log Messages:");
+      failureInfo.append(EOL);
+      for (String message : messages)
+      {
+        failureInfo.append(message);
+        failureInfo.append(EOL);
+      }
+    }
+
+    messages = TestErrorLogger.getMessages();
+    if (! messages.isEmpty())
+    {
+      failureInfo.append(EOL);
+      failureInfo.append("Error Log Messages:");
+      failureInfo.append(EOL);
+      for (String message : messages)
+      {
+        failureInfo.append(message);
+        failureInfo.append(EOL);
+      }
     }
 
     failureInfo.append(EOL + EOL);
