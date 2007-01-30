@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.messages;
 
@@ -62,7 +62,7 @@ public class TaskMessages
    * own shutdown message.
    */
   public static final int MSGID_TASK_SHUTDOWN_DEFAULT_MESSAGE =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 3;
+       CATEGORY_MASK_TASK | SEVERITY_MASK_INFORMATIONAL | 3;
 
 
 
@@ -72,7 +72,62 @@ public class TaskMessages
    * shutdown message.
    */
   public static final int MSGID_TASK_SHUTDOWN_CUSTOM_MESSAGE =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 4;
+       CATEGORY_MASK_TASK | SEVERITY_MASK_INFORMATIONAL | 4;
+
+
+
+  /**
+   * The message ID for the shutdown message that will be used if no schema file
+   * names were provided.  This takes two arguments, which are the name of the
+   * attribute and the DN of the entry in which the file names should have been
+   * given.
+   */
+  public static final int MSGID_TASK_ADDSCHEMAFILE_NO_FILENAME =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 5;
+
+
+
+  /**
+   * The message ID for the shutdown message that will be used if a specified
+   * schema file does not exist in the schema directory.  This takes two
+   * arguments, which are the name of the schema file and the path to the schema
+   * directory.
+   */
+  public static final int MSGID_TASK_ADDSCHEMAFILE_NO_SUCH_FILE =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 6;
+
+
+
+  /**
+   * The message ID for the shutdown message that will be used if an error
+   * occurs while attempting to check for the existence of a schema file in the
+   * schema directory.  This takes three arguments, which are the name of the
+   * file, the path to the schema directory, and a string representation of the
+   * exception that was caught.
+   */
+  public static final int MSGID_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 7;
+
+
+
+  /**
+   * The message ID for the shutdown message that will be used if an error
+   * occurs while trying to read and load the contents of a schema file into the
+   * server schema.  This takes two arguments, which are the name of the schema
+   * file and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 8;
+
+
+
+  /**
+   * The message ID for the shutdown message that will be used if the server is
+   * unable to obtain a write lock on the server schema.  This takes a single
+   * argument, which is the DN of the schema entry.
+   */
+  public static final int MSGID_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 9;
 
 
 
@@ -94,5 +149,27 @@ public class TaskMessages
     registerMessage(MSGID_TASK_SHUTDOWN_CUSTOM_MESSAGE,
                     "The Directory Server shutdown process has been " +
                     "initiated by task %s:  %s");
+
+
+    registerMessage(MSGID_TASK_ADDSCHEMAFILE_NO_FILENAME,
+                    "Unable to add one or more files to the server schema " +
+                    "because no schema file names were provided in " +
+                    "attribute %s of task entry %s.");
+    registerMessage(MSGID_TASK_ADDSCHEMAFILE_NO_SUCH_FILE,
+                    "Unable to add one or more files to the server schema " +
+                    "because the specified schema file %s does not exist in " +
+                    "schema directory %s.");
+    registerMessage(MSGID_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE,
+                    "Unable to add one or more files to the server schema " +
+                    "because an error occurred while attempting to determine " +
+                    "whether file %s exists in schema directory %s:  %s.");
+    registerMessage(MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE,
+                    "An error occurred while attempting to load the contents " +
+                    "of schema file %s into the server schema:  %s.");
+    registerMessage(MSGID_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA,
+                    "Unable to add one or more files to the server schema " +
+                    "because the server was unable to obtain a write lock on " +
+                    "the schema entry %s after multiple attempts.");
   }
 }
+
