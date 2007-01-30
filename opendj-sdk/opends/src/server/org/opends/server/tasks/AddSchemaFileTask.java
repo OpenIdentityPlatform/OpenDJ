@@ -29,8 +29,8 @@ package org.opends.server.tasks;
 
 
 import java.io.File;
-import java.util.TreeSet;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.backends.task.Task;
@@ -226,6 +226,7 @@ public class AddSchemaFileTask
         }
       }
 
+      schema.setYoungestModificationTime(System.currentTimeMillis());
       DirectoryServer.setSchema(schema);
       return TaskState.COMPLETED_SUCCESSFULLY;
     }

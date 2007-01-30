@@ -80,6 +80,15 @@ public class AddSchemaFileTaskTestCase
   public void testAddValidSchemaFile()
          throws Exception
   {
+    // Get the last modified timestamp from the schema and then sleep for two
+    // milliseconds to make sure that any potential updates to the last
+    // modification time that it won't have any chance of happening in the same
+    // millisecond as the last update.
+    long beforeModifyTimestamp =
+              DirectoryServer.getSchema().getYoungestModificationTime();
+    Thread.sleep(2);
+
+
     SchemaTestMatchingRule matchingRule =
          new SchemaTestMatchingRule("testAddValidSchemaFileMatch",
                                     "1.3.6.1.4.1.26027.1.999.23");
@@ -144,6 +153,8 @@ public class AddSchemaFileTaskTestCase
 
     Task task = getCompletedTask(DN.decode(taskDNStr));
     assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
+                     beforeModifyTimestamp);
   }
 
 
@@ -158,6 +169,15 @@ public class AddSchemaFileTaskTestCase
   public void testAddMultipleValidSchemaFiles()
          throws Exception
   {
+    // Get the last modified timestamp from the schema and then sleep for two
+    // milliseconds to make sure that any potential updates to the last
+    // modification time that it won't have any chance of happening in the same
+    // millisecond as the last update.
+    long beforeModifyTimestamp =
+              DirectoryServer.getSchema().getYoungestModificationTime();
+    Thread.sleep(2);
+
+
     String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
 
 
@@ -267,6 +287,8 @@ public class AddSchemaFileTaskTestCase
 
     Task task = getCompletedTask(DN.decode(taskDNStr));
     assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
+                     beforeModifyTimestamp);
   }
 
 
@@ -351,6 +373,15 @@ public class AddSchemaFileTaskTestCase
   public void testAddEmptySchemaFile()
          throws Exception
   {
+    // Get the last modified timestamp from the schema and then sleep for two
+    // milliseconds to make sure that any potential updates to the last
+    // modification time that it won't have any chance of happening in the same
+    // millisecond as the last update.
+    long beforeModifyTimestamp =
+              DirectoryServer.getSchema().getYoungestModificationTime();
+    Thread.sleep(2);
+
+
     String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
 
     File emptyFile = new File(schemaDirectory, "05-empty.ldif");
@@ -380,6 +411,8 @@ public class AddSchemaFileTaskTestCase
 
     Task task = getCompletedTask(DN.decode(taskDNStr));
     assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
+                     beforeModifyTimestamp);
   }
 
 
