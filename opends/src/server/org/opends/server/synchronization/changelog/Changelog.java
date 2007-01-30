@@ -563,7 +563,14 @@ public class Changelog implements Runnable, ConfigurableComponent
     shutdown = true;
 
     // shutdown the connect thread
-    myConnectThread.interrupt();
+    try
+    {
+      myConnectThread.interrupt();
+    } catch (NullPointerException e)
+    {
+      // FIXME To be investigated the conditions
+      // where myConnectThread can be null here
+    }
 
     // shutdown the listener thread
     try
