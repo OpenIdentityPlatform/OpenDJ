@@ -51,6 +51,7 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.loggers.Access;
 import org.opends.server.loggers.Error;
 import org.opends.server.loggers.Debug;
 import org.opends.server.plugins.InvocationCounterPlugin;
@@ -278,6 +279,8 @@ public final class TestCaseUtils {
     directoryServer.initializeConfiguration(configClass, configFile);
     Error.removeAllErrorLoggers(false);
     Debug.removeAllDebugLoggers(false);
+    Access.addAccessLogger(TestAccessLogger.getInstance());
+    Error.addErrorLogger(TestErrorLogger.getInstance());
     directoryServer.startServer();
 
     assertTrue(InvocationCounterPlugin.startupCalled());
