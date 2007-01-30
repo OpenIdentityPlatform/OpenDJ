@@ -3730,5 +3730,11 @@ public class ConfigConstants
 
 
 
+  /**
+   * The name of the attribute in the add schema file task definition that
+   * specifies the name of the schema file to be added.
+   */
+  public static final String ATTR_TASK_ADDSCHEMAFILE_FILENAME =
+       NAME_PREFIX_TASK + "schema-file-name";
 }
 

@@ -623,19 +623,20 @@ public class SchemaConfigManager
 
 
   /**
-   * Initializes all the attribute type and objectclass definitions by reading
-   * the server schema files.  These files will be located in a single directory
-   * and will be processed in alphabetic order.  However, to make the order
+   * Initializes all the attribute type, object class, name form, DIT content
+   * rule, DIT structure rule, and matching rule use definitions by reading the
+   * server schema files.  These files will be located in a single directory and
+   * will be processed in lexicographic order.  However, to make the order
    * easier to understand, they may be prefixed with a two digit number (with a
    * leading zero if necessary) so that they will be read in numeric order.
    * This should only be called at Directory Server startup.
    *
-   * @throws  ConfigException  If a configuration problem causes the attribute
-   *                           type or objectclass initialization to fail.
+   * @throws  ConfigException  If a configuration problem causes the schema
+   *                           element initialization to fail.
    *
    * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the attribute types/objectclasses that is
-   *                                   not related to the server configuration.
+   *                                   the schema elements that is not related
+   *                                   to the server configuration.
    */
   public void initializeSchemaFromFiles()
          throws ConfigException, InitializationException
@@ -673,7 +674,7 @@ public class SchemaConfigManager
       {
         if (f.isFile())
         {
-          fileList.add(f.getAbsolutePath());
+          fileList.add(f.getName());
         }
 
         long modificationTime = f.lastModified();
@@ -732,685 +733,858 @@ public class SchemaConfigManager
     // from that entry and parse them to initialize the server schema.
     for (String schemaFile : fileNames)
     {
-      // Create an LDIF reader to use when reading the files.
-      LDIFReader reader;
-      try
-      {
-        reader = new LDIFReader(new LDIFImportConfig(schemaFile));
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      loadSchemaFile(schema, schemaFile, false);
+    }
+  }
 
-        int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_OPEN_FILE;
-        String message = getMessage(msgID, schemaFile, schemaDirPath,
-                                    stackTraceToSingleLineString(e));
+
+
+  /**
+   * Loads the contents of the specified schema file into the provided schema.
+   *
+   * @param  schema      The schema in which the contents of the schema file are
+   *                     to be loaded.
+   * @param  schemaFile  The name of the schema file to be loaded into the
+   *                     provided schema.
+   *
+   * @throws  ConfigException  If a configuration problem causes the schema
+   *                           element initialization to fail.
+   *
+   * @throws  InitializationException  If a problem occurs while initializing
+   *                                   the schema elements that is not related
+   *                                   to the server configuration.
+   */
+  public static void loadSchemaFile(Schema schema, String schemaFile)
+         throws ConfigException, InitializationException
+  {
+    assert debugEnter(CLASS_NAME, "loadSchemaFile", String.valueOf(schema),
+                      String.valueOf(schemaFile));
+
+    loadSchemaFile(schema, schemaFile, true);
+  }
+
+
+
+  /**
+   * Loads the contents of the specified schema file into the provided schema.
+   *
+   * @param  schema       The schema in which the contents of the schema file
+   *                      are to be loaded.
+   * @param  schemaFile   The name of the schema file to be loaded into the
+   *                      provided schema.
+   * @param  failOnError  If {@code true}, indicates that this method should
+   *                      throw an exception if certain kinds of errors occur.
+   *                      If {@code false}, indicates that this method should
+   *                      log an error message and return without an exception.
+   *                      This should only be {@code false} when called from
+   *                      {@code initializeSchemaFromFiles}.
+   *
+   * @throws  ConfigException  If a configuration problem causes the schema
+   *                           element initialization to fail.
+   *
+   * @throws  InitializationException  If a problem occurs while initializing
+   *                                   the schema elements that is not related
+   *                                   to the server configuration.
+   */
+  private static void loadSchemaFile(Schema schema, String schemaFile,
+                                     boolean failOnError)
+         throws ConfigException, InitializationException
+  {
+    assert debugEnter(CLASS_NAME, "loadSchemaFile", String.valueOf(schema),
+                      String.valueOf(schemaFile), String.valueOf(failOnError));
+
+
+    // Create an LDIF reader to use when reading the files.
+    String schemaDirPath = getSchemaDirectoryPath();
+    LDIFReader reader;
+    try
+    {
+      File f = new File(schemaDirPath, schemaFile);
+      reader = new LDIFReader(new LDIFImportConfig(f.getAbsolutePath()));
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+
+      int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_OPEN_FILE;
+      String message = getMessage(msgID, schemaFile, schemaDirPath,
+                                  stackTraceToSingleLineString(e));
+
+      if (failOnError)
+      {
+        throw new ConfigException(msgID, message);
+      }
+      else
+      {
         logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        continue;
+        return;
       }
+    }
 
 
-      // Read the LDIF entry from the file and close the file.
-      Entry entry;
-      try
+    // Read the LDIF entry from the file and close the file.
+    Entry entry;
+    try
+    {
+      entry = reader.readEntry(false);
+
+      if (entry == null)
       {
-        entry = reader.readEntry(false);
-
-        if (entry == null)
-        {
-          // The file was empty -- skip it.
-          continue;
-        }
+        // The file was empty -- skip it.
+        return;
       }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
 
-        int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY;
-        String message = getMessage(msgID, schemaFile, schemaDirPath,
-                                    stackTraceToSingleLineString(e));
+      int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY;
+      String message = getMessage(msgID, schemaFile, schemaDirPath,
+                                  stackTraceToSingleLineString(e));
+
+      if (failOnError)
+      {
+        throw new InitializationException(msgID, message, e);
+      }
+      else
+      {
         logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        continue;
+        return;
       }
+    }
 
-      try
-      {
-        reader.close();
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-      }
+    try
+    {
+      reader.close();
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+    }
 
 
-      // Get the attributeTypes attribute from the entry.
-      AttributeTypeSyntax attrTypeSyntax;
-      try
+    // Get the attributeTypes attribute from the entry.
+    AttributeTypeSyntax attrTypeSyntax;
+    try
+    {
+      attrTypeSyntax = (AttributeTypeSyntax)
+                       schema.getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
+      if (attrTypeSyntax == null)
       {
-        attrTypeSyntax = (AttributeTypeSyntax)
-                         schema.getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
-        if (attrTypeSyntax == null)
-        {
-          attrTypeSyntax = new AttributeTypeSyntax();
-          attrTypeSyntax.initializeSyntax(null);
-        }
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
         attrTypeSyntax = new AttributeTypeSyntax();
         attrTypeSyntax.initializeSyntax(null);
       }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
 
-      AttributeType attributeAttrType =
-           schema.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC);
-      if (attributeAttrType == null)
+      attrTypeSyntax = new AttributeTypeSyntax();
+      attrTypeSyntax.initializeSyntax(null);
+    }
+
+    AttributeType attributeAttrType =
+         schema.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC);
+    if (attributeAttrType == null)
+    {
+      attributeAttrType =
+           DirectoryServer.getDefaultAttributeType(ATTR_ATTRIBUTE_TYPES,
+                                                   attrTypeSyntax);
+    }
+
+    List<Attribute> attrList = entry.getAttribute(attributeAttrType);
+
+
+    // Get the objectClasses attribute from the entry.
+    ObjectClassSyntax ocSyntax;
+    try
+    {
+      ocSyntax = (ObjectClassSyntax) schema.getSyntax(SYNTAX_OBJECTCLASS_OID);
+      if (ocSyntax == null)
       {
-        attributeAttrType =
-             DirectoryServer.getDefaultAttributeType(ATTR_ATTRIBUTE_TYPES,
-                                                     attrTypeSyntax);
-      }
-
-      List<Attribute> attrList = entry.getAttribute(attributeAttrType);
-
-
-      // Get the objectClasses attribute from the entry.
-      ObjectClassSyntax ocSyntax;
-      try
-      {
-        ocSyntax = (ObjectClassSyntax) schema.getSyntax(SYNTAX_OBJECTCLASS_OID);
-        if (ocSyntax == null)
-        {
-          ocSyntax = new ObjectClassSyntax();
-          ocSyntax.initializeSyntax(null);
-        }
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
         ocSyntax = new ObjectClassSyntax();
         ocSyntax.initializeSyntax(null);
       }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
 
-      AttributeType objectclassAttrType =
-           schema.getAttributeType(ATTR_OBJECTCLASSES_LC);
-      if (objectclassAttrType == null)
+      ocSyntax = new ObjectClassSyntax();
+      ocSyntax.initializeSyntax(null);
+    }
+
+    AttributeType objectclassAttrType =
+         schema.getAttributeType(ATTR_OBJECTCLASSES_LC);
+    if (objectclassAttrType == null)
+    {
+      objectclassAttrType =
+           DirectoryServer.getDefaultAttributeType(ATTR_OBJECTCLASSES,
+                                                   ocSyntax);
+    }
+
+    List<Attribute> ocList = entry.getAttribute(objectclassAttrType);
+
+
+    // Get the name forms attribute from the entry.
+    NameFormSyntax nfSyntax;
+    try
+    {
+      nfSyntax = (NameFormSyntax) schema.getSyntax(SYNTAX_NAME_FORM_OID);
+      if (nfSyntax == null)
       {
-        objectclassAttrType =
-             DirectoryServer.getDefaultAttributeType(ATTR_OBJECTCLASSES,
-                                                     ocSyntax);
-      }
-
-      List<Attribute> ocList = entry.getAttribute(objectclassAttrType);
-
-
-      // Get the name forms attribute from the entry.
-      NameFormSyntax nfSyntax;
-      try
-      {
-        nfSyntax = (NameFormSyntax) schema.getSyntax(SYNTAX_NAME_FORM_OID);
-        if (nfSyntax == null)
-        {
-          nfSyntax = new NameFormSyntax();
-          nfSyntax.initializeSyntax(null);
-        }
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
         nfSyntax = new NameFormSyntax();
         nfSyntax.initializeSyntax(null);
       }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
 
-      AttributeType nameFormAttrType =
-           schema.getAttributeType(ATTR_NAME_FORMS_LC);
-      if (nameFormAttrType == null)
+      nfSyntax = new NameFormSyntax();
+      nfSyntax.initializeSyntax(null);
+    }
+
+    AttributeType nameFormAttrType =
+         schema.getAttributeType(ATTR_NAME_FORMS_LC);
+    if (nameFormAttrType == null)
+    {
+      nameFormAttrType =
+           DirectoryServer.getDefaultAttributeType(ATTR_NAME_FORMS, nfSyntax);
+    }
+
+    List<Attribute> nfList = entry.getAttribute(nameFormAttrType);
+
+
+    // Get the DIT content rules attribute from the entry.
+    DITContentRuleSyntax dcrSyntax;
+    try
+    {
+      dcrSyntax = (DITContentRuleSyntax)
+                  schema.getSyntax(SYNTAX_DIT_CONTENT_RULE_OID);
+      if (dcrSyntax == null)
       {
-        nameFormAttrType =
-             DirectoryServer.getDefaultAttributeType(ATTR_NAME_FORMS, nfSyntax);
-      }
-
-      List<Attribute> nfList = entry.getAttribute(nameFormAttrType);
-
-
-      // Get the DIT content rules attribute from the entry.
-      DITContentRuleSyntax dcrSyntax;
-      try
-      {
-        dcrSyntax = (DITContentRuleSyntax)
-                    schema.getSyntax(SYNTAX_DIT_CONTENT_RULE_OID);
-        if (dcrSyntax == null)
-        {
-          dcrSyntax = new DITContentRuleSyntax();
-          dcrSyntax.initializeSyntax(null);
-        }
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
         dcrSyntax = new DITContentRuleSyntax();
         dcrSyntax.initializeSyntax(null);
       }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
 
-      AttributeType dcrAttrType =
-           schema.getAttributeType(ATTR_DIT_CONTENT_RULES_LC);
-      if (dcrAttrType == null)
+      dcrSyntax = new DITContentRuleSyntax();
+      dcrSyntax.initializeSyntax(null);
+    }
+
+    AttributeType dcrAttrType =
+         schema.getAttributeType(ATTR_DIT_CONTENT_RULES_LC);
+    if (dcrAttrType == null)
+    {
+      dcrAttrType =
+           DirectoryServer.getDefaultAttributeType(ATTR_DIT_CONTENT_RULES,
+                                                   dcrSyntax);
+    }
+
+    List<Attribute> dcrList = entry.getAttribute(dcrAttrType);
+
+
+    // Get the DIT structure rules attribute from the entry.
+    DITStructureRuleSyntax dsrSyntax;
+    try
+    {
+      dsrSyntax = (DITStructureRuleSyntax)
+                  schema.getSyntax(SYNTAX_DIT_STRUCTURE_RULE_OID);
+      if (dsrSyntax == null)
       {
-        dcrAttrType =
-             DirectoryServer.getDefaultAttributeType(ATTR_DIT_CONTENT_RULES,
-                                                     dcrSyntax);
-      }
-
-      List<Attribute> dcrList = entry.getAttribute(dcrAttrType);
-
-
-      // Get the DIT structure rules attribute from the entry.
-      DITStructureRuleSyntax dsrSyntax;
-      try
-      {
-        dsrSyntax = (DITStructureRuleSyntax)
-                    schema.getSyntax(SYNTAX_DIT_STRUCTURE_RULE_OID);
-        if (dsrSyntax == null)
-        {
-          dsrSyntax = new DITStructureRuleSyntax();
-          dsrSyntax.initializeSyntax(null);
-        }
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
         dsrSyntax = new DITStructureRuleSyntax();
         dsrSyntax.initializeSyntax(null);
       }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
 
-      AttributeType dsrAttrType =
-           schema.getAttributeType(ATTR_DIT_STRUCTURE_RULES_LC);
-      if (dsrAttrType == null)
+      dsrSyntax = new DITStructureRuleSyntax();
+      dsrSyntax.initializeSyntax(null);
+    }
+
+    AttributeType dsrAttrType =
+         schema.getAttributeType(ATTR_DIT_STRUCTURE_RULES_LC);
+    if (dsrAttrType == null)
+    {
+      dsrAttrType =
+           DirectoryServer.getDefaultAttributeType(ATTR_DIT_STRUCTURE_RULES,
+                                                   dsrSyntax);
+    }
+
+    List<Attribute> dsrList = entry.getAttribute(dsrAttrType);
+
+
+    // Get the matching rule uses attribute from the entry.
+    MatchingRuleUseSyntax mruSyntax;
+    try
+    {
+      mruSyntax = (MatchingRuleUseSyntax)
+                  schema.getSyntax(SYNTAX_MATCHING_RULE_USE_OID);
+      if (mruSyntax == null)
       {
-        dsrAttrType =
-             DirectoryServer.getDefaultAttributeType(ATTR_DIT_STRUCTURE_RULES,
-                                                     dsrSyntax);
-      }
-
-      List<Attribute> dsrList = entry.getAttribute(dsrAttrType);
-
-
-      // Get the matching rule uses attribute from the entry.
-      MatchingRuleUseSyntax mruSyntax;
-      try
-      {
-        mruSyntax = (MatchingRuleUseSyntax)
-                    schema.getSyntax(SYNTAX_MATCHING_RULE_USE_OID);
-        if (mruSyntax == null)
-        {
-          mruSyntax = new MatchingRuleUseSyntax();
-          mruSyntax.initializeSyntax(null);
-        }
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
         mruSyntax = new MatchingRuleUseSyntax();
         mruSyntax.initializeSyntax(null);
       }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
 
-      AttributeType mruAttrType =
-           schema.getAttributeType(ATTR_MATCHING_RULE_USE_LC);
-      if (mruAttrType == null)
+      mruSyntax = new MatchingRuleUseSyntax();
+      mruSyntax.initializeSyntax(null);
+    }
+
+    AttributeType mruAttrType =
+         schema.getAttributeType(ATTR_MATCHING_RULE_USE_LC);
+    if (mruAttrType == null)
+    {
+      mruAttrType =
+           DirectoryServer.getDefaultAttributeType(ATTR_MATCHING_RULE_USE,
+                                                   mruSyntax);
+    }
+
+    List<Attribute> mruList = entry.getAttribute(mruAttrType);
+
+
+    // Parse the attribute type definitions if there are any.
+    if (attrList != null)
+    {
+      for (Attribute a : attrList)
       {
-        mruAttrType =
-             DirectoryServer.getDefaultAttributeType(ATTR_MATCHING_RULE_USE,
-                                                     mruSyntax);
-      }
-
-      List<Attribute> mruList = entry.getAttribute(mruAttrType);
-
-
-      // Parse the attribute type definitions if there are any.
-      if (attrList != null)
-      {
-        for (Attribute a : attrList)
+        for (AttributeValue v : a.getValues())
         {
-          for (AttributeValue v : a.getValues())
+          // Parse the attribute type.
+          AttributeType attrType;
+          try
           {
-            // Parse the attribute type.
-            AttributeType attrType;
-            try
-            {
-              attrType = attrTypeSyntax.decodeAttributeType(v.getValue(),
-                                                            schema, false);
-            }
-            catch (DirectoryException de)
-            {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
+            attrType = attrTypeSyntax.decodeAttributeType(v.getValue(),
+                                                          schema, false);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
 
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, de);
+            }
+            else
+            {
               logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
                        message, msgID);
               continue;
+            }
+          }
+          catch (Exception e)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
+            String message = getMessage(msgID, schemaFile,
+                                        v.getStringValue() + ":  " +
+                                             stackTraceToSingleLineString(e));
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, e);
+            }
+            else
+            {
+              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                       message, msgID);
+              continue;
+            }
+          }
+
+          // Register it with the schema.  We will allow duplicates, with the
+          // later definition overriding any earlier definition, but we want
+          // to trap them and log a warning.
+          try
+          {
+            schema.registerAttributeType(attrType, failOnError);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+
+            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                     message, msgID);
+
+            try
+            {
+              schema.registerAttributeType(attrType, true);
             }
             catch (Exception e)
             {
+              // This should never happen.
               assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
-              String message = getMessage(msgID, schemaFile,
-                                          v.getStringValue() + ":  " +
-                                               stackTraceToSingleLineString(e));
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-              continue;
-            }
-
-            // Register it with the schema.  We will allow duplicates, with the
-            // later definition overriding any earlier definition, but we want
-            // to trap them and log a warning.
-            try
-            {
-              schema.registerAttributeType(attrType, false);
-            }
-            catch (DirectoryException de)
-            {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-
-              try
-              {
-                schema.registerAttributeType(attrType, true);
-              }
-              catch (Exception e)
-              {
-                // This should never happen.
-                assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                      e);
-              }
             }
           }
         }
       }
+    }
 
 
-      // Parse the objectclass definitions if there are any.
-      if (ocList != null)
+    // Parse the objectclass definitions if there are any.
+    if (ocList != null)
+    {
+      for (Attribute a : ocList)
       {
-        for (Attribute a : ocList)
+        for (AttributeValue v : a.getValues())
         {
-          for (AttributeValue v : a.getValues())
+          // Parse the objectclass.
+          ObjectClass oc;
+          try
           {
-            // Parse the objectclass.
-            ObjectClass oc;
-            try
-            {
-              oc = ocSyntax.decodeObjectClass(v.getValue(), schema, false);
-            }
-            catch (DirectoryException de)
-            {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
+            oc = ocSyntax.decodeObjectClass(v.getValue(), schema, false);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
 
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, de);
+            }
+            else
+            {
               logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
                        message, msgID);
               continue;
+            }
+          }
+          catch (Exception e)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
+            String message = getMessage(msgID, schemaFile,
+                                        v.getStringValue() + ":  " +
+                                             stackTraceToSingleLineString(e));
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, e);
+            }
+            else
+            {
+              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                       message, msgID);
+              continue;
+            }
+          }
+
+          // Register it with the schema.  We will allow duplicates, with the
+          // later definition overriding any earlier definition, but we want
+          // to trap them and log a warning.
+          try
+          {
+            schema.registerObjectClass(oc, failOnError);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_OC;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                     message, msgID);
+
+            try
+            {
+              schema.registerObjectClass(oc, true);
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
-              String message = getMessage(msgID, schemaFile,
-                                          v.getStringValue() + ":  " +
-                                               stackTraceToSingleLineString(e));
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-              continue;
-            }
-
-            // Register it with the schema.  We will allow duplicates, with the
-            // later definition overriding any earlier definition, but we want
-            // to trap them and log a warning.
-            try
-            {
-              schema.registerObjectClass(oc, false);
-            }
-            catch (DirectoryException de)
-            {
+              // This should never happen.
               assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_OC;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-
-              try
-              {
-                schema.registerObjectClass(oc, true);
-              }
-              catch (Exception e)
-              {
-                // This should never happen.
-                assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                      e);
-              }
+                                    e);
             }
           }
         }
       }
+    }
 
 
-      // Parse the name form definitions if there are any.
-      if (nfList != null)
+    // Parse the name form definitions if there are any.
+    if (nfList != null)
+    {
+      for (Attribute a : nfList)
       {
-        for (Attribute a : nfList)
+        for (AttributeValue v : a.getValues())
         {
-          for (AttributeValue v : a.getValues())
+          // Parse the name form.
+          NameForm nf;
+          try
           {
-            // Parse the name form.
-            NameForm nf;
-            try
-            {
-              nf = nfSyntax.decodeNameForm(v.getValue(), schema, false);
-              nf.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-              nf.setSchemaFile(schemaFile);
-            }
-            catch (DirectoryException de)
-            {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
+            nf = nfSyntax.decodeNameForm(v.getValue(), schema, false);
+            nf.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
+            nf.setSchemaFile(schemaFile);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
 
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, de);
+            }
+            else
+            {
               logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
                        message, msgID);
               continue;
+            }
+          }
+          catch (Exception e)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
+            String message = getMessage(msgID, schemaFile,
+                                        v.getStringValue() + ":  " +
+                                             stackTraceToSingleLineString(e));
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, e);
+            }
+            else
+            {
+              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                       message, msgID);
+              continue;
+            }
+          }
+
+          // Register it with the schema.  We will allow duplicates, with the
+          // later definition overriding any earlier definition, but we want
+          // to trap them and log a warning.
+          try
+          {
+            schema.registerNameForm(nf, failOnError);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_NAME_FORM;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                     message, msgID);
+
+            try
+            {
+              schema.registerNameForm(nf, true);
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
-              String message = getMessage(msgID, schemaFile,
-                                          v.getStringValue() + ":  " +
-                                               stackTraceToSingleLineString(e));
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-              continue;
-            }
-
-            // Register it with the schema.  We will allow duplicates, with the
-            // later definition overriding any earlier definition, but we want
-            // to trap them and log a warning.
-            try
-            {
-              schema.registerNameForm(nf, false);
-            }
-            catch (DirectoryException de)
-            {
+              // This should never happen.
               assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_NAME_FORM;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-
-              try
-              {
-                schema.registerNameForm(nf, true);
-              }
-              catch (Exception e)
-              {
-                // This should never happen.
-                assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                      e);
-              }
+                                    e);
             }
           }
         }
       }
+    }
 
 
-      // Parse the DIT content rule definitions if there are any.
-      if (dcrList != null)
+    // Parse the DIT content rule definitions if there are any.
+    if (dcrList != null)
+    {
+      for (Attribute a : dcrList)
       {
-        for (Attribute a : dcrList)
+        for (AttributeValue v : a.getValues())
         {
-          for (AttributeValue v : a.getValues())
+          // Parse the DIT content rule.
+          DITContentRule dcr;
+          try
           {
-            // Parse the DIT content rule.
-            DITContentRule dcr;
-            try
-            {
-              dcr = dcrSyntax.decodeDITContentRule(v.getValue(), schema, false);
-              dcr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-              dcr.setSchemaFile(schemaFile);
-            }
-            catch (DirectoryException de)
-            {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
+            dcr = dcrSyntax.decodeDITContentRule(v.getValue(), schema, false);
+            dcr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
+            dcr.setSchemaFile(schemaFile);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
 
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, de);
+            }
+            else
+            {
               logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
                        message, msgID);
               continue;
+            }
+          }
+          catch (Exception e)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
+            String message = getMessage(msgID, schemaFile,
+                                        v.getStringValue() + ":  " +
+                                             stackTraceToSingleLineString(e));
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, e);
+            }
+            else
+            {
+              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                       message, msgID);
+              continue;
+            }
+          }
+
+          // Register it with the schema.  We will allow duplicates, with the
+          // later definition overriding any earlier definition, but we want
+          // to trap them and log a warning.
+          try
+          {
+            schema.registerDITContentRule(dcr, failOnError);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_DCR;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                     message, msgID);
+
+            try
+            {
+              schema.registerDITContentRule(dcr, true);
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
-              String message = getMessage(msgID, schemaFile,
-                                          v.getStringValue() + ":  " +
-                                               stackTraceToSingleLineString(e));
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-              continue;
-            }
-
-            // Register it with the schema.  We will allow duplicates, with the
-            // later definition overriding any earlier definition, but we want
-            // to trap them and log a warning.
-            try
-            {
-              schema.registerDITContentRule(dcr, false);
-            }
-            catch (DirectoryException de)
-            {
+              // This should never happen.
               assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_DCR;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-
-              try
-              {
-                schema.registerDITContentRule(dcr, true);
-              }
-              catch (Exception e)
-              {
-                // This should never happen.
-                assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                      e);
-              }
+                                    e);
             }
           }
         }
       }
+    }
 
 
-      // Parse the DIT structure rule definitions if there are any.
-      if (dsrList != null)
+    // Parse the DIT structure rule definitions if there are any.
+    if (dsrList != null)
+    {
+      for (Attribute a : dsrList)
       {
-        for (Attribute a : dsrList)
+        for (AttributeValue v : a.getValues())
         {
-          for (AttributeValue v : a.getValues())
+          // Parse the DIT content rule.
+          DITStructureRule dsr;
+          try
           {
-            // Parse the DIT content rule.
-            DITStructureRule dsr;
-            try
-            {
-              dsr = dsrSyntax.decodeDITStructureRule(v.getValue(), schema,
-                                                     false);
-              dsr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-              dsr.setSchemaFile(schemaFile);
-            }
-            catch (DirectoryException de)
-            {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
+            dsr = dsrSyntax.decodeDITStructureRule(v.getValue(), schema,
+                                                   false);
+            dsr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
+            dsr.setSchemaFile(schemaFile);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
 
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, de);
+            }
+            else
+            {
               logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
                        message, msgID);
               continue;
+            }
+          }
+          catch (Exception e)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
+            String message = getMessage(msgID, schemaFile,
+                                        v.getStringValue() + ":  " +
+                                             stackTraceToSingleLineString(e));
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, e);
+            }
+            else
+            {
+              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                       message, msgID);
+              continue;
+            }
+          }
+
+          // Register it with the schema.  We will allow duplicates, with the
+          // later definition overriding any earlier definition, but we want
+          // to trap them and log a warning.
+          try
+          {
+            schema.registerDITStructureRule(dsr, failOnError);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_DSR;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                     message, msgID);
+
+            try
+            {
+              schema.registerDITStructureRule(dsr, true);
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
-              String message = getMessage(msgID, schemaFile,
-                                          v.getStringValue() + ":  " +
-                                               stackTraceToSingleLineString(e));
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-              continue;
-            }
-
-            // Register it with the schema.  We will allow duplicates, with the
-            // later definition overriding any earlier definition, but we want
-            // to trap them and log a warning.
-            try
-            {
-              schema.registerDITStructureRule(dsr, false);
-            }
-            catch (DirectoryException de)
-            {
+              // This should never happen.
               assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_DSR;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-
-              try
-              {
-                schema.registerDITStructureRule(dsr, true);
-              }
-              catch (Exception e)
-              {
-                // This should never happen.
-                assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                      e);
-              }
+                                    e);
             }
           }
         }
       }
+    }
 
 
-      // Parse the matching rule use definitions if there are any.
-      if (mruList != null)
+    // Parse the matching rule use definitions if there are any.
+    if (mruList != null)
+    {
+      for (Attribute a : mruList)
       {
-        for (Attribute a : mruList)
+        for (AttributeValue v : a.getValues())
         {
-          for (AttributeValue v : a.getValues())
+          // Parse the matching rule use definition.
+          MatchingRuleUse mru;
+          try
           {
-            // Parse the matching rule use definition.
-            MatchingRuleUse mru;
-            try
-            {
-              mru = mruSyntax.decodeMatchingRuleUse(v.getValue(), schema,
-                                                    false);
-              mru.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-              mru.setSchemaFile(schemaFile);
-            }
-            catch (DirectoryException de)
-            {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
+            mru = mruSyntax.decodeMatchingRuleUse(v.getValue(), schema,
+                                                  false);
+            mru.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
+            mru.setSchemaFile(schemaFile);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
 
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, de);
+            }
+            else
+            {
               logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
                        message, msgID);
               continue;
+            }
+          }
+          catch (Exception e)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
+            String message = getMessage(msgID, schemaFile,
+                                        v.getStringValue() + ":  " +
+                                             stackTraceToSingleLineString(e));
+
+            if (failOnError)
+            {
+              throw new ConfigException(msgID, message, e);
+            }
+            else
+            {
+              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                       message, msgID);
+              continue;
+            }
+          }
+
+          // Register it with the schema.  We will allow duplicates, with the
+          // later definition overriding any earlier definition, but we want
+          // to trap them and log a warning.
+          try
+          {
+            schema.registerMatchingRuleUse(mru, failOnError);
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
+                                  de);
+
+            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_MRU;
+            String message = getMessage(msgID, schemaFile,
+                                        de.getErrorMessage());
+            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                     message, msgID);
+
+            try
+            {
+              schema.registerMatchingRuleUse(mru, true);
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
-              String message = getMessage(msgID, schemaFile,
-                                          v.getStringValue() + ":  " +
-                                               stackTraceToSingleLineString(e));
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-              continue;
-            }
-
-            // Register it with the schema.  We will allow duplicates, with the
-            // later definition overriding any earlier definition, but we want
-            // to trap them and log a warning.
-            try
-            {
-              schema.registerMatchingRuleUse(mru, false);
-            }
-            catch (DirectoryException de)
-            {
+              // This should never happen.
               assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    de);
-
-              int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_MRU;
-              String message = getMessage(msgID, schemaFile,
-                                          de.getErrorMessage());
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-
-              try
-              {
-                schema.registerMatchingRuleUse(mru, true);
-              }
-              catch (Exception e)
-              {
-                // This should never happen.
-                assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                      e);
-              }
+                                    e);
             }
           }
         }

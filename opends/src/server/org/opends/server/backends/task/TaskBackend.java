@@ -1693,5 +1693,42 @@ public class TaskBackend
 
     return scheduledTaskParentDN;
   }
+
+
+
+  /**
+   * Retrieves the scheduled task for the entry with the provided DN.
+   *
+   * @param  taskEntryDN  The DN of the entry for the task to retrieve.
+   *
+   * @return  The requested task, or {@code null} if there is no task with the
+   *          specified entry DN.
+   */
+  public Task getScheduledTask(DN taskEntryDN)
+  {
+    assert debugEnter(CLASS_NAME, "getScheduledTask",
+                      String.valueOf(taskEntryDN));
+
+    return taskScheduler.getScheduledTask(taskEntryDN);
+  }
+
+
+
+  /**
+   * Retrieves the recurring task for the entry with the provided DN.
+   *
+   * @param  taskEntryDN  The DN of the entry for the recurring task to
+   *                      retrieve.
+   *
+   * @return  The requested recurring task, or {@code null} if there is no task
+   *          with the specified entry DN.
+   */
+  public RecurringTask getRecurringTask(DN taskEntryDN)
+  {
+    assert debugEnter(CLASS_NAME, "getScheduledTask",
+                      String.valueOf(taskEntryDN));
+
+    return taskScheduler.getRecurringTask(taskEntryDN);
+  }
 }
 

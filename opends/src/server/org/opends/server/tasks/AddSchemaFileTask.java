@@ -1,0 +1,238 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
+ */
+package org.opends.server.tasks;
+
+
+
+import java.io.File;
+import java.util.TreeSet;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+
+import org.opends.server.backends.task.Task;
+import org.opends.server.backends.task.TaskState;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.Schema;
+
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.TaskMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
+
+
+/**
+ * This class provides an implementation of a Directory Server task that can be
+ * used to add the contents of a new schema file into the server schema.
+ */
+public class AddSchemaFileTask
+       extends Task
+{
+  /**
+   * The fully-qualified name of this class for debugging purposes.
+   */
+  private static final String CLASS_NAME =
+       "org.opends.server.tasks.AddSchemaFileTask";
+
+
+
+  // The list of files to be added to the server schema.
+  TreeSet<String> filesToAdd;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void initializeTask()
+         throws DirectoryException
+  {
+    assert debugEnter(CLASS_NAME, "initializeTask");
+
+    // Get the attribute that specifies which schema file(s) to add.
+    Entry taskEntry = getTaskEntry();
+    AttributeType attrType = DirectoryServer.getAttributeType(
+                                  ATTR_TASK_ADDSCHEMAFILE_FILENAME, true);
+    List<Attribute> attrList = taskEntry.getAttribute(attrType);
+    if ((attrList == null) || attrList.isEmpty())
+    {
+      int    msgID   = MSGID_TASK_ADDSCHEMAFILE_NO_FILENAME;
+      String message = getMessage(msgID, ATTR_TASK_ADDSCHEMAFILE_FILENAME,
+                                  String.valueOf(taskEntry.getDN()));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   msgID);
+    }
+
+
+    // Get the name(s) of the schema files to add and make sure they exist in
+    // the schema directory.
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    filesToAdd = new TreeSet<String>();
+    for (Attribute a : attrList)
+    {
+      for (AttributeValue v  : a.getValues())
+      {
+        String filename = v.getStringValue();
+        filesToAdd.add(filename);
+
+        try
+        {
+          File schemaFile = new File(schemaDirectory, filename);
+          if ((! schemaFile.exists()) ||
+              (! schemaFile.getParent().equals(schemaDirectory)))
+          {
+            int    msgID   = MSGID_TASK_ADDSCHEMAFILE_NO_SUCH_FILE;
+            String message = getMessage(msgID, filename, schemaDirectory);
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                         message, msgID);
+          }
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE;
+          String message = getMessage(msgID, filename, schemaDirectory,
+                                      stackTraceToSingleLineString(e));
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                       message, msgID, e);
+        }
+      }
+    }
+
+
+    // Create a new dummy schema and make sure that we can add the contents of
+    // all the schema files into it.  Even though this duplicates work we'll
+    // have to do later, it will be good to do it now as well so we can reject
+    // the entry immediately which will fail the attempt by the client to add it
+    // to the server, rather than having to check its status after the fact.
+    Schema schema = DirectoryServer.getSchema().duplicate();
+    for (String schemaFile : filesToAdd)
+    {
+      try
+      {
+        SchemaConfigManager.loadSchemaFile(schema, schemaFile);
+      }
+      catch (ConfigException ce)
+      {
+        int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
+        String message = getMessage(msgID, String.valueOf(schemaFile),
+                                    ce.getMessage());
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, msgID, ce);
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
+        String message = getMessage(msgID, String.valueOf(schemaFile),
+                                    ie.getMessage());
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, msgID, ie);
+      }
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  protected TaskState runTask()
+  {
+    assert debugEnter(CLASS_NAME, "runTask");
+
+
+    // Obtain a write lock on the server schema so that we can be sure nothing
+    // else tries to write to it at the same time.
+    DN schemaDN = DirectoryServer.getSchemaDN();
+    Lock schemaLock = LockManager.lockWrite(schemaDN);
+    for (int i=0; ((schemaLock == null) && (i < 3)); i++)
+    {
+      schemaLock = LockManager.lockWrite(schemaDN);
+    }
+
+    if (schemaLock == null)
+    {
+      int    msgID   = MSGID_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA;
+      String message = getMessage(msgID, String.valueOf(schemaDN));
+      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
+               msgID);
+      return TaskState.STOPPED_BY_ERROR;
+    }
+
+    try
+    {
+      Schema schema = DirectoryServer.getSchema().duplicate();
+      for (String schemaFile : filesToAdd)
+      {
+        try
+        {
+          SchemaConfigManager.loadSchemaFile(schema, schemaFile);
+        }
+        catch (ConfigException ce)
+        {
+          int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
+          String message = getMessage(msgID, String.valueOf(schemaFile),
+                                      ce.getMessage());
+          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+          return TaskState.STOPPED_BY_ERROR;
+        }
+        catch (InitializationException ie)
+        {
+          int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
+          String message = getMessage(msgID, String.valueOf(schemaFile),
+                                      ie.getMessage());
+          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+          return TaskState.STOPPED_BY_ERROR;
+        }
+      }
+
+      DirectoryServer.setSchema(schema);
+      return TaskState.COMPLETED_SUCCESSFULLY;
+    }
+    finally
+    {
+      LockManager.unlock(schemaDN, schemaLock);
+    }
+  }
+}
+
