@@ -218,6 +218,9 @@ public class SchemaBackend
   // The set of supported features for this backend.
   private HashSet<String> supportedFeatures;
 
+  // The time that the schema was last modified.
+  private long modifyTime;
+
 
 
   /**
@@ -767,6 +770,16 @@ public class SchemaBackend
     attrList.add(new Attribute(createTimestampType, OP_ATTR_CREATE_TIMESTAMP,
                                valueSet));
     operationalAttrs.put(createTimestampType, attrList);
+
+    if (DirectoryServer.getSchema().getYoungestModificationTime() != modifyTime)
+    {
+      synchronized (this)
+      {
+        modifyTime = DirectoryServer.getSchema().getYoungestModificationTime();
+        modifyTimestamp =
+             GeneralizedTimeSyntax.createGeneralizedTimeValue(modifyTime);
+      }
+    }
 
     valueSet = new LinkedHashSet<AttributeValue>(1);
     valueSet.add(modifiersName);
