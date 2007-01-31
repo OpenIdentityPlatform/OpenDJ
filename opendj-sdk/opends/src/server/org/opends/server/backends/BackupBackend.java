@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -351,6 +351,14 @@ public class BackupBackend
     {
       try
       {
+        // Check to see if the descriptor file exists.  If not, then skip this
+        // backup directory.
+        File descriptorFile = new File(f, BACKUP_DIRECTORY_DESCRIPTOR_FILE);
+        if (! descriptorFile.exists())
+        {
+          continue;
+        }
+
         DN backupDirDN = makeChildDN(backupBaseDN, backupPathType,
                                      f.getAbsolutePath());
         getBackupDirectoryEntry(backupDirDN);
@@ -920,6 +928,15 @@ public class BackupBackend
              DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
         for (File f : backupDirectories)
         {
+          // Check to see if the descriptor file exists.  If not, then skip this
+          // backup directory.
+          File descriptorFile = new File(f, BACKUP_DIRECTORY_DESCRIPTOR_FILE);
+          if (! descriptorFile.exists())
+          {
+            continue;
+          }
+
+
           DN backupDirDN = makeChildDN(backupBaseDN, backupPathType,
                                        f.getAbsolutePath());
 
