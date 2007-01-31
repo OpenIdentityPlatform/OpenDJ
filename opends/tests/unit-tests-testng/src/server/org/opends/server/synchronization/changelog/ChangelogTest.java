@@ -464,7 +464,7 @@ public class ChangelogTest extends SynchronizationTestCase
    * This test is sconfigured for a relatively low stress
    * but can be changed using TOTAL_MSG and THREADS consts.
    */
-  @Test(enabled=false, groups="slow")
+  @Test(enabled=true, groups="slow")
   public void multipleWriterMultipleReader() throws Exception
   {
     ChangelogBroker server = null;
