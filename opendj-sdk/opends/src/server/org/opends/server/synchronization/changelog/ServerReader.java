@@ -102,12 +102,13 @@ public class ServerReader extends DirectoryThread
         if (msg instanceof AckMessage)
         {
           AckMessage ack = (AckMessage) msg;
+          handler.checkWindow();
           changelogCache.ack(ack, serverId);
         }
         else if (msg instanceof UpdateMessage)
         {
           UpdateMessage update = (UpdateMessage) msg;
-          handler.checkWindow();
+          handler.decAndCheckWindow();
           changelogCache.put(update, handler);
         }
         else if (msg instanceof WindowMessage)
