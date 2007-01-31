@@ -30,10 +30,29 @@
   <defaultcall function="pwd_SSHA384"/>
 
   <function name="pwd_SSHA384">
-
+      <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             SSHA384 Tests
+            #@TestSuitePurpose          Test the SSHA384 storage scheme.
+            #@TestSuiteGroup            SSHA384 Storage Scheme Tests
+            #@TestScript                security_pwd_SSHA384.xml
+      -->
       <sequence>
 
         <!--- Test case: Admin Change To SSHA384 Storage Scheme -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SSHA384 Tests
+            #@TestName                  SSHA384 Preamble
+            #@TestIssue                 314
+            #@TestPurpose               Change password storage scheme to SSHA384.
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
+                                        with the filename to the appropriate file.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+        -->
         <testcase name="'Security: Pwd Storage SSHA384: Preamble'">
           <sequence>
             <message>
@@ -56,6 +75,23 @@
         </testcase>
 
         <!--- Test Case : User Change Password SSHA384 Scheme-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SSHA384 Tests
+            #@TestName                  SSHA384 Test 1
+            #@TestIssue                 314
+            #@TestPurpose               Test SSHA384 password storage scheme.
+            #@TestPreamble              none
+            #@TestStep                  Admin changes a user's password to convert 
+                                        so it is stored as SSHA384 scheme. 
+            #@TestStep                  The user binds with the new password.
+            #@TestStep                  Admin retrieves the user's password and 
+                                        checks for the required {SSHA384} prefix.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for the ldap
+                                        operations and the password has the {SSHA384} prefix.
+        -->
         <testcase name="'Security: Pwd Storage SSHA384: Pwd Change'">
           <sequence>
             <message>
@@ -119,6 +155,19 @@
         </testcase>
 
         <!--- Test case: Admin Reset To SSHA Storage Scheme -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SSHA384 Tests
+            #@TestName                  SSHA384 Postamble
+            #@TestIssue                 314
+            #@TestPurpose               Reset password storage scheme to the default, SSHA.
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
+                                        with the filename to the appropriate file.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+         -->
         <testcase name="'Security: Pwd Storage SSHA384: Postamble'">
           <sequence>
             <message>

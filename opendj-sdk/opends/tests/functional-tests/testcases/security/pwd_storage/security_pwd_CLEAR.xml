@@ -30,10 +30,29 @@
   <defaultcall function="pwd_CLEAR"/>
 
   <function name="pwd_CLEAR">
-
+      <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             CLEAR Tests
+            #@TestSuitePurpose          Test the Clear storage scheme.
+            #@TestSuiteGroup            CLEAR Storage Scheme Tests
+            #@TestScript                security_pwd_CLEAR.xml
+      -->
       <sequence>
 
         <!--- Test case: Admin Change To CLEAR Storage Scheme -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                CLEAR Tests
+            #@TestName                  CLEAR Preamble
+            #@TestIssue                 309
+            #@TestPurpose               Change password storage scheme to CLEAR.
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
+                                        with the filename to the appropriate file.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+        -->
         <testcase name="'Security: Pwd Storage CLEAR: Preamble'">
           <sequence>
             <message>
@@ -56,6 +75,23 @@
         </testcase>
 
         <!--- Test Case : User Change Password CLEAR Scheme-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                CLEAR Tests
+            #@TestName                  CLEAR Test 1
+            #@TestIssue                 309
+            #@TestPurpose               Test CLEAR password storage scheme.
+            #@TestPreamble              none
+            #@TestStep                  Admin changes a user's password to convert 
+                                        it is stored as CLEAR scheme. 
+            #@TestStep                  The user binds with the new password.
+            #@TestStep                  Admin retrieves the user's password and 
+                                        checks for the required {CLEAR} prefix.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for the ldap
+                                        operations and the password has the {CLEAR} prefix.
+        -->
         <testcase name="'Security: Pwd Storage CLEAR: Pwd Change'">
           <sequence>
             <message>
@@ -119,6 +155,20 @@
         </testcase>
 
         <!--- Test Case : Check Password-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                CLEAR Tests
+            #@TestName                  CLEAR Test 2
+            #@TestIssue                 309
+            #@TestPurpose               Test the actual CLEAR password for the user.
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieves the user's password and 
+                                        checks that it is the expected string.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for the ldap
+                                        operations and the password is the expected string.
+        -->
         <testcase name="'Security: Pwd Storage CLEAR: Check Pwd'">
           <sequence>
             <call function="'SearchObject'">
@@ -144,6 +194,19 @@
         </testcase>
 
         <!--- Test case: Admin Reset To SSHA Storage Scheme -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                CLEAR Tests
+            #@TestName                  CLEAR Postamble
+            #@TestIssue                 309
+            #@TestPurpose               Reset password storage scheme to the default, SSHA.
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
+                                        with the filename to the appropriate file.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+         -->
         <testcase name="'Security: Pwd Storage CLEAR: Postamble'">
           <sequence>
             <message>

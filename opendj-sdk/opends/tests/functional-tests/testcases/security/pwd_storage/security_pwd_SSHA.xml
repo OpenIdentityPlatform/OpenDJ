@@ -30,10 +30,30 @@
   <defaultcall function="pwd_SSHA"/>
 
   <function name="pwd_SSHA">
-
+      <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             SSHA Tests
+            #@TestSuitePurpose          Test the SSHA storage scheme.
+            #@TestSuiteGroup            SSHA Storage Scheme Tests
+            #@TestScript                security_pwd_SSHA.xml
+      -->
       <sequence>
 
         <!--- Admin Check Existence of ds-cfg-default-password-storage-scheme Attr -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SSHA Tests
+            #@TestName                  SSHA Preamble
+            #@TestIssue                 313
+            #@TestPurpose               Check for the default storage scheme. SSHA.
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapcompare 
+                                        with the attribute, ds-cfg-default-password-storage-scheme, 
+                                        and value, SSHA.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+        -->
         <testcase name="'Security: Pwd Storage SSHA: Preamble'">
           <sequence>
             <message>
@@ -57,6 +77,20 @@
         </testcase>
 
         <!--- Test Case : Default SSHA Scheme-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SSHA Tests
+            #@TestName                  SSHA Default Test
+            #@TestIssue                 313
+            #@TestPurpose               Test the default, SSHA, password storage scheme.
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieves a user's password and 
+                                        checks for the required {SSHA} prefix.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for the ldap
+                                        operations and the password has the {SSHA} prefix.
+        -->
         <testcase name="'Security: Pwd Storage SSHA: Default SSHA Scheme'">
           <sequence>
             <message>
@@ -85,6 +119,23 @@
         </testcase>
 
         <!--- Test Case : User Change Password SSHA Scheme-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SSHA Tests
+            #@TestName                  SSHA Test 1
+            #@TestIssue                 313
+            #@TestPurpose               Test SSHA password storage scheme.
+            #@TestPreamble              none
+            #@TestStep                  Admin changes a user's password to convert 
+                                        so it is stored as SSHA scheme. 
+            #@TestStep                  The user binds with the new password.
+            #@TestStep                  Admin retrieves the user's password and 
+                                        checks for the required {SSHA} prefix.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for the ldap
+                                        operations and the password has the {SSHA} prefix.
+        -->
         <testcase name="'Security: Pwd Storage SSHA: Pwd Change'">
           <sequence>
             <message>
@@ -148,6 +199,18 @@
         </testcase>
 
         <!--- Test Case : User Change Password SSHA Scheme-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SSHA Tests
+            #@TestName                  SSHA Unsupported Scheme Test
+            #@TestIssue                 313
+            #@TestPurpose               Test an unsupported storage scheme.
+            #@TestPreamble              none
+            #@TestStep                  Admin changes to an unsupported storage scheme.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 53.
+        -->
         <testcase name="'Security: Pwd Storage SSHA: Unsupported Scheme'">
           <sequence>
             <message>

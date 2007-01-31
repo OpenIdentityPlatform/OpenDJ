@@ -30,9 +30,36 @@
   <defaultcall function="setup_pkcs12"/>
 
   <function name="setup_pkcs12">
+      <!---
+            Place group-specific test information here.
+            #@TestGroupName             Security
+            #@TestGroupPurpose          To test the security functionality.
+            #@TestSubgroupName          PKCS12 Keystore
+            
+            Place suite-specific test information here.
+            #@TestSuiteName             Setup Tests
+            #@TestSuitePurpose          Configure OpenDS to use PKCS12 keystore and a secure port.
+            #@TestSuiteGroup            Security PKCS12 Setup Tests
+            #@TestScript                security_setup_pkcs12.xml
+     -->
 
       <sequence>
 
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Setup Tests
+            #@TestName                  PKCS12 Startup Test 
+            #@TestIssue                 414
+            #@TestPurpose               Setup OpenDS for PKCS12 keystore.
+            #@TestPreamble              none
+            #@TestStep                  Generate server certificate.
+            #@TestStep                  Self-sign the server certificate.
+            #@TestStep                  Configure PKCS12 keystore.
+            #@TestStep                  Test search with secure port.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all operations
+        -->
         <!--- Test Case : PKCS12 Setup -->
         <!--- Generate Server Cert -->
         <testcase name="'Security: PKCS12: Preamble Setup'">
