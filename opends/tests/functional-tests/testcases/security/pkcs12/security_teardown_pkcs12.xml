@@ -31,11 +31,33 @@
 
   <function name="teardown_pkcs12">
 
+        <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             Teardown Tests
+            #@TestSuitePurpose          Unconfigure PKCS12 keystore and the secure port.
+            #@TestSuiteGroup            Security PKCS12 Teardown Tests
+            #@TestScript                security_teardown_pkcs12.xml
+       -->
       <sequence>
 
         <!--- Test Case : PKCS12 Teardown -->
         <!--- Delete Branch through SSL port -->
         <testcase name="'Security: PKCS12: Postamble Reset'">
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Teardown Tests
+            #@TestName                  PKCS12 Teardown Test 
+            #@TestIssue                 414
+            #@TestPurpose               Unconfigure PKCS12 keystore.
+            #@TestPreamble              none
+            #@TestStep                  Delete entries that were used for the JKS tests.
+            #@TestStep                  Unconfigure JKS keystore.
+            #@TestStep                  Remove JKS keystore.
+            #@TestStep                  Test search with unsecure port.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all operations
+         -->
           <sequence>
             <message>
                'Security: PKCS12: Postamble Step 1. Deleting Branch Through SSL Port'

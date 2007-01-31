@@ -30,34 +30,31 @@
   <defaultcall function="bob_jks"/>
 
   <function name="bob_jks">
-
       <!---
             Place suite-specific test information here.
-            #@TestSuiteName             Security JKS Bob Tests
-            #@TestSuitePurpose          Perform Bob tests through a secure port using jks keystore
-            #@TestSuiteID               Security JKS Bob Tests
+            #@TestSuiteName             JKS Tests
+            #@TestSuitePurpose          Perform ldap operations through a secure port using jks keystore
             #@TestSuiteGroup            Security JKS Bob Tests
-            #@TestGroup                 Security JKS Bob Tests
             #@TestScript                security_bob_jks.xml
-            #@TestHTMLLink
       -->
       <sequence>
 
        <!--- Test Case : Add Entries through SSL port -->
        <!---
             Place test-specific test information here.
-            The tag, TestMarker, be the same as the marker, TestSuiteName.
-            #@TestMarker                Security JKS Bob Tests
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 1
-            #@TestID                    JKSBobTest1
+            #@TestIssue                 413
             #@TestPurpose               Add entries through a secure port.
-            #@TestPreamble
-            #@TestSteps                 Client calls ldapmodify 
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
                                         with the filename to the appropriate file
-                                        to OpenDS through a secure port.
-            #@TestPostamble
+                                        to OpenDS through a secure port. 
+            #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
+
         <testcase name="'Security: JKS: Add Entries'">
           <sequence>
             <message>
@@ -84,15 +81,15 @@
        <!---
             Place test-specific test information here.
             The tag, TestMarker, be the same as the marker, TestSuiteName.
-            #@TestMarker                Security JKS Bob Tests
+            #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 2
-            #@TestID                    JKSBobTest2
+            #@TestIssue                 413
             #@TestPurpose               Add an RDN to an existing entry through a secure port.
-            #@TestPreamble
-            #@TestSteps                 Client calls ldapmodify 
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
                                         with the filename to the appropriate file
                                         to OpenDS through a secure port.
-            #@TestPostamble
+            #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
         <testcase name="'Security: JKS: Modify Entry'">
@@ -121,15 +118,15 @@
        <!---
             Place test-specific test information here.
             The tag, TestMarker, be the same as the marker, TestSuiteName.
-            #@TestMarker                Security JKS Bob Tests
+            #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 3
-            #@TestID                    JKSBobTest3
+            #@TestIssue                 413
             #@TestPurpose               Add a jpeg photo to an existing entry through a secure port.
-            #@TestPreamble
-            #@TestSteps                 Client calls ldapmodify 
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
                                         with the filename to the appropriate file
-                                        to OpenDS through a secure port.
-            #@TestPostamble
+                                        to OpenDS through a secure port. 
+            #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
         <testcase name="'Security: JKS: Add Attr to Entry'">
@@ -158,15 +155,15 @@
        <!---
             Place test-specific test information here.
             The tag, TestMarker, be the same as the marker, TestSuiteName.
-            #@TestMarker                Security JKS Bob Tests
+            #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 4
-            #@TestID                    JKSBobTest4
+            #@TestIssue                 413
             #@TestPurpose               Replace a jpeg photo in an existing entry through a secure port.
-            #@TestPreamble
-            #@TestSteps                 Client calls ldapmodify 
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
                                         with the filename to the appropriate file
-                                        to OpenDS through a secure port.
-            #@TestPostamble
+                                        to OpenDS through a secure port. 
+            #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
         <testcase name="'Security: JKS: Modify Attr in Entry'">
@@ -195,15 +192,15 @@
        <!---
             Place test-specific test information here.
             The tag, TestMarker, be the same as the marker, TestSuiteName.
-            #@TestMarker                Security JKS Bob Tests
+            #@TestMarker                JKS Tests
             #@TestName                  JKS Bob Test 5
-            #@TestID                    JKSBobTest5
+            #@TestIssue                 413
             #@TestPurpose               Delete an existing entry through a secure port.
-            #@TestPreamble
-            #@TestSteps                 Client calls ldapmodify 
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
                                         with the filename to the appropriate file
                                         to OpenDS through a secure port.
-            #@TestPostamble
+            #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
         <testcase name="'Security: JKS: Delete Entry'">

@@ -30,10 +30,36 @@
   <defaultcall function="setup_jks"/>
 
   <function name="setup_jks">
-
+      <!---
+            Place group-specific test information here.
+            #@TestGroupName             Security
+            #@TestGroupPurpose          To test the security functionality.
+            #@TestSubgroupName          JKS Keystore
+            
+            Place suite-specific test information here.
+            #@TestSuiteName             Setup Tests
+            #@TestSuitePurpose          Configure OpenDS to use JKS keystore and a secure port.
+            #@TestSuiteGroup            Security JKS Setup Tests
+            #@TestScript                security_setup_jks.xml
+      -->
       <sequence>
 
-        <!--- Test Case : JKS Setup -->
+       <!--- Test Case : JKS Setup -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Setup Tests
+            #@TestName                  JKS Startup Test 
+            #@TestIssue                 413
+            #@TestPurpose               Setup OpenDS for JKS keystore.
+            #@TestPreamble              none
+            #@TestStep                  Generate server certificate.
+            #@TestStep                  Self-sign the server certificate.
+            #@TestStep                  Configure JKS keystore.
+            #@TestStep                  Test search with secure port.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all operations
+        -->
         <!--- Generate Server Cert -->
         <testcase name="'Security: JKS: Preamble Setup'">
           <sequence>

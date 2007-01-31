@@ -30,11 +30,29 @@
   <defaultcall function="teardown_pwd_storage"/>
 
   <function name="teardown_pwd_storage">
-
+        <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             Teardown Tests
+            #@TestSuitePurpose          Unconfigure OpenDS after the password storage tests.
+            #@TestSuiteGroup            Security Password Storage Teardown Tests
+            #@TestScript                security_teardown_pwd_storage.xml
+       -->
       <sequence>
 
         <!--- Test Case : Password Policy Teardown -->
         <!--- Delete Branch -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Teardown Tests
+            #@TestName                  Password Storage Teardown Test 
+            #@TestIssue                 none
+            #@TestPurpose               Remove entries that were needed for the password storage tests.
+            #@TestPreamble              none
+            #@TestStep                  Remove entries with ldapmodify.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all operations
+         -->
         <testcase name="'Security: Pwd Storage: Postamble Reset'">
           <sequence>
             <message>

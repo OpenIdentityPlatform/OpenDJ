@@ -34,8 +34,30 @@
       <sequence>
 
         <!--- Test Case : JKS Teardown -->
+        <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             Teardown Tests
+            #@TestSuitePurpose          Unconfigure JKS keystore and the secure port.
+            #@TestSuiteGroup            Security JKS Teardown Tests
+            #@TestScript                security_teardown_jks.xml
+        -->
         <!--- Delete Branch through SSL port -->
         <testcase name="'Security: JKS: Postamble Reset'">
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Teardown Tests
+            #@TestName                  JKS Teardown Test 
+            #@TestIssue                 413
+            #@TestPurpose               Unconfigure JKS keystore.
+            #@TestPreamble              none
+            #@TestStep                  Delete entries that were used for the JKS tests.
+            #@TestStep                  Unconfigure JKS keystore.
+            #@TestStep                  Remove JKS keystore.
+            #@TestStep                  Test search with unsecure port.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all operations
+         -->
           <sequence>
             <message>
                'Security: JKS: Postamble Step 1. Deleting Branch Through SSL Port'

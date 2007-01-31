@@ -30,10 +30,29 @@
   <defaultcall function="pwd_SSHA512"/>
 
   <function name="pwd_SSHA512">
-
+      <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             SSHA512 Tests
+            #@TestSuitePurpose          Test the SSHA512 storage scheme.
+            #@TestSuiteGroup            SSHA512 Storage Scheme Tests
+            #@TestScript                security_pwd_SSHA512.xml
+      -->
       <sequence>
 
         <!--- Test case: Admin Change To SSHA512 Storage Scheme -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SSHA512 Tests
+            #@TestName                  SSHA512 Preamble
+            #@TestIssue                 314
+            #@TestPurpose               Change password storage scheme to SSHA512.
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
+                                        with the filename to the appropriate file.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+        -->
         <testcase name="'Security: Pwd Storage SSHA512: Preamble'">
           <sequence>
             <message>
@@ -56,6 +75,23 @@
         </testcase>
 
         <!--- Test Case : User Change Password SSHA512 Scheme-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SSHA512 Tests
+            #@TestName                  SSHA512 Test 1
+            #@TestIssue                 314
+            #@TestPurpose               Test SSHA512 password storage scheme.
+            #@TestPreamble              none
+            #@TestStep                  Admin changes a user's password to convert 
+                                        so it is stored as SSHA512 scheme. 
+            #@TestStep                  The user binds with the new password.
+            #@TestStep                  Admin retrieves the user's password and 
+                                        checks for the required {SSHA512} prefix.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for the ldap
+                                        operations and the password has the {SSHA512} prefix.
+        -->
         <testcase name="'Security: Pwd Storage SSHA512: Pwd Change'">
           <sequence>
             <message>
@@ -119,6 +155,19 @@
         </testcase>
 
         <!--- Test case: Admin Reset To SSHA Storage Scheme -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SSHA512 Tests
+            #@TestName                  SSHA512 Postamble
+            #@TestIssue                 314
+            #@TestPurpose               Reset password storage scheme to the default, SSHA.
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
+                                        with the filename to the appropriate file.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+         -->
         <testcase name="'Security: Pwd Storage SSHA512: Postamble'">
           <sequence>
             <message>
