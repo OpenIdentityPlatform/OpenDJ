@@ -1,0 +1,194 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
+ */
+
+The purpose of the parsing tool is to parse comments from the functional test xml files.
+The comments must have preset tags in order for the them to be properly captured by the 
+parsing tool. This README files will describe what is needed in the comments of
+the functional test xml files, and how to build and run the parsing tool.
+
+***Function Test XML Files - Test Group Tags***
+
+Each directory will be assumed to contain the tests within a test group. 
+Each test group needs to have the following tags.......
+
+#@TestGroupName
+#@TestGroupPurpose
+#@TestSubgroupName  [only necessary for some test groups, like Security]
+
+It is not critical in which xml file or where in the xml file these tags are located,
+as long as the xml file is in the proper directory for the test group. For convenience,
+the tags for the test group should be near the top of the xml file which is used
+for setting up for the test group test cases.
+
+The following is an example for the test group, functional-tests/testcases/security/pwd_storage,
+and is located in file, security_setup_pwd_storage.xml
+
+      <!---
+            Place group-specific test information here.
+            #@TestGroupName             Security
+            #@TestGroupPurpose          To test the security functionality.
+            #@TestSubgroupName          Password Storage Schemes
+      -->
+
+Some test groups will not have the tag, #@TestSubgroupName. 
+
+For instance, the test group tags for the Backend group are
+
+     <!--
+            Place group-specific test information here.
+            #@TestGroupName             Backends
+            #@TestGroupPurpose          To test the backend functionality.
+     -->
+
+***Function Test XML Files - Test Suite Tags***
+
+Each xml file will be treated as a test suite. Each file should contain the following tags......
+
+#@TestSuiteName
+#@TestSuitePurpose
+#@TestSuiteGroup
+#@TestScript
+
+The tags should be located near the top of each file. The exact location is not critical.
+
+The following example is from the test suite, MD5 Tests, which is located in 
+functional-tests/testcases/security/pwd_storage/security_pwd_MD5.xml.
+
+      <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             MD5 Tests
+            #@TestSuitePurpose          Test the MD5 storage scheme.
+            #@TestSuiteGroup            MD5 Storage Scheme Tests
+            #@TestScript                security_pwd_MD5.xml
+      -->
+
+***Function Test XML Files - Test Case Tags***
+
+Each functional test xml file will have multiple test cases. 
+Each test case should have the following tags........
+
+#@TestMarker
+#@TestName
+#@TestIssue
+#@TestPurpose
+#@TestPreamble
+#@TestStep
+#@TestPostamble
+#@TestResult
+
+The tags should be located near the beginning of each test case. 
+
+The #@TestMarker should match the value of #@TestSuiteName. The parsing tool needs this
+correlation to match each test case with the proper test suite.
+
+The #@TestIssue should be the number in IssueTracker that corresponds to the feature or defect
+which this test case is testing. Do not add the hyperlink to the issue web page.
+The parsing tool adds the hyperlink when it runs.
+
+As many #@TestStep tags may used to define the steps that are involved in each test case.
+There should be one #@TestStep tag for each step. There is no limit to the number of test
+steps which may be defined. Each test step may have multiple lines.
+
+The #@TestResult may have multiple lines.
+
+The following example is from the file, 
+functional-tests/testcases/security/pwd_storage/security_pwd_MD5.xml
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                MD5 Tests
+            #@TestName                  MD5 Preamble
+            #@TestIssue                 312
+            #@TestPurpose               Change password storage scheme to MD5.
+            #@TestPreamble              none
+            #@TestStep                  Client calls ldapmodify 
+                                        with the filename to the appropriate file.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+        -->
+
+The following is another example from the file,
+functional-tests/testcases/security/pwd_storage/security_pwd_MD5.xml
+Note that this example contains three test steps.
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                MD5 Tests
+            #@TestName                  MD5 Test 1
+            #@TestIssue                 312
+            #@TestPurpose               Test MD5 password storage scheme.
+            #@TestPreamble              none
+            #@TestStep                  Admin changes a user's password to convert 
+                                        so it is stored as MD5 scheme. 
+            #@TestStep                  The user binds with the new password.
+            #@TestStep                  Admin retrieves the user's password and 
+                                        checks for the required {MD5} prefix.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for the ldap
+                                        operations and the password has the {MD5} prefix.
+        -->
+
+***Building the Parser Tool***
+
+No other packages are necessary for building the java files other than those 
+that come with the jvm. Java version 1.5.0 was used to build the java files.
+
+Command line build while in the directory containing the java files.....
+javac *.java
+
+***Running the Parser Tool***
+
+Three parameters are required to run the parsing tool from the command line, directory-to-testcase-files,
+directory-for-output-files, and file format.
+
+Command line execution.....
+java -cp [path-to-class-files] GenerateOpenDSTestSpecs [directory-to-testcase-files] [directory-for-output-files] [file format]
+
+The directory-to-testcase-files is the directory from where the parsing tool will begin searching
+for functional test files to parse. The parsing tool will only search one or two levels below
+the value for this parameter.
+
+The directory-for-output-files is where the parsing tool will place the output xml files.
+
+The file format is necessary because the same code is used for the unit-integration tests where
+java files are parsed for test specifications rather than xml files. The file format must be
+"xml" for the functional tests.
+
+An example command line execution of the parsing tool would be
+java -cp /export/ParseTestCode GenerateOpenDSTestSpecs /export/src/opends/tests/functional-tests/testcases /export/testspecs xml
+
+where
+the class files for the parsing tool are in /export/ParseTestCode
+the directory-to-testcase-files is /export/src/opends/tests/functional-tests/testcases 
+the directory-for-output-files is /export/testspecs
+the file format is xml.
+
+
+
+
