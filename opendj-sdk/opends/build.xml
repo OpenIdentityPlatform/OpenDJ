@@ -278,6 +278,7 @@
       <fileset dir="${basedir}" includes="**/*.bat" excludes="build/**/* " />
       <fileset dir="${basedir}" includes="**/*.ldif" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.txt" excludes="build/**/*" />
+      <fileset dir="${scripts.dir}" includes="**/*" />
     </checkcopyrightdates>
   </target>
 
@@ -307,6 +308,7 @@
       <fileset dir="${basedir}" includes="**/*.bat" excludes="build/**/* " />
       <fileset dir="${basedir}" includes="**/*.ldif" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.txt" excludes="build/**/*" />
+      <fileset dir="${scripts.dir}" includes="**/*" />
     </checkeolstyle>
   </target>
 
