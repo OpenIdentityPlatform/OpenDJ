@@ -145,19 +145,19 @@ public class Attribute
 
 
   /**
-   * Creates a new attribute with the specified type, user-provided
-   * name, and set of values.
+   * Creates a new attribute with the specified name and value.
    *
-   * @param  typeString   The String representation of the attribute
-   *                      type for this attribute.
+   * @param  lowerName    The name or OID of the attribute type for
+   *                      this attribute, formatted in all lowercase
+   *                      characters.
    * @param  valueString  The String representation of the attribute
-   *                      value
+   *                      value.
    */
-  public Attribute(String typeString, String valueString)
+  public Attribute(String lowerName, String valueString)
   {
     this.attributeType =
-         DirectoryServer.getAttributeType(typeString, true);
-    this.name = typeString;
+         DirectoryServer.getAttributeType(lowerName, true);
+    this.name = lowerName;
     this.values = new LinkedHashSet<AttributeValue>();
     this.values.add(new AttributeValue(this.attributeType,
                                        valueString));
