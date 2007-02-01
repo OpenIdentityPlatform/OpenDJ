@@ -283,6 +283,7 @@ public class CheckCopyrightDates
         lowerLine.startsWith("*") ||
         lowerLine.startsWith("//") ||
         lowerLine.startsWith("#") ||
+        lowerLine.startsWith("rem") ||
         lowerLine.startsWith("<!--") ||
         lowerLine.startsWith("!"))
     {
