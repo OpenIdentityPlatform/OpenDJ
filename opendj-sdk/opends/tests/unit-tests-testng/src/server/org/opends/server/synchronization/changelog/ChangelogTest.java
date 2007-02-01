@@ -362,7 +362,7 @@ public class ChangelogTest extends SynchronizationTestCase
    * Test that newClient() and newClientWithFirstChange() still works
    * after stopping and restarting the changelog server.
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void stopChangelog() throws Exception
   {
     changelog.shutdown();
