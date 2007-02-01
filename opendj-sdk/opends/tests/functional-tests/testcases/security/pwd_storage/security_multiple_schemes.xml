@@ -30,10 +30,29 @@
   <defaultcall function="multiple_schemes"/>
 
   <function name="multiple_schemes">
+      <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             Multiple Schemes
+            #@TestSuitePurpose          Test the support for multiple password schemes.
+            #@TestSuiteGroup            Multiple Password Storage Scheme Tests
+            #@TestScript                security_multiple_schemes.xml
+      -->
 
       <sequence>
 
         <!--- Test case: Admin Add Base64 Storage Scheme -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Multiple Schemes
+            #@TestName                  Multiple Schemes Preamble
+            #@TestIssue                 322
+            #@TestPurpose               Add BASE64 password scheme
+            #@TestPreamble              none
+            #@TestStep                  Admin add BASE64.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+        -->
         <testcase name="'Security: Mult Pwd Schemes: Preamble'">
           <sequence>
             <message>
@@ -56,6 +75,20 @@
         </testcase>
 
         <!--- Test Case : Check for Multi-value for Pwd Schemes - SSHA-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Multiple Schemes
+            #@TestName                  Check for SSHA Password Scheme
+            #@TestIssue                 322
+            #@TestPurpose               Test for the default SSHA scheme in the password policy
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieve the value for 
+                                        ds-cfg-default-password-storage-scheme.
+            #@TestPostamble             none
+            #@TestResult                Success if the string, "SSHA", 
+                                        is part of the return string.
+        -->
         <testcase name="'Security: Mult Pwd Schemes: Check Pwd Schemes - SSHA'">
           <sequence>
             <message>
@@ -85,6 +118,20 @@
         </testcase>
 
         <!--- Test Case : Check for Multi-value for Pwd Schemes - BASE64-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Multiple Schemes
+            #@TestName                  Check for BASE64 Password Scheme
+            #@TestIssue                 322
+            #@TestPurpose               Test for the BASE64 scheme in the password policy
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieve the value for 
+                                        ds-cfg-default-password-storage-scheme.
+            #@TestPostamble             none
+            #@TestResult                Success if the string, "BASE64", 
+                                        is part of the return string.
+        -->
         <testcase name="'Security: Mult Pwd Schemes: Check Pwd Schemes - BASE64'">
           <sequence>
             <message>
@@ -114,6 +161,25 @@
         </testcase>
 
         <!--- Test Case : User Change Password Multiple Schemes-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Multiple Schemes
+            #@TestName                  user Password Change
+            #@TestIssue                 322
+            #@TestPurpose               Test that a user's password is stored in the new schemes.
+            #@TestPreamble              none
+            #@TestStep                  User changes his password.
+            #@TestStep                  User binds with new password.
+            #@TestStep                  Admin retrieves userpassword from user entry and
+                                        checks for the prefix string {SSHA}.
+            #@TestStep                  Admin retrieves userpassword from user entry and
+                                        checks for the prefix string {BASE64}.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        and the user password is stored in both
+                                        SSHA and BASE64 schemes.
+        -->
         <testcase name="'Security: Mult Pwd Schemes: Pwd Change'">
           <sequence>
             <message>
@@ -176,6 +242,25 @@
           </sequence>
         </testcase>
 
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Multiple Schemes
+            #@TestName                  User Password Change
+            #@TestIssue                 322
+            #@TestPurpose               Test that a user's password is stored in the new schemes.
+            #@TestPreamble              none
+            #@TestStep                  User changes his password.
+            #@TestStep                  User binds with new password.
+            #@TestStep                  Admin retrieves userpassword from user entry and
+                                        checks for the prefix string {SSHA}.
+            #@TestStep                  Admin retrieves userpassword from user entry and
+                                        checks for the prefix string {BASE64}.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        and the user password is stored in both
+                                        SSHA and BASE64 schemes.
+        -->
         <testcase name="'Security: Mult Pwd Schemes: Check for Second Scheme On Pwd Change'">
           <sequence>
             <message>
@@ -205,6 +290,18 @@
         </testcase>
 
         <!--- Test Case : User Improperly Add a Password-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Multiple Schemes
+            #@TestName                  User Improper Password Add
+            #@TestIssue                 322
+            #@TestPurpose               Test the response when a user improperly adds a password.
+            #@TestPreamble              none
+            #@TestStep                  User adds a pasword to his entry
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 53
+        -->
         <testcase name="'Security: Mult Pwd Schemes: Improper Pwd Add'">
           <sequence>
             <message>
@@ -228,6 +325,18 @@
         </testcase>
 
         <!--- Test case: Admin Reset To SSHA Storage Scheme -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Multiple Schemes
+            #@TestName                  Multiple Schemes Postamble
+            #@TestIssue                 322
+            #@TestPurpose               Reset back to SSHA storage scheme alone
+            #@TestPreamble              none
+            #@TestStep                  Admin reset the password policy to SSHA password scheme.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+        -->
         <testcase name="'Security: Mult Pwd Schemes: Postamble'">
           <sequence>
             <message>
