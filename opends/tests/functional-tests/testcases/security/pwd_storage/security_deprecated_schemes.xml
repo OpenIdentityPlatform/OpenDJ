@@ -30,10 +30,33 @@
   <defaultcall function="deprecated_schemes"/>
 
   <function name="deprecated_schemes">
-
+      <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             Deprecated Schemes
+            #@TestSuitePurpose          Test the support for deprecated password schemes.
+            #@TestSuiteGroup            Deprecated Password Storage Scheme Tests
+            #@TestScript                security_deprecated_schemes.xml
+      -->
       <sequence>
 
         <!--- Test case: Admin Add Three Additional Pwd Storage Schemes -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Deprecated Schemes
+            #@TestName                  Deprecated Schemes Preamble
+            #@TestIssue                 323
+            #@TestPurpose               Prepare to deprecate MD5 scheme
+            #@TestPreamble              none
+            #@TestStep                  Admin Adding 3 Pwd Storage Schemes, 
+                                        MD5, SSHA256, and BASE64.
+            #@TestStep                  User Change Password.
+            #@TestStep                  Check MD5 Scheme Before Deprecating.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for all operations and a user password
+                                        is successfully stored in the MD5 scheme.
+        -->
         <testcase name="'Security: Depr Pwd Schemes: Preamble'">
           <sequence>
             <message>
@@ -95,6 +118,20 @@
         </testcase>
 
         <!--- Test Case : Admin Deprecate MD5 Scheme-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Deprecated Schemes
+            #@TestName                  Admin Deprecate MD5
+            #@TestIssue                 323
+            #@TestPurpose               Deprecate MD5 scheme
+            #@TestPreamble              none
+            #@TestStep                  Admin Deprecate MD5 Scheme.
+            #@TestStep                  Admin Remove MD5 Scheme From Default.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for all operations.
+        -->
         <testcase name="'Security: Depr Pwd Schemes: Admin Deprecate MD5'">
           <sequence>
             <message>
@@ -134,6 +171,19 @@
         </testcase>
 
         <!--- Test Case : User Bind -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Deprecated Schemes
+            #@TestName                  User Bind
+            #@TestIssue                 323
+            #@TestPurpose               Test a user bind.
+            #@TestPreamble              none
+            #@TestStep                  User binds.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        and the user binds successfully.
+        -->
         <testcase name="'Security: Depr Pwd Schemes: User Bind'">
           <sequence>
             <message>
@@ -159,6 +209,19 @@
         </testcase>
 
         <!--- Test Case : Check that MD5 hashed password was deleted from from user's entry-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Deprecated Schemes
+            #@TestName                  Check For MD5 Password Deletion
+            #@TestIssue                 323
+            #@TestPurpose               Test to determine if the user password in MD5 scheme was deleted.
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieves userpassword from user entry.
+            #@TestPostamble             none
+            #@TestResult                Success if the prefix string, {MD5}, is not found
+                                        in the userpassword.
+        -->
         <testcase name="'Security: Depr Pwd Schemes: Check For Deletion'">
           <sequence>
              <message>
@@ -188,7 +251,20 @@
         </testcase>
 
         <!--- Test Case : Check that other schemes were not deleted from from user's entry-->
-        <testcase name="'Security: Depr Pwd Schemes: Check For Non-Deletions - SSHA'">
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Deprecated Schemes
+            #@TestName                  Check For SSHA256 Password Deletion
+            #@TestIssue                 323
+            #@TestPurpose               Test to determine if the user password in SSHA256 scheme was deleted.
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieves userpassword from user entry.
+            #@TestPostamble             none
+            #@TestResult                Success if the prefix string, {SSHA256}, is found
+                                        in the userpassword.
+        -->
+        <testcase name="'Security: Depr Pwd Schemes: Check For Non-Deletions - SSHA256'">
           <sequence>
              <message>
                'Security: Deprecating Pwd Schemes: Checking for SSHA256 Hashed Pwd After Deprecating'
@@ -216,6 +292,19 @@
           </sequence>
         </testcase>
           
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Deprecated Schemes
+            #@TestName                  Check For BASE64 Password Deletion
+            #@TestIssue                 323
+            #@TestPurpose               Test to determine if the user password in Base64 scheme was deleted.
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieves userpassword from user entry.
+            #@TestPostamble             none
+            #@TestResult                Success if the prefix string, {BASE64}, is found
+                                        in the userpassword.
+        -->
         <testcase name="'Security: Depr Pwd Schemes: Check For Non-Deletions - BASE64'">
           <sequence>
              <message>
@@ -245,6 +334,18 @@
         </testcase>
 
         <!--- Test case: Admin Reset To SSHA Storage Scheme -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Deprecated Schemes
+            #@TestName                  Deprecated Schemes Postamble
+            #@TestIssue                 323
+            #@TestPurpose               Reset back to the default SSHA storage scheme.
+            #@TestPreamble              none
+            #@TestStep                  Admin reset the password policy to SSHA password scheme.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+        -->
         <testcase name="'Security: Depr Pwd Schemes: Postamble'">
           <sequence>
             <message>
