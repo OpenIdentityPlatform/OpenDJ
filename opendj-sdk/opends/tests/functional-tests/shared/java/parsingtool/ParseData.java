@@ -179,10 +179,25 @@ public class ParseData
                   }
                   else if(tmpStr.indexOf("#@TestResult") >= 0)
                   {
-                    arrayData.setTestResult(StripSubstring(tmpStr, "#@TestResult"));
-
-                    if(fileFormat.startsWith("java"))
+                    if(fileFormat.startsWith("xml"))
                     {
+                        String currTestResult = StripSubstring(tmpStr, "#@TestResult");
+                        fin.mark(1000);
+
+                        String oneMoLine = new String(fin.readLine().trim());
+                        while((oneMoLine.indexOf("#@") < 0) && (oneMoLine.indexOf("-->") < 0))
+                        {
+                            currTestResult = currTestResult + " " + oneMoLine;
+                            oneMoLine = new String(fin.readLine().trim());
+                        }
+
+                        arrayData.setTestResult(currTestResult);
+                        fin.reset();
+                    }
+                    else if(fileFormat.startsWith("java"))
+                    {
+                        arrayData.setTestResult(StripSubstring(tmpStr, "#@TestResult"));
+
                         // parse test purpose from java doc comments
                         fin.mark(1000);
                         String oneMoLine = new String(fin.readLine().trim());
