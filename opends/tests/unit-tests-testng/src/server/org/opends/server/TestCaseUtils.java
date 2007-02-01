@@ -48,6 +48,7 @@ import org.opends.server.backends.MemoryBackend;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigEntry;
+import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
@@ -55,11 +56,13 @@ import org.opends.server.loggers.Access;
 import org.opends.server.loggers.Error;
 import org.opends.server.loggers.Debug;
 import org.opends.server.plugins.InvocationCounterPlugin;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;
 
@@ -708,6 +711,96 @@ public final class TestCaseUtils {
   public static List<Entry> makeEntries(String... lines) throws Exception {
      return entriesFromLdifString(makeLdif(lines));
   }
+
+
+
+  /**
+   * Adds the provided entry to the Directory Server using an internal
+   * operation.
+   *
+   * @param  entry  The entry to be added.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static void addEntry(Entry entry)
+         throws Exception
+  {
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation = conn.processAdd(entry.getDN(),
+                                     entry.getObjectClasses(),
+                                     entry.getUserAttributes(),
+                                     entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Adds the provided entry to the Directory Server using an internal
+   * operation.
+   *
+   * @param  lines  The lines that make up the entry to be added.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static void addEntry(String... lines)
+         throws Exception
+  {
+    Entry entry = makeEntry(lines);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation = conn.processAdd(entry.getDN(),
+                                     entry.getObjectClasses(),
+                                     entry.getUserAttributes(),
+                                     entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Adds the provided set of entries to the Directory Server using internal
+   * operations.
+   *
+   * @param  entries  The entries to be added.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static void addEntries(List<Entry> entries)
+         throws Exception
+  {
+    for (Entry entry : entries)
+    {
+      addEntry(entry);
+    }
+  }
+
+
+
+  /**
+   * Adds the provided set of entries to the Directory Server using internal
+   * operations.
+   *
+   * @param  lines  The lines defining the entries to add.  If there are
+   *                multiple entries, then they should be separated by blank
+   *                lines.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static void addEntries(String... lines)
+         throws Exception
+  {
+    for (Entry entry : makeEntries(lines))
+    {
+      addEntry(entry);
+    }
+  }
+
+
 
   /**
    * Creates a temporary text file with the specified contents.  It will be
