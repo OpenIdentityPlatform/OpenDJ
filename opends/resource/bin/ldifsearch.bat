@@ -23,11 +23,11 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Portions Copyright 2006 Sun Microsystems, Inc.
+rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDIFSearch"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=ldifsearch"
-call "%~dP0\_client-script.bat" %*
+call "%~dP0\_server-script.bat" %*
 
