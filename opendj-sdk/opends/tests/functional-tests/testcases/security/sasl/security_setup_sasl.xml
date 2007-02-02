@@ -30,10 +30,34 @@
   <defaultcall function="setup_sasl"/>
 
   <function name="setup_sasl">
+      <!---
+            Place group-specific test information here.
+            #@TestGroupName             Security
+            #@TestGroupPurpose          To test the security functionality.
+            #@TestSubgroupName          SASL Mechanisms
+            
+            Place suite-specific test information here.
+            #@TestSuiteName             SASL Setup Tests
+            #@TestSuitePurpose          Configure OpenDS to test SASL mechanisms.
+            #@TestSuiteGroup            Security SASL Mechanism Setup Tests
+            #@TestScript                security_setup_sasl.xml
+      -->
 
       <sequence>
 
         <!--- Test Case : Add Entries for Password Storage Tests -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL Setup Tests
+            #@TestName                  SASL Mechanism Startup Test 
+            #@TestIssue                 none
+            #@TestPurpose               Add entries that are needed for the SASL mechanism tests.
+            #@TestPreamble              none
+            #@TestStep                  Add entries with ldapmodify.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all operations
+        -->
         <testcase name="'Security: SASL: Add Initial Entries'">
           <sequence>
             <message>

@@ -30,10 +30,28 @@
   <defaultcall function="sasl_anon"/>
 
   <function name="sasl_anon">
-
+    <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             SASL ANONYMOUS Tests
+            #@TestSuitePurpose          Test the SASL ANONYMOUS functionality.
+            #@TestSuiteGroup            SASL ANONYMOUS Tests
+            #@TestScript                security_sasl_anon.xml
+      -->
       <sequence>
 
         <!--- Test case: Admin Enable ANONYMOUS SASL Mechanism -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL ANONYMOUS Tests
+            #@TestName                  SASL ANONYMOUS Preamble
+            #@TestIssue                 351
+            #@TestPurpose               Prepare for SASL ANONYMOUS tests.
+            #@TestPreamble              none
+            #@TestStep                  Admin enable SASL ANONYMOUS mechanism.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+          -->
         <testcase name="'Security: SASL ANON: Preamble'">
           <sequence>
             <message>
@@ -56,6 +74,18 @@
         </testcase>
 
         <!--- Test Case : Anonymous Bind Using ANONYMOUS SASL Mechanism-->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL ANONYMOUS Tests
+            #@TestName                  Anonymous bind
+            #@TestIssue                 351
+            #@TestPurpose               Test anonymous bind.
+            #@TestPreamble              none
+            #@TestStep                  Anonymous bind to OpenDS.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+          -->
         <testcase name="'Security: SASL ANON: Anonymous Bind With ANON SASL Mech'">
           <sequence>
             <message>
@@ -77,7 +107,21 @@
           </sequence>
         </testcase>
 
-        <!--- Test case: Admin Enable ANONYMOUS SASL Mechanism -->
+        <!--- Test case: Admin Disable ANONYMOUS SASL Mechanism -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL ANONYMOUS Tests
+            #@TestName                  SASL ANONYMOUS Postamble
+            #@TestIssue                 351
+            #@TestPurpose               Reset configuration.
+            #@TestPreamble              none
+            #@TestStep                  Admin disable SASL ANONYMOUS mechanism.
+            #@TestStep                  Anonymous bind to OpenDS.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for step 1 and returns 1 for step 2.
+          -->
         <testcase name="'Security: SASL ANON: Postamble'">
           <sequence>
             <message>

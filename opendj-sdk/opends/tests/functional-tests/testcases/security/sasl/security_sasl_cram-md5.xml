@@ -30,11 +30,31 @@
   <defaultcall function="sasl_cram-md5"/>
 
   <function name="sasl_cram-md5">
-
+    <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             SASL CRAM-MD5 Tests
+            #@TestSuitePurpose          Test the SASL CRAM-MD5 functionality.
+            #@TestSuiteGroup            SASL CRAM-MD5 Tests
+            #@TestScript                security_sasl_cram-md5.xml
+      -->
       <sequence>
 
         <!--- Test case: CRAM-MD5 SASL Mechanism -->
-        <testcase name="'Security: SASL CRAM-MD5: Preamble'">
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL CRAM-MD5 Tests
+            #@TestName                  SASL CRAM-MD5 Preamble
+            #@TestIssue                 352
+            #@TestPurpose               Prepare for SASL CRAM-MD5 tests.
+            #@TestPreamble              none
+            #@TestStep                  Admin change password storage scheme to CLEAR.
+            #@TestStep                  User change his password.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 
+                                        for all ldap operations.
+          -->
+          <testcase name="'Security: SASL CRAM-MD5: Preamble'">
           <sequence>
             <message>
                'Security: SASL CRAM-MD5: Preamble Step 1 - Admin Changing Pwd Storage to CLEAR'
@@ -72,7 +92,19 @@
         </testcase>
 
         <!--- Test Case : User Bind With CRAM-MD5 SASL Mechanism-->
-        <testcase name="'Security: SASL CRAM-MD5: User (u:) Binding With CRAM-MD5 SASL Mech'">
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL CRAM-MD5 Tests
+            #@TestName                  uid (u:) Bind
+            #@TestIssue                 352
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+          -->
+          <testcase name="'Security: SASL CRAM-MD5: User (u:) Binding With CRAM-MD5 SASL Mech'">
           <sequence>
             <message>
                'Security: SASL CRAM-MD5: User (u:) Binding With CRAM-MD5 SASL Mechanism'
@@ -94,6 +126,18 @@
         </testcase>
 
         <!--- Test Case : User Bind With CRAM-MD5 SASL Mechanism-->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL CRAM-MD5 Tests
+            #@TestName                  uid (dn:) Bind
+            #@TestIssue                 352
+            #@TestPurpose               Test bind using a DN that has an authorization ID that could be mapped to a single DN.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+          -->
         <testcase name="'Security: SASL CRAM-MD5: User (dn:) Binding With CRAM-MD5 SASL Mech'">
           <sequence>
             <message>
@@ -116,7 +160,19 @@
         </testcase>
 
         <!--- Test Case : User Bind With CRAM-MD5 SASL Mechanism-->
-        <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding'">
+     <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL CRAM-MD5 Tests
+            #@TestName                  Dupe uid (u:) Bind
+            #@TestIssue                 352
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
+          <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding'">
           <sequence>
             <message>
                'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding With CRAM-MD5 SASL Mechanism'
@@ -139,6 +195,18 @@
         </testcase>
 
         <!--- Test Case : User Bind With CRAM-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL CRAM-MD5 Tests
+            #@TestName                  Dupe uid (dn:) Bind
+            #@TestIssue                 352
+            #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to muliple DNs.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[DN] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
         <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (dn:) Binding'">
           <sequence>
             <message>
@@ -161,6 +229,20 @@
         </testcase>
 
         <!--- Test Case : User Bind With CRAM-MD5 SASL Mechanism-->
+     <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL CRAM-MD5 Tests
+            #@TestName                  Dupe uid (u:) Bind 2
+            #@TestIssue                 352
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs. Mutiple DNs are deleted.
+            #@TestPreamble              none
+            #@TestStep                  Admin deletes the entry whose authorization ID matches another DN.
+            #@TestStep                  User bind with authid=u:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for all ldap operations.
+        -->
         <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding 2'">
           <sequence>
             <message>
@@ -199,6 +281,23 @@
         </testcase>
 
         <!--- Test case: CRAM-MD5 SASL Mechanism -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL CRAM-MD5 Tests
+            #@TestName                  SASL CRAM-MD5 Postamble
+            #@TestIssue                 352
+            #@TestPurpose               Reset configuration.
+            #@TestPreamble              none
+            #@TestStep                  Admin change pasword storage scheme to SSHA.
+            #@TestStep                  User change his password.
+            #@TestStep                  User bind with SASL CRAM-MD5.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 
+                                        for all ldap operations except step 3.
+                                        In step 3, the ldap operation should return 1
+                                        because the password is no longer stored as CLEAR.
+          -->
         <testcase name="'Security: SASL CRAM-MD5: Postamble'">
           <sequence>
             <message>
