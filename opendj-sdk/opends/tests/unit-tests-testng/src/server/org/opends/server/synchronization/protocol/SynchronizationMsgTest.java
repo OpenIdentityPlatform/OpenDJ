@@ -36,7 +36,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
-import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -48,20 +47,9 @@ import org.opends.server.synchronization.SynchronizationTestCase;
 import org.opends.server.synchronization.common.ChangeNumber;
 import org.opends.server.synchronization.common.ServerState;
 import org.opends.server.synchronization.plugin.PendingChange;
-import org.opends.server.synchronization.protocol.AckMessage;
-import org.opends.server.synchronization.protocol.AddMsg;
-import org.opends.server.synchronization.protocol.ChangelogStartMessage;
-import org.opends.server.synchronization.protocol.DeleteMsg;
-import org.opends.server.synchronization.protocol.ModifyDNMsg;
-import org.opends.server.synchronization.protocol.ModifyMsg;
-import org.opends.server.synchronization.protocol.ServerStartMessage;
-import org.opends.server.synchronization.protocol.SynchronizationMessage;
-import org.opends.server.synchronization.protocol.UpdateMessage;
-import org.opends.server.synchronization.protocol.WindowMessage;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
@@ -187,7 +175,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
          throws Exception
   {
     DN dn = DN.decode(rawdn);
-    ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");;
+    ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");
 
     // Check uuid
     assertEquals("fakeuniqueid", msg.getUniqueId());
@@ -221,7 +209,6 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
 
   /**
    * Build some data for the DeleteMsg test below.
-   * @throws DirectoryException
    */
   @DataProvider(name = "deleteEncodeDecode")
   public Object[][] createDelData() {
@@ -383,7 +370,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     //Create an Add operation and generate and Add msg from it
     DN dn = DN.decode(rawDN);
 
-    addOp = new AddOperation((ClientConnection) connection,
+    addOp = new AddOperation(connection,
         (long) 1, 1, null, dn, objectClassList, userAttList, opList);
     OperationContext opCtx = new AddContext(cn, "thisIsaUniqueID",
         "parentUniqueId");
@@ -404,7 +391,6 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
 
   /**
    * Build some data for the AckMsg test below.
-   * @throws DirectoryException
    */
   @DataProvider(name = "ackMsg")
   public Object[][] createAckData() {
@@ -451,7 +437,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     // Check that retrieved CN is OK
     msg2 = (AckMessage) SynchronizationMessage.generateMsg(msg1.getBytes());
   }
-  
+
   @DataProvider(name="serverStart")
   public Object [][] createServerStartMessageTestData() throws Exception
   {
@@ -469,16 +455,20 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
     ServerStartMessage msg = new ServerStartMessage(serverId, baseDN,
-        window, window, window, window, window, state);
+        window, window, window, window, window, window, state);
     ServerStartMessage newMsg = new ServerStartMessage(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
+    assertEquals(msg.getMaxReceiveDelay(), newMsg.getMaxReceiveDelay());
+    assertEquals(msg.getMaxReceiveQueue(), newMsg.getMaxReceiveQueue());
+    assertEquals(msg.getMaxSendDelay(), newMsg.getMaxSendDelay());
+    assertEquals(msg.getMaxSendQueue(), newMsg.getMaxSendQueue());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
-    assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
+    assertEquals(msg.getHeartbeatInterval(), newMsg.getHeartbeatInterval());
     assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
         newMsg.getServerState().getMaxChangeNumber((short)1));
   }
-  
+
   @DataProvider(name="changelogStart")
   public Object [][] createChangelogStartMessageTestData() throws Exception
   {
@@ -486,7 +476,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     ServerState state = new ServerState();
     return new Object [][] { {(short)1, baseDN, 100, "localhost:8989", state} };
   }
-  
+
   /**
    * Test that changelogStartMessage encoding and decoding works
    * by checking that : msg == new ChangelogStartMessage(msg.getBytes()).
@@ -496,7 +486,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
          String url, ServerState state) throws Exception
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
-    ChangelogStartMessage msg = new ChangelogStartMessage(serverId, 
+    ChangelogStartMessage msg = new ChangelogStartMessage(serverId,
         url, baseDN, window, state);
     ChangelogStartMessage newMsg = new ChangelogStartMessage(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
@@ -506,7 +496,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
         newMsg.getServerState().getMaxChangeNumber((short)1));
   }
-  
+
   /**
    * Test that WindowMessageTest encoding and decoding works
    * by checking that : msg == new WindowMessageTest(msg.getBytes()).

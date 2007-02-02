@@ -46,6 +46,7 @@ public abstract class SynchronizationMessage
   static final byte MSG_TYPE_SERVER_START = 6;
   static final byte MSG_TYPE_CHANGELOG_START = 7;
   static final byte MSG_TYPE_WINDOW = 8;
+  static final byte MSG_TYPE_HEARTBEAT = 9;
 
   /**
    * Return the byte[] representation of this message.
@@ -57,6 +58,8 @@ public abstract class SynchronizationMessage
    * MSG_TYPE_ACK
    * MSG_TYPE_SERVER_START
    * MSG_TYPE_CHANGELOG_START
+   * MSG_TYPE_WINDOW
+   * MSG_TYPE_HEARTBEAT
    *
    * @return the byte[] representation of this message.
    */
@@ -100,6 +103,9 @@ public abstract class SynchronizationMessage
       break;
       case MSG_TYPE_WINDOW:
         msg = new WindowMessage(buffer);
+      break;
+      case MSG_TYPE_HEARTBEAT:
+        msg = new HeartbeatMessage(buffer);
       break;
       default:
         throw new DataFormatException("received message with unknown type");

@@ -27,6 +27,12 @@
 package org.opends.server.synchronization.plugin;
 
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.ServerConstants.
+     TIME_UNIT_MILLISECONDS_ABBR;
+import static org.opends.server.util.ServerConstants.
+     TIME_UNIT_MILLISECONDS_FULL;
+import static org.opends.server.util.ServerConstants.TIME_UNIT_SECONDS_ABBR;
+import static org.opends.server.util.ServerConstants.TIME_UNIT_SECONDS_FULL;
 import static org.opends.server.synchronization.common.LogMessages.*;
 import static org.opends.server.synchronization.plugin.Historical.*;
 import static org.opends.server.synchronization.protocol.OperationContext.*;
@@ -40,6 +46,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
 
@@ -52,6 +59,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.IntegerConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
+import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -123,6 +131,12 @@ public class SynchronizationDomain extends DirectoryThread
   private int maxReceiveDelay = 0;
   private int maxSendDelay = 0;
 
+  /**
+   * The time in milliseconds between heartbeats from the synchronization
+   * server.  Zero means heartbeats are off.
+   */
+  private long heartbeatInterval = 0;
+
   private short serverId;
 
   private BooleanConfigAttribute receiveStatusStub;
@@ -151,6 +165,7 @@ public class SynchronizationDomain extends DirectoryThread
   static String MAX_SEND_QUEUE = "ds-cfg-max-send-queue";
   static String MAX_SEND_DELAY = "ds-cfg-max-send-delay";
   static String WINDOW_SIZE = "ds-cfg-window-size";
+  static String HEARTBEAT_INTERVAL = "ds-cfg-heartbeat-interval";
 
   private static final StringConfigAttribute changelogStub =
     new StringConfigAttribute(CHANGELOG_SERVER_ATTR,
@@ -163,6 +178,25 @@ public class SynchronizationDomain extends DirectoryThread
   private static final DNConfigAttribute baseDnStub =
     new DNConfigAttribute(BASE_DN_ATTR, "synchronization base DN",
                           true, false, false);
+
+  /**
+   * The set of time units that will be used for expressing the heartbeat
+   * interval.
+   */
+  private static final LinkedHashMap<String,Double> timeUnits =
+       new LinkedHashMap<String,Double>();
+
+
+
+  static
+  {
+    timeUnits.put(TIME_UNIT_MILLISECONDS_ABBR, 1D);
+    timeUnits.put(TIME_UNIT_MILLISECONDS_FULL, 1D);
+    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1000D);
+    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1000D);
+  }
+
+
 
   /**
    * Creates a new SynchronizationDomain using configuration from configEntry.
@@ -302,6 +336,24 @@ public class SynchronizationDomain extends DirectoryThread
       configAttributes.add(windowAttr);
     }
 
+    IntegerWithUnitConfigAttribute heartbeatStub =
+      new IntegerWithUnitConfigAttribute(HEARTBEAT_INTERVAL,
+                                         "heartbeat interval",
+                                         false, timeUnits, true, 0, false, 0);
+    IntegerWithUnitConfigAttribute heartbeatAttr =
+      (IntegerWithUnitConfigAttribute)
+           configEntry.getConfigAttribute(heartbeatStub);
+    if (heartbeatAttr == null)
+    {
+      // Attribute is not present : use the default value
+      heartbeatInterval = 1000;
+    }
+    else
+    {
+      heartbeatInterval = heartbeatAttr.activeCalculatedValue();
+      configAttributes.add(heartbeatAttr);
+    }
+
     configDn = configEntry.getDN();
     DirectoryServer.registerConfigurableComponent(this);
 
@@ -315,7 +367,8 @@ public class SynchronizationDomain extends DirectoryThread
     try
     {
       broker = new ChangelogBroker(state, baseDN, serverId, maxReceiveQueue,
-          maxReceiveDelay, maxSendQueue, maxSendDelay, window);
+          maxReceiveDelay, maxSendQueue, maxSendDelay, window,
+          heartbeatInterval);
       synchronized (broker)
       {
         broker.start(changelogServers);
@@ -1761,5 +1814,14 @@ public class SynchronizationDomain extends DirectoryThread
   public int getCurrentSendWindow()
   {
     return broker.getCurrentSendWindow();
+  }
+
+  /**
+   * Get the number of times the synchronization connection was lost.
+   * @return The number of times the synchronization connection was lost.
+   */
+  public int getNumLostConnections()
+  {
+    return broker.getNumLostConnections();
   }
 }

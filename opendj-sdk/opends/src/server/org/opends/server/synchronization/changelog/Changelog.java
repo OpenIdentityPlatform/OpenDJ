@@ -389,10 +389,10 @@ public class Changelog implements Runnable, ConfigurableComponent
   }
 
   /**
-   * This method manage the connection with the other LDAP servers
-   * it periodically that this changelog server is correctly connected
-   * to all the other changelog servers and if not attempt to
-   * do the connection.
+   * This method manages the connection with the other changelog servers.
+   * It periodically checks that this changelog server is indeed connected
+   * to all the other changelog servers and if not attempts to
+   * make the connection.
    */
   private void runConnect()
   {

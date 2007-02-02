@@ -46,6 +46,7 @@ import org.opends.server.synchronization.protocol.DeleteMsg;
 import org.opends.server.synchronization.protocol.ModifyDNMsg;
 import org.opends.server.synchronization.protocol.ModifyMsg;
 import org.opends.server.synchronization.protocol.SynchronizationMessage;
+import org.opends.server.synchronization.protocol.HeartbeatThread;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -296,6 +297,100 @@ public class UpdateOperationTest extends SynchronizationTestCase
     assertNotNull(resultEntry,
         "The synchronization message was not replayed after the server " +
              "receive status was enabled");
+
+    // Delete the entries to clean the database.
+    DeleteMsg delMsg =
+      new DeleteMsg(personWithUUIDEntry.getDN().toString(),
+          gen.NewChangeNumber(), user1entryUUID);
+    broker.publish(delMsg);
+    resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, false);
+
+    // Check that the delete operation has been applied.
+    assertNull(resultEntry,
+        "The DELETE synchronization message was not replayed");
+    broker.stop();
+  }
+
+  /**
+   * Tests whether the synchronization provider fails over when it loses
+   * the heartbeat from the synchronization server.
+   */
+  @Test(groups = "slow")
+  public void lostHeartbeatFailover() throws Exception
+  {
+    logError(ErrorLogCategory.SYNCHRONIZATION,
+        ErrorLogSeverity.NOTICE,
+        "Starting synchronization test : lostHeartbeatFailover" , 1);
+
+    final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
+
+    /*
+     * Open a session to the changelog server using the broker API.
+     * This must use a different serverId to that of the directory server.
+     */
+    ChangelogBroker broker =
+      openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
+
+
+    /*
+     * Create a Change number generator to generate new changenumbers
+     * when we need to send operation messages to the changelog server.
+     */
+    ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
+
+
+    // Create and publish an update message to add an entry.
+    AddMsg addMsg = new AddMsg(gen.NewChangeNumber(),
+        personWithUUIDEntry.getDN().toString(),
+        user1entryUUID,
+        baseUUID,
+        personWithUUIDEntry.getObjectClassAttribute(),
+        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+    broker.publish(addMsg);
+
+    entryList.add(personWithUUIDEntry.getDN());
+    Entry resultEntry;
+
+    // Check that the entry has been created in the directory server.
+    resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
+    assertNotNull(resultEntry,
+        "The ADD synchronization message was not replayed");
+
+    // Send a first modify operation message.
+    List<Modification> mods = generatemods("telephonenumber", "01 02 45");
+    ModifyMsg modMsg = new ModifyMsg(gen.NewChangeNumber(),
+        personWithUUIDEntry.getDN(), mods,
+        user1entryUUID);
+    broker.publish(modMsg);
+
+    // Check that the modify has been replayed.
+    boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
+                           "telephonenumber", "01 02 45", 10000, true);
+    if (!found)
+    {
+      fail("The first modification was not replayed.");
+    }
+
+    // Simulate loss of heartbeats.
+    HeartbeatThread.setHeartbeatsDisabled(true);
+    Thread.sleep(3000);
+    HeartbeatThread.setHeartbeatsDisabled(false);
+
+    // Send a second modify operation message.
+    mods = generatemods("description", "Description was changed");
+    modMsg = new ModifyMsg(gen.NewChangeNumber(),
+        personWithUUIDEntry.getDN(), mods,
+        user1entryUUID);
+    broker.publish(modMsg);
+
+    // Check that the modify has been replayed.
+    found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
+                                   "description", "Description was changed",
+                                   10000, true);
+    if (!found)
+    {
+      fail("The second modification was not replayed.");
+    }
 
     // Delete the entries to clean the database.
     DeleteMsg delMsg =

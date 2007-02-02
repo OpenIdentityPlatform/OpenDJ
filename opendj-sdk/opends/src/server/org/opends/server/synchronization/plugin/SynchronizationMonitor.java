@@ -97,6 +97,10 @@ public class SynchronizationMonitor extends MonitorProvider
     attr = new Attribute("connected-to", domain.getChangelogServer());
     attributes.add(attr);
 
+    /* get number of lost connections */
+    addMonitorData(attributes, "lost-connections",
+                   domain.getNumLostConnections());
+
     /* get number of received updates */
     addMonitorData(attributes, "received-updates", domain.getNumRcvdUpdates());
 
