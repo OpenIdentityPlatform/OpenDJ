@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -30,9 +30,12 @@ package org.opends.server.api;
 
 import java.util.List;
 
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
@@ -66,6 +69,101 @@ public abstract class Group
    */
   private static final String CLASS_NAME =
        "org.opends.server.api.Group";
+
+
+
+  /**
+   * Initializes a "shell" instance of this group implementation that
+   * may be used to identify and instantiate instances of this type of
+   * group in the directory data.
+   *
+   * @param  configEntry  The configuration entry that may contain
+   *                      information about the way that this group
+   *                      implementation should operate.
+   *
+   * @throws  ConfigException  If there is a problem with the provided
+   *                           configuration entry.
+   *
+   * @throws  InitializationException  If a problem occurs while
+   *                                   attempting to initialize this
+   *                                   group implementation that is
+   *                                   not related to the server
+   *                                   configuration.
+   */
+  public abstract void initializeGroupImplementation(
+                            ConfigEntry configEntry)
+         throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Performs any necessary finalization that may be needed whenever
+   * this group implementation is taken out of service within the
+   * Directory Server (e.g., if it is disabled or the server is
+   * shutting down).
+   */
+  public void finalizeGroupImplementation()
+  {
+    assert debugEnter(CLASS_NAME, "finalizeGroupImplementation");
+
+    // No implementation is required by default.
+  }
+
+
+
+  /**
+   * Creates a new group of this type based on the definition
+   * contained in the provided entry.  This method must be designed so
+   * that it may be invoked on the "shell" instance created using the
+   * default constructor and initialized with the
+   * {@code initializeGroupImplementation} method.
+   *
+   * @param  groupEntry  The entry containing the definition for the
+   *                     group to be created.
+   *
+   * @return  The group instance created from the definition in the
+   *          provided entry.
+   *
+   * @throws  DirectoryException  If a problem occurs while trying to
+   *                              create the group instance.
+   */
+  public abstract Group newInstance(Entry groupEntry)
+         throws DirectoryException;
+
+
+
+  /**
+   * Retrieves a search filter that may be used to identify entries
+   * containing definitions for groups of this type in the Directory
+   * Server.  This method must be designed so that it may be invoked
+   * on the "shell" instance created using the default constructor and
+   * initialized with the {@code initializeGroupImplementation}
+   * method.
+   *
+   * @return  A search filter that may be used to identify entries
+   *          containing definitions for groups of this type in the
+   *          Directory Server.
+   *
+   * @throws  DirectoryException  If a problem occurs while trying to
+   *                              locate all of the applicable group
+   *                              definition entries.
+   */
+  public abstract SearchFilter getGroupDefinitionFilter()
+         throws DirectoryException;
+
+
+
+  /**
+   * Indicates whether the provided entry contains a valid definition
+   * for this type of group.
+   *
+   * @param  entry  The entry for which to make the determination.
+   *
+   * @return  {@code true} if the provided entry does contain a valid
+   *          definition for this type of group, or {@code false} if
+   *          it does not.
+   */
+  public abstract boolean isGroupDefinition(Entry entry);
 
 
 

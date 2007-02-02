@@ -1031,6 +1031,13 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.301
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.302
   NAME 'ds-task-schema-file-name' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.303
+  NAME 'ds-cfg-group-implementation-class' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.304
+  NAME 'ds-cfg-group-implementation-enabled'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1407,12 +1414,15 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.78 NAME 'ds-backend-monitor-entry'
   SUP ds-monitor-entry STRUCTURAL MAY ( ds-backend-id $ ds-backend-base-dn $
   ds-backend-entry-count $ ds-backend-writability-mode $ ds-backend-is-private )
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.79 NAME
-  'ds-connectionhandler-monitor-entry' SUP ds-monitor-entry STRUCTURAL
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.79
+  NAME 'ds-connectionhandler-monitor-entry' SUP ds-monitor-entry STRUCTURAL
   MAY ( ds-connectionhandler-connection $ ds-connectionhandler-listener $
   ds-connectionhandler-num-connections $ ds-connectionhandler-protocol )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.80 NAME 'ds-task-add-schema-file'
   SUP ds-task MUST ds-task-schema-file-name
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.81 NAME 'ds-cfg-group-implementation'
+  SUP top STRUCTURAL MUST ( cn $ ds-cfg-group-implementation-class $
+  ds-cfg-group-implementation-enabled ) X-ORIGIN 'OpenDS Directory Server' )
 

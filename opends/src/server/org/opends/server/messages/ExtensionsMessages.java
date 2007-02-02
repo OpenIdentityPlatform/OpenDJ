@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.messages;
 
@@ -4042,6 +4042,104 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if a user entry refered
+   * in a static group does not exist.  This takes two arguments, which are the
+   * DN of the target entry and the DN of the static group entry.
+   */
+  public static final int MSGID_STATICMEMBERS_NO_SUCH_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 383;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to retrieve an entry as a potential member of the static group.
+   * This takes three arguments, which are the DN of the target entry, the DN of
+   * the static group entry, and a message explaining the problem that occured.
+   */
+  public static final int MSGID_STATICMEMBERS_CANNOT_GET_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 384;
+
+
+
+  /**
+   * The message ID for the message that will be used if a potential static
+   * group entry contains both the groupOfNames and groupOfUniqueNames object
+   * classes.  This takes three arguments, which are the DN of the entry, the
+   * name of the groupOfNames object class, and the name of the
+   * groupOfUniqueNames object class.
+   */
+  public static final int MSGID_STATICGROUP_INVALID_OC_COMBINATION =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 385;
+
+
+
+  /**
+   * The message ID for the message that will be used if a potential static
+   * group entry does not contain either the groupOfNames or groupOfUniqueNames
+   * object class.  This takes three arguments, which are the DN of the entry,
+   * the name of the groupOfNames object class, and the name of the
+   * groupOfUniqueNames object class.
+   */
+  public static final int MSGID_STATICGROUP_NO_VALID_OC =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 386;
+
+
+
+  /**
+   * The message ID for the message that will be used if a value for the member
+   * attribute for a static group cannot be parsed as a DN.  This takes four
+   * arguments, which are the provided value, the name of the member attribute,
+   * the DN of the entry, and the reason the value was not a valid DN.
+   */
+  public static final int MSGID_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 387;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a user to a static group that already includes that user.  This takes
+   * two arguments, which is the DN of the user and the DN of the group.
+   */
+  public static final int MSGID_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 388;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * remove a user from a static group that does not include that user.  This
+   * takes two arguments, which is the DN of the user and the DN of the group.
+   */
+  public static final int MSGID_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 389;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to update a group entry to add a member.  This takes three
+   * arguments, which are the member DN, the group DN, and a message explaining
+   * the problem that occurred.
+   */
+  public static final int MSGID_STATICGROUP_ADD_MEMBER_UPDATE_FAILED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 390;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to update a group entry to remove a member.  This takes three
+   * arguments, which are the member DN, the group DN, and a message explaining
+   * the problem that occurred.
+   */
+  public static final int MSGID_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 391;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5884,6 +5982,45 @@ public class ExtensionsMessages
     registerMessage(MSGID_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION,
                     "Account-Status-Notification type='%s' userdn='%s' " +
                     "id=%d msg='%s'");
+
+
+    registerMessage(MSGID_STATICMEMBERS_NO_SUCH_ENTRY,
+                    "Unable to examine entry %s as a potential member of " +
+                    "static group %s because that entry does not exist in " +
+                    "the Directory Server.");
+    registerMessage(MSGID_STATICMEMBERS_CANNOT_GET_ENTRY,
+                    "An error occurred while attempting to retrieve entry %s " +
+                    "as a potential member of static group %s:  %s.");
+
+
+    registerMessage(MSGID_STATICGROUP_INVALID_OC_COMBINATION,
+                    "Entry %s cannot be parsed as a valid static group " +
+                    "because static groups are not allowed to have both the " +
+                    "%s and %s object classes.");
+    registerMessage(MSGID_STATICGROUP_NO_VALID_OC,
+                    "Entry %s cannot be parsed as a valid static group " +
+                    "because it does not contain exactly one of the %s or " +
+                    "the %s object classes.");
+    registerMessage(MSGID_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN,
+                    "Value %s for attribute %s in entry %s cannot be parsed " +
+                    "as a valid DN:  %s.  It will be excluded from the set " +
+                    "of group members.");
+    registerMessage(MSGID_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS,
+                    "Cannot add user %s as a new member of static group %s " +
+                    "because that user is already in the member list for the " +
+                    "group.");
+    registerMessage(MSGID_STATICGROUP_ADD_MEMBER_UPDATE_FAILED,
+                    "Cannot add user %s as a new member of static group %s " +
+                    "because an error occurred while attempting to perform " +
+                    "an internal modification to update the group:  %s.");
+    registerMessage(MSGID_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER,
+                    "Cannot remove user %s as a member of static group %s " +
+                    "because that user is not included in the member list " +
+                    "for the group.");
+    registerMessage(MSGID_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED,
+                    "Cannot remove user %s as a member of static group %s " +
+                    "because an error occurred while attempting to perform " +
+                    "an internal modification to update the group:  %s.");
   }
 }
 

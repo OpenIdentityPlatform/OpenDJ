@@ -2792,8 +2792,8 @@ public class ConfigMessages
 
   /**
    * The message ID for the message that will be used if an entry below the
-   * extended operation base does not contain a value for the logger class name.
-   * This takes a single argument, which is the DN of the configuration entry.
+   * extended operation base does not contain a value for the class name.  This
+   * takes a single argument, which is the DN of the configuration entry.
    */
   public static final int MSGID_CONFIG_EXTOP_NO_CLASS_NAME =
        CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 254;
@@ -6205,6 +6205,7 @@ public class ConfigMessages
             CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 576;
 
 
+
   /**
    * The message ID for the message that will be used if an error occurs while
    * trying to process the server configuration for rejecting the
@@ -6215,6 +6216,177 @@ public class ConfigMessages
   public static final int
       MSGID_CONFIG_CORE_REJECT_UNAUTHENTICATED_REQUESTS_INVALID =
            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 577;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to retrieve the group implementation base entry from the
+   * configuration.  This takes a single argument, which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_GROUP_CANNOT_GET_BASE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 578;
+
+
+
+  /**
+   * The message ID for the message that will be used if the group
+   * implementation base entry does not exist in the Directory Server
+   * configuration.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_GROUP_BASE_DOES_NOT_EXIST =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 579;
+
+
+
+  /**
+   * The message ID for the message that will be used if a group implementation
+   * configuration entry does not contain an acceptable group implementation
+   * configuration.  This takes two arguments, which are the DN of the
+   * configuration entry and the reason that it is not acceptable.
+   */
+  public static final int MSGID_CONFIG_GROUP_ENTRY_UNACCEPTABLE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 580;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create a group implementation from a configuration entry.  This
+   * takes two arguments, which are the DN of the configuration entry and a
+   * message that explains the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_GROUP_CANNOT_CREATE_IMPLEMENTATION =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 581;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * group implementation base does not contain a valid objectclass.  This takes
+   * a single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_GROUP_INVALID_OBJECTCLASS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 582;
+
+
+
+  /**
+   * The message ID for the description of the group implementation class name
+   * configuration attribute.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_GROUP_DESCRIPTION_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 583;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * group implementation base does not contain a value for the class name.
+   * This takes a single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_GROUP_NO_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 584;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * group implementation base contains an invalid value for the class name.
+   * This takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_GROUP_INVALID_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 585;
+
+
+
+  /**
+   * The message ID for the message that will be used if a configuration entry
+   * defines a Directory Server group implementation but the associated class
+   * cannot be instantiated as a group implementation.  This takes three
+   * arguments, which are the handler class name, the DN of the configuration
+   * entry, and a string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_GROUP_INVALID_CLASS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 586;
+
+
+
+  /**
+   * The message ID for the description of the group implementation enabled
+   * configuration attribute.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_GROUP_DESCRIPTION_ENABLED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 587;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * group implementation base does not contain a value for the enabled
+   * attribute.  This takes a single argument, which is the DN of the
+   * configuration entry.
+   */
+  public static final int MSGID_CONFIG_GROUP_NO_ENABLED_ATTR =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 588;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * group implementation base has an invalid value for the enabled attribute.
+   * This takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 589;
+
+
+
+  /**
+   * The message ID for the message that will be used if the group
+   * implementation class has changed and will require administrative action to
+   * take effect.  This takes three arguments, which are the old class name, the
+   * new class name, and the DN of the associated configuration entry.
+   */
+  public static final int MSGID_CONFIG_GROUP_CLASS_ACTION_REQUIRED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 590;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing a Directory Server group implementation.  This takes three
+   * arguments, which are the class name for the implementation class, the DN of
+   * the configuration entry, and a string representation of the exception that
+   * was caught.
+   */
+  public static final int MSGID_CONFIG_GROUP_INITIALIZATION_FAILED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 591;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new group implementation entry with a DN that matches the DN of a
+   * group implementation that already exists.  This takes a single argument,
+   * which is the DN of the handler configuration entry.
+   */
+  public static final int MSGID_CONFIG_GROUP_EXISTS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 592;
+
+
+
+  /**
+   * The message ID for the message that will be used if a group implementation
+   * entry contains an unacceptable configuration but does not provide any
+   * specific details about the nature of the problem.  This takes a single
+   * argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_GROUP_UNACCEPTABLE_CONFIG =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 593;
 
 
   /**
@@ -9001,6 +9173,84 @@ public class ConfigMessages
                    "Unable to set the requested file permissions to the " +
                    "backend database directory. The requested permissions " +
                    "will result in an inaccessable database.");
+
+
+    registerMessage(MSGID_CONFIG_GROUP_CANNOT_GET_BASE,
+                    "An error occurred while attempting to retrieve the " +
+                    "group implementation base entry " +
+                    DN_EXTENDED_OP_CONFIG_BASE +
+                    " from the Directory Server configuration:  %s.");
+    registerMessage(MSGID_CONFIG_GROUP_BASE_DOES_NOT_EXIST,
+                    "The group implementation configuration base " +
+                    DN_GROUP_IMPLEMENTATION_CONFIG_BASE + " does not exist " +
+                    "in the Directory Server configuration.  This entry must " +
+                    "be present for the server to function properly.");
+    registerMessage(MSGID_CONFIG_GROUP_ENTRY_UNACCEPTABLE,
+                    "Configuration entry %s does not contain a valid " +
+                    "group implementation configuration:  %s.  It will be " +
+                    "ignored.");
+    registerMessage(MSGID_CONFIG_GROUP_CANNOT_CREATE_IMPLEMENTATION,
+                    "An error occurred while attempting to create a " +
+                    "Directory Server group implementation from the " +
+                    "information in configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_GROUP_INVALID_OBJECTCLASS,
+                    "Configuration entry %s does not contain the " +
+                    OC_GROUP_IMPLEMENTATION + " objectclass, which is " +
+                    "required for group implementation definitions.");
+    registerMessage(MSGID_CONFIG_GROUP_DESCRIPTION_CLASS_NAME,
+                    "The fully-qualified name of the Java class that defines " +
+                    "the Directory Server group implementation.  If this is " +
+                    "while the associated implementation is enabled, then " +
+                    "that group implementation must be disabled and " +
+                    "re-enabled for the change to take effect.");
+    registerMessage(MSGID_CONFIG_GROUP_NO_CLASS_NAME,
+                    "Configuration entry %s does not contain a valid value " +
+                    "for configuration attribute " +
+                    ATTR_GROUP_IMPLEMENTATION_CLASS +
+                    " which specifies the fully-qualified class name for " +
+                    "the associated group implementation.");
+    registerMessage(MSGID_CONFIG_GROUP_INVALID_CLASS_NAME,
+                    "Configuration entry %s has an invalid value for " +
+                    "attribute " + ATTR_GROUP_IMPLEMENTATION_CLASS + ":  %s.");
+    registerMessage(MSGID_CONFIG_GROUP_INVALID_CLASS,
+                    "Class %s specified in configuration entry %s does not " +
+                    "contain a valid group implementation:  %s.");
+    registerMessage(MSGID_CONFIG_GROUP_DESCRIPTION_ENABLED,
+                    "Indicates whether this Directory Server group " +
+                    "implementation should be enabled.  Changes to this " +
+                    "attribute will take effect immediately.");
+    registerMessage(MSGID_CONFIG_GROUP_NO_ENABLED_ATTR,
+                    "Configuration entry %s does not contain a valid value " +
+                    "for configuration attribute " +
+                    ATTR_GROUP_IMPLEMENTATION_ENABLED +
+                    " which indicates whether the group implementation " +
+                    "should be enabled for use in the Directory Server.");
+    registerMessage(MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE,
+                    "Configuration entry %s has an invalid value for " +
+                    "attribute " + ATTR_GROUP_IMPLEMENTATION_ENABLED +
+                    ":  %s.");
+    registerMessage(MSGID_CONFIG_GROUP_CLASS_ACTION_REQUIRED,
+                    "The requested change in the group implementation class " +
+                    "name from %s to %s in configuration entry %s cannot be " +
+                    "dynamically applied.  This change will not take effect " +
+                    "until the group implementation is disabled and " +
+                    "re-enabled or the Directory Server is restarted.");
+    registerMessage(MSGID_CONFIG_GROUP_INITIALIZATION_FAILED,
+                    "An error occurred while trying to initialize an " +
+                    "instance of class %s as a group implementation as " +
+                    "in configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_GROUP_EXISTS,
+                    "Unable to add a new group implementation entry with DN " +
+                    "%s because there is already a group implementation " +
+                    "registered with that DN.");
+    registerMessage(MSGID_CONFIG_GROUP_UNACCEPTABLE_CONFIG,
+                    "The configuration for the group implementation defined " +
+                    "in configuration entry %s was not acceptable according " +
+                    "to its internal validation.  However, no specific " +
+                    "information is available regarding the problem(s) with " +
+                    "the entry.");
+
+
     registerMessage(
         MSGID_CONFIG_CORE_DESCRIPTION_REJECT_UNAUTHENTICATED_REQUESTS,
                     "Indicates whether the Directory Server should reject  " +
@@ -9014,7 +9264,6 @@ public class ConfigMessages
                     "configuration attribute " +
                     ATTR_REJECT_UNAUTHENTICATED_REQ + "(the value should " +
                     "be either true or false)");
-
   }
 }
 

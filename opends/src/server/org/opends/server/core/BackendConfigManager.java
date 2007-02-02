@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.api.Backend;
+import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
@@ -541,6 +542,14 @@ public class BackendConfigManager
       }
 
 
+      // Notify any backend initialization listeners.
+      for (BackendInitializationListener listener :
+           DirectoryServer.getBackendInitializationListeners())
+      {
+        listener.performBackendInitializationProcessing(backend);
+      }
+
+
       // Register the backend with the server.
       try
       {
@@ -954,6 +963,13 @@ public class BackendConfigManager
           // Directory Server.
           registeredBackends.remove(backendDN);
           DirectoryServer.deregisterBackend(backend);
+
+          for (BackendInitializationListener listener :
+               DirectoryServer.getBackendInitializationListeners())
+          {
+            listener.performBackendFinalizationProcessing(backend);
+          }
+
           backend.finalizeBackend();
 
           // Remove the shared lock for this backend.
@@ -1336,6 +1352,15 @@ public class BackendConfigManager
         return new ConfigChangeResult(resultCode, adminActionRequired,
                                       messages);
       }
+
+
+      // Notify any backend initialization listeners.
+      for (BackendInitializationListener listener :
+           DirectoryServer.getBackendInitializationListeners())
+      {
+        listener.performBackendInitializationProcessing(backend);
+      }
+
 
       // Register the backend with the server.
       try
@@ -2075,6 +2100,14 @@ public class BackendConfigManager
     }
 
 
+    // Notify any backend initialization listeners.
+    for (BackendInitializationListener listener :
+         DirectoryServer.getBackendInitializationListeners())
+    {
+      listener.performBackendInitializationProcessing(backend);
+    }
+
+
     // At this point, the backend should be online.  Add it as one of the
     // registered backends for this backend config manager.
     try
@@ -2201,6 +2234,12 @@ public class BackendConfigManager
       catch (Exception e)
       {
         assert debugException(CLASS_NAME, "applyConfigurationDelete", e);
+      }
+
+      for (BackendInitializationListener listener :
+           DirectoryServer.getBackendInitializationListeners())
+      {
+        listener.performBackendFinalizationProcessing(backend);
       }
 
       DirectoryServer.deregisterBackend(backend);

@@ -185,6 +185,14 @@ public class ServerConstants
 
 
   /**
+   * The name of the standard "member" attribute type, formatted in all '
+   * lowercase characters.
+   */
+  public static final String ATTR_MEMBER = "member";
+
+
+
+  /**
    * The name of the monitor attribute that is used to hold a backend ID.
    */
   public static final String ATTR_MONITOR_BACKEND_ID = "ds-backend-id";
@@ -464,6 +472,22 @@ public class ServerConstants
 
 
   /**
+   * The name of the standard "uniqueMember" attribute type, formatted in
+   * camelCase.
+   */
+  public static final String ATTR_UNIQUE_MEMBER = "uniqueMember";
+
+
+
+  /**
+   * The name of the standard "uniqueMember" attribute type, formatted in all
+   * lowercase characters.
+   */
+  public static final String ATTR_UNIQUE_MEMBER_LC = "uniquemember";
+
+
+
+  /**
    * The name of the attribute that is used to specify the length of time that
    * the server has been online, formatted in camel case.
    */
@@ -554,6 +578,38 @@ public class ServerConstants
    * type to be present in an entry, formatted in all lowercase characters.
    */
   public static final String OC_EXTENSIBLE_OBJECT_LC = "extensibleobject";
+
+
+
+  /**
+   * The name of the standard "groupOfNames" object class, formatted in
+   * camelCase.
+   */
+  public static final String OC_GROUP_OF_NAMES = "groupOfNames";
+
+
+
+  /**
+   * The name of the standard "groupOfNames" object class, formatted in all
+   * lowercase characters.
+   */
+  public static final String OC_GROUP_OF_NAMES_LC = "groupofnames";
+
+
+
+  /**
+   * The name of the standard "groupOfUniqueNames" object class, formatted in
+   * camelCase.
+   */
+  public static final String OC_GROUP_OF_UNIQUE_NAMES = "groupOfUniqueNames";
+
+
+
+  /**
+   * The name of the standard "groupOfUniqueNames" object class, formatted in
+   * all lowercase characters.
+   */
+  public static final String OC_GROUP_OF_UNIQUE_NAMES_LC = "groupofuniquenames";
 
 
 
@@ -1597,6 +1653,15 @@ public class ServerConstants
    */
   public static final String OID_ENTRY_CHANGE_NOTIFICATION =
        "2.16.840.1.113730.3.4.7";
+
+
+
+  /**
+   * The OID for the control that will be included in modifications used to
+   * alter group membership.
+   */
+  public static final String OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE =
+       "1.3.6.1.4.1.26027.1.5.1";
 
 
 
