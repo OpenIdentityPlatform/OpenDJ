@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -1110,7 +1110,7 @@ bindProcessing:
             if (DirectoryServer.bindWithDNRequiresPassword() &&
                 ((bindDN != null) && (! bindDN.isNullDN())))
             {
-              setResultCode(ResultCode.INVALID_CREDENTIALS);
+              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
               int    msgID   = MSGID_BIND_DN_BUT_NO_PASSWORD;
               String message = getMessage(msgID);

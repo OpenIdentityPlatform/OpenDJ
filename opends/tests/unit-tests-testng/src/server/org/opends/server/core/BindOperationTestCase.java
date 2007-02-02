@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -1759,7 +1759,7 @@ public class BindOperationTestCase
     BindOperation bindOperation =
          conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
                                 new ASN1OctetString());
-    assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
+    assertEquals(bindOperation.getResultCode(), ResultCode.UNWILLING_TO_PERFORM);
   }
 
 
