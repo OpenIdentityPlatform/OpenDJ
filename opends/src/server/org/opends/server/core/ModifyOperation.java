@@ -2731,20 +2731,8 @@ modifyProcessing:
     }
 
 
-    // Stop the processing timer.
-    processingStopTime = System.currentTimeMillis();
-
-
-    // Send the modify response to the client.
-    clientConnection.sendResponse(this);
-
-
-    // Log the modify response.
-    logModifyResponse(this);
-
-
-    // Notify any change listeners and/or persistent searches that might be
-    // registered with the server.
+    // Notify any change notification listeners that might be registered with
+    // the server.
     if (getResultCode() == ResultCode.SUCCESS)
     {
       for (ChangeNotificationListener changeListener :
@@ -2765,7 +2753,24 @@ modifyProcessing:
                    message, msgID);
         }
       }
+    }
 
+
+    // Stop the processing timer.
+    processingStopTime = System.currentTimeMillis();
+
+
+    // Send the modify response to the client.
+    clientConnection.sendResponse(this);
+
+
+    // Log the modify response.
+    logModifyResponse(this);
+
+
+    // Notify any persistent searches that might be registered with the server.
+    if (getResultCode() == ResultCode.SUCCESS)
+    {
       for (PersistentSearch persistentSearch :
            DirectoryServer.getPersistentSearches())
       {

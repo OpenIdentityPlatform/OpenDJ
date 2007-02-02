@@ -62,6 +62,10 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.types.operation.PostResponseAddOperation;
+import org.opends.server.types.operation.PostResponseDeleteOperation;
+import org.opends.server.types.operation.PostResponseModifyOperation;
+import org.opends.server.types.operation.PostResponseModifyDNOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Debug.*;
@@ -1186,7 +1190,7 @@ public class GroupManager
    * a group definition, and if so it will be instantiated and registered with
    * this group manager.
    */
-  public void handleAddOperation(AddOperation addOperation,
+  public void handleAddOperation(PostResponseAddOperation addOperation,
                                  Entry entry)
   {
     assert debugEnter(CLASS_NAME, "handleAddOperation",
@@ -1213,7 +1217,7 @@ public class GroupManager
    * {@inheritDoc}  In this case, if the entry is associated with a registered
    * group instance, then that group instance will be deregistered.
    */
-  public void handleDeleteOperation(DeleteOperation deleteOperation,
+  public void handleDeleteOperation(PostResponseDeleteOperation deleteOperation,
                                     Entry entry)
   {
     assert debugEnter(CLASS_NAME, "handleDeleteOperation",
@@ -1241,7 +1245,7 @@ public class GroupManager
    * group instance, then that instance will be recreated from the contents of
    * the provided entry and re-registered with the group manager.
    */
-  public void handleModifyOperation(ModifyOperation modifyOperation,
+  public void handleModifyOperation(PostResponseModifyOperation modifyOperation,
                                     Entry oldEntry, Entry newEntry)
   {
     assert debugEnter(CLASS_NAME, "handleModifyOperation",
@@ -1285,7 +1289,7 @@ public class GroupManager
    * DN, and the old instance will be deregistered.
    */
   public void handleModifyDNOperation(
-                   ModifyDNOperation modifyDNOperation,
+                   PostResponseModifyDNOperation modifyDNOperation,
                    Entry oldEntry, Entry newEntry)
   {
     assert debugEnter(CLASS_NAME, "handleModifyDNOperation",

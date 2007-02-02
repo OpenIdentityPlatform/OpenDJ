@@ -22,17 +22,18 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
 
 
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.types.Entry;
+import org.opends.server.types.operation.PostResponseAddOperation;
+import org.opends.server.types.operation.PostResponseDeleteOperation;
+import org.opends.server.types.operation.PostResponseModifyOperation;
+import org.opends.server.types.operation.
+            PostResponseModifyDNOperation;
 
 
 
@@ -46,11 +47,15 @@ import org.opends.server.types.Entry;
  * be invoked for successful operations.
  * <BR><BR>
  * Each change notification listener will be notified whenever an
- * update is made in the server (just after the response has been sent
- * to the client), so the listener should use a very efficient
- * mechanism for determining whether or not any action is required for
- * the associated operation and quickly return for cases in which the
- * update is not applicable.
+ * update is made in the server (just before the response is sent to
+ * the client), so the listener should use a very efficient mechanism
+ * for determining whether or not any action is required for the
+ * associated operation and quickly return for cases in which the
+ * update is not applicable.  Also note that even though the listener
+ * will be invoked before the response is sent to the client, it may
+ * not alter that response in any way and therefore the listener will
+ * be given what is essentially a read-only view of the associated
+ * operation.
  * <BR><BR>
  * Note that while this interface can be used by clients to be
  * notified of changes to the configuration data just as easily as it
@@ -73,8 +78,9 @@ public interface ChangeNotificationListener
    *                       server.
    * @param  entry         The entry that was added to the server.
    */
-  public void handleAddOperation(AddOperation addOperation,
-                                 Entry entry);
+  public void handleAddOperation(
+                   PostResponseAddOperation addOperation,
+                   Entry entry);
 
 
 
@@ -87,8 +93,9 @@ public interface ChangeNotificationListener
    * @param  entry            The entry that was removed from the
    *                          server.
    */
-  public void handleDeleteOperation(DeleteOperation deleteOperation,
-                                    Entry entry);
+  public void handleDeleteOperation(
+                   PostResponseDeleteOperation deleteOperation,
+                   Entry entry);
 
 
 
@@ -101,8 +108,9 @@ public interface ChangeNotificationListener
    * @param  oldEntry         The entry before it was updated.
    * @param  newEntry         The entry after it was updated.
    */
-  public void handleModifyOperation(ModifyOperation modifyOperation,
-                                    Entry oldEntry, Entry newEntry);
+  public void handleModifyOperation(
+                   PostResponseModifyOperation modifyOperation,
+                   Entry oldEntry, Entry newEntry);
 
 
 
@@ -116,7 +124,7 @@ public interface ChangeNotificationListener
    * @param  newEntry           The entry after it was updated.
    */
   public void handleModifyDNOperation(
-                   ModifyDNOperation modifyDNOperation,
+                   PostResponseModifyDNOperation modifyDNOperation,
                    Entry oldEntry, Entry newEntry);
 }
 

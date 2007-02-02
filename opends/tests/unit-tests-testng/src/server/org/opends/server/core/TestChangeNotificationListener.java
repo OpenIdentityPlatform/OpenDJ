@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -32,6 +32,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.types.Entry;
+import org.opends.server.types.operation.PostResponseAddOperation;
+import org.opends.server.types.operation.PostResponseDeleteOperation;
+import org.opends.server.types.operation.PostResponseModifyOperation;
+import org.opends.server.types.operation.PostResponseModifyDNOperation;
 
 
 
@@ -76,7 +80,7 @@ public class TestChangeNotificationListener
   /**
    * {@inheritDoc}
    */
-  public void handleAddOperation(AddOperation addOperation,
+  public void handleAddOperation(PostResponseAddOperation addOperation,
                                  Entry entry)
   {
     addCount.incrementAndGet();
@@ -87,7 +91,7 @@ public class TestChangeNotificationListener
   /**
    * {@inheritDoc}
    */
-  public void handleDeleteOperation(DeleteOperation deleteOperation,
+  public void handleDeleteOperation(PostResponseDeleteOperation deleteOperation,
                                     Entry entry)
   {
     deleteCount.incrementAndGet();
@@ -98,7 +102,7 @@ public class TestChangeNotificationListener
   /**
    * {@inheritDoc}
    */
-  public void handleModifyOperation(ModifyOperation modifyOperation,
+  public void handleModifyOperation(PostResponseModifyOperation modifyOperation,
                                     Entry oldEntry, Entry newEntry)
   {
     modifyCount.incrementAndGet();
@@ -110,7 +114,7 @@ public class TestChangeNotificationListener
    * {@inheritDoc}
    */
   public void handleModifyDNOperation(
-                   ModifyDNOperation modifyDNOperation,
+                   PostResponseModifyDNOperation modifyDNOperation,
                    Entry oldEntry, Entry newEntry)
   {
     modifyDNCount.incrementAndGet();
