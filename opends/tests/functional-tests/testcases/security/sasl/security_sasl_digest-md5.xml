@@ -30,10 +30,30 @@
   <defaultcall function="sasl_digest-md5"/>
 
   <function name="sasl_digest-md5">
-
+      <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             SASL DIGEST-MD5 Tests
+            #@TestSuitePurpose          Test the SASL DIGEST-MD5 functionality.
+            #@TestSuiteGroup            SASL DIGEST-MD5 Tests
+            #@TestScript                security_sasl_digest-md5.xml
+      -->
       <sequence>
 
         <!--- Test case: DIGEST-MD5 SASL Mechanism -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  SASL DIGEST-MD5 Preamble
+            #@TestIssue                 345
+            #@TestPurpose               Prepare for SASL DIGEST-MD5 tests.
+            #@TestPreamble              none
+            #@TestStep                  Admin change password storage scheme to CLEAR.
+            #@TestStep                  User change his password.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 
+                                        for all ldap operations.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: Preamble'">
           <sequence>
             <message>
@@ -72,6 +92,18 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  Dupe uid (u:) Bind
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind'">
           <sequence>
             <message>
@@ -95,6 +127,18 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (u:) Bind
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns o.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind'">
           <sequence>
             <message>
@@ -117,6 +161,18 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  Dupe uid (dn:) Bind
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to muliple DNs.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[DN] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind'">
           <sequence>
             <message>
@@ -139,6 +195,18 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (dn:) Bind
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to a single DN.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[DN] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind'">
           <sequence>
             <message>
@@ -161,6 +229,18 @@
         </testcase>
 
         <!--- Test case: Admin creating realm -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  Create realm
+            #@TestIssue                 345
+            #@TestPurpose               Admin add realm to SASL DIGEST-MD5 mechanism.
+            #@TestPreamble              none
+            #@TestStep                  ldapmodify used to add a realm.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: Create Realm'">
           <sequence>
             <message>
@@ -183,6 +263,19 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  Dupe uid (u:) Bind With Realm
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs. Realm specified.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format 
+                                        and the realm is specified.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind With Realm'">
           <sequence>
             <message>
@@ -206,6 +299,19 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (u:) Bind With Realm
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN. Realm specified.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format 
+                                        and the realm is specified.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind With Realm'">
           <sequence>
             <message>
@@ -228,6 +334,19 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  Dupe uid (dn:) Bind With Realm
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to muliple DNs. Realm specified.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[DN] format 
+                                        and the realm is specified.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind With Realm'">
           <sequence>
             <message>
@@ -250,6 +369,19 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (dn:) Bind With Realm
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to a single DN. Realm specified.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[DN] format 
+                                        and the realm is specified.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind With Realm'">
           <sequence>
             <message>
@@ -272,6 +404,19 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  Dupe uid (u:) Bind With Undefined Realm
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs. Undefined realm specified.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format 
+                                        and an undefined realm is specified.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind With Undefined Realm'">
           <sequence>
             <message>
@@ -295,6 +440,19 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (u:) Bind With Undefined Realm
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN. Undefined realm specified.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format 
+                                        and the realm is specified.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind With Undefined Realm'">
           <sequence>
             <message>
@@ -318,6 +476,19 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  Dupe uid (dn:) Bind With Undefined Realm
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to muliple DNs. Undefined realm specified.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[DN] format 
+                                        and the realm is specified.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind With Undefined Realm'">
           <sequence>
             <message>
@@ -341,7 +512,20 @@
         </testcase>
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
-        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind With Undeined Realm'">
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (dn:) Bind With Undefined Realm
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to a single DN. Undefined realm specified.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[DN] format 
+                                        and the realm is specified.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind With Undefined Realm'">
           <sequence>
             <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With Undefined Realm'
@@ -364,6 +548,25 @@
         </testcase>
 
         <!--- Test case: DIGEST-MD5 SASL Mechanism -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  SASL DIGEST-MD5 Postamble
+            #@TestIssue                 345
+            #@TestPurpose               Reset configuration and entries.
+            #@TestPreamble              none
+            #@TestStep                  Admin change password storage scheme to SSHA.
+            #@TestStep                  Admin change user password.
+            #@TestStep                  Admin delete realm from SASL DIGEST-MD5.
+            #@TestStep                  User bind with simple authentication.
+            #@TestStep                  User bind with SASL DIGEST-MD5.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 
+                                        for all ldap operations except step 5.
+                                        In step 5, the ldap operation should return 1
+                                        because the password is no longer stored as CLEAR.
+        -->
         <testcase name="'Security: SASL DIGEST-MD5: Postamble'">
           <sequence>
             <message>

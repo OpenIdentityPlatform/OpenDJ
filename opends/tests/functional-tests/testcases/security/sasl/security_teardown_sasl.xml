@@ -30,11 +30,30 @@
   <defaultcall function="teardown_sasl"/>
 
   <function name="teardown_sasl">
+        <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             SASL Teardown Tests
+            #@TestSuitePurpose          Unconfigure OpenDS after the SASL mechanism tests.
+            #@TestSuiteGroup            Security SASL Mechanism Teardown Tests
+            #@TestScript                security_teardown_sasl.xml
+       -->
 
       <sequence>
 
         <!--- Test Case : Password Policy Teardown -->
         <!--- Delete Branch -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL Teardown Tests
+            #@TestName                  SASL Mechanism Teardown Test 
+            #@TestIssue                 none
+            #@TestPurpose               Remove entries that were needed for the SASL mechaism tests.
+            #@TestPreamble              none
+            #@TestStep                  Remove entries with ldapmodify.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all operations
+         -->
         <testcase name="'Security: SASL: Postamble Reset'">
           <sequence>
             <message>
