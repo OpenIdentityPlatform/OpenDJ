@@ -61,6 +61,7 @@ import org.opends.server.synchronization.protocol.ServerStartMessage;
 import org.opends.server.synchronization.protocol.SynchronizationMessage;
 import org.opends.server.synchronization.protocol.UpdateMessage;
 import org.opends.server.synchronization.protocol.WindowMessage;
+import org.opends.server.synchronization.protocol.HeartbeatThread;
 import org.opends.server.util.TimeThread;
 
 /**
@@ -107,6 +108,17 @@ public class ServerHandler extends MonitorProvider
                                        // flow controled and should
                                        // be stopped from sending messsages.
   private int saturationCount = 0;
+
+  /**
+   * The time in milliseconds between heartbeats from the synchronization
+   * server.  Zero means heartbeats are off.
+   */
+  private long heartbeatInterval = 0;
+
+  /**
+   * The thread that will send heartbeats.
+   */
+  HeartbeatThread heartbeatThread = null;
 
   private static Map<ChangeNumber, ChangelogAckMessageList>
    changelogsWaitingAcks = new HashMap<ChangeNumber, ChangelogAckMessageList>();
@@ -173,6 +185,7 @@ public class ServerHandler extends MonitorProvider
         maxReceiveQueue = receivedMsg.getMaxReceiveQueue();
         maxSendDelay = receivedMsg.getMaxSendDelay();
         maxSendQueue = receivedMsg.getMaxSendQueue();
+        heartbeatInterval = receivedMsg.getHeartbeatInterval();
 
         if (maxReceiveQueue > 0)
           restartReceiveQueue = (maxReceiveQueue > 1000 ?
@@ -199,6 +212,12 @@ public class ServerHandler extends MonitorProvider
                               maxSendDelay);
         else
           restartSendDelay = 0;
+
+        if (heartbeatInterval < 0)
+        {
+          heartbeatInterval = 0;
+        }
+
         serverIsLDAPserver = true;
 
         changelogCache = changelog.getChangelogCache(this.baseDn);
@@ -256,6 +275,16 @@ public class ServerHandler extends MonitorProvider
 
       reader.start();
       writer.start();
+
+      // Create a thread to send heartbeat messages.
+      if (heartbeatInterval > 0)
+      {
+        heartbeatThread = new HeartbeatThread("Synchronization Heartbeat",
+                                              session, heartbeatInterval);
+        heartbeatThread.start();
+      }
+
+
       DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
       DirectoryServer.registerMonitorProvider(this);
     }
@@ -853,6 +882,12 @@ public class ServerHandler extends MonitorProvider
       msgQueue.notifyAll();
     }
 
+    // Stop the heartbeat thread.
+    if (heartbeatThread != null)
+    {
+      heartbeatThread.shutdown();
+    }
+
     DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
   }
 
@@ -1224,5 +1259,14 @@ public class ServerHandler extends MonitorProvider
   public void updateWindow(WindowMessage windowMsg)
   {
     sendWindow.release(windowMsg.getNumAck());
+  }
+
+  /**
+   * Get our heartbeat interval.
+   * @return Our heartbeat interval.
+   */
+  public long getHeartbeatInterval()
+  {
+    return heartbeatInterval;
   }
 }

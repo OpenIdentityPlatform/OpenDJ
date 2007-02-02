@@ -1038,6 +1038,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.304
   NAME 'ds-cfg-group-implementation-enabled'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.305
+  NAME 'ds-cfg-heartbeat-interval'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1296,7 +1300,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.58 NAME
   $ ds-cfg-synchronization-dn )
   MAY ( cn $ ds-cfg-receive-status $ ds-cfg-max-receive-queue $
   ds-cfg-max-receive-delay $ ds-cfg-max-send-queue $ ds-cfg-max-send-delay $
-  ds-cfg-window-size )
+  ds-cfg-window-size $ ds-cfg-heartbeat-interval )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.59
   NAME 'ds-cfg-length-based-password-validator' SUP ds-cfg-password-validator

@@ -57,6 +57,12 @@ public class ServerStartMessage extends SynchronizationMessage implements
   private ServerState serverState = null;
 
   /**
+   * The time in milliseconds between heartbeats from the synchronization
+   * server.  Zero means heartbeats are off.
+   */
+  private long heartbeatInterval = 0;
+
+  /**
    * Create a new ServerStartMessage.
    *
    * @param serverId The serverId of the server for which the ServerStartMessage
@@ -67,11 +73,13 @@ public class ServerStartMessage extends SynchronizationMessage implements
    * @param maxSendDelay The max Send Delay from this server.
    * @param maxSendQueue The max send Queue from this server.
    * @param windowSize   The window size used by this server.
+   * @param heartbeatInterval The requested heartbeat interval.
    * @param serverState  The state of this server.
    */
   public ServerStartMessage(short serverId, DN baseDn, int maxReceiveDelay,
                             int maxReceiveQueue, int maxSendDelay,
                             int maxSendQueue, int windowSize,
+                            long heartbeatInterval,
                             ServerState serverState)
   {
     this.serverId = serverId;
@@ -80,8 +88,10 @@ public class ServerStartMessage extends SynchronizationMessage implements
     this.maxReceiveQueue = maxReceiveQueue;
     this.maxSendDelay = maxSendDelay;
     this.maxSendQueue = maxSendQueue;
-    this.serverState = serverState;
     this.windowSize = windowSize;
+    this.heartbeatInterval = heartbeatInterval;
+
+    this.serverState = serverState;
 
     try
     {
@@ -105,7 +115,7 @@ public class ServerStartMessage extends SynchronizationMessage implements
   {
     /* The ServerStartMessage is encoded in the form :
      * <operation type><baseDn><ServerId><ServerUrl><maxRecvDelay><maxRecvQueue>
-     * <maxSendDelay><maxSendQueue><window><ServerState>
+     * <maxSendDelay><maxSendQueue><window><heartbeatInterval><ServerState>
      */
     try
     {
@@ -170,6 +180,13 @@ public class ServerStartMessage extends SynchronizationMessage implements
        */
       length = getNextLength(in, pos);
       windowSize = Integer.valueOf(new String(in, pos, length, "UTF-8"));
+      pos += length +1;
+
+      /*
+       * read the heartbeatInterval
+       */
+      length = getNextLength(in, pos);
+      heartbeatInterval = Integer.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       /*
@@ -269,7 +286,7 @@ public class ServerStartMessage extends SynchronizationMessage implements
     /*
      * ServerStartMessage contains.
      * <baseDn><ServerId><ServerUrl><maxRecvDelay><maxRecvQueue>
-     * <maxSendDelay><maxSendQueue><windowsize><ServerState>
+     * <maxSendDelay><maxSendQueue><windowsize><heartbeatInterval><ServerState>
      */
     try {
       byte[] byteDn = baseDn.getBytes("UTF-8");
@@ -285,6 +302,8 @@ public class ServerStartMessage extends SynchronizationMessage implements
                      String.valueOf(maxSendQueue).getBytes("UTF-8");
       byte[] byteWindowSize =
                      String.valueOf(windowSize).getBytes("UTF-8");
+      byte[] byteHeartbeatInterval =
+                     String.valueOf(heartbeatInterval).getBytes("UTF-8");
       byte[] byteServerState = serverState.getBytes();
 
       int length = 1 + byteDn.length + 1 + byteServerId.length + 1 +
@@ -294,6 +313,7 @@ public class ServerStartMessage extends SynchronizationMessage implements
                    byteMaxSendDelay.length + 1 +
                    byteMaxSendQueue.length + 1 +
                    byteWindowSize.length + 1 +
+                   byteHeartbeatInterval.length + 1 +
                    byteServerState.length + 1;
 
       byte[] resultByteArray = new byte[length];
@@ -318,6 +338,8 @@ public class ServerStartMessage extends SynchronizationMessage implements
 
       pos = addByteArray(byteWindowSize, resultByteArray, pos);
 
+      pos = addByteArray(byteHeartbeatInterval, resultByteArray, pos);
+
       pos = addByteArray(byteServerState, resultByteArray, pos);
 
       return resultByteArray;
@@ -336,5 +358,17 @@ public class ServerStartMessage extends SynchronizationMessage implements
   public int getWindowSize()
   {
     return windowSize;
+  }
+
+  /**
+   * Get the heartbeat interval requested by the ldap server that created the
+   * message.
+   *
+   * @return The heartbeat interval requested by the ldap server that created
+   * the message.
+   */
+  public long getHeartbeatInterval()
+  {
+    return heartbeatInterval;
   }
 }

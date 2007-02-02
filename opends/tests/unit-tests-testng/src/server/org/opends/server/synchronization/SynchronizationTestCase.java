@@ -120,7 +120,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     if (emptyOldChanges)
       state.loadState();
     ChangelogBroker broker = new ChangelogBroker(
-        state, baseDn, serverId, 0, 0, 0, 0, window_size);
+        state, baseDn, serverId, 0, 0, 0, 0, window_size, 0);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -155,7 +155,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
           throws Exception, SocketException
   {
     ChangelogBroker broker = new ChangelogBroker(
-        state, baseDn, serverId, 0, 0, 0, 0, window_size);
+        state, baseDn, serverId, 0, 0, 0, 0, window_size, 0);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -164,7 +164,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
 
     return broker;
   }
-  
+
   /**
    * Open a changelog session with flow control to the local Changelog server.
    *
@@ -179,7 +179,8 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     if (emptyOldChanges)
       state.loadState();
     ChangelogBroker broker = new ChangelogBroker(
-        state, baseDn, serverId, maxRcvQueue, 0, maxSendQueue, 0, window_size);
+        state, baseDn, serverId, maxRcvQueue, 0,
+        maxSendQueue, 0, window_size, 0);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);

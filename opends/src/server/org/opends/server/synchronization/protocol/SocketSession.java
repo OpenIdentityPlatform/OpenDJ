@@ -50,6 +50,18 @@ public class SocketSession implements ProtocolSession
   byte[] rcvLengthBuf = new byte[8];
 
   /**
+   * The time the last message published to this session.
+   */
+  private long lastPublishTime = 0;
+
+
+  /**
+   * The time the last message was received on this session.
+   */
+  private long lastReceiveTime = 0;
+
+
+  /**
    * Creates a new SocketSession based on the provided socket.
    *
    * @param socket The Socket on which the SocketSession will be based.
@@ -87,6 +99,8 @@ public class SocketSession implements ProtocolSession
     output.write(sendLengthBuf);
     output.write(buffer);
     output.flush();
+
+    lastPublishTime = System.currentTimeMillis();
   }
 
   /**
@@ -102,9 +116,13 @@ public class SocketSession implements ProtocolSession
     {
       int read = input.read(rcvLengthBuf, length, 8-length);
       if (read == -1)
+      {
         throw new IOException("no more data");
+      }
       else
+      {
         length += read;
+      }
     }
 
     int totalLength = Integer.parseInt(new String(rcvLengthBuf), 16);
@@ -114,7 +132,11 @@ public class SocketSession implements ProtocolSession
       length = 0;
       byte[] buffer = new byte[totalLength];
       while (length < totalLength)
+      {
         length += input.read(buffer, length, totalLength - length);
+      }
+
+      lastReceiveTime = System.currentTimeMillis();
       return SynchronizationMessage.generateMsg(buffer);
     }
     catch (OutOfMemoryError e)
@@ -122,6 +144,22 @@ public class SocketSession implements ProtocolSession
       throw new IOException("Packet too large, can't allocate "
                             + totalLength + " bytes.");
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public long getLastPublishTime()
+  {
+    return lastPublishTime;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public long getLastReceiveTime()
+  {
+    return lastReceiveTime;
   }
 
   /**
