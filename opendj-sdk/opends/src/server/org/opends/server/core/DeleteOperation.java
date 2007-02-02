@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -1197,20 +1197,8 @@ deleteProcessing:
     }
 
 
-    // Stop the processing timer.
-    processingStopTime = System.currentTimeMillis();
-
-
-    // Send the delete response to the client.
-    getClientConnection().sendResponse(this);
-
-
-    // Log the delete response.
-    logDeleteResponse(this);
-
-
-    // Notify any change listeners and/or persistent searches that might be
-    // registered with the server.
+    // Notify any change notification listeners that might be registered with
+    // the server.
     if (getResultCode() == ResultCode.SUCCESS)
     {
       for (ChangeNotificationListener changeListener :
@@ -1230,7 +1218,24 @@ deleteProcessing:
                    message, msgID);
         }
       }
+    }
 
+
+    // Stop the processing timer.
+    processingStopTime = System.currentTimeMillis();
+
+
+    // Send the delete response to the client.
+    getClientConnection().sendResponse(this);
+
+
+    // Log the delete response.
+    logDeleteResponse(this);
+
+
+    // Notify any persistent searches that might be registered with the server.
+    if (getResultCode() == ResultCode.SUCCESS)
+    {
       for (PersistentSearch persistentSearch :
            DirectoryServer.getPersistentSearches())
       {

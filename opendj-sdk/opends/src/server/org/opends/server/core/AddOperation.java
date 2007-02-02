@@ -2154,20 +2154,8 @@ addProcessing:
     }
 
 
-    // Stop the processing timer.
-    processingStopTime = System.currentTimeMillis();
-
-
-    // Send the add response to the client.
-    getClientConnection().sendResponse(this);
-
-
-    // Log the add response.
-    logAddResponse(this);
-
-
-    // Notify any change listeners and/or persistent searches that might be
-    // registered with the server.
+    // Notify any change notification listeners that might be registered with
+    // the server.
     if (getResultCode() == ResultCode.SUCCESS)
     {
       for (ChangeNotificationListener changeListener :
@@ -2187,7 +2175,24 @@ addProcessing:
                    message, msgID);
         }
       }
+    }
 
+
+    // Stop the processing timer.
+    processingStopTime = System.currentTimeMillis();
+
+
+    // Send the add response to the client.
+    getClientConnection().sendResponse(this);
+
+
+    // Log the add response.
+    logAddResponse(this);
+
+
+    // Notify any persistent searches that might be registered with the server.
+    if (getResultCode() == ResultCode.SUCCESS)
+    {
       for (PersistentSearch persistentSearch :
            DirectoryServer.getPersistentSearches())
       {

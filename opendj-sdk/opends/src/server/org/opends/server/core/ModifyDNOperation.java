@@ -2003,20 +2003,8 @@ modifyDNProcessing:
     }
 
 
-    // Stop the processing timer.
-    processingStopTime = System.currentTimeMillis();
-
-
-    // Send the modify DN response to the client.
-    clientConnection.sendResponse(this);
-
-
-    // Log the modify DN response.
-    logModifyDNResponse(this);
-
-
-    // Notify any change listeners and/or persistent searches that might be
-    // registered with the server.
+    // Notify any change notification listeners that might be registered with
+    // the server.
     if (getResultCode() == ResultCode.SUCCESS)
     {
       for (ChangeNotificationListener changeListener :
@@ -2036,7 +2024,24 @@ modifyDNProcessing:
                    message, msgID);
         }
       }
+    }
 
+
+    // Stop the processing timer.
+    processingStopTime = System.currentTimeMillis();
+
+
+    // Send the modify DN response to the client.
+    clientConnection.sendResponse(this);
+
+
+    // Log the modify DN response.
+    logModifyDNResponse(this);
+
+
+    // Notify any persistent searches that might be registered with the server.
+    if (getResultCode() == ResultCode.SUCCESS)
+    {
       for (PersistentSearch persistentSearch :
            DirectoryServer.getPersistentSearches())
       {
