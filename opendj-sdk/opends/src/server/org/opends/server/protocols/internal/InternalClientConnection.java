@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
 
@@ -200,6 +200,7 @@ public class InternalClientConnection
     assert debugConstructor(CLASS_NAME, String.valueOf(authInfo));
 
     this.authenticationInfo = authInfo;
+    super.setAuthenticationInfo(authInfo);
 
     connectionID  = nextConnectionID.getAndDecrement();
     operationList = new LinkedList<Operation>();

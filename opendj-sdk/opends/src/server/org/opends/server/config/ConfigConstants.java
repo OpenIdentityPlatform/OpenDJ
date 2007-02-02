@@ -701,6 +701,24 @@ public class ConfigConstants
 
 
   /**
+   * The name of the configuration attribute that specifies the fully-qualified
+   * class name for a group implementation.
+   */
+  public static final String ATTR_GROUP_IMPLEMENTATION_CLASS =
+       NAME_PREFIX_CFG + "group-implementation-class";
+
+
+
+  /**
+   * The name of the configuration attribute that indicates whether a group
+   * implementation should be enabled for use in the server.
+   */
+  public static final String ATTR_GROUP_IMPLEMENTATION_ENABLED =
+       NAME_PREFIX_CFG + "group-implementation-enabled";
+
+
+
+  /**
    * The name of the configuration attribute that holds the address of the KDC
    * to use when processing SASL GSSAPI binds.
    */
@@ -2537,6 +2555,15 @@ public class ConfigConstants
 
   /**
    * The DN of the entry that will serve as the base for the configuration
+   * for all Directory Server group implementations.
+   */
+  public static final String DN_GROUP_IMPLEMENTATION_CONFIG_BASE =
+       "cn=Group Implementations," + DN_CONFIG_ROOT;
+
+
+
+  /**
+   * The DN of the entry that will serve as the base for the configuration
    * for all Directory Server identity mappers.
    */
   public static final String DN_IDMAPPER_CONFIG_BASE =
@@ -2899,6 +2926,15 @@ public class ConfigConstants
    */
   public static final String OC_EXTENDED_OPERATION_HANDLER =
        NAME_PREFIX_CFG + "extended-operation-handler";
+
+
+
+  /**
+   * The name of the objectclass that will be used for a Directory Server group
+   * implementation.
+   */
+  public static final String OC_GROUP_IMPLEMENTATION =
+       NAME_PREFIX_CFG + "group-implementation";
 
 
 
@@ -3727,9 +3763,6 @@ public class ConfigConstants
    */
   public static final String ATTR_TASK_BACKUP_SIGN_HASH =
        NAME_PREFIX_TASK + "backup-sign-hash";
-
-
-
   /**
    * The name of the attribute in the add schema file task definition that
    * specifies the name of the schema file to be added.

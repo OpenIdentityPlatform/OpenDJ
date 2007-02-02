@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -31,6 +31,7 @@ package org.opends.server.api;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -45,6 +46,8 @@ import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -980,8 +983,48 @@ public abstract class ClientConnection
     assert debugEnter(CLASS_NAME, "getGroups",
                       String.valueOf(operation));
 
-    // NYI -- Add a mechanism for making this determination.
-    return java.util.Collections.<Group>emptySet();
+
+    // FIXME -- This probably isn't the most efficient implementation.
+    DN authzDN;
+    if (operation == null)
+    {
+      if ((authenticationInfo == null) ||
+          (! authenticationInfo.isAuthenticated()))
+      {
+        authzDN = null;
+      }
+      else
+      {
+        authzDN = authenticationInfo.getAuthorizationDN();
+      }
+    }
+    else
+    {
+      authzDN = operation.getAuthorizationDN();
+    }
+
+    if ((authzDN == null) || authzDN.isNullDN())
+    {
+      return java.util.Collections.<Group>emptySet();
+    }
+
+    Entry userEntry = DirectoryServer.getEntry(authzDN);
+    if (userEntry == null)
+    {
+      return java.util.Collections.<Group>emptySet();
+    }
+
+    HashSet<Group> groupSet = new HashSet<Group>();
+    for (Group g :
+         DirectoryServer.getGroupManager().getGroupInstances())
+    {
+      if (g.isMember(userEntry))
+      {
+        groupSet.add(g);
+      }
+    }
+
+    return groupSet;
   }
 
 

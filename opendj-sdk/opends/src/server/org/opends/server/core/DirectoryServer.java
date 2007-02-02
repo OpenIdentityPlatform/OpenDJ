@@ -53,6 +53,7 @@ import org.opends.server.api.AlertHandler;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.Backend;
+import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
@@ -355,6 +356,11 @@ public class DirectoryServer
   private CopyOnWriteArrayList<SynchronizationProvider>
                synchronizationProviders;
 
+  // The set of backend initialization listeners registered with the Directory
+  // Server.
+  private CopyOnWriteArraySet<BackendInitializationListener>
+               backendInitializationListeners;
+
   // The set of root DNs registered with the Directory Server.
   private CopyOnWriteArraySet<DN> rootDNs;
 
@@ -385,6 +391,9 @@ public class DirectoryServer
 
   // The configuration manager for extended operation handlers.
   private ExtendedOperationConfigManager extendedOperationConfigManager;
+
+  // The group manager for the Directory Server.
+  private GroupManager groupManager;
 
   // The configuration manager for identity mappers.
   private IdentityMapperConfigManager identityMapperConfigManager;
@@ -615,6 +624,8 @@ public class DirectoryServer
     directoryServer.monitorProviders =
          new ConcurrentHashMap<String,MonitorProvider>();
     directoryServer.backends = new TreeMap<String,Backend>();
+    directoryServer.backendInitializationListeners =
+         new CopyOnWriteArraySet<BackendInitializationListener>();
     directoryServer.baseDNs = new TreeMap<DN,Backend>();
     directoryServer.publicNamingContexts = new TreeMap<DN,Backend>();
     directoryServer.privateNamingContexts = new TreeMap<DN,Backend>();
@@ -722,6 +733,12 @@ public class DirectoryServer
     currentConnections     = 0;
     maxConnections         = 0;
     totalConnections       = 0;
+
+
+    // Create the plugin config manager, but don't initialize it yet.  This will
+    // make it possible to process internal operations before the plugins have
+    // been loaded.
+    pluginConfigManager = new PluginConfigManager();
 
 
     // If we have gotten here, then the configuration should be properly
@@ -962,6 +979,10 @@ public class DirectoryServer
 
       // Initialize the root DNs.
       new RootDNConfigManager().initializeRootDNs();
+
+
+      // Initialize the group manager.
+      initializeGroupManager();
 
 
       // Initialize all the backends and their associated suffixes.
@@ -1899,6 +1920,60 @@ public class DirectoryServer
 
 
   /**
+   * Retrieves the set of backend initialization listeners that have been
+   * registered with the Directory Server.  The contents of the returned set
+   * must not be altered.
+   *
+   * @return  The set of backend initialization listeners that have been
+   *          registered with the Directory Server.
+   */
+  public static Set<BackendInitializationListener>
+                     getBackendInitializationListeners()
+  {
+    assert debugEnter(CLASS_NAME, "getBackendInitializationListeners");
+
+    return directoryServer.backendInitializationListeners;
+  }
+
+
+
+  /**
+   * Registers the provided backend initialization listener with the Directory
+   * Server.
+   *
+   * @param  listener  The backend initialization listener to register with the
+   *                   Directory Server.
+   */
+  public static void registerBackendInitializationListener(
+                          BackendInitializationListener listener)
+  {
+    assert debugEnter(CLASS_NAME, "registerBackendInitializationListener",
+                      String.valueOf(listener));
+
+    directoryServer.backendInitializationListeners.add(listener);
+  }
+
+
+
+  /**
+   * Deegisters the provided backend initialization listener with the Directory
+   * Server.
+   *
+   * @param  listener  The backend initialization listener to deregister with
+   *                   the Directory Server.
+   */
+  public static void deregisterBackendInitializationListener(
+                          BackendInitializationListener listener)
+  {
+    assert debugEnter(CLASS_NAME, "deregisterBackendInitializationListener",
+                      String.valueOf(listener));
+
+    directoryServer.backendInitializationListeners.remove(listener);
+  }
+
+
+
+  /**
    * Initializes the set of backends defined in the Directory Server.
    *
    * @throws  ConfigException  If there is a configuration problem with any of
@@ -1937,6 +2012,45 @@ public class DirectoryServer
     DN[] baseDNs   = { DN.nullDN() };
     rootDSEBackend = new RootDSEBackend();
     rootDSEBackend.initializeBackend(rootDSEConfigEntry, baseDNs);
+  }
+
+
+
+  /**
+   * Initializes the Directory Server group manager.
+   *
+   * @throws  ConfigException  If there is a configuration problem with any of
+   *                           the group implementations.
+   *
+   * @throws  InitializationException  If a problem occurs while initializing
+   *                                   the group manager that is not related to
+   *                                   the server configuration.
+   */
+  public void initializeGroupManager()
+         throws ConfigException, InitializationException
+  {
+    assert debugEnter(CLASS_NAME, "initializeGroupManager");
+
+    groupManager = new GroupManager();
+    groupManager.initializeGroupImplementations();
+
+    // The configuration backend has already been registered by this point
+    // so we need to handle it explicitly.
+    groupManager.performBackendInitializationProcessing(configHandler);
+  }
+
+
+
+  /**
+   * Retrieves the Directory Server group manager.
+   *
+   * @return  The Directory Server group manager.
+   */
+  public static GroupManager getGroupManager()
+  {
+    assert debugEnter(CLASS_NAME, "getGroupManager");
+
+    return directoryServer.groupManager;
   }
 
 
@@ -2203,7 +2317,6 @@ public class DirectoryServer
   {
     assert debugEnter(CLASS_NAME, "initializePlugins");
 
-    pluginConfigManager = new PluginConfigManager();
     pluginConfigManager.initializePluginConfig(null);
   }
 
@@ -7121,6 +7234,10 @@ public class DirectoryServer
     }
 
 
+    // Perform any necessary cleanup work for the group manager.
+    directoryServer.groupManager.finalizeGroupManager();
+
+
     // Shut down all the other components that may need special handling.
     // NYI
 
@@ -7144,6 +7261,12 @@ public class DirectoryServer
     {
       try
       {
+        for (BackendInitializationListener listener :
+             directoryServer.backendInitializationListeners)
+        {
+          listener.performBackendFinalizationProcessing(backend);
+        }
+
         backend.finalizeBackend();
 
         // Remove the shared lock for this backend.

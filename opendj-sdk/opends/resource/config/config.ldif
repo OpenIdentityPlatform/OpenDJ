@@ -341,6 +341,18 @@ cn: Who Am I
 ds-cfg-extended-operation-handler-class: org.opends.server.extensions.WhoAmIExtendedOperation
 ds-cfg-extended-operation-handler-enabled: true
 
+dn: cn=Group Implementations,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Group Implementations
+
+dn: cn=Static,cn=Group Implementations,cn=config
+objectClass: top
+objectClass: ds-cfg-group-implementation
+cn: Static
+ds-cfg-group-implementation-class: org.opends.server.extensions.StaticGroup
+ds-cfg-group-implementation-enabled: true
+
 dn: cn=Identity Mappers,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
