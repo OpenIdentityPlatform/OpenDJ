@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -49,6 +49,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -84,10 +85,11 @@ public class ProxiedAuthV2Control
    */
   public ProxiedAuthV2Control(ASN1OctetString authorizationID)
   {
-    super(OID_PROXIED_AUTH_V2, true, encodeValue(authorizationID));
+    super(OID_PROXIED_AUTH_V2, true, authorizationID);
 
     assert debugConstructor(CLASS_NAME, String.valueOf(authorizationID));
 
+    ensureNotNull(authorizationID);
     this.authorizationID = authorizationID;
   }
 
@@ -118,36 +120,12 @@ public class ProxiedAuthV2Control
 
 
   /**
-   * Generates an encoded value for this control containing the provided
-   * authorization ID.
-   *
-   * @param  authorizationID  The authorization ID to be encoded.
-   *
-   * @return  The encoded control value.
-   */
-  private static ASN1OctetString encodeValue(ASN1OctetString authorizationID)
-  {
-    assert debugEnter(CLASS_NAME, "encodeValue",
-                      String.valueOf(authorizationID));
-
-    if (authorizationID == null)
-    {
-      return new ASN1OctetString();
-    }
-    else
-    {
-      return authorizationID;
-    }
-  }
-
-
-
-  /**
    * Creates a new proxied authorization v2 control from the contents of the
    * provided control.
    *
    * @param  control  The generic control containing the information to use to
-   *                  create this proxied authorization v2 control.
+   *                  create this proxied authorization v2 control.  It must not
+   *                  be {@code null}.
    *
    * @return  The proxied authorization v2 control decoded from the provided
    *          control.
@@ -159,6 +137,16 @@ public class ProxiedAuthV2Control
          throws LDAPException
   {
     assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
+
+    ensureNotNull(control);
+
+    if (! control.isCritical())
+    {
+      int    msgID   = MSGID_PROXYAUTH2_CONTROL_NOT_CRITICAL;
+      String message = getMessage(msgID);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
+                              message);
+    }
 
     if (! control.hasValue())
     {
