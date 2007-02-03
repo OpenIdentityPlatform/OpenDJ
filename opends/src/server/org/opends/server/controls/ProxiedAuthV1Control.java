@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -50,6 +50,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -86,7 +87,7 @@ public class ProxiedAuthV1Control
    * provided information.
    *
    * @param  rawAuthorizationDN  The raw, unprocessed authorization DN from the
-   *                             control value.
+   *                             control value.  It must not be {@code null}.
    */
   public ProxiedAuthV1Control(ASN1OctetString rawAuthorizationDN)
   {
@@ -105,7 +106,8 @@ public class ProxiedAuthV1Control
    * Creates a new instance of the proxied authorization v1 control with the
    * provided information.
    *
-   * @param  authorizationDN  The authorization DN from the control value.
+   * @param  authorizationDN  The authorization DN from the control value.  It
+   *                          must not be {@code null}.
    */
   public ProxiedAuthV1Control(DN authorizationDN)
   {
@@ -156,7 +158,8 @@ public class ProxiedAuthV1Control
    * authorization DN.
    *
    * @param  rawAuthorizationDN  The raw, unprocessed authorization DN to use in
-   *                             the control value.
+   *                             the control value.  It must not be
+   *                             {@code null}.
    *
    * @return  The encoded control value.
    */
@@ -164,6 +167,8 @@ public class ProxiedAuthV1Control
   {
     assert debugEnter(CLASS_NAME, "encodeValue",
                       String.valueOf(rawAuthorizationDN));
+
+    ensureNotNull(rawAuthorizationDN);
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(1);
     elements.add(rawAuthorizationDN);
@@ -178,7 +183,8 @@ public class ProxiedAuthV1Control
    * provided control.
    *
    * @param  control  The generic control containing the information to use to
-   *                  create this proxied authorization v1 control.
+   *                  create this proxied authorization v1 control.  It must not
+   *                  be {@code null}.
    *
    * @return  The proxied authorization v1 control decoded from the provided
    *          control.
@@ -190,6 +196,16 @@ public class ProxiedAuthV1Control
          throws LDAPException
   {
     assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
+
+    ensureNotNull(control);
+
+    if (! control.isCritical())
+    {
+      int    msgID   = MSGID_PROXYAUTH1_CONTROL_NOT_CRITICAL;
+      String message = getMessage(msgID);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
+                              message);
+    }
 
     if (! control.hasValue())
     {
@@ -293,11 +309,14 @@ public class ProxiedAuthV1Control
    * Specifies the authorization DN for this proxied auth control.
    *
    * @param  authorizationDN  The authorizationDN for this proxied auth control.
+   *                          It must not be {@code null}.
    */
   public void setAuthorizationDN(DN authorizationDN)
   {
     assert debugEnter(CLASS_NAME, "setAuthorizationDN",
                       String.valueOf(authorizationDN));
+
+    ensureNotNull(authorizationDN);
 
     this.authorizationDN = authorizationDN;
 

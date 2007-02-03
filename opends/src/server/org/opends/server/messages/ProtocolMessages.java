@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.messages;
 
@@ -4210,6 +4210,24 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used if a proxied auth V1
+   * control is not marked critical.  This does not take any arguments.
+   */
+  public static final int MSGID_PROXYAUTH1_CONTROL_NOT_CRITICAL =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 388;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proxied auth V2
+   * control is not marked critical.  This does not take any arguments.
+   */
+  public static final int MSGID_PROXYAUTH2_CONTROL_NOT_CRITICAL =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 389;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5654,6 +5672,11 @@ public class ProtocolMessages
                     "decode the control value:  %s.");
 
 
+    registerMessage(MSGID_PROXYAUTH1_CONTROL_NOT_CRITICAL,
+                    "Unwilling to process the request because it contains a " +
+                    "proxied authorization V1 control which is not marked " +
+                    "critical.  The proxied authorization control must " +
+                    "always have a criticality of \"true\".");
     registerMessage(MSGID_PROXYAUTH1_NO_CONTROL_VALUE,
                     "Cannot decode the provided proxied authorization V1 " +
                     "control because it does not have a value.");
@@ -5677,6 +5700,11 @@ public class ProtocolMessages
                     "is not allowed by the password policy configuration.");
 
 
+    registerMessage(MSGID_PROXYAUTH2_CONTROL_NOT_CRITICAL,
+                    "Unwilling to process the request because it contains a " +
+                    "proxied authorization V2 control which is not marked " +
+                    "critical.  The proxied authorization control must " +
+                    "always have a criticality of \"true\".");
     registerMessage(MSGID_PROXYAUTH2_NO_CONTROL_VALUE,
                     "Cannot decode the provided proxied authorization V2 " +
                     "control because it does not have a value.");
