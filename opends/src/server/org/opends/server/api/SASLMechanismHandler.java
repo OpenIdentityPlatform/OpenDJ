@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -91,12 +91,27 @@ public abstract class SASLMechanismHandler
 
 
   /**
-   * Processes the provided SASL bind operation.  Note that if the
-   * SASL processing gets far enough to be able to map the associated
-   * request to a user entry (regardless of whether the authentication
-   * is ultimately successful), then this method must call the
-   * <CODE>BindOperation.setSASLAuthUserEntry</CODE> to provide it
-   * with the entry for the user that attempted to authenticate.
+   * Processes the SASL bind operation.  SASL mechanism
+   * implementations must ensure that the following actions are taken
+   * during the processing of this method:
+   * <UL>
+   *   <LI>The {@code BindOperation.setResultCode} method must be used
+   *       to set the appropriate result code.</LI>
+   *   <LI>If the SASL processing gets far enough to be able to map
+   *       the request to a user entry (regardless of whether the
+   *       authentication is ultimately successful), then this method
+   *       must call the {@code BindOperation.setSASLAuthUserEntry}
+   *       method to provide it with the entry for the user that
+   *       attempted to authenticate.</LI>
+   *   <LI>If the bind processing was successful, then the
+   *       {@code BindOperation.setAuthenticationInfo} method must be
+   *       used to set the authentication info for the bind
+   *       operation.</LI>
+   *   <LI>If the bind processing was not successful, then the
+   *       {@code BindOperation.setAuthFailureReason} method should be
+   *       used to provide a message explaining why the authentication
+   *       failed.</LI>
+   * </UL>
    *
    * @param  bindOperation  The SASL bind operation to be processed.
    */

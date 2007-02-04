@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -432,7 +432,7 @@ public class GSSAPIStateInfo
     AuthenticationInfo authInfo =
          new AuthenticationInfo(userEntry.getDN(), SASL_MECHANISM_GSSAPI,
                                 DirectoryServer.isRootDN(userEntry.getDN()));
-    clientConnection.setAuthenticationInfo(authInfo);
+    bindOperation.setAuthenticationInfo(authInfo);
     bindOperation.setResultCode(ResultCode.SUCCESS);
 
     // FIXME -- If we're using integrity or confidentiality, then we can't do
