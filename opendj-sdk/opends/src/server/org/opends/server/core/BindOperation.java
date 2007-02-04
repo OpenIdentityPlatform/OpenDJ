@@ -113,6 +113,9 @@ public class BindOperation
   // The server SASL credentials provided to the client in the response.
   private ASN1OctetString serverSASLCredentials;
 
+  // The authentication info for this bind operation.
+  private AuthenticationInfo authInfo;
+
   // The authentication type used for this bind operation.
   private AuthenticationType authType;
 
@@ -751,6 +754,40 @@ public class BindOperation
 
 
   /**
+   * Retrieves the authentication info that resulted from processing this bind
+   * operation.  It will only be valid if the bind processing was successful.
+   *
+   * @return  The authentication info that resulted from processing this bind
+   *          operation.
+   */
+  public final AuthenticationInfo getAuthenticationInfo()
+  {
+    assert debugEnter(CLASS_NAME, "getAuthenticationInfo");
+
+    return authInfo;
+  }
+
+
+
+  /**
+   * Specifies the authentication info that resulted from processing this bind
+   * operation.  This method must only be called by SASL mechanism handlers
+   * during the course of processing the {@code processSASLBind} method.
+   *
+   * @param  authInfo  The authentication info that resulted from processing
+   *                   this bind operation.
+   */
+  public final void setAuthenticationInfo(AuthenticationInfo authInfo)
+  {
+    assert debugEnter(CLASS_NAME, "setAuthenticationInfo",
+                      String.valueOf(authInfo));
+
+    this.authInfo = authInfo;
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override()
@@ -979,7 +1016,7 @@ public class BindOperation
     // Wipe out any existing authentication for the client connection and create
     // a placeholder that will be used if the bind is successful.
     clientConnection.setUnauthenticated();
-    AuthenticationInfo authInfo = null;
+    authInfo = null;
 
 
     // Abandon any operations that may be in progress for the client.

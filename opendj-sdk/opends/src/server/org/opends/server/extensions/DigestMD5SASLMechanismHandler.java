@@ -144,21 +144,9 @@ public class DigestMD5SASLMechanismHandler
 
 
   /**
-   * Initializes this SASL mechanism handler based on the information in the
-   * provided configuration entry.  It should also register itself with the
-   * Directory Server for the particular kinds of SASL mechanisms that it
-   * will process.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this SASL mechanism handler.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
+  @Override()
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
@@ -264,9 +252,9 @@ public class DigestMD5SASLMechanismHandler
 
 
   /**
-   * Performs any finalization that may be necessary for this SASL mechanism
-   * handler.
+   * {@inheritDoc}
    */
+  @Override()
   public void finalizeSASLMechanismHandler()
   {
     assert debugEnter(CLASS_NAME, "finalizeSASLMechanismHandler");
@@ -279,15 +267,9 @@ public class DigestMD5SASLMechanismHandler
 
 
   /**
-   * Processes the provided SASL bind operation.  Note that if the SASL
-   * processing gets far enough to be able to map the associated request to a
-   * user entry (regardless of whether the authentication is ultimately
-   * successful), then this method must call the
-   * <CODE>BindOperation.setSASLAuthUserEntry</CODE> to provide it with the
-   * entry for the user that attempted to authenticate.
-   *
-   * @param  bindOperation  The SASL bind operation to be processed.
+   * {@inheritDoc}
    */
+  @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
     assert debugEnter(CLASS_NAME, "processSASLBind",
@@ -1031,7 +1013,7 @@ public class DigestMD5SASLMechanismHandler
     AuthenticationInfo authInfo =
          new AuthenticationInfo(userEntry.getDN(), SASL_MECHANISM_DIGEST_MD5,
                                 DirectoryServer.isRootDN(userEntry.getDN()));
-    bindOperation.getClientConnection().setAuthenticationInfo(authInfo);
+    bindOperation.setAuthenticationInfo(authInfo);
     return;
   }
 
@@ -1789,18 +1771,9 @@ public class DigestMD5SASLMechanismHandler
 
 
   /**
-   * Indicates whether the specified SASL mechanism is password-based or uses
-   * some other form of credentials (e.g., an SSL client certificate or Kerberos
-   * ticket).
-   *
-   * @param  mechanism  The name of the mechanism for which to make the
-   *                    determination.  This will only be invoked with names of
-   *                    mechanisms for which this handler has previously
-   *                    registered.
-   *
-   * @return  <CODE>true</CODE> if this SASL mechanism is password-based, or
-   *          <CODE>false</CODE> if it uses some other form of credentials.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean isPasswordBased(String mechanism)
   {
     assert debugEnter(CLASS_NAME, "isPasswordBased", String.valueOf(mechanism));
@@ -1812,19 +1785,9 @@ public class DigestMD5SASLMechanismHandler
 
 
   /**
-   * Indicates whether the specified SASL mechanism should be considered secure
-   * (i.e., it does not expose the authentication credentials in a manner that
-   * is useful to a third-party observer, and other aspects of the
-   * authentication are generally secure).
-   *
-   * @param  mechanism  The name of the mechanism for which to make the
-   *                    determination.  This will only be invoked with names of
-   *                    mechanisms for which this handler has previously
-   *                    registered.
-   *
-   * @return  <CODE>true</CODE> if this SASL mechanism should be considered
-   *          secure, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean isSecure(String mechanism)
   {
     assert debugEnter(CLASS_NAME, "isSecure", String.valueOf(mechanism));
