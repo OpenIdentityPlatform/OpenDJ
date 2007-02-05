@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -1466,6 +1466,61 @@ public class LDAPSearchTestCase
     };
 
     assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests the use of the simple paged results control.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSimplePagedResults()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    TestCaseUtils.addEntries(
+      "dn: cn=device 1,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: device",
+      "cn: device 1",
+      "",
+      "dn: cn=device 2,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: device",
+      "cn: device 2",
+      "",
+      "dn: cn=device 3,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: device",
+      "cn: device 3",
+      "",
+      "dn: cn=device 4,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: device",
+      "cn: device 4",
+      "",
+      "dn: cn=device 5,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: device",
+      "cn: device 5");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "one",
+      "--simplePageSize", "2",
+      "--countEntries",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 5);
   }
 
 

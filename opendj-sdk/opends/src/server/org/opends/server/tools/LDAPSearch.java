@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -42,6 +42,7 @@ import org.opends.server.controls.AccountUsableResponseControl;
 import org.opends.server.controls.EntryChangeNotificationControl;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.controls.MatchedValuesFilter;
+import org.opends.server.controls.PagedResultsControl;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.controls.PersistentSearchControl;
 import org.opends.server.core.DirectoryServer;
@@ -93,6 +94,9 @@ public class LDAPSearch
 
 
 
+  // The set of response controls for the search.
+  private ArrayList<LDAPControl> responseControls;
+
   // The message ID counter to use for requests.
   private AtomicInteger nextMessageID;
 
@@ -117,6 +121,7 @@ public class LDAPSearch
     this.nextMessageID = nextMessageID;
     this.out           = out;
     this.err           = err;
+    responseControls   = new ArrayList<LDAPControl>();
   }
 
 
@@ -175,14 +180,14 @@ public class LDAPSearch
           ASN1Element element = connection.getASN1Reader().readElement();
           LDAPMessage responseMessage =
                LDAPMessage.decode(ASN1Sequence.decodeAsSequence(element));
-          ArrayList<LDAPControl> controls = responseMessage.getControls();
+          responseControls = responseMessage.getControls();
 
 
           opType = responseMessage.getProtocolOpType();
           switch(opType)
           {
             case OP_TYPE_SEARCH_RESULT_ENTRY:
-              for (LDAPControl c : controls)
+              for (LDAPControl c : responseControls)
               {
                 if (c.getOID().equals(OID_ENTRY_CHANGE_NOTIFICATION))
                 {
@@ -287,6 +292,7 @@ public class LDAPSearch
                    responseMessage.getSearchResultDoneProtocolOp();
               resultCode = searchOp.getResultCode();
               errorMessage = searchOp.getErrorMessage();
+
               break;
             default:
               // FIXME - throw exception?
@@ -462,6 +468,18 @@ public class LDAPSearch
   }
 
   /**
+   * Retrieves the set of response controls included in the last search result
+   * done message.
+   *
+   * @return  The set of response controls included in the last search result
+   *          done message.
+   */
+  public ArrayList<LDAPControl> getResponseControls()
+  {
+    return responseControls;
+  }
+
+  /**
    * The main method for LDAPSearch tool.
    *
    * @param  args  The command-line arguments provided to this program.
@@ -554,6 +572,7 @@ public class LDAPSearch
     FileBasedArgument keyStorePasswordFile     = null;
     FileBasedArgument trustStorePasswordFile   = null;
     IntegerArgument   port                     = null;
+    IntegerArgument   simplePageSize           = null;
     IntegerArgument   sizeLimit                = null;
     IntegerArgument   timeLimit                = null;
     IntegerArgument   version                  = null;
@@ -705,6 +724,13 @@ public class LDAPSearch
                              "ps[:changetype[:changesonly[:entrychgcontrols]]]",
                               null, null, MSGID_DESCRIPTION_PSEARCH_INFO);
       argParser.addArgument(pSearchInfo);
+
+      simplePageSize = new IntegerArgument("simplepagesize", null,
+                                           "simplePageSize", false, false, true,
+                                           "{numEntries}", 1000, null, true, 1,
+                                           false, 0,
+                                           MSGID_DESCRIPTION_SIMPLE_PAGE_SIZE);
+      argParser.addArgument(simplePageSize);
 
       assertionFilter = new StringArgument("assertionfilter", null,
                                            "assertionFilter", false, false,
@@ -1297,10 +1323,81 @@ public class LDAPSearch
                                       connectionOptions, out, err);
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
-      LDAPSearch ldapSearch = new LDAPSearch(nextMessageID, out, err);
-      int matchingEntries = ldapSearch.executeSearch(connection, baseDNValue,
-                                                     filters, attributes,
-                                                     searchOptions, wrapColumn);
+      int matchingEntries = 0;
+      if (simplePageSize.isPresent())
+      {
+        if (filters.size() > 1)
+        {
+          int    msgID   = MSGID_PAGED_RESULTS_REQUIRES_SINGLE_FILTER;
+          String message = getMessage(msgID);
+          throw new LDAPException(CLIENT_SIDE_PARAM_ERROR, msgID, message);
+        }
+
+        int pageSize = simplePageSize.getIntValue();
+        ASN1OctetString cookieValue = new ASN1OctetString();
+        ArrayList<LDAPControl> origControls = searchOptions.getControls();
+
+        while (true)
+        {
+          ArrayList<LDAPControl> newControls =
+               new ArrayList<LDAPControl>(origControls.size()+1);
+          newControls.addAll(origControls);
+          newControls.add(new LDAPControl(
+               new PagedResultsControl(true, pageSize, cookieValue)));
+          searchOptions.setControls(newControls);
+
+          LDAPSearch ldapSearch = new LDAPSearch(nextMessageID, out, err);
+          matchingEntries += ldapSearch.executeSearch(connection, baseDNValue,
+                                                      filters, attributes,
+                                                      searchOptions,
+                                                      wrapColumn);
+
+          ArrayList<LDAPControl> responseControls =
+               ldapSearch.getResponseControls();
+          boolean responseFound = false;
+          for (LDAPControl c  :responseControls)
+          {
+            if (c.getOID().equals(OID_PAGED_RESULTS_CONTROL))
+            {
+              try
+              {
+                PagedResultsControl control =
+                     new PagedResultsControl(c.isCritical(), c.getValue());
+                responseFound = true;
+                cookieValue = control.getCookie();
+                break;
+              }
+              catch (LDAPException le)
+              {
+                int    msgID   = MSGID_PAGED_RESULTS_CANNOT_DECODE;
+                String message = getMessage(msgID, le.getMessage());
+                throw new LDAPException(CLIENT_SIDE_DECODING_ERROR, msgID,
+                                        message, le);
+              }
+            }
+          }
+
+          if (! responseFound)
+          {
+            int msgID = MSGID_PAGED_RESULTS_RESPONSE_NOT_FOUND;
+            String message = getMessage(msgID);
+            throw new LDAPException(CLIENT_SIDE_CONTROL_NOT_FOUND, msgID,
+                                    message);
+          }
+          else if (cookieValue.value().length == 0)
+          {
+            break;
+          }
+        }
+      }
+      else
+      {
+        LDAPSearch ldapSearch = new LDAPSearch(nextMessageID, out, err);
+        matchingEntries = ldapSearch.executeSearch(connection, baseDNValue,
+                                                   filters, attributes,
+                                                   searchOptions, wrapColumn);
+      }
+
       if (countEntries.isPresent())
       {
         return matchingEntries;

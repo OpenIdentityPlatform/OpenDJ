@@ -7518,6 +7518,47 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * command-line option that includes the simple paged results control in the
+   * request.  This does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_SIMPLE_PAGE_SIZE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 790;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * use the simple paged results control in conjunction with multiple search
+   * filters.  This does not take any arguments.
+   */
+  public static final int MSGID_PAGED_RESULTS_REQUIRES_SINGLE_FILTER =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 791;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode the simple paged results response control from the
+   * server.  This takes a single argument, which is a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_PAGED_RESULTS_CANNOT_DECODE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 792;
+
+
+
+  /**
+   * The message ID for the message that will be used if the simple paged
+   * results control is not found in the response from the server.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_PAGED_RESULTS_RESPONSE_NOT_FOUND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 793;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7949,6 +7990,9 @@ public class ToolMessages
                     "authorization ID");
     registerMessage(MSGID_DESCRIPTION_PSEARCH_INFO,
                     "Use the persistent search control");
+    registerMessage(MSGID_DESCRIPTION_SIMPLE_PAGE_SIZE,
+                    "Use the simple paged results control with the given " +
+                    "page size");
     registerMessage(MSGID_DESCRIPTION_REPORT_AUTHZID,
                     "Use the authorization identity control");
     registerMessage(MSGID_DESCRIPTION_USE_PWP_CONTROL,
@@ -8279,6 +8323,15 @@ public class ToolMessages
                     "Invalid scope %s specified for the search request.");
     registerMessage(MSGID_SEARCH_NO_FILTERS,
                     "No filters specified for the search request.");
+    registerMessage(MSGID_PAGED_RESULTS_REQUIRES_SINGLE_FILTER,
+                    "The simple paged results control may only be used with " +
+                    "a single search filter.");
+    registerMessage(MSGID_PAGED_RESULTS_CANNOT_DECODE,
+                    "Unable to decode the simple paged results control from " +
+                    "the search response:  %s.");
+    registerMessage(MSGID_PAGED_RESULTS_RESPONSE_NOT_FOUND,
+                    "The simple paged results response control was not found " +
+                    "in the search result done message from the server.");
     registerMessage(MSGID_PSEARCH_MISSING_DESCRIPTOR,
                     "The request to use the persistent search control did " +
                     "not include a descriptor that indicates the options to " +

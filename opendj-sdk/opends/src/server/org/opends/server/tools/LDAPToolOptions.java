@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -138,6 +138,16 @@ public class LDAPToolOptions
   public ArrayList<LDAPControl> getControls()
   {
     return controls;
+  }
+
+  /**
+   * Specifies the set of controls to apply to the operation.
+   *
+   * @param  controls  The set of controls to apply to the operation.
+   */
+  public void setControls(ArrayList<LDAPControl> controls)
+  {
+    this.controls = controls;
   }
 
   /**
