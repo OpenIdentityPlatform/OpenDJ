@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -2530,6 +2530,7 @@ public class PasswordPolicy
     // If we've made it here, then everything is acceptable.  Apply the new
     // configuration.
     passwordAttribute                = p.passwordAttribute;
+    authPasswordSyntax               = p.authPasswordSyntax;
     lastLoginTimeAttribute           = p.lastLoginTimeAttribute;
     allowMultiplePasswordValues      = p.allowMultiplePasswordValues;
     allowPreEncodedPasswords         = p.allowPreEncodedPasswords;
