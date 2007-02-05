@@ -885,7 +885,7 @@ public class TestAccessLogger
   {
     StringBuilder buffer = new StringBuilder();
 
-    buffer.append("SEARCH ENTRY conn=");
+    buffer.append("SEARCH REFERENCE conn=");
     buffer.append(searchOperation.getConnectionID());
     buffer.append(" op=");
     buffer.append(searchOperation.getOperationID());
