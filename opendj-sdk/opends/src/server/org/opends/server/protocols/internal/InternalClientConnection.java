@@ -144,7 +144,7 @@ public class InternalClientConnection
    * authenticated as a root user for which access control will not be
    * enforced.
    */
-  public InternalClientConnection()
+  private InternalClientConnection()
   {
     super();
 

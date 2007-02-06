@@ -198,7 +198,7 @@ public class StressTest extends SynchronizationTestCase
     TestCaseUtils.startServer();
 
     // Create an internal connection
-    connection = new InternalClientConnection();
+    connection = InternalClientConnection.getRootConnection();
 
     // Disable schema check
     schemaCheck = DirectoryServer.checkSchema();
@@ -365,7 +365,7 @@ public class StressTest extends SynchronizationTestCase
         }
       } catch (Exception e)
       {}
-      finally 
+      finally
       {
         synchronized (this)
         {
@@ -383,7 +383,7 @@ public class StressTest extends SynchronizationTestCase
     {
       synchronized (this)
       {
-	      int i = 20;
+        int i = 20;
         while ((finished != true) && (i-- >0))
         {
           try

@@ -107,7 +107,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     DirectoryServer.setCheckSchema(false);
 
     // Create an internal connection
-    connection = new InternalClientConnection();
+    connection = InternalClientConnection.getRootConnection();
 
     // Create backend top level entries
     String[] topEntries = new String[2];

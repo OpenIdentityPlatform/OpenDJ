@@ -276,7 +276,8 @@ public class ChangelogBroker implements InternalSearchListener
                * Get all the changes that have not been seen by this changelog
                * server and update it
                */
-              InternalClientConnection conn = new InternalClientConnection();
+              InternalClientConnection conn =
+                  InternalClientConnection.getRootConnection();
               LDAPFilter filter = LDAPFilter.decode(
                   "("+ Historical.HISTORICALATTRIBUTENAME +
                   ">=dummy:" + changelogMaxChangeNumber + ")");
