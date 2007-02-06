@@ -71,7 +71,7 @@ public class PersistentServerState extends ServerState
    private DN baseDn;
    private boolean savedStatus = true;
    private InternalClientConnection conn =
-                                              new InternalClientConnection();
+       InternalClientConnection.getRootConnection();
    private ASN1OctetString serverStateAsn1Dn;
    private DN serverStateDn;
 

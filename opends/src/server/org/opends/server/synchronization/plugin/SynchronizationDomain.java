@@ -154,7 +154,8 @@ public class SynchronizationDomain extends DirectoryThread
 
   private DN configDn;
 
-  private InternalClientConnection conn = new InternalClientConnection();
+  private InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
 
   static String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
   static String BASE_DN_ATTR = "ds-cfg-synchronization-dn";

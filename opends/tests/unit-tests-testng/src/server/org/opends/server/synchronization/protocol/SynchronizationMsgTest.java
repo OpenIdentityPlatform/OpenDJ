@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.synchronization.protocol;
 
@@ -135,7 +135,8 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
          throws Exception
   {
     DN dn = DN.decode(rawdn);
-    InternalClientConnection connection = new InternalClientConnection();
+    InternalClientConnection connection =
+        InternalClientConnection.getRootConnection();
     ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");
     ModifyMsg generatedMsg = (ModifyMsg) SynchronizationMessage
         .generateMsg(msg.getBytes());
@@ -228,7 +229,8 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
   public void deleteEncodeDecode(String rawDN)
          throws Exception
   {
-    InternalClientConnection connection = new InternalClientConnection();
+    InternalClientConnection connection =
+        InternalClientConnection.getRootConnection();
     DeleteOperation op = new DeleteOperation(connection, 1, 1,null,
                                              DN.decode(rawDN));
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
@@ -273,7 +275,8 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
                                    boolean deleteOldRdn, String newSuperior)
          throws Exception
   {
-    InternalClientConnection connection = new InternalClientConnection();
+    InternalClientConnection connection =
+      InternalClientConnection.getRootConnection();
     ModifyDNOperation op =
       new ModifyDNOperation(connection, 1, 1, null,
                   DN.decode(rawDN), RDN.decode(newRdn), deleteOldRdn,
@@ -358,7 +361,8 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     // TODO : should test that generated attributes match original attributes.
 
     // Create an new Add Operation from the current addMsg
-    InternalClientConnection connection = new InternalClientConnection();
+    InternalClientConnection connection =
+        InternalClientConnection.getRootConnection();
     AddOperation addOp = msg.createOperation(connection, rawDN) ;
     // TODO : should test that generated attributes match original attributes.
     // List<LDAPAttribute> rawAtt = addOp.getRawAttributes();

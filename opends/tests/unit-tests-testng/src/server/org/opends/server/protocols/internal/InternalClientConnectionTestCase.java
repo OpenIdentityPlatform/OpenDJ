@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
 
@@ -110,7 +110,6 @@ public class InternalClientConnectionTestCase
   {
     return new Object[][]
     {
-      new Object[] { new InternalClientConnection() },
       new Object[] { InternalClientConnection.getRootConnection() },
       new Object[] { new InternalClientConnection(new AuthenticationInfo()) },
       new Object[] { new InternalClientConnection(

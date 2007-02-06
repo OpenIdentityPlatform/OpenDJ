@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.synchronization.changelog;
 
@@ -65,7 +65,8 @@ public class UpdateComparatorTest extends SynchronizationTestCase
 
     //
     // Create the update messgae
-    InternalClientConnection connection = new InternalClientConnection();
+    InternalClientConnection connection =
+        InternalClientConnection.getRootConnection();
     DeleteOperation op = null;
     try
     {

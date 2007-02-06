@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.synchronization.plugin;
 
@@ -343,7 +343,7 @@ public class ModifyConflictTest
         .getOperationalAttributes();
 
     operationalAttributes.put(Historical.entryuuidAttrType, uuidList);
-   
+
     // load historical from the entry
     Historical hist = Historical.load(entry);
 
@@ -383,7 +383,8 @@ public class ModifyConflictTest
       ModificationType modType, String value,
       int date, boolean keepChangeResult)
   {
-    InternalClientConnection connection = new InternalClientConnection();
+    InternalClientConnection connection =
+        InternalClientConnection.getRootConnection();
     ChangeNumber t = new ChangeNumber(date, (short) 0, (short) 0);
 
     /* create AttributeType description that will be usedfor this test */

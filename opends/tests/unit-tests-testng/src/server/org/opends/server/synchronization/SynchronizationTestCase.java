@@ -104,7 +104,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     schemaCheck = DirectoryServer.checkSchema();
 
     // Create an internal connection
-    connection = new InternalClientConnection();
+    connection = InternalClientConnection.getRootConnection();
   }
 
   /**
