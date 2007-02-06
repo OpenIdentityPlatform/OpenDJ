@@ -712,5 +712,833 @@
     </sequence>
 
   </function>
+  
+      
+    <!-- Export Function -->
+    <function name="exportLdif">
 
+    <function-prolog>
+        This function performs an export to an ldif file on or off line
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="ldifFile">
+            The name of the ldif file to be written
+        </function-required-arg>
+        <function-optional-arg name="backEnd" default="'userRoot'">
+            The name of the database backend
+        </function-optional-arg>
+        <function-optional-arg name="extraParams" default="' '">
+            Optional extra parameters for specific test cases
+        </function-optional-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <message>
+          'export-ldif%s -l %s -n %s %s' % (fileExt,ldifFile,backEnd,extraParams)
+        </message>
+        <process name="'Ldif Export'">
+          <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+          <command>'%s/export-ldif%s' % (OPENDS_BINPATH,fileExt)</command>
+          <parms>'-l %s -n %s %s' % (ldifFile,backEnd,extraParams)</parms>
+          <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+          <envs>
+                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          </envs>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+
+        <script>
+          exportRC=RC
+          exportResult=STAXResult
+        </script>
+
+        <call function="'checkRC'">
+            { 'returncode' : exportRC ,
+              'result'     : exportResult }
+        </call>
+
+        <return>exportRC</return>
+
+      </sequence>
+
+    </function>
+    
+    <!-- Export Task Function -->
+    <function name="exportLdifTask">
+
+    <function-prolog>
+        This function performs an on line export task of an ldif file
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="dsInstanceHost">
+            Directory Server host name
+        </function-required-arg>
+        <function-required-arg name="dsInstancePort">
+            Directory Server port number
+        </function-required-arg>
+        <function-required-arg name="dsInstanceDn">
+            Directory Server Manager DN
+        </function-required-arg>
+        <function-required-arg name="dsInstancePswd">
+            Directory Server Manager Password
+        </function-required-arg>
+        <function-required-arg name="taskID">
+            The identifier for the task
+        </function-required-arg>
+        <function-required-arg name="ldifFile">
+            The name of the ldif file
+        </function-required-arg>
+        <function-optional-arg name="backEnd" default="'userRoot'">
+            Optional the name of the database backend
+        </function-optional-arg>
+        <function-optional-arg name="Compress" default="'FALSE'">
+            Optional exported ldif data file compressed
+        </function-optional-arg>
+        <function-optional-arg name="Encrypt" default="'FALSE'">
+            Optional exported ldif data file encrypted
+        </function-optional-arg>
+        <function-optional-arg name="append" default="'FALSE'">
+            Optional append exported ldif data
+        </function-optional-arg>
+        <function-optional-arg name="excludeBranches" default="' '">
+            Optional exclude branches
+        </function-optional-arg>
+        <function-optional-arg name="includeBranches" default="' '">
+            Optional include branches
+        </function-optional-arg>
+        <function-optional-arg name="excludeAttributes" default="' '">
+            Optional exclude attributes
+        </function-optional-arg>
+        <function-optional-arg name="includeAttributes" default="' '">
+            Optional include attributes
+        </function-optional-arg>
+        <function-optional-arg name="excludeFilters" default="' '">
+            Optional exclude filters
+        </function-optional-arg>
+        <function-optional-arg name="includeFilters" default="' '">
+            Optional include filters
+        </function-optional-arg>
+        <function-optional-arg name="signHash" default="'FALSE'">
+            Optional generate a signed hash of the export data 
+        </function-optional-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <script>
+          taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
+        </script>
+        
+        <!-- Build the export task configuration object -->
+        <script>
+          ldifLines=[]
+          ldifLines.append('dn: %s' % taskDN)
+          ldifLines.append('objectclass: top')
+          ldifLines.append('objectclass: ds-task')
+          ldifLines.append('objectclass: ds-task-export')
+          ldifLines.append('ds-task-class-name: org.opends.server.tasks.ExportTask')
+          ldifLines.append('ds-task-id: %s' % taskID)
+        </script>
+    
+        <script>
+          ldifLines.append('ds-task-export-backend-id: %s' % backEnd )
+          ldifLines.append('ds-task-export-ldif-file: %s' % ldifFile )
+          ldifLines.append('ds-task-export-compress-ldif: %s' % Compress )
+          ldifLines.append('ds-task-export-encrypt-ldif: %s' % Encrypt )
+          ldifLines.append('ds-task-export-sign-hash: %s' % signHash )
+        </script>
+        
+           
+        <iterate var="branch" in="excludeBranches">
+          <sequence>
+            <if expr="branch == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-export-exclude-branch: %s' % branch )
+            </script>
+          </sequence>
+        </iterate>
+    
+        <iterate var="branch" in="includeBranches">
+          <sequence>
+            <if expr="branch == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-export-include-branch: %s' % branch )
+            </script>
+          </sequence>
+        </iterate>
+    
+        <iterate var="attribute" in="excludeAttributes">
+          <sequence>
+            <if expr="attribute == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-export-exclude-attribute: %s' % attribute )
+            </script>
+          </sequence>
+        </iterate>
+    
+        <iterate var="attribute" in="includeAttributes">
+          <sequence>
+            <if expr="attribute == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-export-include-attribute: %s' % attribute )
+            </script>
+          </sequence>
+        </iterate>
+    
+        <iterate var="filter" in="excludeFilters">
+          <sequence>
+            <if expr="filter == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-export-exclude-filter: %s' % filter)
+            </script>
+          </sequence>
+        </iterate>
+    
+        <iterate var="filter" in="includeFilters">
+          <sequence>
+            <if expr="filter == ' '">
+              <break/>
+            </if>
+            <script>
+              ldifLines.append('ds-task-export-include-filter: %s' % filter)
+            </script>
+          </sequence>
+        </iterate>
+
+        
+        <!-- Write out the export-task ldif -->
+        <script>
+          outfile = open('%s/export-task.ldif' % TMP_DATA_DIR,"w")
+            
+          for line in ldifLines:
+            outfile.write("%s\n" % line)
+            
+          outfile.close()
+        </script>
+
+        
+        <!-- Copy the export-task ldif to remote host -->
+        <message>'Copy export task ldif file.'</message>
+        <call function="'copyfile'">
+          { 'srcfile'    : '%s/export-task.ldif' % TMP_DATA_DIR,
+            'destfile'   : '%s/export-task.ldif' % STAGED_DATA_DIR,
+            'remotehost' : STAF_REMOTE_HOSTNAME }
+        </call>
+
+        <!-- On line Export Task with ldapmodify -->
+        <message>
+          'ldapmodify%s -a -h %s -p %s -D "%s" -w %s' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)
+        </message>
+        <process name="'On line Export Task'">
+          <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+          <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
+          <parms>'-a -h %s -p %s -D "%s" -w %s' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)</parms>
+          <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+          <envs>
+                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          </envs>
+          <stdin>'%s/export-task.ldif' % STAGED_DATA_DIR</stdin>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+
+        <script>
+          exportTaskRC=RC
+          exportTaskResult=STAXResult
+        </script>
+
+        <call function="'checkRC'">
+          { 'returncode' : exportTaskRC ,
+            'result'     : exportTaskResult }
+        </call>
+          
+        <!-- Check that the task is completed -->
+        <script>
+          loopRC=1
+        </script>
+
+        <script> 
+          import re 
+          searchre = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY') 
+        </script> 
+
+        <!-- Wait for the task to be COMPLETED_SUCCESSFULLY -->
+        <loop from="1" to="5" while="loopRC != 0">
+
+          <sequence>
+          
+            <message>
+              'ldapsearch%s -h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)
+            </message>
+            <process name="'Search On line Export Task'">
+              <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+              <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
+              <parms>'-h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)</parms>
+              <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+              <envs>
+                    ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+              </envs>
+              <stderr mode="'stdout'"/>
+              <returnstdout/>
+            </process>
+            
+            <script>
+              searchRC=RC
+              searchResult=STAXResult
+            </script>
+    
+            <script> 
+              result = STAXResult[0][1]
+            </script> 
+    
+            <if expr='re.search(searchre, result) != None'>
+              <sequence>
+                <script>loopRC=0</script>
+              </sequence>
+            <else>
+              <message log="1" level="'Warning'">
+                'No match on ds-task-state.'
+              </message>
+            </else>
+            </if>
+            
+            <call function="'checkRC'">
+                { 'returncode' : searchRC ,
+                  'result'     : searchResult }
+            </call>
+          
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '2000' }
+            </call>
+            
+          </sequence>
+          
+        </loop>
+
+        <return>loopRC</return>
+
+      </sequence>
+
+    </function>
+    
+    <!-- Backup Function -->
+    <function name="backup">
+
+    <function-prolog>
+        This function performs an on line backup
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="backupDir">
+            The directory where the backup files will be placed
+        </function-required-arg>
+        <function-optional-arg name="backEnd" default="'userRoot'">
+            The name of the database backend
+        </function-optional-arg>
+        <function-optional-arg name="extraParams" default="' '">
+            Optional extra parameters for specific test cases
+        </function-optional-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <message>
+          'backup%s -n %s -d %s %s' % (fileExt,backEnd,backupDir,extraParams)
+        </message>
+        <process name="'Offline Backup'">
+          <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+          <command>'%s/backup%s' % (OPENDS_BINPATH,fileExt)</command>
+          <parms>'-d %s -n %s %s' % (backupDir,backEnd,extraParams)</parms>
+          <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+          <envs>
+                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          </envs>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+
+        <script>
+          backupRC=RC
+          backupResult=STAXResult
+        </script>
+
+        <call function="'checkRC'">
+            { 'returncode' : backupRC ,
+              'result'     : backupResult }
+        </call>
+
+        <return>backupRC</return>
+
+      </sequence>
+
+    </function>
+  
+    <!-- Backup Task Function -->
+    <function name="backupTask">
+
+    <function-prolog>
+        This function performs an on line backup task 
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="dsInstanceHost">
+            Directory Server host name
+        </function-required-arg>
+        <function-required-arg name="dsInstancePort">
+            Directory Server port number
+        </function-required-arg>
+        <function-required-arg name="dsInstanceDn">
+            Directory Server Manager DN
+        </function-required-arg>
+        <function-required-arg name="dsInstancePswd">
+            Directory Server Manager Password
+        </function-required-arg>
+        <function-required-arg name="taskID">
+            The identifier for the task
+        </function-required-arg>
+        <function-required-arg name="backupDir">
+            Path to the target directory for the backup file(s)
+        </function-required-arg>
+        <function-optional-arg name="backEnd" default="'userRoot'">
+            Optional the name of the database backend
+        </function-optional-arg>
+        <function-optional-arg name="backupAll" default="'FALSE'">
+            Optional back up all backends in the server
+        </function-optional-arg>
+        <function-optional-arg name="backupIncremental" default="' '">
+            Optional perform an incremental backup rather than a full backup
+        </function-optional-arg>
+        <function-optional-arg name="backupIncrementalId" default="' '">
+            Optional use the provided identifier for the backup
+        </function-optional-arg>
+        <function-optional-arg name="Compress" default="'FALSE'">
+            Optional backup contents compressed
+        </function-optional-arg>
+        <function-optional-arg name="Encrypt" default="'FALSE'">
+            Optional backup contents encrypted
+        </function-optional-arg>
+        <function-optional-arg name="signHash" default="'FALSE'">
+            Optional generate a signed hash of the backup data 
+        </function-optional-arg>
+        <function-optional-arg name="hash" default="'FALSE'">
+            Optional generate a hash of the backup data 
+        </function-optional-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <script>
+          taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
+        </script>
+        
+        <!-- Build the backup task configuration object -->
+        <script>
+          ldifLines=[]
+          ldifLines.append('dn: %s' % taskDN)
+          ldifLines.append('objectclass: top')
+          ldifLines.append('objectclass: ds-task')
+          ldifLines.append('objectclass: ds-task-backup')
+          ldifLines.append('ds-task-class-name: org.opends.server.tasks.BackupTask')
+          ldifLines.append('ds-backup-id: %s' % taskID)
+        </script>
+    
+        <script>
+          ldifLines.append('ds-task-backup-backend-id: %s' % backEnd )
+          ldifLines.append('ds-backup-directory-path: %s' % backupDir )
+          ldifLines.append('ds-task-backup-all: %s' % backupAll )
+          ldifLines.append('ds-task-backup-compress: %s' % Compress )
+          ldifLines.append('ds-task-backup-encrypt: %s' % Encrypt )
+          ldifLines.append('ds-task-backup-sign-hash: %s' % signHash )
+          ldifLines.append('ds-task-backup-hash: %s' % hash )
+        </script>
+        
+        <if expr="backupIncremental != ' '">
+          <script>
+            ldifLines.append('ds-task-backup-incremental: %s' % backupIncremental )
+            ldifLines.append('ds-task-backup-incremental-base-id: %s' % backupIncrementalId )  
+          </script>
+        </if>
+                  
+        <!-- Write out the backup-task ldif -->
+        <script>
+          outfile = open('%s/backup-task.ldif' % TMP_DATA_DIR,"w")
+            
+          for line in ldifLines:
+            outfile.write("%s\n" % line)
+            
+          outfile.close()
+        </script>
+
+        
+        <!-- Copy the backup-task ldif to remote host -->
+        <message>'Copy backup task ldif file.'</message>
+        <call function="'copyfile'">
+          { 'srcfile'    : '%s/backup-task.ldif' % TMP_DATA_DIR,
+            'destfile'   : '%s/backup-task.ldif' % STAGED_DATA_DIR,
+            'remotehost' : STAF_REMOTE_HOSTNAME }
+        </call>
+
+        <!-- On line Backup Task with ldapmodify -->
+        <message>
+          'ldapmodify%s -a -h %s -p %s -D "%s" -w %s' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)
+        </message>
+        <process name="'On line Backup Task'">
+          <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+          <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
+          <parms>'-a -h %s -p %s -D "%s" -w %s' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)</parms>
+          <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+          <envs>
+                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          </envs>
+          <stdin>'%s/backup-task.ldif' % STAGED_DATA_DIR</stdin>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+
+        <script>
+          backupTaskRC=RC
+          backupTaskResult=STAXResult
+        </script>
+
+        <call function="'checkRC'">
+          { 'returncode' : backupTaskRC ,
+            'result'     : backupTaskResult }
+        </call>
+          
+        <!-- Check that the task is completed -->
+        <script>
+          loopRC=1
+        </script>
+
+        <script> 
+          import re 
+          searchre = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY') 
+        </script> 
+
+        <!-- Wait for the task to be COMPLETED_SUCCESSFULLY -->
+        <loop from="1" to="5" while="loopRC != 0">
+
+          <sequence>
+          
+            <message>
+              'ldapsearch%s -h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)
+            </message>
+            <process name="'Search On line Backup Task'">
+              <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+              <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
+              <parms>'-h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)</parms>
+              <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+              <envs>
+                    ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+              </envs>
+              <stderr mode="'stdout'"/>
+              <returnstdout/>
+            </process>
+            
+            <script>
+              searchRC=RC
+              searchResult=STAXResult
+            </script>
+    
+            <script> 
+              result = STAXResult[0][1]
+            </script> 
+    
+            <if expr='re.search(searchre, result) != None'>
+              <sequence>
+                <script>loopRC=0</script>
+              </sequence>
+            <else>
+              <message log="1" level="'Warning'">
+                'No match on ds-task-state.'
+              </message>
+            </else>
+            </if>
+            
+            <call function="'checkRC'">
+                { 'returncode' : searchRC ,
+                  'result'     : searchResult }
+            </call>
+          
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '2000' }
+            </call>
+            
+          </sequence>
+          
+        </loop>
+
+        <return>loopRC</return>
+
+      </sequence>
+
+    </function>
+  
+    <!-- Restore Function -->
+    <function name="restore">
+
+    <function-prolog>
+        This function performs an off line restore
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="backupDir">
+            Path to the directory containing the backup file(s)
+        </function-required-arg>
+        <function-optional-arg name="extraParams" default="' '">
+            Optional extra parameters for specific test cases
+        </function-optional-arg>
+    </function-map-args>
+
+      <sequence>
+          
+        <message>
+           'Stopping OpenDS' 
+        </message>
+  
+        <call function="'stopDS'">
+          { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT)}
+        </call>
+ 
+        <call function="'checkRC'">
+          { 'returncode' : RC ,
+            'result'     : STAXResult }
+        </call>
+
+        <message>
+          'restore%s -d %s %s' % (fileExt,backupDir,extraParams)
+        </message>
+        <process name="'Offline restore'">
+          <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+          <command>'%s/restore%s' % (OPENDS_BINPATH,fileExt)</command>
+          <parms>'-d %s %s' % (backupDir,extraParams)</parms>
+          <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+          <envs>
+                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          </envs>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+
+        <script>
+          restoreRC=RC
+          restoreResult=STAXResult
+        </script>
+
+        <call function="'checkRC'">
+            { 'returncode' : restoreRC ,
+              'result'     : restoreResult }
+        </call>
+
+        <message>
+           'Starting OpenDS' 
+        </message>
+  
+        <call function="'startDS'">
+          { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+        </call>
+ 
+        <call function="'checkRC'">
+          { 'returncode' : RC ,
+            'result'     : STAXResult }
+        </call>
+        
+        <return>restoreRC</return>
+
+      </sequence>
+
+    </function>
+
+    <!-- Restore Task Function --> 
+    <function name="restoreTask">
+
+    <function-prolog>
+        This function performs an on line restore task of a backup file
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="dsInstanceHost">
+            Directory Server host name
+        </function-required-arg>
+        <function-required-arg name="dsInstancePort">
+            Directory Server port number
+        </function-required-arg>
+        <function-required-arg name="dsInstanceDn">
+            Directory Server Manager DN
+        </function-required-arg>
+        <function-required-arg name="dsInstancePswd">
+            Directory Server Manager Password
+        </function-required-arg>
+        <function-required-arg name="taskID">
+            The identifier for the task
+        </function-required-arg>
+        <function-required-arg name="backupDir">
+            The name of the backup directory
+        </function-required-arg>
+        <function-optional-arg name="backupId" default="' '">
+            Optional the name of the backupId
+        </function-optional-arg>
+        <function-optional-arg name="verify" default="'FALSE'">
+            Optional verify the contents of the backup but do not restore it
+        </function-optional-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <script>
+          taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
+        </script>
+        
+        <!-- Build the restore task configuration object -->
+        <script>
+          ldifLines=[]
+          ldifLines.append('dn: %s' % taskDN)
+          ldifLines.append('objectclass: top')
+          ldifLines.append('objectclass: ds-task')
+          ldifLines.append('objectclass: ds-task-restore')
+          ldifLines.append('ds-task-class-name: org.opends.server.tasks.RestoreTask')
+          ldifLines.append('ds-task-id: %s' % taskID)
+        </script>
+    
+        <script>
+
+          ldifLines.append('ds-backup-directory-path: %s' % backupDir )
+          ldifLines.append('ds-task-restore-verify-only: %s' % verify )
+        </script>
+               
+        <if expr="backupId != ' '">
+          <script>
+            ldifLines.append('ds-backup-id: %s' % backupId ) 
+          </script>
+        </if> 
+                   
+        <!-- Write out the restore-task ldif -->
+        <script>
+          outfile = open('%s/restore-task.ldif' % TMP_DATA_DIR,"w")
+            
+          for line in ldifLines:
+            outfile.write("%s\n" % line)
+            
+          outfile.close()
+        </script>
+
+        
+        <!-- Copy the restore-task ldif to remote host -->
+        <message>'Copy restore task ldif file.'</message>
+        <call function="'copyfile'">
+          { 'srcfile'    : '%s/restore-task.ldif' % TMP_DATA_DIR,
+            'destfile'   : '%s/restore-task.ldif' % STAGED_DATA_DIR,
+            'remotehost' : STAF_REMOTE_HOSTNAME }
+        </call>
+
+        <!-- On line Restore Task with ldapmodify -->
+        <message>
+          'ldapmodify%s -a -h %s -p %s -D "%s" -w %s' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)
+        </message>
+        <process name="'On line Restore Task'">
+          <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+          <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
+          <parms>'-a -h %s -p %s -D "%s" -w %s' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)</parms>
+          <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+          <envs>
+                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          </envs>
+          <stdin>'%s/restore-task.ldif' % STAGED_DATA_DIR</stdin>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+
+        <script>
+          restoreTaskRC=RC
+          restoreTaskResult=STAXResult
+        </script>
+
+        <call function="'checkRC'">
+          { 'returncode' : restoreTaskRC ,
+            'result'     : restoreTaskResult }
+        </call>
+          
+        <!-- Check that the task is completed -->
+        <script>
+          loopRC=1
+        </script>
+
+        <script> 
+          import re 
+          searchre = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY') 
+        </script> 
+
+        <!-- Wait for the task to be COMPLETED_SUCCESSFULLY -->
+        <loop from="1" to="5" while="loopRC != 0">
+
+          <sequence>
+          
+            <message>
+              'ldapsearch%s -h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)
+            </message>
+            <process name="'Search On line Restore Task'">
+              <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+              <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
+              <parms>'-h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)</parms>
+              <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+              <envs>
+                    ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+              </envs>
+              <stderr mode="'stdout'"/>
+              <returnstdout/>
+            </process>
+            
+            <script>
+              searchRC=RC
+              searchResult=STAXResult
+            </script>
+    
+            <script> 
+              result = STAXResult[0][1]
+            </script> 
+    
+            <if expr='re.search(searchre, result) != None'>
+              <sequence>
+                <script>loopRC=0</script>
+              </sequence>
+            <else>
+              <message log="1" level="'Warning'">
+                'No match on ds-task-state.'
+              </message>
+            </else>
+            </if>
+            
+            <call function="'checkRC'">
+                { 'returncode' : searchRC ,
+                  'result'     : searchResult }
+            </call>
+          
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '2000' }
+            </call>
+            
+          </sequence>
+          
+        </loop>
+
+        <return>loopRC</return>
+
+      </sequence>
+
+    </function> 
+    
 </stax>
