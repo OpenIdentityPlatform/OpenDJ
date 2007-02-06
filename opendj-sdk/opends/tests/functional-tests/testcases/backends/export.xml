@@ -23,17 +23,18 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2006 Sun Microsystems, Inc.
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
 
 <stax>
 
-  <defaultcall function="main"/>
+  <defaultcall function="main_export"/>
 
-  <function name="main">
+  <function name="main_export">
 
     <sequence>
 
+        
       <!--- Test Suite information
         #@TestSuiteName       Backend Export Tests
         #@TestSuitePurpose    Verify that the basic export functionality is working in the Directory Server.
@@ -44,6 +45,588 @@
         #@TestHTMLLink        http://opends.dev.java.net/
       -->
 
+      <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 1
+        #@TestID              Export1
+        #@TestPurpose         Export the data in OpenDS.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, and ldifFile
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 1'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export1: Export the data in OpenDS'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export1.ldif' % STAGED_DATA_DIR
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+            
+      <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 2
+        #@TestID              Export2
+        #@TestPurpose         Export the data in OpenDS by appending to an ldif file.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and append
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 2'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export2: Export the data in OpenDS by appending to an ldif file'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export1.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-a'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+            
+      <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 3
+        #@TestID              Export3
+        #@TestPurpose         Export the data in OpenDS with one includeAttribute parameter.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and includeAttribute
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 3'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export3: Export the data in OpenDSwith one includeAttribute parameter '
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export3.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-i telephonenumber'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+            
+      <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 4
+        #@TestID              Export4
+        #@TestPurpose         Export the data in OpenDS with three includeAttribute parameters.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and includeAttribute
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 4'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export4: Export the data in OpenDS with three includeAttribute parameters'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export4.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-i telephonenumber -i mail -i roomnumber'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>   
+   
+      <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 5
+        #@TestID              Export5
+        #@TestPurpose         Export the data in OpenDS with one excludeAttribute parameter.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and excludeAttribute
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 5'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export5: Export the data in OpenDS with one excludeAttribute parameter'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export5.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-e telephonenumber'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>  
+ 
+      <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 6
+        #@TestID              Export6
+        #@TestPurpose         Export the data in OpenDS with three excludeAttribute parameters.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and excludeAttribute
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 6'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export6: Export the data in OpenDS with three excludeAttribute parameters'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export6.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-e telephonenumber -e mail -e roomnumber'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+            
+      <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 7
+        #@TestID              Export7
+        #@TestPurpose         Export the data in OpenDS with one includeFilter parameter.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and includeFilter
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 7'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export7: Export the data in OpenDS with one includeFilter parameter'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export7.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-I "(&amp;(uid=jwalker)(roomnumber=*))'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+            
+       <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 8
+        #@TestID              Export8
+        #@TestPurpose         Export the data in OpenDS with three includeFilter parameters.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and includeFilter
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 8'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export8: Export the data in OpenDS with three includeFilter parameters'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export8.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-I "(&amp;(uid=jwalker)(roomnumber=*))" -I "(&amp;(uid=jwalker)(l=Cupertino))" -I "(&amp;(uid=jwallace)(roomnumber=*))"'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase> 
+ 
+       <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 9
+        #@TestID              Export9
+        #@TestPurpose         Export the data in OpenDS with one excludeFilter parameter.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and excludeFilter
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 9'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export9: Export the data in OpenDS with one excludeFilter parameter'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export9.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-E "(&amp;(uid=jwalker)(roomnumber=*))"'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase> 
+            
+        <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 10
+        #@TestID              Export10
+        #@TestPurpose         Export the data in OpenDS with three excludeFilter parameters.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and excludeFilter
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 10'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export10: Export the data in OpenDS with three excludeFilter parameters'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export10.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-E "(&amp;(uid=jwalker)(roomnumber=*))" -E "(&amp;(uid=jwalker)(l=Cupertino))" -E "(&amp;(uid=jwallace)(roomnumber=*))"'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+ 
+        <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 11
+        #@TestID              Export11
+        #@TestPurpose         Export the data in OpenDS with one includeBranch parameter.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and includeBranch
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 11'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export11: Export the data in OpenDS with one includeBranch parameter'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export11.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-b "o=backend tests,dc=example,dc=com"'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>  
+            
+         <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 12
+        #@TestID              Export12
+        #@TestPurpose         Export the data in OpenDS with one excludeBranch parameter.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and excludeBranch
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 12'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export12: Export the data in OpenDS with one excludeBranch parameter'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export12.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-B "ou=People,o=backend tests,dc=example,dc=com"'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+            
+         <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 13
+        #@TestID              Export13
+        #@TestPurpose         Export the data in OpenDS with one includeAttribute, excludeFilter, and includeBranch parameters.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, includeAttribute, excludeFilter, and includeBranch
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 13'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export13: Export the data in OpenDS with one includeAttribute, excludeFilter, and includeBranch parameters'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export13.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-E "(&amp;(uid=jwalker)(roomnumber=*))" -i telephonenumber -b "o=backend tests,dc=example,dc=com"'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+            
+         <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 14
+        #@TestID              Export14
+        #@TestPurpose         Export the data in OpenDS with one excludeAttribute, includeFilter, and excludeBranch parameters.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, excludeAttribute, includeFilter, and excludeBranch
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 14'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export14: Export the data in OpenDS with one excludeAttribute, includeFilter, and excludeBranch parameters'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export14.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-I "(&amp;(uid=jwalker)(roomnumber=*))" -e telephonenumber -B "ou=groups,o=backend tests,dc=example,dc=com"'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+            
+          <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 15
+        #@TestID              Export15
+        #@TestPurpose         Export the data in OpenDS in compressed format.
+        #@TestPreamble
+        #@TestSteps           Client calls exportLDIF with the parameters
+                              default backend, ldifFile, and compressLDIF
+        #@TestPostamble
+        #@TestResult Success if exportLDIF returns 0
+      -->
+        
+             <testcase name="'Backend: Export 15'">
+    
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend Export15: Export the data in OpenDS in compressed format'
+                </message>
+                <call function="'exportLdif'">
+                  { 
+                    'ldifFile'       : '%s/backends/Export15.ldif' % STAGED_DATA_DIR,
+                    'extraParams' : '-c'
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+  
+      <!--- Test Case information
+        #@TestMarker          Backend Export Tests
+        #@TestName            Export: Export 1
+        #@TestID              Export1
+        #@TestPurpose         
+        #@TestPreamble
+        #@TestSteps           
+        #@TestPostamble
+        #@TestResult
+      -->
+      
+      
+      
       <!--- Test Case information
         #@TestMarker          Backend Export Tests
         #@TestName            Export: LDIF Default

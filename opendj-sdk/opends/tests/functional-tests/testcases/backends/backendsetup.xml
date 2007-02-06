@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+
+  <defaultcall function="main_backend-setup"/>
+
+  <function name="main_backend-setup">
+
+    <sequence>
+
+      <!--- Test Suite information
+      #@TestSuiteName       Backend Setup
+      #@TestSuitePurpose    Verify that the basic import functionality is working in the Directory Server.
+      #@TestSuiteID         Import Tests
+      #@TestSuiteGroup      Import
+      #@TestGroup           Backend
+      #@TestScript          import.xml
+      #@TestHTMLLink        http://opends.dev.java.net/
+      -->
+ 
+      <!--- Test Case information
+      #@TestMarker          Backend Export, Backup, and Restore Tests
+      #@TestName            Import: LDIF Default
+      #@TestID              LDIF Default
+      #@TestPurpose         Add entries that are required for these Backend Tests.
+      #@TestPreamble
+      #@TestSteps           ./import-ldif.sh -l data/backends/backend_start.ldif -n "userRoot"
+      #@TestPostamble
+      #@TestResult
+      -->
+        
+      <testcase name="'Backend: Backend Setup'">
+
+        <sequence>
+
+          <call function="'testCaseStartBanner'"/>
+          
+          <message>
+            'Backend: Backend Setup for Export, Backup, and Restore Tests'
+          </message>
+          <call function="'importLdif'">
+            { 'ldifFile'    : '%s/backends/backend_start.ldif' % STAGED_DATA_DIR }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+          
+          <call function="'testCaseEndBanner'"/>
+
+        </sequence>
+
+      </testcase>
+      
+    </sequence>
+
+  </function>
+
+</stax>

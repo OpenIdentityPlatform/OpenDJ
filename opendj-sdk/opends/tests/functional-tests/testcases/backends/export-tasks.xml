@@ -23,17 +23,42 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2006 Sun Microsystems, Inc.
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
 
 <stax>
 
-  <defaultcall function="main"/>
+  <defaultcall function="main_export-tasks"/>
 
-  <function name="main">
+  <function name="main_export-tasks">
 
     <sequence>
 
+         <!--- Start DS -->
+         <sequence>
+           <message>
+              'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+           </message>
+  
+           <call function="'startDS'">
+             { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+           </call>
+ 
+           <call function="'checkRC'">
+               { 'returncode' : RC ,
+                 'result'     : STAXResult }
+           </call>
+ 
+         </sequence>
+       
+         <sequence>
+         
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              { 'noOfLoops'        : 5 ,
+                'noOfMilliSeconds' : 2000 }
+            </call>
+        
       <!--- Test Suite information
         #@TestSuiteName       Backend Export Tasks Tests
         #@TestSuitePurpose    Verify that the basic export task functionality is working in the Directory Server.
@@ -44,6 +69,50 @@
         #@TestHTMLLink        http://opends.dev.java.net/
       -->
 
+      <!--- Test Case information
+        #@TestMarker          Backend Export Tasks Tests
+        #@TestName            Export Tasks: Export Tasks 1
+        #@TestID              ExportTasks1
+        #@TestPurpose         Verify an export task of a LDIF file on the default backend.
+        #@TestPreamble
+        #@TestSteps           An ldif file is created that describes the export task to be
+                              scheduled. The task is scheduled by adding the ldif file
+                              with the static ldapmodify.
+        #@TestPostamble
+        #@TestResult          Success if OpenDS returns 0
+      -->  
+      
+
+            <testcase name="'Backend: Export Tasks 1'">
+
+              
+              <sequence>
+      
+                <call function="'testCaseStartBanner'"/>
+                <message>
+                  'Backend ExportTasks1: Export the data in OpenDS by scheduling a task'
+                </message>
+                <call function="'exportLdifTask'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'taskID'         : '1',
+                    'ldifFile'       : '%s/backends/ExportTasks1.ldif' % STAGED_DATA_DIR
+                  }
+                </call>
+      
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCaseEndBanner'"/>
+      
+              </sequence>
+      
+            </testcase>
+        
       <!--- Test Case information
         #@TestMarker          Backend Export Tasks Tests
         #@TestName            Export Tasks: LDIF Default
@@ -318,7 +387,7 @@
         #@TestPostamble
         #@TestResult
       -->
-
+         </sequence>
     </sequence>
 
   </function>
