@@ -45,9 +45,6 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.synchronization.SynchronizationTestCase;
 import org.opends.server.synchronization.common.ChangeNumber;
-import org.opends.server.synchronization.plugin.FakeOperation;
-import org.opends.server.synchronization.plugin.FakeOperationComparator;
-import org.opends.server.synchronization.plugin.Historical;
 import org.opends.server.synchronization.protocol.ModifyContext;
 import org.opends.server.synchronization.protocol.SynchronizationMessage;
 import org.opends.server.synchronization.protocol.UpdateMessage;
@@ -132,7 +129,7 @@ public class ModifyConflictTest
      * sure...)
      */
     testModify(entry, hist, "description", ModificationType.ADD,
-        "older value", 2, false);;
+        "older value", 2, false);
 
     /*
      * Now simulate an add at a later date that the previous replace.
@@ -387,7 +384,7 @@ public class ModifyConflictTest
         InternalClientConnection.getRootConnection();
     ChangeNumber t = new ChangeNumber(date, (short) 0, (short) 0);
 
-    /* create AttributeType description that will be usedfor this test */
+    /* create AttributeType description that will be used for this test */
     AttributeType attrType =
       DirectoryServer.getAttributeType(attrName, true);
 
@@ -405,7 +402,7 @@ public class ModifyConflictTest
     modOp.setAttachment(SYNCHROCONTEXT, ctx);
 
     hist.replayOperation(modOp, entry);
-    if (modType.intValue() == ModificationType.ADD.intValue())
+    if (modType == ModificationType.ADD)
     {
       AddOperation addOp = new AddOperation(connection, 1, 1, null, entry
           .getDN(), entry.getObjectClasses(), entry.getUserAttributes(),
