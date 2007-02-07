@@ -96,6 +96,17 @@ public class Historical
                            = new HashMap<AttributeType,AttrInfoWithOptions>();
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString()
+  {
+    StringBuilder builder = new StringBuilder();
+    builder.append(encode());
+    return builder.toString();
+  }
+
+  /**
    * Duplicates an Historical Object.
    * attributesInfo are nor duplicated but used as references.
    * @return The duplicate of the Historical Object
@@ -131,12 +142,16 @@ public class Historical
       Attribute modAttr = m.getAttribute();
       Set<String> options = modAttr.getOptions();
       if (options.isEmpty())
+      {
         options = null;
+      }
       AttributeType type = modAttr.getAttributeType();
       AttrInfoWithOptions attrInfoWithOptions =  attributesInfo.get(type);
       AttrInfo attrInfo = null;
       if (attrInfoWithOptions != null)
+      {
         attrInfo = attrInfoWithOptions.get(options);
+      }
 
       if (this.hasConflict(attrInfo, changeNumber))
       {
@@ -148,68 +163,72 @@ public class Historical
 
         switch (m.getModificationType())
         {
-        case DELETE:
-          if (changeNumber.older(attrInfo.getDeleteTime()))
-          {
-            /* this delete is already obsoleted by a more recent delete
-             * skip this mod
-             */
-            modsIterator.remove();
+          case DELETE:
+            if (changeNumber.older(attrInfo.getDeleteTime()))
+            {
+              /* this delete is already obsoleted by a more recent delete
+              * skip this mod
+              */
+              modsIterator.remove();
+              break;
+            }
+
+            this.conflictDelete(changeNumber,
+                                type, m, modifiedEntry, attrInfo, modAttr);
             break;
-          }
 
-          this.conflictDelete(changeNumber,
-              type, m, modifiedEntry, attrInfo, modAttr);
-          break;
-
-        case ADD:
-          this.conflictAdd(modsIterator, changeNumber, attrInfo,
-              modAttr.getValues(), modAttr.getOptions());
-          break;
-
-        case REPLACE:
-          if (changeNumber.older(attrInfo.getDeleteTime()))
-          {
-            /* this replace is already obsoleted by a more recent delete
-             * skip this mod
-             */
-            modsIterator.remove();
+          case ADD:
+            this.conflictAdd(modsIterator, changeNumber, attrInfo,
+                             modAttr.getValues(), modAttr.getOptions());
             break;
-          }
-          /* save the values that are added by the replace operation
-           * into addedValues
-           * first process the replace as a delete operation -> this generate
-           * a list of values that should be kept
-           * then process the addedValues as if they were coming from a add
-           * -> this generate the list of values that needs to be added
-           * concatenate the 2 generated lists into a replace
-           */
-          LinkedHashSet<AttributeValue> addedValues  = modAttr.getValues();
-          modAttr.setValues(new LinkedHashSet<AttributeValue>());
 
-          this.conflictDelete(changeNumber, type, m, modifiedEntry,
-              attrInfo, modAttr);
+          case REPLACE:
+            if (changeNumber.older(attrInfo.getDeleteTime()))
+            {
+              /* this replace is already obsoleted by a more recent delete
+              * skip this mod
+              */
+              modsIterator.remove();
+              break;
+            }
+            /* save the values that are added by the replace operation
+            * into addedValues
+            * first process the replace as a delete operation -> this generate
+            * a list of values that should be kept
+            * then process the addedValues as if they were coming from a add
+            * -> this generate the list of values that needs to be added
+            * concatenate the 2 generated lists into a replace
+            */
+            LinkedHashSet<AttributeValue> addedValues = modAttr.getValues();
+            modAttr.setValues(new LinkedHashSet<AttributeValue>());
 
-          LinkedHashSet<AttributeValue> keptValues = modAttr.getValues();
-          this.conflictAdd(modsIterator, changeNumber, attrInfo, addedValues,
-              modAttr.getOptions());
-          keptValues.addAll(addedValues);
-          break;
+            this.conflictDelete(changeNumber, type, m, modifiedEntry,
+                                attrInfo, modAttr);
 
-        case INCREMENT:
-          // TODO : FILL ME
-          break;
+            LinkedHashSet<AttributeValue> keptValues = modAttr.getValues();
+            this.conflictAdd(modsIterator, changeNumber, attrInfo, addedValues,
+                             modAttr.getOptions());
+            keptValues.addAll(addedValues);
+            break;
+
+          case INCREMENT:
+            // TODO : FILL ME
+            break;
         }
       }
       else
+      {
         processLocalOrNonConflictModification(changeNumber, m);
+      }
     }
 
     // TODO : now purge old historical information
 
     if (moreRecentChangenumber == null ||
-        moreRecentChangenumber.older(changeNumber))
+         moreRecentChangenumber.older(changeNumber))
+    {
       moreRecentChangenumber = changeNumber;
+    }
   }
 
   /**
@@ -240,17 +259,25 @@ public class Historical
 
     Attribute modAttr = mod.getAttribute();
     if (modAttr.getAttributeType().equals(historicalAttrType))
+    {
       return;
+    }
     Set<String> options = modAttr.getOptions();
     if (options.isEmpty())
+    {
       options = null;
+    }
     AttributeType type = modAttr.getAttributeType();
     AttrInfoWithOptions attrInfoWithOptions =  attributesInfo.get(type);
     AttrInfo attrInfo;
     if (attrInfoWithOptions != null)
+    {
       attrInfo = attrInfoWithOptions.get(options);
+    }
     else
+    {
       attrInfo = null;
+    }
 
     /*
      * The following code only works for multi-valued attributes.
@@ -260,7 +287,9 @@ public class Historical
     {
       attrInfo = new AttrInfo();
       if (attrInfoWithOptions == null)
+      {
         attrInfoWithOptions = new AttrInfoWithOptions();
+      }
       attrInfoWithOptions.put(options, attrInfo);
       attributesInfo.put(type, attrInfoWithOptions);
     }
@@ -268,9 +297,13 @@ public class Historical
     {
     case DELETE:
       if (modAttr.getValues().isEmpty())
+      {
         attrInfo.delete(changeNumber);
+      }
       else
+      {
         attrInfo.delete(modAttr.getValues(), changeNumber);
+      }
       break;
 
     case ADD:
@@ -319,10 +352,26 @@ public class Historical
         processLocalOrNonConflictModification(changeNumber, mod);
       }
       if (moreRecentChangenumber == null ||
-          moreRecentChangenumber.older(changeNumber))
+           moreRecentChangenumber.older(changeNumber))
+      {
         moreRecentChangenumber = changeNumber;
+      }
     }
 
+    Attribute attr = encode();
+    Modification mod;
+    mod = new Modification(ModificationType.REPLACE, attr);
+    mods.add(mod);
+    modifiedEntry.removeAttribute(historicalAttrType);
+    modifiedEntry.addAttribute(attr, null);
+  }
+
+  /**
+   * Encode the historical information in an operational attribute.
+   * @return The historical information encoded in an operational attribute.
+   */
+  public Attribute encode()
+  {
     LinkedHashSet<AttributeValue> hist = new LinkedHashSet<AttributeValue>();
 
     for (Map.Entry<AttributeType, AttrInfoWithOptions> entryWithOptions :
@@ -330,7 +379,7 @@ public class Historical
 
     {
       AttributeType type = entryWithOptions.getKey();
-      HashMap<Set<String> ,AttrInfo> attrwithoptions =
+      HashMap<Set<String> , AttrInfo> attrwithoptions =
                                 entryWithOptions.getValue().getAttributesInfo();
 
       for (Map.Entry<Set<String>, AttrInfo> entry : attrwithoptions.entrySet())
@@ -342,8 +391,15 @@ public class Historical
         ChangeNumber deleteTime = info.getDeleteTime();
 
         if (options != null)
+        {
+          StringBuilder optionsBuilder = new StringBuilder();
           for (String s : options)
-            optionsString.concat(";"+s);
+          {
+            optionsBuilder.append(';');
+            optionsBuilder.append(s);
+          }
+          optionsString = optionsBuilder.toString();
+        }
 
         /* generate the historical information for deleted attributes */
         if (deleteTime != null)
@@ -391,7 +447,6 @@ public class Historical
           String strValue = type.getNormalizedPrimaryName()
               + optionsString + ":" + deleteTime.toString()
               + ":attrDel";
-          delAttr = false;
           AttributeValue val = new AttributeValue(historicalAttrType, strValue);
           hist.add(val);
         }
@@ -399,16 +454,16 @@ public class Historical
     }
 
     Attribute attr;
-    Modification mod;
 
     if (hist.isEmpty())
+    {
       attr = new Attribute(historicalAttrType, HISTORICALATTRIBUTENAME, null);
+    }
     else
+    {
       attr = new Attribute(historicalAttrType, HISTORICALATTRIBUTENAME, hist);
-    mod = new Modification(ModificationType.REPLACE, attr);
-    mods.add(mod);
-    modifiedEntry.removeAttribute(historicalAttrType);
-    modifiedEntry.addAttribute(attr, null);
+    }
+    return attr;
   }
 
   /**
@@ -428,15 +483,22 @@ public class Historical
     if (ChangeNumber.compare(newChange, moreRecentChangenumber) <= 0)
     {
       if (info == null)
+      {
         return false;   // the attribute was never modified -> no conflict
-      else
-      if (ChangeNumber.compare(newChange, info.getLastUpdateTime()) <= 0)
+      }
+      else if (ChangeNumber.compare(newChange, info.getLastUpdateTime()) <= 0)
+      {
         return true; // the attribute was modified after this change -> conflict
+      }
       else
+      {
         return false;// the attribute was not modified more recently
+      }
     }
     else
+    {
       return false;
+    }
   }
 
   /**
@@ -515,9 +577,13 @@ public class Historical
 
       modAttr.setValues(replValues);
       if (changeNumber.newer(attrInfo.getDeleteTime()))
+      {
         attrInfo.setDeleteTime(changeNumber);
+      }
       if (changeNumber.newer(attrInfo.getLastUpdateTime()))
+      {
         attrInfo.setLastUpdateTime(changeNumber);
+      }
     }
     else
     {
@@ -566,7 +632,9 @@ public class Historical
         }
       }
       if (changeNumber.newer(attrInfo.getLastUpdateTime()))
+      {
         attrInfo.setLastUpdateTime(changeNumber);
+      }
     }
     return true;
   }
@@ -668,10 +736,14 @@ public class Historical
       }
     }
     if (addValues.isEmpty())
+    {
       modsIterator.remove();
+    }
 
     if (changeNumber.newer(attrInfo.getLastUpdateTime()))
+    {
       attrInfo.setLastUpdateTime(changeNumber);
+    }
     return true;
   }
 
@@ -691,7 +763,9 @@ public class Historical
     AttrInfoWithOptions attrInfoWithOptions = null;
 
     if (hist == null)
+    {
       return histObj;
+    }
 
     for (Attribute attr : hist)
     {
@@ -734,8 +808,7 @@ public class Historical
         }
         else
         {
-          attrType = lastAttrType;
-          if (options != lastOptions)
+          if (!options.equals(lastOptions))
           {
             attrInfo = new AttrInfo();
             attrInfoWithOptions.put(options, attrInfo);
@@ -782,6 +855,8 @@ public class Historical
     /* set the reference to the historical information in the entry */
     return histObj;
   }
+
+
   /**
    * Use this historical information to generate fake operations that would
    * result in this historical information.

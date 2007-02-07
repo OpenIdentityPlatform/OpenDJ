@@ -983,8 +983,8 @@ public final class LDIFReader
    *                                entry (used for writing reject information).
    * @param  line                   The line to decode.
    * @param  entryDN                The DN of the entry being decoded.
-   * @param  attributeName          The name of the attribute to return
-   *                                the values for.
+   * @param  attributeName          The name and options of the attribute to
+   *                                return the values for.
    *
    * @return                        The attribute in octet string form.
    * @throws  LDIFException         If a problem occurs while trying to decode
@@ -1007,13 +1007,17 @@ public final class LDIFReader
     String attrDescr = line.substring(0, colonPos);
     Attribute attribute = parseAttrDescription(attrDescr);
     String attrName = attribute.getName();
-    String lowerName = toLowerCase(attrName);
 
-    if(attributeName != null && !toLowerCase(attributeName).equals(lowerName))
+    if (attributeName != null)
     {
-      int msgID = MSGID_LDIF_INVALID_CHANGERECORD_ATTRIBUTE;
-      String message = getMessage(msgID, lowerName, attributeName);
-      throw new LDIFException(msgID, message, lastEntryLineNumber, false);
+      Attribute expectedAttr = parseAttrDescription(attributeName);
+
+      if (!attribute.equals(expectedAttr))
+      {
+        int msgID = MSGID_LDIF_INVALID_CHANGERECORD_ATTRIBUTE;
+        String message = getMessage(msgID, attrDescr, attributeName);
+        throw new LDIFException(msgID, message, lastEntryLineNumber, false);
+      }
     }
 
     //  Now parse the attribute value.

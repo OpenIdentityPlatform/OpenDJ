@@ -89,7 +89,7 @@ public class HistVal
       String[] optionsToken = token[0].split(";");
       options = new HashSet<String>();
       int index = 1;
-      while (optionsToken[index] != null)
+      while (index < optionsToken.length)
       {
         options.add(optionsToken[index]);
         index ++;
