@@ -1,0 +1,54 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying * information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Portions Copyright 2007 Sun Microsystems, Inc.
+#
+
+dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+objectClass: ds-cfg-password-policy
+objectClass: top
+ds-cfg-skip-validation-for-administrators: false
+ds-cfg-password-expiration-warning-interval: 5 days
+ds-cfg-default-password-storage-scheme: MD5
+ds-cfg-grace-login-count: 0
+ds-cfg-lockout-duration: 0 seconds
+ds-cfg-maximum-password-age: 6 weeks
+ds-cfg-maximum-password-reset-age: 0 seconds
+ds-cfg-lockout-failure-expiration-interval: 0 seconds
+ds-cfg-allow-user-password-changes: true
+ds-cfg-allow-multiple-password-values: false
+ds-cfg-minimum-password-age: 0 seconds
+ds-cfg-expire-passwords-without-warning: false
+ds-cfg-idle-lockout-interval: 0 seconds
+ds-cfg-password-generator-dn: cn=Random Password Generator,cn=Password Generator
+ s,cn=config
+ds-cfg-require-secure-authentication: false
+ds-cfg-force-change-on-add: false
+ds-cfg-password-attribute: authPassword
+ds-cfg-allow-expired-password-changes: false
+ds-cfg-allow-pre-encoded-passwords: false
+ds-cfg-lockout-failure-count: 0
+cn: Default Password Policy
+ds-cfg-require-secure-password-changes: false
+ds-cfg-force-change-on-reset: false
+ds-cfg-password-change-requires-current-password: false
+
