@@ -106,12 +106,14 @@ subtargets=
 	<!-- end of uninstall related targets -->
 	
 	<!-- configuration -->
+  
+
   <target name="configure.do"
           description="configures product to listen on the right port number"
 					if="product.installed" >
     <echo message="basedir=[${basedir}]" />
 		<echo message="configuring ${product.name} ${product.version}..." />
-    <java classname="org.opends.server.tools.ConfigureDS">
+    <java fork="true" classname="org.opends.server.tools.ConfigureDS">
       <!-- building the classpath to run the configurator -->
       <classpath>
         <fileset dir="${full.install.dir}/lib">
@@ -120,11 +122,12 @@ subtargets=
       </classpath>
       
       <!-- provide the arguments here -->
-      <arg value="--configClass" />
-      <arg value="org.opends.server.extensions.ConfigFileHandler"  />
-      <arg value="--configFile" />
-      <arg value="${full.install.dir}/config/config.ldif"       />
-      <arg line="-p ${port.ldap}" />
+      <jvmarg value="-Dorg.opends.server.scriptName=configure-ds"/>
+      <arg value="--configClass"/>
+      <arg value="org.opends.server.extensions.ConfigFileHandler"/>
+      <arg value="--configFile"/>
+      <arg value="${full.install.dir}/config/config.ldif"/>
+      <arg line="-p ${port.ldap}"/>
       <arg value="-D"/>
       <arg value="${bind.dn}"/>
       <arg value="-w"/>
