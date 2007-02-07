@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="teardown_auth_pwd_syntax"/>
+
+  <function name="teardown_auth_pwd_syntax">
+        <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             Teardown Tests
+            #@TestSuitePurpose          Unconfigure OpenDS after the authentication password syntax tests.
+            #@TestSuiteGroup            Security Authentication Password Syntax Teardown Tests
+            #@TestScript                security_teardown_auth_pwd_syntax.xml
+       -->
+      <sequence>
+
+        <!--- Test Case : Password Policy Teardown -->
+        <!--- Delete Branch -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Teardown Tests
+            #@TestName                  Authentication Password Syntax Teardown Test 
+            #@TestIssue                 none
+            #@TestPurpose               Remove entries that were needed for the auuthentication password syntax tests.
+            #@TestPreamble              none
+            #@TestStep                  Remove entries with ldapmodify.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all operations
+         -->
+        <testcase name="'Security: Auth Pwd Syntax: Postamble Reset'">
+          <sequence>
+            <message>
+               'Security: Auth Pwd Syntax: Postamble - Deleting Branch'
+            </message>
+
+            <call function="'DeleteEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'o=Auth Pwd Syntax Tests,dc=example,dc=com' ,
+                'extraParams'      : '-x'}
+            </call>
+
+            <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+          </sequence>
+        </testcase>
+
+        <return>RC</return>
+
+     </sequence>
+
+  </function>
+
+</stax>

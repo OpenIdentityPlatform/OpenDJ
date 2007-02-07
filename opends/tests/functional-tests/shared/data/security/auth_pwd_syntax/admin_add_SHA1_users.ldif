@@ -1,0 +1,235 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying * information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Portions Copyright 2007 Sun Microsystems, Inc.
+#
+
+dn: ou=SHA1 auth tests, o=Auth Pwd Syntax Tests, dc=example,dc=com
+ou: SHA1 auth tests
+objectclass: top
+objectclass: organizationalunit
+
+dn: ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+
+dn: uid=tmorris, ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests,dc=example,dc=com
+cn: Ted Morris
+sn: Morris
+givenname: Ted
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: authpasswordobject
+ou: Accounting
+ou: People
+l: Santa Clara
+uid: tmorris
+mail: tmorris@example.com
+telephonenumber: +1 408 555 9187
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 4117
+authpassword: irrefutable
+ds-pwp-password-policy-dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+
+dn: uid=kvaughan, ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests,dc=example,dc=com
+cn: Kirsten Vaughan
+sn: Vaughan
+givenname: Kirsten
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: authpasswordobject
+ou: Human Resources
+ou: People
+l: Sunnyvale
+uid: kvaughan
+mail: kvaughan@example.com
+telephonenumber: +1 408 555 5625
+facsimiletelephonenumber: +1 408 555 3372
+roomnumber: 2871
+authpassword: bribery
+ds-pwp-password-policy-dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+
+dn: uid=abergin, ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests,dc=example,dc=com
+cn: Andy Bergin
+sn: Bergin
+givenname: Andy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: authpasswordobject
+ou: Product Testing
+ou: People
+l: Cupertino
+uid: abergin
+mail: abergin@example.com
+telephonenumber: +1 408 555 8585
+facsimiletelephonenumber: +1 408 555 7472
+roomnumber: 3472
+authpassword: inflict
+ds-pwp-password-policy-dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+
+dn: uid=dmiller, ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests,dc=example,dc=com
+cn: David Miller
+sn: Miller
+givenname: David
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: authpasswordobject
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: dmiller
+mail: dmiller@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+authpassword: gosling
+ds-pwp-password-policy-dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+
+dn: uid=gfarmer, ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests,dc=example,dc=com
+cn: Gern Farmer
+sn: Farmer
+givenname: Gern
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: authpasswordobject
+ou: Accounting
+ou: People
+l: Cupertino
+uid: gfarmer
+mail: gfarmer@example.com
+telephonenumber: +1 408 555 6201
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 1269
+authpassword: ruling
+ds-pwp-password-policy-dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+
+dn: uid=kwinters, ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests,dc=example,dc=com
+cn: Kelly Winters
+sn: Winters
+givenname: Kelly
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: authpasswordobject
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: kwinters
+mail: kwinters@example.com
+telephonenumber: +1 408 555 9069
+facsimiletelephonenumber: +1 408 555 1992
+roomnumber: 4178
+authpassword: forsook
+ds-pwp-password-policy-dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+
+dn: uid=trigden, ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests,dc=example,dc=com
+cn: Torrey Rigden
+sn: Rigden
+givenname: Torrey
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: authpasswordobject
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: trigden
+mail: trigden@example.com
+telephonenumber: +1 408 555 9280
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 3584
+authpassword: sensitive
+ds-pwp-password-policy-dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+
+dn: uid=cschmith, ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests,dc=example,dc=com
+cn: Chris Schmith
+sn: Schmith
+givenname: Chris
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: authpasswordobject
+ou: Human Resources
+ou: People
+l: Santa Clara
+uid: cschmith
+mail: cschmith@example.com
+telephonenumber: +1 408 555 8011
+facsimiletelephonenumber: +1 408 555 4774
+roomnumber: 0416
+authpassword: hypotenuse
+ds-pwp-password-policy-dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+
+dn: uid=jwallace, ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests,dc=example,dc=com
+cn: Judy Wallace
+sn: Wallace
+givenname: Judy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: authpasswordobject
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: jwallace
+mail: jwallace@example.com
+telephonenumber: +1 408 555 0319
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 1033
+authpassword: linear
+ds-pwp-password-policy-dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+
+dn: uid=jwalker, ou=People, ou=SHA1 auth tests,  o=Auth Pwd Syntax Tests,dc=example,dc=com
+cn: John Walker
+sn: Walker
+givenname: John
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: authpasswordobject
+ou: Product Testing
+ou: People
+l: Cupertino
+uid: jwalker
+mail: jwalker@example.com
+telephonenumber: +1 408 555 1476
+facsimiletelephonenumber: +1 408 555 1992
+roomnumber: 3915
+authpassword: dogleg
+ds-pwp-password-policy-dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+
