@@ -27,7 +27,7 @@
  ! -->
 <stax>
 
-    <function name="checkRC">
+  <function name="checkRC">
 
     <function-prolog>
         This function checks a return code against an expected return code
@@ -224,13 +224,13 @@
  
           <sequence>
           <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : 'cn=config' ,
-		'dsFilter'	   : 'objectclass=*' ,
-                'extraParams'       : '-s "base"' }
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'       : 'cn=config' ,
+                'dsFilter'	     : 'objectclass=*' ,
+                'extraParams'    : '-s "base"' }
           </call>
 
           <script>
@@ -280,10 +280,6 @@
 
   </function>
 
-  <!--- XXX TODO XXX 
-       I am not sure this is best way, we could try directly
-       calling python modules os sys
-  -->
   <function name="setOSvariables">
 
     <function-prolog>
@@ -315,40 +311,136 @@
 
   </function>
 
-  <function name="testCaseStartBanner">
-  
+  <function name="testCase_StartBanner">
+
     <function-prolog>
-    Pretty prints a banner at the start of a test.
+      Pretty prints a banner at the start of a test.
     </function-prolog>
-    
-    <function-no-args/>
-    
+
+    <function-no-args />
+
     <sequence>
-    
+
       <message>
         '### Starting test case %s. ###' % STAXCurrentTestcase
       </message>
-      
+
     </sequence>
-      
+
   </function>
-        
-  <function name="testCaseEndBanner">
-        
+
+  <function name="testCase_EndBanner">
+
     <function-prolog>
       Pretty prints a banner at the end of a test.
     </function-prolog>
-        
-    <function-no-args/>
-      
-      <sequence>
-      
+
+    <function-no-args />
+
+    <sequence>
+
       <message>
         '### Ending test case %s. ###' % STAXCurrentTestcase
       </message>
-    
+
     </sequence>
-  
+
+  </function>
+
+  <function name="testCase_Preamble">
+
+    <function-prolog>
+      Performs all the preoperations for a test case
+    </function-prolog>
+
+    <function-no-args />
+
+    <sequence>
+
+      <call function="'testCase_StartBanner'" />
+
+    </sequence>
+
+  </function>
+
+  <function name="testCase_Postamble">
+
+    <function-prolog>
+      Performs all the post operations for a test suite
+    </function-prolog>
+
+    <function-no-args />
+
+    <sequence>
+
+      <call function="'testCase_EndBanner'" />
+
+    </sequence>
+
+  </function>
+
+  <function name="testSuite_Preamble">
+
+    <function-prolog>
+      Performs all the pre operations for a test suite
+    </function-prolog>
+
+    <function-no-args />
+
+    <sequence>
+
+      <message>'Enter test suite preamble'</message>
+
+    </sequence>
+
+  </function>
+
+  <function name="testSuite_Postamble">
+
+    <function-prolog>
+      Performs all the post operations for a test suite
+    </function-prolog>
+
+    <function-no-args />
+
+    <sequence>
+
+      <message>'Enter test suite postamble'</message>
+
+    </sequence>
+
+  </function>
+
+  <function name="testGroup_Preamble">
+
+    <function-prolog>
+      Performs all the pre operations for a test group
+    </function-prolog>
+
+    <function-no-args />
+
+    <sequence>
+
+      <message>'Enter test group postamble'</message>
+
+    </sequence>
+
+  </function>
+
+  <function name="testGroup_Postamble">
+
+    <function-prolog>
+      Performs all the post operations for a test group
+    </function-prolog>
+
+    <function-no-args />
+
+    <sequence>
+
+      <message>'Enter test group postamble'</message>
+
+    </sequence>
+
   </function>
 
 </stax>

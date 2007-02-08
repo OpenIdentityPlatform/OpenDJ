@@ -95,7 +95,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
       
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
@@ -120,7 +120,7 @@
                    }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -152,7 +152,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -178,7 +178,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -199,7 +199,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -225,7 +225,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -246,7 +246,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -274,7 +274,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -295,7 +295,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -325,7 +325,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -346,7 +346,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -375,7 +375,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -396,7 +396,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -421,7 +421,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -442,7 +442,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -468,7 +468,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -489,7 +489,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
@@ -514,7 +514,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -535,7 +535,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
@@ -560,7 +560,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -581,7 +581,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
@@ -611,7 +611,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -632,7 +632,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -658,7 +658,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -679,7 +679,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -707,7 +707,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -728,7 +728,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -756,7 +756,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -777,7 +777,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -802,7 +802,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -823,7 +823,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -849,7 +849,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -870,7 +870,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -895,7 +895,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -916,7 +916,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
@@ -943,7 +943,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -964,7 +964,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
@@ -990,7 +990,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -1011,7 +1011,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
@@ -1038,7 +1038,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -1059,7 +1059,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
@@ -1085,7 +1085,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -1106,7 +1106,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
@@ -1138,7 +1138,7 @@
                     'result'     : STAXResult }
                 </call>
 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -1172,7 +1172,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
@@ -1200,7 +1200,7 @@
 
                 <!-- Should check there is a rejects file and the contents are correct -->
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -1221,7 +1221,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
@@ -1250,7 +1250,7 @@
 
                 <!-- Should check there is a rejects file and the contents are correct -->
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -1271,7 +1271,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
@@ -1297,7 +1297,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -1318,7 +1318,7 @@
       
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
 
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
@@ -1344,7 +1344,7 @@
                   }
                 </call>
                 
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
