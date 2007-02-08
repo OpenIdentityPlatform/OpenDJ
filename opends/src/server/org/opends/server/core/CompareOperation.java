@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -837,10 +837,10 @@ compareProcessing:
               }
 
 
-              DN authzDN;
+              Entry authorizationEntry;
               try
               {
-                authzDN = proxyControl.getValidatedAuthorizationDN();
+                authorizationEntry = proxyControl.getAuthorizationEntry();
               }
               catch (DirectoryException de)
               {
@@ -855,7 +855,7 @@ compareProcessing:
 
               // FIXME -- Should we specifically check permissions here, or let
               //          the earlier access control checks handle it?
-              setAuthorizationDN(authzDN);
+              setAuthorizationEntry(authorizationEntry);
             }
             else if (oid.equals(OID_PROXIED_AUTH_V2))
             {
@@ -882,10 +882,10 @@ compareProcessing:
               }
 
 
-              DN authzDN;
+              Entry authorizationEntry;
               try
               {
-                authzDN = proxyControl.getValidatedAuthorizationDN();
+                authorizationEntry = proxyControl.getAuthorizationEntry();
               }
               catch (DirectoryException de)
               {
@@ -900,7 +900,7 @@ compareProcessing:
 
               // FIXME -- Should we specifically check permissions here, or let
               //          the earlier access control checks handle it?
-              setAuthorizationDN(authzDN);
+              setAuthorizationEntry(authorizationEntry);
             }
 
             // NYI -- Add support for additional controls.

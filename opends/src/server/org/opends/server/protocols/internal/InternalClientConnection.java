@@ -32,6 +32,7 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,6 +47,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
@@ -70,6 +72,7 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
@@ -79,10 +82,12 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
 
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -152,13 +157,60 @@ public class InternalClientConnection
 
     // This connection will be authenticated as a root user so that no
     // access control will be enforced.
-    String dnString = "cn=Internal Client";
+    String commonName    = "Internal Client";
+    String shortDNString = "cn=" + commonName;
+    String fullDNString  = shortDNString + ",cn=Root DNs,cn=config";
     try
     {
-      DN internalUserDN = DN.decode(dnString);
+      LinkedHashMap<ObjectClass,String> objectClasses =
+           new LinkedHashMap<ObjectClass,String>();
+      ObjectClass topOC = DirectoryServer.getTopObjectClass();
+      ObjectClass personOC = DirectoryServer.getObjectClass(OC_PERSON,
+                                                            true);
+      ObjectClass rootOC = DirectoryServer.getObjectClass(OC_ROOT_DN,
+                                                          true);
+
+      objectClasses.put(topOC, topOC.getPrimaryName());
+      objectClasses.put(personOC, personOC.getPrimaryName());
+      objectClasses.put(rootOC, rootOC.getPrimaryName());
+
+
+      LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
+           new LinkedHashMap<AttributeType,List<Attribute>>();
+      AttributeType cnAT =
+           DirectoryServer.getAttributeType(ATTR_COMMON_NAME, true);
+      AttributeType snAT = DirectoryServer.getAttributeType(ATTR_SN,
+                                                            true);
+      AttributeType altDNAT =
+           DirectoryServer.getAttributeType(
+                ATTR_ROOTDN_ALTERNATE_BIND_DN, true);
+
+      LinkedList<Attribute> attrList = new LinkedList<Attribute>();
+      attrList.add(new Attribute(ATTR_COMMON_NAME, commonName));
+      userAttrs.put(cnAT, attrList);
+
+      attrList = new LinkedList<Attribute>();
+      attrList.add(new Attribute(ATTR_SN, commonName));
+      userAttrs.put(snAT, attrList);
+
+      attrList = new LinkedList<Attribute>();
+      attrList.add(new Attribute(ATTR_ROOTDN_ALTERNATE_BIND_DN,
+                                 shortDNString));
+      userAttrs.put(altDNAT, attrList);
+
+
+      LinkedHashMap<AttributeType,List<Attribute>> operationalAttrs =
+           new LinkedHashMap<AttributeType,List<Attribute>>();
+      // FIXME -- Add privileges here.
+
+
+      DN internalUserDN = DN.decode(fullDNString);
+      Entry internalUserEntry =
+                 new Entry(internalUserDN, objectClasses, userAttrs,
+                           operationalAttrs);
 
       this.authenticationInfo =
-           new AuthenticationInfo(internalUserDN, true);
+           new AuthenticationInfo(internalUserEntry, true);
     }
     catch (DirectoryException de)
     {
@@ -166,7 +218,7 @@ public class InternalClientConnection
 
       logError(ErrorLogCategory.CONNECTION_HANDLING,
                ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_INTERNAL_CANNOT_DECODE_DN, dnString,
+               MSGID_INTERNAL_CANNOT_DECODE_DN, fullDNString,
                stackTraceToSingleLineString(de));
     }
 
@@ -1535,7 +1587,10 @@ public class InternalClientConnection
                       String.valueOf(messageID));
 
     // No implementation is required since there is nothing to
-    // disconnect.
+    // disconnect.  Further, since there is no real disconnect, we can
+    // wait to have the garbage collector call
+    // finalizeConnectionInternal whenever this internal connection is
+    // garbage collected.
   }
 
 
@@ -1735,7 +1790,12 @@ public class InternalClientConnection
     buffer.append("InternalClientConnection(connID=");
     buffer.append(connectionID);
     buffer.append(", authDN=\"");
-    buffer.append(getAuthenticationInfo().getAuthenticationDN());
+
+    if (getAuthenticationInfo() != null)
+    {
+      buffer.append(getAuthenticationInfo().getAuthenticationDN());
+    }
+
     buffer.append("\")");
   }
 }

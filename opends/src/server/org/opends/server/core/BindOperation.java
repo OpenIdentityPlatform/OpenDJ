@@ -147,6 +147,10 @@ public class BindOperation
   // The DN of the user entry that is attempting to authenticate.
   private DN userEntryDN;
 
+  // The entry of the user that successfully authenticated during processing of
+  // this bind operation.
+  private Entry authenticatedUserEntry;
+
   // The DN of the user as whom a SASL authentication was attempted (regardless
   // of whether the authentication was successful) for the purpose of updating
   // password policy state information.
@@ -244,6 +248,7 @@ public class BindOperation
     responseControls         = new ArrayList<Control>(0);
     authFailureID            = 0;
     authFailureReason        = null;
+    authenticatedUserEntry   = null;
     saslAuthUserEntry        = null;
     isFirstWarning           = false;
     isGraceLogin             = false;
@@ -304,12 +309,13 @@ public class BindOperation
       this.rawBindDN = rawBindDN;
     }
 
-    bindDN            = null;
-    userEntryDN       = null;
-    responseControls  = new ArrayList<Control>(0);
-    authFailureID     = 0;
-    authFailureReason = null;
-    saslAuthUserEntry = null;
+    bindDN                 = null;
+    userEntryDN            = null;
+    responseControls       = new ArrayList<Control>(0);
+    authFailureID          = 0;
+    authFailureReason      = null;
+    authenticatedUserEntry = null;
+    saslAuthUserEntry      = null;
   }
 
 
@@ -369,6 +375,7 @@ public class BindOperation
     responseControls         = new ArrayList<Control>(0);
     authFailureID            = 0;
     authFailureReason        = null;
+    authenticatedUserEntry   = null;
     saslAuthUserEntry        = null;
     isFirstWarning           = false;
     isGraceLogin             = false;
@@ -429,11 +436,12 @@ public class BindOperation
       rawBindDN = new ASN1OctetString(bindDN.toString());
     }
 
-    responseControls  = new ArrayList<Control>(0);
-    authFailureID     = 0;
-    authFailureReason = null;
-    saslAuthUserEntry = null;
-    userEntryDN       = null;
+    responseControls       = new ArrayList<Control>(0);
+    authFailureID          = 0;
+    authFailureReason      = null;
+    authenticatedUserEntry = null;
+    saslAuthUserEntry      = null;
+    userEntryDN            = null;
   }
 
 
@@ -1481,8 +1489,8 @@ bindProcessing:
               setResultCode(ResultCode.SUCCESS);
 
               boolean isRoot = DirectoryServer.isRootDN(userEntry.getDN());
-              authInfo = new AuthenticationInfo(userEntry.getDN(),
-                                                simplePassword, isRoot);
+              authInfo = new AuthenticationInfo(userEntry, simplePassword,
+                                                isRoot);
 
 
               // See if the user's entry contains a custom size limit.
@@ -2220,6 +2228,7 @@ bindProcessing:
     // Update the authentication information for the user.
     if ((getResultCode() == ResultCode.SUCCESS) && (authInfo != null))
     {
+      authenticatedUserEntry = authInfo.getAuthenticationEntry();
       clientConnection.setAuthenticationInfo(authInfo);
       clientConnection.setSizeLimit(sizeLimit);
       clientConnection.setTimeLimit(timeLimit);

@@ -80,6 +80,10 @@ public abstract class ClientConnection
   // until the bind completes.
   private boolean bindInProgress;
 
+  // Indicates whether any necessary finalization work has been done
+  // for this client connection.
+  private boolean finalized;
+
   // The size limit for use with this client connection.
   private int sizeLimit;
 
@@ -122,6 +126,79 @@ public abstract class ClientConnection
     sizeLimit          = DirectoryServer.getSizeLimit();
     timeLimit          = DirectoryServer.getTimeLimit();
     lookthroughLimit   = DirectoryServer.getLookthroughLimit();
+    finalized          = false;
+  }
+
+
+
+  /**
+   * Performs any internal cleanup that may be necessary when this
+   * client connection is disconnected, or if not on disconnec, then
+   * ultimately whenever it is reaped by the garbage collector.  In
+   * this case, it will be used to ensure that the connection is
+   * deregistered with the {@code AuthenticatedUsers} manager, and
+   * will then invoke the {@code finalizeClientConnection} method.
+   */
+  protected final void finalizeConnectionInternal()
+  {
+    if (finalized)
+    {
+      return;
+    }
+
+    finalized = true;
+
+    // Deregister with the set of authenticated users.
+    Entry authNEntry = authenticationInfo.getAuthenticationEntry();
+    Entry authZEntry = authenticationInfo.getAuthorizationEntry();
+
+    if (authNEntry != null)
+    {
+      if ((authZEntry == null) ||
+          authZEntry.getDN().equals(authNEntry.getDN()))
+      {
+        DirectoryServer.getAuthenticatedUsers().remove(
+             authNEntry.getDN(), this);
+      }
+      else
+      {
+        DirectoryServer.getAuthenticatedUsers().remove(
+             authNEntry.getDN(), this);
+        DirectoryServer.getAuthenticatedUsers().remove(
+             authZEntry.getDN(), this);
+      }
+    }
+    else if (authZEntry != null)
+    {
+      DirectoryServer.getAuthenticatedUsers().remove(
+           authZEntry.getDN(), this);
+    }
+
+    try
+    {
+      finalizeClientConnection();
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "finalizeConnectionInternal",
+                            e);
+    }
+  }
+
+
+
+  /**
+   * Performs any cleanup work that may be necessary when this client
+   * connection is terminated.  By default, no action is taken.
+   * <BR><BR>
+   * If possible, this method will be invoked when the client
+   * connection is disconnected.  If it isn't invoked at that time,
+   * then it will be called when the client connection object is
+   * finalized by the garbage collector.
+   */
+  protected void finalizeClientConnection()
+  {
+    // No implementation is required by default.
   }
 
 
@@ -430,9 +507,9 @@ public abstract class ClientConnection
    *                           associated with the provided message
    *                           ID.
    */
-  public void disconnect(DisconnectReason disconnectReason,
-                         boolean sendNotification, int messageID,
-                         Object... arguments)
+  public final void disconnect(DisconnectReason disconnectReason,
+                               boolean sendNotification,
+                               int messageID, Object... arguments)
   {
     assert debugEnter(CLASS_NAME, "disconnect",
                       String.valueOf(disconnectReason),
@@ -456,6 +533,9 @@ public abstract class ClientConnection
    * operation processing (e.g., within a plugin or other extension),
    * the <CODE>disconnectClient</CODE> method within that operation
    * should be called rather than invoking this method directly.
+   * <BR><BR>
+   * All subclasses must invoke the {@code finalizeConnectionInternal}
+   * method during the course of processing this method.
    *
    * @param  disconnectReason  The disconnect reason that provides the
    *                           generic cause for the disconnect.
@@ -733,6 +813,36 @@ public abstract class ClientConnection
     assert debugEnter(CLASS_NAME, "setAuthenticationInfo",
                       String.valueOf(authenticationInfo));
 
+    if (this.authenticationInfo != null)
+    {
+      Entry authNEntry =
+                 this.authenticationInfo.getAuthenticationEntry();
+      Entry authZEntry =
+                 this.authenticationInfo.getAuthorizationEntry();
+
+      if (authNEntry != null)
+      {
+        if ((authZEntry == null) ||
+            authZEntry.getDN().equals(authNEntry.getDN()))
+        {
+          DirectoryServer.getAuthenticatedUsers().remove(
+               authNEntry.getDN(), this);
+        }
+        else
+        {
+          DirectoryServer.getAuthenticatedUsers().remove(
+               authNEntry.getDN(), this);
+          DirectoryServer.getAuthenticatedUsers().remove(
+               authZEntry.getDN(), this);
+        }
+      }
+      else if (authZEntry != null)
+      {
+        DirectoryServer.getAuthenticatedUsers().remove(
+             authZEntry.getDN(), this);
+      }
+    }
+
     if (authenticationInfo == null)
     {
       this.authenticationInfo = new AuthenticationInfo();
@@ -740,6 +850,76 @@ public abstract class ClientConnection
     else
     {
       this.authenticationInfo = authenticationInfo;
+
+      Entry authNEntry = authenticationInfo.getAuthenticationEntry();
+      Entry authZEntry = authenticationInfo.getAuthorizationEntry();
+
+      if (authNEntry != null)
+      {
+        if ((authZEntry == null) ||
+            authZEntry.getDN().equals(authNEntry.getDN()))
+        {
+          DirectoryServer.getAuthenticatedUsers().put(
+               authNEntry.getDN(), this);
+        }
+        else
+        {
+          DirectoryServer.getAuthenticatedUsers().put(
+               authNEntry.getDN(), this);
+          DirectoryServer.getAuthenticatedUsers().put(
+               authZEntry.getDN(), this);
+        }
+      }
+      else if (authZEntry != null)
+      {
+        DirectoryServer.getAuthenticatedUsers().put(
+             authZEntry.getDN(), this);
+      }
+    }
+  }
+
+
+
+  /**
+   * Updates the cached entry associated with either the
+   * authentication and/or authorization identity with the provided
+   * version.
+   *
+   * @param  oldEntry  The user entry currently serving as the
+   *                   authentication and/or authorization identity.
+   * @param  newEntry  The updated entry that should replace the
+   *                   existing entry.  It may optionally have a
+   *                   different DN than the old entry.
+   */
+  public void updateAuthenticationInfo(Entry oldEntry, Entry newEntry)
+  {
+    assert debugEnter(CLASS_NAME, "updateAuthenticationInfo",
+                      String.valueOf(oldEntry),
+                      String.valueOf(newEntry));
+
+    Entry authNEntry = authenticationInfo.getAuthenticationEntry();
+    Entry authZEntry = authenticationInfo.getAuthorizationEntry();
+
+    if ((authNEntry != null) &&
+        authNEntry.getDN().equals(oldEntry.getDN()))
+    {
+      if ((authZEntry == null) ||
+          (! authZEntry.getDN().equals(authNEntry.getDN())))
+      {
+        authenticationInfo =
+             authenticationInfo.duplicate(newEntry, authZEntry);
+      }
+      else
+      {
+        authenticationInfo =
+             authenticationInfo.duplicate(newEntry, newEntry);
+      }
+    }
+    else if ((authZEntry != null) &&
+             (authZEntry.getDN().equals(oldEntry.getDN())))
+    {
+      authenticationInfo =
+           authenticationInfo.duplicate(authNEntry, newEntry);
     }
   }
 
@@ -1053,5 +1233,20 @@ public abstract class ClientConnection
    *                 appended.
    */
   public abstract void toString(StringBuilder buffer);
+
+
+
+  /**
+   * Performs any work that may be needed before the JVM invokes
+   * garbage collection for this object.  In this case, it makes sure
+   * to deregister with the Directory Server as a change notification
+   * listener.  If a subclass wishes to perform custom finalization
+   * processing, then it should override this method and make sure to
+   * invoke {@code super.finalize} as its first call.
+   */
+  protected void finalize()
+  {
+    finalizeConnectionInternal();
+  }
 }
 

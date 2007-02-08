@@ -435,7 +435,7 @@ public class PlainSASLMechanismHandler
     bindOperation.setResultCode(ResultCode.SUCCESS);
 
     AuthenticationInfo authInfo =
-         new AuthenticationInfo(userEntry.getDN(), SASL_MECHANISM_PLAIN,
+         new AuthenticationInfo(userEntry, SASL_MECHANISM_PLAIN,
                                 DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
     return;

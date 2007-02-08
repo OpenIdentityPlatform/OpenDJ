@@ -831,7 +831,7 @@ public class GroupManagerTestCase
 
     // Get a client connection authenticated as user1 and make sure it handles
     // group operations correctly.
-    authInfo = new AuthenticationInfo(user1DN, false);
+    authInfo = new AuthenticationInfo(DirectoryServer.getEntry(user1DN), false);
     InternalClientConnection conn1 = new InternalClientConnection(authInfo);
     searchOperation =
          new InternalSearchOperation(conn1, conn1.nextOperationID(),
@@ -862,7 +862,7 @@ public class GroupManagerTestCase
 
     // Get a client connection authenticated as user2 and make sure it handles
     // group operations correctly.
-    authInfo = new AuthenticationInfo(user2DN, false);
+    authInfo = new AuthenticationInfo(DirectoryServer.getEntry(user2DN), false);
     InternalClientConnection conn2 = new InternalClientConnection(authInfo);
     searchOperation =
          new InternalSearchOperation(conn2, conn2.nextOperationID(),
@@ -893,7 +893,7 @@ public class GroupManagerTestCase
 
     // Get a client connection authenticated as user3 and make sure it handles
     // group operations correctly.
-    authInfo = new AuthenticationInfo(user3DN, false);
+    authInfo = new AuthenticationInfo(DirectoryServer.getEntry(user3DN), false);
     InternalClientConnection conn3 = new InternalClientConnection(authInfo);
     searchOperation =
          new InternalSearchOperation(conn3, conn3.nextOperationID(),

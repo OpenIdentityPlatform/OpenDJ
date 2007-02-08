@@ -338,6 +338,14 @@ public class ServerConstants
 
 
   /**
+   * The name of the standard attribute that is used to hold surnames, formatted
+   * in all lowercase.
+   */
+  public static final String ATTR_SN = "sn";
+
+
+
+  /**
    * The name of the standard attribute that is used to specify the location
    * for the Directory Server schema, formatted in camel case.
    */
@@ -715,6 +723,13 @@ public class ServerConstants
    * characters.
    */
   public static final String OC_ORGANIZATIONAL_UNIT_LC = "organizationalunit";
+
+
+
+  /**
+   * The name of the person objectclass, formatted in all lowercase characters.
+   */
+  public static final String OC_PERSON = "person";
 
 
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 
@@ -265,7 +265,7 @@ public class RmiAuthenticator implements JMXAuthenticator
       bindPW = new ASN1OctetString(password);
     }
 
-    AuthenticationInfo authInfo = new AuthenticationInfo(bindDN, bindPW, false);
+    AuthenticationInfo authInfo = new AuthenticationInfo();
     JmxClientConnection jmxClientConnection = new JmxClientConnection(
         jmxConnectionHandler, authInfo);
 
@@ -284,6 +284,8 @@ public class RmiAuthenticator implements JMXAuthenticator
           "bind",
           "User is authenticated");
 
+      authInfo = bindOp.getAuthenticationInfo();
+      jmxClientConnection.setAuthenticationInfo(authInfo);
       return jmxClientConnection;
     }
     else

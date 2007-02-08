@@ -430,7 +430,7 @@ public class GSSAPIStateInfo
     // The authentication was successful, so set the proper state information
     // in the client connection and return success.
     AuthenticationInfo authInfo =
-         new AuthenticationInfo(userEntry.getDN(), SASL_MECHANISM_GSSAPI,
+         new AuthenticationInfo(userEntry, SASL_MECHANISM_GSSAPI,
                                 DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
     bindOperation.setResultCode(ResultCode.SUCCESS);

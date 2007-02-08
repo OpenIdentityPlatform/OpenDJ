@@ -455,7 +455,7 @@ public class ExternalSASLMechanismHandler
 
 
     AuthenticationInfo authInfo =
-         new AuthenticationInfo(userEntry.getDN(), SASL_MECHANISM_EXTERNAL,
+         new AuthenticationInfo(userEntry, SASL_MECHANISM_EXTERNAL,
                                 DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
     bindOperation.setResultCode(ResultCode.SUCCESS);

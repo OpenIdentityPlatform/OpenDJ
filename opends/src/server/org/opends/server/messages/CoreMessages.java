@@ -6150,6 +6150,17 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if a client connection is
+   * terminated because the associated authentication or authorization entry was
+   * removed from the server.  It takes a single argument, which is the DN of
+   * the entry that has been removed.
+   */
+  public static final int MSGID_CLIENTCONNECTION_DISCONNECT_DUE_TO_DELETE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_WARNING | 588;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -8321,6 +8332,11 @@ public class CoreMessages
                      "Rejecting the requested operation  " +
                      "because the connection has not been authenticated.");
 
+
+    registerMessage(MSGID_CLIENTCONNECTION_DISCONNECT_DUE_TO_DELETE,
+                    "Terminating the client connection because its " +
+                    "associated authentication or authorization entry %s has " +
+                    "been deleted.");
   }
 }
 

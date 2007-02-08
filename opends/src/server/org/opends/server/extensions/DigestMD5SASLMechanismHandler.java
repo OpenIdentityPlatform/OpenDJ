@@ -1011,7 +1011,7 @@ public class DigestMD5SASLMechanismHandler
 
 
     AuthenticationInfo authInfo =
-         new AuthenticationInfo(userEntry.getDN(), SASL_MECHANISM_DIGEST_MD5,
+         new AuthenticationInfo(userEntry, SASL_MECHANISM_DIGEST_MD5,
                                 DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
     return;

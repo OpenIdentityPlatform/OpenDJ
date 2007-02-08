@@ -309,7 +309,7 @@ public class ProxiedAuthV2ControlTestCase
   {
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(new ASN1OctetString(""));
-    assertEquals(proxyControl.getValidatedAuthorizationDN(), DN.nullDN());
+    assertNull(proxyControl.getAuthorizationEntry());
   }
 
 
@@ -326,7 +326,7 @@ public class ProxiedAuthV2ControlTestCase
   {
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(new ASN1OctetString("dn:"));
-    assertEquals(proxyControl.getValidatedAuthorizationDN(), DN.nullDN());
+    assertNull(proxyControl.getAuthorizationEntry());
   }
 
 
@@ -355,7 +355,7 @@ public class ProxiedAuthV2ControlTestCase
 
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(new ASN1OctetString("dn:uid=test,o=test"));
-    assertEquals(proxyControl.getValidatedAuthorizationDN(),
+    assertEquals(proxyControl.getAuthorizationEntry().getDN(),
                  DN.decode("uid=test,o=test"));
   }
 
@@ -375,7 +375,7 @@ public class ProxiedAuthV2ControlTestCase
 
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(new ASN1OctetString("dn:uid=test,o=test"));
-    proxyControl.getValidatedAuthorizationDN();
+    proxyControl.getAuthorizationEntry();
   }
 
 
@@ -406,7 +406,7 @@ public class ProxiedAuthV2ControlTestCase
 
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(new ASN1OctetString("dn:uid=test,o=test"));
-    proxyControl.getValidatedAuthorizationDN();
+    proxyControl.getAuthorizationEntry();
   }
 
 
@@ -423,7 +423,7 @@ public class ProxiedAuthV2ControlTestCase
   {
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(new ASN1OctetString("u:"));
-    assertEquals(proxyControl.getValidatedAuthorizationDN(), DN.nullDN());
+    assertNull(proxyControl.getAuthorizationEntry());
   }
 
 
@@ -452,7 +452,7 @@ public class ProxiedAuthV2ControlTestCase
 
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(new ASN1OctetString("u:test"));
-    assertEquals(proxyControl.getValidatedAuthorizationDN(),
+    assertEquals(proxyControl.getAuthorizationEntry().getDN(),
                  DN.decode("uid=test,o=test"));
   }
 
@@ -472,7 +472,7 @@ public class ProxiedAuthV2ControlTestCase
 
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(new ASN1OctetString("u:test"));
-    proxyControl.getValidatedAuthorizationDN();
+    proxyControl.getAuthorizationEntry();
   }
 
 
@@ -503,7 +503,7 @@ public class ProxiedAuthV2ControlTestCase
 
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(new ASN1OctetString("u:test"));
-    proxyControl.getValidatedAuthorizationDN();
+    proxyControl.getAuthorizationEntry();
   }
 
 
@@ -520,7 +520,7 @@ public class ProxiedAuthV2ControlTestCase
   {
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(new ASN1OctetString("invalid"));
-    proxyControl.getValidatedAuthorizationDN();
+    proxyControl.getAuthorizationEntry();
   }
 
 

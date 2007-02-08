@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -68,11 +69,12 @@ public class AuthenticationInfo
   // other operation will be allowed.
   private boolean mustChangePassword;
 
-  // The DN of the user that is currently authenticated.
-  private DN authenticationDN;
+  // The entry of the user that is currently authenticated.
+  private Entry authenticationEntry;
 
-  // The authorization DN for this authentication info structure.
-  private DN authorizationDN;
+  // The entry of the user that will be used as the default
+  // authorization identity.
+  private Entry authorizationEntry;
 
   // The type of authentication performed on this connection.
   private Set<AuthenticationType> authenticationTypes;
@@ -95,8 +97,8 @@ public class AuthenticationInfo
     mustChangePassword  = false;
     simplePassword      = null;
     authenticationTypes = new HashSet<AuthenticationType>(0);
-    authenticationDN    = null;
-    authorizationDN     = null;
+    authenticationEntry = null;
+    authorizationEntry  = null;
     saslMechanisms      = new HashSet<String>(0);
   }
 
@@ -106,24 +108,25 @@ public class AuthenticationInfo
    * Creates a new set of authentication information to be used for
    * clients that are authenticated internally.
    *
-   * @param  authenticationDN  The DN of the user that has
-   *                           authenticated.
-   * @param  isRoot            Indicates whether the authenticated
-   *                           user is a root user.
+   * @param  authenticationEntry  The entry of the user that has
+   *                              authenticated, or {@code null} to
+   *                              indicate an unauthenticated user.
+   * @param  isRoot               Indicates whether the authenticated
+   *                              user is a root user.
    */
-  public AuthenticationInfo(DN authenticationDN, boolean isRoot)
+  public AuthenticationInfo(Entry authenticationEntry, boolean isRoot)
   {
     assert debugConstructor(CLASS_NAME,
-                            String.valueOf(authenticationDN),
+                            String.valueOf(authenticationEntry),
                             String.valueOf(isRoot));
 
-    this.authenticationDN = authenticationDN;
-    this.isRoot           = isRoot;
+    this.authenticationEntry = authenticationEntry;
+    this.isRoot              = isRoot;
 
-    isAuthenticated     = true;
+    isAuthenticated     = (authenticationEntry != null);
     mustChangePassword  = false;
     simplePassword      = null;
-    authorizationDN     = authenticationDN;
+    authorizationEntry  = authenticationEntry;
     saslMechanisms      = new HashSet<String>(0);
     authenticationTypes = new HashSet<AuthenticationType>(1);
 
@@ -136,28 +139,32 @@ public class AuthenticationInfo
    * Creates a new set of authentication information to be used for
    * clients that have successfully performed simple authentication.
    *
-   * @param  authenticationDN  The DN of the user that has
-   *                           authenticated.
-   * @param  simplePassword    The password that was used to perform
-   *                           the simple authentication.
-   * @param  isRoot            Indicates whether the authenticated
-   *                           user is a root user.
+   * @param  authenticationEntry  The entry of the user that has
+   *                              authenticated.  It must not be
+   *                              {@code null}.
+   * @param  simplePassword       The password that was used to
+   *                              perform the simple authentication.
+   *                              It must not be {@code null}.
+   * @param  isRoot               Indicates whether the authenticated
+   *                              user is a root user.
    */
-  public AuthenticationInfo(DN authenticationDN,
+  public AuthenticationInfo(Entry authenticationEntry,
                             ByteString simplePassword, boolean isRoot)
   {
     assert debugConstructor(CLASS_NAME,
-                            String.valueOf(authenticationDN),
+                            String.valueOf(authenticationEntry),
                             String.valueOf(simplePassword),
                             String.valueOf(isRoot));
 
-    this.authenticationDN = authenticationDN;
-    this.simplePassword   = simplePassword;
-    this.isRoot           = isRoot;
+    ensureNotNull(authenticationEntry, simplePassword);
+
+    this.authenticationEntry = authenticationEntry;
+    this.simplePassword      = simplePassword;
+    this.isRoot              = isRoot;
 
     isAuthenticated     = true;
     mustChangePassword  = false;
-    authorizationDN     = authenticationDN;
+    authorizationEntry  = authenticationEntry;
     saslMechanisms      = new HashSet<String>(0);
     authenticationTypes = new HashSet<AuthenticationType>(1);
 
@@ -170,28 +177,32 @@ public class AuthenticationInfo
    * Creates a new set of authentication information to be used for
    * clients that have authenticated using a SASL mechanism.
    *
-   * @param  authenticationDN  The DN of the user that has
-   *                           authenticated.
-   * @param  saslMechanism     The SASL mechanism used to
-   *                           authenticate.  Note that this must be
-   *                           provided in all-uppercase characters.
-   * @param  isRoot            Indicates whether the authenticated
-   *                           user is a root user.
+   * @param  authenticationEntry  The entry of the user that has
+   *                              authenticated.  It must not be
+   *                              {@code null}.
+   * @param  saslMechanism        The SASL mechanism used to
+   *                              authenticate.  This must be provided
+   *                              in all-uppercase characters and must
+   *                              not be {@code null}.
+   * @param  isRoot               Indicates whether the authenticated
+   *                              user is a root user.
    */
-  public AuthenticationInfo(DN authenticationDN, String saslMechanism,
-                            boolean isRoot)
+  public AuthenticationInfo(Entry authenticationEntry,
+                            String saslMechanism, boolean isRoot)
   {
     assert debugConstructor(CLASS_NAME,
-                            String.valueOf(authenticationDN),
+                            String.valueOf(authenticationEntry),
                             String.valueOf(saslMechanism),
                             String.valueOf(isRoot));
 
-    this.authenticationDN = authenticationDN;
-    this.isRoot           = isRoot;
+    ensureNotNull(authenticationEntry, saslMechanism);
+
+    this.authenticationEntry = authenticationEntry;
+    this.isRoot              = isRoot;
 
     isAuthenticated    = true;
     mustChangePassword = false;
-    authorizationDN    = authenticationDN;
+    authorizationEntry = authenticationEntry;
     simplePassword     = null;
 
     authenticationTypes = new HashSet<AuthenticationType>(1);
@@ -207,35 +218,43 @@ public class AuthenticationInfo
    * Creates a new set of authentication information to be used for
    * clients that have authenticated using a SASL mechanism.
    *
-   * @param  authenticationDN  The DN of the user that has
-   *                           authenticated.
-   * @param  authorizationDN   The authorization DN for the
-   *                           authenticated user.
-   * @param  saslMechanism     The SASL mechanism used to
-   *                           authenticate.  Note that this must be
-   *                           provided in all-uppercase characters.
-   * @param  isRoot            Indicates whether the authenticated
-   *                           user is a root user.
+   * @param  authenticationEntry  The entry of the user that has
+   *                              authenticated.  It must not be
+   *                              {@code null}.
+   * @param  authorizationEntry   The entry of the user that will be
+   *                              used as the default authorization
+   *                              identity, or {@code null} to
+   *                              indicate that it should be the same
+   *                              as the authentication entry.
+   * @param  saslMechanism        The SASL mechanism used to
+   *                              authenticate.  This must be provided
+   *                              in all-uppercase characters and must
+   *                              not be {@code null}.
+   * @param  isRoot               Indicates whether the authenticated
+   *                              user is a root user.
    */
-  public AuthenticationInfo(DN authenticationDN, DN authorizationDN,
+  public AuthenticationInfo(Entry authenticationEntry,
+                            Entry authorizationEntry,
                             String saslMechanism, boolean isRoot)
   {
     assert debugConstructor(CLASS_NAME,
-                            String.valueOf(authenticationDN),
-                            String.valueOf(authorizationDN),
+                            String.valueOf(authenticationEntry),
+                            String.valueOf(authorizationEntry),
                             String.valueOf(saslMechanism),
                             String.valueOf(isRoot));
 
-    this.authenticationDN = authenticationDN;
-    this.isRoot           = isRoot;
+    ensureNotNull(authenticationEntry, saslMechanism);
 
-    if (authorizationDN == null)
+    this.authenticationEntry = authenticationEntry;
+    this.isRoot              = isRoot;
+
+    if (authorizationEntry == null)
     {
-      this.authorizationDN = authenticationDN;
+      this.authorizationEntry = authenticationEntry;
     }
     else
     {
-      this.authorizationDN = authorizationDN;
+      this.authorizationEntry = authorizationEntry;
     }
 
     isAuthenticated    = true;
@@ -255,9 +274,8 @@ public class AuthenticationInfo
    * Indicates whether this client has successfully authenticated to
    * the server.
    *
-   * @return  <CODE>true</CODE> if this client has successfully
-   *          authenticated to the server, or <CODE>false</CODE> if
-   *          not.
+   * @return  {@code true} if this client has successfully
+   *          authenticated to the server, or {@code false} if not.
    */
   public boolean isAuthenticated()
   {
@@ -280,8 +298,8 @@ public class AuthenticationInfo
     isRoot              = false;
     mustChangePassword  = false;
     simplePassword      = null;
-    authenticationDN    = null;
-    authorizationDN     = null;
+    authenticationEntry = null;
+    authorizationEntry  = null;
 
     authenticationTypes.clear();
     saslMechanisms.clear();
@@ -292,8 +310,8 @@ public class AuthenticationInfo
   /**
    * Indicates whether this client should be considered a root user.
    *
-   * @return  <CODE>true</CODE> if this client should be considered a
-   *          root user, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this client should be considered a root
+   *          user, or {@code false} if not.
    */
   public boolean isRoot()
   {
@@ -305,12 +323,12 @@ public class AuthenticationInfo
 
 
   /**
-   * Indicates whether the associated user must change their password
-   * before any other operation will be allowed.
+   * Indicates whether the authenticated user must change his/her
+   * password before any other operation will be allowed.
    *
-   * @return  <CODE>true</CODE> if the user must change their password
+   * @return  {@code true} if the user must change his/her password
    *          before any other operation will be allowed, or
-   *          <CODE>false</CODE> if not.
+   *          {@code false} if not.
    */
   public boolean mustChangePassword()
   {
@@ -322,12 +340,13 @@ public class AuthenticationInfo
 
 
   /**
-   * Specifies whether the associated user must change their password
-   * before any other operation will be allowed.
+   * Specifies whether the authenticated user must change his/her
+   * password before any other operation will be allowed.
    *
-   * @param  mustChangePassword  Specifies whether the associated user
-   *                             must change their password before any
-   *                             other operation will be allowed.
+   * @param  mustChangePassword  Specifies whether the authenticated
+   *                             user must change his/her password
+   *                             before any other operation will be
+   *                             allowed.
    */
   public void setMustChangePassword(boolean mustChangePassword)
   {
@@ -346,9 +365,8 @@ public class AuthenticationInfo
    * @param  authenticationType  The authentication type for which to
    *                             make the determination.
    *
-   * @return  <CODE>true</CODE> if the client has authenticated using
-   *          the specified authentication type, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the client has authenticated using the
+   *          specified authentication type, or {@code false} if not.
    */
   public boolean hasAuthenticationType(AuthenticationType
                                             authenticationType)
@@ -368,9 +386,9 @@ public class AuthenticationInfo
    * @param  types  The collection of authentication types for which
    *                to make the determination.
    *
-   * @return  <CODE>true</CODE> if the client has authenticated using
-   *          any of the specified authentication types, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the client has authenticated using any
+   *          of the specified authentication types, or {@code false}
+   *          if not.
    */
   public boolean hasAnyAuthenticationType(
                       Collection<AuthenticationType> types)
@@ -426,30 +444,83 @@ public class AuthenticationInfo
 
 
   /**
-   * Retrieves the DN of the user as whom the client is authenticated.
+   * Retrieves the entry for the user as whom the client is
+   * authenticated.
    *
-   * @return  The DN of the user as whom the client is authenticated,
-   *          or <CODE>null</CODE> if the client is unauthenticated.
+   * @return  The entry for the user as whom the client is
+   *          authenticated, or {@code null} if the client is
+   *          unauthenticated.
    */
-  public DN getAuthenticationDN()
+  public Entry getAuthenticationEntry()
   {
-    assert debugEnter(CLASS_NAME, "getAuthenticationDN");
+    assert debugEnter(CLASS_NAME, "getAuthenticationEntry");
 
-    return authenticationDN;
+    return authenticationEntry;
   }
 
 
 
   /**
-   * Retrieves the authorization DN for this client.
+   * Retrieves the DN of the user as whom the client is authenticated.
    *
-   * @return  The authorization DN for this client.
+   * @return  The DN of the user as whom the client is authenticated,
+   *          or {@code null} if the client is unauthenticated.
+   */
+  public DN getAuthenticationDN()
+  {
+    assert debugEnter(CLASS_NAME, "getAuthenticationDN");
+
+    if (authenticationEntry == null)
+    {
+      return null;
+    }
+    else
+    {
+      return authenticationEntry.getDN();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the entry for the user that should be used as the
+   * default authorization identity.
+   *
+   * @return  The entry for the user that should be used as the
+   *          default authorization identity, or {@code null} if the
+   *          authorization identity should be the unauthenticated
+   *          user.
+   */
+  public Entry getAuthorizationEntry()
+  {
+    assert debugEnter(CLASS_NAME, "getAuthorizationEntry");
+
+    return authorizationEntry;
+  }
+
+
+
+  /**
+   * Retrieves the DN for the user that should be used as the default
+   * authorization identity.
+   *
+   * @return  The DN for the user that should be used as the default
+   *          authorization identity, or {@code null} if the
+   *          authorization identity should be the unauthenticated
+   *          user.
    */
   public DN getAuthorizationDN()
   {
     assert debugEnter(CLASS_NAME, "getAuthorizationDN");
 
-    return authorizationDN;
+    if (authorizationEntry == null)
+    {
+      return null;
+    }
+    else
+    {
+      return authorizationEntry.getDN();
+    }
   }
 
 
@@ -459,8 +530,8 @@ public class AuthenticationInfo
    * authentication.
    *
    * @return  The password that the client used for simple
-   *          authentication, or <CODE>null</CODE> if the client is
-   *          not authenticated using simple authentication.
+   *          authentication, or {@code null} if the client is not
+   *          authenticated using simple authentication.
    */
   public ByteString getSimplePassword()
   {
@@ -479,9 +550,8 @@ public class AuthenticationInfo
    *                        determination.  Note that this must be
    *                        provided in all uppercase characters.
    *
-   * @return  <CODE>true</CODE> if the client is authenticated using
-   *          the specified SASL mechanism, or <CODE>false</CODE> if
-   *          not.
+   * @return  {@code true} if the client is authenticated using the
+   *          specified SASL mechanism, or {@code false} if not.
    */
   public boolean hasSASLMechanism(String saslMechanism)
   {
@@ -500,9 +570,9 @@ public class AuthenticationInfo
    * @param  mechanisms  The collection of SASL mechanisms for which
    *                     to make the determination.
    *
-   * @return  <CODE>true</CODE> if the client has authenticated using
-   *          any of the provided SASL mechanisms, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the client has authenticated using any
+   *          of the provided SASL mechanisms, or {@code false} if
+   *          not.
    */
   public boolean hasAnySASLMechanism(Collection<String> mechanisms)
   {
@@ -560,39 +630,6 @@ public class AuthenticationInfo
 
 
   /**
-   * Indicates whether the user associated with this authentication
-   * info is a member of the group with the specified DN.
-   *
-   * @param  groupDN  The DN of the group for which to make the
-   *                  determination.
-   *
-   * @return  <CODE>true</CODE> if the authenticated user is a member
-   *          of the specified group, or <CODE>false</CODE> if not.
-   */
-  public boolean isMemberOf(DN groupDN)
-  {
-    // NYI
-    return false;
-  }
-
-
-
-  /**
-   * Retrieves the DNs of the groups in which the user associated with
-   * this authentication info is a member.
-   *
-   * @return  The DNs of the groups in which the user associated with
-   *          this authentication info is a member.
-   */
-  public Collection<DN> getMembershipDNs()
-  {
-    // NYI
-    return null;
-  }
-
-
-
-  /**
    * Retrieves a string representation of this authentication info
    * structure.
    *
@@ -630,16 +667,22 @@ public class AuthenticationInfo
     buffer.append(",mustChangePassword=");
     buffer.append(mustChangePassword);
     buffer.append(",authenticationDN=\"");
-    buffer.append(authenticationDN);
 
-    if ((authorizationDN == null) ||
-        authorizationDN.equals(authenticationDN))
+    if (authenticationEntry != null)
     {
-      buffer.append("\",authorizationDN=\"");
-      buffer.append(authorizationDN);
+      authenticationEntry.getDN().toString(buffer);
     }
 
-    buffer.append("\"");
+    if (authorizationEntry == null)
+    {
+      buffer.append("\",authorizationDN=\"\"");
+    }
+    else
+    {
+      buffer.append("\",authorizationDN=\"");
+      authorizationEntry.getDN().toString(buffer);
+      buffer.append("\"");
+    }
 
     if (! authenticationTypes.isEmpty())
     {
@@ -693,6 +736,45 @@ public class AuthenticationInfo
     }
 
     buffer.append(")");
+  }
+
+
+
+  /**
+   * Creates a duplicate of this {@code AuthenticationInfo} object
+   * with the new authentication and authorization entries.
+   *
+   * @param  newAuthenticationEntry  The updated entry for the user
+   *                                 as whom the associated client
+   *                                 connection is authenticated.
+   * @param  newAuthorizationEntry   The updated entry for the default
+   *                                 authorization identity for the
+   *                                 associated client connection.
+   *
+   * @return  The duplicate of this {@code AuthenticationInfo} object
+   *          with the specified authentication and authorization
+   *          entries.
+   */
+  public AuthenticationInfo duplicate(Entry newAuthenticationEntry,
+                                      Entry newAuthorizationEntry)
+  {
+    assert debugEnter(CLASS_NAME, "duplicate",
+                      String.valueOf(newAuthenticationEntry),
+                      String.valueOf(newAuthorizationEntry));
+
+    AuthenticationInfo authInfo = new AuthenticationInfo();
+
+    authInfo.simplePassword      = simplePassword;
+    authInfo.isAuthenticated     = isAuthenticated;
+    authInfo.isRoot              = isRoot;
+    authInfo.mustChangePassword  = mustChangePassword;
+    authInfo.authenticationEntry = newAuthenticationEntry;
+    authInfo.authorizationEntry  = newAuthorizationEntry;
+
+    authInfo.authenticationTypes.addAll(authenticationTypes);
+    authInfo.saslMechanisms.addAll(saslMechanisms);
+
+    return authInfo;
   }
 }
 

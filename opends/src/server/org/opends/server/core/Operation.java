@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -34,13 +34,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PostOperationOperation;
@@ -111,11 +111,11 @@ public abstract class Operation
   // The cancel result for this operation.
   private CancelResult cancelResult;
 
-  // The authorization DN for this operation.
-  private DN authorizationDN;
-
   // The matched DN for this operation.
   private DN matchedDN;
+
+  // The entry for the authorization identify for this operation.
+  private Entry authorizationEntry;
 
   // A set of attachments associated with this operation that might be used by
   // various components during its processing.
@@ -180,8 +180,8 @@ public abstract class Operation
     cancelResult               = null;
     isInternalOperation        = false;
     isSynchronizationOperation = false;
-    authorizationDN =
-         clientConnection.getAuthenticationInfo().getAuthorizationDN();
+    authorizationEntry         =
+         clientConnection.getAuthenticationInfo().getAuthorizationEntry();
   }
 
 
@@ -732,6 +732,48 @@ public abstract class Operation
 
 
   /**
+   * Retrieves the entry for the user that should be considered the
+   * authorization identity for this operation.  In many cases, it will be the
+   * same as the authorization entry for the underlying client connection, or
+   * {@code null} if no authentication has been performed on that connection.
+   * However, it may be some other value if special processing has been
+   * requested (e.g., the operation included a proxied authorization control).
+   * This method should not be called by pre-parse plugins because the correct
+   * value may not yet have been determined.
+   *
+   * @return  The entry for the user that should be considered the authorization
+   *          identity for this operation, or {@code null} if the authorization
+   *          identity should be the unauthenticated  user.
+   */
+  public final Entry getAuthorizationEntry()
+  {
+    assert debugEnter(CLASS_NAME, "getAuthorizationEntry");
+
+    return authorizationEntry;
+  }
+
+
+
+  /**
+   * Provides the entry for the user that should be considered the authorization
+   * identity for this operation.  This must not be called from within a plugin.
+   *
+   * @param  authorizationEntry  The entry for the user that should be
+   *                             considered the authorization identity for this
+   *                             operation, or {@code null} if it should be the
+   *                             unauthenticated user.
+   */
+  public final void setAuthorizationEntry(Entry authorizationEntry)
+  {
+    assert debugEnter(CLASS_NAME, "setAuthorizationEntry",
+                      String.valueOf(authorizationEntry));
+
+    this.authorizationEntry = authorizationEntry;
+  }
+
+
+
+  /**
    * Retrieves the authorization DN for this operation.  In many cases, it will
    * be the same as the DN of the authenticated user for the underlying
    * connection, or the null DN if no authentication has been performed on that
@@ -740,46 +782,21 @@ public abstract class Operation
    * control).  This method should not be called by pre-parse plugins because
    * the correct value may not have yet been determined.
    *
-   * @return  The authorization DN for this operation.
+   * @return  The authorization DN for this operation, or the null DN if it
+   *          should be the unauthenticated user..
    */
   public final DN getAuthorizationDN()
   {
     assert debugEnter(CLASS_NAME, "getAuthorizationDN");
 
-    if (authorizationDN == null)
+    if (authorizationEntry == null)
     {
-      AuthenticationInfo authInfo = clientConnection.getAuthenticationInfo();
-      if (authInfo == null)
-      {
-        return DN.nullDN();
-      }
-      else
-      {
-        return authInfo.getAuthorizationDN();
-      }
+      return DN.nullDN();
     }
     else
     {
-      return authorizationDN;
+      return authorizationEntry.getDN();
     }
-  }
-
-
-
-  /**
-   * Specifies the authorization DN for this operation.  This method may not be
-   * called from within a plugin.
-   *
-   * @param  authorizationDN  The authorization DN for this operation, or
-   *                          <CODE>null</CODE> if it should use the DN of the
-   *                          authenticated user.
-   */
-  public final void setAuthorizationDN(DN authorizationDN)
-  {
-    assert debugEnter(CLASS_NAME, "setAuthorizationDN",
-                      String.valueOf(authorizationDN));
-
-    this.authorizationDN = authorizationDN;
   }
 
 
