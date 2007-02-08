@@ -61,7 +61,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export1: Export the data in OpenDS'
                 </message>
@@ -76,7 +76,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -98,7 +98,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export2: Export the data in OpenDS by appending to an ldif file'
                 </message>
@@ -114,7 +114,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -136,7 +136,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export3: Export the data in OpenDSwith one includeAttribute parameter '
                 </message>
@@ -152,7 +152,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -174,7 +174,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export4: Export the data in OpenDS with three includeAttribute parameters'
                 </message>
@@ -190,7 +190,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -212,7 +212,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export5: Export the data in OpenDS with one excludeAttribute parameter'
                 </message>
@@ -228,7 +228,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -250,7 +250,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export6: Export the data in OpenDS with three excludeAttribute parameters'
                 </message>
@@ -266,7 +266,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -288,7 +288,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export7: Export the data in OpenDS with one includeFilter parameter'
                 </message>
@@ -304,7 +304,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -326,7 +326,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export8: Export the data in OpenDS with three includeFilter parameters'
                 </message>
@@ -342,7 +342,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -364,7 +364,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export9: Export the data in OpenDS with one excludeFilter parameter'
                 </message>
@@ -380,7 +380,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -402,7 +402,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export10: Export the data in OpenDS with three excludeFilter parameters'
                 </message>
@@ -418,7 +418,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -440,7 +440,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export11: Export the data in OpenDS with one includeBranch parameter'
                 </message>
@@ -456,7 +456,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -478,7 +478,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export12: Export the data in OpenDS with one excludeBranch parameter'
                 </message>
@@ -494,7 +494,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -516,7 +516,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export13: Export the data in OpenDS with one includeAttribute, excludeFilter, and includeBranch parameters'
                 </message>
@@ -532,7 +532,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -554,7 +554,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export14: Export the data in OpenDS with one excludeAttribute, includeFilter, and excludeBranch parameters'
                 </message>
@@ -570,7 +570,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       
@@ -592,7 +592,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Export15: Export the data in OpenDS in compressed format'
                 </message>
@@ -608,7 +608,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       

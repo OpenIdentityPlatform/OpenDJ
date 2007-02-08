@@ -88,7 +88,7 @@
               
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend ExportTasks1: Export the data in OpenDS by scheduling a task'
                 </message>
@@ -107,7 +107,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       

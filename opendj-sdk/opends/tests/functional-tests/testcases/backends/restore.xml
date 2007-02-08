@@ -60,7 +60,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Restore1: Restore data to OpenDS'
                 </message>
@@ -77,7 +77,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
                       
               </sequence>
       
@@ -100,7 +100,7 @@
     
               <sequence>
       
-                <call function="'testCaseStartBanner'"/>
+                <call function="'testCase_StartBanner'"/>
                 <message>
                   'Backend Restore2: Restore compressed data to OpenDS'
                 </message>
@@ -115,7 +115,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCaseEndBanner'"/>
+                <call function="'testCase_EndBanner'"/>
       
               </sequence>
       

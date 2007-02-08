@@ -59,7 +59,7 @@
 
         <sequence>
 
-          <call function="'testCaseStartBanner'"/>
+          <call function="'testCase_StartBanner'"/>
           
           <message>
             'Backend: Backend Setup for Export, Backup, and Restore Tests'
@@ -74,7 +74,7 @@
           </call>
 
           
-          <call function="'testCaseEndBanner'"/>
+          <call function="'testCase_EndBanner'"/>
 
         </sequence>
 
