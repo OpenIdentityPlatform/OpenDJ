@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -143,8 +143,7 @@ public class WhoAmIExtendedOperationTestCase
     assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
 
 
-    conn = new InternalClientConnection(new AuthenticationInfo(e.getDN(),
-                                                               false));
+    conn = new InternalClientConnection(new AuthenticationInfo(e, false));
     ExtendedOperation extOp =
          conn.processExtendedOperation(OID_WHO_AM_I_REQUEST, null);
     assertEquals(extOp.getResultCode(), ResultCode.SUCCESS);

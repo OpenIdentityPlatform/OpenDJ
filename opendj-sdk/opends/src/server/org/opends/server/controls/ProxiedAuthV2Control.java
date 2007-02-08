@@ -233,19 +233,20 @@ public class ProxiedAuthV2Control
 
 
   /**
-   * Retrieves the authorization DN for this proxied authorization V2 control
-   * only if it references a valid Directory Server user entry.  It will also
-   * perform any necessary password policy checks to ensure that the specified
-   * user account is suitable for use in performing this processing.
+   * Retrieves the authorization entry for this proxied authorization V2
+   * control.  It will also perform any necessary password policy checks to
+   * ensure that the associated user account is suitable for use in performing
+   * this processing.
    *
-   * @return  The validated authorization DN for this proxied authorization V2
-   *          control.
+   * @return  The entry for user specified as the authorization identity in this
+   *          proxied authorization V1 control, or {@code null} if the
+   *          authorization DN is the null DN.
    *
-   * @throws  DirectoryException  If an error occurs while attempting to make
-   *                              the determination, or if the target user does
-   *                              not exist.
+   * @throws  DirectoryException  If the target user does not exist or is not
+   *                              available for use, or if a problem occurs
+   *                              while making the determination.
    */
-  public DN getValidatedAuthorizationDN()
+  public Entry getAuthorizationEntry()
          throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "getValidatedAuthorizationDN");
@@ -254,7 +255,7 @@ public class ProxiedAuthV2Control
     // Check for a zero-length value, which would be for an anonymous user.
     if (authorizationID.value().length == 0)
     {
-      return DN.nullDN();
+      return null;
     }
 
 
@@ -269,10 +270,18 @@ public class ProxiedAuthV2Control
       DN authzDN = DN.decode(authzID.substring(3));
       if (authzDN.isNullDN())
       {
-        return authzDN;
+        return null;
       }
       else
       {
+        // See if the authorization DN is one of the alternate bind DNs for one
+        // of the root users and if so then map it accordingly.
+        DN actualDN = DirectoryServer.getActualRootBindDN(authzDN);
+        if (actualDN != null)
+        {
+          authzDN = actualDN;
+        }
+
         Lock entryLock = null;
         for (int i=0; i < 3; i++)
         {
@@ -321,7 +330,7 @@ public class ProxiedAuthV2Control
 
 
           // If we've made it here, then the user is acceptable.
-          return authzDN;
+          return userEntry;
         }
         finally
         {
@@ -334,7 +343,7 @@ public class ProxiedAuthV2Control
       // If the authorization ID is just "u:", then it's an anonymous request.
       if (lowerAuthzID.length() == 2)
       {
-        return DN.nullDN();
+        return null;
       }
 
 
@@ -360,8 +369,6 @@ public class ProxiedAuthV2Control
       }
       else
       {
-        DN authzDN = userEntry.getDN();
-
         // FIXME -- We should provide some mechanism for enabling debug
         // processing.
         PasswordPolicyState pwpState =
@@ -373,12 +380,12 @@ public class ProxiedAuthV2Control
             pwpState.isPasswordExpired())
         {
           int    msgID   = MSGID_PROXYAUTH2_UNUSABLE_ACCOUNT;
-          String message = getMessage(msgID, String.valueOf(authzDN));
+          String message = getMessage(msgID, String.valueOf(userEntry.getDN()));
           throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
                                        message, msgID);
         }
 
-        return authzDN;
+        return userEntry;
       }
     }
     else

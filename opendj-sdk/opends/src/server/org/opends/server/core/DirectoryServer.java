@@ -224,6 +224,9 @@ public class DirectoryServer
   // The attribute type used to reference the "objectclass" attribute.
   private AttributeType objectClassAttributeType;
 
+  // The authenticated users manager for the server.
+  private AuthenticatedUsers authenticatedUsers;
+
   // The configuration manager that will handle the server backends.
   private BackendConfigManager backendConfigManager;
 
@@ -649,6 +652,7 @@ public class DirectoryServer
          new ConcurrentHashMap<String,ExtendedOperationHandler>();
     directoryServer.saslMechanismHandlers =
          new ConcurrentHashMap<String,SASLMechanismHandler>();
+    directoryServer.authenticatedUsers = new AuthenticatedUsers();
   }
 
 
@@ -1756,6 +1760,20 @@ public class DirectoryServer
       logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
     }
+  }
+
+
+
+  /**
+   * Retrieves the authenticated users manager for the Directory Server.
+   *
+   * @return  The authenticated users manager for the Directory Server.
+   */
+  public static AuthenticatedUsers getAuthenticatedUsers()
+  {
+    assert debugEnter(CLASS_NAME, "getAuthenticatedUsers");
+
+    return directoryServer.authenticatedUsers;
   }
 
 

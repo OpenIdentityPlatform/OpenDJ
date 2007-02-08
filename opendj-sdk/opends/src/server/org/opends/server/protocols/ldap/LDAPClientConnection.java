@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -1032,6 +1032,7 @@ public class LDAPClientConnection
     }
 
     cancelAllOperations(new CancelRequest(true, message));
+    finalizeConnectionInternal();
 
 
     // See if we should send a notification to the client.  If so, then

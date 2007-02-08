@@ -419,10 +419,10 @@ public class GSSAPISASLMechanismHandler
     {
       // The authentication was successful, so set the proper state information
       // in the client connection and return success.
-      DN userDN = stateInfo.getUserEntry().getDN();
+      Entry userEntry = stateInfo.getUserEntry();
       AuthenticationInfo authInfo =
-           new AuthenticationInfo(userDN, SASL_MECHANISM_GSSAPI,
-                                  DirectoryServer.isRootDN(userDN));
+           new AuthenticationInfo(userEntry, SASL_MECHANISM_GSSAPI,
+                                  DirectoryServer.isRootDN(userEntry.getDN()));
       bindOperation.setAuthenticationInfo(authInfo);
       bindOperation.setResultCode(ResultCode.SUCCESS);
 

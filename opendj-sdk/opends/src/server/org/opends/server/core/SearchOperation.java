@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -1783,25 +1783,25 @@ searchProcessing:
             }
 
 
-            DN authzDN;
-            try
-            {
-              authzDN = proxyControl.getValidatedAuthorizationDN();
-            }
-            catch (DirectoryException de)
-            {
-              assert debugException(CLASS_NAME, "run", de);
+              Entry authorizationEntry;
+              try
+              {
+                authorizationEntry = proxyControl.getAuthorizationEntry();
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "run", de);
 
-              setResultCode(de.getResultCode());
-              appendErrorMessage(de.getErrorMessage());
+                setResultCode(de.getResultCode());
+                appendErrorMessage(de.getErrorMessage());
 
-              break searchProcessing;
-            }
+                break searchProcessing;
+              }
 
 
-            // FIXME -- Should we specifically check permissions here, or let
-            //          the earlier access control checks handle it?
-            setAuthorizationDN(authzDN);
+              // FIXME -- Should we specifically check permissions here, or let
+              //          the earlier access control checks handle it?
+              setAuthorizationEntry(authorizationEntry);
           }
           else if (oid.equals(OID_PROXIED_AUTH_V2))
           {
@@ -1828,25 +1828,25 @@ searchProcessing:
             }
 
 
-            DN authzDN;
-            try
-            {
-              authzDN = proxyControl.getValidatedAuthorizationDN();
-            }
-            catch (DirectoryException de)
-            {
-              assert debugException(CLASS_NAME, "run", de);
+              Entry authorizationEntry;
+              try
+              {
+                authorizationEntry = proxyControl.getAuthorizationEntry();
+              }
+              catch (DirectoryException de)
+              {
+                assert debugException(CLASS_NAME, "run", de);
 
-              setResultCode(de.getResultCode());
-              appendErrorMessage(de.getErrorMessage());
+                setResultCode(de.getResultCode());
+                appendErrorMessage(de.getErrorMessage());
 
-              break searchProcessing;
-            }
+                break searchProcessing;
+              }
 
 
-            // FIXME -- Should we specifically check permissions here, or let
-            //          the earlier access control checks handle it?
-            setAuthorizationDN(authzDN);
+              // FIXME -- Should we specifically check permissions here, or let
+              //          the earlier access control checks handle it?
+              setAuthorizationEntry(authorizationEntry);
           }
           else if (oid.equals(OID_PERSISTENT_SEARCH))
           {

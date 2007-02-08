@@ -108,14 +108,31 @@ public class InternalClientConnectionTestCase
   public Object[][] getInternalConnections()
          throws Exception
   {
+    DN dmDN = DN.decode("cn=Directory Manager,cn=Root DNs,cn=config");
+    Entry dmEntry = DirectoryServer.getEntry(dmDN);
+
+    TestCaseUtils.initializeTestBackend(true);
+    Entry userEntry = TestCaseUtils.makeEntry(
+      "dn: uid=test.user,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password");
+    TestCaseUtils.addEntry(userEntry);
+
     return new Object[][]
     {
       new Object[] { InternalClientConnection.getRootConnection() },
       new Object[] { new InternalClientConnection(new AuthenticationInfo()) },
       new Object[] { new InternalClientConnection(
-           new AuthenticationInfo(DN.decode("cn=Directory Manager"), true)) },
+           new AuthenticationInfo(dmEntry, true)) },
       new Object[] { new InternalClientConnection(
-           new AuthenticationInfo(DN.decode("uid=test,o=test"), false)) },
+           new AuthenticationInfo(userEntry, false)) }
     };
   }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 
@@ -895,6 +895,7 @@ public class JmxClientConnection
       return;
     }
     disconnectStarted = true ;
+    finalizeConnectionInternal();
 
 
 
@@ -1144,6 +1145,7 @@ public class JmxClientConnection
    */
   protected void finalize()
   {
+    super.finalize();
     disconnect(DisconnectReason.OTHER, false, null, -1);
   }
 }

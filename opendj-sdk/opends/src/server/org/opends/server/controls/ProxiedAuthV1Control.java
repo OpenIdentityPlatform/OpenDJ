@@ -327,27 +327,37 @@ public class ProxiedAuthV1Control
 
 
   /**
-   * Retrieves the authorization DN for this proxied authorization V1 control
-   * only if it references a valid Directory Server user entry.  It will also
-   * perform any necessary password policy checks to ensure that the specified
-   * user account is suitable for use in performing this processing.
+   * Retrieves the authorization entry for this proxied authorization V1
+   * control.  It will also perform any necessary password policy checks to
+   * ensure that the associated user account is suitable for use in performing
+   * this processing.
    *
-   * @return  The validated authorization DN for this proxied authorization V1
-   *          control.
+   * @return  The entry for user specified as the authorization identity in this
+   *          proxied authorization V1 control, or {@code null} if the
+   *          authorization DN is the null DN.
    *
-   * @throws  DirectoryException  If an error occurs while attempting to make
-   *                              the determination, or if the target user does
-   *                              not exist.
+   * @throws  DirectoryException  If the target user does not exist or is not
+   *                              available for use, or if a problem occurs
+   *                              while making the determination.
    */
-  public DN getValidatedAuthorizationDN()
+  public Entry getAuthorizationEntry()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getValidatedAuthorizationDN");
+    assert debugEnter(CLASS_NAME, "getAuthorizationEntry");
 
     DN authzDN = getAuthorizationDN();
     if (authzDN.isNullDN())
     {
-      return authzDN;
+      return null;
+    }
+
+
+    // See if the authorization DN is one of the alternate bind DNs for one of
+    // the root users and if so then map it accordingly.
+    DN actualDN = DirectoryServer.getActualRootBindDN(authzDN);
+    if (actualDN != null)
+    {
+      authzDN = actualDN;
     }
 
 
@@ -400,7 +410,7 @@ public class ProxiedAuthV1Control
 
 
       // If we've made it here, then the user is acceptable.
-      return authzDN;
+      return userEntry;
     }
     finally
     {

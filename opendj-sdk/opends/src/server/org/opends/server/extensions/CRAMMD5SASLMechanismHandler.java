@@ -547,7 +547,7 @@ public class CRAMMD5SASLMechanismHandler
     bindOperation.setResultCode(ResultCode.SUCCESS);
 
     AuthenticationInfo authInfo =
-         new AuthenticationInfo(userEntry.getDN(), SASL_MECHANISM_CRAM_MD5,
+         new AuthenticationInfo(userEntry, SASL_MECHANISM_CRAM_MD5,
                                 DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
     return;

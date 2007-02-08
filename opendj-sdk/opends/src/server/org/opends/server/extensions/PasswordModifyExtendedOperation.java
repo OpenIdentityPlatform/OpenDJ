@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -310,8 +310,8 @@ public class PasswordModifyExtendedOperation
     }
 
 
-    // Get the DN of the user that issued the request.
-    DN requestorDN = operation.getAuthorizationDN();
+    // Get the entry for the user that issued the request.
+    Entry requestorEntry = operation.getAuthorizationEntry();
 
 
     // See if a user identity was provided.  If so, then try to resolve it to
@@ -329,8 +329,7 @@ public class PasswordModifyExtendedOperation
         // authenticated.
         ClientConnection   clientConnection = operation.getClientConnection();
         AuthenticationInfo authInfo = clientConnection.getAuthenticationInfo();
-        if ((! authInfo.isAuthenticated()) || (requestorDN == null) ||
-            (requestorDN.isNullDN()))
+        if ((! authInfo.isAuthenticated()) || (requestorEntry == null))
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
@@ -342,7 +341,7 @@ public class PasswordModifyExtendedOperation
 
 
         // Retrieve a write lock on that user's entry.
-        userDN = requestorDN;
+        userDN = requestorEntry.getDN();
 
         for (int i=0; i < 3; i++)
         {
@@ -366,11 +365,7 @@ public class PasswordModifyExtendedOperation
         }
 
 
-        userEntry = getEntryByDN(operation, userDN);
-        if (userEntry == null)
-        {
-          return;
-        }
+        userEntry = requestorEntry;
       }
       else
       {
@@ -500,8 +495,9 @@ public class PasswordModifyExtendedOperation
 
       // Determine whether the user is changing his own password or if it's an
       // administrative reset.
-      boolean selfChange = ((userIdentity == null) || (requestorDN == null) ||
-                            userDN.equals(requestorDN));
+      boolean selfChange = ((userIdentity == null) ||
+                            (requestorEntry == null) ||
+                            userDN.equals(requestorEntry.getDN()));
 
 
       // See if the account is locked.  If so, then reject the request.
@@ -1085,9 +1081,14 @@ public class PasswordModifyExtendedOperation
       }
       else
       {
+        if (selfChange && (requestorEntry == null))
+        {
+          requestorEntry = userEntry;
+        }
+
         // Get an internal connection and use it to perform the modification.
-        boolean isRoot = DirectoryServer.isRootDN(requestorDN);
-        AuthenticationInfo authInfo = new AuthenticationInfo(requestorDN,
+        boolean isRoot = DirectoryServer.isRootDN(requestorEntry.getDN());
+        AuthenticationInfo authInfo = new AuthenticationInfo(requestorEntry,
                                                              isRoot);
         InternalClientConnection internalConnection = new
              InternalClientConnection(authInfo);
