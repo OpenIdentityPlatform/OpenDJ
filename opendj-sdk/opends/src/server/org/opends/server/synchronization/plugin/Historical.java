@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.HashSet;
 
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
@@ -141,10 +142,6 @@ public class Historical
       Modification m = (Modification) modsIterator.next();
       Attribute modAttr = m.getAttribute();
       Set<String> options = modAttr.getOptions();
-      if (options.isEmpty())
-      {
-        options = null;
-      }
       AttributeType type = modAttr.getAttributeType();
       AttrInfoWithOptions attrInfoWithOptions =  attributesInfo.get(type);
       AttrInfo attrInfo = null;
@@ -263,10 +260,6 @@ public class Historical
       return;
     }
     Set<String> options = modAttr.getOptions();
-    if (options.isEmpty())
-    {
-      options = null;
-    }
     AttributeType type = modAttr.getAttributeType();
     AttrInfoWithOptions attrInfoWithOptions =  attributesInfo.get(type);
     AttrInfo attrInfo;
@@ -477,7 +470,7 @@ public class Historical
    */
   private boolean hasConflict(AttrInfo info, ChangeNumber newChange)
   {
-    // if I've already seen a change that is more recetn than the one
+    // if I've already seen a change that is more recent than the one
     // that is currently being processed, then there is
     // a potential conflict
     if (ChangeNumber.compare(newChange, moreRecentChangenumber) <= 0)
@@ -758,7 +751,7 @@ public class Historical
     List<Attribute> hist = entry.getAttribute(historicalAttrType);
     Historical histObj = new Historical();
     AttributeType lastAttrType = null;
-    Set<String> lastOptions = null;
+    Set<String> lastOptions = new HashSet<String>();
     AttrInfo attrInfo = null;
     AttrInfoWithOptions attrInfoWithOptions = null;
 

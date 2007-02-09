@@ -28,25 +28,38 @@ package org.opends.server.synchronization;
 
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.synchronization.common.ServerState;
 import org.opends.server.synchronization.plugin.ChangelogBroker;
 import org.opends.server.synchronization.plugin.MultimasterSynchronization;
 import org.opends.server.synchronization.plugin.PersistentServerState;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.SearchScope;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeValue;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
@@ -293,6 +306,86 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
         "Unable to add the synchronized server");
     entryList.add(synchroServerEntry.getDN());
+  }
+
+  /**
+   * Retrieve the number of replayed updates for a given synchronization
+   * domain from the monitor entry.
+   * @return The number of replayed updates.
+   * @throws Exception If an error occurs.
+   */
+  protected long getReplayedUpdatesCount(DN syncDN) throws Exception
+  {
+    String monitorFilter =
+         "(&(cn=synchronization*)(base-dn=" + syncDN + "))";
+
+    InternalSearchOperation op;
+    op = connection.processSearch(
+         ByteStringFactory.create("cn=monitor"),
+         SearchScope.SINGLE_LEVEL,
+         LDAPFilter.decode(monitorFilter));
+    SearchResultEntry entry = op.getSearchEntries().getFirst();
+
+    AttributeType attrType =
+         DirectoryServer.getDefaultAttributeType("replayed-updates");
+    return entry.getAttributeValue(attrType, IntegerSyntax.DECODER).longValue();
+  }
+
+  /**
+   * Check that the entry with the given dn has the given valueString value
+   * for the given attrTypeStr attribute type.
+   */
+  protected boolean checkEntryHasAttribute(DN dn, String attrTypeStr,
+      String valueString, int timeout, boolean hasAttribute) throws Exception
+  {
+    boolean found;
+    int count = timeout/100;
+    if (count<1)
+      count=1;
+
+    do
+    {
+      Entry newEntry;
+      Lock lock = null;
+      for (int j=0; j < 3; j++)
+      {
+        lock = LockManager.lockRead(dn);
+        if (lock != null)
+        {
+          break;
+        }
+      }
+
+      if (lock == null)
+      {
+        throw new Exception("could not lock entry " + dn);
+      }
+
+      try
+      {
+        newEntry = DirectoryServer.getEntry(dn);
+
+
+        if (newEntry == null)
+          fail("The entry " + dn +
+          " has incorrectly been deleted from the database.");
+        List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
+        Attribute tmpAttr = tmpAttrList.get(0);
+
+        AttributeType attrType =
+          DirectoryServer.getAttributeType(attrTypeStr, true);
+        found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
+
+      }
+      finally
+      {
+        LockManager.unlock(dn, lock);
+      }
+
+      if (found != hasAttribute)
+        Thread.sleep(100);
+    } while ((--count > 0) && (found != hasAttribute));
+    return found;
   }
 
 }

@@ -38,7 +38,6 @@ import java.util.concurrent.locks.Lock;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.synchronization.common.ChangeNumberGenerator;
 import org.opends.server.synchronization.plugin.ChangelogBroker;
 import org.opends.server.synchronization.protocol.AddMsg;
@@ -55,8 +54,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.*;
@@ -117,9 +114,9 @@ public class UpdateOperationTest extends SynchronizationTestCase
         + "objectClass: organizationalUnit\n"
         + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
     Entry entry;
-    for (int i = 0; i < topEntries.length; i++)
+    for (String entryStr : topEntries)
     {
-      entry = TestCaseUtils.entryFromLdifString(topEntries[i]);
+      entry = TestCaseUtils.entryFromLdifString(entryStr);
       AddOperation addOp = new AddOperation(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
               .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
@@ -321,7 +318,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
         "Starting synchronization test : lostHeartbeatFailover" , 1);
-    
+
     cleanEntries();
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
@@ -745,9 +742,9 @@ public class UpdateOperationTest extends SynchronizationTestCase
     + "objectClass: organizationalUnit\n"
     + "entryUUID: 55555555-5555-5555-5555-555555555555\n";
     Entry entry;
-    for (int i = 0; i < topEntries.length; i++)
+    for (String entryStr : topEntries)
     {
-      entry = TestCaseUtils.entryFromLdifString(topEntries[i]);
+      entry = TestCaseUtils.entryFromLdifString(entryStr);
       AddOperation addOp = new AddOperation(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
@@ -785,9 +782,9 @@ public class UpdateOperationTest extends SynchronizationTestCase
         "Entry not moved from ou=baseDn1,"+baseDn+" to ou=baseDn2,"+baseDn);
 
     // - add new parent entry 2 with baseDn1
-    String p2 = new String("dn: ou=baseDn1,"+baseDn+"\n" + "objectClass: top\n"
-        + "objectClass: organizationalUnit\n"
-        + "entryUUID: 66666666-6666-6666-6666-666666666666\n");
+    String p2 = "dn: ou=baseDn1,"+baseDn+"\n" + "objectClass: top\n"
+         + "objectClass: organizationalUnit\n"
+         + "entryUUID: 66666666-6666-6666-6666-666666666666\n";
     entry = TestCaseUtils.entryFromLdifString(p2);
     AddOperation addOp = new AddOperation(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
@@ -1020,9 +1017,6 @@ public class UpdateOperationTest extends SynchronizationTestCase
     }
   }
 
-  /**
-   * @return
-   */
   private List<Modification> generatemods(String attrName, String attrValue)
   {
     AttributeType attrType =
@@ -1034,63 +1028,6 @@ public class UpdateOperationTest extends SynchronizationTestCase
     Modification mod = new Modification(ModificationType.REPLACE, attr);
     mods.add(mod);
     return mods;
-  }
-
-  /**
-   * Check that the entry with the given dn has the given valueString value
-   * for the given attrTypeStr attribute type.
-   */
-  private boolean checkEntryHasAttribute(DN dn, String attrTypeStr,
-      String valueString, int timeout, boolean hasAttribute) throws Exception
-  {
-    boolean found;
-    int count = timeout/100;
-    if (count<1)
-      count=1;
-
-    do
-    {
-      Entry newEntry;
-      Lock lock = null;
-      for (int j=0; j < 3; j++)
-      {
-        lock = LockManager.lockRead(dn);
-        if (lock != null)
-        {
-          break;
-        }
-      }
-
-      if (lock == null)
-      {
-        throw new Exception("could not lock entry " + dn);
-      }
-
-      try
-      {
-        newEntry = DirectoryServer.getEntry(personWithUUIDEntry.getDN());
-
-
-        if (newEntry == null)
-          fail("The entry " + personWithUUIDEntry.getDN() +
-          " has incorrectly been deleted from the database.");
-        List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
-        Attribute tmpAttr = tmpAttrList.get(0);
-
-        AttributeType attrType =
-          DirectoryServer.getAttributeType(attrTypeStr, true);
-        found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
-
-      }
-      finally
-      {
-        LockManager.unlock(dn, lock);
-      }
-
-      if (found != hasAttribute)
-        Thread.sleep(100);
-    } while ((--count > 0) && (found != hasAttribute));
-    return found;
   }
 
   /**
@@ -1272,7 +1209,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
       entryList.add(tmp.getDN());
 
-      long initialCount = getReplayedUpdatesCount();
+      long initialCount = getReplayedUpdatesCount(baseDn);
 
       // Get the UUID of the test entry.
       Entry resultEntry = getEntry(tmp.getDN(), 1, true);
@@ -1295,7 +1232,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
         // Wait for the operation to be replayed.
         long endTime = System.currentTimeMillis() + 5000;
-        while (getReplayedUpdatesCount() == initialCount &&
+        while (getReplayedUpdatesCount(baseDn) == initialCount &&
              System.currentTimeMillis() < endTime)
         {
           Thread.sleep(100);
@@ -1309,7 +1246,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
       // If the synchronization replay loop was detected and broken then the
       // counter will still be updated even though the replay was unsuccessful.
-      if (getReplayedUpdatesCount() == initialCount)
+      if (getReplayedUpdatesCount(baseDn) == initialCount)
       {
         fail("Synchronization operation was not replayed");
       }
@@ -1318,28 +1255,6 @@ public class UpdateOperationTest extends SynchronizationTestCase
     {
       broker.stop();
     }
-  }
-
-  /**
-   * Retrieve the number of replayed updates from the monitor entry.
-   * @return The number of replayed updates.
-   * @throws Exception If an error occurs.
-   */
-  private long getReplayedUpdatesCount() throws Exception
-  {
-    String monitorFilter =
-         "(&(cn=synchronization*)(base-dn=ou=People,dc=example,dc=com))";
-
-    InternalSearchOperation op;
-    op = connection.processSearch(
-         ByteStringFactory.create("cn=monitor"),
-         SearchScope.SINGLE_LEVEL,
-         LDAPFilter.decode(monitorFilter));
-    SearchResultEntry entry = op.getSearchEntries().getFirst();
-
-    AttributeType attrType =
-         DirectoryServer.getDefaultAttributeType("replayed-updates");
-    return entry.getAttributeValue(attrType, IntegerSyntax.DECODER).longValue();
   }
 
   /**
