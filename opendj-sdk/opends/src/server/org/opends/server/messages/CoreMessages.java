@@ -6161,6 +6161,74 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if a modify request
+   * includes an attempt to reset another user's password by an individual that
+   * does not have the appropriate privileges.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 589;
+
+
+
+  /**
+   * The message ID for the message that will be used if a compare request
+   * targets the server configuration but the requester doesn't have the
+   * appropriate privileges.  This does not take any arguments.
+   */
+  public static final int MSGID_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 590;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add an entry with one or more privileges but the user doesn't have
+   * sufficient privilege to update privileges.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_ADD_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 591;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * modify the set of privileges contained in an entry but the user doesn't
+   * have sufficient privileges to make that change.  This does not take any
+   * arguments.
+   */
+  public static final int
+       MSGID_MODIFY_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES =
+            CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 592;
+
+
+
+  /**
+   * The message ID for the audit message that will be generated when a client
+   * attempts to perform a privileged operation that requires a single
+   * privilege.  This takes five arguments, which are the connection ID, the
+   * operation ID, the authentication DN, the name of the requested privilege,
+   * and the result of the determination.
+   */
+  public static final int MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 593;
+
+
+
+  /**
+   * The message ID for the audit message that will be generated when a client
+   * attempts to perform a privileged operation that requires a multiple
+   * privileges.  This takes five arguments, which are the connection ID, the
+   * operation ID, the authentication DN, a formatted list of the names of the
+   * requested privileges, and the result of the determination.
+   */
+  public static final int MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 594;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6932,6 +7000,9 @@ public class CoreMessages
                     "attribute %s that is contained in the entry's RDN.  " +
                     "All attributes used in the RDN must also be provided in " +
                     "the attribute list for the entry.");
+    registerMessage(MSGID_ADD_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to add entries " +
+                    "that include privileges.");
     registerMessage(MSGID_ADD_NOOP,
                     "The add operation was not actually performed in the " +
                     "Directory Server backend because the LDAP no-op control " +
@@ -7047,6 +7118,9 @@ public class CoreMessages
                     "plugin working on referral %s.");
 
 
+    registerMessage(MSGID_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to access the " +
+                    "server configuration.");
     registerMessage(MSGID_COMPARE_CANNOT_LOCK_ENTRY,
                     "The Directory Server was unable to obtain a read " +
                     "lock on entry %s after multiple attempts.  Processing " +
@@ -7295,6 +7369,9 @@ public class CoreMessages
                     "contained a critical control with OID %s that is not " +
                     "supported by the Directory Server for this type of " +
                     "operation.");
+    registerMessage(MSGID_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to reset user " +
+                    "passwords.");
     registerMessage(MSGID_MODIFY_MUST_CHANGE_PASSWORD,
                     "You must change your password before you will be " +
                     "allowed to perform any other operations.");
@@ -7306,6 +7383,9 @@ public class CoreMessages
                     "Entry %s cannot be modified because the modification " +
                     "attempted to set one or more new values for attribute " +
                     "%s which is marked OBSOLETE in the server schema.");
+    registerMessage(MSGID_MODIFY_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to modify the " +
+                    "set of privileges contained in an entry.");
     registerMessage(MSGID_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS,
                     "Attributes used to hold user passwords are not allowed " +
                     "to have any attribute options.");
@@ -8337,6 +8417,12 @@ public class CoreMessages
                     "Terminating the client connection because its " +
                     "associated authentication or authorization entry %s has " +
                     "been deleted.");
+    registerMessage(MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE,
+                    "hasPrivilege determination for connID=%d opID=%d " +
+                    "requesterDN=\"%s\" privilege=\"%s\" result=%b");
+    registerMessage(MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES,
+                    "hasPrivilege determination for connID=%d opID=%d " +
+                    "requesterDN=\"%s\" privilegeSet=\"%s\" result=%b");
   }
 }
 

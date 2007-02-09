@@ -544,6 +544,15 @@ public class ConfigConstants
 
 
   /**
+   * The name of the configuration attribute that specifies the set of
+   * privileges that root users should automatically be granted in the server.
+   */
+  public static final String ATTR_DEFAULT_ROOT_PRIVILEGE_NAME =
+       NAME_PREFIX_CFG + "default-root-privilege-name";
+
+
+
+  /**
    * The name of the configuration attribute that indicates which clients
    * should not be allowed to establish connections.
    */
@@ -3145,6 +3154,14 @@ public class ConfigConstants
    * The name of the modify timestamp attribute, in all lowercase characters.
    */
   public static final String OP_ATTR_MODIFY_TIMESTAMP_LC = "modifytimestamp";
+
+
+
+  /**
+   * The name of the operational attribute that will appear in a user's entry to
+   * specify the set of privileges assigned to that user.
+   */
+  public static final String OP_ATTR_PRIVILEGE_NAME = "ds-privilege-name";
 
 
 

@@ -74,6 +74,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -494,10 +495,34 @@ public class PasswordModifyExtendedOperation
 
 
       // Determine whether the user is changing his own password or if it's an
-      // administrative reset.
-      boolean selfChange = ((userIdentity == null) ||
-                            (requestorEntry == null) ||
-                            userDN.equals(requestorEntry.getDN()));
+      // administrative reset.  If it's an administrative reset, then the
+      // requester must have the PASSWORD_RESET privilege.
+      boolean selfChange;
+      if (userIdentity == null)
+      {
+        selfChange = true;
+      }
+      else if (requestorEntry == null)
+      {
+        selfChange = (oldPassword != null);
+      }
+      else
+      {
+        selfChange = userDN.equals(requestorEntry.getDN());
+      }
+
+      if (! selfChange)
+      {
+        ClientConnection clientConnection = operation.getClientConnection();
+        if (! clientConnection.hasPrivilege(Privilege.PASSWORD_RESET,
+                                            operation))
+        {
+          int msgID = MSGID_EXTOP_PASSMOD_INSUFFICIENT_PRIVILEGES;
+          operation.appendErrorMessage(getMessage(msgID));
+          operation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          return;
+        }
+      }
 
 
       // See if the account is locked.  If so, then reject the request.

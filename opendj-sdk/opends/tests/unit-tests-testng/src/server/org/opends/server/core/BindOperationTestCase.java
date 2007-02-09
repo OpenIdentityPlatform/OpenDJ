@@ -1778,7 +1778,7 @@ public class BindOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     InternalClientConnection conn =
-         new InternalClientConnection(new AuthenticationInfo());
+         InternalClientConnection.getRootConnection();
 
     String attr = "ds-cfg-bind-with-dn-requires-password";
     ArrayList<Modification> mods = new ArrayList<Modification>();

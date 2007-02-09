@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -617,6 +617,11 @@ public class LDAPPasswordModify
       requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_OLD_PASSWORD,
                                               currentPW.getValue()));
     }
+    else if (currentPWFile.isPresent())
+    {
+      requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_OLD_PASSWORD,
+                                              currentPWFile.getValue()));
+    }
     else if (provideDNForAuthzID.isPresent())
     {
       requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_OLD_PASSWORD,
@@ -627,6 +632,11 @@ public class LDAPPasswordModify
     {
       requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_NEW_PASSWORD,
                                               newPW.getValue()));
+    }
+    else if (newPWFile.isPresent())
+    {
+      requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_NEW_PASSWORD,
+                                              newPWFile.getValue()));
     }
 
     ASN1OctetString requestValue =

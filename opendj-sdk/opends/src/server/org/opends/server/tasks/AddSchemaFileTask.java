@@ -33,10 +33,12 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.Operation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -48,6 +50,7 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 
@@ -87,6 +90,23 @@ public class AddSchemaFileTask
          throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "initializeTask");
+
+
+    // If the client connection is available, then make sure the associated
+    // client has the UPDATE_SCHEMA privilege.
+    Operation operation = getOperation();
+    if (operation != null)
+    {
+      ClientConnection clientConnection = operation.getClientConnection();
+      if (! clientConnection.hasPrivilege(Privilege.UPDATE_SCHEMA, operation))
+      {
+        int    msgID   = MSGID_TASK_ADDSCHEMAFILE_INSUFFICIENT_PRIVILEGES;
+        String message = getMessage(msgID);
+        throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                                     message, msgID);
+      }
+    }
+
 
     // Get the attribute that specifies which schema file(s) to add.
     Entry taskEntry = getTaskEntry();

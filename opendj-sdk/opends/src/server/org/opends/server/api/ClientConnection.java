@@ -32,6 +32,7 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -41,6 +42,9 @@ import org.opends.server.core.Operation;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
@@ -48,13 +52,20 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.IntermediateResponse;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.TimeThread;
 
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.Error.*;
+import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -83,6 +94,9 @@ public abstract class ClientConnection
   // Indicates whether any necessary finalization work has been done
   // for this client connection.
   private boolean finalized;
+
+  // The set of privileges assigned to this client connection.
+  private HashSet<Privilege> privileges;
 
   // The size limit for use with this client connection.
   private int sizeLimit;
@@ -127,6 +141,7 @@ public abstract class ClientConnection
     timeLimit          = DirectoryServer.getTimeLimit();
     lookthroughLimit   = DirectoryServer.getLookthroughLimit();
     finalized          = false;
+    privileges         = new HashSet<Privilege>();
   }
 
 
@@ -846,6 +861,7 @@ public abstract class ClientConnection
     if (authenticationInfo == null)
     {
       this.authenticationInfo = new AuthenticationInfo();
+      privileges = new HashSet<Privilege>();
     }
     else
     {
@@ -869,11 +885,18 @@ public abstract class ClientConnection
           DirectoryServer.getAuthenticatedUsers().put(
                authZEntry.getDN(), this);
         }
+
+        updatePrivileges(authNEntry, authenticationInfo.isRoot());
       }
-      else if (authZEntry != null)
+      else
       {
-        DirectoryServer.getAuthenticatedUsers().put(
-             authZEntry.getDN(), this);
+        if (authZEntry != null)
+        {
+          DirectoryServer.getAuthenticatedUsers().put(
+               authZEntry.getDN(), this);
+        }
+
+        privileges = new HashSet<Privilege>();
       }
     }
   }
@@ -908,11 +931,13 @@ public abstract class ClientConnection
       {
         authenticationInfo =
              authenticationInfo.duplicate(newEntry, authZEntry);
+        updatePrivileges(newEntry, authenticationInfo.isRoot());
       }
       else
       {
         authenticationInfo =
              authenticationInfo.duplicate(newEntry, newEntry);
+        updatePrivileges(newEntry, authenticationInfo.isRoot());
       }
     }
     else if ((authZEntry != null) &&
@@ -938,6 +963,213 @@ public abstract class ClientConnection
     this.authenticationInfo = new AuthenticationInfo();
     this.sizeLimit          = DirectoryServer.getSizeLimit();
     this.timeLimit          = DirectoryServer.getTimeLimit();
+  }
+
+
+
+  /**
+   * Indicates whether the authenticated client has the specified
+   * privilege.
+   *
+   * @param  privilege  The privilege for which to make the
+   *                    determination.
+   * @param  operation  The operation being processed which needs to
+   *                    make the privilege determination, or
+   *                    {@code null} if there is no associated
+   *                    operation.
+   *
+   * @return  {@code true} if the authenticated client has the
+   *          specified privilege, or {@code false} if not.
+   */
+  public boolean hasPrivilege(Privilege privilege,
+                              Operation operation)
+  {
+    assert debugEnter(CLASS_NAME, "hasPrivilege",
+                      String.valueOf(privilege),
+                      String.valueOf(operation));
+
+    boolean result = privileges.contains(privilege);
+    if (operation == null)
+    {
+      DN authDN = authenticationInfo.getAuthenticationDN();
+
+      int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE;
+      String message = getMessage(msgID, getConnectionID(), -1L,
+                                  String.valueOf(authDN),
+                                  privilege.getName(), result);
+      logError(ErrorLogCategory.ACCESS_CONTROL,
+               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+    }
+    else
+    {
+      DN authDN = authenticationInfo.getAuthenticationDN();
+
+      int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE;
+      String message = getMessage(msgID, getConnectionID(),
+                                  operation.getOperationID(),
+                                  String.valueOf(authDN),
+                                  privilege.getName(), result);
+      logError(ErrorLogCategory.ACCESS_CONTROL,
+               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+    }
+
+    return result;
+  }
+
+
+
+  /**
+   * Indicates whether the authenticate client has all of the
+   * specified privileges.
+   *
+   * @param  privileges  The array of privileges for which to make the
+   *                     determination.
+   * @param  operation   The operation being processed which needs to
+   *                     make the privilege determination, or
+   *                     {@code null} if there is no associated
+   *                     operation.
+   *
+   * @return  {@code true} if the authenticated client has all of the
+   *          specified privileges, or {@code false} if not.
+   */
+  public boolean hasAllPrivileges(Privilege[] privileges,
+                                  Operation operation)
+  {
+    assert debugEnter(CLASS_NAME, "hasAllPrivileges",
+                      String.valueOf(privileges),
+                      String.valueOf(operation));
+
+    HashSet<Privilege> privSet = this.privileges;
+    boolean result = true;
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("{");
+
+    for (int i=0; i < privileges.length; i++)
+    {
+      if (i > 0)
+      {
+        buffer.append(",");
+      }
+
+      buffer.append(privileges[i].getName());
+
+      if (! privSet.contains(privileges[i]))
+      {
+        result = false;
+      }
+    }
+
+    buffer.append(" }");
+
+    if (operation == null)
+    {
+      DN authDN = authenticationInfo.getAuthenticationDN();
+
+      int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES;
+      String message = getMessage(msgID, getConnectionID(), -1L,
+                                  String.valueOf(authDN),
+                                  buffer.toString(), result);
+      logError(ErrorLogCategory.ACCESS_CONTROL,
+               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+    }
+    else
+    {
+      DN authDN = authenticationInfo.getAuthenticationDN();
+
+      int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES;
+      String message = getMessage(msgID, getConnectionID(),
+                                  operation.getOperationID(),
+                                  String.valueOf(authDN),
+                                  buffer.toString(), result);
+      logError(ErrorLogCategory.ACCESS_CONTROL,
+               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+    }
+
+    return result;
+  }
+
+
+
+  /**
+   * Updates the privileges associated with this client connection
+   * object based on the provided entry for the authentication
+   * identity.
+   *
+   * @param  entry   The entry for the authentication identity
+   *                 associated with this client connection.
+   * @param  isRoot  Indicates whether the associated user is a root
+   *                 user and should automatically inherit the root
+   *                 privilege set.
+   */
+  private void updatePrivileges(Entry entry, boolean isRoot)
+  {
+    assert debugEnter(CLASS_NAME, "updatePrivileges",
+                      String.valueOf(entry));
+
+    HashSet<Privilege> newPrivileges = new HashSet<Privilege>();
+    HashSet<Privilege> removePrivileges = new HashSet<Privilege>();
+
+    if (isRoot)
+    {
+      newPrivileges.addAll(DirectoryServer.getRootPrivileges());
+    }
+
+    AttributeType privType =
+         DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME);
+    List<Attribute> attrList = entry.getAttribute(privType);
+    if (attrList != null)
+    {
+      for (Attribute a : attrList)
+      {
+        for (AttributeValue v : a.getValues())
+        {
+          String privName = toLowerCase(v.getStringValue());
+
+          // If the name of the privilege is prefixed with a minus
+          // sign, then we will take away that privilege from the
+          // user.  We'll handle that at the end so that we can make
+          // sure it's not added back later.
+          if (privName.startsWith("-"))
+          {
+            privName = privName.substring(1);
+            Privilege p = Privilege.privilegeForName(privName);
+            if (p == null)
+            {
+              // FIXME -- Generate an administrative alert.
+
+              // We don't know what privilege to remove, so we'll
+              // remove all of them.
+              newPrivileges.clear();
+              privileges = newPrivileges;
+              return;
+            }
+            else
+            {
+              removePrivileges.add(p);
+            }
+          }
+          else
+          {
+            Privilege p = Privilege.privilegeForName(privName);
+            if (p == null)
+            {
+              // FIXME -- Generate an administrative alert.
+            }
+            else
+            {
+              newPrivileges.add(p);
+            }
+          }
+        }
+      }
+    }
+
+    for (Privilege p : removePrivileges)
+    {
+      newPrivileges.remove(p);
+    }
+
+    privileges = newPrivileges;
   }
 
 

@@ -201,7 +201,6 @@ public class InternalClientConnection
 
       LinkedHashMap<AttributeType,List<Attribute>> operationalAttrs =
            new LinkedHashMap<AttributeType,List<Attribute>>();
-      // FIXME -- Add privileges here.
 
 
       DN internalUserDN = DN.decode(fullDNString);
@@ -211,6 +210,7 @@ public class InternalClientConnection
 
       this.authenticationInfo =
            new AuthenticationInfo(internalUserEntry, true);
+      super.setAuthenticationInfo(authenticationInfo);
     }
     catch (DirectoryException de)
     {

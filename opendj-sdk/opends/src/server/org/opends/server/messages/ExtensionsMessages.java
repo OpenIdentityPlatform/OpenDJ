@@ -4140,6 +4140,16 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if a password modify
+   * extended operation is requested to reset another user's password by a
+   * client without sufficient privileges.  This does not take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 392;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -4396,10 +4406,13 @@ public class ExtensionsMessages
     registerMessage(MSGID_EXTOP_PASSMOD_INVALID_OLD_PASSWORD,
                     "The password modify extended operation cannot be " +
                     "processed because the current password provided for the " +
-                    "use is invalid.");
+                    "user is invalid.");
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY,
                     "An error occurred while attempting to get the " +
                     "password policy for user %s:  %s.");
+    registerMessage(MSGID_EXTOP_PASSMOD_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to perform " +
+                    "password reset operations.");
     registerMessage(MSGID_EXTOP_PASSMOD_ACCOUNT_DISABLED,
                     "The user account has been administratively disabled.");
     registerMessage(MSGID_EXTOP_PASSMOD_ACCOUNT_LOCKED,

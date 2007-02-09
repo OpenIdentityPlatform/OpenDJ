@@ -608,7 +608,7 @@ public class TaskBackend
     // treat the provided entry like a scheduled task.
     if (parentDN.equals(scheduledTaskParentDN))
     {
-      Task task = taskScheduler.entryToScheduledTask(entry);
+      Task task = taskScheduler.entryToScheduledTask(entry, addOperation);
       taskScheduler.scheduleTask(task, true);
       return;
     }

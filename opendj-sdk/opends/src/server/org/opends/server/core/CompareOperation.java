@@ -57,6 +57,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.OperationType;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.operation.PostOperationCompareOperation;
@@ -645,6 +646,20 @@ compareProcessing:
 
         setResultCode(de.getResultCode());
         appendErrorMessage(de.getErrorMessage());
+        skipPostOperation = true;
+
+        break compareProcessing;
+      }
+
+
+      // If the target entry is in the server configuration, then make sure the
+      // requester has the CONFIG_READ privilege.
+      if (DirectoryServer.getConfigHandler().handlesEntry(entryDN) &&
+          (! clientConnection.hasPrivilege(Privilege.CONFIG_READ, this)))
+      {
+        int msgID = MSGID_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES;
+        appendErrorMessage(getMessage(msgID));
+        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
         skipPostOperation = true;
 
         break compareProcessing;

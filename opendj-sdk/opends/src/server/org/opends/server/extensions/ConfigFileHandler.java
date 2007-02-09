@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -57,6 +57,7 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.Mac;
 
 import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
@@ -72,6 +73,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.tools.LDIFModify;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
@@ -86,6 +88,8 @@ import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
@@ -119,6 +123,18 @@ public class ConfigFileHandler
    */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.ConfigFileHandler";
+
+
+
+  /**
+   * The privilege array containing both the CONFIG_READ and CONFIG_WRITE
+   * privileges.
+   */
+  private static final Privilege[] CONFIG_READ_AND_WRITE =
+  {
+    Privilege.CONFIG_READ,
+    Privilege.CONFIG_WRITE
+  };
 
 
 
@@ -959,6 +975,22 @@ public class ConfigFileHandler
                       String.valueOf(addOperation));
 
 
+    // If there is an add operation, then make sure that the associated user has
+    // both the CONFIG_READ and CONFIG_WRITE privileges.
+    if (addOperation != null)
+    {
+      ClientConnection clientConnection = addOperation.getClientConnection();
+      if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
+                                               addOperation)))
+      {
+        int    msgID   = MSGID_CONFIG_FILE_ADD_INSUFFICIENT_PRIVILEGES;
+        String message = getMessage(msgID);
+        throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                                     message, msgID);
+      }
+    }
+
+
     // Grab the config lock to ensure that only one config update may be in
     // progress at any given time.
     configLock.lock();
@@ -1095,6 +1127,22 @@ public class ConfigFileHandler
                       String.valueOf(deleteOperation));
 
 
+    // If there is a delete operation, then make sure that the associated user
+    // has both the CONFIG_READ and CONFIG_WRITE privileges.
+    if (deleteOperation != null)
+    {
+      ClientConnection clientConnection = deleteOperation.getClientConnection();
+      if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
+                                               deleteOperation)))
+      {
+        int    msgID   = MSGID_CONFIG_FILE_DELETE_INSUFFICIENT_PRIVILEGES;
+        String message = getMessage(msgID);
+        throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                                     message, msgID);
+      }
+    }
+
+
     // Grab the config lock to ensure that only one config update may be in
     // progress at any given time.
     configLock.lock();
@@ -1225,6 +1273,44 @@ public class ConfigFileHandler
   {
     assert debugEnter(CLASS_NAME, "replaceEntry", String.valueOf(entry),
                       String.valueOf(modifyOperation));
+
+
+    // If there is a modify operation, then make sure that the associated user
+    // has both the CONFIG_READ and CONFIG_WRITE privileges.  Also, if the
+    // operation targets the set of root privileges then make sure the user has
+    // the PRIVILEGE_CHANGE privilege.
+    if (modifyOperation != null)
+    {
+      ClientConnection clientConnection = modifyOperation.getClientConnection();
+      if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
+                                               modifyOperation)))
+      {
+        int    msgID   = MSGID_CONFIG_FILE_MODIFY_INSUFFICIENT_PRIVILEGES;
+        String message = getMessage(msgID);
+        throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                                     message, msgID);
+      }
+
+      AttributeType privType =
+           DirectoryServer.getAttributeType(ATTR_DEFAULT_ROOT_PRIVILEGE_NAME,
+                                            true);
+      for (Modification m : modifyOperation.getModifications())
+      {
+        if (m.getAttribute().getAttributeType().equals(privType))
+        {
+          if (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE,
+                                              modifyOperation))
+          {
+            int msgID = MSGID_CONFIG_FILE_MODIFY_PRIVS_INSUFFICIENT_PRIVILEGES;
+            String message = getMessage(msgID);
+            throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                                         message, msgID);
+          }
+
+          break;
+        }
+      }
+    }
 
 
     // Grab the config lock to ensure that only one config update may be in
@@ -1381,6 +1467,23 @@ public class ConfigFileHandler
                       String.valueOf(entry), String.valueOf(modifyDNOperation));
 
 
+    // If there is a modify DN operation, then make sure that the associated
+    // user has both the CONFIG_READ and CONFIG_WRITE privileges.
+    if (modifyDNOperation != null)
+    {
+      ClientConnection clientConnection =
+           modifyDNOperation.getClientConnection();
+      if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
+                                               modifyDNOperation)))
+      {
+        int    msgID   = MSGID_CONFIG_FILE_MODDN_INSUFFICIENT_PRIVILEGES;
+        String message = getMessage(msgID);
+        throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                                     message, msgID);
+      }
+    }
+
+
     // Modify DN operations will not be allowed in the configuration, so this
     // will always throw an exception.
     int msgID = MSGID_CONFIG_FILE_MODDN_NOT_ALLOWED;
@@ -1405,6 +1508,17 @@ public class ConfigFileHandler
          throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "search", String.valueOf(searchOperation));
+
+
+    // Make sure that the associated user has the CONFIG_READ privilege.
+    ClientConnection clientConnection = searchOperation.getClientConnection();
+    if (! clientConnection.hasPrivilege(Privilege.CONFIG_READ, searchOperation))
+    {
+      int    msgID   = MSGID_CONFIG_FILE_SEARCH_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                                   message, msgID);
+    }
 
 
     // First, get the base DN for the search and make sure that it exists.

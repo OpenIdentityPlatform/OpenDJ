@@ -122,12 +122,82 @@ public class TaskMessages
 
 
   /**
-   * The message ID for the shutdown message that will be used if the server is
-   * unable to obtain a write lock on the server schema.  This takes a single
-   * argument, which is the DN of the schema entry.
+   * The message ID for the message that will be used if the server is unable to
+   * obtain a write lock on the server schema.  This takes a single argument,
+   * which is the DN of the schema entry.
    */
   public static final int MSGID_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA =
        CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 9;
+
+
+
+  /**
+   * The message ID for the message that will be used an attempt is made to
+   * invoke the add schema file task by a user that does not have the required
+   * privileges.  This does not take any arguments.
+   */
+  public static final int MSGID_TASK_ADDSCHEMAFILE_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 10;
+
+
+
+  /**
+   * The message ID for the message that will be used an attempt is made to
+   * invoke the backend backup task by a user that does not have the required
+   * privileges.  This does not take any arguments.
+   */
+  public static final int MSGID_TASK_BACKUP_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 11;
+
+
+
+  /**
+   * The message ID for the message that will be used an attempt is made to
+   * invoke the backend restore task by a user that does not have the required
+   * privileges.  This does not take any arguments.
+   */
+  public static final int MSGID_TASK_RESTORE_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 12;
+
+
+
+  /**
+   * The message ID for the message that will be used an attempt is made to
+   * invoke the LDIF import task by a user that does not have the required
+   * privileges.  This does not take any arguments.
+   */
+  public static final int MSGID_TASK_LDIFIMPORT_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 13;
+
+
+
+  /**
+   * The message ID for the message that will be used an attempt is made to
+   * invoke the LDIF export task by a user that does not have the required
+   * privileges.  This does not take any arguments.
+   */
+  public static final int MSGID_TASK_LDIFEXPORT_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 14;
+
+
+
+  /**
+   * The message ID for the message that will be used an attempt is made to
+   * invoke the server shutdown task to restart the server by a user that does
+   * not have the required privileges.  This does not take any arguments.
+   */
+  public static final int MSGID_TASK_SHUTDOWN_INSUFFICIENT_RESTART_PRIVILEGES =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 15;
+
+
+
+  /**
+   * The message ID for the message that will be used an attempt is made to
+   * invoke the server shutdown task to shut down the server by a user that does
+   * not have the required privileges.  This does not take any arguments.
+   */
+  public static final int MSGID_TASK_SHUTDOWN_INSUFFICIENT_SHUTDOWN_PRIVILEGES =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 16;
 
 
 
@@ -149,8 +219,17 @@ public class TaskMessages
     registerMessage(MSGID_TASK_SHUTDOWN_CUSTOM_MESSAGE,
                     "The Directory Server shutdown process has been " +
                     "initiated by task %s:  %s");
+    registerMessage(MSGID_TASK_SHUTDOWN_INSUFFICIENT_RESTART_PRIVILEGES,
+                    "You do not have sufficient privileges to initiate a " +
+                    "Directory Server restart.");
+    registerMessage(MSGID_TASK_SHUTDOWN_INSUFFICIENT_SHUTDOWN_PRIVILEGES,
+                    "You do not have sufficient privileges to initiate a " +
+                    "Directory Server shutdown.");
 
 
+    registerMessage(MSGID_TASK_ADDSCHEMAFILE_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to modify the " +
+                    "server schema.");
     registerMessage(MSGID_TASK_ADDSCHEMAFILE_NO_FILENAME,
                     "Unable to add one or more files to the server schema " +
                     "because no schema file names were provided in " +
@@ -170,6 +249,20 @@ public class TaskMessages
                     "Unable to add one or more files to the server schema " +
                     "because the server was unable to obtain a write lock on " +
                     "the schema entry %s after multiple attempts.");
+
+
+    registerMessage(MSGID_TASK_BACKUP_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to initiate a " +
+                    "Directory Server backup.");
+    registerMessage(MSGID_TASK_RESTORE_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to initiate a " +
+                    "Directory Server restore.");
+    registerMessage(MSGID_TASK_LDIFIMPORT_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to initiate an " +
+                    "LDIF import.");
+    registerMessage(MSGID_TASK_LDIFEXPORT_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to initiate an " +
+                    "LDIF export.");
   }
 }
 
