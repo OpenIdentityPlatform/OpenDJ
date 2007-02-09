@@ -1423,6 +1423,8 @@ public class SynchronizationDomain extends DirectoryThread
       else
         return true;
     }
+
+    // TODO log a message for the repair tool.
     return true;
   }
 
@@ -1506,7 +1508,7 @@ public class SynchronizationDomain extends DirectoryThread
         /*
          * This entry is the base dn of the backend.
          * It is quite weird that the operation result be NO_SUCH_OBJECT.
-         * There is notthing more we can do except TODO log a
+         * There is nothing more we can do except TODO log a
          * message for the repair tool to look at this problem.
          */
         return true;

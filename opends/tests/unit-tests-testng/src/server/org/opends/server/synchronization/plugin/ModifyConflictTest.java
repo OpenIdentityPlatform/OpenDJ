@@ -74,8 +74,7 @@ public class ModifyConflictTest
 
   /**
    * Test that conflict between a modify-replace and modify-add for
-   * multi-valued attributes@DataProvider(name = "ackMsg") are handled
-   * correctly.
+   * multi-valued attributes are handled correctly.
    */
   @Test()
   public void replaceAndAdd() throws Exception

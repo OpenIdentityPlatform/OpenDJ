@@ -37,7 +37,7 @@ import org.opends.server.types.AttributeValue;
  * This classes is used to store historical information.
  * One object of this type is created for each attribute that was changed in
  * the entry.
- * It allows to record the last time a givene value was added, the last
+ * It allows to record the last time a given value was added, the last
  * time a given value was deleted and the last time the whole attribute was
  * deleted.
  */
@@ -130,8 +130,14 @@ public class AttrInfo
    {
      if (this.valuesInfo != null)
       this.valuesInfo.clear();
-     deleteTime = CN;
-     lastUpdateTime = CN;
+     if (CN.newer(deleteTime))
+     {
+       deleteTime = CN;
+     }
+     if (CN.newer(lastUpdateTime))
+     {
+       lastUpdateTime = CN;
+     }
    }
 
    /**
@@ -144,7 +150,10 @@ public class AttrInfo
      ValueInfo info = new ValueInfo(val, null, CN);
      this.valuesInfo.remove(info);
      this.valuesInfo.add(info);
-     lastUpdateTime = CN;
+     if (CN.newer(lastUpdateTime))
+     {
+       lastUpdateTime = CN;
+     }
    }
 
    /**
@@ -160,7 +169,10 @@ public class AttrInfo
        ValueInfo info = new ValueInfo(val, null, CN);
        this.valuesInfo.remove(info);
        this.valuesInfo.add(info);
-       lastUpdateTime = CN;
+       if (CN.newer(lastUpdateTime))
+       {
+         lastUpdateTime = CN;
+       }
      }
    }
 
@@ -175,7 +187,10 @@ public class AttrInfo
      ValueInfo info = new ValueInfo(val, CN, null);
      this.valuesInfo.remove(info);
      valuesInfo.add(info);
-     lastUpdateTime = CN;
+     if (CN.newer(lastUpdateTime))
+     {
+       lastUpdateTime = CN;
+     }
    }
 
    /**
@@ -192,7 +207,10 @@ public class AttrInfo
        ValueInfo info = new ValueInfo(val, CN, null);
        this.valuesInfo.remove(info);
        valuesInfo.add(info);
-       lastUpdateTime = CN;
+       if (CN.newer(lastUpdateTime))
+       {
+         lastUpdateTime = CN;
+       }
      }
    }
 

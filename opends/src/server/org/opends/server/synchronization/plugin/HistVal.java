@@ -26,7 +26,6 @@
  */
 package org.opends.server.synchronization.plugin;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -40,7 +39,7 @@ import org.opends.server.types.ModificationType;
 
 
 /**
- * This Class is used to encode/decode hsitorical information
+ * This Class is used to encode/decode historical information
  * from the String form to the internal usable form.
  *
  * @author Gilles Bellaton
@@ -51,7 +50,7 @@ public class HistVal
   private String attrString;
   private AttributeValue attributeValue;
   private ChangeNumber cn;
-  private Set<String> options = null;
+  private LinkedHashSet<String> options;
   private HistKey histKey;
   private String stringValue;
 
@@ -84,10 +83,10 @@ public class HistVal
      */
     String[] token = strVal.split(":", 4);
 
+    options = new LinkedHashSet<String>();
     if (token[0].contains(";"))
     {
       String[] optionsToken = token[0].split(";");
-      options = new HashSet<String>();
       int index = 1;
       while (index < optionsToken.length)
       {
@@ -153,7 +152,7 @@ public class HistVal
   }
 
   /**
-   * Get the options.
+   * Get the options or an empty set if there are no options.
    * @return Returns the options.
    */
   public Set<String> getOptions()
@@ -186,7 +185,7 @@ public class HistVal
    */
   public Modification generateMod()
   {
-    Attribute attr = new Attribute(attrType);
+    Attribute attr = new Attribute(attrType, attrString, options, null);
     Modification mod;
     if (histKey != HistKey.DELATTR)
     {
