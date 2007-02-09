@@ -40,6 +40,7 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -113,6 +114,9 @@ public abstract class Task
 
   // The time that this task was scheduled to start processing.
   private long scheduledStartTime;
+
+  // The operation used to create this task in the server.
+  private Operation operation;
 
   // The ID of the recurring task with which this task is associated.
   private String recurringTaskID;
@@ -468,6 +472,40 @@ public abstract class Task
     assert debugEnter(CLASS_NAME, "getTaskEntry");
 
     return taskEntry;
+  }
+
+
+
+  /**
+   * Retrieves the operation used to create this task in the server.  Note that
+   * this will only be available when the task is first added to the scheduler,
+   * and it should only be accessed from within the {@code initializeTask}
+   * method (and even that method should not depend on it always being
+   * available, since it will not be available if the server is restarted and
+   * the task needs to be reinitialized).
+   *
+   * @return  The operation used to create this task in the server, or
+   *          {@code null} if it is not available.
+   */
+  public final Operation getOperation()
+  {
+    assert debugEnter(CLASS_NAME, "getOperation");
+
+    return operation;
+  }
+
+
+
+  /**
+   * Specifies the operation used to create this task in the server.
+   *
+   * @param  operation  The operation used to create this task in the server.
+   */
+  public final void setOperation(Operation operation)
+  {
+    assert debugEnter(CLASS_NAME, "setOperation", String.valueOf(operation));
+
+    this.operation = operation;
   }
 
 

@@ -1028,8 +1028,24 @@ ds-cfg-profile-sample-interval: 10 milliseconds
 
 dn: cn=Root DNs,cn=config
 objectClass: top
-objectClass: ds-cfg-branch
+objectClass: ds-cfg-root-dn-base
 cn: Root DNs
+ds-cfg-default-root-privilege-name: bypass-acl
+ds-cfg-default-root-privilege-name: modify-acl
+ds-cfg-default-root-privilege-name: config-read
+ds-cfg-default-root-privilege-name: config-write
+ds-cfg-default-root-privilege-name: ldif-import
+ds-cfg-default-root-privilege-name: ldif-export
+ds-cfg-default-root-privilege-name: backend-backup
+ds-cfg-default-root-privilege-name: backend-restore
+ds-cfg-default-root-privilege-name: server-shutdown
+ds-cfg-default-root-privilege-name: server-restart
+ds-cfg-default-root-privilege-name: disconnect-client
+ds-cfg-default-root-privilege-name: cancel-request
+ds-cfg-default-root-privilege-name: search-unindexed
+ds-cfg-default-root-privilege-name: password-reset
+ds-cfg-default-root-privilege-name: update-schema
+ds-cfg-default-root-privilege-name: privilege-change
 
 dn: cn=Directory Manager,cn=Root DNs,cn=config
 objectClass: top

@@ -43,6 +43,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.Operation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -1044,7 +1045,7 @@ public class TaskScheduler
           {
             try
             {
-              Task task = entryToScheduledTask(entry);
+              Task task = entryToScheduledTask(entry, null);
               if (TaskState.isDone(task.getTaskState()))
               {
                 completedTasks.add(task);
@@ -1792,14 +1793,16 @@ public class TaskScheduler
    * Decodes the contents of the provided entry as a scheduled task.  The
    * resulting task will not actually be scheduled for processing.
    *
-   * @param  entry  The entry to decode as a scheduled task.
+   * @param  entry      The entry to decode as a scheduled task.
+   * @param  operation  The operation used to create this task in the server, or
+   *                    {@code null} if the operation is not available.
    *
    * @return  The scheduled task decoded from the provided entry.
    *
    * @throws  DirectoryException  If the provided entry cannot be decoded as a
    *                              scheduled task.
    */
-  public Task entryToScheduledTask(Entry entry)
+  public Task entryToScheduledTask(Entry entry, Operation operation)
          throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "entryToScheduledTask",
@@ -1916,7 +1919,9 @@ public class TaskScheduler
     }
 
 
+    task.setOperation(operation);
     task.initializeTask();
+    task.setOperation(null);
     return task;
   }
 

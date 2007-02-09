@@ -3171,6 +3171,16 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used if a user attempts to
+   * modify the server schema without the appropriate privilege.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_SCHEMA_MODIFY_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_MILD_ERROR | 293;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -3397,6 +3407,9 @@ public class BackendMessages
     registerMessage(MSGID_SCHEMA_DELETE_NOT_SUPPORTED,
                     "Unwilling to remove entry \"%s\" because delete " +
                     "operations are not supported in the schema backend.");
+    registerMessage(MSGID_SCHEMA_MODIFY_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to modify the " +
+                    "Directory Server schema.");
     registerMessage(MSGID_SCHEMA_MODIFY_NOT_SUPPORTED,
                     "Unwilling to update entry \"%s\" because modify " +
                     "operations are not yet supported in the schema " +

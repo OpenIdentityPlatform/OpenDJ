@@ -6389,6 +6389,110 @@ public class ConfigMessages
        CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 593;
 
 
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * default root privilege names configuration attribute.  This does not take
+   * any arguments.
+   */
+  public static final int MSGID_CONFIG_ROOTDN_DESCRIPTION_ROOT_PRIVILEGE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 594;
+
+
+
+  /**
+   * The message ID for the message that will be used if the set of root
+   * privileges contains an unrecognized privilege.  This takes three arguments,
+   * which are the name of the attribute holding the privilege names, the DN of
+   * the configuration entry, and the name of the unrecognized privilege.
+   */
+  public static final int MSGID_CONFIG_ROOTDN_UNRECOGNIZED_PRIVILEGE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 595;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to determine the set of root privileges.  This takes a single
+   * argument, which is a stack trace of the exception that was caught.
+   */
+  public static final int
+       MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 596;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the set
+   * of root privileges has been updated.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_ROOTDN_UPDATED_PRIVILEGES =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 597;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform an add operation in the server configuration but the user doesn't
+   * have the necessary privileges to do so.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_FILE_ADD_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 598;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a delete operation in the server configuration but the user doesn't
+   * have the necessary privileges to do so.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_FILE_DELETE_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 599;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a modify operation in the server configuration but the user doesn't
+   * have the necessary privileges to do so.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_FILE_MODIFY_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 600;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a modify DN operation in the server configuration but the user
+   * doesn't have the necessary privileges to do so.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_CONFIG_FILE_MODDN_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 601;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a search operation in the server configuration but the user doesn't
+   * have the necessary privileges to do so.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_FILE_SEARCH_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 602;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * modify the set of default root privileges but the user doesn't have the
+   * necessary privileges to do so.  This does not take any arguments.
+   */
+  public static final int
+       MSGID_CONFIG_FILE_MODIFY_PRIVS_INSUFFICIENT_PRIVILEGES =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 603;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -6721,6 +6825,24 @@ public class ConfigMessages
                     "the server is online.  The server configuration should " +
                     "only be managed using the administration utilities " +
                     "provided with the Directory Server.");
+    registerMessage(MSGID_CONFIG_FILE_ADD_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to perform add " +
+                    "operations in the Directory Server configuration.");
+    registerMessage(MSGID_CONFIG_FILE_DELETE_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to perform delete " +
+                    "operations in the Directory Server configuration.");
+    registerMessage(MSGID_CONFIG_FILE_MODIFY_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to perform modify " +
+                    "operations in the Directory Server configuration.");
+    registerMessage(MSGID_CONFIG_FILE_MODIFY_PRIVS_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to change the set " +
+                    "of default root privileges.");
+    registerMessage(MSGID_CONFIG_FILE_MODDN_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to perform modify " +
+                    "DN operations in the Directory Server configuration.");
+    registerMessage(MSGID_CONFIG_FILE_SEARCH_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to perform search " +
+                    "operations in the Directory Server configuration.");
 
 
     registerMessage(MSGID_CONFIG_LOGGER_CANNOT_GET_BASE,
@@ -9032,6 +9154,24 @@ public class ConfigMessages
                     DN_ROOT_DN_CONFIG_BASE + " does not exist in the " +
                     "Directory Server configuration.  This entry must be " +
                     "present for the server to function properly.");
+    registerMessage(MSGID_CONFIG_ROOTDN_DESCRIPTION_ROOT_PRIVILEGE,
+                    "Specifies the set of privileges that should " +
+                    "automatically be assigned to root users when they " +
+                    "authenticate to the server.");
+    registerMessage(MSGID_CONFIG_ROOTDN_UNRECOGNIZED_PRIVILEGE,
+                    "The set of default root privileges contained in " +
+                    "configuration attribute %s of entry %s contains an " +
+                    "unrecognized privilege %s.");
+    registerMessage(MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES,
+                    "An error occurred while attempting to determine the " +
+                    "set of privileges that root users should be granted by " +
+                    "default:  %s.");
+    registerMessage(MSGID_CONFIG_ROOTDN_UPDATED_PRIVILEGES,
+                    "The set of privileges that will automatically be " +
+                    "assigned to root users has been updated.  This new " +
+                    "privilege set will not apply to any existing " +
+                    "connection already authenticated as a root user, but " +
+                    "will used for any subsequent root user authentications.");
     registerMessage(MSGID_CONFIG_ROOTDN_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid root DN " +
                     "configuration:  %s.  It will be ignored.");

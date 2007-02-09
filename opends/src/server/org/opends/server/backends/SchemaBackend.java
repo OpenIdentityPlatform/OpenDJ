@@ -57,6 +57,7 @@ import javax.crypto.Mac;
 
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.config.BooleanConfigAttribute;
@@ -103,6 +104,7 @@ import org.opends.server.types.ModificationType;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
@@ -948,6 +950,20 @@ public class SchemaBackend
   {
     assert debugEnter(CLASS_NAME, "replaceEntry", String.valueOf(entry),
                       String.valueOf(modifyOperation));
+
+
+    // Make sure that the authenticated user has the necessary UPDATE_SCHEMA
+    // privilege.
+    ClientConnection clientConnection = modifyOperation.getClientConnection();
+    if (! clientConnection.hasPrivilege(Privilege.UPDATE_SCHEMA,
+                                        modifyOperation))
+    {
+      int    msgID   = MSGID_SCHEMA_MODIFY_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                                   message, msgID);
+    }
+
 
 
     // At present, we only allow the addition of new attribute types,

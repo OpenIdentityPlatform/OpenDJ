@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -30,22 +30,29 @@ package org.opends.server.core;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ConfigHandler;
+import org.opends.server.api.ConfigurableComponent;
+import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.DNConfigAttribute;
+import org.opends.server.config.MultiChoiceConfigAttribute;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -66,7 +73,8 @@ import static org.opends.server.util.StaticUtils.*;
  * DN for use when binding to the server.
  */
 public class RootDNConfigManager
-       implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
+       implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener,
+                  ConfigurableComponent
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -79,6 +87,13 @@ public class RootDNConfigManager
   // A mapping between each root DN user entry and a list of the alternate
   // bind DNs for that user.
   private ConcurrentHashMap<DN,List<DN>> bindMappings;
+
+  // The DN of the entry that serves as the base for the root DN
+  // configuration entries.
+  private DN rootDNConfigBaseDN;
+
+  // The set of privileges that will be automatically inherited by root users.
+  private LinkedHashSet<Privilege> rootPrivileges;
 
 
 
@@ -116,8 +131,8 @@ public class RootDNConfigManager
     ConfigEntry   baseEntry;
     try
     {
-      DN configBase = DN.decode(DN_ROOT_DN_CONFIG_BASE);
-      baseEntry = configHandler.getConfigEntry(configBase);
+      rootDNConfigBaseDN = DN.decode(DN_ROOT_DN_CONFIG_BASE);
+      baseEntry = configHandler.getConfigEntry(rootDNConfigBaseDN);
     }
     catch (Exception e)
     {
@@ -136,11 +151,62 @@ public class RootDNConfigManager
     }
 
 
+    // Get the set of privileges that root users should have by default.
+    rootPrivileges = new LinkedHashSet<Privilege>(
+                              Privilege.getDefaultRootPrivileges());
+
+    int msgID = MSGID_CONFIG_ROOTDN_DESCRIPTION_ROOT_PRIVILEGE;
+    MultiChoiceConfigAttribute rootPrivStub =
+         new MultiChoiceConfigAttribute(ATTR_DEFAULT_ROOT_PRIVILEGE_NAME,
+                                        getMessage(msgID), false, true, false,
+                                        Privilege.getPrivilegeNames());
+    try
+    {
+      MultiChoiceConfigAttribute rootPrivAttr =
+           (MultiChoiceConfigAttribute)
+           baseEntry.getConfigAttribute(rootPrivStub);
+      if (rootPrivAttr != null)
+      {
+        ArrayList<Privilege> privList = new ArrayList<Privilege>();
+        for (String value : rootPrivAttr.activeValues())
+        {
+          String privName = toLowerCase(value);
+          Privilege p = Privilege.privilegeForName(privName);
+          if (p == null)
+          {
+            msgID = MSGID_CONFIG_ROOTDN_UNRECOGNIZED_PRIVILEGE;
+            String message = getMessage(msgID, ATTR_DEFAULT_ROOT_PRIVILEGE_NAME,
+                                        String.valueOf(rootDNConfigBaseDN),
+                                        String.valueOf(value));
+            logError(ErrorLogCategory.CONFIGURATION,
+                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          }
+          else
+          {
+            privList.add(p);
+          }
+        }
+
+        rootPrivileges = new LinkedHashSet<Privilege>(privList);
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeRootDNs", e);
+
+      msgID = MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES;
+      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
+    }
+
+
     // Register with the configuration base entry as an add and delete listener.
     // So that we will be notified of attempts to create or remove root DN
-    // entries.
+    // entries.  Also, register with the server as a configurable component so
+    // that we can detect and apply any changes to the root
     baseEntry.registerAddListener(this);
     baseEntry.registerDeleteListener(this);
+    DirectoryServer.registerConfigurableComponent(this);
 
 
     // See if the base entry has any children.  If not, then we don't need to
@@ -201,6 +267,22 @@ public class RootDNConfigManager
                  childEntry.getDN().toString(), String.valueOf(e));
       }
     }
+  }
+
+
+
+  /**
+   * Retrieves the set of privileges that should automatically be granted to
+   * root users when they authenticate.
+   *
+   * @return  The set of privileges that should automatically be granted to root
+   *          users when they authenticate.
+   */
+  public Set<Privilege> getRootPrivileges()
+  {
+    assert debugEnter(CLASS_NAME, "getRootPrivileges");
+
+    return rootPrivileges;
   }
 
 
@@ -637,6 +719,226 @@ public class RootDNConfigManager
 
 
     return new ConfigChangeResult(resultCode, adminActionRequired);
+  }
+
+
+
+  /**
+   * Retrieves the DN of the configuration entry with which this
+   * component is associated.
+   *
+   * @return  The DN of the configuration entry with which this
+   *          component is associated.
+   */
+  public DN getConfigurableComponentEntryDN()
+  {
+    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
+
+    return rootDNConfigBaseDN;
+  }
+
+
+
+  /**
+   * Retrieves the set of configuration attributes that are associated
+   * with this configurable component.
+   *
+   * @return  The set of configuration attributes that are associated
+   *          with this configurable component.
+   */
+  public List<ConfigAttribute> getConfigurationAttributes()
+  {
+    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
+
+    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
+
+    LinkedList<String> currentValues = new LinkedList<String>();
+    for (Privilege p : rootPrivileges)
+    {
+      currentValues.add(p.getName());
+    }
+
+    int msgID = MSGID_CONFIG_ROOTDN_DESCRIPTION_ROOT_PRIVILEGE;
+    attrList.add(new MultiChoiceConfigAttribute(
+                          ATTR_DEFAULT_ROOT_PRIVILEGE_NAME, getMessage(msgID),
+                          false, true, false, Privilege.getPrivilegeNames(),
+                          currentValues));
+
+    return attrList;
+  }
+
+
+
+  /**
+   * Indicates whether the provided configuration entry has an
+   * acceptable configuration for this component.  If it does not,
+   * then detailed information about the problem(s) should be added to
+   * the provided list.
+   *
+   * @param  configEntry          The configuration entry for which to
+   *                              make the determination.
+   * @param  unacceptableReasons  A list that can be used to hold
+   *                              messages about why the provided
+   *                              entry does not have an acceptable
+   *                              configuration.
+   *
+   * @return  <CODE>true</CODE> if the provided entry has an
+   *          acceptable configuration for this component, or
+   *          <CODE>false</CODE> if not.
+   */
+  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
+                                            List<String> unacceptableReasons)
+  {
+    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
+                      String.valueOf(configEntry), "List<String>");
+
+
+    int msgID = MSGID_CONFIG_ROOTDN_DESCRIPTION_ROOT_PRIVILEGE;
+    MultiChoiceConfigAttribute rootPrivStub =
+         new MultiChoiceConfigAttribute(ATTR_DEFAULT_ROOT_PRIVILEGE_NAME,
+                                        getMessage(msgID), false, true, false,
+                                        Privilege.getPrivilegeNames());
+    try
+    {
+      MultiChoiceConfigAttribute rootPrivAttr =
+           (MultiChoiceConfigAttribute)
+           configEntry.getConfigAttribute(rootPrivStub);
+      if (rootPrivAttr != null)
+      {
+        for (String value : rootPrivAttr.activeValues())
+        {
+          String privName = toLowerCase(value);
+          Privilege p = Privilege.privilegeForName(privName);
+          if (p == null)
+          {
+            msgID = MSGID_CONFIG_ROOTDN_UNRECOGNIZED_PRIVILEGE;
+            String message = getMessage(msgID, ATTR_DEFAULT_ROOT_PRIVILEGE_NAME,
+                                        String.valueOf(rootDNConfigBaseDN),
+                                        String.valueOf(value));
+            unacceptableReasons.add(message);
+            return false;
+          }
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeRootDNs", e);
+
+      msgID = MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES;
+      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      unacceptableReasons.add(message);
+      return false;
+    }
+
+
+    // If we've gotten here, then everything looks OK.
+    return true;
+  }
+
+
+
+  /**
+   * Makes a best-effort attempt to apply the configuration contained
+   * in the provided entry.  Information about the result of this
+   * processing should be added to the provided message list.
+   * Information should always be added to this list if a
+   * configuration change could not be applied.  If detailed results
+   * are requested, then information about the changes applied
+   * successfully (and optionally about parameters that were not
+   * changed) should also be included.
+   *
+   * @param  configEntry      The entry containing the new
+   *                          configuration to apply for this
+   *                          component.
+   * @param  detailedResults  Indicates whether detailed information
+   *                          about the processing should be added to
+   *                          the list.
+   *
+   * @return  Information about the result of the configuration
+   *          update.
+   */
+  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
+                                                  boolean detailedResults)
+  {
+    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
+                      String.valueOf(configEntry),
+                      String.valueOf(detailedResults));
+
+
+    ResultCode        resultCode          = ResultCode.SUCCESS;
+    ArrayList<String> messages            = new ArrayList<String>();
+    boolean           adminActionRequired = false;
+
+
+    LinkedHashSet<Privilege> newRootPrivileges =
+         new LinkedHashSet<Privilege>(Privilege.getDefaultRootPrivileges());
+
+    int msgID = MSGID_CONFIG_ROOTDN_DESCRIPTION_ROOT_PRIVILEGE;
+    MultiChoiceConfigAttribute rootPrivStub =
+         new MultiChoiceConfigAttribute(ATTR_DEFAULT_ROOT_PRIVILEGE_NAME,
+                                        getMessage(msgID), false, true, false,
+                                        Privilege.getPrivilegeNames());
+    try
+    {
+      MultiChoiceConfigAttribute rootPrivAttr =
+           (MultiChoiceConfigAttribute)
+           configEntry.getConfigAttribute(rootPrivStub);
+      if (rootPrivAttr != null)
+      {
+        ArrayList<Privilege> privList = new ArrayList<Privilege>();
+        for (String value : rootPrivAttr.activeValues())
+        {
+          String privName = toLowerCase(value);
+          Privilege p = Privilege.privilegeForName(privName);
+          if (p == null)
+          {
+            if (resultCode == ResultCode.SUCCESS)
+            {
+              resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
+            }
+
+            msgID = MSGID_CONFIG_ROOTDN_UNRECOGNIZED_PRIVILEGE;
+            messages.add(getMessage(msgID, ATTR_DEFAULT_ROOT_PRIVILEGE_NAME,
+                                    String.valueOf(rootDNConfigBaseDN),
+                                    String.valueOf(value)));
+          }
+          else
+          {
+            privList.add(p);
+          }
+        }
+
+        newRootPrivileges = new LinkedHashSet<Privilege>(privList);
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeRootDNs", e);
+
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
+      }
+
+      msgID = MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES;
+      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+    }
+
+
+    if (resultCode == ResultCode.SUCCESS)
+    {
+      rootPrivileges = newRootPrivileges;
+
+      if (detailedResults)
+      {
+        msgID = MSGID_CONFIG_ROOTDN_UPDATED_PRIVILEGES;
+        messages.add(getMessage(msgID));
+      }
+    }
+
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }
 

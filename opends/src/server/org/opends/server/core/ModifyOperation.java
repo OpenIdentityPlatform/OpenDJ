@@ -81,6 +81,7 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.OperationType;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -1283,6 +1284,18 @@ modifyProcessing:
                      pwPolicyState.getPasswordAttribute()))
             {
               passwordChanged = true;
+              if (! selfChange)
+              {
+                if (! clientConnection.hasPrivilege(Privilege.PASSWORD_RESET,
+                                                    this))
+                {
+                  int msgID = MSGID_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES;
+                  appendErrorMessage(getMessage(msgID));
+                  setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+                  break modifyProcessing;
+                }
+              }
+
               break;
             }
           }
@@ -1367,6 +1380,22 @@ modifyProcessing:
                                               a.getName()));
                 break modifyProcessing;
               }
+            }
+          }
+
+
+          // See if the attribute is one which controls the privileges available
+          // for a user.  If it is, then the client must have the
+          // PRIVILEGE_CHANGE privilege.
+          if (t.hasName(OP_ATTR_PRIVILEGE_NAME))
+          {
+            if (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE,
+                                                this))
+            {
+              int msgID = MSGID_MODIFY_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES;
+              appendErrorMessage(getMessage(msgID));
+              setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+              break modifyProcessing;
             }
           }
 

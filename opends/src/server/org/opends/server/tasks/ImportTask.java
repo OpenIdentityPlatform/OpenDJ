@@ -22,10 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 
+import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.loggers.Debug.*;
@@ -38,7 +39,9 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.core.Operation;
 import org.opends.server.api.Backend;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -49,6 +52,8 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
 import java.util.HashSet;
@@ -95,7 +100,20 @@ public class ImportTask extends Task
     assert debugEnter(CLASS_NAME, "initializeTask");
 
 
-    // FIXME -- Do we need any special authorization here?
+    // If the client connection is available, then make sure the associated
+    // client has the LDIF_IMPORT privilege.
+    Operation operation = getOperation();
+    if (operation != null)
+    {
+      ClientConnection clientConnection = operation.getClientConnection();
+      if (! clientConnection.hasPrivilege(Privilege.LDIF_IMPORT, operation))
+      {
+        int    msgID   = MSGID_TASK_LDIFIMPORT_INSUFFICIENT_PRIVILEGES;
+        String message = getMessage(msgID);
+        throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                                     message, msgID);
+      }
+    }
 
 
     Entry taskEntry = getTaskEntry();

@@ -146,6 +146,7 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.OperationType;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
@@ -472,6 +473,9 @@ public class DirectoryServer
 
   // The special backend used for the Directory Server root DSE.
   private RootDSEBackend rootDSEBackend;
+
+  // The root DN config manager for the server.
+  private RootDNConfigManager rootDNConfigManager;
 
   // The SASL mechanism config manager for the Directory Server.
   private SASLConfigManager saslConfigManager;
@@ -982,7 +986,8 @@ public class DirectoryServer
 
 
       // Initialize the root DNs.
-      new RootDNConfigManager().initializeRootDNs();
+      rootDNConfigManager = new RootDNConfigManager();
+      rootDNConfigManager.initializeRootDNs();
 
 
       // Initialize the group manager.
@@ -5002,6 +5007,22 @@ public class DirectoryServer
                       String.valueOf(certificateMapper));
 
     directoryServer.certificateMapper = certificateMapper;
+  }
+
+
+
+  /**
+   * Retrieves the set of privileges that should automatically be granted to
+   * root users when they authenticate.
+   *
+   * @return  The set of privileges that should automatically be granted to root
+   *          users when they authenticate.
+   */
+  public static Set<Privilege> getRootPrivileges()
+  {
+    assert debugEnter(CLASS_NAME, "getRootPrivileges");
+
+    return directoryServer.rootDNConfigManager.getRootPrivileges();
   }
 
 

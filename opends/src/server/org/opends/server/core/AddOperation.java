@@ -76,6 +76,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OperationType;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -1395,6 +1396,20 @@ addProcessing:
         // objectclasses.
         entry = new Entry(entryDN, objectClasses, userAttributes,
                           operationalAttributes);
+
+
+        // Check to see if the entry includes a privilege specification.  If so,
+        // then the requester must have the PRIVILEGE_CHANGE privilege.
+        AttributeType privType =
+             DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME, true);
+        if (entry.hasAttribute(privType) &&
+            (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE, this)))
+        {
+          int msgID = MSGID_ADD_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES;
+          appendErrorMessage(getMessage(msgID));
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          break addProcessing;
+        }
 
 
         // Check to see if the entry contains one or more passwords and if they
