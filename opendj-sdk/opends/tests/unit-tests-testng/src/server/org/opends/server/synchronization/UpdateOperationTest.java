@@ -321,6 +321,8 @@ public class UpdateOperationTest extends SynchronizationTestCase
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
         "Starting synchronization test : lostHeartbeatFailover" , 1);
+    
+    cleanEntries();
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
