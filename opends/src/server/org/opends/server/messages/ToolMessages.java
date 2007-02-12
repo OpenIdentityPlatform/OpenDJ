@@ -7559,6 +7559,15 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description of the
+   * singleValueChanges argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFDIFF_DESCRIPTION_SINGLE_VALUE_CHANGES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 794;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8940,6 +8949,10 @@ public class ToolMessages
     registerMessage(MSGID_LDIFDIFF_DESCRIPTION_OUTPUT_LDIF,
                     "Specifies the file to which the output should be " +
                     "written.");
+    registerMessage(MSGID_LDIFDIFF_DESCRIPTION_SINGLE_VALUE_CHANGES,
+                    "Indicates that each attribute-level change should be " +
+                    "written as a separate modification per attribute value " +
+                    "rather than one modification per entry.");
     registerMessage(MSGID_LDIFDIFF_DESCRIPTION_OVERWRITE_EXISTING,
                     "Indicates that any existing output file should be " +
                     "overwritten rather than appending to it.");
