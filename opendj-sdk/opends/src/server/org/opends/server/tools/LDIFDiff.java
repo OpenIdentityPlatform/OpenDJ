@@ -126,6 +126,7 @@ public class LDIFDiff
   {
     BooleanArgument overwriteExisting;
     BooleanArgument showUsage;
+    BooleanArgument singleValueChanges;
     StringArgument  configClass;
     StringArgument  configFile;
     StringArgument  outputLDIF;
@@ -158,6 +159,11 @@ public class LDIFDiff
                                "overwriteExisting",
                                MSGID_LDIFDIFF_DESCRIPTION_OVERWRITE_EXISTING);
       argParser.addArgument(overwriteExisting);
+
+      singleValueChanges =
+           new BooleanArgument("singlevaluechanges", 'S', "singleValueChanges",
+                               MSGID_LDIFDIFF_DESCRIPTION_SINGLE_VALUE_CHANGES);
+      argParser.addArgument(singleValueChanges);
 
       configFile = new StringArgument("configfile", 'c', "configFile", false,
                                       false, true, "{configFile}", null, null,
@@ -478,7 +484,8 @@ public class LDIFDiff
           {
             // The DNs are the same, so check to see if the entries are the
             // same or have been modified.
-            if (writeModify(writer, sourceEntry, targetEntry))
+            if (writeModify(writer, sourceEntry, targetEntry,
+                            singleValueChanges.isPresent()))
             {
               differenceFound = true;
             }
@@ -602,10 +609,13 @@ public class LDIFDiff
    * user attributes.  It will ignore differences in the DN and operational
    * attributes.
    *
-   * @param  writer       The writer to which the modify record should be
-   *                      written.
-   * @param  sourceEntry  The source form of the entry.
-   * @param  targetEntry  The target form of the entry.
+   * @param  writer              The writer to which the modify record should be
+   *                             written.
+   * @param  sourceEntry         The source form of the entry.
+   * @param  targetEntry         The target form of the entry.
+   * @param  singleValueChanges  Indicates whether each attribute-level change
+   *                             should be written in a separate modification
+   *                             per attribute value.
    *
    * @return  <CODE>true</CODE> if there were any differences found between the
    *          source and target entries, or <CODE>false</CODE> if not.
@@ -614,7 +624,8 @@ public class LDIFDiff
    *                       change record.
    */
   private static boolean writeModify(LDIFWriter writer, Entry sourceEntry,
-                                     Entry targetEntry)
+                                     Entry targetEntry,
+                                     boolean singleValueChanges)
           throws IOException
   {
     // Create a list to hold the modifications that are found.
@@ -786,7 +797,42 @@ public class LDIFDiff
     }
     else
     {
-      writer.writeModifyChangeRecord(sourceEntry.getDN(), modifications);
+      if (singleValueChanges)
+      {
+        for (Modification m : modifications)
+        {
+          Attribute a = m.getAttribute();
+          LinkedHashSet<AttributeValue> values = a.getValues();
+          if (values.isEmpty())
+          {
+            LinkedList<Modification> attrMods = new LinkedList<Modification>();
+            attrMods.add(m);
+            writer.writeModifyChangeRecord(sourceEntry.getDN(), attrMods);
+          }
+          else
+          {
+            LinkedList<Modification> attrMods = new LinkedList<Modification>();
+            LinkedHashSet<AttributeValue> valueSet =
+                 new LinkedHashSet<AttributeValue>();
+            for (AttributeValue v : values)
+            {
+              valueSet.clear();
+              valueSet.add(v);
+              Attribute attr = new Attribute(a.getAttributeType(),
+                                             a.getName(), valueSet);
+
+              attrMods.clear();
+              attrMods.add(new Modification(m.getModificationType(), attr));
+              writer.writeModifyChangeRecord(sourceEntry.getDN(), attrMods);
+            }
+          }
+        }
+      }
+      else
+      {
+        writer.writeModifyChangeRecord(sourceEntry.getDN(), modifications);
+      }
+
       return true;
     }
   }
