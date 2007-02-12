@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -462,7 +462,7 @@ public class LDIFDiff
           {
             // The target entry should be before the source entry, which means
             // that the target entry has been added.
-            writeAdd(writer,targetEntry);
+            writeAdd(writer, targetEntry);
             differenceFound = true;
             if (targetIterator.hasNext())
             {
@@ -520,6 +520,8 @@ public class LDIFDiff
                 sourceEntry = sourceMap.get(sourceDN);
                 writeDelete(writer, sourceEntry);
               }
+
+              break;
             }
           }
         }
