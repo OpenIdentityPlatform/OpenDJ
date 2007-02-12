@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
 package org.opends.server.core;
@@ -32,8 +32,10 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.*;
+import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager;
 import org.opends.server.TestCaseUtils;
@@ -54,6 +56,7 @@ import java.net.Socket;
 public class CompareOperationTestCase extends OperationTestCase
 {
   private Entry entry;
+  private InternalClientConnection proxyUserConn;
 
 
   @BeforeClass
@@ -101,6 +104,25 @@ public class CompareOperationTestCase extends OperationTestCase
                                entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(entry.getDN()));
+
+    // Add a user capable of using the proxied authorization control.
+    TestCaseUtils.addEntry(
+         "dn: uid=proxy.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: proxy.user",
+         "givenName: Proxy",
+         "sn: User",
+         "cn: Proxy User",
+         "userPassword: password",
+         "ds-privilege-name: proxied-auth");
+
+    Entry proxyUserEntry =
+               DirectoryServer.getEntry(DN.decode("uid=proxy.user,o=test"));
+    AuthenticationInfo authInfo = new AuthenticationInfo(proxyUserEntry, false);
+    proxyUserConn = new InternalClientConnection(authInfo);
   }
 
 
@@ -435,16 +457,14 @@ public class CompareOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ProxiedAuthV1Control authV1Control =
          new ProxiedAuthV1Control(new ASN1OctetString());
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
 
     CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+         new CompareOperation(proxyUserConn,
+                              InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
                               new ASN1OctetString(entry.getDN().toString()),
@@ -461,10 +481,9 @@ public class CompareOperationTestCase extends OperationTestCase
   @Test
   public void testCompareProxiedAuthV1Denied() throws Exception
   {
-    InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+
+    InvocationCounterPlugin.resetAllCounters();
 
     ProxiedAuthV1Control authV1Control =
          new ProxiedAuthV1Control(new ASN1OctetString("cn=nonexistent,o=test"));
@@ -472,7 +491,8 @@ public class CompareOperationTestCase extends OperationTestCase
     controls.add(authV1Control);
 
     CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+         new CompareOperation(proxyUserConn,
+                              InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
                               new ASN1OctetString(entry.getDN().toString()),
@@ -490,16 +510,14 @@ public class CompareOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ProxiedAuthV2Control authV2Control =
          new ProxiedAuthV2Control(new ASN1OctetString("dn:"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
 
     CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+         new CompareOperation(proxyUserConn,
+                              InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
                               new ASN1OctetString(entry.getDN().toString()),
@@ -518,16 +536,14 @@ public class CompareOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ProxiedAuthV2Control authV2Control = new ProxiedAuthV2Control(
          new ASN1OctetString("dn:cn=nonexistent,o=test"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
 
     CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+         new CompareOperation(proxyUserConn,
+                              InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
                               new ASN1OctetString(entry.getDN().toString()),
@@ -545,9 +561,6 @@ public class CompareOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ProxiedAuthV2Control authV2Control =
          new ProxiedAuthV2Control(new ASN1OctetString());
     authV2Control.setCritical(false);
@@ -555,7 +568,8 @@ public class CompareOperationTestCase extends OperationTestCase
     controls.add(authV2Control);
 
     CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+         new CompareOperation(proxyUserConn,
+                              InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
                               new ASN1OctetString(entry.getDN().toString()),

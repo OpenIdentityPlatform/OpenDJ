@@ -224,8 +224,9 @@ public class AuthenticationInfo
    * @param  authorizationEntry   The entry of the user that will be
    *                              used as the default authorization
    *                              identity, or {@code null} to
-   *                              indicate that it should be the same
-   *                              as the authentication entry.
+   *                              indicate that the authorization
+   *                              identity should be the
+   *                              unauthenticated user.
    * @param  saslMechanism        The SASL mechanism used to
    *                              authenticate.  This must be provided
    *                              in all-uppercase characters and must
@@ -246,16 +247,8 @@ public class AuthenticationInfo
     ensureNotNull(authenticationEntry, saslMechanism);
 
     this.authenticationEntry = authenticationEntry;
+    this.authorizationEntry  = authorizationEntry;
     this.isRoot              = isRoot;
-
-    if (authorizationEntry == null)
-    {
-      this.authorizationEntry = authenticationEntry;
-    }
-    else
-    {
-      this.authorizationEntry = authorizationEntry;
-    }
 
     isAuthenticated    = true;
     mustChangePassword = false;

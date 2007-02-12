@@ -4150,6 +4150,141 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if the DIGEST-MD5 authzid
+   * is the empty string.  This does not take any arguments.
+   */
+  public static final int MSGID_SASLDIGESTMD5_EMPTY_AUTHZID =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 393;
+
+
+
+  /**
+   * The message ID for the message that will be used if the DIGEST-MD5 authzid
+   * contained an invalid DN.  This takes two arguments, which are the authzid
+   * and the reason that it was invalid.
+   */
+  public static final int MSGID_SASLDIGESTMD5_AUTHZID_INVALID_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 394;
+
+
+
+  /**
+   * The message ID for the message that will be used if the authenticating user
+   * does not have sufficient privilege to specify an authorization identity
+   * that is different from the authentication identity.  This takes a single
+   * argument, which is the DN of the authentication identity.
+   */
+  public static final int MSGID_SASLDIGESTMD5_AUTHZID_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 395;
+
+
+
+  /**
+   * The message ID for the message that will be used if the DIGEST-MD5 authzid
+   * references an entry that does not exist.  This takes a single argument,
+   * which is the DN of the target entry.
+   */
+  public static final int MSGID_SASLDIGESTMD5_AUTHZID_NO_SUCH_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 396;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to get the entry for the authorization identity.  This takes two
+   * arguments, which are the authorization DN and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_SASLDIGESTMD5_AUTHZID_CANNOT_GET_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 397;
+
+
+
+  /**
+   * The message ID for the message that will be used if the "u:"-form
+   * authorization ID cannot be mapped to a user entry.  This takes a single
+   * argument, which is the authzID string.
+   */
+  public static final int MSGID_SASLDIGESTMD5_AUTHZID_NO_MAPPED_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 398;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to map the "u:"-form authorization ID to a user entry.  This
+   * takes two arguments, which are the authzID string and a message explaining
+   * the problem that occurred.
+   */
+  public static final int MSGID_SASLDIGESTMD5_CANNOT_MAP_AUTHZID =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 399;
+
+
+
+  /**
+   * The message ID for the message that will be used if the authorization ID is
+   * a malformed DN.  This takes two arguments, which are the authorization ID
+   * string and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_SASLPLAIN_AUTHZID_INVALID_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 400;
+
+
+
+  /**
+   * The message ID for the message that will be used if the authenticating user
+   * attempts to provide an alternate authorization ID but does not have
+   * sufficient privileges to do so.  This takes a single argument, which is the
+   * DN of the authenticating user.
+   */
+  public static final int MSGID_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 401;
+
+
+
+  /**
+   * The message ID for the message that will be used if the authorization ID
+   * contains the DN of an entry that does not exist.  This takes a single
+   * argument, which is the authorization DN.
+   */
+  public static final int MSGID_SASLPLAIN_AUTHZID_NO_SUCH_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 402;
+
+
+
+  /**
+   * The message ID for the message that will be used if a problem occurs while
+   * trying to get the entry for the authorization DN.  This takes two
+   * arguments, which are the authorization DN and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_SASLPLAIN_AUTHZID_CANNOT_GET_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 403;
+
+
+
+  /**
+   * The message ID for the message that will be used if the authorization ID
+   * specifies a username that does not map to an entry.  This takes a single
+   * argument, which is the authorization ID string.
+   */
+  public static final int MSGID_SASLPLAIN_AUTHZID_NO_MAPPED_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 404;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to map the authorization ID username to an entry.  This takes two
+   * arguments, which are the authorization ID string and a message explaining
+   * the problem that occurred.
+   */
+  public static final int MSGID_SASLPLAIN_AUTHZID_CANNOT_MAP_AUTHZID =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 405;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5084,6 +5219,24 @@ public class ExtensionsMessages
     registerMessage(MSGID_SASLPLAIN_NO_MATCHING_ENTRIES,
                     "The server was not able to find any user entries for " +
                     "the provided authentication ID of %s.");
+    registerMessage(MSGID_SASLPLAIN_AUTHZID_INVALID_DN,
+                    "The provided authorization ID %s contained an invalid " +
+                    "DN:  %s.");
+    registerMessage(MSGID_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES,
+                    "The authenticating user %s does not have sufficient " +
+                    "privileges to specify an alternate authorization ID.");
+    registerMessage(MSGID_SASLPLAIN_AUTHZID_NO_SUCH_ENTRY,
+                    "The entry corresponding to authorization DN %s does not " +
+                    "exist in the Directory Server.");
+    registerMessage(MSGID_SASLPLAIN_AUTHZID_CANNOT_GET_ENTRY,
+                    "An error occurred while attempting to retrieve entry %s " +
+                    "specified as the authorization ID:  %s.");
+    registerMessage(MSGID_SASLPLAIN_AUTHZID_NO_MAPPED_ENTRY,
+                    "No entry corresponding to authorization ID %s was found " +
+                    "in the server.");
+    registerMessage(MSGID_SASLPLAIN_AUTHZID_CANNOT_MAP_AUTHZID,
+                    "An error occurred while attempting to map authorization " +
+                    "ID %s to a user entry:  %s.");
     registerMessage(MSGID_SASLPLAIN_NO_PW_ATTR,
                     "The SASL PLAIN authentication failed because the mapped " +
                     "user entry did not contain any values for the %s " +
@@ -5469,6 +5622,27 @@ public class ExtensionsMessages
     registerMessage(MSGID_SASLDIGESTMD5_NO_MATCHING_ENTRIES,
                     "The server was not able to find any user entries for " +
                     "the provided username of %s.");
+    registerMessage(MSGID_SASLDIGESTMD5_EMPTY_AUTHZID,
+                    "The provided authorization ID was empty, which is not " +
+                    "allowed for DIGEST-MD5 authentication.");
+    registerMessage(MSGID_SASLDIGESTMD5_AUTHZID_INVALID_DN,
+                    "The provided authorization ID %s contained an invalid " +
+                    "DN:  %s.");
+    registerMessage(MSGID_SASLDIGESTMD5_AUTHZID_INSUFFICIENT_PRIVILEGES,
+                    "The authenticating user %s does not have sufficient " +
+                    "privileges to assume a different authorization identity.");
+    registerMessage(MSGID_SASLDIGESTMD5_AUTHZID_NO_SUCH_ENTRY,
+                    "The entry %s specified as the authorization identity " +
+                    "does not exist.");
+    registerMessage(MSGID_SASLDIGESTMD5_AUTHZID_CANNOT_GET_ENTRY,
+                    "The entry %s specified as the authorization identity " +
+                    "could not be retrieved:  %s.");
+    registerMessage(MSGID_SASLDIGESTMD5_AUTHZID_NO_MAPPED_ENTRY,
+                    "The server was unable to find any entry corresponding " +
+                    "to authorization ID %s.");
+    registerMessage(MSGID_SASLDIGESTMD5_CANNOT_MAP_AUTHZID,
+                    "An error occurred while attempting to map authorization " +
+                    "ID %s to a user entry:  %s.");
     registerMessage(MSGID_SASLDIGESTMD5_NO_PW_ATTR,
                     "The SASL DIGEST-MD5 authentication failed because the " +
                     "mapped user entry did not contain any values for the %s " +

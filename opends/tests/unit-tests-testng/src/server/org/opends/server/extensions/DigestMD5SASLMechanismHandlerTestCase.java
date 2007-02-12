@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -727,6 +727,50 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
 
   /**
+   * Performs a failed LDAP bind using DIGEST-MD5 using an empty authorization
+   * ID.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testLDAPBindFailEmptyAuthzID()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
+      "dn: uid=test.user,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password",
+      "ds-privilege-name: proxied-auth",
+      "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
+           "cn=Password Policies,cn=config");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=DIGEST-MD5",
+      "-o", "authid=dn:uid=test.user,o=test",
+      "-o", "authzid=",
+      "-o", "realm=o=test",
+      "-w", "password",
+      "-b", "",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
    * Performs a failed LDAP bind using DIGEST-MD5 using the dn: form of the
    * authentication ID with the root DN (which has a stored password that's not
    * reversible).
@@ -806,6 +850,138 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     DeleteOperation deleteOperation = conn.processDelete(e.getDN());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Performs a failed LDAP bind using DIGEST-MD5 using an authorization ID that
+   * contains the DN of an entry that doesn't exist.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testLDAPBindFailNonexistentAuthzDN()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
+      "dn: uid=test.user,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password",
+      "ds-privilege-name: proxied-auth",
+      "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
+           "cn=Password Policies,cn=config");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=DIGEST-MD5",
+      "-o", "authid=dn:uid=test.user,o=test",
+      "-o", "authzid=dn:uid=nonexistent,o=test",
+      "-o", "realm=o=test",
+      "-w", "password",
+      "-b", "",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Performs a failed LDAP bind using DIGEST-MD5 using an authorization ID that
+   * contains a username for an entry that doesn't exist.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testLDAPBindFailNonexistentAuthzUsername()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
+      "dn: uid=test.user,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password",
+      "ds-privilege-name: proxied-auth",
+      "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
+           "cn=Password Policies,cn=config");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=DIGEST-MD5",
+      "-o", "authid=dn:uid=test.user,o=test",
+      "-o", "authzid=u:nonexistent",
+      "-o", "realm=o=test",
+      "-w", "password",
+      "-b", "",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Performs a failed LDAP bind using DIGEST-MD5 using an authorization ID that
+   * contains a malformed DN.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testLDAPBindFailMalformedAuthzDN()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
+      "dn: uid=test.user,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password",
+      "ds-privilege-name: proxied-auth",
+      "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
+           "cn=Password Policies,cn=config");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=DIGEST-MD5",
+      "-o", "authid=dn:uid=test.user,o=test",
+      "-o", "authzid=dn:malformed",
+      "-o", "realm=o=test",
+      "-w", "password",
+      "-b", "",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
   }
 
 

@@ -6229,6 +6229,16 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used when a client attempts to
+   * use the proxied authorization control without sufficient privileges.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 595;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -8423,6 +8433,9 @@ public class CoreMessages
     registerMessage(MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES,
                     "hasPrivilege determination for connID=%d opID=%d " +
                     "requesterDN=\"%s\" privilegeSet=\"%s\" result=%b");
+    registerMessage(MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to use the " +
+                    "proxied authorization control.");
   }
 }
 
