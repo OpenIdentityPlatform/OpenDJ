@@ -1775,6 +1775,17 @@ addProcessing:
             }
             else if (oid.equals(OID_PROXIED_AUTH_V1))
             {
+              // The requester must have the PROXIED_AUTH privilige in order to
+              // be able to use this control.
+              if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
+              {
+                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+                appendErrorMessage(getMessage(msgID));
+                setResultCode(ResultCode.AUTHORIZATION_DENIED);
+                break addProcessing;
+              }
+
+
               ProxiedAuthV1Control proxyControl;
               if (c instanceof ProxiedAuthV1Control)
               {
@@ -1814,12 +1825,21 @@ addProcessing:
               }
 
 
-              // FIXME -- Should we specifically check permissions here, or let
-              //          the earlier access control checks handle it?
               setAuthorizationEntry(authorizationEntry);
             }
             else if (oid.equals(OID_PROXIED_AUTH_V2))
             {
+              // The requester must have the PROXIED_AUTH privilige in order to
+              // be able to use this control.
+              if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
+              {
+                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+                appendErrorMessage(getMessage(msgID));
+                setResultCode(ResultCode.AUTHORIZATION_DENIED);
+                break addProcessing;
+              }
+
+
               ProxiedAuthV2Control proxyControl;
               if (c instanceof ProxiedAuthV2Control)
               {
@@ -1859,8 +1879,6 @@ addProcessing:
               }
 
 
-              // FIXME -- Should we specifically check permissions here, or let
-              //          the earlier access control checks handle it?
               setAuthorizationEntry(authorizationEntry);
             }
 

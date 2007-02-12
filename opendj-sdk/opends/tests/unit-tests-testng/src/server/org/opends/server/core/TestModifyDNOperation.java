@@ -56,6 +56,7 @@ public class TestModifyDNOperation extends OperationTestCase
 {
 
   private Entry entry;
+  private InternalClientConnection proxyUserConn;
 
   @BeforeClass
   public void setUp() throws Exception
@@ -132,6 +133,25 @@ public class TestModifyDNOperation extends OperationTestCase
                                entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(entry.getDN()));
+
+    // Add a user capable of using the proxied authorization control.
+    TestCaseUtils.addEntry(
+         "dn: uid=proxy.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: proxy.user",
+         "givenName: Proxy",
+         "sn: User",
+         "cn: Proxy User",
+         "userPassword: password",
+         "ds-privilege-name: proxied-auth");
+
+    Entry proxyUserEntry =
+               DirectoryServer.getEntry(DN.decode("uid=proxy.user,o=test"));
+    AuthenticationInfo authInfo = new AuthenticationInfo(proxyUserEntry, false);
+    proxyUserConn = new InternalClientConnection(authInfo);
   }
 
   /**
@@ -806,12 +826,9 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV1Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                               controls,
+         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+                               proxyUserConn.nextMessageID(), controls,
                                new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.test0"), false,
                                null);
@@ -835,8 +852,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                               controls,
+         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+                               proxyUserConn.nextMessageID(), controls,
                                new ASN1OctetString("uid=user.test0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.0"), true,
                                null);
@@ -868,12 +885,9 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV1Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                               controls,
+         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+                               proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
                                null);
@@ -897,7 +911,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+                               proxyUserConn.nextMessageID(),
                                controls,
                                DN.decode("uid=user.test0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.0"), true,
@@ -930,12 +945,9 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV1Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                               controls,
+         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+                               proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
                                null);
@@ -957,12 +969,9 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV2Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                               controls,
+         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+                               proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
                                null);
@@ -986,8 +995,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                               controls,
+         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+                               proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.test0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.0"), true,
                                null);
@@ -1019,12 +1028,9 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV2Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                               controls,
+         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+                               proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
                                null);
@@ -1047,12 +1053,9 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV2Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
-                               controls,
+         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+                               proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
                                null);

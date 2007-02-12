@@ -66,6 +66,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.OperationType;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
@@ -1760,6 +1761,17 @@ searchProcessing:
           }
           else if (oid.equals(OID_PROXIED_AUTH_V1))
           {
+            // The requester must have the PROXIED_AUTH privilige in order to be
+            // able to use this control.
+            if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
+            {
+              int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+              appendErrorMessage(getMessage(msgID));
+              setResultCode(ResultCode.AUTHORIZATION_DENIED);
+              break searchProcessing;
+            }
+
+
             ProxiedAuthV1Control proxyControl;
             if (c instanceof ProxiedAuthV1Control)
             {
@@ -1783,28 +1795,37 @@ searchProcessing:
             }
 
 
-              Entry authorizationEntry;
-              try
-              {
-                authorizationEntry = proxyControl.getAuthorizationEntry();
-              }
-              catch (DirectoryException de)
-              {
-                assert debugException(CLASS_NAME, "run", de);
+            Entry authorizationEntry;
+            try
+            {
+              authorizationEntry = proxyControl.getAuthorizationEntry();
+            }
+            catch (DirectoryException de)
+            {
+              assert debugException(CLASS_NAME, "run", de);
 
-                setResultCode(de.getResultCode());
-                appendErrorMessage(de.getErrorMessage());
+              setResultCode(de.getResultCode());
+              appendErrorMessage(de.getErrorMessage());
 
-                break searchProcessing;
-              }
+              break searchProcessing;
+            }
 
 
-              // FIXME -- Should we specifically check permissions here, or let
-              //          the earlier access control checks handle it?
-              setAuthorizationEntry(authorizationEntry);
+            setAuthorizationEntry(authorizationEntry);
           }
           else if (oid.equals(OID_PROXIED_AUTH_V2))
           {
+            // The requester must have the PROXIED_AUTH privilige in order to be
+            // able to use this control.
+            if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
+            {
+              int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+              appendErrorMessage(getMessage(msgID));
+              setResultCode(ResultCode.AUTHORIZATION_DENIED);
+              break searchProcessing;
+            }
+
+
             ProxiedAuthV2Control proxyControl;
             if (c instanceof ProxiedAuthV2Control)
             {
@@ -1828,25 +1849,23 @@ searchProcessing:
             }
 
 
-              Entry authorizationEntry;
-              try
-              {
-                authorizationEntry = proxyControl.getAuthorizationEntry();
-              }
-              catch (DirectoryException de)
-              {
-                assert debugException(CLASS_NAME, "run", de);
+            Entry authorizationEntry;
+            try
+            {
+              authorizationEntry = proxyControl.getAuthorizationEntry();
+            }
+            catch (DirectoryException de)
+            {
+              assert debugException(CLASS_NAME, "run", de);
 
-                setResultCode(de.getResultCode());
-                appendErrorMessage(de.getErrorMessage());
+              setResultCode(de.getResultCode());
+              appendErrorMessage(de.getErrorMessage());
 
-                break searchProcessing;
-              }
+              break searchProcessing;
+            }
 
 
-              // FIXME -- Should we specifically check permissions here, or let
-              //          the earlier access control checks handle it?
-              setAuthorizationEntry(authorizationEntry);
+            setAuthorizationEntry(authorizationEntry);
           }
           else if (oid.equals(OID_PERSISTENT_SEARCH))
           {

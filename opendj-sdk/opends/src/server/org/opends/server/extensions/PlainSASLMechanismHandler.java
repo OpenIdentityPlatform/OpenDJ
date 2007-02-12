@@ -44,6 +44,7 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
@@ -52,6 +53,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -398,6 +400,156 @@ public class PlainSASLMechanismHandler
     }
 
 
+    // If an authorization ID was provided, then make sure that it is
+    // acceptable.
+    Entry authZEntry = userEntry;
+    if (authzID != null)
+    {
+      String lowerAuthzID = toLowerCase(authzID);
+      if (lowerAuthzID.startsWith("dn:"))
+      {
+        DN authzDN;
+        try
+        {
+          authzDN = DN.decode(authzID.substring(3));
+        }
+        catch (DirectoryException de)
+        {
+          assert debugException(CLASS_NAME, "processSASLBind", de);
+
+          bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+          int    msgID   = MSGID_SASLPLAIN_AUTHZID_INVALID_DN;
+          String message = getMessage(msgID, authzID, de.getErrorMessage());
+          bindOperation.setAuthFailureReason(msgID, message);
+          return;
+        }
+
+        DN actualAuthzDN = DirectoryServer.getActualRootBindDN(authzDN);
+        if (actualAuthzDN != null)
+        {
+          authzDN = actualAuthzDN;
+        }
+
+        if (! authzDN.equals(userEntry.getDN()))
+        {
+          AuthenticationInfo tempAuthInfo =
+            new AuthenticationInfo(userEntry,
+                     DirectoryServer.isRootDN(userEntry.getDN()));
+          InternalClientConnection tempConn =
+               new InternalClientConnection(tempAuthInfo);
+          if (! tempConn.hasPrivilege(Privilege.PROXIED_AUTH, bindOperation))
+          {
+            bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+            int msgID = MSGID_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES;
+            String message = getMessage(msgID,
+                                        String.valueOf(userEntry.getDN()));
+            bindOperation.setAuthFailureReason(msgID, message);
+            return;
+          }
+
+          if (authzDN.isNullDN())
+          {
+            authZEntry = null;
+          }
+          else
+          {
+            try
+            {
+              authZEntry = DirectoryServer.getEntry(authzDN);
+              if (authZEntry == null)
+              {
+                bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+                int msgID = MSGID_SASLPLAIN_AUTHZID_NO_SUCH_ENTRY;
+                String message = getMessage(msgID, String.valueOf(authzDN));
+                bindOperation.setAuthFailureReason(msgID, message);
+                return;
+              }
+            }
+            catch (DirectoryException de)
+            {
+              assert debugException(CLASS_NAME, "processSASLBind", de);
+
+              bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+              int msgID = MSGID_SASLPLAIN_AUTHZID_CANNOT_GET_ENTRY;
+              String message = getMessage(msgID, String.valueOf(authzDN),
+                                          de.getErrorMessage());
+              bindOperation.setAuthFailureReason(msgID, message);
+              return;
+            }
+          }
+        }
+      }
+      else
+      {
+        String idStr;
+        if (lowerAuthzID.startsWith("u:"))
+        {
+          idStr = authzID.substring(2);
+        }
+        else
+        {
+          idStr = authzID;
+        }
+
+        if (idStr.length() == 0)
+        {
+          authZEntry = null;
+        }
+        else
+        {
+          try
+          {
+            authZEntry = identityMapper.getEntryForID(idStr);
+            if (authZEntry == null)
+            {
+              bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+              int    msgID   = MSGID_SASLPLAIN_AUTHZID_NO_MAPPED_ENTRY;
+              String message = getMessage(msgID, authzID);
+              bindOperation.setAuthFailureReason(msgID, message);
+              return;
+            }
+          }
+          catch (DirectoryException de)
+          {
+            assert debugException(CLASS_NAME, "processSASLBind", de);
+
+            bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+            int    msgID   = MSGID_SASLPLAIN_AUTHZID_CANNOT_MAP_AUTHZID;
+            String message = getMessage(msgID, authzID, de.getErrorMessage());
+            bindOperation.setAuthFailureReason(msgID, message);
+            return;
+          }
+        }
+
+        if ((authZEntry == null) ||
+            (! authZEntry.getDN().equals(userEntry.getDN())))
+        {
+          AuthenticationInfo tempAuthInfo =
+            new AuthenticationInfo(userEntry,
+                     DirectoryServer.isRootDN(userEntry.getDN()));
+          InternalClientConnection tempConn =
+               new InternalClientConnection(tempAuthInfo);
+          if (! tempConn.hasPrivilege(Privilege.PROXIED_AUTH, bindOperation))
+          {
+            bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+            int msgID = MSGID_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES;
+            String message = getMessage(msgID,
+                                        String.valueOf(userEntry.getDN()));
+            bindOperation.setAuthFailureReason(msgID, message);
+            return;
+          }
+        }
+      }
+    }
+
+
     // Get the password policy for the user and use it to determine if the
     // provided password was correct.
     try
@@ -428,14 +580,11 @@ public class PlainSASLMechanismHandler
     }
 
 
-    // FIXME -- Figure out what to do with the authzID if one was provided.
-
-
     // If we've gotten here, then the authentication was successful.
     bindOperation.setResultCode(ResultCode.SUCCESS);
 
     AuthenticationInfo authInfo =
-         new AuthenticationInfo(userEntry, SASL_MECHANISM_PLAIN,
+         new AuthenticationInfo(userEntry, authZEntry, SASL_MECHANISM_PLAIN,
                                 DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
     return;
