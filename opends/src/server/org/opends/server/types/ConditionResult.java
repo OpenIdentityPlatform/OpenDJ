@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -76,6 +76,25 @@ public enum ConditionResult
     this.resultName = resultName;
   }
 
+  /**
+   Returns the logical inverse of a ConditionResult value. The inverse
+   of the UNDEFINED value is UNDEFINED.
+
+   @param value The value to invert.
+   @return The logical inverse of the supplied value.
+   */
+  public static ConditionResult inverseOf(ConditionResult value) {
+    switch (value) {
+      case TRUE:
+        return FALSE;
+      case FALSE:
+        return TRUE;
+      case UNDEFINED:
+        return UNDEFINED;
+    }
+    assert false : "internal error: missing switch case" ;
+    return UNDEFINED;
+  }
 
 
   /**
