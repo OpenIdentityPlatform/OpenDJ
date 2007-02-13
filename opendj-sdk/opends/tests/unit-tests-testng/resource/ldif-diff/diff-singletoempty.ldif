@@ -1,0 +1,6 @@
+dn: dc=example,dc=com
+changetype: delete
+# objectClass: top
+# objectClass: domain
+# dc: example
+

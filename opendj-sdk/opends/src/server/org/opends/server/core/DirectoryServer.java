@@ -869,6 +869,22 @@ public class DirectoryServer
 
 
   /**
+   * Retrieves the path to the configuration file used to initialize the
+   * Directory Server.
+   *
+   * @return  The path to the configuration file used to initialize the
+   *          Directory Server.
+   */
+  public static String getConfigFile()
+  {
+    assert debugEnter(CLASS_NAME, "getConfigFile");
+
+    return directoryServer.configFile;
+  }
+
+
+
+  /**
    * Starts up the Directory Server.  It must have already been bootstrapped
    * and cannot be running.
    *

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -394,7 +394,7 @@ public class LDIFModify
    */
   public static void main(String[] args)
   {
-    int returnCode = ldifModifyMain(args);
+    int returnCode = ldifModifyMain(args, false);
     if (returnCode != 0)
     {
       System.exit(returnCode);
@@ -407,12 +407,16 @@ public class LDIFModify
    * Processes the command-line arguments and makes the appropriate updates to
    * the LDIF file.
    *
-   * @param  args  The command-line arguments provided to the client.
+   * @param  args               The command line arguments provided to this
+   *                            program.
+   * @param  serverInitialized  Indicates whether the Directory Server has
+   *                            already been initialized (and therefore should
+   *                            not be initialized a second time).
    *
    * @return  A value of zero if everything completed properly, or nonzero if
    *          any problem(s) occurred.
    */
-  public static int ldifModifyMain(String[] args)
+  public static int ldifModifyMain(String[] args, boolean serverInitialized)
   {
     // Prepare the argument parser.
     BooleanArgument showUsage;
@@ -498,57 +502,60 @@ public class LDIFModify
     }
 
 
-    // Bootstrap the Directory Server configuration for use as a client.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
-    directoryServer.bootstrapClient();
-
-
-    // If we're to use the configuration then initialize it, along with the
-    // schema.
-    boolean checkSchema = configFile.isPresent();
-    if (checkSchema)
+    if (! serverInitialized)
     {
-      try
-      {
-        directoryServer.initializeJMX();
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_LDIFMODIFY_CANNOT_INITIALIZE_JMX;
-        String message = getMessage(msgID,
-                                    String.valueOf(configFile.getValue()),
-                                    e.getMessage());
-        System.err.println(message);
-        return 1;
-      }
+      // Bootstrap the Directory Server configuration for use as a client.
+      DirectoryServer directoryServer = DirectoryServer.getInstance();
+      directoryServer.bootstrapClient();
 
-      try
-      {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-                                                configFile.getValue());
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG;
-        String message = getMessage(msgID,
-                                    String.valueOf(configFile.getValue()),
-                                    e.getMessage());
-        System.err.println(message);
-        return 1;
-      }
 
-      try
+      // If we're to use the configuration then initialize it, along with the
+      // schema.
+      boolean checkSchema = configFile.isPresent();
+      if (checkSchema)
       {
-        directoryServer.initializeSchema();
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA;
-        String message = getMessage(msgID,
-                                    String.valueOf(configFile.getValue()),
-                                    e.getMessage());
-        System.err.println(message);
-        return 1;
+        try
+        {
+          directoryServer.initializeJMX();
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_LDIFMODIFY_CANNOT_INITIALIZE_JMX;
+          String message = getMessage(msgID,
+                                      String.valueOf(configFile.getValue()),
+                                      e.getMessage());
+          System.err.println(message);
+          return 1;
+        }
+
+        try
+        {
+          directoryServer.initializeConfiguration(configClass.getValue(),
+                                                  configFile.getValue());
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG;
+          String message = getMessage(msgID,
+                                      String.valueOf(configFile.getValue()),
+                                      e.getMessage());
+          System.err.println(message);
+          return 1;
+        }
+
+        try
+        {
+          directoryServer.initializeSchema();
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA;
+          String message = getMessage(msgID,
+                                      String.valueOf(configFile.getValue()),
+                                      e.getMessage());
+          System.err.println(message);
+          return 1;
+        }
       }
     }
 
