@@ -223,13 +223,20 @@
 <!-- Installation section - bottom -->
 
 <!-- Run tests section - top    -->
-  <target name="run-tests-prepare" >
+  <target name="run-tests-prepare" if="staf.running">
     <condition property="staf.lib.dir" 
       value="${staf.install.dir}${file.separator}bin" 
       else="${staf.install.dir}${file.separator}lib">
       <os family="windows"/>
     </condition>
-    <taskdef name="staf" classname="com.ibm.staf.ant.taskdef.STAF" classpath="${staf.lib.dir}${file.separator}STAFAnt.jar"/>
+    <taskdef name="staf" classname="com.ibm.staf.ant.taskdef.STAF">
+      <classpath>
+        <fileset dir="${staf.lib.dir}">
+          <include name="STAFAnt.jar"/>
+          <include name="JSTAF.jar"/>
+        </fileset>
+      </classpath>
+    </taskdef>
     <!-- python config - top -->
       <!-- 1. get a timestamp for step 3 -->
       <tstamp>
@@ -379,7 +386,7 @@
       executable="${staf.executable}"
       spawn="true">
      <arg value="${staf.config}"/>
-     <env key="PATH" path="${staf.install.dir}/bin${path.separator}${env.PATH}"/>
+     <env key="PATH" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${env.PATH}"/>
      <env key="LD_LIBRARY_PATH" path="${staf.install.dir}/lib"/>
      <env key="CLASSPATH" path="${staf.install.dir}/bin/JSTAF.jar${path.separator}${env.CLASSPATH}"/>
      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
