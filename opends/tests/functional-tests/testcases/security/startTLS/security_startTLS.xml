@@ -33,6 +33,8 @@
 
       <sequence>
 
+        <call function="'testSuite_Preamble'"/>
+        
 <parallel>
     <block name="'Block DS Process Active'">
 
@@ -108,6 +110,8 @@
 
 </parallel>
 
+        <call function="'testSuite_Postamble'"/>
+        
      </sequence>
 
   </function>

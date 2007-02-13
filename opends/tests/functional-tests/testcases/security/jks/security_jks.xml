@@ -32,6 +32,8 @@
   <function name="security_jks">
 
       <sequence>
+      
+        <call function="'testSuite_Preamble'"/>
 
 <parallel>
     <block name="'Block DS Process Active'">
@@ -103,6 +105,8 @@
        </block>
 
 </parallel>
+
+      <call function="'testSuite_Postamble'"/>
 
      </sequence>
 

@@ -33,8 +33,10 @@
   <function name="main_backup-tasks">
 
     <sequence>
+    
+      <call function="'testSuite_Preamble'"/>
 
-               <!--- Start DS -->
+         <!--- Start DS -->
          <sequence>
            <message>
               'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
@@ -50,19 +52,17 @@
            </call>
  
          </sequence>
-       
-         
+                
             <!--- Check that DS started -->
             <call function="'isAlive'">
               { 'noOfLoops'        : 5 ,
                 'noOfMilliSeconds' : 2000 }
             </call>  
               <testcase name="'Backend: Backup Tasks 1'">
-
               
               <sequence>
       
-                <call function="'testCase_StartBanner'"/>
+                <call function="'testCase_Preamble'"/>
                 <message>
                   'Backend ExportTasks1: Backup the data in OpenDS by scheduling a task'
                 </message>
@@ -81,14 +81,15 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCase_EndBanner'"/>
+                <call function="'testCase_Postamble'"/>
       
               </sequence>
       
             </testcase>
         
 
-
+      <call function="'testSuite_Postamble'"/>
+      
     </sequence>
 
   </function>

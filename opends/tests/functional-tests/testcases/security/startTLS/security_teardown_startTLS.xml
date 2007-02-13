@@ -37,6 +37,7 @@
         <!--- Delete Branch through StartTLS port -->
         <testcase name="'Security: TLS: Postamble Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: TLS: Postamble Step 1. Deleting Branch Through StartTLS Port'
             </message>
@@ -106,10 +107,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

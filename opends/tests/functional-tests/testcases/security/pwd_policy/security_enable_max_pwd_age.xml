@@ -36,6 +36,7 @@
         <!--- Test Case : Check Existence of ds-cfg-maximum-password-age -->
         <testcase name="'Security:Pwd Change: Check Existence of ds-cfg-maximum-password-age'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Checking existence of ds-cfg-maximum-password-age'
             </message>
@@ -53,6 +54,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -60,6 +63,7 @@
         <!--- Test Case : Admin Change Max Pwd Age -->
         <testcase name="'Security:Pwd Change: Admin Change Max Pwd Age'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Admin Changing Max Pwd Age'
             </message>
@@ -76,10 +80,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-       <return>RC</return>
 
      </sequence>
 

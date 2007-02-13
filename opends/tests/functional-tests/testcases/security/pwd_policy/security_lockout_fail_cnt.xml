@@ -36,6 +36,7 @@
         <!--- Test Case : Preamble 1 - Check Default-->
         <testcase name="'Security: Lockout Fail Cnt: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Lockout Fail Cnt: Preamble Step 1. Check for existence of ds-cfg-lockout-failure-count'
             </message>
@@ -77,6 +78,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -84,6 +87,7 @@
         <!--- Test Case : Amin Change Lockout Cnt -->
         <testcase name="'Security: Lockout Fail Cnt: Admin Change Lockout Cnt'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Lockout Cnt: Admin Changing Lockout Count'
             </message>
@@ -100,12 +104,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Lockout With Bad Pwd 3x -->
         <testcase name="'Security: Lockout Fail Cnt: Lockout With Bad Pwd 3x'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Lockout Fail Cnt: Lockout With Bad Pwd 3x'
             </message>
@@ -131,6 +139,8 @@
                   'result'     : STAXResult ,
                   'expected'   : 1}
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -138,6 +148,7 @@
         <!--- Test Case : Postamble Reset -->
         <testcase name="'Security: Lockout Fail Cnt: Postamble Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Lockout Fail Cnt: Postamble Reset: Step 1. Admin Resetting Lockout Fail Count'
             </message>
@@ -193,11 +204,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
            </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

@@ -54,6 +54,7 @@
           -->
         <testcase name="'Security: SASL ANON: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL ANON: Preamble - Admin Enabling ANONYMOUS SASL'
             </message>
@@ -70,6 +71,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -88,6 +92,7 @@
           -->
         <testcase name="'Security: SASL ANON: Anonymous Bind With ANON SASL Mech'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL ANON: Anonymous Bind With ANONYMOUS SASL Mechanism'
             </message>
@@ -104,6 +109,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -124,6 +132,7 @@
           -->
         <testcase name="'Security: SASL ANON: Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL ANON: Postamble - Admin Disabling ANONYMOUS SASL'
             </message>
@@ -157,10 +166,11 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

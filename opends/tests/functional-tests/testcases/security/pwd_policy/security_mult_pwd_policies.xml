@@ -36,6 +36,7 @@
         <!--- Test Case : Preamble 1 - Add New Passwords Policy-->
         <testcase name="'Security: Mult Pwd Policies: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Mult Pwd Policies: Preamble - Add Sales Password Policy'
             </message>
@@ -52,12 +53,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Add Entry With New Password Policy -->
         <testcase name="'Security: Mult Pwd Policies: Add New Entry'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Mult Pwd Policies: Adding New Entry With Sales Password Policy'
             </message>
@@ -102,6 +107,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -109,6 +116,7 @@
         <!--- Test Case : Modify Sales Pwd Policy -->
         <testcase name="'Security: Mult Pwd Policies: Modify Sales Pwd Policy'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Mult Pwd Policies: Admin Changing Sales Lockout Count'
             </message>
@@ -125,6 +133,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -133,6 +143,7 @@
         <!--- Test Case : Test Sales Password Policy -->
         <testcase name="'Security: Mult Pwd Policies: Test Sales Pwd Policy'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Mult Pwd Policies: Testing Sales Pwd Policy with Lockout Count'
             </message>
@@ -158,6 +169,8 @@
                   'result'     : STAXResult ,
                   'expected'   : 1}
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -165,6 +178,7 @@
         <!--- Test Case : Test Default Password Policy -->
         <testcase name="'Security: Mult Pwd Policies: Test Default Pwd Policy'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Mult Pwd Policies: Testing Default Pwd Policy with Lockout Count'
             </message>
@@ -189,6 +203,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -196,6 +212,7 @@
         <!--- Test Case : Delete Sales Pwd Policy -->
         <testcase name="'Security: Mult Pwd Policies: Delete Sales Pwd Policy'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Mult Pwd Policies: Admin Deleting Sales Lockout Count'
             </message>
@@ -212,6 +229,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -219,6 +238,7 @@
         <!--- Test Case : Test Sales Password Policy 2-->
         <testcase name="'Security: Mult Pwd Policies: Test Sales Pwd Policy 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Mult Pwd Policies: Testing Sales Pwd Policy with Lockout Count'
             </message>
@@ -239,11 +259,10 @@
                   'expected'   : 1}
             </call>
 
+            <call function="'testCase_Postamble'"/>
+              
           </sequence>
         </testcase>
-
-
-        <return>RC</return>
 
      </sequence>
 

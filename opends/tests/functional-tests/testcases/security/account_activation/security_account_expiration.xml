@@ -190,8 +190,6 @@
           </sequence>
         </testcase>
 
-        <return>RC</return>
-
      </sequence>
 
   </function>

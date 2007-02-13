@@ -35,6 +35,7 @@
 
         <testcase name="'Security: Lockout Duration: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Lockout Duration: Preamble Step 1. Checking existence of ds-cfg-lockout-duration'
             </message>
@@ -126,6 +127,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -133,6 +136,7 @@
         <!--- Test Case : Amin Change Lockout Cnt -->
         <testcase name="'Security: Lockout Duration: Make Lockout Duration Short'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Lockout Duration: Admin Making Lockout Duration Short'
             </message>
@@ -149,12 +153,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Amin Change Lockout Duration -->
         <testcase name="'Security: Lockout Duration: Short Lockout Duration'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Lockout Duration: Short Lockout Duration Step 1. User Lockout With Bad Pwd 3x'
             </message>
@@ -221,6 +229,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -228,6 +238,7 @@
         <!--- Test Case : Amin Change Lockout Cnt -->
         <testcase name="'Security: Lockout Duration: Make Lockout Duration Long'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Lockout Duration: Admin Making Lockout Duration Long'
             </message>
@@ -244,12 +255,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Amin Change Lockout Duration -->
         <testcase name="'Security: Lockout Duration: Long Lockout Duration'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Lockout Duration: Long Lockout Duration Step 1. User Initial Bind'
             </message>
@@ -335,12 +350,15 @@
                   'result'     : STAXResult ,
                   'expected'   : 1}
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
 
         <testcase name="'Security: Lockout Duration: Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Lockout Duration: Postamble Step 1. Admin Resetting Lockout Duration'
             </message>
@@ -431,11 +449,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

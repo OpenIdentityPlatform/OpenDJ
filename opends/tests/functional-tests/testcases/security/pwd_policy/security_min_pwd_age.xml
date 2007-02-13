@@ -36,6 +36,7 @@
         <!--- Test Case : Preamble Check -->
         <testcase name="'Security:Min Pwd Age: Preamble Check'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Min Pwd Age: Preamble Check: Checking existence of ds-cfg-minimum-password-age'
             </message>
@@ -53,6 +54,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -60,6 +63,7 @@
         <!--- Test Case : Test -->
         <testcase name="'Security:Min Pwd Age: Test'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Min Pwd Age: Test: Step 1. Admin Enabling Minimum Pwd Age'
             </message>
@@ -105,12 +109,16 @@
                   'result'     : STAXResult ,
                   'expected'   : 1  }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Postamble Reset -->
         <testcase name="'Security:Min Pwd Age: Postamble Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Min Pwd Age: Postamble Reset: Step 1. Admin Disabling Minimum Pwd Age'
             </message>
@@ -188,10 +196,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

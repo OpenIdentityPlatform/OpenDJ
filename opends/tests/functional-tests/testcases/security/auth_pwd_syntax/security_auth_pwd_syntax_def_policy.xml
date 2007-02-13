@@ -54,6 +54,7 @@
         -->
         <testcase name="'Security: Auth Pwd Syntax: Default Policy - Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Auth Pwd Syntax: Default Policy Preamble - Modify Default Password Policy'
             </message>
@@ -70,6 +71,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
      
           </sequence>
         </testcase>
@@ -95,6 +98,7 @@
         -->
         <testcase name="'Security: Auth Pwd Syntax: Default Policy - Add Users'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Auth Pwd Syntax: Default Policy - Admin adding new users'
             </message>
@@ -148,6 +152,8 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
      
           </sequence>
         </testcase>
@@ -169,6 +175,7 @@
         -->
         <testcase name="'Security: Auth Pwd Syntax: Default Policy - Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Auth Pwd Syntax: Default Policy Preamble - Modify Default Password Policy'
             </message>
@@ -221,11 +228,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-     
+
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

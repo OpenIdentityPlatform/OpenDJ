@@ -33,6 +33,8 @@
   <function name="main_export-tasks">
 
     <sequence>
+    
+      <call function="'testSuite_Preamble'"/>
 
          <!--- Start DS -->
          <sequence>
@@ -88,7 +90,7 @@
               
               <sequence>
       
-                <call function="'testCase_StartBanner'"/>
+                <call function="'testCase_Preamble'"/>
                 <message>
                   'Backend ExportTasks1: Export the data in OpenDS by scheduling a task'
                 </message>
@@ -107,7 +109,7 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCase_EndBanner'"/>
+                <call function="'testCase_Postamble'"/>
       
               </sequence>
       
@@ -388,6 +390,9 @@
         #@TestResult
       -->
          </sequence>
+         
+      <call function="'testSuite_Postamble'"/>
+      
     </sequence>
 
   </function>

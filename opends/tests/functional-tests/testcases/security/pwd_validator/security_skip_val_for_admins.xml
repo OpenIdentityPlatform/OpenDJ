@@ -36,6 +36,8 @@
         <!--- Test Case : Setup -->
         <testcase name="'Security: Root User Bypass Valid: Preamble Setup'">
           <sequence>
+          
+            <call function="'testCase_Preamble'"/>
 
             <!--- Add Sales Admin -->
             <message>
@@ -71,12 +73,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Root Change Password - Too Short-->
         <testcase name="'Security: Root User Bypass Valid: No Bypass'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
            <message>
                'Security: Root User Bypass Valid: No Bypass - Step 1. Root Changing Password - Too Short'
             </message>
@@ -113,12 +119,16 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
        <!--- Enable Bypass Validator-->
         <testcase name="'Security: Root User Bypass Valid: Bypass Enabled 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Root User Bypass Valid: Bypass Enabled 1 - Step 1. Admin Enabling Bypass For Pwd Validator'
             </message>
@@ -170,12 +180,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Admin Change Minimum Pwd Length -->
         <testcase name="'Security: Root User Bypass Valid: Bypass Enabled 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Root User Bypass Valid: Bypass Enabled 2 - Step 1. Admin Changing Minimum Pwd Length'
             </message>
@@ -228,12 +242,17 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Check Self-Change Pwd -->
         <testcase name="'Security: Root User Bypass Valid: Self-Change Pwd'">
           <sequence>
+          
+            <call function="'testCase_Preamble'"/>
   
           <!--- Sales Admin Self-Change Pwd-->
             <message>
@@ -272,12 +291,17 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Reset Minimum Pwd Length -->
         <testcase name="'Security: Root User Bypass Valid: Postamble Teardown'">
           <sequence>
+          
+            <call function="'testCase_Preamble'"/>
 
             <!--- Root Reset Password-->
             <message>
@@ -345,11 +369,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
-
-       <return>RC</return>
 
      </sequence>
 

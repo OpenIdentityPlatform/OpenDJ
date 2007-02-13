@@ -36,6 +36,7 @@
         <!--- Test Case : Default - Search Entry With Pwd -->
         <testcase name="'Security: Bind No Pwd: Default - Search Entry With Pwd'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Bind No Pwd: Default - Search Entry With Pwd'
             </message>
@@ -53,12 +54,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Default - Search Entry With No Pwd -->
         <testcase name="'Security: Bind No Pwd: Default - Search Entry With No Pwd'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Bind No Pwd: Default - Search Entry With No Pwd'
             </message>
@@ -77,12 +80,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Enable Binds With No Password -->
         <testcase name="'Security: Bind No Pwd: Enable'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Bind No Pwd: Enable Binds With No Password'
             </message>
@@ -99,12 +104,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Enabled - Search Entry With Pwd -->
         <testcase name="'Security: Bind No Pwd: Enabled - Search Entry With Pwd'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Bind No Pwd: Enabled - Search Entry With Pwd'
             </message>
@@ -122,12 +129,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Enabled - Search Entry With No Pwd -->
         <testcase name="'Security: Bind No Pwd: Enabled - Search Entry With No Pwd'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Bind No Pwd: Enabled - Search Entry With No Pwd'
             </message>
@@ -145,12 +154,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Enabled - Search As User With No Pwd -->
         <testcase name="'Security: Bind No Pwd: Enabled - Search As User With No Pwd'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Bind No Pwd: Enabled - Search As User With No Pwd'
             </message>
@@ -168,12 +179,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Enabled - Search As Non-exist User -->
         <testcase name="'Security: Bind No Pwd: Enabled - Search As Non-exist User'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Bind No Pwd: Enabled - Search As Non-exist User'
             </message>
@@ -191,12 +204,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Reset Configuration -->
         <testcase name="'Security: Bind No Pwd: Postamble Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Bind No Pwd: Reset - Step 1. Reset Configuration'
             </message>
@@ -231,10 +246,9 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-       <return>RC</return>
 
      </sequence>
 

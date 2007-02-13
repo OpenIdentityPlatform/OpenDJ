@@ -32,6 +32,8 @@
   <function name="core_search_sizelimit">
 
       <sequence>
+      
+        <call function="'testSuite_Preamble'"/>
 
         <!--- Check that DS started -->
         <call function="'isAlive'">
@@ -42,6 +44,7 @@
         <!--- Test Case : Search Size Limit: Size Limit Exceeded -->
         <testcase name="'Core: Search Size Limit: Size Limit Exceeded'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL1: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined in the command line and the search size is exceeed '
             </message>
@@ -62,12 +65,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 4 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Size Limit: Size Limit Not Exceeded -->
         <testcase name="'Core: Search Size Limit: Size Limit Not Exceeded'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL2: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined in the command line and the search size is not exceeed'
             </message>
@@ -87,12 +92,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
          <!--- Test Case : Search Size Limit: Server Wide Size Limit 5 -->
         <testcase name="'Core: Search Size Limit: Server Wide Size Limit 5'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL3: Change the server-wide search size limit to 5'
             </message>
@@ -109,12 +116,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase> 
       
         <!--- Test Case : Search Size Limit: Server Wide Size Limit Exceeded  -->
         <testcase name="'Core: Search Size Limit: Server Wide Size Limit Exceeded'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL4: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined by the server-wide parameter, ds-cfg-size-limit, and the search size limit is exceeded'
             </message>
@@ -133,12 +142,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 4 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Size Limit: Server Wide Size Limit 1000-->
         <testcase name="'Core: Search Size Limit: Server Wide Size Limit 1000'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL5: Change the server-wide search size limit to 1000'
             </message>
@@ -155,12 +166,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Size Limit: Server Wide Size Limit Not Exceeded -->
         <testcase name="'Core: Search Size Limit: Server Wide Size Limit Not Exceeded '">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL6: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined by the server-wide parameter, ds-cfg-size-limit, and the search size limit is not exceeded'
             </message>
@@ -178,12 +191,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Size Limit: Directory Manager Size Limit 5 -->
         <testcase name="'Core: Search Size Limit: Directory Manager Size Limit 5'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL7: Change the search size limit for cn=Directory Manager to 5'
             </message>
@@ -200,12 +215,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Size Limit: User Specific Size Limit Exceeded -->
         <testcase name="'Core: Search Size Limit: User Specific Size Limit Exceeded'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL8: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined by the user-specific parameter, ds-rlim-size-limit, and the search size limit is exceeded'
             </message>
@@ -226,12 +243,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 4 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Size Limit: Size Limit Not Applicable  -->
         <testcase name="'Core: Search Size Limit: Size Limit Not Applicable'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL9: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined by the user-specific parameter, ds-rlim-size-limit, and the search is conducted as a bind to a different user'
             </message>
@@ -249,12 +268,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Size Limit: Modify Directory Manager Limit -1 -->
         <testcase name="'Core: Search Size Limit: Modify Directory Manager Limit -1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL10: Change the search size limit for cn=Directory Manager to -1'
             </message>
@@ -271,12 +292,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Size Limit: No Size Limit -->
         <testcase name="'Core: Search Size Limit: No Size Limit'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core SSzL11: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined as "unlimited" by the user-specific parameter, ds-rlim-size-limit, equal to -1 and the search is against 1150 entries'
             </message>
@@ -296,10 +319,13 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
         
-        <return>RC</return>
+        <call function="'testSuite_Postamble'"/>
 
      </sequence>
 

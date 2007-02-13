@@ -55,6 +55,7 @@
          -->
         <testcase name="'Security: Auth Pwd Syntax: Postamble Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Auth Pwd Syntax: Postamble - Deleting Branch'
             </message>
@@ -72,10 +73,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

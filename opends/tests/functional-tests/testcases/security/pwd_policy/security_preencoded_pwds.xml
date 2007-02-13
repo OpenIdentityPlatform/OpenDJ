@@ -36,6 +36,7 @@
         <!--- Test Case : Preamble 1 - Check Default-->
         <testcase name="'Security: Preencoded Pwds: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Preencoded Pwds: Preamble - Check for existence of ds-cfg-allow-pre-encoded-passwords'
             </message>
@@ -53,12 +54,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Add Entry With Pre-encoded Password -->
         <testcase name="'Security: Preencoded Pwds: Default - Add New Entry'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Preencoded Pwds: Adding New Entry With a Pre-encoded Password'
             </message>
@@ -90,6 +95,8 @@
                   'result'     : STAXResult ,
                   'expected'   : 1}
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -97,6 +104,7 @@
         <!--- Test Case : Enable Pre-encoded Passwords -->
         <testcase name="'Security: Preencoded Pwds: Enable Preencoded Pwds'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Preencoded Pwds: Admin Enabling Preencoded Pwds'
             </message>
@@ -113,6 +121,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -121,6 +131,7 @@
         <!--- Test Case : Test Enabled Pre-encoded Passwords -->
         <testcase name="'Security: Preencoded Pwds: Enabled - Add New Entry'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Preencoded Pwds: Add New Entry With Pre-encoded Password'
             </message>
@@ -151,6 +162,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -158,6 +171,7 @@
         <!--- Test Case : Disable Pre-encoded Passwordds -->
         <testcase name="'Security: Preencoded Pwds: Disable Preencoded Pwds'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Preencoded Pwds: Admin Disabling Pre-encoded Pwds'
             </message>
@@ -189,12 +203,11 @@
                   'result'     : STAXResult ,
                   'expected'   : 1}
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
          </sequence>
         </testcase>
-
-
-        <return>RC</return>
 
      </sequence>
 

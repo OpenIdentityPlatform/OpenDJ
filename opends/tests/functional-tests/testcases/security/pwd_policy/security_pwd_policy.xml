@@ -33,6 +33,8 @@
 
       <sequence>
 
+          <call function="'testSuite_Preamble'"/>
+          
 <parallel>
     <block name="'Block DS Process Active'">
 
@@ -139,11 +141,12 @@
 
         </sequence>
 
-       <!--- End Block Clients -->
-       </block>
+        <!--- End Block Clients -->
+        </block>
 
 </parallel>
 
+        <call function="'testSuite_Postamble'"/>
      </sequence>
 
   </function>

@@ -56,6 +56,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: Preamble Step 1 - Admin Changing Pwd Storage to CLEAR'
             </message>
@@ -88,6 +89,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -106,6 +110,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User With Dupe uid (u:) Binding'
             </message>
@@ -123,6 +128,9 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -141,6 +149,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User (u:) Binding'
             </message>
@@ -157,6 +166,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -175,6 +187,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User With Dupe uid (dn:) Binding'
             </message>
@@ -191,6 +204,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -209,6 +225,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding'
             </message>
@@ -225,6 +242,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -243,6 +263,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Create Realm'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: Admin Creating Realm'
             </message>
@@ -259,6 +280,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -278,6 +302,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind With Realm'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User With Dupe uid (u:) Binding With Realm'
             </message>
@@ -295,6 +320,9 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -314,6 +342,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind With Realm'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User (u:) Binding With Realm'
             </message>
@@ -330,6 +359,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -349,6 +381,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind With Realm'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User With Dupe uid (dn:) Binding With Realm'
             </message>
@@ -365,6 +398,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -384,6 +420,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind With Realm'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With Realm'
             </message>
@@ -400,6 +437,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -419,6 +459,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind With Undefined Realm'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User With Dupe uid (u:) Binding With Undefined Realm'
             </message>
@@ -436,6 +477,9 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -455,6 +499,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind With Undefined Realm'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User (u:) Binding With Undefined Realm'
             </message>
@@ -472,6 +517,9 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -491,6 +539,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind With Undefined Realm'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User With Dupe uid (dn:) Binding With Undefined Realm'
             </message>
@@ -508,6 +557,9 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -527,6 +579,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind With Undefined Realm'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With Undefined Realm'
             </message>
@@ -544,6 +597,9 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -569,6 +625,7 @@
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: SASL DIGEST-MD5: Postamble Step 1 - Admin Changing Pwd Storage to SSHA'
             </message>
@@ -652,10 +709,11 @@
                   'result'     : STAXResult ,
                   'expected'   : 1}
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+              
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

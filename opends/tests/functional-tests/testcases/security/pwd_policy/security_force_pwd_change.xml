@@ -35,6 +35,7 @@
 
         <testcase name="'Security: Pwd Change: Preamble - Force Pwd Change On Add'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Preamble Step 1. Checking existence of ds-cfg-force-change-on-add'
             </message>
@@ -68,12 +69,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Add Single New User -->
         <testcase name="'Security: Pwd Change: Add Single New User'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Adding Single New User'
             </message>
@@ -109,12 +112,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 19  }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : User Change Password -->
         <testcase name="'Security: Pwd Change: Added User Change Password'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: User Changing Password'
             </message>
@@ -149,12 +154,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Disable Force Password On Add -->
         <testcase name="'Security: Pwd Change: Postamble - Disable Force Pwd On Add'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Postamble Step 1. Admin Disabling Force Password On Add'
             </message>
@@ -205,11 +212,13 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <testcase name="'Security: Pwd Change: Preamble - Force Pwd Change On Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Preamble Step 1. Checking existence of ds-cfg-force-change-on-reset'
             </message>
@@ -243,12 +252,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Change User Pwd -->
         <testcase name="'Security: Pwd Change: Admin Reset User Pwd'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Admin Resetting User Pwd'
             </message>
@@ -265,13 +276,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult  }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
 
         <!--- Test Case : User Search With Old Pwd -->
         <testcase name="'Security: Pwd Change: Old Pwd - Search'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: User Searching With Old Password'
             </message>
@@ -291,12 +303,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 1  }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : User Add With Old Pwd -->
         <testcase name="'Security: Pwd Change: Old Pwd - Add'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: User Adding Attr With Old Password'
             </message>
@@ -331,12 +345,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 16  }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
      <!--- Test Case : User Delete With Old Pwd -->
         <testcase name="'Security: Pwd Change: Old Pwd - Delete'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: User Deleting Attr With Old Password'
             </message>
@@ -370,12 +386,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
      <!--- Test Case : User Delete With Old Pwd -->
         <testcase name="'Security: Pwd Change: Old Pwd - Compare'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Checking For Existence of User Attribute'
             </message>
@@ -394,12 +412,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 1  }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : User Search With Assigned Pwd -->
         <testcase name="'Security: Pwd Change: Search With Assigned Pwd'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: User Searching With Assigned Password'
             </message>
@@ -419,12 +439,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 19  }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : User Change Password -->
         <testcase name="'Security: Pwd Change: User Change Password After Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: User Changing Password'
             </message>
@@ -477,12 +499,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Enable Maximum Reset Age -->
         <testcase name="'Security: Pwd Change: Admin Enable Max Reset Age Long'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Admin Enabling Maximum Reset Age Long'
             </message>
@@ -499,12 +523,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Change User Pwd -->
         <testcase name="'Security: Pwd Change: Admin Reset User Pwd - Long Reset Time'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Admin Changing User Pwd'
             </message>
@@ -521,12 +547,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : User Change Password -->
         <testcase name="'Security: Pwd Change: User Change Password - Long Reset Time'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: User Changing Password'
             </message>
@@ -561,12 +589,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Enable Maxmimum Reset Age -->
         <testcase name="'Security: Pwd Change: Admin Enable Max Reset Age Short'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Admin Enabling Maximum Reset Age Short'
             </message>
@@ -583,12 +613,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Change User Pwd -->
         <testcase name="'Security: Pwd Change: Admin Reset User Pwd - Short Reset Time'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Admin Changing User Pwd'
             </message>
@@ -605,12 +637,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : User Change Password -->
         <testcase name="'Security: Pwd Change: User Change Password - Short Reset Time'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: User Change Password - Short Reset Time - Sleeping'
             </message>
@@ -654,12 +688,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 1  }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Disable Force Password On Reset -->
         <testcase name="'Security: Pwd Change: Postamble - Disable Force Pwd On Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Postamble Step 1. Admin Disabling Max Pwd Age'
             </message>
@@ -692,10 +728,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

@@ -32,6 +32,8 @@
   <function name="core_setup">
 
       <sequence>
+      
+        <call function="'testSuite_Preamble'"/>
 
         <!--- Check that DS started -->
         <call function="'isAlive'">
@@ -42,6 +44,7 @@
         <!--- Test Case : Setup: Add required entries -->
         <testcase name="'Core: Setup: Add Core Entries'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Add entries that are required for the Core Tests'
             </message>
@@ -58,12 +61,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : To add 1000 extra entries that are required for some of the Core Tests -->
         <testcase name="'Core: Setup: Add 1000 Core Entries'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Add 1000 extra entries that are required for some of the Core Tests'
             </message>
@@ -80,10 +85,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
-        <return>RC</return>
+        <call function="'testSuite_Postamble'"/>
 
      </sequence>
 

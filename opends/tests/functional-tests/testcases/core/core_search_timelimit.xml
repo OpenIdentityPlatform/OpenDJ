@@ -32,6 +32,8 @@
   <function name="core_search_timelimit">
 
       <sequence>
+      
+        <call function="'testSuite_Preamble'"/>
 
         <!--- Check that DS started -->
         <call function="'isAlive'">
@@ -42,6 +44,7 @@
         <!--- Test Case : Search Time Limit: Time Limit Exceeded -->
         <testcase name="'Core: Search Time Limit: Time Limit Exceeded'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL1: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined in the command line and the search time is exceeeded'
             </message>
@@ -62,12 +65,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 3 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Time Limit: Time Limit Not Exceeded -->
         <testcase name="'Core: Search Time Limit: Time Limit Not Exceeded'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL2: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined in the command line and the search time is not exceeed'
             </message>
@@ -87,12 +92,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
          <!--- Test Case : Search Time Limit: Server Wide Time Limit 1 -->
         <testcase name="'Core: Search Time Limit: Server Wide Time Limit 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL3: Change the server-wide search time limit to 1'
             </message>
@@ -109,12 +116,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase> 
       
         <!--- Test Case : Search Time Limit: Server Wide Time Limit Exceeded -->
         <testcase name="'Core: Search Time Limit: Server Wide Time Limit Exceeded'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL4: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is exceeded'
             </message>
@@ -133,12 +142,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 3 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Time Limit: Server Wide Time Limit 60 -->
         <testcase name="'Core: Search Time Limit: Server Wide Time Limit 60'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL5: Change the server-wide search time limit to 60'
             </message>
@@ -155,12 +166,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Time Limit: Server Wide Time Limit Not Exceeded -->
         <testcase name="'Core: Search Time Limit: Server Wide Time Limit Not Exceeded'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL6: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is not exceeded'
             </message>
@@ -178,12 +191,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Time Limit: Directory Manager Time Limit 1 -->
         <testcase name="'Core: Search Time Limit: Directory Manager Time Limit 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL7: Change the search time limit for cn=Directory Manager to 1'
             </message>
@@ -200,12 +215,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Time Limit: User Specific Time Limit Exceeded -->
         <testcase name="'Core: Search Time Limit: User Specific Time Limit Exceeded'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL8: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter, ds-rlim-time-limit, and the search time limit is exceeded'
             </message>
@@ -226,12 +243,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 3 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Time Limit: Time Limit Not Applicable -->
         <testcase name="'Core: Search Time Limit: Time Limit Not Applicable'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL9: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter, ds-rlim-time-limit, and the search is conducted as a bind to a different user'
             </message>
@@ -249,12 +268,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Time Limit: Directory Manager Time Limit 60 -->
         <testcase name="'Core: Search Time Limit: Directory Manager Time Limit 60'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL10: Change the search time limit for cn=Directory Manager to 60'
             </message>
@@ -271,12 +292,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Search Time Limit: No Time Limit -->
         <testcase name="'Core: Search Time Limit: No Time Limit'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core STmL11: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter ds-rlim-time-limit, equal to 60 and the search is conducted against 1150 entries'
             </message>
@@ -296,10 +319,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
-        <return>RC</return>
+        <call function="'testSuite_Postamble'"/>
 
      </sequence>
 

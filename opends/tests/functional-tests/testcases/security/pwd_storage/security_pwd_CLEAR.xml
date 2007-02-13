@@ -55,6 +55,7 @@
         -->
         <testcase name="'Security: Pwd Storage CLEAR: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage CLEAR: Preamble - Admin Changing to CLEAR Storage Scheme'
             </message>
@@ -71,6 +72,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
@@ -94,6 +97,7 @@
         -->
         <testcase name="'Security: Pwd Storage CLEAR: Pwd Change'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage CLEAR: User Changing Password'
             </message>
@@ -150,6 +154,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : '{CLEAR}' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -171,6 +177,7 @@
         -->
         <testcase name="'Security: Pwd Storage CLEAR: Check Pwd'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -189,6 +196,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'CLEARdogleg' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -209,6 +218,7 @@
          -->
         <testcase name="'Security: Pwd Storage CLEAR: Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage CLEAR: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
@@ -225,10 +235,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+              
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 
