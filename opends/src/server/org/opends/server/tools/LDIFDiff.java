@@ -103,7 +103,7 @@ public class LDIFDiff
    */
   public static void main(String[] args)
   {
-    int exitCode = mainDiff(args);
+    int exitCode = mainDiff(args, false);
     if (exitCode != 0)
     {
       System.exit(exitCode);
@@ -116,13 +116,17 @@ public class LDIFDiff
    * Parses the provided command line arguments and performs the appropriate
    * LDIF diff operation.
    *
-   * @param  args  The command line arguments provided to this program.
+   * @param  args               The command line arguments provided to this
+   *                            program.
+   * @param  serverInitialized  Indicates whether the Directory Server has
+   *                            already been initialized (and therefore should
+   *                            not be initialized a second time).
    *
    * @return  The return code for this operation.  A value of zero indicates
    *          that all processing completed successfully.  A nonzero value
    *          indicates that some problem occurred during processing.
    */
-  public static int mainDiff(String[] args)
+  public static int mainDiff(String[] args, boolean serverInitialized)
   {
     BooleanArgument overwriteExisting;
     BooleanArgument showUsage;
@@ -215,57 +219,60 @@ public class LDIFDiff
     }
 
 
-    // Bootstrap the Directory Server configuration for use as a client.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
-    directoryServer.bootstrapClient();
-
-
-    // If we're to use the configuration then initialize it, along with the
-    // schema.
     boolean checkSchema = configFile.isPresent();
-    if (checkSchema)
+    if (! serverInitialized)
     {
-      try
-      {
-        directoryServer.initializeJMX();
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_LDIFDIFF_CANNOT_INITIALIZE_JMX;
-        String message = getMessage(msgID,
-                                    String.valueOf(configFile.getValue()),
-                                    e.getMessage());
-        System.err.println(message);
-        return 1;
-      }
+      // Bootstrap the Directory Server configuration for use as a client.
+      DirectoryServer directoryServer = DirectoryServer.getInstance();
+      directoryServer.bootstrapClient();
 
-      try
-      {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-                                                configFile.getValue());
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_LDIFDIFF_CANNOT_INITIALIZE_CONFIG;
-        String message = getMessage(msgID,
-                                    String.valueOf(configFile.getValue()),
-                                    e.getMessage());
-        System.err.println(message);
-        return 1;
-      }
 
-      try
+      // If we're to use the configuration then initialize it, along with the
+      // schema.
+      if (checkSchema)
       {
-        directoryServer.initializeSchema();
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA;
-        String message = getMessage(msgID,
-                                    String.valueOf(configFile.getValue()),
-                                    e.getMessage());
-        System.err.println(message);
-        return 1;
+        try
+        {
+          directoryServer.initializeJMX();
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_LDIFDIFF_CANNOT_INITIALIZE_JMX;
+          String message = getMessage(msgID,
+                                      String.valueOf(configFile.getValue()),
+                                      e.getMessage());
+          System.err.println(message);
+          return 1;
+        }
+
+        try
+        {
+          directoryServer.initializeConfiguration(configClass.getValue(),
+                                                  configFile.getValue());
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_LDIFDIFF_CANNOT_INITIALIZE_CONFIG;
+          String message = getMessage(msgID,
+                                      String.valueOf(configFile.getValue()),
+                                      e.getMessage());
+          System.err.println(message);
+          return 1;
+        }
+
+        try
+        {
+          directoryServer.initializeSchema();
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA;
+          String message = getMessage(msgID,
+                                      String.valueOf(configFile.getValue()),
+                                      e.getMessage());
+          System.err.println(message);
+          return 1;
+        }
       }
     }
 
@@ -427,7 +434,7 @@ public class LDIFDiff
         Iterator<DN> sourceIterator = sourceMap.keySet().iterator();
         while (sourceIterator.hasNext())
         {
-          writeDelete(writer, targetMap.get(sourceIterator.next()));
+          writeDelete(writer, sourceMap.get(sourceIterator.next()));
         }
         return 0;
       }
@@ -461,6 +468,18 @@ public class LDIFDiff
             }
             else
             {
+              // There are no more source entries, so if there are more target
+              // entries then they're all adds.
+              writeAdd(writer, targetEntry);
+
+              while (targetIterator.hasNext())
+              {
+                targetDN    = targetIterator.next();
+                targetEntry = targetMap.get(targetDN);
+                writeAdd(writer, targetEntry);
+                differenceFound = true;
+              }
+
               break;
             }
           }
@@ -477,6 +496,17 @@ public class LDIFDiff
             }
             else
             {
+              // There are no more target entries so all of the remaining source
+              // entries are deletes.
+              writeDelete(writer, sourceEntry);
+              differenceFound = true;
+              while (sourceIterator.hasNext())
+              {
+                sourceDN = sourceIterator.next();
+                sourceEntry = sourceMap.get(sourceDN);
+                writeDelete(writer, sourceEntry);
+              }
+
               break;
             }
           }
