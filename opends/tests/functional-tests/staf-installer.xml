@@ -222,6 +222,16 @@
           if="bits.all.downloaded"/>
 <!-- Installation section - bottom -->
 
+<!-- Gui section - top -->
+  <target name="gui"
+          description="brings up the stax gui" >
+    <java classname="com.ibm.staf.service.stax.STAXMonitor"
+          classpath="${staf.install.dir}/services/stax/STAXMon.jar"
+          fork="true" 
+          spawn="true"/>
+  </target>
+<!-- Gui section - bottom -->
+
 <!-- Run tests section - top    -->
   <target name="run-tests-prepare" if="staf.running">
     <condition property="staf.lib.dir" 
