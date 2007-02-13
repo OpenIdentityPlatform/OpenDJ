@@ -1,0 +1,5 @@
+<project name="the pouet file" basedir="." default="usage">
+  <target name="usage">
+    <echoproperties/>
+  </target>
+</project>
