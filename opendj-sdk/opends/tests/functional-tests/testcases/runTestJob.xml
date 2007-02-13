@@ -48,7 +48,9 @@
       </job>
 
       <if expr="RC == 0">
-        <message>'Sub-job %s completed. Result: %s' % (STAXSubJobID, STAXResult)</message>
+        <message>
+          'Sub-job %s completed. Result: %s' % (STAXSubJobID, STAXResult)
+        </message>
       <else>
         <sequence>
           <message log="1" level="'Error'">'Sub-job %s could not be started. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)</message>
@@ -65,18 +67,32 @@
         </request>
       </stafcmd>
 
-      <message>
-         'Log Query on STAX_Job_%s Completed. RC=%s' % (STAXSubJobID,RC)
-      </message>
+      <if expr="RC == 0">
+        <sequence>
+          <script>
+            resultQuery= STAFResult
+          </script>
+          <message>
+            'Log Query on STAX_Job_%s Completed. RC=%s' % (STAXSubJobID,RC)
+          </message>
+        </sequence>
+      <else>
+        <sequence>
+          <message log="1" level="'Error'">
+            'Unable to perform log query on STAX_Job_%s. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)
+          </message>
+          <return>1</return>
+        </sequence>
+      </else>
+      </if>
  
       <!-- Write Text File for results -->
       <script>
-          resultFile= STAFResult
           textfile= '%s/results.txt' % logdir
           txtfh=open(textfile,'w')
       </script>
       
-      <iterate var="line" in="resultFile"> 
+      <iterate var="line" in="resultQuery"> 
 
         <script> 
           txtfh.write('%s\n' % line) 
@@ -94,12 +110,11 @@
 
       <!-- Write XML File for results -->
       <script>
-          import re
-          resultFile= STAFResult
-          xmlfile= '%s/results.xml' % logdir
-          xmlfh=open(xmlfile,'w')
-          errorfile= '%s/results.errors' % logdir
-          errorfh=open(errorfile,'w')
+        import re 
+        xmlfile= '%s/results.xml' % logdir
+        xmlfh=open(xmlfile,'w') 
+        errorfile= '%s/results.errors' % logdir
+        errorfh=open(errorfile,'w')
       </script>
 
       <!-- Build the test case dictionary object -->
@@ -108,7 +123,7 @@
         testCaseList=[]
       </script>
 
-      <iterate var="element" in="STAFResult"> 
+      <iterate var="element" in="resultQuery"> 
         <script>
           level=element['level']
           message=element['message']
@@ -139,7 +154,7 @@
               testCaseList.append(tcname)
 
             else:
-              errorfh.write('No match element %s.\n' % element)
+              errorfh.write('Warning: No match Start element %s.\n' % element)
 
           elif level == 'Stop':
 
@@ -162,7 +177,7 @@
               testDict[tcname]=stopValueDict
 
             else:
-              errorfh.write('No match element %s.\n' % element)
+              errorfh.write('Warning: No match Stop element %s.\n' % element)
 
           elif level == 'Status':
 
@@ -188,10 +203,13 @@
               testDict[tcname]=statusValueDict
 
             else:
-              errorfh.write('No match element %s.\n' % element)
+              errorfh.write('Warning: No match Status element %s.\n' % element)
           
+          elif level == 'Info':
+            errorfh.write('Warning: Info element %s.\n' % element)
+              
           else:
-            errorfh.write('Bad element %s.\n' % element)
+            errorfh.write('Error: Unknown element %s.\n' % element)
 
         </script>
       </iterate>
