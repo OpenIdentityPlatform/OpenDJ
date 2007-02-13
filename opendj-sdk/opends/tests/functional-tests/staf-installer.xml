@@ -240,6 +240,7 @@
       <mkdir dir="${staf.tmp.dir}"/>
       <mkdir dir="${tests.run.dir}/${tests.run.time}"/>
       <mkdir dir="${tests.run.dir}/${tests.run.time}/config"/>
+      <mkdir dir="${tests.run.dir}/${tests.run.time}/report"/>
       <!-- these will serve for after-the-fact archiving the logs -->
       <mkdir dir="${tests.run.dir}/${tests.run.time}/staf-logs"/>
       <mkdir dir="${tests.run.dir}/${tests.run.time}/server-logs"/>
@@ -322,6 +323,12 @@
       <fileset dir="${staf.home}/logs"/>
     </copy>
     <delete dir="${staf.home}/logs" />
+    <echo>Saving report</echo>
+    <copy todir="${tests.run.dir}/${tests.run.time}/report">
+      <fileset dir="${staf.tmp.dir}">
+        <include name="r*"/>
+      </fileset>
+    </copy>
   </target>
 <!-- Run tests section - bottom -->
   
