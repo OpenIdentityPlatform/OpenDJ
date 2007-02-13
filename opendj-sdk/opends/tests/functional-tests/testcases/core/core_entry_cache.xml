@@ -32,6 +32,8 @@
   <function name="core_entry_cache">
 
       <sequence>
+      
+        <call function="'testSuite_Preamble'"/>
 
         <!--- Check that DS started -->
         <call function="'isAlive'">
@@ -42,6 +44,9 @@
         <!--- Test Case : Entry Cache: Default Search -->
         <testcase name="'Core: Entry Cache: Default Search'">
           <sequence>
+          
+            <call function="'testCase_Preamble'"/>
+            
             <message>
                'Check the response of OpenDS when an ldap search request is conducted with a single pipe character ("|") for an existing entry'
             </message>
@@ -61,12 +66,18 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
         
         <!--- Test Case : Entry Cache: Enable Default -->
         <testcase name="'Core: Entry Cache: Enable Default'">
           <sequence>
+          
+            <call function="'testCase_Preamble'"/>
+            
             <message>
                'Enable the default entry cache'
             </message>
@@ -83,12 +94,18 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
         
         <!--- Test Case : Entry Cache: Add Attributes -->
         <testcase name="'Core: Entry Cache: Add Attributes'">
           <sequence>
+          
+            <call function="'testCase_Preamble'"/>
+            
             <message>
                'Add three attributes to cn=Entry Cache,cn=config'
             </message>
@@ -105,12 +122,18 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
         
         <!--- Test Case : Entry Cache: Attribute Already Exists -->
         <testcase name="'Core: Entry Cache: Attribute Already Exists'">
           <sequence>
+          
+            <call function="'testCase_Preamble'"/>
+            
             <message>
                'Add one attribute that is not allowed under cn=Entry Cache,cn=config'
             </message>
@@ -128,12 +151,18 @@
                   'result'     : STAXResult ,
                   'expected'   : 65 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
          
         <!--- Test Case : Entry Cache: FIFO Cache-->
         <testcase name="'Core: Entry Cache: FIFO Cache'">
           <sequence>
+          
+            <call function="'testCase_Preamble'"/>
+            
             <message>
                'Add second entry cache which is an object of the ds-cfg-fifo-entry-cache class'
             </message>
@@ -150,12 +179,18 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
         
         <!--- Test Case : Entry Cache: Search -->
         <testcase name="'Core: Entry Cache: Cache Search'">
           <sequence>
+          
+            <call function="'testCase_Preamble'"/>
+            
             <message>
                'Check the response of OpenDS when an ldap search request is conducted'
             </message>
@@ -166,20 +201,22 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-		'dsFilter'         : 'objectclass=*' ,
+                'dsFilter'         : 'objectclass=*' ,
                 'extraParams'	   : '' }
-                
             </call>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
+          
         </testcase>
         
-        
-        <return>RC</return>
+        <call function="'testSuite_Postamble'"/>
 
      </sequence>
 

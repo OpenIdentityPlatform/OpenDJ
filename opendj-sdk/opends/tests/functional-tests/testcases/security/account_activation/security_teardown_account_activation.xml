@@ -37,6 +37,7 @@
         <!--- Delete Branch -->
         <testcase name="'Security: Acct Act: Postamble Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Acct Act: Postamble - Deleting Branch'
             </message>
@@ -54,10 +55,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

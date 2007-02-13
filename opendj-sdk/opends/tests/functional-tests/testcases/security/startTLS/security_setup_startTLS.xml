@@ -37,6 +37,7 @@
         <!--- Generate Server Cert -->
         <testcase name="'Security: TLS: Preamble Setup'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: TLS: Preamble Step 1. Generating Server Certicate'
             </message>
@@ -92,17 +93,18 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
-		'extraParams'  	   : '-q -X -s base' }
+                'extraParams'  	   : '-q -X -s base' }
             </call>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

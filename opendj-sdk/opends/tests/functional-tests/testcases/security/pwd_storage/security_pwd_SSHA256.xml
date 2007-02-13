@@ -55,6 +55,7 @@
         -->
         <testcase name="'Security: Pwd Storage SSHA256: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage SSHA256: Preamble - Admin Changing to SSHA256 Storage Scheme'
             </message>
@@ -71,6 +72,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
@@ -94,6 +97,7 @@
         -->
         <testcase name="'Security: Pwd Storage SSHA256: Pwd Change'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage SSHA256: User Changing Password'
             </message>
@@ -150,6 +154,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : '{SSHA256}' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -170,6 +176,7 @@
          -->
         <testcase name="'Security: Pwd Storage SSHA256: Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage SSHA256: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
@@ -186,10 +193,10 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

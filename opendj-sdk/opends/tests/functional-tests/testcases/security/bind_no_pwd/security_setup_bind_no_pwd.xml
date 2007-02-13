@@ -36,6 +36,7 @@
         <!--- Test Case : Add Entries for Bind No Pwd Tests -->
         <testcase name="'Security: Bind No Pwd: Add Initial Entries'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Bind No Pwd: Adding Initial Entries'
             </message>
@@ -52,10 +53,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

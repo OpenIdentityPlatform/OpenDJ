@@ -64,6 +64,7 @@
         <!--- Generate Server Cert -->
         <testcase name="'Security: PKCS12: Preamble Setup'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: PKCS12: Preamble Step 1. Generating Server PKCS12 Certicate'
             </message>
@@ -119,17 +120,16 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
-		'extraParams'  	   : '-Z -X' }
+                'extraParams'  	   : '-Z -X' }
             </call>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

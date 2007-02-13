@@ -34,6 +34,8 @@
 
     <sequence>
 
+      <call function="'testSuite_Preamble'"/>
+      
       <!--- Test Suite information
       #@TestSuiteName       Backend Import Tests
       #@TestSuitePurpose    Verify that the basic import functionality is working in the Directory Server.
@@ -59,7 +61,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR }
@@ -76,7 +78,7 @@
                                    'uid=rhunt, ou=People, dc=example,dc=com'] }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -98,7 +100,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
@@ -114,7 +116,7 @@
             { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com','uid=dmiller, ou=People, dc=example,dc=com','uid=rhunt, ou=People, dc=example,dc=com'] }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -136,7 +138,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
@@ -155,7 +157,7 @@
                                    'uid=rhunt, ou=People, dc=example,dc=com'] }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -176,7 +178,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
@@ -195,7 +197,7 @@
                                    'uid=rhunt, ou=People, dc=example,dc=com'] }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -216,7 +218,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
@@ -238,7 +240,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -259,7 +261,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
@@ -281,7 +283,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -302,7 +304,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
@@ -324,7 +326,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -345,7 +347,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
@@ -364,7 +366,7 @@
             }
           </call>
 
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
           
         </sequence>
 
@@ -385,7 +387,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
@@ -405,7 +407,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -426,7 +428,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
@@ -445,7 +447,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -466,7 +468,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
@@ -485,7 +487,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -506,7 +508,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
@@ -528,7 +530,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -549,7 +551,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
@@ -569,7 +571,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -590,7 +592,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
@@ -612,7 +614,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -633,7 +635,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
@@ -655,7 +657,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -676,7 +678,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
@@ -695,7 +697,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -716,7 +718,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
@@ -736,7 +738,7 @@
             }          
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -757,7 +759,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
@@ -776,7 +778,7 @@
             }          
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -797,7 +799,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
@@ -816,7 +818,7 @@
             }          
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -837,7 +839,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Append.ldif' % STAGED_DATA_DIR,
@@ -857,7 +859,7 @@
             }                        
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -878,7 +880,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Append.ldif' % STAGED_DATA_DIR,
@@ -898,7 +900,7 @@
             }                        
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -919,7 +921,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Example.ldif.gz' % STAGED_DATA_DIR,
@@ -939,7 +941,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -960,7 +962,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
@@ -986,7 +988,7 @@
             'Error: Known bug. Issue 839: Encrypted LDIF export is not implemented'
           </message>
 
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -1020,7 +1022,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
@@ -1040,7 +1042,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -1061,7 +1063,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
@@ -1081,7 +1083,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -1102,7 +1104,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Schema.ldif' % STAGED_DATA_DIR,
@@ -1122,7 +1124,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -1143,7 +1145,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
 
           <call function="'importLdif'">
             { 'ldifFile'    : '%s/backends/Schema.ldif' % STAGED_DATA_DIR }
@@ -1161,7 +1163,7 @@
             }
           </call>
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
@@ -1179,9 +1181,11 @@
       -->
 
       <!-- Need to know what the error codes are -->
-      
-    </sequence>
 
+      <call function="'testSuite_Postamble'"/>
+            
+    </sequence>
+    
   </function>
 
 </stax>

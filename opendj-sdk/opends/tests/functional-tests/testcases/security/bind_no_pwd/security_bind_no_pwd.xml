@@ -32,6 +32,8 @@
   <function name="security_bind_no_pwd">
 
       <sequence>
+      
+          <call function="'testSuite_Preamble'"/>
 
 <parallel>
     <block name="'Block DS Process Active'">
@@ -104,6 +106,8 @@
 
 </parallel>
 
+        <call function="'testSuite_Postamble'"/>
+        
      </sequence>
 
   </function>

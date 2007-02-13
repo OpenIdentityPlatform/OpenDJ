@@ -36,6 +36,7 @@
        <!--- Test Case : Add Entries through StartTLS port -->
         <testcase name="'Security: TLS: Add Entries'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: TLS: Adding Entries Through StartTLS Port'
             </message>
@@ -53,12 +54,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Add Attribute to Entry through StartTLS port -->
         <testcase name="'Security: TLS: Add Attr To Entry'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: TLS: Adding Attr to Entry Through StartTLS Port'
             </message>
@@ -76,12 +81,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Modify Attribute in Entry through StartTLS port -->
         <testcase name="'Security: TLS: Modify Attr In Entry'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: TLS: Modifying Attr in Entry Through StartTLS Port'
             </message>
@@ -99,12 +108,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Delete Entry through StartTLS port -->
         <testcase name="'Security: TLS: Delete Entry'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: TLS: Deleting Entry Through StartTLS Port'
             </message>
@@ -122,10 +135,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

@@ -32,6 +32,8 @@
   <function name="schema_rfc_tests">
 
       <sequence>
+      
+        <call function="'testSuite_Preamble'"/>
 
         <!--- Check that DS started -->
         <call function="'isAlive'">
@@ -42,6 +44,7 @@
         <!--- Test Case : Schema RFC Test 2079 -->
         <testcase name="'Core: Schema: RFC 2079'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2079'
             </message>
@@ -58,12 +61,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase> 
       
         <!--- Test Case : Schema RFC Test 2247 -->
         <testcase name="'Core: Schema: RFC 2247 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2247'
             </message>
@@ -80,12 +85,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC Test 2247 -->
         <testcase name="'Core: Schema: RFC 2247 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2247'
             </message>
@@ -102,12 +109,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC Test 2247 -->
         <testcase name="'Core: Schema: RFC 2247 3'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2247'
             </message>
@@ -125,12 +134,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 65 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC 2247 -->
         <testcase name="'Core: Schema: RFC 2247 4'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2247'
             </message>
@@ -148,12 +159,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 65 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC 2247 -->
         <testcase name="'Core: Schema: RFC 2247 5'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2247'
             </message>
@@ -171,12 +184,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 65 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>   
  
         <!--- Test Case : Schema RFC Test 2377 -->
         <testcase name="'Core: Schema: RFC 2377'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2377'
             </message>
@@ -193,12 +208,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
           </call>
+          <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC Test 2798 -->
         <testcase name="'Core: Schema: RFC 2798'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2798'
             </message>
@@ -215,12 +232,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
           </call>
+          <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase> 
         
         <!--- Test Case : Schema RFC 3045 -->
         <testcase name="'Core: Schema: RFC 3045 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Modify an entry that is covered by rfc 3045'
             </message>
@@ -238,12 +257,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 53 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC 3045 -->
         <testcase name="'Core: Schema: RFC 3045 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Modify an entry that is covered by rfc 3045'
             </message>
@@ -261,12 +282,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 53 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC 4403 -->
         <testcase name="'Core: Schema: RFC 4403 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 4403'
             </message>
@@ -283,12 +306,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
           </call>
+          <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC 4403 -->
         <testcase name="'Core: Schema: RFC 4403 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 4403'
             </message>
@@ -305,12 +330,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
           </call>
+          <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC Test 4403 -->
         <testcase name="'Core: Schema: RFC 4403 3'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 4403'
             </message>
@@ -328,12 +355,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 65 }
           </call>
+          <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>  
  
         <!--- Test Case : Schema RFC Test 4403 -->
         <testcase name="'Core: Schema: RFC 4403 4'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 4403'
             </message>
@@ -350,12 +379,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
           </call>
+          <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC Test 4403 -->
         <testcase name="'Core: Schema: RFC 4403 5'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 4403'
             </message>
@@ -373,12 +404,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 65 }
           </call>
+          <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC Test 2307 -->
         <testcase name="'Core: Schema: Draft Howard RFC 2307bis 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-howard-rfc2307bis'
             </message>
@@ -395,12 +428,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
           </call>
+          <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC 2307 -->
         <testcase name="'Core: Schema: Draft Howard RFC 2307bis 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-howard-rfc2307bis'
             </message>
@@ -418,12 +453,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 65 }
           </call>
+          <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>  
     
         <!--- Test Case : Schema RFC 2307 -->
         <testcase name="'Core: Schema: Draft Howard RFC 2307bis 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-howard-rfc2307bis'
             </message>
@@ -440,12 +477,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC Test 2307 -->
         <testcase name="'Core: Schema: Draft Howard RFC 2307bis 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-howard-rfc2307bis'
             </message>
@@ -463,12 +502,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 65 }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>  
    
         <!--- Test Case : Schema RFC draft-furseth-ldap-untypedobject -->
         <testcase name="'Core: Schema: Draft Furseth LDAP Untypedobject'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-furseth-ldap-untypedobject'
             </message>
@@ -485,12 +526,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase> 
        
         <!--- Test Case : Schema RFC draft-good-ldap-changelog -->
         <testcase name="'Core: Schema: Draft Good LDAP Changelog 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-good-ldap-changelog'
             </message>
@@ -507,12 +550,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC draft-good-ldap-changelog -->
         <testcase name="'Core: Schema: Draft Good LDAP Changelog 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-good-ldap-changelog'
             </message>
@@ -529,12 +574,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>  
     
         <!--- Test Case : Schema RFC draft-good-ldap-changelog -->
         <testcase name="'Core: Schema: Draft Good LDAP Changelog 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-good-ldap-changelog'
             </message>
@@ -551,12 +598,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase> 
   
         <!--- Test Case : Schema RFC Test draft-howard-namedobject -->
         <testcase name="'Core: Schema: Draft Howard NamedObject 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-howard-namedobject'
             </message>
@@ -573,12 +622,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>  
       
         <!--- Test Case : Schema RFC Test draft-howard-namedobject -->
         <testcase name="'Core: Schema: Draft Howard NamedObject 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-howard-namedobject'
             </message>
@@ -595,12 +646,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>  
     
         <!--- Test Case : Schema RFC Test draft-ietf-ldup-subentry -->
         <testcase name="'Core: Schema: Draft IETF LDUP Subentry 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-ietf-ldup-subentry'
             </message>
@@ -617,12 +670,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase> 
         
         <!--- Test Case : Schema RFC Test draft-ietf-ldup-subentry -->
         <testcase name="'Core: Schema: Draft IETF LDUP Subentry 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-ietf-ldup-subentry'
             </message>
@@ -639,12 +694,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
    
         <!--- Test Case : Schema RFC Test draft-ietf-ldup-subentry -->
         <testcase name="'Core: Schema: Draft IETF LDUP Subentry 3'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-ietf-ldup-subentry'
             </message>
@@ -662,12 +719,14 @@
                   'result'     : STAXResult  ,
                   'expected'   : 53 }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>  
    
         <!--- Test Case : Schema Disable Schema Checking -->
         <testcase name="'Core: Schema: Disable Schema Checking'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Disable schema checking'
             </message>
@@ -684,12 +743,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema: Enable Schema Checking' -->
         <testcase name="'Core: Schema: Enable Schema Checking'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Enable Schema Checking'
             </message>
@@ -706,12 +767,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
                 
         <!--- Test Case : Schema: Disable Syntax Checking -->
         <testcase name="'Core: Schema: Disable Syntax Checking'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Disable syntax checking'
             </message>
@@ -728,12 +791,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema: Disable Syntax Checking -->
         <testcase name="'Core: Schema: Disable Syntax Checking'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema:  Enable syntax checking'
             </message>
@@ -750,12 +815,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC Test draft-ietf-zeilenga-ldap-cosine -->
         <testcase name="'Core: Schema: Draft IETF Zeilenga LDAP COSINE 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
             </message>
@@ -772,12 +839,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult } 
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC Test draft-ietf-zeilenga-ldap-cosine -->
         <testcase name="'Core: Schema: Draft IETF Zeilenga LDAP COSINE 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
             </message>
@@ -794,12 +863,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult } 
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : Schema RFC Test draft-ietf-zeilenga-ldap-cosine -->
         <testcase name="'Core: Schema: Draft IETF Zeilenga LDAP COSINE 3'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
             </message>
@@ -817,11 +888,13 @@
                   'result'     : STAXResult ,
                   'expected'   : 65 } 
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <testcase name="'Core: Schema: RFC 2739'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2739'
             </message>
@@ -857,11 +930,13 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <testcase name="'Core: Schema: RFC 2714 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2714'
             </message>
@@ -879,11 +954,13 @@
                   'result'     : STAXResult ,
                   'expected'   : 65 }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <testcase name="'Core: Schema: RFC 2714 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2714'
             </message>
@@ -918,11 +995,13 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <testcase name="'Core: Schema: RFC 2713'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Schema: Add an entry that is covered by rfc 2713'
             </message>
@@ -958,10 +1037,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
            </call>
+           <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
-        <return>RC</return>
+          <call function="'testSuite_Postamble'"/>
 
      </sequence>
 

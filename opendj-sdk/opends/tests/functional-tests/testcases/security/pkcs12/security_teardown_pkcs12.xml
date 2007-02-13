@@ -59,6 +59,7 @@
             #@TestResult                Success if OpenDS returns 0 for all operations
          -->
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: PKCS12: Postamble Step 1. Deleting Branch Through SSL Port'
             </message>
@@ -128,10 +129,12 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
+          
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

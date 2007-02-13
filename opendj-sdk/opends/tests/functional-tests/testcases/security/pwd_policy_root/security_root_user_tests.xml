@@ -36,6 +36,7 @@
         <!--- Check Existence of ds-cfg-default-password-storage-scheme Attr -->
         <testcase name="'Security: Pwd Policy Root: Default Pwd Scheme'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Policy Root: Checking default value ds-cfg-default-password-storage-scheme'
             </message>
@@ -58,6 +59,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'SSHA' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -65,6 +68,7 @@
         <!--- Check Existence of ds-cfg-password-generator-dn Attr -->
         <testcase name="'Security: Pwd Policy Root: No Default Pwd Generator'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Policy Root: Checking for ds-cfg-password-generator-dn'
             </message>
@@ -83,12 +87,16 @@
                   'result'     : STAXResult ,
                   'expected'   : 16 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
        <!--- Check Existence of ds-cfg-password-change-requires-current-password Attr -->
         <testcase name="'Security: Pwd Policy Root: Default Pwd Change Setting'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Policy Root: Checking default value ds-cfg-password-change-requires-current-password'
             </message>
@@ -111,11 +119,11 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'true' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
-
-         <return>RC</return>
 
      </sequence>
 

@@ -55,6 +55,7 @@
         -->
         <testcase name="'Security: Auth Pwd Syntax: MD5 Policy - Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Auth Pwd Syntax: MD5 Policy Preamble - Admin adding MD5 password policy'
             </message>
@@ -71,6 +72,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -93,6 +97,7 @@
         -->
         <testcase name="'Security: Auth Pwd Syntax: MD5 Policy - Add Users'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Auth Pwd Syntax: MD5 Policy - Admin adding new users'
             </message>
@@ -145,6 +150,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
      
           </sequence>
         </testcase>
@@ -166,6 +173,7 @@
         -->
         <testcase name="'Security: Auth Pwd Syntax: MD5 Policy - Add User w/o Objectclass'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Auth Pwd Syntax: MD5 Policy - Admin adding a new user without authpasswordobject'
             </message>
@@ -201,6 +209,8 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
      
           </sequence>
         </testcase>
@@ -222,6 +232,7 @@
         -->
         <testcase name="'Security: Auth Pwd Syntax: MD5 Policy - Add User w/o Pwd Policy'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Auth Pwd Syntax: MD5 Policy - Admin adding a new user with no password policy defined'
             </message>
@@ -257,6 +268,7 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            <call function="'testCase_Postamble'"/>
      
           </sequence>
         </testcase>
@@ -277,6 +289,7 @@
         -->
         <testcase name="'Security: Auth Pwd Syntax: MD5 Policy - Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Auth Pwd Syntax: MD5 Policy Postamble - Deleting Branch'
             </message>
@@ -310,10 +323,10 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

@@ -33,6 +33,8 @@
   <function name="main_backend-setup">
 
     <sequence>
+    
+      <call function="'testSuite_Preamble'"/>
 
       <!--- Test Suite information
       #@TestSuiteName       Backend Setup
@@ -59,7 +61,7 @@
 
         <sequence>
 
-          <call function="'testCase_StartBanner'"/>
+          <call function="'testCase_Preamble'"/>
           
           <message>
             'Backend: Backend Setup for Export, Backup, and Restore Tests'
@@ -74,11 +76,13 @@
           </call>
 
           
-          <call function="'testCase_EndBanner'"/>
+          <call function="'testCase_Postamble'"/>
 
         </sequence>
 
       </testcase>
+      
+      <call function="'testSuite_Postamble'"/>
       
     </sequence>
 

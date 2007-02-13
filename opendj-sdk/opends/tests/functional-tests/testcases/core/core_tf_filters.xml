@@ -32,6 +32,8 @@
   <function name="core_tf_filters">
 
       <sequence>
+      
+        <call function="'testSuite_Preamble'"/>
 
         <!--- Check that DS started -->
         <call function="'isAlive'">
@@ -42,6 +44,7 @@
         <!--- Test Case : True False Filters: And Filter -->
         <testcase name="'Core: True False Filters: And Filter'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core TFF1: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character '
             </message>
@@ -52,20 +55,21 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=version,cn=monitor' ,
-		'dsFilter'         : '&amp;' }
-                                
+                'dsFilter'         : '&amp;' }                
             </call>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : True False Filters: Or Filter -->
         <testcase name="'Core: True False Filters: Or Filter'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core TFF2: Check the response of OpenDS when an ldap search request is conducted with a single pipe character'
             </message>
@@ -76,19 +80,21 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=version,cn=monitor' ,
-		'dsFilter'         : '|' }
+                'dsFilter'         : '|' }
             </call>
 
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
         
         <!--- Test Case : True False Filters: And Filter Entry Not Exists -->
         <testcase name="'Core: True False Filters: And Filter Entry Not Exists'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core TFF3: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character for a non-existent entry'
             </message>
@@ -99,7 +105,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=bad,cn=monitor' ,
-		'dsFilter'         : '&amp;' }
+                'dsFilter'         : '&amp;' }
             </call>
 
             <call function="'checktestRC'">
@@ -107,12 +113,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 32 }
             </call>
+            <call function="'testCase_Postamble'"/>
            </sequence>
         </testcase>
  
         <!--- Test Case : True False Filters: Or Filter Entry Not Exists -->
         <testcase name="'Core: True False Filters: Or Filter Entry Not Exists'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Core TFF4: Check the response of OpenDS when an ldap search request is conducted with a single pipe character for a non-existent entry'
             </message>
@@ -123,7 +131,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=bad,cn=monitor' ,
-		'dsFilter'         : '|' }
+                'dsFilter'         : '|' }
             </call>
 
             <call function="'checktestRC'">
@@ -131,10 +139,12 @@
                   'result'     : STAXResult ,
                   'expected'   : 32 }
             </call>
+            <call function="'testCase_Postamble'"/>
            </sequence>
+
         </testcase>
         
-        <return>RC</return>
+        <call function="'testSuite_Postamble'"/>
 
      </sequence>
 

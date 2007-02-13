@@ -31,8 +31,9 @@
 
   <function name="security_pwd_policy_root">
 
-      <sequence>
+    <sequence>
 
+      <call function="'testSuite_Preamble'"/>
 <parallel>
     <block name="'Block DS Process Active'">
 
@@ -95,6 +96,8 @@
        </block>
 
 </parallel>
+
+        <call function="'testSuite_Postamble'"/>
 
      </sequence>
 

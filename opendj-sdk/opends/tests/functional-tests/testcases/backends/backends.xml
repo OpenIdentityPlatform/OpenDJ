@@ -32,45 +32,49 @@
   <function name="main_backends">
 
       <sequence>
-      
+
+        <call function="'testGroup_Preamble'"/>
+              
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/backends/import.xml' % (TESTS_DIR)"/>
-	<call function="'main_import'" />
+        <call function="'main_import'" />
 
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/backends/import-tasks.xml' % (TESTS_DIR)"/>
-	<call function="'main_import-tasks'" />
+        <call function="'main_import-tasks'" />
              
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/backends/backendsetup.xml' % (TESTS_DIR)"/>
-	<call function="'main_backend-setup'" />
+        <call function="'main_backend-setup'" />
 
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/backends/backup-tasks.xml' % (TESTS_DIR)"/>
-	<call function="'main_backup-tasks'" />
+        <call function="'main_backup-tasks'" />
         
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/backends/backup.xml' % (TESTS_DIR)"/>
-	<call function="'main_backup'" />
+        <call function="'main_backup'" />
  
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/backends/restore-tasks.xml' % (TESTS_DIR)"/>
-	<call function="'main_restore-tasks'" />
+        <call function="'main_restore-tasks'" />
       
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/backends/restore.xml' % (TESTS_DIR)"/>
-	<call function="'main_restore'" />
+        <call function="'main_restore'" />
               
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/backends/export-tasks.xml' % (TESTS_DIR)"/>
-	<call function="'main_export-tasks'" />
+        <call function="'main_export-tasks'" />
         
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/backends/export.xml' % (TESTS_DIR)"/>
-	<call function="'main_export'" />
+        <call function="'main_export'" />
         
         <!-- Set the server backup the way it was before the backend tests -->
         <call function="'main_quickstart'" />
+        
+        <call function="'testGroup_Postamble'"/>
         
       </sequence>
 

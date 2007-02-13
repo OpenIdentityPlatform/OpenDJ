@@ -55,6 +55,7 @@
         -->
         <testcase name="'Security: Mult Pwd Schemes: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Multiple Pwd Schemes: Preamble - Admin Adding BASE64 Storage Scheme'
             </message>
@@ -71,6 +72,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -91,6 +95,7 @@
         -->
         <testcase name="'Security: Mult Pwd Schemes: Check Pwd Schemes - SSHA'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Multiple Pwd Schemes: Checking for Password Schemes - SSHA'
             </message>
@@ -113,6 +118,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'SSHA' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -134,6 +141,7 @@
         -->
         <testcase name="'Security: Mult Pwd Schemes: Check Pwd Schemes - BASE64'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Multiple Pwd Schemes: Checking for Password Schemes - BASE64'
             </message>
@@ -156,6 +164,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'BASE64' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -182,6 +192,7 @@
         -->
         <testcase name="'Security: Mult Pwd Schemes: Pwd Change'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Multiple Pwd Schemes: User Changing Password'
             </message>
@@ -238,6 +249,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : '{SSHA}' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -263,6 +276,7 @@
         -->
         <testcase name="'Security: Mult Pwd Schemes: Check for Second Scheme On Pwd Change'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Multiple Pwd Schemes: Checking for BASE64 Scheme On New Password'
             </message>
@@ -285,6 +299,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : '{BASE64}' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -304,6 +320,7 @@
         -->
         <testcase name="'Security: Mult Pwd Schemes: Improper Pwd Add'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Multiple Pwd Schemes: User Improperly Add Password'
             </message>
@@ -321,6 +338,7 @@
                   'result'     : STAXResult ,
                   'expected'   : 53 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
@@ -339,6 +357,7 @@
         -->
         <testcase name="'Security: Mult Pwd Schemes: Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Mult Pwd Schemes: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
@@ -373,10 +392,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+              
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

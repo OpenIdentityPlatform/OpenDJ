@@ -65,9 +65,9 @@
 
       <if expr="OSName == 'Win2003'">
         <script>fileExt= '.bat'</script>
-        <else>
-          <script>fileExt= ''</script>
-        </else>
+      <else>
+         <script>fileExt= ''</script>
+      </else>
       </if>
 
       <!--- The Functional Tests -->

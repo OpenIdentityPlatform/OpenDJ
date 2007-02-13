@@ -36,6 +36,7 @@
         <!--- Test case: User Bind Before Deactivation -->
         <testcase name="'Security: Acct Act: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Account Activation: Preamble - Checking User Bind Before Deactivation'
             </message>
@@ -54,12 +55,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Deactivate User-->
         <testcase name="'Security: Acct Act: Admin Deactivate User'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Account Activation: Admin Deactivating User'
             </message>
@@ -76,12 +79,14 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
         <!--- Test Case : User Bind After Deactivation-->
         <testcase name="'Security: Acct Act: User Bind After Deactivation'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Acct Act: User Binding After Deactivation'
             </message>
@@ -101,12 +106,14 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
        <!--- Test case: Admin Reactivate User -->
         <testcase name="'Security: Acct Act: Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Account Activation: Postamble Step 1.  Admin Reactivating User'
             </message>
@@ -141,11 +148,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
-
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

@@ -33,6 +33,8 @@
   <function name="main_restore-tasks">
 
     <sequence>
+    
+      <call function="'testSuite_Preamble'"/>
 
       <!--- Test Suite information
         #@TestSuiteName       Backend Restore Tasks Tests
@@ -63,7 +65,7 @@
               
               <sequence>
       
-                <call function="'testCase_StartBanner'"/>
+                <call function="'testCase_Preamble'"/>
                 <message>
                   'Backend RestoreTasks1: Restore the data in OpenDS by scheduling a task'
                 </message>
@@ -82,12 +84,14 @@
                     'result'     : STAXResult }
                 </call>
                      
-                <call function="'testCase_EndBanner'"/>
+                <call function="'testCase_Postamble'"/>
       
               </sequence>
       
             </testcase>
 
+      <call function="'testSuite_Postamble'"/>
+      
     </sequence>
 
   </function>

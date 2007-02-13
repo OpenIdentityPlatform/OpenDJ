@@ -59,6 +59,7 @@
         -->
         <testcase name="'Security: Depr Pwd Schemes: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Deprecated Pwd Schemes: Preamble Step 1. Admin Adding 3 Pwd Storage Schemes'
             </message>
@@ -113,6 +114,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'MD5' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -134,6 +137,7 @@
         -->
         <testcase name="'Security: Depr Pwd Schemes: Admin Deprecate MD5'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Deprecated Pwd Schemes: Admin Deprecating MD5 Scheme'
             </message>
@@ -166,6 +170,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
          
           </sequence>
         </testcase>
@@ -186,6 +192,7 @@
         -->
         <testcase name="'Security: Depr Pwd Schemes: User Bind'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Deprecated Pwd Schemes: User Binding'
             </message>
@@ -204,6 +211,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
          
           </sequence>
         </testcase>
@@ -224,6 +233,7 @@
         -->
         <testcase name="'Security: Depr Pwd Schemes: Check For Deletion'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
              <message>
                'Security: Deprecating Pwd Schemes: Checking for MD5 Hashed Pwd After Deprecating'
             </message>
@@ -246,6 +256,8 @@
                 { 'returnString'       : returnString ,
                   'testString'         : 'MD5' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -266,6 +278,7 @@
         -->
         <testcase name="'Security: Depr Pwd Schemes: Check For Non-Deletions - SSHA256'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
              <message>
                'Security: Deprecating Pwd Schemes: Checking for SSHA256 Hashed Pwd After Deprecating'
             </message>
@@ -288,6 +301,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'SSHA256' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -307,6 +322,7 @@
         -->
         <testcase name="'Security: Depr Pwd Schemes: Check For Non-Deletions - BASE64'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
              <message>
                'Security: Deprecating Pwd Schemes: Checking for BASE64 Hashed Pwd After Deprecating'
             </message>
@@ -329,6 +345,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'BASE64' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -348,6 +366,7 @@
         -->
         <testcase name="'Security: Depr Pwd Schemes: Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Deprecating Pwd Schemes: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
@@ -364,10 +383,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+              
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

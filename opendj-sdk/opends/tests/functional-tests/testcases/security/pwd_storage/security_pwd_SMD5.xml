@@ -55,6 +55,7 @@
         -->
         <testcase name="'Security: Pwd Storage SMD5: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage SMD5: Preamble - Admin Changing to SMD5 Storage Scheme'
             </message>
@@ -71,6 +72,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
@@ -94,6 +98,7 @@
         -->
         <testcase name="'Security: Pwd Storage SMD5: Pwd Change'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage SMD5: User Changing Password'
             </message>
@@ -150,6 +155,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : '{SMD5}' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -170,6 +177,7 @@
          -->
         <testcase name="'Security: Pwd Storage SMD5: Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage SMD5: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
@@ -186,10 +194,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

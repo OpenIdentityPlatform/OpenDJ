@@ -36,6 +36,7 @@
         <!--- Test Case : Check for ds-cfg-idle-lockout-interval -->
         <testcase name="'Security: Last Login: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>          
             <message>
                'Security: Last Login: Preamble - Checking existence of ds-cfg-idle-lockout-interval'
             </message>
@@ -53,6 +54,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -60,6 +63,7 @@
         <!--- Test Case : Admin enable last login attribute only-->
         <testcase name="'Security: Last Login: Admin Enable Last Login Attr Only'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Admin Enable Last Login Attribute Only'
             </message>
@@ -116,6 +120,8 @@
                 { 'returnString'       : returnString ,
                   'testString'     : 'ds-pwp-last-login-time' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -123,6 +129,7 @@
         <!--- Test Case : Admin enable last login format only -->
         <testcase name="'Security: Last Login: Admin Enable Last Login Format Only'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Admin Disable Last Login Attribute Only'
             </message>
@@ -195,6 +202,8 @@
                 { 'returnString'       : returnString ,
                   'testString'     : 'ds-pwp-last-login-time' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -202,6 +211,7 @@
         <!--- Test Case : Admin enable both last login attribute and format-->
         <testcase name="'Security: Last Login: Admin Enable Last Login Attr And Format'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Admin Enable Last Login Attribute And Format'
             </message>
@@ -258,13 +268,16 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'ds-pwp-last-login-time' }
             </call>
-          
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Long Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Long Idle Lockout'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Long Idle Lockout Step 1. Check User Bind'
             </message>
@@ -348,6 +361,8 @@
                   'result'     : STAXResult ,
                   'expected'   : 1}
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -355,6 +370,7 @@
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Reset Idle Lockout'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
             </message>
@@ -419,6 +435,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -426,6 +444,7 @@
         <!--- Test Case : Password Change Override -->
         <testcase name="'Security: Last Login: Long Idle Lockout - Pwd Change Override'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Long Idle Lockout - Password Change Override Step 1. Check User Bind'
             </message>
@@ -532,6 +551,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -539,6 +560,7 @@
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Reset Idle Lockout 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Reset Idle Lockout 2 Step 1. Admin Resetting Idle Lockout Interval'
             </message>
@@ -603,6 +625,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -610,6 +634,7 @@
         <!--- Test Case : User Bind Reset Last Login Time -->
         <testcase name="'Security: Last Login: Long Idle Lockout - User Bind Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Long Idle Lockout - User Bind Reset Step 1. Check User Bind'
             </message>
@@ -718,6 +743,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -725,6 +752,7 @@
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Reset Idle Lockout 3'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
             </message>
@@ -789,6 +817,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -796,6 +826,7 @@
         <!--- Test Case : Long Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Long Idle Lockout - Disabled Last Login'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Long Idle Lockout - Disabled Last Login Step 1. Disable Last Login'
             </message>
@@ -865,6 +896,8 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -872,6 +905,7 @@
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Reset Idle Lockout 4'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Reset Idle Lockout Step 1. Enable Last Login - Attribute'
             </message>
@@ -952,6 +986,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -959,6 +995,7 @@
         <!--- Test Case : Long Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Long Idle Lockout - Disabled Last Login 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Long Idle Lockout - Disabled Last Login 2 Step 1. Disable Last Login'
             </message>
@@ -1028,6 +1065,8 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -1035,6 +1074,7 @@
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Reset Idle Lockout 5'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Reset Idle Lockout Step 1. Enable Last Login - Attribute'
             </message>
@@ -1115,6 +1155,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -1122,6 +1164,7 @@
         <!--- Test Case : Long Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Long Idle Lockout - Repeat'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Long Idle Lockout Step 1. Check User Bind'
             </message>
@@ -1205,6 +1248,8 @@
                   'result'     : STAXResult ,
                   'expected'   : 1}
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -1212,6 +1257,7 @@
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Reset Idle Lockout 6'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
             </message>
@@ -1276,6 +1322,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -1283,6 +1331,7 @@
         <!--- Test Case : Long Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Long Idle Lockout - Pwd Change Override 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 1. Check User Bind'
             </message>
@@ -1381,6 +1430,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -1388,6 +1439,7 @@
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Reset Idle Lockout 7'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
             </message>
@@ -1452,6 +1504,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
@@ -1459,6 +1513,7 @@
         <!--- Test Case : Long Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Long Idle Lockout - Pwd Change Override 3'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 1. Disable Last Login'
             </message>
@@ -1562,12 +1617,15 @@
                   'result'     : STAXResult }
             </call>
 
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
         <testcase name="'Security: Last Login: Postamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Last Login: Postamble Step 1. Admin Resetting Idle Lockout Interval'
             </message>
@@ -1648,11 +1706,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
 
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

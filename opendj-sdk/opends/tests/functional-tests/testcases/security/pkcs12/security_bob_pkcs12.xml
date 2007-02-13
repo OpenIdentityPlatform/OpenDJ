@@ -56,6 +56,7 @@
         -->
         <testcase name="'Security: PKCS12: Add Entries'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: PKCS12: Adding Entries Through SSL Port'
             </message>
@@ -73,6 +74,7 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
@@ -93,6 +95,7 @@
         -->
         <testcase name="'Security: PKCS12: Modify Entry'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: PKCS12: Modifying Entry Through SSL Port'
             </message>
@@ -110,6 +113,7 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
@@ -130,6 +134,7 @@
         -->
         <testcase name="'Security: PKCS12: Add Attr to Entry'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: PKCS12: Adding Attr to Entry Through SSL Port'
             </message>
@@ -147,6 +152,7 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
@@ -167,6 +173,7 @@
         -->
         <testcase name="'Security: PKCS12: Modify Attr in Entry'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: PKCS12: Modifying Attr in Entry Through SSL Port'
             </message>
@@ -184,6 +191,7 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
@@ -204,6 +212,7 @@
         -->
         <testcase name="'Security: PKCS12: Delete Entry'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: PKCS12: Deleting Entry Through SSL Port'
             </message>
@@ -221,10 +230,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

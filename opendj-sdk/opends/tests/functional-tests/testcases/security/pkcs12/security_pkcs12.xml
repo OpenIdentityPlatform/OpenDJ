@@ -32,6 +32,8 @@
   <function name="security_pkcs12">
 
       <sequence>
+      
+        <call function="'testSuite_Preamble'"/>
 
 <parallel>
     <block name="'Block DS Process Active'">
@@ -95,7 +97,7 @@
           </call>
         </sequence>
 
-        <return>RC</return>
+        <call function="'testSuite_Postamble'"/>
 
         </sequence>
 

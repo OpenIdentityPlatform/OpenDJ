@@ -36,6 +36,7 @@
         <!--- Admin Check Existence of Min Pwd Length Attr -->
         <testcase name="'Security: Pwd Length Min: Preamble Setup'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Length Min: Preamble Step 1. Checking existence of ds-cfg-minimum-password-length'
             </message>
@@ -70,12 +71,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : User Change Password - Too Short-->
         <testcase name="'Security: Pwd Length Min: Pwd Too Short 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Length Min: Pwd Too Short 1 Step 1. User Changing Password'
             </message>
@@ -112,12 +117,16 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Change Minimum Pwd Length -->
         <testcase name="'Security: Pwd Length Min: Admin Change Min Pwd Length'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Length Min: Admin Changing Minimum Pwd Length'
             </message>
@@ -134,12 +143,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : User Change Password - Too Short 2-->
         <testcase name="'Security: Pwd Length Min: Pwd Too Short 2'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Length Min: Pwd Too Short 2 Step 1. User Changing Password'
             </message>
@@ -176,12 +189,16 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : User Change Password-->
         <testcase name="'Security: Pwd Length Min: User Change Pwd'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Length Min: User Change Pwd Step 1. User Changing Password'
             </message>
@@ -217,12 +234,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Reset Minimum Pwd Length -->
         <testcase name="'Security: Pwd Length Min: Postamble Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Length Min: Postamble - Admin Resetting Minimum Pwd Length'
             </message>
@@ -239,11 +260,15 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <testcase name="'Security: Pwd Length Max: Preamble Setup'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Length Max: Preamble Step 1. Checking existence of ds-cfg-maximum-password-length'
             </message>
@@ -278,12 +303,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : User Change Password - Too Long-->
         <testcase name="'Security: Pwd Length Max: Pwd Too Long 1'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Length Max: Pwd Too Long 1 Step 1. User Changing Password'
             </message>
@@ -320,12 +349,16 @@
                   'result'     : STAXResult ,
                   'expected'   : 1 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : User Change Password-->
         <testcase name="'Security: Pwd Length Max: User Change Pwd'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Length Max: User Change Password Step 1. User Changing Password'
             </message>
@@ -361,12 +394,16 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
 
         <!--- Test Case : Admin Reset Maximum Pwd Length -->
         <testcase name="'Security: Pwd Length Max: Postamble Reset'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Length Max: Postamble Step 1. Admin Resetting Maximum Pwd Length'
             </message>
@@ -400,10 +437,11 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

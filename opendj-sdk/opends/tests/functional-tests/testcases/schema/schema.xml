@@ -32,6 +32,8 @@
   <function name="main_schema">
 
     <sequence>
+    
+      <call function="'testGroup_Preamble'"/>
 
       <parallel>
         <block name="'Block DS Process Active'">
@@ -88,14 +90,14 @@
               </call>
             </sequence>
 
-            <return>RC</return>
-
           </sequence>
 
           <!--- End Block Clients -->
         </block>
 
       </parallel>
+      
+      <call function="'testGroup_Postamble'"/>
 
     </sequence>
 

@@ -31,89 +31,98 @@
 
   <function name="main_quickstart">
 
-      <sequence>
+    <sequence>
+    
+      <call function="'testGroup_Preamble'"/>
 
-<parallel>
-    <block name="'Block DS Process Active'">
-
-      <!--- Start DS -->
-      <sequence>
-         <message>
-            'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-         </message>
-  
-         <call function="'startDS'">
-           { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
-         </call>
-  
-         <call function="'checkRC'">
-             { 'returncode' : RC ,
-               'result'     : STAXResult }
-         </call>
-  
-       </sequence>
-
-     <!--- End Block DS Process Active -->
-     </block>
-
-     <block name="'Block Clients'">
-
-      <sequence>
-
-        <!--- Check that DS started -->
-        <call function="'isAlive'">
-          { 'noOfLoops'        : 5 ,
-            'noOfMilliSeconds' : 2000 }
-        </call>
-
-        <!--- Test Case : Add Quickstart Entries -->
-        <testcase name="'Quickstart: Add : Quick Start Entries'">
+      <parallel>
+      
+        <block name="'Block DS Process Active'">
+    
+          <!--- Start DS -->
           <sequence>
-            <message>
-               'Quickstart: Adding quickstart entries'
-            </message>
-
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/quickstart/quickstart.ldif' % STAGED_DATA_DIR }
+             <message>
+                'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+             </message>
+      
+             <call function="'startDS'">
+               { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+             </call>
+      
+             <call function="'checkRC'">
+                 { 'returncode' : RC ,
+                   'result'     : STAXResult }
+             </call>
+      
+           </sequence>
+    
+         <!--- End Block DS Process Active -->
+         </block>
+    
+         <block name="'Block Clients'">
+    
+          <sequence>
+          
+            <call function="'testSuite_Preamble'"/>
+    
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              { 'noOfLoops'        : 5 ,
+                'noOfMilliSeconds' : 2000 }
             </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+    
+            <!--- Test Case : Add Quickstart Entries -->
+            <testcase name="'Quickstart: Add : Quick Start Entries'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                   'Quickstart: Adding quickstart entries'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeAdded'   : '%s/quickstart/quickstart.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </testcase>
+    
+            <!--- Stop DS -->
+    		<sequence>
+    		  <message>
+    		     'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+    		  </message>
+    		
+    		  <call function="'stopDS'">
+    		    { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
+    		  </call>
+    		
+    		  <call function="'checkRC'">
+    		      { 'returncode' : RC ,
+    		        'result'     : STAXResult }
+    		  </call>
+    		</sequence>
+    
+            <call function="'testSuite_Postamble'"/>
+    
           </sequence>
-        </testcase>
+    
+        <!--- End Block Clients -->
+        </block>
 
-        <!--- Stop DS -->
-		<sequence>
-		  <message>
-		     'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
-		  </message>
-		
-		  <call function="'stopDS'">
-		    { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
-		  </call>
-		
-		  <call function="'checkRC'">
-		      { 'returncode' : RC ,
-		        'result'     : STAXResult }
-		  </call>
-		</sequence>
+      </parallel>
 
-        <return>RC</return>
-
-        </sequence>
-
-       <!--- End Block Clients -->
-       </block>
-
-</parallel>
-
-     </sequence>
+      <call function="'testGroup_Postamble'"/>
+      
+    </sequence>
 
   </function>
 

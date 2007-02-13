@@ -36,6 +36,7 @@
         <!--- Test Case : Admin Reset Max Pwd Age -->
         <testcase name="'Security:Pwd Change: Admin Reset Max Pwd Age'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Change: Admin Resetting Max Pwd Age'
             </message>
@@ -52,10 +53,12 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
+            
         </testcase>
-
-       <return>RC</return>
 
      </sequence>
 

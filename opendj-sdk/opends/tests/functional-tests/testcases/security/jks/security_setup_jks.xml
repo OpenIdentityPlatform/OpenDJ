@@ -63,6 +63,7 @@
         <!--- Generate Server Cert -->
         <testcase name="'Security: JKS: Preamble Setup'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: JKS: Preamble Step 1. Generating Server Certicate'
             </message>
@@ -125,10 +126,9 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 

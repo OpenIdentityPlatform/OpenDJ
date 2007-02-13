@@ -56,6 +56,7 @@
         -->
         <testcase name="'Security: Pwd Storage SSHA: Preamble'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage SSHA: Preamble - Checking existence of ds-cfg-default-password-storage-scheme'
             </message>
@@ -73,6 +74,8 @@
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
@@ -93,6 +96,7 @@
         -->
         <testcase name="'Security: Pwd Storage SSHA: Default SSHA Scheme'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage SSHA: Default SSHA Scheme'
             </message>
@@ -115,6 +119,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : '{SSHA}' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
@@ -138,6 +144,7 @@
         -->
         <testcase name="'Security: Pwd Storage SSHA: Pwd Change'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage SSHA: User Changing Password'
             </message>
@@ -194,6 +201,8 @@
                 { 'returnString'       : returnString ,
                   'expectedString'     : '{SSHA}' }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
           
           </sequence>
         </testcase>
@@ -213,6 +222,7 @@
         -->
         <testcase name="'Security: Pwd Storage SSHA: Unsupported Scheme'">
           <sequence>
+            <call function="'testCase_Preamble'"/>
             <message>
                'Security: Pwd Storage SSHA: Admin Changing to Unsupported Scheme'
             </message>
@@ -230,10 +240,11 @@
                   'result'     : STAXResult ,
                   'expected'   : 53 }
             </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
           </sequence>
         </testcase>
-
-        <return>RC</return>
 
      </sequence>
 
