@@ -112,10 +112,10 @@
         <function-required-arg name="dsInstancePort">
             Directory Server port number
         </function-required-arg>
-        <function-optional-arg name="dsInstanceDn" default='"cn=Directory Manager"'>
+        <function-optional-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN" >
             Hostname
         </function-optional-arg>
-        <function-optional-arg name="dsInstancePswd" default='"password"'>
+        <function-optional-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD" >
             Password
         </function-optional-arg>
    </function-map-args>
