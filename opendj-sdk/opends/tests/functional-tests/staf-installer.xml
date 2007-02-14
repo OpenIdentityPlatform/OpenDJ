@@ -33,6 +33,9 @@
   </description>
   
   <!-- installer wide settings - top -->
+    <property file="../../PRODUCT"/>
+    <property name="product.name"
+              value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}" />
     <!-- this is the file where the default values are defined                -->
     <property file="staf-installer/staf-installer.properties"                  />
     
@@ -59,6 +62,23 @@
     
     <!-- Load properties common to the OS regardless of architecture          -->
     <property file="staf-installer/${os.myname}.properties"                    />
+
+    <!-- Daily build properties -->
+    <tstamp>
+      <format property="todays.date" pattern="yyyyMMdd"/>
+    </tstamp>
+    <tstamp>
+      <format property="yesterdays.date" pattern="yyyyMMdd" offset="-24" unit="hour"/>
+    </tstamp>
+    <condition property="daily.date" value="${todays.date}" else="${yesterdays.date}">
+      <http url="${daily.build.url}/${todays.date}${daily.build.time}/${SHORT_NAME}/build/package/${product.name}.zip"/>
+    </condition>
+    <property name="daily.package.dir" 
+              value="${staf.home}/daily-builds/${daily.date}"/>
+    <property name="daily.package" 
+              value="${daily.package.dir}/${product.name}.zip"/>
+    <property name="daily.package.url" 
+              value="${daily.build.url}/${daily.date}${daily.build.time}/${SHORT_NAME}/build/package/${product.name}.zip"/>
     
   <!-- installer wide settings - bottom  -->
   
@@ -71,6 +91,8 @@
    usage      : print this message
    status     : report if the staf is installed and running
    bootstrap  : install and start the staf
+   run-tests  : run the functional tests (requires staf installed and started)
+   run-daily  : run the functional tests on today's build
    wipeout    : stop and uninstall the staf
  subtargets=
    download   : download the archives necessary to install the staf
@@ -86,7 +108,7 @@
     <echo>Checking for proxy [${proxy.host}:${proxy.port}] as user [${proxy.user}].</echo>
     <echo>Note: If these values do not match your environment, </echo>
     <echo>      please edit the following config file:</echo>
-    <echo>      [${basedir}/staf-installer/staf-installer.properties]</echo>
+    <echo>      [${basedir}${file.separator}staf-installer${file.separator}staf-installer.properties]</echo>
     <condition property="proxy.enabled">
       <and>
         <not>
@@ -152,16 +174,24 @@
   </target>
   
   <target name="download" 
-          depends="status-do"
-          description="Download the bits necessary to install staf">
-    <antcall target="download-do"   />
-    <antcall target="download-dont" />
+          depends="status-do,download-do,download-dont"
+          description="Download the bits necessary to install staf"/>
+
+  <target name="download-daily" depends="status-do,download-do-prepare" unless="daily.package.downloaded">
+    <mkdir dir="${daily.package.dir}"/>
+    <get src="${daily.package.url}"
+         dest="${daily.package}"/>
   </target>
-<!-- Downloader section - bottom -->
+
+  <!-- Downloader section - bottom -->
 
 <!-- Installation section - top    -->
   <target name="install-config" if="staf.install.successful">
-    <copy file="${staf.config.stubs}" tofile="${staf.config}"/>
+    <copy file="${staf.config.stubs}" tofile="${staf.config}">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
   </target>
 
   <target name="install-stax" if="staf.install.successful">
@@ -233,7 +263,7 @@
 <!-- Gui section - bottom -->
 
 <!-- Run tests section - top    -->
-  <target name="run-tests-prepare" if="staf.running">
+  <target name="run-tests-prepare" depends="status-do" if="staf.running">
     <condition property="staf.lib.dir" 
       value="${staf.install.dir}${file.separator}bin" 
       else="${staf.install.dir}${file.separator}lib">
@@ -252,7 +282,11 @@
       <tstamp>
         <format property="tests.run.time" pattern="yyyy.MM.dd-HH.mm.ss"/>
       </tstamp>
-
+      <condition property="product.package.path" 
+                 value="${daily.package.dir}"
+                 else="${project.home}/build/package">
+           <isset property="tests.run.daily"/>
+       </condition>
       <!-- make all the necessary directories for this test run -->
       <mkdir dir="${staf.tmp.dir}"/>
       <mkdir dir="${tests.run.dir}/${tests.run.time}"/>
@@ -261,9 +295,6 @@
       <!-- these will serve for after-the-fact archiving the logs -->
       <mkdir dir="${tests.run.dir}/${tests.run.time}/staf-logs"/>
       <mkdir dir="${tests.run.dir}/${tests.run.time}/server-logs"/>
-      <property file="${project.home}/PRODUCT"/>
-      <property name="product.name"
-                value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}" />
       
       <!-- 3. perform the config back up if necessary -->
       <copy file="${tests.config}" 
@@ -346,6 +377,11 @@
         <include name="r*"/>
       </fileset>
     </copy>
+  </target>
+  
+  <target name="run-daily" depends="status-do,download-daily">
+    <property name="tests.run.daily"/>
+    <antcall target="run-tests"/>
   </target>
 <!-- Run tests section - bottom -->
   
@@ -489,13 +525,14 @@
           <isset property="bits.stax.downloaded.before"/>
         </and>
       </condition>
+      <available file="${daily.package}" property="daily.package.downloaded"/>
       
       <available file="${staf.install.dir}" 
                 type="dir" 
                 property="staf.installed" />
   
       <condition property="staf.running">
-        <socket port="${staf.port.default}" server="${host.name}"/>
+        <socket port="${staf.port}" server="${host.name}"/>
       </condition>
       
       <condition property="staf.archive.is.jar">
@@ -525,7 +562,6 @@
       <antcall target="status-staf-not-installed?" />
     </target>
   <!-- Status cli section - bottom -->
-  
 <!--  Status section - bottom -->
 
 <!-- Macros section - top -->
