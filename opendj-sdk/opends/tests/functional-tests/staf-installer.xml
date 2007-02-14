@@ -380,7 +380,7 @@
   </target>
   
   <target name="run-daily" depends="status-do,download-daily">
-    <property name="tests.run.daily"/>
+    <property name="tests.run.daily" value="true"/>
     <antcall target="run-tests"/>
   </target>
 <!-- Run tests section - bottom -->
