@@ -112,15 +112,20 @@
         <function-required-arg name="dsInstancePort">
             Directory Server port number
         </function-required-arg>
-
-    </function-map-args>
+        <function-optional-arg name="dsInstanceDn" default='"cn=Directory Manager"'>
+            Hostname
+        </function-optional-arg>
+        <function-optional-arg name="dsInstancePswd" default='"password"'>
+            Password
+        </function-optional-arg>
+   </function-map-args>
 
       <sequence>
 
         <process name="'Stop DS'">
             <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
             <command>'%s/stop-ds%s' % (OPENDS_BINPATH,fileExt)</command>
-            <parms>'-p %s' % (dsInstancePort)</parms>
+            <parms>'-p %s -D "%s" -w %s' % (dsInstancePort, dsInstanceDn, dsInstancePswd)</parms>
             <workdir>'%s' % (OPENDS_BINPATH)</workdir>
             <envs>
                 ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
