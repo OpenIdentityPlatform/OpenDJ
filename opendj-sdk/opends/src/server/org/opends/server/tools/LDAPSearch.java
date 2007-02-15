@@ -164,165 +164,168 @@ public class LDAPSearch
                                     searchOptions.getSizeLimit(),
                                     searchOptions.getTimeLimit(),
                               false, filter, attributes);
-      try
+      if(!searchOptions.showOperations())
       {
-        boolean typesOnly = searchOptions.getTypesOnly();
-        LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                              protocolOp,
-                                              searchOptions.getControls());
-        connection.getASN1Writer().writeElement(message.encode());
-
-        byte opType;
-        do
+        try
         {
-          int resultCode = 0;
-          String errorMessage = null;
-          ASN1Element element = connection.getASN1Reader().readElement();
-          LDAPMessage responseMessage =
-               LDAPMessage.decode(ASN1Sequence.decodeAsSequence(element));
-          responseControls = responseMessage.getControls();
+          boolean typesOnly = searchOptions.getTypesOnly();
+          LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                                protocolOp,
+                                                searchOptions.getControls());
+          connection.getASN1Writer().writeElement(message.encode());
 
-
-          opType = responseMessage.getProtocolOpType();
-          switch(opType)
+          byte opType;
+          do
           {
-            case OP_TYPE_SEARCH_RESULT_ENTRY:
-              for (LDAPControl c : responseControls)
-              {
-                if (c.getOID().equals(OID_ENTRY_CHANGE_NOTIFICATION))
-                {
-                  try
-                  {
-                    EntryChangeNotificationControl ecn =
-                         EntryChangeNotificationControl.decodeControl(
-                              c.getControl());
-                    int msgID = MSGID_LDAPSEARCH_PSEARCH_CHANGE_TYPE;
-                    out.println(getMessage(msgID,
-                                           ecn.getChangeType().toString()));
-                    DN previousDN = ecn.getPreviousDN();
-                    if (previousDN != null)
-                    {
-                      msgID = MSGID_LDAPSEARCH_PSEARCH_PREVIOUS_DN;
-                      out.println(getMessage(msgID, previousDN.toString()));
-                    }
-                  } catch (Exception e) {}
-                }
-                else if (c.getOID().equals(OID_ACCOUNT_USABLE_CONTROL))
-                {
-                  try
-                  {
-                    AccountUsableResponseControl acrc =
-                         AccountUsableResponseControl.decodeControl(
-                              c.getControl());
-                    int msgID = MSGID_LDAPSEARCH_ACCTUSABLE_HEADER;
-                    out.println(getMessage(msgID));
-                    if (acrc.isUsable())
-                    {
-                      msgID = MSGID_LDAPSEARCH_ACCTUSABLE_IS_USABLE;
-                      out.println(getMessage(msgID));
-                      if (acrc.getSecondsBeforeExpiration() > 0)
-                      {
-                        int    timeToExp    = acrc.getSecondsBeforeExpiration();
-                        String timeToExpStr = secondsToTimeString(timeToExp);
-                        msgID =
-                             MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION;
-                        out.println(getMessage(msgID, timeToExpStr));
-                      }
-                    }
-                    else
-                    {
-                      msgID = MSGID_LDAPSEARCH_ACCTUSABLE_NOT_USABLE;
-                      out.println(getMessage(msgID));
-                      if (acrc.isInactive())
-                      {
-                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_ACCT_INACTIVE;
-                        out.println(getMessage(msgID));
-                      }
-                      if (acrc.isReset())
-                      {
-                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_PW_RESET;
-                        out.println(getMessage(msgID));
-                      }
-                      if (acrc.isExpired())
-                      {
-                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_PW_EXPIRED;
-                        out.println(getMessage(msgID));
+            int resultCode = 0;
+            String errorMessage = null;
+            ASN1Element element = connection.getASN1Reader().readElement();
+            LDAPMessage responseMessage =
+                 LDAPMessage.decode(ASN1Sequence.decodeAsSequence(element));
+            responseControls = responseMessage.getControls();
 
-                        if (acrc.getRemainingGraceLogins() > 0)
-                        {
-                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE;
-                          out.println(getMessage(msgID,
-                                           acrc.getRemainingGraceLogins()));
-                        }
-                      }
-                      if (acrc.isLocked())
-                      {
-                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_LOCKED;
-                        out.println(getMessage(msgID));
-                        if (acrc.getSecondsBeforeUnlock() > 0)
-                        {
-                          int timeToUnlock = acrc.getSecondsBeforeUnlock();
-                          String timeToUnlockStr =
-                                      secondsToTimeString(timeToUnlock);
-                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK;
-                          out.println(getMessage(msgID, timeToUnlockStr));
-                        }
-                      }
-                    }
-                  } catch (Exception e) {}
-                }
-              }
 
-              SearchResultEntryProtocolOp searchEntryOp =
-                   responseMessage.getSearchResultEntryProtocolOp();
-              StringBuilder sb = new StringBuilder();
-              toLDIF(searchEntryOp, sb, wrapColumn, typesOnly);
-              out.print(sb.toString());
-              matchingEntries++;
-              break;
-
-            case OP_TYPE_SEARCH_RESULT_REFERENCE:
-              SearchResultReferenceProtocolOp searchRefOp =
-                   responseMessage.getSearchResultReferenceProtocolOp();
-              out.println(searchRefOp.toString());
-              break;
-
-            case OP_TYPE_SEARCH_RESULT_DONE:
-              SearchResultDoneProtocolOp searchOp =
-                   responseMessage.getSearchResultDoneProtocolOp();
-              resultCode = searchOp.getResultCode();
-              errorMessage = searchOp.getErrorMessage();
-
-              break;
-            default:
-              // FIXME - throw exception?
-              int msgID = MSGID_SEARCH_OPERATION_INVALID_PROTOCOL;
-              String msg = getMessage(msgID, opType);
-              err.println(wrapText(msg, MAX_LINE_WIDTH));
-              break;
-          }
-
-          if(resultCode != SUCCESS && resultCode != REFERRAL)
-          {
-            int msgID = MSGID_OPERATION_FAILED;
-            if(errorMessage == null)
+            opType = responseMessage.getProtocolOpType();
+            switch(opType)
             {
-              errorMessage = "Result Code:" + resultCode;
+              case OP_TYPE_SEARCH_RESULT_ENTRY:
+                for (LDAPControl c : responseControls)
+                {
+                  if (c.getOID().equals(OID_ENTRY_CHANGE_NOTIFICATION))
+                  {
+                    try
+                    {
+                      EntryChangeNotificationControl ecn =
+                           EntryChangeNotificationControl.decodeControl(
+                                c.getControl());
+                      int msgID = MSGID_LDAPSEARCH_PSEARCH_CHANGE_TYPE;
+                      out.println(getMessage(msgID,
+                                             ecn.getChangeType().toString()));
+                      DN previousDN = ecn.getPreviousDN();
+                      if (previousDN != null)
+                      {
+                        msgID = MSGID_LDAPSEARCH_PSEARCH_PREVIOUS_DN;
+                        out.println(getMessage(msgID, previousDN.toString()));
+                      }
+                    } catch (Exception e) {}
+                  }
+                  else if (c.getOID().equals(OID_ACCOUNT_USABLE_CONTROL))
+                  {
+                    try
+                    {
+                      AccountUsableResponseControl acrc =
+                           AccountUsableResponseControl.decodeControl(
+                                c.getControl());
+                      int msgID = MSGID_LDAPSEARCH_ACCTUSABLE_HEADER;
+                      out.println(getMessage(msgID));
+                      if (acrc.isUsable())
+                      {
+                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_IS_USABLE;
+                        out.println(getMessage(msgID));
+                        if (acrc.getSecondsBeforeExpiration() > 0)
+                        {
+                          int    timeToExp    = acrc.getSecondsBeforeExpiration();
+                          String timeToExpStr = secondsToTimeString(timeToExp);
+                          msgID =
+                               MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION;
+                          out.println(getMessage(msgID, timeToExpStr));
+                        }
+                      }
+                      else
+                      {
+                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_NOT_USABLE;
+                        out.println(getMessage(msgID));
+                        if (acrc.isInactive())
+                        {
+                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_ACCT_INACTIVE;
+                          out.println(getMessage(msgID));
+                        }
+                        if (acrc.isReset())
+                        {
+                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_PW_RESET;
+                          out.println(getMessage(msgID));
+                        }
+                        if (acrc.isExpired())
+                        {
+                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_PW_EXPIRED;
+                          out.println(getMessage(msgID));
+
+                          if (acrc.getRemainingGraceLogins() > 0)
+                          {
+                            msgID = MSGID_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE;
+                            out.println(getMessage(msgID,
+                                             acrc.getRemainingGraceLogins()));
+                          }
+                        }
+                        if (acrc.isLocked())
+                        {
+                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_LOCKED;
+                          out.println(getMessage(msgID));
+                          if (acrc.getSecondsBeforeUnlock() > 0)
+                          {
+                            int timeToUnlock = acrc.getSecondsBeforeUnlock();
+                            String timeToUnlockStr =
+                                        secondsToTimeString(timeToUnlock);
+                            msgID = MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK;
+                            out.println(getMessage(msgID, timeToUnlockStr));
+                          }
+                        }
+                      }
+                    } catch (Exception e) {}
+                  }
+                }
+
+                SearchResultEntryProtocolOp searchEntryOp =
+                     responseMessage.getSearchResultEntryProtocolOp();
+                StringBuilder sb = new StringBuilder();
+                toLDIF(searchEntryOp, sb, wrapColumn, typesOnly);
+                out.print(sb.toString());
+                matchingEntries++;
+                break;
+
+              case OP_TYPE_SEARCH_RESULT_REFERENCE:
+                SearchResultReferenceProtocolOp searchRefOp =
+                     responseMessage.getSearchResultReferenceProtocolOp();
+                out.println(searchRefOp.toString());
+                break;
+
+              case OP_TYPE_SEARCH_RESULT_DONE:
+                SearchResultDoneProtocolOp searchOp =
+                     responseMessage.getSearchResultDoneProtocolOp();
+                resultCode = searchOp.getResultCode();
+                errorMessage = searchOp.getErrorMessage();
+
+                break;
+              default:
+                // FIXME - throw exception?
+                int msgID = MSGID_SEARCH_OPERATION_INVALID_PROTOCOL;
+                String msg = getMessage(msgID, opType);
+                err.println(wrapText(msg, MAX_LINE_WIDTH));
+                break;
             }
-            throw new LDAPException(resultCode, msgID, errorMessage);
-          }
-          else if (errorMessage != null)
-          {
-            out.println();
-            out.println(wrapText(errorMessage, MAX_LINE_WIDTH));
-          }
 
-        } while(opType != OP_TYPE_SEARCH_RESULT_DONE);
+            if(resultCode != SUCCESS && resultCode != REFERRAL)
+            {
+              int msgID = MSGID_OPERATION_FAILED;
+              if(errorMessage == null)
+              {
+                errorMessage = "Result Code:" + resultCode;
+              }
+              throw new LDAPException(resultCode, msgID, errorMessage);
+            }
+            else if (errorMessage != null)
+            {
+              out.println();
+              out.println(wrapText(errorMessage, MAX_LINE_WIDTH));
+            }
 
-      } catch(ASN1Exception ae)
-      {
-        assert debugException(CLASS_NAME, "executeSearch", ae);
-        throw new IOException(ae.getMessage());
+          } while(opType != OP_TYPE_SEARCH_RESULT_DONE);
+
+        } catch(ASN1Exception ae)
+        {
+          assert debugException(CLASS_NAME, "executeSearch", ae);
+          throw new IOException(ae.getMessage());
+        }
       }
     }
 
