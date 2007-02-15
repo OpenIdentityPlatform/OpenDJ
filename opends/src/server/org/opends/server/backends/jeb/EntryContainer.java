@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -53,6 +53,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockType;
 import org.opends.server.types.Modification;
+import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.StaticUtils;
@@ -3100,8 +3101,22 @@ public class EntryContainer
    */
   public static DN modDN(DN oldDN, int oldSuffixLen, DN newSuffixDN)
   {
-    DN localName = oldDN.getLocalName(oldSuffixLen);
-    return newSuffixDN.concat(localName);
+    int oldDNNumComponents    = oldDN.getNumComponents();
+    int oldDNKeepComponents   = oldDNNumComponents - oldSuffixLen;
+    int newSuffixDNComponents = newSuffixDN.getNumComponents();
+
+    RDN[] newDNComponents = new RDN[oldDNKeepComponents+newSuffixDNComponents];
+    for (int i=0; i < oldDNKeepComponents; i++)
+    {
+      newDNComponents[i] = oldDN.getRDN(i);
+    }
+
+    for (int i=oldDNKeepComponents, j=0; j < newSuffixDNComponents; i++,j++)
+    {
+      newDNComponents[i] = newSuffixDN.getRDN(j);
+    }
+
+    return new DN(newDNComponents);
   }
 
   /**

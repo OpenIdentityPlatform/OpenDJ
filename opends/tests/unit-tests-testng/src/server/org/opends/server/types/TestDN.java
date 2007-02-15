@@ -22,11 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
 
+
+import java.util.ArrayList;
 
 import static org.testng.Assert.*;
 
@@ -54,7 +56,12 @@ public class TestDN extends TypesTestCase {
     return new Object[][] {
         { "", "", "" },
         { "   ", "", "" },
+        { "cn=", "cn=", "cn=" },
+        { "cn= ", "cn=", "cn=" },
+        { "cn =", "cn=", "cn=" },
+        { "cn = ", "cn=", "cn=" },
         { "dc=com", "dc=com", "dc=com" },
+        { "dc=com+o=com", "dc=com+o=com", "dc=com+o=com" },
         { "DC=COM", "dc=com", "DC=COM" },
         { "dc = com", "dc=com", "dc=com" },
         { " dc = com ", "dc=com", "dc=com" },
@@ -126,12 +133,17 @@ public class TestDN extends TypesTestCase {
    */
   @DataProvider(name = "illegalDNs")
   public Object[][] createIllegalData() {
-    return new Object[][] { { "manager" }, { "manager " },
-        { "cn+Jim" }, { "cn=Jim+" }, { "cn=Jim," }, { "cn=Jim,  " },
-        { "cn+uid=Jim" }, { "-cn=Jim" }, { "/tmp=a" }, { "\\tmp=a" },
-        { "cn;lang-en=Jim" }, { "@cn=Jim" }, { "_name_=Jim" },
-        { "\u03c0=pi" }, { "v1.0=buggy" },
-        { "1.3.6.1.4.1.1466..0=#04024869" }, };
+    return new Object[][] { { "manager" }, { "manager " }, { "=Jim" },
+        { " =Jim" }, { "= Jim" }, { " = Jim" }, { "cn+Jim" }, { "cn + Jim" },
+        { "cn=Jim+" }, { "cn=Jim+manager" }, { "cn=Jim+manager " },
+        { "cn=Jim+manager," }, { "cn=Jim," }, { "cn=Jim,  " }, { "c[n]=Jim" },
+        { "_cn=Jim" }, { "c_n=Jim" }, { "cn\"=Jim" },  { "c\"n=Jim" },
+        { "1cn=Jim" }, { "cn+uid=Jim" }, { "-cn=Jim" }, { "/tmp=a" },
+        { "\\tmp=a" },  { "cn;lang-en=Jim" }, { "@cn=Jim" }, { "_name_=Jim" },
+        { "\u03c0=pi" },  { "v1.0=buggy" }, { "1.=buggy" }, { ".1=buggy" },
+        { "oid.1." }, { "1.3.6.1.4.1.1466..0=#04024869" },
+        { "cn=#a" }, { "cn=#ag" }, { "cn=#ga" }, { "cn=#abcdefgh" },
+        { "cn=a\\b" }, { "cn=a\\bg" }, { "cn=\"hello" } };
   }
 
 
@@ -162,23 +174,9 @@ public class TestDN extends TypesTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(expectedExceptions = { NullPointerException.class,
-      AssertionError.class })
-  public void testCreateNPE() throws Exception {
-    DN.create((RDN[]) null);
-  }
-
-
-
-  /**
-   * Tests the create method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
   @Test
   public void testCreateNullDN1() throws Exception {
-    DN dn = DN.create(new RDN[0]);
+    DN dn = new DN(new RDN[0]);
 
     assertEquals(dn, DN.nullDN());
   }
@@ -193,7 +191,37 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testCreateNullDN2() throws Exception {
-    DN dn = DN.create();
+    DN dn = new DN();
+
+    assertEquals(dn, DN.nullDN());
+  }
+
+
+
+  /**
+   * Tests the create method.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testCreateNullDN3() throws Exception {
+    DN dn = new DN((RDN[]) null);
+
+    assertEquals(dn, DN.nullDN());
+  }
+
+
+
+  /**
+   * Tests the create method.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testCreateNullDN4() throws Exception {
+    DN dn = new DN((ArrayList<RDN>) null);
 
     assertEquals(dn, DN.nullDN());
   }
@@ -208,22 +236,7 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testCreateWithSingleRDN1() throws Exception {
-    DN dn = DN.create(new RDN[] { RDN.decode("dc=com") });
-
-    assertEquals(dn, DN.decode("dc=com"));
-  }
-
-
-
-  /**
-   * Tests the create method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testCreateWithSingleRDN2() throws Exception {
-    DN dn = DN.create(RDN.decode("dc=com"));
+    DN dn = new DN(new RDN[] { RDN.decode("dc=com") });
 
     assertEquals(dn, DN.decode("dc=com"));
   }
@@ -238,7 +251,7 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testCreateWithMultipleRDNs1() throws Exception {
-    DN dn = DN.create(new RDN[] { RDN.decode("dc=foo"),
+    DN dn = new DN(new RDN[] { RDN.decode("dc=foo"),
         RDN.decode("dc=opends"), RDN.decode("dc=org") });
 
     assertEquals(dn, DN.decode("dc=foo,dc=opends,dc=org"));
@@ -254,8 +267,11 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testCreateWithMultipleRDNs2() throws Exception {
-    DN dn = DN.create(RDN.decode("dc=foo"), RDN.decode("dc=opends"),
-        RDN.decode("dc=org"));
+    ArrayList<RDN> rdnList = new ArrayList<RDN>();
+    rdnList.add(RDN.decode("dc=foo"));
+    rdnList.add(RDN.decode("dc=opends"));
+    rdnList.add(RDN.decode("dc=org"));
+    DN dn = new DN(rdnList);
 
     assertEquals(dn, DN.decode("dc=foo,dc=opends,dc=org"));
   }
@@ -309,23 +325,32 @@ public class TestDN extends TypesTestCase {
 
 
   /**
-   * Tests the <CODE>valueOf</CODE> method which takes a String
-   * argument.
+   * Tests the toNoramlizedString methods.
    *
-   * @param rawDN
-   *          Raw DN string representation.
-   * @param normDN
-   *          Normalized DN string representation.
-   * @param stringDN
-   *          String representation.
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(dataProvider = "testDNs")
-  public void testValueOf(String rawDN, String normDN, String stringDN)
-      throws Exception {
-    DN dn = DN.valueOf(rawDN);
-    assertEquals(dn.toNormalizedString(), normDN);
+  public void testToNormalizedString() throws Exception {
+    DN dn = DN.decode("dc=example,dc=com");
+
+    StringBuilder buffer = new StringBuilder();
+    dn.toNormalizedString(buffer);
+    assertEquals(buffer.toString(), "dc=example,dc=com");
+
+    assertEquals(dn.toNormalizedString(), "dc=example,dc=com");
+  }
+
+
+
+  /**
+   * Tests both variants of the {@code decode} method with null arguments.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  public void testDecodeNull() throws Exception {
+    assertEquals(DN.decode((ByteString) null), DN.nullDN());
+    assertEquals(DN.decode((String) null), DN.nullDN());
   }
 
 
@@ -371,32 +396,6 @@ public class TestDN extends TypesTestCase {
 
     try {
       DN.decode(octetString);
-    } catch (DirectoryException e) {
-      throw e;
-    } catch (Exception e) {
-      System.out.println("Illegal DN <" + dn
-          + "> threw the wrong type of exception");
-      throw e;
-    }
-
-    throw new RuntimeException("Illegal DN <" + dn
-        + "> did not throw an exception");
-  }
-
-
-
-  /**
-   * Test that decoding an illegal DN as a String throws an exception.
-   *
-   * @param dn
-   *          The illegal DN to be tested.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "illegalDNs", expectedExceptions = DirectoryException.class)
-  public void testIllegalValueOf(String dn) throws Exception {
-    try {
-      DN.valueOf(dn);
     } catch (DirectoryException e) {
       throw e;
     } catch (Exception e) {
@@ -530,6 +529,50 @@ public class TestDN extends TypesTestCase {
 
 
   /**
+   * Retrieves the naming contexts defined in the server.
+   */
+  @DataProvider(name = "namingContexts")
+  public Object[][] getNamingContexts() {
+    ArrayList<DN> contextList = new ArrayList<DN>();
+    for (DN baseDN : DirectoryServer.getPublicNamingContexts().keySet())
+    {
+      contextList.add(baseDN);
+    }
+
+    for (DN baseDN : DirectoryServer.getPrivateNamingContexts().keySet())
+    {
+      contextList.add(baseDN);
+    }
+
+    Object[][] contextArray = new Object[contextList.size()][1];
+    for (int i=0; i < contextArray.length; i++)
+    {
+      contextArray[i][0] = contextList.get(i);
+    }
+
+    return contextArray;
+  }
+
+
+
+  /**
+   * Tests the getParentDNInSuffix method.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test(dataProvider = "namingContexts")
+  public void testGetParentDNInSuffix(DN namingContext) throws Exception {
+    assertNull(namingContext.getParentDNInSuffix());
+
+    DN childDN = namingContext.concat(RDN.decode("ou=People"));
+    assertNotNull(childDN.getParentDNInSuffix());
+    assertEquals(childDN.getParentDNInSuffix(), namingContext);
+  }
+
+
+
+  /**
    * Test the getParent method's interaction with other methods.
    *
    * @throws Exception
@@ -574,9 +617,6 @@ public class TestDN extends TypesTestCase {
     assertEquals(p.concat(RDN.decode("dc=foo")), c);
     assertEquals(p.concat(DN.decode("dc=xxx,dc=foo")), DN
         .decode("dc=xxx,dc=foo,dc=bar,dc=opends,dc=org"));
-
-    assertEquals(p.getLocalName(1), DN.decode("dc=bar,dc=opends"));
-    assertEquals(p.getLocalName(0, 2), DN.decode("dc=opends,dc=org"));
   }
 
 
@@ -791,10 +831,6 @@ public class TestDN extends TypesTestCase {
         .decode("dc=xxx,dc=foo,dc=bar,dc=opends,dc=org"));
     assertEquals(c.concat(DN.decode("dc=xxx,dc=yyy")), DN
         .decode("dc=xxx,dc=yyy,dc=foo,dc=bar,dc=opends,dc=org"));
-
-    assertEquals(c.getLocalName(1), DN
-        .decode("dc=foo,dc=bar,dc=opends"));
-    assertEquals(c.getLocalName(1, 3), DN.decode("dc=bar,dc=opends"));
   }
 
 
@@ -833,21 +869,6 @@ public class TestDN extends TypesTestCase {
     DN expected = DN.decode(e);
 
     assertEquals(dn.concat(rdn), expected);
-  }
-
-
-
-  /**
-   * Test the concat(RDN...) method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testConcatRDNNoOp() throws Exception {
-    DN dn = DN.decode("dc=opends,dc=org");
-
-    assertEquals(dn.concat(), dn);
   }
 
 
@@ -898,52 +919,6 @@ public class TestDN extends TypesTestCase {
 
 
   /**
-   * Test the concat(RDN[]...) method.
-   *
-   * @param s
-   *          The test DN string.
-   * @param l
-   *          The local name to be appended.
-   * @param e
-   *          The expected DN.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "createConcatDNTestData")
-  public void testConcatRDNSequence2(String s, String l, String e)
-      throws Exception {
-    DN dn = DN.decode(s);
-    DN localName = DN.decode(l);
-    DN expected = DN.decode(e);
-
-    // Construct sequence.
-    DN actual = null;
-    switch (localName.getNumComponents()) {
-    case 0:
-      actual = dn.concat();
-      break;
-    case 1:
-      actual = dn.concat(localName.getRDN(0));
-      break;
-    case 2:
-      actual = dn.concat(localName.getRDN(0), localName.getRDN(1));
-      break;
-    case 3:
-      actual = dn.concat(localName.getRDN(0), localName.getRDN(1),
-          localName.getRDN(2));
-      break;
-    case 4:
-      actual = dn.concat(localName.getRDN(0), localName.getRDN(1),
-          localName.getRDN(3), localName.getRDN(3));
-      break;
-    }
-
-    assertEquals(actual, expected);
-  }
-
-
-
-  /**
    * Get local name test data provider.
    *
    * @return The array of test data.
@@ -981,86 +956,6 @@ public class TestDN extends TypesTestCase {
         { "dc=foo,dc=opends,dc=org", 2, 2, "" },
         { "dc=foo,dc=opends,dc=org", 2, 3, "dc=foo" },
         { "dc=foo,dc=opends,dc=org", 3, 3, "" }, };
-  }
-
-
-
-  /**
-   * Test the getLocalName methods.
-   *
-   * @param s
-   *          The test DN string.
-   * @param beginIndex
-   *          The index of the uppermost RDN.
-   * @param endIndex
-   *          The index of the lowest RDN or -1 if there is no end
-   *          index.
-   * @param e
-   *          The expected result.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "createGetLocalNameTestData")
-  public void testGetLocalName(String s, int beginIndex,
-      int endIndex, String e) throws Exception {
-    DN dn = DN.decode(s);
-    DN expected = DN.decode(e);
-
-    if (endIndex < 0) {
-      assertEquals(dn.getLocalName(beginIndex), expected);
-    } else {
-      assertEquals(dn.getLocalName(beginIndex, endIndex), expected);
-    }
-  }
-
-
-
-  /**
-   * Test the getLocalName method's interaction with other methods.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testGetLocalNameInteraction() throws Exception {
-    DN p = DN.decode("dc=foo,dc=bar,dc=opends,dc=org");
-    DN e = DN.decode("dc=bar,dc=opends");
-    DN l = p.getLocalName(1, 3);
-
-    assertFalse(l.isNullDN());
-
-    assertEquals(l.getNumComponents(), 2);
-
-    assertEquals(l.compareTo(e), 0);
-    assertEquals(e.compareTo(l), 0);
-
-    assertTrue(l.isAncestorOf(DN.decode("dc=foo,dc=bar,dc=opends")));
-    assertFalse(DN.decode("dc=foo,dc=bar,dc=opends").isAncestorOf(l));
-
-    assertTrue(l.isDescendantOf(DN.decode("dc=opends")));
-    assertFalse(DN.decode("dc=opends").isDescendantOf(l));
-
-    assertEquals(l, e);
-    assertEquals(l.hashCode(), e.hashCode());
-
-    assertEquals(l.toNormalizedString(), e.toNormalizedString());
-    assertEquals(l.toString(), e.toString());
-
-    assertEquals(l.getRDN(), RDN.decode("dc=bar"));
-
-    assertEquals(l.getRDN(0), RDN.decode("dc=bar"));
-    assertEquals(l.getRDN(1), RDN.decode("dc=opends"));
-
-    assertEquals(l.getParent(), DN.decode("dc=opends"));
-    assertEquals(l.getParent(), e.getParent());
-
-    assertEquals(l.concat(RDN.decode("dc=xxx")), DN
-        .decode("dc=xxx,dc=bar,dc=opends"));
-    assertEquals(l.concat(DN.decode("dc=xxx,dc=yyy")), DN
-        .decode("dc=xxx,dc=yyy,dc=bar,dc=opends"));
-
-    assertEquals(l.getLocalName(1), DN.decode("dc=bar"));
-    assertEquals(l.getLocalName(0, 1), DN.decode("dc=opends"));
   }
 
 
@@ -1244,7 +1139,8 @@ public class TestDN extends TypesTestCase {
         { "dc=aaa,dc=ccc", "dc=bbb", 1 },
         { "dc=bbb,dc=ccc", "dc=bbb", 1 },
         { "dc=ccc,dc=ccc", "dc=bbb", 1 },
-
+        { "", "dc=bbb", -1 },
+        { "dc=bbb", "", 1 }
     };
   }
 
@@ -1275,6 +1171,21 @@ public class TestDN extends TypesTestCase {
       assertFalse(dn1.equals(dn2), "DN equality for <" + first
           + "> and <" + second + ">");
     }
+  }
+
+
+
+  /**
+   * Tests the equals method with a value that's not a DN.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testEqualsNonDN() throws Exception {
+    DN dn = DN.decode("dc=example,dc=com");
+
+    assertFalse(dn.equals("not a DN"));
   }
 
 
@@ -1366,5 +1277,5 @@ public class TestDN extends TypesTestCase {
     DN dn = DN.decode(rawDN);
     assertEquals(dn.toString(), stringDN);
   }
-
 }
+

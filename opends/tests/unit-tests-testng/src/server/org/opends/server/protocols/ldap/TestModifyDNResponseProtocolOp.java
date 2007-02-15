@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -84,8 +84,9 @@ public class TestModifyDNResponseProtocolOp
 
     AttributeValue attributeValue = new AttributeValue(attribute, "testValue");
 
-    RDN rdn = RDN.create(attribute, attributeValue);
-    dn = DN.create(rdn);
+    RDN[] rdns = new RDN[1];
+    rdns[0] = RDN.create(attribute, attributeValue);
+    dn = new DN(rdns);
   }
 
   /**

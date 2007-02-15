@@ -22,11 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
 
+
+import java.util.ArrayList;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -93,113 +95,6 @@ public final class TestRDN extends TypesTestCase {
 
 
 
-  // First test the constructors.
-
-  /**
-   * Check the constructor throws a NPE when parameters are not
-   * provided.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(expectedExceptions = { NullPointerException.class,
-      AssertionError.class })
-  public void testConstructorNPE1() throws Exception {
-    RDN.create(AT_DC, null);
-  }
-
-
-
-  /**
-   * Check the constructor throws a NPE when parameters are not
-   * provided.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(expectedExceptions = { NullPointerException.class,
-      AssertionError.class })
-  public void testConstructorNPE2() throws Exception {
-    RDN.create(null, AV_DC_ORG);
-  }
-
-
-
-  /**
-   * Check the constructor throws a NPE when parameters are not
-   * provided.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(expectedExceptions = { NullPointerException.class,
-      AssertionError.class })
-  public void testConstructorNPE3() throws Exception {
-    RDN.create(AT_DC, "dc", null);
-  }
-
-
-
-  /**
-   * Check the constructor throws a NPE when parameters are not
-   * provided.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(expectedExceptions = { NullPointerException.class,
-      AssertionError.class })
-  public void testConstructorNPE4() throws Exception {
-    RDN.create(AT_DC, null, AV_DC_ORG);
-  }
-
-
-
-  /**
-   * Check the constructor throws a NPE when parameters are not
-   * provided.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(expectedExceptions = { NullPointerException.class,
-      AssertionError.class })
-  public void testConstructorNPE5() throws Exception {
-    RDN.create(null, "dc", AV_DC_ORG);
-  }
-
-
-
-  /**
-   * Check the decode method throws a NPE when parameters are not
-   * provided.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(expectedExceptions = { NullPointerException.class,
-      AssertionError.class })
-  public void testDecodeNPE() throws Exception {
-    RDN.decode((String) null);
-  }
-
-
-
-  /**
-   * Check the valueOf method throws a NPE when parameters are not
-   * provided.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(expectedExceptions = { NullPointerException.class,
-      AssertionError.class })
-  public void testValueOfNPE() throws Exception {
-    RDN.valueOf(null);
-  }
-
-
-
   /**
    * Test RDN construction with single AVA.
    *
@@ -208,7 +103,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testConstructor() throws Exception {
-    RDN rdn = RDN.create(AT_DC, AV_DC_ORG);
+    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
 
     assertEquals(rdn.getNumValues(), 1);
     assertEquals(rdn.getAttributeType(0), AT_DC);
@@ -226,7 +121,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testConstructorWithName() throws Exception {
-    RDN rdn = RDN.create(AT_DC, "domainComponent", AV_DC_ORG);
+    RDN rdn = new RDN(AT_DC, "domainComponent", AV_DC_ORG);
 
     assertEquals(rdn.getNumValues(), 1);
     assertEquals(rdn.getAttributeType(0), AT_DC);
@@ -237,103 +132,54 @@ public final class TestRDN extends TypesTestCase {
 
 
   /**
-   * Test RDN builder.
+   * Test RDN construction with a multiple AVA elements.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
-  public void testBuilder() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
+  public void testConstructorMultiAVA() throws Exception {
+    AttributeType[]  attrTypes  = { AT_DC, AT_CN };
+    String[]         attrNames  = { AT_DC.getNameOrOID(),
+                                    AT_CN.getNameOrOID() };
+    AttributeValue[] attrValues = { AV_DC_ORG, AV_CN };
 
-    builder.append(AT_DC, AV_DC_ORG);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(attrTypes, attrNames, attrValues);
 
-    assertEquals(rdn.getNumValues(), 1);
+    assertEquals(rdn.getNumValues(), 2);
+
     assertEquals(rdn.getAttributeType(0), AT_DC);
     assertEquals(rdn.getAttributeName(0), AT_DC.getNameOrOID());
     assertEquals(rdn.getAttributeValue(0), AV_DC_ORG);
+
+    assertEquals(rdn.getAttributeType(1), AT_CN);
+    assertEquals(rdn.getAttributeName(1), AT_CN.getNameOrOID());
+    assertEquals(rdn.getAttributeValue(1), AV_CN);
   }
 
 
 
   /**
-   * Test RDN builder.
+   * Test RDN construction with a multiple AVA elements.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
-  public void testBuilderWithName() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
+  public void testConstructorMultiAVAList() throws Exception {
+    ArrayList<AttributeType>  typeList  = new ArrayList<AttributeType>();
+    ArrayList<String>         nameList  = new ArrayList<String>();
+    ArrayList<AttributeValue> valueList = new ArrayList<AttributeValue>();
 
-    builder.append(AT_DC, "domainComponent", AV_DC_ORG);
-    RDN rdn = builder.getInstance();
+    typeList.add(AT_DC);
+    nameList.add(AT_DC.getNameOrOID());
+    valueList.add(AV_DC_ORG);
 
-    assertEquals(rdn.getNumValues(), 1);
-    assertEquals(rdn.getAttributeType(0), AT_DC);
-    assertEquals(rdn.getAttributeName(0), "domainComponent");
-    assertEquals(rdn.getAttributeValue(0), AV_DC_ORG);
-  }
+    typeList.add(AT_CN);
+    nameList.add(AT_CN.getNameOrOID());
+    valueList.add(AV_CN);
 
-
-
-  /**
-   * Test RDN builder.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testBuilderIsEmpty() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
-
-    assertTrue(builder.isEmpty());
-
-    builder.append(AT_DC, AV_DC_ORG);
-
-    assertFalse(builder.isEmpty());
-
-    builder.getInstance();
-
-    assertFalse(builder.isEmpty());
-
-    builder.clear();
-
-    assertTrue(builder.isEmpty());
-  }
-
-
-
-  /**
-   * Test RDN builder.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void testBuilderDupesNotAllowed() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
-
-    builder.append(AT_DC, AV_DC_ORG);
-    builder.append(AT_DC, AV_DC_OPENDS);
-  }
-
-
-
-  /**
-   * Test RDN builder.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testBuilderMultiAVA() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
-
-    builder.append(AT_DC, AV_DC_ORG);
-    builder.append(AT_CN, AV_CN);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(typeList, nameList, valueList);
 
     assertEquals(rdn.getNumValues(), 2);
 
@@ -357,6 +203,11 @@ public final class TestRDN extends TypesTestCase {
   public Object[][] createData() {
     return new Object[][] {
         { "dc=hello world", "dc=hello world", "dc=hello world" },
+        { "dc =hello world", "dc=hello world", "dc=hello world" },
+        { "dc  =hello world", "dc=hello world", "dc=hello world" },
+        { "dc= hello world", "dc=hello world", "dc=hello world" },
+        { "dc=  hello world", "dc=hello world", "dc=hello world" },
+        { "undefined=hello", "undefined=hello", "undefined=hello" },
         { "DC=HELLO WORLD", "dc=hello world", "DC=HELLO WORLD" },
         { "dc = hello    world", "dc=hello world",
             "dc=hello    world" },
@@ -417,61 +268,20 @@ public final class TestRDN extends TypesTestCase {
 
 
   /**
-   * Test RDN byte string decoder.
-   *
-   * @param rawRDN
-   *          Raw RDN string representation.
-   * @param normRDN
-   *          Normalized RDN string representation.
-   * @param stringRDN
-   *          String representation.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "testRDNs")
-  public void testDecodeByteString(String rawRDN, String normRDN,
-      String stringRDN) throws Exception {
-    ASN1OctetString octetString = new ASN1OctetString(rawRDN);
-    RDN rdn = RDN.decode(octetString);
-    assertEquals(rdn.toNormalizedString(), normRDN);
-  }
-
-
-
-  /**
-   * Test valueOf.
-   *
-   * @param rawRDN
-   *          Raw RDN string representation.
-   * @param normRDN
-   *          Normalized RDN string representation.
-   * @param stringRDN
-   *          String representation.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "testRDNs")
-  public void testValueOf(String rawRDN, String normRDN,
-      String stringRDN) throws Exception {
-    RDN rdn = RDN.valueOf(rawRDN);
-    assertEquals(rdn.toNormalizedString(), normRDN);
-  }
-
-
-
-  /**
    * Illegal RDN test data provider.
    *
    * @return The array of illegal test RDN strings.
    */
   @DataProvider(name = "illegalRDNs")
   public Object[][] createIllegalData() {
-    return new Object[][] { { "" }, { "=" }, { "manager" },
-        { "manager " }, { "cn+Jim" }, { "cn=Jim+" }, { "cn=Jim+sn" },
-        { "cn=Jim," }, { "cn=Jim,  " }, { "cn=Jim, sn=Jam " },
-        { "cn+uid=Jim" }, { "-cn=Jim" }, { "/tmp=a" }, { "\\tmp=a" },
-        { "cn;lang-en=Jim" }, { "@cn=Jim" }, { "_name_=Jim" },
-        { "\u03c0=pi" }, { "v1.0=buggy" },
+    return new Object[][] { { null }, { "" }, { " " }, { "=" }, { "manager" },
+        { "manager " }, { "cn+"}, { "cn+Jim" }, { "cn=Jim+" }, { "cn=Jim +" },
+        { "cn=Jim+ " }, { "cn=Jim+sn" }, { "cn=Jim+sn " },
+        { "cn=Jim+sn equals" }, { "cn=Jim," }, { "cn=Jim;" }, { "cn=Jim,  " },
+        { "cn=Jim+sn=a," }, { "cn=Jim, sn=Jam " }, { "cn+uid=Jim" },
+        { "-cn=Jim" }, { "/tmp=a" }, { "\\tmp=a" }, { "cn;lang-en=Jim" },
+        { "@cn=Jim" }, { "_name_=Jim" }, { "\u03c0=pi" }, { "v1.0=buggy" },
+        { "cn=Jim+sn=Bob++" }, { "cn=Jim+sn=Bob+," },
         { "1.3.6.1.4.1.1466..0=#04024869" }, };
   }
 
@@ -495,41 +305,6 @@ public final class TestRDN extends TypesTestCase {
 
 
   /**
-   * Test RDN byte string decoder against illegal strings.
-   *
-   * @param rawRDN
-   *          Illegal RDN string representation.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "illegalRDNs", expectedExceptions = DirectoryException.class)
-  public void testDecodeByteString(String rawRDN) throws Exception {
-    ASN1OctetString octetString = new ASN1OctetString(rawRDN);
-    RDN.decode(octetString);
-
-    fail("Expected exception for value \"" + rawRDN + "\"");
-  }
-
-
-
-  /**
-   * Test valueOf against illegal strings.
-   *
-   * @param rawRDN
-   *          Illegal RDN string representation.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "illegalRDNs", expectedExceptions = DirectoryException.class)
-  public void testValueOf(String rawRDN) throws Exception {
-    RDN.valueOf(rawRDN);
-
-    fail("Expected exception for value \"" + rawRDN + "\"");
-  }
-
-
-
-  /**
    * Test getAttributeName.
    *
    * @throws Exception
@@ -537,11 +312,12 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testGetAttributeName() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
+    AttributeType[]  attrTypes  = { AT_DC, AT_CN };
+    String[]         attrNames  = { AT_DC.getNameOrOID(),
+                                    AT_CN.getNameOrOID() };
+    AttributeValue[] attrValues = { AV_DC_ORG, AV_CN };
 
-    builder.append(AT_DC, AV_DC_ORG);
-    builder.append(AT_CN, AV_CN);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(attrTypes, attrNames, attrValues);
 
     assertEquals(rdn.getAttributeName(0), AT_DC.getNameOrOID());
     assertEquals(rdn.getAttributeName(1), AT_CN.getNameOrOID());
@@ -557,10 +333,8 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test(expectedExceptions = IndexOutOfBoundsException.class)
   public void testGetAttributeNameException() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
-
-    builder.append(AT_DC, AV_DC_ORG);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(new AttributeType[0], new String[0],
+                      new AttributeValue[0]);
 
     rdn.getAttributeName(1);
   }
@@ -575,11 +349,12 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testGetAttributeType() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
+    AttributeType[]  attrTypes  = { AT_DC, AT_CN };
+    String[]         attrNames  = { AT_DC.getNameOrOID(),
+                                    AT_CN.getNameOrOID() };
+    AttributeValue[] attrValues = { AV_DC_ORG, AV_CN };
 
-    builder.append(AT_DC, AV_DC_ORG);
-    builder.append(AT_CN, AV_CN);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(attrTypes, attrNames, attrValues);
 
     assertEquals(rdn.getAttributeType(0), AT_DC);
     assertEquals(rdn.getAttributeType(1), AT_CN);
@@ -595,10 +370,8 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test(expectedExceptions = IndexOutOfBoundsException.class)
   public void testGetAttributeTypeException() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
-
-    builder.append(AT_DC, AV_DC_ORG);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(new AttributeType[0], new String[0],
+                      new AttributeValue[0]);
 
     rdn.getAttributeType(1);
   }
@@ -613,11 +386,12 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testGetAttributeValue() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
+    AttributeType[]  attrTypes  = { AT_DC, AT_CN };
+    String[]         attrNames  = { AT_DC.getNameOrOID(),
+                                    AT_CN.getNameOrOID() };
+    AttributeValue[] attrValues = { AV_DC_ORG, AV_CN };
 
-    builder.append(AT_DC, AV_DC_ORG);
-    builder.append(AT_CN, AV_CN);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(attrTypes, attrNames, attrValues);
 
     assertEquals(rdn.getAttributeValue(0), AV_DC_ORG);
     assertEquals(rdn.getAttributeValue(1), AV_CN);
@@ -633,10 +407,8 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test(expectedExceptions = IndexOutOfBoundsException.class)
   public void testGetAttributeValueException() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
-
-    builder.append(AT_DC, AV_DC_ORG);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(new AttributeType[0], new String[0],
+                      new AttributeValue[0]);
 
     rdn.getAttributeValue(1);
   }
@@ -651,10 +423,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testGetAttributeValueByType() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
-
-    builder.append(AT_DC, AV_DC_ORG);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
 
     assertEquals(rdn.getAttributeValue(AT_DC), AV_DC_ORG);
     assertNull(rdn.getAttributeValue(AT_CN));
@@ -670,14 +439,10 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testGetNumValues() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
-
-    builder.append(AT_DC, AV_DC_ORG);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
     assertEquals(rdn.getNumValues(), 1);
 
-    builder.append(AT_CN, AV_CN);
-    rdn = builder.getInstance();
+    rdn.addValue(AT_CN, AT_CN.getNameOrOID(), AV_CN);
     assertEquals(rdn.getNumValues(), 2);
   }
 
@@ -690,13 +455,14 @@ public final class TestRDN extends TypesTestCase {
    *           If the test failed unexpectedly.
    */
   @Test
-  public void testHasAttributeType() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
-    builder.append(AT_DC, AV_DC_ORG);
-    RDN rdn = builder.getInstance();
+  public void testHasAttributeType1() throws Exception {
+    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
 
     assertTrue(rdn.hasAttributeType(AT_DC));
+    assertTrue(rdn.hasAttributeType("dc"));
+    assertTrue(rdn.hasAttributeType(AT_DC.getOID()));
     assertFalse(rdn.hasAttributeType(AT_CN));
+    assertFalse(rdn.hasAttributeType("cn"));
   }
 
 
@@ -709,15 +475,45 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testIsMultiValued() throws Exception {
-    RDN.Builder builder = RDN.createBuilder();
-
-    builder.append(AT_DC, AV_DC_ORG);
-    RDN rdn = builder.getInstance();
+    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
+    assertEquals(rdn.getNumValues(), 1);
     assertFalse(rdn.isMultiValued());
 
-    builder.append(AT_CN, AV_CN);
-    rdn = builder.getInstance();
+    rdn.addValue(AT_CN, AT_CN.getNameOrOID(), AV_CN);
     assertTrue(rdn.isMultiValued());
+  }
+
+
+
+  /**
+   * Tests hasValue.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testHasValue() throws Exception {
+    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
+    assertTrue(rdn.hasValue(AT_DC, AV_DC_ORG));
+    assertFalse(rdn.hasValue(AT_CN, AV_CN));
+
+    rdn.addValue(AT_CN, AT_CN.getNameOrOID(), AV_CN);
+    assertTrue(rdn.hasValue(AT_DC, AV_DC_ORG));
+    assertTrue(rdn.hasValue(AT_CN, AV_CN));
+  }
+
+
+
+  /**
+   * Tests addValue with a duplicate value.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testAddDuplicateValue() throws Exception {
+    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
+    assertFalse(rdn.addValue(AT_DC, AT_DC.getNameOrOID(), AV_DC_ORG));
   }
 
 
@@ -744,6 +540,44 @@ public final class TestRDN extends TypesTestCase {
 
 
   /**
+   * Tests the duplicate method with a single-valued RDN.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testDuplicateSingle() {
+    RDN rdn1 = new RDN(AT_DC, AV_DC_ORG);
+    RDN rdn2 = rdn1.duplicate();
+
+    assertFalse(rdn1 == rdn2);
+    assertEquals(rdn1, rdn2);
+  }
+
+
+
+  /**
+   * Tests the duplicate method with a multivalued RDN.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testDuplicateMultiValued() {
+    AttributeType[]  types  = new AttributeType[] { AT_DC, AT_CN };
+    String[]         names  = new String[] { "dc", "cn" };
+    AttributeValue[] values = new AttributeValue[] { AV_DC_ORG, AV_CN };
+
+    RDN rdn1 = new RDN(types, names, values);
+    RDN rdn2 = rdn1.duplicate();
+
+    assertFalse(rdn1 == rdn2);
+    assertEquals(rdn1, rdn2);
+  }
+
+
+
+  /**
    * RDN equality test data provider.
    *
    * @return The array of test RDN strings.
@@ -758,6 +592,13 @@ public final class TestRDN extends TypesTestCase {
         { "cn=hello world\\ ", "cn=hello world", 0 },
         { "cn=HELLO WORLD", "cn=hello world", 0 },
         { "cn=HELLO+sn=WORLD", "sn=world+cn=hello", 0 },
+        { "cn=HELLO+sn=WORLD", "cn=hello+sn=nurse", 1 },
+        { "cn=HELLO+sn=WORLD", "cn=howdy+sn=yall", -1 },
+        { "cn=hello", "cn=hello+sn=world", -1 },
+        { "cn=hello+sn=world", "cn=hello", 1 },
+        { "cn=hello+sn=world", "cn=hello+description=world", 1 },
+        { "cn=hello", "sn=world", -1 },
+        { "sn=hello", "cn=world", 1 },
         { "x-test-integer-type=10", "x-test-integer-type=9", 1 },
         { "x-test-integer-type=999", "x-test-integer-type=1000", -1 },
         { "x-test-integer-type=-1", "x-test-integer-type=0", -1 },
@@ -866,4 +707,34 @@ public final class TestRDN extends TypesTestCase {
         + second + ">.");
   }
 
+
+
+  /**
+   * Tests the equals method with a null argument.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testEqualityNull() {
+    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
+
+    assertFalse(rdn.equals(null));
+  }
+
+
+
+  /**
+   * Tests the equals method with a non-RDN argument.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testEqualityNonRDN() {
+    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
+
+    assertFalse(rdn.equals("this isn't an RDN"));
+  }
 }
+
