@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
 
@@ -148,29 +148,50 @@ public class TemplateEntry
 
 
   /**
-   * Retrieves teh DN for this template entry, if it is known.
+   * Retrieves the DN for this template entry, if it is known.
    *
    * @return  The DN for this template entry if it is known, or
    *          <CODE>null</CODE> if it cannot yet be determined.
    */
   public DN getDN()
   {
-    if (dn == null) {
-      RDN.Builder builder = RDN.createBuilder();
-
-      for (AttributeType type : template.getRDNAttributes()) {
-        TemplateValue v = getValue(type);
-        if (v == null) {
+    if (dn == null)
+    {
+      RDN rdn;
+      AttributeType[] rdnAttrs = template.getRDNAttributes();
+      if (rdnAttrs.length == 1)
+      {
+        AttributeType t = rdnAttrs[0];
+        TemplateValue v = getValue(t);
+        if (v == null)
+        {
           return null;
         }
 
-        AttributeValue value = new AttributeValue(type,
-            v.getValue().toString());
+        AttributeValue value = new AttributeValue(t, v.getValue().toString());
+        rdn = new RDN(t, value);
+      }
+      else
+      {
+        String[]         names  = new String[rdnAttrs.length];
+        AttributeValue[] values = new AttributeValue[rdnAttrs.length];
+        for (int i=0; i < rdnAttrs.length; i++)
+        {
+          AttributeType t = rdnAttrs[i];
+          TemplateValue v = getValue(t);
+          if (v == null)
+          {
+            return null;
+          }
 
-        builder.append(type, value);
+          names[i]  = t.getPrimaryName();
+          values[i] = new AttributeValue(t, v.getValue().toString());
+        }
+
+        rdn = new RDN(rdnAttrs, names, values);
       }
 
-      dn = parentDN.concat(builder.getInstance());
+      dn = parentDN.concat(rdn);
     }
 
     return dn;

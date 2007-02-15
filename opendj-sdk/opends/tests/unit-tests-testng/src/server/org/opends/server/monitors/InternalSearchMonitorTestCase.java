@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -140,10 +140,11 @@ public class InternalSearchMonitorTestCase
          throws Exception
   {
     AttributeType cnType = DirectoryServer.getAttributeType(ATTR_COMMON_NAME);
-    
-    RDN rdn0 = RDN.create(cnType, new AttributeValue(cnType, monitorName));
-    RDN rdn1 = RDN.create(cnType, new AttributeValue(cnType, "monitor"));
-    DN monitorDN = DN.create(rdn0, rdn1);
+
+    RDN[] rdns = new RDN[2];
+    rdns[0] = RDN.create(cnType, new AttributeValue(cnType, monitorName));
+    rdns[1] = RDN.create(cnType, new AttributeValue(cnType, "monitor"));
+    DN monitorDN = new DN(rdns);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
