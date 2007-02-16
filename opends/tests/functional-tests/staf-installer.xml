@@ -339,7 +339,7 @@
         <expandproperties/>
       </filterchain>
     </copy>
-    <echo>Running tests. This will more than a while.</echo>
+    <echo>Running tests. This will take more than a while.</echo>
     <!--    <staf location="LOCAL"
           service="service"
           request="list services"
@@ -372,11 +372,13 @@
     </copy>
     <delete dir="${staf.home}/logs" />
     <echo>Saving report</echo>
-    <copy todir="${tests.run.dir}/${tests.run.time}/report">
+    <move todir="${tests.run.dir}/${tests.run.time}/report">
       <fileset dir="${staf.tmp.dir}">
         <include name="r*"/>
       </fileset>
-    </copy>
+    </move>
+    <delete dir="${staf.tmp.dir}/${product.name}"/>
+    <delete file="${staf.tmp.dir}/${product.name}.zip"/>
   </target>
   
   <target name="run-daily" depends="status-do,download-daily">
