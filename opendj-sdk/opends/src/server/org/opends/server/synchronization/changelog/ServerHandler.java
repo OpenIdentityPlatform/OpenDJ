@@ -72,9 +72,9 @@ public class ServerHandler extends MonitorProvider
 {
   private short serverId;
   private ProtocolSession session;
-  private MsgQueue msgQueue = new MsgQueue();
+  private final MsgQueue msgQueue = new MsgQueue();
   private MsgQueue lateQueue = new MsgQueue();
-  private Map<ChangeNumber, AckMessageList> waitingAcks  =
+  private final Map<ChangeNumber, AckMessageList> waitingAcks  =
           new HashMap<ChangeNumber, AckMessageList>();
   private ChangelogCache changelogCache = null;
   private String serverURL;
@@ -120,7 +120,7 @@ public class ServerHandler extends MonitorProvider
    */
   HeartbeatThread heartbeatThread = null;
 
-  private static Map<ChangeNumber, ChangelogAckMessageList>
+  private static final Map<ChangeNumber, ChangelogAckMessageList>
    changelogsWaitingAcks = new HashMap<ChangeNumber, ChangelogAckMessageList>();
 
   /**
@@ -453,37 +453,31 @@ public class ServerHandler extends MonitorProvider
   {
     synchronized (msgQueue)
     {
-      if (msgQueue == null)
-        return true;
+      int queueSize = msgQueue.size();
+      if ((maxReceiveQueue > 0) && (queueSize >= restartReceiveQueue))
+        return false;
+      if ((source != null) && (source.maxSendQueue > 0) &&
+           (queueSize >= source.restartSendQueue))
+        return false;
 
-      synchronized (msgQueue)
+      if (!msgQueue.isEmpty())
       {
-        int queueSize = msgQueue.size();
-        if ((maxReceiveQueue > 0) && (queueSize >= restartReceiveQueue))
-          return false;
-        if ((source != null) && (source.maxSendQueue > 0) &&
-            (queueSize >= source.restartSendQueue))
-          return false;
+        UpdateMessage firstUpdate = msgQueue.first();
+        UpdateMessage lastUpdate = msgQueue.last();
 
-        if (!msgQueue.isEmpty())
+        if ((firstUpdate != null) && (lastUpdate != null))
         {
-          UpdateMessage firstUpdate = msgQueue.first();
-          UpdateMessage lastUpdate = msgQueue.last();
-
-          if ((firstUpdate != null) && (lastUpdate != null))
-          {
-            long timeDiff = lastUpdate.getChangeNumber().getTimeSec() -
-            firstUpdate.getChangeNumber().getTimeSec();
-            if ((maxReceiveDelay > 0) && (timeDiff >= restartReceiveDelay))
-              return false;
-            if ((source != null) && (source.maxSendDelay > 0)
-                && (timeDiff >= source.restartSendDelay))
-              return false;
-          }
+          long timeDiff = lastUpdate.getChangeNumber().getTimeSec() -
+               firstUpdate.getChangeNumber().getTimeSec();
+          if ((maxReceiveDelay > 0) && (timeDiff >= restartReceiveDelay))
+            return false;
+          if ((source != null) && (source.maxSendDelay > 0)
+               && (timeDiff >= source.restartSendDelay))
+            return false;
         }
       }
-      return true;
     }
+    return true;
   }
 
   /**
