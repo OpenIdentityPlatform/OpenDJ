@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="sasl_plain"/>
+
+  <function name="sasl_plain">
+      <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             SASL PLAIN Tests
+            #@TestSuitePurpose          Test the SASL PLAIN functionality.
+            #@TestSuiteGroup            SASL PLAIN Tests
+            #@TestScript                security_sasl_plain.xml
+      -->
+      <sequence>
+
+        <!--- Test case: PLAIN SASL Mechanism -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL PLAIN Tests
+            #@TestName                  SASL PLAIN Preamble
+            #@TestIssue                 353
+            #@TestPurpose               Prepare for SASL PLAIN tests.
+            #@TestPreamble              none
+            #@TestStep                  User change his password.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 
+                                        for all ldap operations.
+        -->
+        <testcase name="'Security: SASL PLAIN: Preamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL PLAIN: Preamble - Admin Changing User Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd5.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With PLAIN SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL PLAIN Tests
+            #@TestName                  uid (u:) Bind
+            #@TestIssue                 353
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN. 
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+        <testcase name="'Security: SASL PLAIN: User (u:) Binding'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL PLAIN: User Binding'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o authid=u:mmiller -w mothergoose' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With PLAIN SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL PLAIN Tests
+            #@TestName                  uid Bind
+            #@TestIssue                 353
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN. 
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+        <testcase name="'Security: SASL PLAIN: User Binding'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL PLAIN: User Binding'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o authid=mmiller -w mothergoose' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With PLAIN SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL PLAIN Tests
+            #@TestName                  uid (dn:) Bind
+            #@TestIssue                 353
+            #@TestPurpose               Test bind using a DN that has an authorization ID that could be mapped to a single DN. 
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+        <testcase name="'Security: SASL PLAIN: User (dn:) Binding'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL PLAIN: User Binding'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o "authid=dn:uid=mmiller,ou=People,o=SASL Tests,dc=example,dc=com" -w mothergoose' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With PLAIN SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL PLAIN Tests
+            #@TestName                  Dupe uid (u:) Bind
+            #@TestIssue                 353
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs. 
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
+        <testcase name="'Security: SASL PLAIN: User With Duplicate uid (u:) Binding'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL PLAIN: User Binding'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o authid=u:dmiller -w mothergoose' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With PLAIN SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL PLAIN Tests
+            #@TestName                  Dupe uid (dn:) Bind
+            #@TestIssue                 353
+            #@TestPurpose               Test bind using a DN that has an authorization ID that could be mapped to multiple DNs. 
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+        <testcase name="'Security: SASL PLAIN: User With Duplicate uid (dn:) Binding'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL PLAIN: User Binding'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o "authid=dn:uid=dmiller,ou=People,o=SASL Tests,dc=example,dc=com" -w mothergoose' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With PLAIN SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL PLAIN Tests
+            #@TestName                  Dupe uid Bind
+            #@TestIssue                 353
+            #@TestPurpose               Test bind using a DN that has an authorization ID that could be mapped to multiple DNs. 
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=[dn] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
+        <testcase name="'Security: SASL PLAIN: User With Duplicate uid Binding'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL PLAIN: User Binding'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o "authid=uid=dmiller,ou=People,o=SASL Tests,dc=example,dc=com" -w mothergoose' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test case: Admin creating realm -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL PLAIN Tests
+            #@TestName                  Create realm
+            #@TestIssue                 345
+            #@TestPurpose               Admin add realm to SASL PLAIN mechanism.
+            #@TestPreamble              none
+            #@TestStep                  ldapmodify used to add a realm.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
+        <testcase name="'Security: SASL PLAIN: Create Realm'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL PLAIN: Admin Creating Realm'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/sasl/admin_add_realm2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 65 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With PLAIN SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL PLAIN Tests
+            #@TestName                  uid (u:) Bind with realm
+            #@TestIssue                 1240
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN. Bind with realm.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+        <testcase name="'Security: SASL PLAIN: User (u:) Binding With Realm'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL PLAIN: User Binding'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o authid=u:mmiller -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w mothergoose' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 89 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test case: PLAIN SASL Mechanism -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL PLAIN Tests
+            #@TestName                  SASL PLAIN Postamble
+            #@TestIssue                 1240
+            #@TestPurpose               Reset configuration and entries.
+            #@TestPreamble              none
+            #@TestStep                  Admin change password storage scheme to SSHA.
+            #@TestStep                  Admin change user password.
+            #@TestStep                  User bind with simple authentication.
+            #@TestStep                  User bind with SASL PLAIN.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 
+                                        for all ldap operations.
+        -->
+        <testcase name="'Security: SASL PLAIN: Postamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL PLAIN: Postamble Step 1 - Admin Changing User Password'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd6.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: SASL PLAIN: Postamble Step 2 - User (dn:) Binding With Simple Authentication'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mmiller,ou=People,o=SASL Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'fathergoose' ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'Security: SASL PLAIN: Postamble Step 3 - User (dn:) Binding With SASL PLAIN Mechanism'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o "authid=dn:uid=mmiller,ou=People,o=SASL Tests,dc=example,dc=com" -w fathergoose' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+              
+          </sequence>
+        </testcase>
+
+     </sequence>
+
+  </function>
+
+</stax>
+
