@@ -1,20 +1,30 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
-<web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd" version="2.4">
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4">
 
-    <servlet>
-        <servlet-name>DSMLServlet</servlet-name>
-        <servlet-class>org.opends.dsml.protocol.DSMLServlet</servlet-class>
-        <init-param>
-          <param-name>config-file</param-name>
-          <param-value>/server.properties</param-value>
-        </init-param>
-    </servlet>
+  <context-param>
+    <description>The hostname or IP address of the OpenDS server; e.g., localhost</description>
+    <param-name>ldap.host</param-name>
+    <param-value>localhost</param-value>
+  </context-param>
+  
+  <context-param>
+    <description>The port number of the OpenDS server; e.g., 389</description>
+    <param-name>ldap.port</param-name>
+    <param-value>389</param-value>
+  </context-param>
 
-    <servlet-mapping>
-        <servlet-name>DSMLServlet</servlet-name>
-        <url-pattern>/DSMLServlet</url-pattern>
-    </servlet-mapping>
+  <servlet>
+    <servlet-name>DSMLServlet</servlet-name>
+    <servlet-class>org.opends.dsml.protocol.DSMLServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>DSMLServlet</servlet-name>
+    <url-pattern>/DSMLServlet</url-pattern>
+  </servlet-mapping>
 
 </web-app>
 
