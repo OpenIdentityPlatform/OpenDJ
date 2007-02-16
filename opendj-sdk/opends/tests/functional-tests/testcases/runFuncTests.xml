@@ -62,8 +62,8 @@
         DSTFILE = '%s/%s' % (TMPDIR,ZIPNAME) 
         OPENDS_BINPATH = '%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) 
         OSName= STAXResult
-        winPattern=re.compile('win*', re.IGNORECASE)
-        isWindows=winPattern.match(OSName)
+        winPattern=re.compile('win', re.IGNORECASE)
+        isWindows=winPattern.search(OSName)
         if isWindows:
           fileExt='.bat'
         else:
