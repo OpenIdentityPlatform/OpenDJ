@@ -78,6 +78,10 @@
         <call function="'sasl_anon'" />
 
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          file="'%s/testcases/security/sasl/security_sasl_plain.xml' % (TESTS_DIR)"/>
+        <call function="'sasl_plain'" />
+
+        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/testcases/security/sasl/security_sasl_cram-md5.xml' % (TESTS_DIR)"/>
         <call function="'sasl_cram-md5'" />
 
