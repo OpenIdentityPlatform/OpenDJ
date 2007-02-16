@@ -224,10 +224,10 @@ public class LDAPSearch
                         out.println(getMessage(msgID));
                         if (acrc.getSecondsBeforeExpiration() > 0)
                         {
-                          int    timeToExp    = acrc.getSecondsBeforeExpiration();
+                          int timeToExp = acrc.getSecondsBeforeExpiration();
                           String timeToExpStr = secondsToTimeString(timeToExp);
                           msgID =
-                               MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION;
+                             MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION;
                           out.println(getMessage(msgID, timeToExpStr));
                         }
                       }
@@ -266,7 +266,8 @@ public class LDAPSearch
                             int timeToUnlock = acrc.getSecondsBeforeUnlock();
                             String timeToUnlockStr =
                                         secondsToTimeString(timeToUnlock);
-                            msgID = MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK;
+                            msgID =
+                                 MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK;
                             out.println(getMessage(msgID, timeToUnlockStr));
                           }
                         }

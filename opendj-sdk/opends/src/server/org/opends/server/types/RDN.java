@@ -141,11 +141,11 @@ public class RDN
    *                          It must not be empty or {@code null}.
    * @param  attributeNames   The set of user-provided names for this
    *                          RDN.  It must have the same number of
-   *                          elements as the {@attributeTypes}
+   *                          elements as the {@code attributeTypes}
    *                          argument.
    * @param  attributeValues  The set of values for this RDN.  It must
    *                          have the same number of elements as the
-   *                          {@attributeTypes} argument.
+   *                          {@code attributeTypes} argument.
    */
   public RDN(List<AttributeType> attributeTypes,
              List<String> attributeNames,
@@ -179,11 +179,11 @@ public class RDN
    *                          It must not be empty or {@code null}.
    * @param  attributeNames   The set of user-provided names for this
    *                          RDN.  It must have the same number of
-   *                          elements as the {@attributeTypes}
+   *                          elements as the {@code attributeTypes}
    *                          argument.
    * @param  attributeValues  The set of values for this RDN.  It must
    *                          have the same number of elements as the
-   *                          {@attributeTypes} argument.
+   *                          {@code attributeTypes} argument.
    */
   public RDN(AttributeType[] attributeTypes, String[] attributeNames,
              AttributeValue[] attributeValues)
