@@ -259,6 +259,24 @@ facsimiletelephonenumber: +1 408 555 1992
 roomnumber: 3915
 userpassword: dogleg
 
+dn: uid=jcarp, ou=People, o=SASL Tests, dc=example,dc=com
+cn: John Carp
+sn: Carp
+givenname: John
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+l: Cupertino
+uid: jcarp
+mail: jcarp@example.com
+telephonenumber: +1 408 555 1476
+facsimiletelephonenumber: +1 408 555 1992
+roomnumber: 3915
+userpassword: pegleg
+
 dn: uid=jrunner, ou=People, o=SASL Tests, dc=example,dc=com
 cn: John Runner
 sn: Runner
