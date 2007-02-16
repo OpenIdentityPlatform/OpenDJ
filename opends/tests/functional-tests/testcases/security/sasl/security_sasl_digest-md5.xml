@@ -145,7 +145,7 @@
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns o.
+            #@TestResult                Success if OpenDS returns 0.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind'">
           <sequence>
@@ -177,6 +177,315 @@
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (u:) Bind authzid
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN with authzid mapped to uid.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format with an authzid.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind authzid'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: User (u:) Binding with authzid'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jwalleye' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (u:) Bind another authzid
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN with another authzid.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format with an authzid of another unauthorized user.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind another authzid'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: User (u:) Binding with another authzid'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jcarp' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (u:) Bind with authzid without authid
+            #@TestIssue                 345
+            #@TestPurpose               Test bind without an authorization ID but with an authzid.
+            #@TestPreamble              none
+            #@TestStep                  User bind without authid but with an authzid.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 89.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind with authzid without authid'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: User (u:) Binding with authzid without authid'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o authzid=jcarp -w frogleg' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 89 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test case: DIGEST-MD5 SASL Mechanism -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  Admin Change authzid Attribute
+            #@TestIssue                 345
+            #@TestPurpose               Test if authzid attribute may be changed
+            #@TestPreamble              none
+            #@TestStep                  Admin change authzid attribute to sn.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: Admin Change authzid Attr'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: Admin Changing authzid attribute to sn'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/sasl/admin_change_authzid_attr.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (u:) Bind authzid after attr change
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN with authzid mapped to uid.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format with an authzid using the default, uid.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind authzid After Attr Change'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: User (u:) Binding with authzid after attribute change'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jwalleye' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (u:) Bind authzid after attr change 2
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN with authzid mapped to uid.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format with an authzid using sn.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind authzid After Attr Change 2'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: User (u:) Binding with authzid after attribute change 2'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:Walleye -w frogleg -o authzid=Walleye' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test case: DIGEST-MD5 SASL Mechanism -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  Admin Reset authzid Attribute
+            #@TestIssue                 345
+            #@TestPurpose               Test if authzid attribute may be reset
+            #@TestPreamble              none
+            #@TestStep                  Admin change authzid attribute to the default, uid
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: Admin Reset authzid Attr'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: Admin Resetting authzid attribute to uid'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/security/sasl/admin_reset_authzid_attr.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (u:) Bind authzid after attr reset
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using an authorization ID that could be mapped to a single DN with authzid mapped to uid.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=u:[name] format with an authzid using the default, uid.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind authzid After Attr Reset'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: User (u:) Binding with authzid after attribute reset'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jwalleye' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+       
+
+    <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Dupe uid (dn:) Bind
             #@TestIssue                 345
             #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to muliple DNs.
@@ -203,6 +512,45 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  Dupe uid (dn:) Bind authzid
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to muliple DNs with an authzid that maps to multiple DNs.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[DN] format and with authzid.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 1.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind authzid'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: User With Dupe uid (dn:) Binding with authzid'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg -o authzid=jsprinter' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 1 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -442,6 +790,47 @@
             
           </sequence>
         </testcase>
+
+        <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (dn:) Bind With Realm and digest-uri
+            #@TestIssue                 345
+            #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to a single DN. Realm and digest-uri specified.
+            #@TestPreamble              none
+            #@TestStep                  User bind with authid=dn:[DN] format 
+                                        and the realm is specified.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0.
+        -->
+      <!--
+        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind With Realm and digest-uri'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding With Realm and digest-uri'
+            </message>
+
+           <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -o "realm=o=SASL Realm Tests,dc=example,dc=com -o "digest-uri=ldap:/auseng013.central.sun.com" " -w frogleg' }
+            </call>
+
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+      -->
 
         <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
        <!---
@@ -720,3 +1109,4 @@
   </function>
 
 </stax>
+

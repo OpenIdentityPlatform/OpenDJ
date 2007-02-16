@@ -23,18 +23,7 @@
 #      Portions Copyright 2007 Sun Microsystems, Inc.
 #
 
-dn: uid=jsprinter, ou=People, o=SASL Tests, dc=example,dc=com
+dn: cn=Exact Match,cn=Identity Mappers,cn=config
 changetype: modify
-replace: userpassword
-userpassword: frogleg
-
-dn: uid=jwalleye, ou=People, o=SASL Realm Tests, dc=example,dc=com
-changetype: modify
-replace: userpassword
-userpassword: frogleg
-
-dn: uid=jcarp, ou=People, o=SASL Tests, dc=example,dc=com
-changetype: modify
-replace: userpassword
-userpassword: carpleg
-
+replace: ds-cfg-match-attribute
+ds-cfg-match-attribute: uid
