@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -136,8 +136,7 @@ public class PasswordPolicyConfigManager
 
 
     // Get the DN of the default password policy from the core configuration.
-    DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
-    if (defaultPolicyDN == null)
+    if( null == DirectoryServer.getDefaultPasswordPolicyDN())
     {
       int    msgID   = MSGID_CONFIG_PWPOLICY_NO_DEFAULT_POLICY;
       String message = getMessage(msgID);
@@ -147,24 +146,12 @@ public class PasswordPolicyConfigManager
 
     // Iterate through the child entries and process them as password policy
     // configuration entries.
-    boolean defaultExists = false;
     for (ConfigEntry childEntry : baseEntry.getChildren().values())
     {
-      boolean isDefault = defaultPolicyDN.equals(childEntry.getDN());
-      if (isDefault)
-      {
-        defaultExists = true;
-      }
-
       try
       {
         PasswordPolicy policy = new PasswordPolicy(childEntry);
         DirectoryServer.registerPasswordPolicy(childEntry.getDN(), policy);
-
-        if (isDefault)
-        {
-          DirectoryServer.setDefaultPasswordPolicy(policy);
-        }
       }
       catch (ConfigException ce)
       {
@@ -190,10 +177,12 @@ public class PasswordPolicyConfigManager
     }
 
 
-    // If we didn't find the default password policy, then fail.
-    if (! defaultExists)
+    // If the entry specified by the default password policy DN has not been
+    // registered, then fail.
+    if (null == DirectoryServer.getDefaultPasswordPolicy())
     {
       int    msgID   = MSGID_CONFIG_PWPOLICY_MISSING_DEFAULT_POLICY;
+      DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
       String message = getMessage(msgID, String.valueOf(defaultPolicyDN));
       throw new ConfigException(msgID, message);
     }
@@ -225,7 +214,7 @@ public class PasswordPolicyConfigManager
     // entry.  If so, then it's acceptable.
     try
     {
-      PasswordPolicy policy = new PasswordPolicy(configEntry);
+      new PasswordPolicy(configEntry);
     }
     catch (ConfigException ce)
     {
@@ -338,6 +327,9 @@ public class PasswordPolicyConfigManager
 
 
     // We'll allow the policy to be removed as long as it isn't the default.
+    // FIXME: something like a referential integrity check is needed to ensure
+    //  a policy is not removed when referenced by a user entry (either
+    // directly or via a virtual attribute).
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
     if ((defaultPolicyDN != null) &&
         defaultPolicyDN.equals(configEntry.getDN()))
@@ -370,6 +362,9 @@ public class PasswordPolicyConfigManager
 
 
     // We'll allow the policy to be removed as long as it isn't the default.
+    // FIXME: something like a referential integrity check is needed to ensure
+    //  a policy is not removed when referenced by a user entry (either
+    // directly or via a virtual attribute).
     ArrayList<String> messages = new ArrayList<String>(1);
     DN policyDN = configEntry.getDN();
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
@@ -381,15 +376,12 @@ public class PasswordPolicyConfigManager
       return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false,
                                     messages);
     }
-    else
-    {
-      DirectoryServer.deregisterPasswordPolicy(policyDN);
 
-      int msgID = MSGID_CONFIG_PWPOLICY_REMOVED_POLICY;
-      messages.add(getMessage(msgID, String.valueOf(policyDN)));
+    DirectoryServer.deregisterPasswordPolicy(policyDN);
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
-    }
+    int msgID = MSGID_CONFIG_PWPOLICY_REMOVED_POLICY;
+    messages.add(getMessage(msgID, String.valueOf(policyDN)));
+
+    return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
   }
 }
-

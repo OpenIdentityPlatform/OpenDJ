@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
 
@@ -107,7 +107,7 @@ public final class PasswordPolicyImportPlugin
     // "final".
     authPasswordSchemes = new HashMap<AttributeType,PasswordStorageScheme[]>();
     userPasswordSchemes = new HashMap<AttributeType,PasswordStorageScheme[]>();
-    for (PasswordPolicy p : DirectoryServer.getPasswordPolicies().values())
+    for (PasswordPolicy p : DirectoryServer.getPasswordPolicies())
     {
       AttributeType t = p.getPasswordAttribute();
       if (p.usesAuthPasswordSyntax())
