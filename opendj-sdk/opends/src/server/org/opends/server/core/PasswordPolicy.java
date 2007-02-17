@@ -29,7 +29,6 @@ package org.opends.server.core;
 
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -41,12 +40,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.opends.server.api.AccountStatusNotificationHandler;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.DNConfigAttribute;
@@ -57,10 +54,8 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Debug.*;
@@ -77,7 +72,6 @@ import static org.opends.server.util.StaticUtils.*;
  * Server password policy.
  */
 public class PasswordPolicy
-       implements ConfigurableComponent
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -213,6 +207,7 @@ public class PasswordPolicy
     passwordAttribute                = null;
     authPasswordSyntax               = false;
     lastLoginTimeAttribute           = null;
+    previousLastLoginTimeFormats     = new CopyOnWriteArrayList<String>();
     allowExpiredPasswordChanges      = DEFAULT_PWPOLICY_ALLOW_EXPIRED_CHANGES;
     allowMultiplePasswordValues      =
          DEFAULT_PWPOLICY_ALLOW_MULTIPLE_PW_VALUES;
@@ -260,8 +255,6 @@ public class PasswordPolicy
     deprecatedStorageSchemes = new CopyOnWriteArraySet<String>();
 
     passwordValidators = new ConcurrentHashMap<DN,PasswordValidator>();
-
-    previousLastLoginTimeFormats = new CopyOnWriteArrayList<String>();
   }
 
 
@@ -287,65 +280,7 @@ public class PasswordPolicy
   public PasswordPolicy(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    this();
-
-    assert debugConstructor(CLASS_NAME, String.valueOf(configEntry));
-
-
-    this.configEntryDN = configEntry.getDN();
-    initializePasswordPolicyConfig(configEntry, this);
-
-
-    // Ensure that the password attribute was included in the configuration
-    // entry, since it is required.
-    if (passwordAttribute == null)
-    {
-      int    msgID   = MSGID_PWPOLICY_NO_PASSWORD_ATTRIBUTE;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
-    }
-
-
-    // Ensure that at least one default password storage scheme was included in
-    // the configuration entry, since it is required.
-    if (defaultStorageSchemes.isEmpty())
-    {
-      int    msgID   = MSGID_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
-    }
-
-
-    DirectoryServer.registerConfigurableComponent(this);
-  }
-
-
-
-  /**
-   * Initializes the provided password policy with the information contained in
-   * the given configuration entry.
-   *
-   * @param  configEntry  The configuration entry to use to obtain the settings
-   *                      for this password policy.
-   * @param  policy       The password policy to be initialized.
-   *
-   * @throws  ConfigException  If the provided entry does not contain a valid
-   *                           password policy configuration.
-   *
-   * @throws  InitializationException  If an error occurs while initializing the
-   *                                   password policy that is not related to
-   *                                   the server configuration.
-   */
-  private static void initializePasswordPolicyConfig(ConfigEntry configEntry,
-                                                     PasswordPolicy policy)
-         throws ConfigException, InitializationException
-  {
-    assert debugEnter(CLASS_NAME, "initializePasswordPolicyConfig",
-                      String.valueOf(configEntry));
-
-
-    DN configEntryDN = configEntry.getDN();
-
+    this(); // Initialize fields to default values.
 
     // Create a list of units and values that we can use to represent time
     // periods.
@@ -362,6 +297,8 @@ public class PasswordPolicy
     timeUnits.put(TIME_UNIT_WEEKS_FULL, (double) (60 * 60 * 24 * 7));
 
 
+    this.configEntryDN = configEntry.getDN();
+
     // Get the password attribute.  If specified, it must have either the
     // user password or auth password syntax.
     int msgID = MSGID_PWPOLICY_DESCRIPTION_PW_ATTR;
@@ -372,16 +309,9 @@ public class PasswordPolicy
     {
       StringConfigAttribute pwAttrAttr =
            (StringConfigAttribute) configEntry.getConfigAttribute(pwAttrStub);
-      if (pwAttrAttr == null)
-      {
-        msgID = MSGID_PWPOLICY_NO_PASSWORD_ATTRIBUTE;
-        String message = getMessage(msgID, String.valueOf(configEntryDN));
-        throw new ConfigException(msgID, message);
-      }
-      else
+      if (pwAttrAttr != null)
       {
         String lowerName = toLowerCase(pwAttrAttr.pendingValue());
-
         AttributeType pwAttrType = DirectoryServer.getAttributeType(lowerName);
         if (pwAttrType == null)
         {
@@ -394,13 +324,13 @@ public class PasswordPolicy
         String syntaxOID = pwAttrType.getSyntaxOID();
         if (syntaxOID.equals(SYNTAX_AUTH_PASSWORD_OID))
         {
-          policy.passwordAttribute  = pwAttrType;
-          policy.authPasswordSyntax = true;
+          this.passwordAttribute  = pwAttrType;
+          this.authPasswordSyntax = true;
         }
         else if (syntaxOID.equals(SYNTAX_USER_PASSWORD_OID))
         {
-          policy.passwordAttribute  = pwAttrType;
-          policy.authPasswordSyntax = false;
+          this.passwordAttribute  = pwAttrType;
+          this.authPasswordSyntax = false;
         }
         else
         {
@@ -413,7 +343,7 @@ public class PasswordPolicy
           msgID = MSGID_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX;
           String message = getMessage(msgID, String.valueOf(configEntryDN),
                                       String.valueOf(pwAttrAttr.pendingValue()),
-                                      String.valueOf(syntaxOID));
+                                      String.valueOf(syntax));
           throw new ConfigException(msgID, message);
         }
       }
@@ -424,7 +354,7 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_ATTRIBUTE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -457,7 +387,7 @@ public class PasswordPolicy
         for (String schemeName : defaultSchemeAttr.pendingValues())
         {
           PasswordStorageScheme scheme;
-          if (policy.authPasswordSyntax)
+          if (this.authPasswordSyntax)
           {
             scheme = DirectoryServer.getAuthPasswordStorageScheme(schemeName);
           }
@@ -480,7 +410,7 @@ public class PasswordPolicy
           }
         }
 
-        policy.defaultStorageSchemes =
+        this.defaultStorageSchemes =
              new CopyOnWriteArrayList<PasswordStorageScheme>(schemes);
       }
     }
@@ -490,7 +420,7 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_DEFAULT_STORAGE_SCHEMES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -511,14 +441,14 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(deprecatedSchemeStub);
       if (deprecatedSchemeAttr != null)
       {
-        policy.deprecatedStorageSchemes =
+        this.deprecatedStorageSchemes =
              new CopyOnWriteArraySet<String>(
                       deprecatedSchemeAttr.pendingValues());
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_DEPRECATED_STORAGE_SCHEMES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -555,7 +485,7 @@ public class PasswordPolicy
           validators.put(validatorDN, validator);
         }
 
-        policy.passwordValidators = validators;
+        this.passwordValidators = validators;
       }
     }
     catch (ConfigException ce)
@@ -564,7 +494,7 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_VALIDATORS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -601,7 +531,7 @@ public class PasswordPolicy
           handlers.put(handlerDN, handler);
         }
 
-        policy.notificationHandlers = handlers;
+        this.notificationHandlers = handlers;
       }
     }
     catch (ConfigException ce)
@@ -610,7 +540,7 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_NOTIFICATION_HANDLERS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -631,12 +561,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(userChangeStub);
       if (userChangeAttr != null)
       {
-        policy.allowUserPasswordChanges = userChangeAttr.pendingValue();
+        this.allowUserPasswordChanges = userChangeAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_USER_PW_CHANGES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -657,12 +587,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(requirePWStub);
       if (requirePWAttr != null)
       {
-        policy.requireCurrentPassword = requirePWAttr.pendingValue();
+        this.requireCurrentPassword = requirePWAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CURRENT_PW;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -683,12 +613,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(forceChangeOnAddStub);
       if (forceChangeOnAddAttr != null)
       {
-        policy.forceChangeOnAdd = forceChangeOnAddAttr.pendingValue();
+        this.forceChangeOnAdd = forceChangeOnAddAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_FORCE_CHANGE_ON_ADD;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -709,12 +639,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(forceChangeOnResetStub);
       if (forceChangeAttr != null)
       {
-        policy.forceChangeOnReset = forceChangeAttr.pendingValue();
+        this.forceChangeOnReset = forceChangeAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_FORCE_CHANGE_ON_RESET;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -735,13 +665,13 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(validateResetStub);
       if (validateResetAttr != null)
       {
-        policy.skipValidationForAdministrators =
+        this.skipValidationForAdministrators =
              validateResetAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_SKIP_ADMIN_VALIDATION;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -771,8 +701,8 @@ public class PasswordPolicy
           throw new ConfigException(msgID, message);
         }
 
-        policy.passwordGeneratorDN = generatorAttr.pendingValue();
-        policy.passwordGenerator   = generator;
+        this.passwordGeneratorDN = generatorAttr.pendingValue();
+        this.passwordGenerator   = generator;
       }
     }
     catch (ConfigException ce)
@@ -781,7 +711,7 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_GENERATOR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -802,12 +732,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(secureAuthStub);
       if (secureAuthAttr != null)
       {
-        policy.requireSecureAuthentication = secureAuthAttr.pendingValue();
+        this.requireSecureAuthentication = secureAuthAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_SECURE_AUTH;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -829,12 +759,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(secureChangeStub);
       if (secureChangeAttr != null)
       {
-        policy.requireSecurePasswordChanges = secureChangeAttr.pendingValue();
+        this.requireSecurePasswordChanges = secureChangeAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_SECURE_CHANGES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -855,12 +785,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(allowMultiplePWStub);
       if (allowMultiplePWAttr != null)
       {
-        policy.allowMultiplePasswordValues = allowMultiplePWAttr.pendingValue();
+        this.allowMultiplePasswordValues = allowMultiplePWAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_MULTIPLE_PW_VALUES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -881,12 +811,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(preEncodedStub);
       if (preEncodedAttr != null)
       {
-        policy.allowPreEncodedPasswords = preEncodedAttr.pendingValue();
+        this.allowPreEncodedPasswords = preEncodedAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_PREENCODED;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -908,12 +838,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(minAgeStub);
       if (minAgeAttr != null)
       {
-        policy.minimumPasswordAge = (int) minAgeAttr.pendingCalculatedValue();
+        this.minimumPasswordAge = (int) minAgeAttr.pendingCalculatedValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_MIN_AGE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -935,12 +865,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(maxAgeStub);
       if (maxAgeAttr != null)
       {
-        policy.maximumPasswordAge = (int) maxAgeAttr.pendingCalculatedValue();
+        this.maximumPasswordAge = (int) maxAgeAttr.pendingCalculatedValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_MAX_AGE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -962,13 +892,13 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(maxResetStub);
       if (maxResetAttr != null)
       {
-        policy.maximumPasswordResetAge =
+        this.maximumPasswordResetAge =
              (int) maxResetAttr.pendingCalculatedValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_MAX_RESET_AGE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -990,12 +920,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(warningStub);
       if (warningAttr != null)
       {
-        policy.warningInterval = (int) warningAttr.pendingCalculatedValue();
+        this.warningInterval = (int) warningAttr.pendingCalculatedValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_WARNING_INTERVAL;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1016,13 +946,13 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(expireWithoutWarningStub);
       if (expireWithoutWarningAttr != null)
       {
-        policy.expirePasswordsWithoutWarning =
+        this.expirePasswordsWithoutWarning =
              expireWithoutWarningAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_EXPIRE_WITHOUT_WARNING;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1033,8 +963,8 @@ public class PasswordPolicy
 
     // If the expire without warning option is disabled, then there must be a
     // warning interval.
-    if ((! policy.expirePasswordsWithoutWarning()) &&
-        (policy.getWarningInterval() <= 0))
+    if ((! this.expirePasswordsWithoutWarning()) &&
+        (this.getWarningInterval() <= 0))
     {
       msgID = MSGID_PWPOLICY_MUST_HAVE_WARNING_IF_NOT_EXPIRE_WITHOUT_WARNING;
       String message = getMessage(msgID, String.valueOf(configEntryDN));
@@ -1054,13 +984,13 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(allowExpiredChangesStub);
       if (allowExpiredChangesAttr != null)
       {
-        policy.allowExpiredPasswordChanges =
+        this.allowExpiredPasswordChanges =
              allowExpiredChangesAttr.pendingValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_EXPIRED_CHANGES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1081,12 +1011,12 @@ public class PasswordPolicy
            (IntegerConfigAttribute) configEntry.getConfigAttribute(graceStub);
       if (graceAttr != null)
       {
-        policy.graceLoginCount = graceAttr.pendingIntValue();
+        this.graceLoginCount = graceAttr.pendingIntValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_GRACE_LOGIN_COUNT;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1108,12 +1038,12 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(failureCountStub);
       if (failureCountAttr != null)
       {
-        policy.lockoutFailureCount = failureCountAttr.pendingIntValue();
+        this.lockoutFailureCount = failureCountAttr.pendingIntValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LOCKOUT_FAILURE_COUNT;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1135,13 +1065,13 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(lockoutDurationStub);
       if (lockoutDurationAttr != null)
       {
-        policy.lockoutDuration =
+        this.lockoutDuration =
              (int) lockoutDurationAttr.pendingCalculatedValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LOCKOUT_DURATION;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1164,13 +1094,13 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(failureExpirationStub);
       if (failureExpirationAttr != null)
       {
-        policy.lockoutFailureExpirationInterval =
+        this.lockoutFailureExpirationInterval =
              (int) failureExpirationAttr.pendingCalculatedValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_FAILURE_EXPIRATION;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1201,21 +1131,21 @@ public class PasswordPolicy
 
         if (syntax == null)
         {
-          policy.requireChangeByTime =
+          this.requireChangeByTime =
                GeneralizedTimeSyntax.decodeGeneralizedTimeValue(valueString);
         }
         else
         {
           valueString =
                syntax.getEqualityMatchingRule().normalizeValue(valueString);
-          policy.requireChangeByTime =
+          this.requireChangeByTime =
                GeneralizedTimeSyntax.decodeGeneralizedTimeValue(valueString);
         }
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CHANGE_BY_TIME;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1250,7 +1180,7 @@ public class PasswordPolicy
           throw new ConfigException(msgID, message);
         }
 
-        policy.lastLoginTimeAttribute = attrType;
+        this.lastLoginTimeAttribute = attrType;
       }
     }
     catch (ConfigException ce)
@@ -1259,7 +1189,7 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1285,12 +1215,11 @@ public class PasswordPolicy
 
         try
         {
-          SimpleDateFormat format = new SimpleDateFormat(formatString);
-          policy.lastLoginTimeFormat = formatString;
+          new SimpleDateFormat(formatString);
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "initializePasswordPolicyConfig",
+          assert debugException(CLASS_NAME, "PasswordPolicy",
                                 e);
 
           msgID = MSGID_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT;
@@ -1298,6 +1227,8 @@ public class PasswordPolicy
                                       String.valueOf(formatString));
           throw new ConfigException(msgID, message);
         }
+
+        this.lastLoginTimeFormat = formatString;
       }
     }
     catch (ConfigException ce)
@@ -1306,7 +1237,7 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_FORMAT;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1334,12 +1265,11 @@ public class PasswordPolicy
         {
           try
           {
-            SimpleDateFormat format = new SimpleDateFormat(s);
+            new SimpleDateFormat(s);
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "initializePasswordPolicyConfig",
-                                  e);
+            assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
             msgID = MSGID_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT;
             String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1348,7 +1278,7 @@ public class PasswordPolicy
           }
         }
 
-        policy.previousLastLoginTimeFormats =
+        this.previousLastLoginTimeFormats =
              new CopyOnWriteArrayList<String>(formatStrings);
       }
     }
@@ -1358,7 +1288,7 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PREVIOUS_LAST_LOGIN_TIME_FORMAT;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1380,19 +1310,55 @@ public class PasswordPolicy
            configEntry.getConfigAttribute(idleIntervalStub);
       if (idleIntervalAttr != null)
       {
-        policy.idleLockoutInterval =
+        this.idleLockoutInterval =
              (int) idleIntervalAttr.pendingCalculatedValue();
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicyConfig", e);
+      assert debugException(CLASS_NAME, "PasswordPolicy", e);
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_IDLE_LOCKOUT_INTERVAL;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
                                   stackTraceToSingleLineString(e));
       throw new InitializationException(msgID, message, e);
     }
+
+
+    /*
+     *  Holistic validation.
+     */
+
+    // Ensure that the password attribute was included in the configuration
+    // entry, since it is required.
+    if (passwordAttribute == null)
+    {
+      msgID = MSGID_PWPOLICY_NO_PASSWORD_ATTRIBUTE;
+      String message = getMessage(msgID, String.valueOf(configEntryDN));
+      throw new ConfigException(msgID, message);
+    }
+
+    // Ensure that at least one default password storage scheme was included in
+    // the configuration entry, since it is required.
+    if (defaultStorageSchemes.isEmpty())
+    {
+      msgID = MSGID_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES;
+      String message = getMessage(msgID, String.valueOf(configEntryDN));
+      throw new ConfigException(msgID, message);
+    }
+  }
+
+
+
+  /**
+   * Retrieves the DN of the configuration entry to which this password policy
+   * corresponds.
+   *
+   * @return  The DN of the configuration entry.
+   */
+  public DN getConfigEntryDN()
+  {
+    return configEntryDN;
   }
 
 
@@ -2069,506 +2035,6 @@ public class PasswordPolicy
     }
 
     return idleLockoutInterval;
-  }
-
-
-
-  /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
-   */
-  public DN getConfigurableComponentEntryDN()
-  {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
-
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
-
-
-    // Create a list of units and values that we can use to represent time
-    // periods.
-    LinkedHashMap<String,Double> timeUnits = new LinkedHashMap<String,Double>();
-    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1D);
-    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1D);
-    timeUnits.put(TIME_UNIT_MINUTES_ABBR, 60D);
-    timeUnits.put(TIME_UNIT_MINUTES_FULL, 60D);
-    timeUnits.put(TIME_UNIT_HOURS_ABBR, (double) (60 * 60));
-    timeUnits.put(TIME_UNIT_HOURS_FULL, (double) (60 * 60));
-    timeUnits.put(TIME_UNIT_DAYS_ABBR, (double) (60 * 60 * 24));
-    timeUnits.put(TIME_UNIT_DAYS_FULL, (double) (60 * 60 * 24));
-    timeUnits.put(TIME_UNIT_WEEKS_ABBR, (double) (60 * 60 * 24 * 7));
-    timeUnits.put(TIME_UNIT_WEEKS_FULL, (double) (60 * 60 * 24 * 7));
-
-
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-
-    int msgID = MSGID_PWPOLICY_DESCRIPTION_PW_ATTR;
-    String pwAttr;
-    if (passwordAttribute == null)
-    {
-      pwAttr = null;
-    }
-    else
-    {
-      pwAttr = passwordAttribute.getNameOrOID();
-    }
-    attrList.add(new StringConfigAttribute(ATTR_PWPOLICY_PASSWORD_ATTRIBUTE,
-                                           getMessage(msgID), false, false,
-                                           false, pwAttr));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_DEFAULT_STORAGE_SCHEMES;
-    ArrayList<String> schemes = new ArrayList<String>();
-    if (defaultStorageSchemes != null)
-    {
-      for (PasswordStorageScheme s : defaultStorageSchemes)
-      {
-        schemes.add(s.getStorageSchemeName());
-      }
-    }
-    attrList.add(new StringConfigAttribute(ATTR_PWPOLICY_DEFAULT_SCHEME,
-                                           getMessage(msgID), false, true,
-                                           false, schemes));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_DEPRECATED_STORAGE_SCHEMES;
-    schemes = new ArrayList<String>();
-    if (deprecatedStorageSchemes != null)
-    {
-      schemes.addAll(deprecatedStorageSchemes);
-    }
-    attrList.add(new StringConfigAttribute(ATTR_PWPOLICY_DEPRECATED_SCHEME,
-                                           getMessage(msgID), false, true,
-                                           false, schemes));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_PASSWORD_VALIDATORS;
-    ArrayList<DN> validatorDNs = new ArrayList<DN>();
-    if (passwordValidators != null)
-    {
-      validatorDNs.addAll(passwordValidators.keySet());
-    }
-    attrList.add(new DNConfigAttribute(ATTR_PWPOLICY_PASSWORD_VALIDATOR,
-                                       getMessage(msgID), false, true, false,
-                                       validatorDNs));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_NOTIFICATION_HANDLERS;
-    ArrayList<DN> handlerDNs = new ArrayList<DN>();
-    if (notificationHandlers != null)
-    {
-      handlerDNs.addAll(notificationHandlers.keySet());
-    }
-    attrList.add(new DNConfigAttribute(ATTR_PWPOLICY_NOTIFICATION_HANDLER,
-                                       getMessage(msgID), false, true, false,
-                                       handlerDNs));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_ALLOW_USER_PW_CHANGES;
-    attrList.add(new BooleanConfigAttribute(ATTR_PWPOLICY_ALLOW_USER_CHANGE,
-                                            getMessage(msgID), false,
-                                            allowUserPasswordChanges));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_REQUIRE_CURRENT_PW;
-    attrList.add(new BooleanConfigAttribute(
-                          ATTR_PWPOLICY_REQUIRE_CURRENT_PASSWORD,
-                          getMessage(msgID), false, requireCurrentPassword));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_FORCE_CHANGE_ON_ADD;
-    attrList.add(new BooleanConfigAttribute(ATTR_PWPOLICY_FORCE_CHANGE_ON_ADD,
-                                            getMessage(msgID), false,
-                                            forceChangeOnAdd));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_FORCE_CHANGE_ON_RESET;
-    attrList.add(new BooleanConfigAttribute(ATTR_PWPOLICY_FORCE_CHANGE_ON_RESET,
-                                            getMessage(msgID), false,
-                                            forceChangeOnReset));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_SKIP_ADMIN_VALIDATION;
-    attrList.add(new BooleanConfigAttribute(ATTR_PWPOLICY_SKIP_ADMIN_VALIDATION,
-                                            getMessage(msgID), false,
-                                            skipValidationForAdministrators));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_PASSWORD_GENERATOR;
-    attrList.add(new DNConfigAttribute(ATTR_PWPOLICY_PASSWORD_GENERATOR,
-                                       getMessage(msgID), false, false, false,
-                                       passwordGeneratorDN));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_REQUIRE_SECURE_AUTH;
-    attrList.add(new BooleanConfigAttribute(
-                          ATTR_PWPOLICY_REQUIRE_SECURE_AUTHENTICATION,
-                          getMessage(msgID), false,
-                          requireSecureAuthentication));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_REQUIRE_SECURE_CHANGES;
-    attrList.add(new BooleanConfigAttribute(
-                          ATTR_PWPOLICY_REQUIRE_SECURE_PASSWORD_CHANGES,
-                          getMessage(msgID), false,
-                          requireSecurePasswordChanges));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_ALLOW_MULTIPLE_PW_VALUES;
-    attrList.add(new BooleanConfigAttribute(
-                          ATTR_PWPOLICY_ALLOW_MULTIPLE_PW_VALUES,
-                          getMessage(msgID), false,
-                          allowMultiplePasswordValues));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_ALLOW_PREENCODED;
-    attrList.add(new BooleanConfigAttribute(
-                          ATTR_PWPOLICY_ALLOW_PRE_ENCODED_PASSWORDS,
-                          getMessage(msgID), false, allowPreEncodedPasswords));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_MIN_AGE;
-    attrList.add(new IntegerWithUnitConfigAttribute(
-                          ATTR_PWPOLICY_MINIMUM_PASSWORD_AGE,
-                          getMessage(msgID), false, timeUnits, true, 0, true,
-                          Integer.MAX_VALUE, minimumPasswordAge,
-                          TIME_UNIT_SECONDS_FULL));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_MAX_AGE;
-    attrList.add(new IntegerWithUnitConfigAttribute(
-                          ATTR_PWPOLICY_MAXIMUM_PASSWORD_AGE,
-                          getMessage(msgID), false, timeUnits, true, 0, true,
-                          Integer.MAX_VALUE, maximumPasswordAge,
-                          TIME_UNIT_SECONDS_FULL));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_MAX_RESET_AGE;
-    attrList.add(new IntegerWithUnitConfigAttribute(
-                          ATTR_PWPOLICY_MAXIMUM_PASSWORD_RESET_AGE,
-                          getMessage(msgID), false, timeUnits, true, 0, true,
-                          Integer.MAX_VALUE, maximumPasswordResetAge,
-                          TIME_UNIT_SECONDS_FULL));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_WARNING_INTERVAL;
-    attrList.add(new IntegerWithUnitConfigAttribute(
-                          ATTR_PWPOLICY_WARNING_INTERVAL, getMessage(msgID),
-                          false, timeUnits, true, 0, true, Integer.MAX_VALUE,
-                          warningInterval, TIME_UNIT_SECONDS_FULL));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_EXPIRE_WITHOUT_WARNING;
-    attrList.add(new BooleanConfigAttribute(
-                          ATTR_PWPOLICY_EXPIRE_WITHOUT_WARNING,
-                          getMessage(msgID), false,
-                          expirePasswordsWithoutWarning));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_ALLOW_EXPIRED_CHANGES;
-    attrList.add(new BooleanConfigAttribute(
-                          ATTR_PWPOLICY_ALLOW_EXPIRED_CHANGES,
-                          getMessage(msgID), false,
-                          allowExpiredPasswordChanges));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_GRACE_LOGIN_COUNT;
-    attrList.add(new IntegerConfigAttribute(ATTR_PWPOLICY_GRACE_LOGIN_COUNT,
-                                            getMessage(msgID), false, false,
-                                            false, true, 0, true,
-                                            Integer.MAX_VALUE,
-                                            graceLoginCount));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_LOCKOUT_FAILURE_COUNT;
-    attrList.add(new IntegerConfigAttribute(ATTR_PWPOLICY_LOCKOUT_FAILURE_COUNT,
-                                            getMessage(msgID), false, false,
-                                            false, true, 0, true,
-                                            Integer.MAX_VALUE,
-                                            lockoutFailureCount));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_LOCKOUT_DURATION;
-    attrList.add(new IntegerWithUnitConfigAttribute(
-                          ATTR_PWPOLICY_LOCKOUT_DURATION, getMessage(msgID),
-                          false, timeUnits, true, 0, true, Integer.MAX_VALUE,
-                          lockoutDuration, TIME_UNIT_SECONDS_FULL));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_FAILURE_EXPIRATION;
-    attrList.add(new IntegerWithUnitConfigAttribute(
-                          ATTR_PWPOLICY_LOCKOUT_FAILURE_EXPIRATION_INTERVAL,
-                          getMessage(msgID), false, timeUnits, true, 0, true,
-                          Integer.MAX_VALUE, lockoutFailureExpirationInterval,
-                          TIME_UNIT_SECONDS_FULL));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_REQUIRE_CHANGE_BY_TIME;
-    String timeStr = null;
-    if (requireChangeByTime > 0)
-    {
-      timeStr = GeneralizedTimeSyntax.createGeneralizedTimeValue(
-                     requireChangeByTime).getStringValue();
-    }
-    attrList.add(new StringConfigAttribute(ATTR_PWPOLICY_REQUIRE_CHANGE_BY_TIME,
-                                           getMessage(msgID), false, false,
-                                           false, timeStr));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_LAST_LOGIN_TIME_ATTR;
-    String loginTimeAttr;
-    if (lastLoginTimeAttribute == null)
-    {
-      loginTimeAttr = null;
-    }
-    else
-    {
-      loginTimeAttr = lastLoginTimeAttribute.getNameOrOID();
-    }
-    attrList.add(new StringConfigAttribute(
-                          ATTR_PWPOLICY_LAST_LOGIN_TIME_ATTRIBUTE,
-                          getMessage(msgID), false, false, false,
-                          loginTimeAttr));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_LAST_LOGIN_TIME_FORMAT;
-    attrList.add(new StringConfigAttribute(ATTR_PWPOLICY_LAST_LOGIN_TIME_FORMAT,
-                                           getMessage(msgID), false, false,
-                                           false, lastLoginTimeFormat));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_PREVIOUS_LAST_LOGIN_TIME_FORMAT;
-    ArrayList<String> previousFormats = new ArrayList<String>();
-    if (previousLastLoginTimeFormats != null)
-    {
-      previousFormats.addAll(previousLastLoginTimeFormats);
-    }
-    attrList.add(new StringConfigAttribute(
-                          ATTR_PWPOLICY_PREVIOUS_LAST_LOGIN_TIME_FORMAT,
-                          getMessage(msgID), false, false, false,
-                          previousFormats));
-
-
-    msgID = MSGID_PWPOLICY_DESCRIPTION_IDLE_LOCKOUT_INTERVAL;
-    attrList.add(new IntegerWithUnitConfigAttribute(
-                          ATTR_PWPOLICY_IDLE_LOCKOUT_INTERVAL,
-                          getMessage(msgID), false, timeUnits, true, 0, true,
-                          Integer.MAX_VALUE,  idleLockoutInterval,
-                          TIME_UNIT_SECONDS_FULL));
-
-
-    return attrList;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
-  {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
-
-
-    PasswordPolicy p = new PasswordPolicy();
-
-    try
-    {
-      initializePasswordPolicyConfig(configEntry, p);
-    }
-    catch (ConfigException ce)
-    {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", ce);
-
-      unacceptableReasons.add(ce.getMessage());
-      return false;
-    }
-    catch (InitializationException ie)
-    {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", ie);
-
-      unacceptableReasons.add(ie.getMessage());
-      return false;
-    }
-
-
-    // The provided config entry must at least specify the password attribute
-    // and at least one default storage scheme.
-    if (p.passwordAttribute == null)
-    {
-      int    msgID   = MSGID_PWPOLICY_NO_PASSWORD_ATTRIBUTE;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
-      unacceptableReasons.add(message);
-      return false;
-    }
-
-    if ((p.defaultStorageSchemes == null) ||
-        p.defaultStorageSchemes.isEmpty())
-    {
-      int    msgID   = MSGID_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
-      unacceptableReasons.add(message);
-      return false;
-    }
-
-
-    // If we made it here, then the configuration is acceptable.
-    return true;
-  }
-
-
-
-  /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
-   */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
-  {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
-
-
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-    PasswordPolicy    p                   = new PasswordPolicy();
-
-    try
-    {
-      initializePasswordPolicyConfig(configEntry, p);
-    }
-    catch (ConfigException ce)
-    {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", ce);
-
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(ce.getMessage());
-
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-    catch (InitializationException ie)
-    {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", ie);
-
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(ie.getMessage());
-
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // The provided config entry must at least specify the password attribute
-    // and at least one default storage scheme.
-    if (p.passwordAttribute == null)
-    {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-
-      int    msgID   = MSGID_PWPOLICY_NO_PASSWORD_ATTRIBUTE;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-
-      return new ConfigChangeResult(resultCode, adminActionRequired,
-                                    messages);
-    }
-
-    if ((p.defaultStorageSchemes == null) ||
-        p.defaultStorageSchemes.isEmpty())
-    {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-
-      int    msgID   = MSGID_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-
-      return new ConfigChangeResult(resultCode, adminActionRequired,
-                                    messages);
-    }
-
-
-    // If we've made it here, then everything is acceptable.  Apply the new
-    // configuration.
-    passwordAttribute                = p.passwordAttribute;
-    authPasswordSyntax               = p.authPasswordSyntax;
-    lastLoginTimeAttribute           = p.lastLoginTimeAttribute;
-    allowMultiplePasswordValues      = p.allowMultiplePasswordValues;
-    allowPreEncodedPasswords         = p.allowPreEncodedPasswords;
-    allowUserPasswordChanges         = p.allowUserPasswordChanges;
-    expirePasswordsWithoutWarning    = p.expirePasswordsWithoutWarning;
-    allowExpiredPasswordChanges      = p.allowExpiredPasswordChanges;
-    forceChangeOnAdd                 = p.forceChangeOnAdd;
-    forceChangeOnReset               = p.forceChangeOnReset;
-    requireCurrentPassword           = p.requireCurrentPassword;
-    requireSecureAuthentication      = p.requireSecureAuthentication;
-    requireSecurePasswordChanges     = p.requireSecurePasswordChanges;
-    skipValidationForAdministrators  = p.skipValidationForAdministrators;
-    graceLoginCount                  = p.graceLoginCount;
-    idleLockoutInterval              = p.idleLockoutInterval;
-    lockoutDuration                  = p.lockoutDuration;
-    lockoutFailureCount              = p.lockoutFailureCount;
-    lockoutFailureExpirationInterval = p.lockoutFailureExpirationInterval;
-    minimumPasswordAge               = p.minimumPasswordAge;
-    maximumPasswordAge               = p.maximumPasswordAge;
-    maximumPasswordResetAge          = p.maximumPasswordResetAge;
-    warningInterval                  = p.warningInterval;
-    requireChangeByTime              = p.requireChangeByTime;
-    lastLoginTimeFormat              = p.lastLoginTimeFormat;
-    previousLastLoginTimeFormats     = p.previousLastLoginTimeFormats;
-    passwordGenerator                = p.passwordGenerator;
-    passwordGeneratorDN              = p.passwordGeneratorDN;
-    notificationHandlers             = p.notificationHandlers;
-    defaultStorageSchemes            = p.defaultStorageSchemes;
-    deprecatedStorageSchemes         = p.deprecatedStorageSchemes;
-    passwordValidators               = p.passwordValidators;
-
-    if (detailedResults)
-    {
-      int msgID = MSGID_PWPOLICY_UPDATED_POLICY;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-    }
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
 

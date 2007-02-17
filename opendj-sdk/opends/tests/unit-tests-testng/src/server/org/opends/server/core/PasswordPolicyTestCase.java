@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -30,7 +30,6 @@ package org.opends.server.core;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -42,7 +41,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -2113,7 +2111,7 @@ public class PasswordPolicyTestCase
     ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
-    PasswordPolicy p = new PasswordPolicy(configEntry);
+    new PasswordPolicy(configEntry);
   }
 
 
@@ -2211,6 +2209,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     defaultSchemes = p.getDefaultStorageSchemes();
     assertNotNull(defaultSchemes);
     assertFalse(defaultSchemes.isEmpty());
@@ -2254,6 +2253,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     defaultSchemes = p.getDefaultStorageSchemes();
     assertNotNull(defaultSchemes);
     assertFalse(defaultSchemes.isEmpty());
@@ -2295,6 +2295,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.isDefaultStorageScheme("BASE64"));
     assertFalse(p.isDefaultStorageScheme("SSHA"));
     p.toString();
@@ -2335,6 +2336,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.isDefaultStorageScheme("MD5"));
     assertFalse(p.isDefaultStorageScheme("SHA1"));
     p.toString();
@@ -2378,6 +2380,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     deprecatedSchemes = p.getDeprecatedStorageSchemes();
     assertNotNull(deprecatedSchemes);
     assertFalse(deprecatedSchemes.isEmpty());
@@ -2421,6 +2424,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     deprecatedSchemes = p.getDeprecatedStorageSchemes();
     assertNotNull(deprecatedSchemes);
     assertFalse(deprecatedSchemes.isEmpty());
@@ -2461,6 +2465,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.isDeprecatedStorageScheme("BASE64"));
     p.toString();
 
@@ -2499,6 +2504,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.isDeprecatedStorageScheme("MD5"));
     p.toString();
 
@@ -2540,6 +2546,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getPasswordValidators());
     assertFalse(p.getPasswordValidators().isEmpty());
     p.toString();
@@ -2583,6 +2590,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getPasswordValidators());
     assertFalse(p.getPasswordValidators().isEmpty());
     p.toString();
@@ -2625,6 +2633,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getAccountStatusNotificationHandlers());
     assertFalse(p.getAccountStatusNotificationHandlers().isEmpty());
     p.toString();
@@ -2668,6 +2677,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getAccountStatusNotificationHandlers());
     assertFalse(p.getAccountStatusNotificationHandlers().isEmpty());
     p.toString();
@@ -2706,6 +2716,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.allowUserPasswordChanges());
     p.toString();
 
@@ -2744,6 +2755,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.allowUserPasswordChanges());
     p.toString();
 
@@ -2782,6 +2794,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.requireCurrentPassword());
     p.toString();
 
@@ -2820,6 +2833,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.allowUserPasswordChanges());
     p.toString();
 
@@ -2858,6 +2872,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.forceChangeOnAdd());
     p.toString();
 
@@ -2896,6 +2911,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.forceChangeOnAdd());
     p.toString();
 
@@ -2934,6 +2950,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.forceChangeOnReset());
     p.toString();
 
@@ -2972,6 +2989,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.forceChangeOnReset());
     p.toString();
 
@@ -3010,6 +3028,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.skipValidationForAdministrators());
     p.toString();
 
@@ -3048,6 +3067,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.skipValidationForAdministrators());
     p.toString();
 
@@ -3089,6 +3109,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertNull(p.getPasswordGeneratorDN());
     p.toString();
 
@@ -3130,6 +3151,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertNull(p.getPasswordGeneratorDN());
     p.toString();
 
@@ -3171,6 +3193,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertNull(p.getPasswordGenerator());
     p.toString();
 
@@ -3212,6 +3235,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertNull(p.getPasswordGenerator());
     p.toString();
 
@@ -3250,6 +3274,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.requireSecureAuthentication());
     p.toString();
 
@@ -3288,6 +3313,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.requireSecureAuthentication());
     p.toString();
 
@@ -3326,6 +3352,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.requireSecurePasswordChanges());
     p.toString();
 
@@ -3364,6 +3391,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.requireSecurePasswordChanges());
     p.toString();
 
@@ -3402,6 +3430,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.allowMultiplePasswordValues());
     p.toString();
 
@@ -3440,6 +3469,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.allowMultiplePasswordValues());
     p.toString();
 
@@ -3478,6 +3508,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.allowPreEncodedPasswords());
     p.toString();
 
@@ -3516,6 +3547,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.allowPreEncodedPasswords());
     p.toString();
 
@@ -3554,6 +3586,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMinimumPasswordAge(), (24*60*60));
     p.toString();
 
@@ -3592,6 +3625,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMinimumPasswordAge(), (24*60*60));
     p.toString();
 
@@ -3630,6 +3664,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMaximumPasswordAge(), (90*60*60*24));
     p.toString();
 
@@ -3668,6 +3703,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMaximumPasswordAge(), (90*60*60*24));
     p.toString();
 
@@ -3706,6 +3742,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMaximumPasswordResetAge(), (24*60*60));
     p.toString();
 
@@ -3744,6 +3781,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMaximumPasswordResetAge(), (24*60*60));
     p.toString();
 
@@ -3782,6 +3820,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getWarningInterval(), (24*60*60));
     p.toString();
 
@@ -3820,6 +3859,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getWarningInterval(), (24*60*60));
     p.toString();
 
@@ -3858,6 +3898,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.expirePasswordsWithoutWarning());
     p.toString();
 
@@ -3896,6 +3937,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.expirePasswordsWithoutWarning());
     p.toString();
 
@@ -3934,6 +3976,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.allowExpiredPasswordChanges());
     p.toString();
 
@@ -3972,6 +4015,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.allowExpiredPasswordChanges());
     p.toString();
 
@@ -4010,6 +4054,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getGraceLoginCount(), 3);
     p.toString();
 
@@ -4048,6 +4093,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getGraceLoginCount(), 3);
     p.toString();
 
@@ -4086,6 +4132,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLockoutFailureCount(), 3);
     p.toString();
 
@@ -4124,6 +4171,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLockoutFailureCount(), 3);
     p.toString();
 
@@ -4162,6 +4210,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLockoutDuration(), (15*60));
     p.toString();
 
@@ -4200,6 +4249,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLockoutDuration(), (15*60));
     p.toString();
 
@@ -4238,6 +4288,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLockoutFailureExpirationInterval(), (10*60));
     p.toString();
 
@@ -4276,6 +4327,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLockoutFailureExpirationInterval(), (10*60));
     p.toString();
 
@@ -4315,6 +4367,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getRequireChangeByTime(), 1000);
     p.toString();
 
@@ -4353,6 +4406,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getRequireChangeByTime(), 1000);
     p.toString();
 
@@ -4391,6 +4445,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getLastLoginTimeAttribute());
     p.toString();
 
@@ -4429,6 +4484,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getLastLoginTimeAttribute());
     p.toString();
 
@@ -4467,6 +4523,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLastLoginTimeFormat(), "yyyyMMdd");
     p.toString();
 
@@ -4505,6 +4562,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLastLoginTimeFormat(), "yyyyMMdd");
     p.toString();
 
@@ -4544,6 +4602,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getPreviousLastLoginTimeFormats());
     assertFalse(p.getPreviousLastLoginTimeFormats().isEmpty());
     p.toString();
@@ -4584,6 +4643,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getPreviousLastLoginTimeFormats());
     assertFalse(p.getPreviousLastLoginTimeFormats().isEmpty());
     p.toString();
@@ -4622,6 +4682,7 @@ public class PasswordPolicyTestCase
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getIdleLockoutInterval(), (90*60*60*24));
     p.toString();
 
@@ -4660,6 +4721,7 @@ public class PasswordPolicyTestCase
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
+    p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getIdleLockoutInterval(), (90*60*60*24));
     p.toString();
 

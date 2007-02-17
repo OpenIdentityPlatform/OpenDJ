@@ -153,6 +153,7 @@ import org.opends.server.types.Schema;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.TimeThread;
+import org.opends.server.util.Validator;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -296,7 +297,7 @@ public class DirectoryServer
   // The set of password policies registered with the Directory Server, as a
   // mapping between the DN of the associated configuration entry and the policy
   // implementation.
-  private ConcurrentHashMap<DN,PasswordPolicy> passwordPolicies;
+  private ConcurrentHashMap<DN,PasswordPolicyConfig> passwordPolicies;
 
   // The set of password validators registered with the Directory Server, as a
   // mapping between the DN of the associated configuration entry and the
@@ -454,7 +455,7 @@ public class DirectoryServer
   private PasswordGeneratorConfigManager passwordGeneratorConfigManager;
 
   // The default password policy for the Directory Server.
-  private PasswordPolicy defaultPasswordPolicy;
+  private PasswordPolicyConfig defaultPasswordPolicyConfig;
 
   // The configuration handler used to manage the password policies.
   private PasswordPolicyConfigManager passwordPolicyConfigManager;
@@ -625,9 +626,9 @@ public class DirectoryServer
     directoryServer.rootDNs = new CopyOnWriteArraySet<DN>();
     directoryServer.alternateRootBindDNs = new ConcurrentHashMap<DN,DN>();
     directoryServer.passwordPolicies =
-         new ConcurrentHashMap<DN,PasswordPolicy>();
+         new ConcurrentHashMap<DN,PasswordPolicyConfig>();
     directoryServer.defaultPasswordPolicyDN = null;
-    directoryServer.defaultPasswordPolicy = null;
+    directoryServer.defaultPasswordPolicyConfig = null;
     directoryServer.monitorProviders =
          new ConcurrentHashMap<String,MonitorProvider>();
     directoryServer.backends = new TreeMap<String,Backend>();
@@ -4640,17 +4641,28 @@ public class DirectoryServer
 
 
   /**
-   * Retrieves the set of password policies defined in the Directory Server as a
-   * mapping between the DN of the associated configuration entry and the
-   * corresponding policy.
+   * Retrieves the set of password policies registered with the Directory
+   * Server. The references returned are to the actual password policy objects
+   * currently in use by the directory server and the referenced objects must
+   * not be modified.
    *
-   * @return  The set of password policies defined in the Directory Server.
+   * @return  The set of password policies registered with the Directory Server.
    */
-  public static ConcurrentHashMap<DN,PasswordPolicy> getPasswordPolicies()
+  public static PasswordPolicy[] getPasswordPolicies()
   {
     assert debugEnter(CLASS_NAME, "getPasswordPolicies");
 
-    return directoryServer.passwordPolicies;
+    // The password policy objects are returned in an array to prevent the
+    // caller from modifying the map structure.
+    PasswordPolicyConfig[] values = directoryServer.passwordPolicies.values()
+                                          .toArray(new PasswordPolicyConfig[0]);
+    PasswordPolicy[] policies = new PasswordPolicy[values.length];
+    for( int i = 0 ; i < values.length; ++i)
+    {
+      policies[i] = values[i].getPolicy();
+    }
+
+    return policies;
   }
 
 
@@ -4669,8 +4681,11 @@ public class DirectoryServer
   {
     assert debugEnter(CLASS_NAME, "getPasswordPolicy",
                       String.valueOf(configEntryDN));
+    Validator.ensureNotNull(configEntryDN);
 
-    return directoryServer.passwordPolicies.get(configEntryDN);
+    PasswordPolicyConfig config
+            = directoryServer.passwordPolicies.get(configEntryDN);
+    return (null == config) ? null : config.getPolicy();
   }
 
 
@@ -4689,8 +4704,11 @@ public class DirectoryServer
   {
     assert debugEnter(CLASS_NAME, "registerPasswordPolicy",
                       String.valueOf(configEntryDN), String.valueOf(policy));
+    Validator.ensureNotNull(configEntryDN, policy);
 
-    directoryServer.passwordPolicies.put(configEntryDN, policy);
+    PasswordPolicyConfig config = new PasswordPolicyConfig(policy);
+
+    directoryServer.passwordPolicies.put(configEntryDN, config);
   }
 
 
@@ -4706,8 +4724,16 @@ public class DirectoryServer
   {
     assert debugEnter(CLASS_NAME, "deregisterPasswordPolicy",
                       String.valueOf(configEntryDN));
+    Validator.ensureNotNull(configEntryDN);
 
-    directoryServer.passwordPolicies.remove(configEntryDN);
+    if (directoryServer.defaultPasswordPolicyDN.equals(configEntryDN))
+    {
+      directoryServer.defaultPasswordPolicyConfig = null;
+    }
+
+    PasswordPolicyConfig config
+            = directoryServer.passwordPolicies.remove(configEntryDN);
+    if (null != config) config.finalizePasswordPolicyConfig();
   }
 
 
@@ -4730,7 +4756,10 @@ public class DirectoryServer
 
   /**
    * Specifies the DN of the configuration entry for the default password policy
-   * for the Directory Server.
+   * for the Directory Server. This routine does not check the registered
+   * password policies for the specified DN, since in the case of server
+   * initialization, the password policy entries will not yet have been loaded
+   * from the configuration backend.
    *
    * @param  defaultPasswordPolicyDN  The DN of the configuration entry for the
    *                                  default password policy for the Directory
@@ -4742,50 +4771,38 @@ public class DirectoryServer
                       String.valueOf(defaultPasswordPolicyDN));
 
     directoryServer.defaultPasswordPolicyDN = defaultPasswordPolicyDN;
-    directoryServer.defaultPasswordPolicy   = null;
+    directoryServer.defaultPasswordPolicyConfig = null;
   }
 
 
 
   /**
-   * Retrieves the default password policy for the Directory Server.
+   * Retrieves the default password policy for the Directory Server. This method
+   * is equivalent to invoking <CODE>getPasswordPolicy</CODE> on the DN returned
+   * from <CODE>DirectoryServer.getDefaultPasswordPolicyDN()</CODE>.
    *
    * @return  The default password policy for the Directory Server.
    */
   public static PasswordPolicy getDefaultPasswordPolicy()
   {
     assert debugEnter(CLASS_NAME, "getDefaultPasswordPolicy");
+    assert null != directoryServer.passwordPolicies.get(
+                                       directoryServer.defaultPasswordPolicyDN)
+            : "Internal Error: no default password policy defined." ;
 
-    if ((directoryServer.defaultPasswordPolicy == null) &&
+    if ((directoryServer.defaultPasswordPolicyConfig == null) &&
         (directoryServer.defaultPasswordPolicyDN != null))
     {
-      directoryServer.defaultPasswordPolicy =
+      directoryServer.defaultPasswordPolicyConfig =
            directoryServer.passwordPolicies.get(
-                directoryServer.defaultPasswordPolicyDN);
+                                       directoryServer.defaultPasswordPolicyDN);
     }
-
-    return directoryServer.defaultPasswordPolicy;
-  }
-
-
-
-  /**
-   * Specifies the default password policy for the Directory Server.  It will
-   * still be necessary to register this policy with the set of defined password
-   * policies.
-   *
-   * @param  defaultPasswordPolicy  The default password policy for the
-   *                                Directory Server.
-   */
-  public static void setDefaultPasswordPolicy(PasswordPolicy
-                                                   defaultPasswordPolicy)
-  {
-    assert debugEnter(CLASS_NAME, "setDefaultPasswordPolicy",
-                      String.valueOf(defaultPasswordPolicy));
-
-    directoryServer.defaultPasswordPolicy = defaultPasswordPolicy;
-    directoryServer.defaultPasswordPolicyDN =
-         defaultPasswordPolicy.getConfigurableComponentEntryDN();
+    assert directoryServer.passwordPolicies.get(
+                                       directoryServer.defaultPasswordPolicyDN)
+                == directoryServer.defaultPasswordPolicyConfig
+           : "Internal Error: inconsistency between defaultPasswordPolicyConfig"
+             + " cache and value in passwordPolicies map.";
+    return directoryServer.defaultPasswordPolicyConfig.getPolicy();
   }
 
 
@@ -7286,6 +7303,13 @@ public class DirectoryServer
       {
         assert debugException(CLASS_NAME, "shutDown", e);
       }
+    }
+
+
+    // Finalize the password policy map.
+    for (DN configEntryDN : directoryServer.passwordPolicies.keySet())
+    {
+      DirectoryServer.deregisterPasswordPolicy(configEntryDN);
     }
 
 
