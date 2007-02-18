@@ -1097,6 +1097,9 @@ public class SearchFilterTests extends DirectoryServerTestCase {
           {"(|(sn=Smith)(sn<=Aus))", "(|(sn=Smith)(sn>=Aus))", false, false},
 
 
+          // Test cases for issue #1245
+          {"(cn=*bowen*)", "(cn=*bowen*)", true, true},
+          {"(cn=*bowen*)", "(sn=*bowen*)", false, false}
   };
 
 
