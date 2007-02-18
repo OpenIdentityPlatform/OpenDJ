@@ -26,365 +26,316 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
-    <function name="addEntry">
-
+  <function name="addEntry">
     <function-prolog>
-        This function adds an entry to the Directory Server
+      This function adds an entry to the Directory Server
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="dsInstanceHost">
-            Directory Server Host Name
-        </function-required-arg>
-        <function-required-arg name="dsInstancePort">
-            Directory Server Port Number
-        </function-required-arg>
-        <function-required-arg name="dsInstanceDn">
-            Directory Server Manager DN
-        </function-required-arg>
-        <function-required-arg name="dsInstancePswd">
-            Directory Server Manager Password
-        </function-required-arg>
-        <function-required-arg name="entryToBeAdded">
-            Entry to be added to Directory Server in ldif format
-        </function-required-arg>
-        <function-optional-arg name="extraParams" default="' '">
-            Optional extra parameters for specific test cases
-        </function-optional-arg>
+      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+        Directory Server Host Name
+      </function-required-arg>
+      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+        Directory Server Port Number
+      </function-required-arg>
+      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+        Directory Server Manager DN
+      </function-required-arg>
+      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+        Directory Server Manager Password
+      </function-required-arg>
+      <function-required-arg name="entryToBeAdded">
+        Entry to be added to Directory Server in ldif format
+      </function-required-arg>
+      <function-optional-arg name="extraParams" default="' '">
+        Optional extra parameters for specific test cases
+      </function-optional-arg>
     </function-map-args>
+    <sequence>
+      <message>
+        'ldapmodify%s -a -h %s -p %s -D "%s" -w %s %s -f "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeAdded)
+      </message>
+      <process name="'Add Entry'">
+        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+        <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
+        <parms>'-a -h %s -p %s -D "%s" -w %s %s -f "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeAdded)</parms>
+        <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+        </envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+    </sequence>
+  </function>
 
-      <sequence>
-
-        <message>
-            'ldapmodify%s -a -h %s -p %s -D "%s" -w %s %s -f "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeAdded)
-        </message>
-        <process name="'Add Entry'">
-            <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
-            <parms>'-a -h %s -p %s -D "%s" -w %s %s -f "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeAdded)</parms>
-            <workdir>'%s' % (OPENDS_BINPATH)</workdir>
-            <envs>
-                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-            </envs>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-        </process>
-
-        <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-        </call>
-
-      </sequence>
-
-    </function>
-
-    <function name="modifyEntry">
-
+  <function name="modifyEntry">
     <function-prolog>
-        This function modifies an entry in the Directory Server
+      This function modifies an entry in the Directory Server
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="dsInstanceHost">
-            Directory Server Host Name
-        </function-required-arg>
-        <function-required-arg name="dsInstancePort">
-            Directory Server Port Number
-        </function-required-arg>
-        <function-required-arg name="dsInstanceDn">
-            Directory Server Manager DN
-        </function-required-arg>
-        <function-required-arg name="dsInstancePswd">
-            Directory Server Manager Password
-        </function-required-arg>
-        <function-required-arg name="entryToBeModified">
-            Entry to be modified in the Directory Server in ldif format
-        </function-required-arg>
-        <function-optional-arg name="extraParams" default="' '">
-            Optional extra parameters for specific test cases
-        </function-optional-arg>
+      <function-required-arg name="dsInstanceHost"  default="'%s' % DIRECTORY_INSTANCE_HOST">
+        Directory Server Host Name
+      </function-required-arg>
+      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+        Directory Server Port Number
+      </function-required-arg>
+      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+        Directory Server Manager DN
+      </function-required-arg>
+      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+        Directory Server Manager Password
+      </function-required-arg>
+      <function-required-arg name="entryToBeModified">
+        Entry to be modified in the Directory Server in ldif format
+      </function-required-arg>
+      <function-optional-arg name="extraParams" default="' '">
+        Optional extra parameters for specific test cases
+      </function-optional-arg>
     </function-map-args>
+    <sequence>
+      <message>
+        'ldapmodify%s -h %s -p %s -D "%s" -w %s %s -f "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeModified)
+      </message>
+      <process name="'Modify Entry'">
+        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+        <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
+        <parms>'-h %s -p %s -D "%s" -w %s %s -f "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeModified)</parms>
+        <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+        </envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+    </sequence>
+  </function>
 
-      <sequence>
-
-        <message>
-            'ldapmodify%s -h %s -p %s -D "%s" -w %s %s -f "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeModified)
-        </message>
-        <process name="'Modify Entry'">
-            <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
-            <parms>'-h %s -p %s -D "%s" -w %s %s -f "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,entryToBeModified)</parms>
-            <workdir>'%s' % (OPENDS_BINPATH)</workdir>
-            <envs>
-                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-            </envs>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-        </process>
-
-        <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-        </call>
-
-      </sequence>
-
-    </function>
-
-    <function name="SearchObject">
-
+  <function name="SearchObject">
     <function-prolog>
-        This function searches the Directory Server with optional arguments possible
+      This function searches the Directory Server with optional arguments possible
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="dsInstanceHost">
-            Directory Server Host Name
-        </function-required-arg>
-        <function-required-arg name="dsInstancePort">
-            Directory Server Port Number
-        </function-required-arg>
-        <function-required-arg name="dsInstanceDn">
-            Directory Server Manager DN
-        </function-required-arg>
-        <function-required-arg name="dsInstancePswd">
-            Directory Server Manager Password
-        </function-required-arg>
-        <function-required-arg name="dsBaseDN">
-            The baseDN for the search operation
-        </function-required-arg>
-        <function-required-arg name="dsFilter">
-            The filter for the search operation
-        </function-required-arg>
-        <function-optional-arg name="extraParams" default="' '">
-            Optional extra parameters for specific test cases
-        </function-optional-arg>
-        <function-optional-arg name="attributes" default="' '">
-            Attributes to return
-        </function-optional-arg>
+      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+        Directory Server Host Name
+      </function-required-arg>
+      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+        Directory Server Port Number
+      </function-required-arg>
+      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+        Directory Server Manager DN
+      </function-required-arg>
+      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+        Directory Server Manager Password
+      </function-required-arg>
+      <function-required-arg name="dsBaseDN">
+        The baseDN for the search operation
+      </function-required-arg>
+      <function-required-arg name="dsFilter">
+        The filter for the search operation
+      </function-required-arg>
+      <function-optional-arg name="extraParams" default="' '">
+        Optional extra parameters for specific test cases
+      </function-optional-arg>
+      <function-optional-arg name="attributes" default="' '">
+        Attributes to return
+      </function-optional-arg>
     </function-map-args>
+    <sequence>
+      <message>
+        'ldapsearch%s -h %s -p %s -D "%s" -w %s %s -b "%s" "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN,dsFilter,attributes)
+      </message>
+      <process name="'Search Base Object'">
+        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+        <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
+        <parms>'-h %s -p %s -D "%s" -w %s %s -b "%s" "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN,dsFilter,attributes)</parms>
+        <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+        </envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
 
-      <sequence>
-
-        <message>
-            'ldapsearch%s -h %s -p %s -D "%s" -w %s %s -b "%s" "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN,dsFilter,attributes)
-        </message>
-        <process name="'Search Base Object'">
-            <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
-            <parms>'-h %s -p %s -D "%s" -w %s %s -b "%s" "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN,dsFilter,attributes)</parms>
-            <workdir>'%s' % (OPENDS_BINPATH)</workdir>
-            <envs>
-                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-            </envs>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-        </process>
-        
-        <return>STAXResult</return>
-
-      </sequence>
-
-    </function>
-
-    <function name="SearchObjectNoPwd">
-
+  <function name="SearchObjectNoPwd">
     <function-prolog>
-        This function searches the Directory Server with optional arguments possible
+      This function searches the Directory Server with optional arguments possible
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="dsInstanceHost">
-            Directory Server Host Name
-        </function-required-arg>
-        <function-required-arg name="dsInstancePort">
-            Directory Server Port Number
-        </function-required-arg>
-        <function-required-arg name="dsInstanceDn">
-            Directory Server Manager DN
-        </function-required-arg>
-        <function-required-arg name="dsBaseDN">
-            The baseDN for the search operation
-        </function-required-arg>
-        <function-required-arg name="dsFilter">
-            The filter for the search operation
-        </function-required-arg>
-        <function-optional-arg name="extraParams" default="' '">
-            Optional extra parameters for specific test cases
-        </function-optional-arg>
+      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+        Directory Server Host Name
+      </function-required-arg>
+      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+        Directory Server Port Number
+      </function-required-arg>
+      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+        Directory Server Manager DN
+      </function-required-arg>
+      <function-required-arg name="dsBaseDN">
+        The baseDN for the search operation
+      </function-required-arg>
+      <function-required-arg name="dsFilter">
+        The filter for the search operation
+      </function-required-arg>
+      <function-optional-arg name="extraParams" default="' '">
+        Optional extra parameters for specific test cases
+      </function-optional-arg>
     </function-map-args>
+    <sequence>
+      <message>
+          'ldapsearch%s -h %s -p %s -D "%s" %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter)
+      </message>
+      <process name="'Search Base Object'">
+        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+        <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
+        <parms>'-h %s -p %s -D "%s" %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter)</parms>
+        <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+        </envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+    </sequence>
+  </function>
 
-      <sequence>
-
-        <message>
-            'ldapsearch%s -h %s -p %s -D "%s" %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter)
-        </message>
-        <process name="'Search Base Object'">
-            <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
-            <parms>'-h %s -p %s -D "%s" %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter)</parms>
-            <workdir>'%s' % (OPENDS_BINPATH)</workdir>
-            <envs>
-                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-            </envs>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-        </process>
-
-      </sequence>
-
-    </function>
-
-    <function name="AnonSearchObject">
-
+  <function name="AnonSearchObject">
     <function-prolog>
-        This function searches the Directory Server anonymously with optional arguments possible
+      This function searches the Directory Server anonymously with optional arguments possible
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="dsInstanceHost">
-            Directory Server Host Name
-        </function-required-arg>
-        <function-required-arg name="dsInstancePort">
-            Directory Server Port Number
-        </function-required-arg>
-        <function-required-arg name="dsBaseDN">
-            The baseDN for the search operation
-        </function-required-arg>
-        <function-required-arg name="dsFilter">
-            The filter for the search operation
-        </function-required-arg>
-        <function-optional-arg name="extraParams" default="' '">
-            Optional extra parameters for specific test cases
-        </function-optional-arg>
+      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+          Directory Server Host Name
+      </function-required-arg>
+      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+          Directory Server Port Number
+      </function-required-arg>
+      <function-required-arg name="dsBaseDN">
+          The baseDN for the search operation
+      </function-required-arg>
+      <function-required-arg name="dsFilter">
+          The filter for the search operation
+      </function-required-arg>
+      <function-optional-arg name="extraParams" default="' '">
+          Optional extra parameters for specific test cases
+      </function-optional-arg>
     </function-map-args>
+    <sequence>
+      <message>
+        'ldapsearch%s -h %s -p %s %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)
+      </message>
+      <process name="'Anonymous Search Base Object'">
+        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+        <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
+        <parms>'-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)</parms>
+        <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+        </envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+    </sequence>
+  </function>
 
-      <sequence>
-
-        <message>
-            'ldapsearch%s -h %s -p %s %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)
-        </message>
-        <process name="'Anonymous Search Base Object'">
-            <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
-            <parms>'-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)</parms>
-            <workdir>'%s' % (OPENDS_BINPATH)</workdir>
-            <envs>
-                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-            </envs>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-        </process>
-
-      </sequence>
-
-    </function>
-
-    <function name="DeleteEntry">
-
+  <function name="DeleteEntry">
     <function-prolog>
-        This function an entry in the Directory Server
+      This function an entry in the Directory Server
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="dsInstanceHost">
-            Directory Server Host Name
-        </function-required-arg>
-        <function-required-arg name="dsInstancePort">
-            Directory Server Port Number
-        </function-required-arg>
-        <function-required-arg name="dsInstanceDn">
-            Directory Server Manager DN
-        </function-required-arg>
-        <function-required-arg name="dsInstancePswd">
-            Directory Server Manager Password
-        </function-required-arg>
-        <function-required-arg name="dsBaseDN">
-            The entry to be deleted
-        </function-required-arg>
-        <function-optional-arg name="extraParams" default="' '">
-            Optional extra parameters for specific test cases
-        </function-optional-arg>
+      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+        Directory Server Host Name
+      </function-required-arg>
+      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+        Directory Server Port Number
+      </function-required-arg>
+      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+        Directory Server Manager DN
+      </function-required-arg>
+      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+        Directory Server Manager Password
+      </function-required-arg>
+      <function-required-arg name="dsBaseDN">
+        The entry to be deleted
+      </function-required-arg>
+      <function-optional-arg name="extraParams" default="' '">
+        Optional extra parameters for specific test cases
+      </function-optional-arg>
     </function-map-args>
-
-      <sequence>
-
-        <message>
-            'ldapdelete%s -h %s -p %s -D "%s" -w %s %s "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN)
-        </message>
-        <process name="'Delete Object'">
-            <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapdelete%s' % (OPENDS_BINPATH,fileExt)</command>
-            <parms>'-h %s -p %s -D "%s" -w %s %s "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN)</parms>
-            <workdir>'%s' % (OPENDS_BINPATH)</workdir>
-            <envs>
-                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-            </envs>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-        </process>
-
-        <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-        </call>
-
-      </sequence>
-
+    <sequence>
+      <message>
+        'ldapdelete%s -h %s -p %s -D "%s" -w %s %s "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN)
+      </message>
+      <process name="'Delete Object'">
+        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+        <command>'%s/ldapdelete%s' % (OPENDS_BINPATH,fileExt)</command>
+        <parms>'-h %s -p %s -D "%s" -w %s %s "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN)</parms>
+        <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+        </envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+    </sequence>
   </function>
 
   <function name="compareEntry">
-
     <function-prolog>
-        This function compares the attribute and value an entry to the Directory Server
+      This function compares the attribute and value an entry to the Directory Server
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="dsInstanceHost">
-            Directory Server Host Name
-        </function-required-arg>
-        <function-required-arg name="dsInstancePort">
-            Directory Server Port Number
-        </function-required-arg>
-        <function-required-arg name="dsInstanceDn">
-            Directory Server Manager DN
-        </function-required-arg>
-        <function-required-arg name="dsInstancePswd">
-            Directory Server Manager Password
-        </function-required-arg>
-        <function-required-arg name="attrToBeCompared">
-            Attribute to be compared in Directory Server
-        </function-required-arg>
-        <function-required-arg name="entryToBeCompared">
-            Entry to be compared in Directory Server
-        </function-required-arg>
-        <function-optional-arg name="extraParams" default="' '">
-            Optional extra parameters for specific test cases
-        </function-optional-arg>
+      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+        Directory Server Host Name
+      </function-required-arg>
+      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+        Directory Server Port Number
+      </function-required-arg>
+      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+        Directory Server Manager DN
+      </function-required-arg>
+      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+        Directory Server Manager Password
+      </function-required-arg>
+      <function-required-arg name="attrToBeCompared">
+        Attribute to be compared in Directory Server
+      </function-required-arg>
+      <function-required-arg name="entryToBeCompared">
+        Entry to be compared in Directory Server
+      </function-required-arg>
+      <function-optional-arg name="extraParams" default="' '">
+        Optional extra parameters for specific test cases
+      </function-optional-arg>
     </function-map-args>
-
-      <sequence>
-
-        <message>
-            'ldapcompare%s -h %s -p %s -D "%s" -w %s %s  "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,attrToBeCompared,entryToBeCompared)
-        </message>
-        <process name="'Compare Entry'">
-            <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-            <command>'%s/ldapcompare%s' % (OPENDS_BINPATH,fileExt)</command>
-            <parms>'-h %s -p %s -D "%s" -w %s %s  "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,attrToBeCompared,entryToBeCompared)</parms>
-            <workdir>'%s' % (OPENDS_BINPATH)</workdir>
-            <envs>
-                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-            </envs>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-        </process>
-
-      </sequence>
-
-    </function>
-
-
+    <sequence>
+      <message>
+        'ldapcompare%s -h %s -p %s -D "%s" -w %s %s  "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,attrToBeCompared,entryToBeCompared)
+      </message>
+      <process name="'Compare Entry'">
+        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+        <command>'%s/ldapcompare%s' % (OPENDS_BINPATH,fileExt)</command>
+        <parms>'-h %s -p %s -D "%s" -w %s %s  "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,attrToBeCompared,entryToBeCompared)</parms>
+        <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+        </envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+    </sequence>
+  </function>
 </stax>

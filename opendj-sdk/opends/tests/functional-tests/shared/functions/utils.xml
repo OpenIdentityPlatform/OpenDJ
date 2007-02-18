@@ -26,204 +26,175 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
   <function name="checkRC">
-
     <function-prolog>
-        This function checks a return code against an expected return code
+      This function checks a return code against an expected return code
     </function-prolog>
 
     <function-map-args>
-        <function-required-arg name="returncode">
-            return code received from command
-        </function-required-arg>
-        <function-required-arg name="result">
-            the output of the result
-        </function-required-arg>
-        <function-optional-arg name="expected" default="0">
-            the expected return code
-        </function-optional-arg>
-
+      <function-required-arg name="returncode">
+        return code received from command
+      </function-required-arg>
+      <function-required-arg name="result">
+        the output of the result
+      </function-required-arg>
+      <function-optional-arg name="expected" default="0">
+        the expected return code
+      </function-optional-arg>
     </function-map-args>
 
-      <sequence>
-
-        <if expr="returncode == expected">
-          <sequence>
+    <sequence>
+      <if expr="returncode == expected">
+        <sequence>
           <if expr="result == ''">
-              <message log="1">
-                'Success: RC=%s, Result=Ok' % (returncode)
-              </message>
-          <else>
+            <message log="1">
+              'Success: RC=%s, Result=Ok' % (returncode)
+            </message>
+            <else>
               <message log="1">
                 'Success: RC=%s, Result=%s' % (returncode,result)
               </message>
-          </else>
+            </else>
           </if>
-          </sequence>
+        </sequence>
         <else>
           <sequence>
-          <message log="1" level="'Error'">
-            'Error: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
-          </message>
+            <message log="1" level="'Error'">
+              'Error: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+            </message>
           </sequence>
         </else>
-        </if>
+      </if>
+    </sequence>
+  </function>
 
-
-      </sequence>
-
-    </function>
-
-    <function name="checktestRC">
-
+  <function name="checktestRC">
     <function-prolog>
-        This function checks the return code against an expected return code for a testcase
+      This function checks the return code against an expected return code for a testcase
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="returncode">
-            return code received from command
-        </function-required-arg>
-        <function-required-arg name="result">
-            the output of the result
-        </function-required-arg>
-        <function-optional-arg name="expected" default="0">
-            the expected return code
-        </function-optional-arg>
-
+      <function-required-arg name="returncode">
+        return code received from command
+      </function-required-arg>
+      <function-required-arg name="result">
+        the output of the result
+      </function-required-arg>
+      <function-optional-arg name="expected" default="0">
+        the expected return code
+      </function-optional-arg>
     </function-map-args>
-
-      <sequence>
-
-        <if expr="returncode == expected">
-          <sequence>
+    <sequence>
+      <if expr="returncode == expected">
+        <sequence>
           <tcstatus result="'pass'"/>
           <message log="1">
             'Success: RC=%s, Result=%s' % (returncode,result)
           </message>
-          </sequence>
+        </sequence>
         <else>
           <sequence>
-          <tcstatus result="'fail'"/>
-          <message log="1" level="'Error'">
-            'Error: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
-          </message>
+            <tcstatus result="'fail'"/>
+            <message log="1" level="'Error'">
+              'Error: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+            </message>
           </sequence>
         </else>
-        </if>
-
-
-      </sequence>
-
+      </if>
+    </sequence>
   </function>
 
   <function name="checktestString">
-
     <function-prolog>
-        This function checks the return string against an expected return substring for a testcase
+      This function checks the return string against an expected return substring for a testcase
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="expectedString">
-            the substring expected from the command
-        </function-required-arg>
-        <function-required-arg name="returnString">
-            the return string received from command
-        </function-required-arg>
- 
+      <function-required-arg name="expectedString">
+        the substring expected from the command
+      </function-required-arg>
+      <function-required-arg name="returnString">
+        the return string received from command
+      </function-required-arg>
     </function-map-args>
+    <sequence>
+      <script> 
+        import re 
+        searchre = re.compile('%s' % expectedString)
+      </script> 
 
-      <sequence>
-         <script> 
-              import re 
-              searchre = re.compile('%s' % expectedString)
-            </script> 
-  
-            <if expr='re.search(searchre, returnString) != None'>
-              <sequence>
-              <tcstatus result="'pass'"/>
-              <message log="1">
-                'Success: Found substring, %s, in the return string' % (expectedString)
-              </message>
-              </sequence>
-            <else>
-              <sequence>
-              <tcstatus result="'fail'"/>
-              <message log="1" level="'Error'">
-                'Error: Did not find substring, %s, in the return string, %s' % (expectedString, returnString)
-              </message>
-              </sequence>
-            </else>
-            </if>
-      </sequence>
-      
+      <if expr='re.search(searchre, returnString) != None'>
+        <sequence>
+          <tcstatus result="'pass'"/>
+          <message log="1">
+            'Success: Found substring, %s, in the return string' % (expectedString)
+          </message>
+        </sequence>
+        <else>
+          <sequence>
+            <tcstatus result="'fail'"/>
+            <message log="1" level="'Error'">
+              'Error: Did not find substring, %s, in the return string, %s' % (expectedString, returnString)
+            </message>
+          </sequence>
+        </else>
+      </if>
+    </sequence>
   </function>
 
   <function name="checktestStringNotPresent">
-
     <function-prolog>
-        This function checks the return string against an expected return substring that should not be present for a testcase
+      This function checks the return string against an expected return substring that should not be present for a testcase
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="testString">
-            the substring being tested from the command
-        </function-required-arg>
-        <function-required-arg name="returnString">
-            the return string received from command
-        </function-required-arg>
- 
+      <function-required-arg name="testString">
+        the substring being tested from the command
+      </function-required-arg>
+      <function-required-arg name="returnString">
+        the return string received from command
+      </function-required-arg>
     </function-map-args>
 
-      <sequence>
-         <script> 
-              import re 
-              searchre = re.compile('%s' % testString)
-            </script> 
-  
-            <if expr='re.search(searchre, returnString) == None'>
-              <sequence>
-              <tcstatus result="'pass'"/>
-              <message log="1">
-                'Success: Did Not Find substring, %s, in the return string' % (testString)
-              </message>
-              </sequence>
-            <else>
-              <sequence>
-              <tcstatus result="'fail'"/>
-              <message log="1" level="'Error'">
-                'Error: Found substring, %s, in the return string, %s' % (testString, returnString)
-              </message>
-              </sequence>
-            </else>
-            </if>
-      </sequence>
-      
+    <sequence>
+      <script>
+        import re
+        searchre = re.compile('%s' % testString)
+      </script>
+      <if expr='re.search(searchre, returnString) == None'>
+        <sequence>
+          <tcstatus result="'pass'"/>
+          <message log="1">
+            'Success: Did Not Find substring, %s, in the return string' % (testString)
+          </message>
+        </sequence>
+        <else>
+          <sequence>
+            <tcstatus result="'fail'"/>
+            <message log="1" level="'Error'">
+              'Error: Found substring, %s, in the return string, %s' % (testString, returnString)
+            </message>
+          </sequence>
+        </else>
+      </if>
+    </sequence>
   </function>
 
   <function name="isAlive">
-
     <function-prolog>
-        Checks that the ldap server is running
+      Checks that the ldap server is running
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="noOfLoops">
-            Number of loops
-        </function-required-arg>
-        <function-required-arg name="noOfMilliSeconds">
-            Number of seconds
-        </function-required-arg>
+      <function-required-arg name="noOfLoops">
+        Number of loops
+      </function-required-arg>
+      <function-required-arg name="noOfMilliSeconds">
+        Number of seconds
+      </function-required-arg>
     </function-map-args>
 
       <sequence>
-
         <script>ldapRC=9999</script>
         <loop from="1" to="noOfLoops" while="ldapRC != 0">
- 
           <sequence>
-          <call function="'SearchObject'">
+            <call function="'SearchObject'">
               { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
@@ -231,69 +202,56 @@
                 'dsBaseDN'       : 'cn=config' ,
                 'dsFilter'	     : 'objectclass=*' ,
                 'extraParams'    : '-s "base"' }
-          </call>
+            </call>
 
-          <script>
+            <script>
               ldapRC=RC
-          </script>
+            </script>
 
-          <call function="'Sleep'">
+            <call function="'Sleep'">
               { 'sleepForMilliSeconds'  : noOfMilliSeconds }
-          </call>
- 
+            </call>
           </sequence>
-
         </loop>
-
       </sequence>
-
   </function>
 
   <function name="Sleep">
-
     <function-prolog>
-        Sleep for number of milliseconds
+      Sleep for number of milliseconds
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="sleepForMilliSeconds">
-            Number of milliseconds to sleep
-        </function-required-arg>
+      <function-required-arg name="sleepForMilliSeconds">
+        Number of milliseconds to sleep
+      </function-required-arg>
     </function-map-args>
-
+    
     <sequence>
+      <stafcmd name="'STAF Command: Delay'">
+        <location>'%s' % (hostname)</location>
+        <service>'delay'</service>
+        <request>
+          'delay %i' % sleepForMilliSeconds
+        </request>
+      </stafcmd>
 
-    <stafcmd name="'STAF Command: Delay'">
-      <location>'%s' % (hostname)</location>
-      <service>'delay'</service>
-      <request>
-        'delay %i' % sleepForMilliSeconds
-      </request>
-    </stafcmd>
-
-    <call function="'checkRC'">
-      { 'returncode' : RC ,
-        'result'     : STAFResult }
-    </call>
-
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAFResult }
+      </call>
     </sequence>
-
   </function>
 
   <function name="setOSvariables">
-
     <function-prolog>
-        Set OS related variables
+      Set OS related variables
     </function-prolog>
-
     <function-map-args>
-        <function-required-arg name="hostname">
-            Name of host
-        </function-required-arg>
+      <function-required-arg name="hostname">
+        Name of host
+      </function-required-arg>
     </function-map-args>
-
     <sequence>
-
       <stafcmd name="'STAF Command: Get OS Name'">
         <location>'%s' % (hostname)</location>
         <service>'var'</service>
@@ -301,146 +259,94 @@
           'get system var STAF/Config/OS/Name'
         </request>
       </stafcmd>
-
       <message>
         'OS Name= %s' % STAFResult
       </message>
-
       <return>STAFResult</return>
     </sequence>
-
   </function>
 
   <function name="testCase_StartBanner">
-
     <function-prolog>
       Pretty prints a banner at the start of a test.
     </function-prolog>
-
     <function-no-args />
-
     <sequence>
-
       <message>
         '### Starting test case %s. ###' % STAXCurrentTestcase
       </message>
-
     </sequence>
-
   </function>
 
   <function name="testCase_EndBanner">
-
     <function-prolog>
       Pretty prints a banner at the end of a test.
     </function-prolog>
-
     <function-no-args />
-
     <sequence>
-
       <message>
         '### Ending test case %s. ###' % STAXCurrentTestcase
       </message>
-
     </sequence>
-
   </function>
 
   <function name="testCase_Preamble">
-
     <function-prolog>
       Performs all the preoperations for a test case
     </function-prolog>
-
     <function-no-args />
-
     <sequence>
-
       <call function="'testCase_StartBanner'" />
-
     </sequence>
-
   </function>
 
   <function name="testCase_Postamble">
-
     <function-prolog>
       Performs all the post operations for a test suite
     </function-prolog>
-
     <function-no-args />
-
     <sequence>
-
       <call function="'testCase_EndBanner'" />
-
     </sequence>
-
   </function>
 
   <function name="testSuite_Preamble">
-
     <function-prolog>
       Performs all the pre operations for a test suite
     </function-prolog>
-
     <function-no-args />
-
     <sequence>
-
       <message>'Enter test suite preamble'</message>
-
     </sequence>
-
   </function>
 
   <function name="testSuite_Postamble">
-
     <function-prolog>
       Performs all the post operations for a test suite
     </function-prolog>
-
     <function-no-args />
-
     <sequence>
-
       <message>'Enter test suite postamble'</message>
-
     </sequence>
-
   </function>
 
   <function name="testGroup_Preamble">
-
     <function-prolog>
       Performs all the pre operations for a test group
     </function-prolog>
-
     <function-no-args />
-
     <sequence>
-
       <message>'Enter test group postamble'</message>
-
     </sequence>
-
   </function>
 
   <function name="testGroup_Postamble">
-
     <function-prolog>
       Performs all the post operations for a test group
     </function-prolog>
-
     <function-no-args />
-
     <sequence>
-
       <message>'Enter test group postamble'</message>
-
     </sequence>
-
   </function>
-
 </stax>
