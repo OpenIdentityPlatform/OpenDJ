@@ -153,6 +153,12 @@ objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: member
 ds-cfg-index-type: equality
 
+dn: ds-cfg-index-attribute=objectClass,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: objectClass
+ds-cfg-index-type: equality
+
 dn: ds-cfg-index-attribute=sn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-je-index
