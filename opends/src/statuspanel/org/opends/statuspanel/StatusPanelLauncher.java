@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.statuspanel;
 
@@ -93,6 +93,8 @@ public class StatusPanelLauncher
     {
       public void run()
       {
+        // Setup MacOSX native menu bar before AWT is loaded.
+        Utils.setMacOSXMenuBar(getMsg("statuspanel-dialog-title"));
         SplashScreen.main(args);
         returnValue[0] = 0;
       }

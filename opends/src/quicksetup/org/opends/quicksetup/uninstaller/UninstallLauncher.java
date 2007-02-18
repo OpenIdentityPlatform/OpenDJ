@@ -152,6 +152,8 @@ public class UninstallLauncher
     {
       public void run()
       {
+        // Setup MacOSX native menu bar before AWT is loaded.
+        Utils.setMacOSXMenuBar(getMsg("frame-uninstall-title"));
         SplashScreen.main(args);
         returnValue[0] = 0;
       }
