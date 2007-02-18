@@ -6,11 +6,12 @@
 <xsl:output method="html" indent="yes" encoding="US-ASCII"/>
 <xsl:decimal-format decimal-separator="." grouping-separator=","/>
 <!--
-   Copyright 2001-2004 The Apache Software Foundation
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
 
        http://www.apache.org/licenses/LICENSE-2.0
 
@@ -202,7 +203,8 @@ h6 {
        <script type="text/javascript" language="JavaScript"><![CDATA[
         function displayProperties (name) {
           var win = window.open('','JUnitSystemProperties','scrollbars=1,resizable=1');
-          var doc = win.document.open();
+          var doc = win.document;
+          doc.open();
           doc.write("<html><head><title>Properties of " + name + "</title>");
           doc.write("<style type=\"text/css\">");
           doc.write("body {font:normal 68% verdana,arial,helvetica; color:#000000; }");
@@ -571,7 +573,7 @@ h6 {
     <table width="100%">
     <tr>
         <td align="left"></td>
-        <td align="right">Designed for use with <a href="http://www.junit.org/">JUnit</a> and <a href="http://jakarta.apache.org/">Ant</a>.</td>
+        <td align="right">Designed for use with <a href="http://www.junit.org/">JUnit</a> and <a href="http://ant.apache.org/">Ant</a>.</td>
     </tr>
     </table>
     <hr size="1"/>
