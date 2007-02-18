@@ -3595,6 +3595,11 @@ outerComponentLoop:
         return (attributeType.equals(f.attributeType) &&
                 assertionValue.equals(f.assertionValue));
       case SUBSTRING:
+        if (! attributeType.equals(f.attributeType))
+        {
+          return false;
+        }
+
         if (subInitialElement == null)
         {
           if (f.subInitialElement != null)
@@ -3734,7 +3739,7 @@ outerComponentLoop:
       case EQUALITY:
         return (attributeType.hashCode() + assertionValue.hashCode());
       case SUBSTRING:
-        hashCode = 0;
+        hashCode = attributeType.hashCode();
 
         if (subInitialElement != null)
         {
