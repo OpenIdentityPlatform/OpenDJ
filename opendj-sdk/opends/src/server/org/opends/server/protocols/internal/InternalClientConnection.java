@@ -211,6 +211,9 @@ public class InternalClientConnection
       this.authenticationInfo =
            new AuthenticationInfo(internalUserEntry, true);
       super.setAuthenticationInfo(authenticationInfo);
+      setSizeLimit(0);
+      setTimeLimit(0);
+      setLookthroughLimit(0);
     }
     catch (DirectoryException de)
     {
@@ -253,6 +256,9 @@ public class InternalClientConnection
 
     this.authenticationInfo = authInfo;
     super.setAuthenticationInfo(authInfo);
+    setSizeLimit(0);
+    setTimeLimit(0);
+    setLookthroughLimit(0);
 
     connectionID  = nextConnectionID.getAndDecrement();
     operationList = new LinkedList<Operation>();
