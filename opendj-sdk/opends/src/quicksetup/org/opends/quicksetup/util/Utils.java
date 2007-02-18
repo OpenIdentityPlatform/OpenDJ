@@ -1338,4 +1338,18 @@ public class Utils
   {
     return MAX_LINE_WIDTH;
   }
+
+  /**
+   * Puts Swing menus in the Mac OS menu bar, if using the Aqua look and feel,
+   * and sets the application name that is displayed in the application menu
+   * and in the dock.
+   * @param appName
+   *          application name to display in the menu bar and the dock.
+   */
+  public static void setMacOSXMenuBar(String appName)
+  {
+    System.setProperty("apple.laf.useScreenMenuBar", "true");
+    System.setProperty("com.apple.mrj.application.apple.menu.about.name",
+                       appName);
+  }
 }
