@@ -24,7 +24,7 @@ DIRECTORY_INSTANCE_HOST     = 'localhost'
 DIRECTORY_INSTANCE_PORT     = '1389'
 DIRECTORY_INSTANCE_SSL_PORT = '1636'
 DIRECTORY_INSTANCE_SFX      = 'dc=com'
-DIRECTIRY_INSTANCE_BE       = 'userRoot'
+DIRECTORY_INSTANCE_BE       = 'userRoot'
 STAGED_DATA_DIR             = '%s/functional-tests/shared/data' % DIRECTORY_INSTANCE_DIR
 JAVA_HOME                   = '/usr/jdk/jdk1.5.0_01'
 SEND_MAIL_AFTER_TEST_RUN    = 'FALSE'

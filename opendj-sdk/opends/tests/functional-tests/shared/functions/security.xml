@@ -31,16 +31,16 @@
       This function makes the configuration changes for SSL
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
         Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
         Directory Server Port Number
       </function-required-arg>
-      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-required-arg name="dsInstanceDn">
         Directory Server Manager DN
       </function-required-arg>
-      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-required-arg name="dsInstancePswd">
         Directory Server Manager Password
       </function-required-arg>
       <function-required-arg name="keystoreType">
@@ -125,16 +125,16 @@
       This function makes the configuration changes for startTLS
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
           Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
           Directory Server Port Number
       </function-required-arg>
-      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-required-arg name="dsInstanceDn">
           Directory Server Manager DN
       </function-required-arg>
-      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-required-arg name="dsInstancePswd">
           Directory Server Manager Password
       </function-required-arg>
       <function-required-arg name="keystoreType">
@@ -224,16 +224,16 @@
       This function reverses the configuration changes for SSL
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
         Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
         Directory Server Port Number
       </function-required-arg>
-      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-required-arg name="dsInstanceDn">
         Directory Server Manager DN
       </function-required-arg>
-      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-required-arg name="dsInstancePswd">
         Directory Server Manager Password
       </function-required-arg>
       <function-required-arg name="keystoreType">
@@ -323,16 +323,16 @@
       This function reverses the configuration changes for startTLS
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
         Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
         Directory Server Port Number
       </function-required-arg>
-      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-required-arg name="dsInstanceDn">
         Directory Server Manager DN
       </function-required-arg>
-      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-required-arg name="dsInstancePswd">
         Directory Server Manager Password
       </function-required-arg>
       <function-required-arg name="keystoreType">
