@@ -31,16 +31,16 @@
       This function adds an entry to the Directory Server
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
         Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
         Directory Server Port Number
       </function-required-arg>
-      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-required-arg name="dsInstanceDn">
         Directory Server Manager DN
       </function-required-arg>
-      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-required-arg name="dsInstancePswd">
         Directory Server Manager Password
       </function-required-arg>
       <function-required-arg name="entryToBeAdded">
@@ -77,16 +77,16 @@
       This function modifies an entry in the Directory Server
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost"  default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
         Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
         Directory Server Port Number
       </function-required-arg>
-      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-required-arg name="dsInstanceDn">
         Directory Server Manager DN
       </function-required-arg>
-      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-required-arg name="dsInstancePswd">
         Directory Server Manager Password
       </function-required-arg>
       <function-required-arg name="entryToBeModified">
@@ -123,16 +123,16 @@
       This function searches the Directory Server with optional arguments possible
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
         Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
         Directory Server Port Number
       </function-required-arg>
-      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-required-arg name="dsInstanceDn">
         Directory Server Manager DN
       </function-required-arg>
-      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-required-arg name="dsInstancePswd">
         Directory Server Manager Password
       </function-required-arg>
       <function-required-arg name="dsBaseDN">
@@ -172,13 +172,13 @@
       This function searches the Directory Server with optional arguments possible
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
         Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
         Directory Server Port Number
       </function-required-arg>
-      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-required-arg name="dsInstanceDn">
         Directory Server Manager DN
       </function-required-arg>
       <function-required-arg name="dsBaseDN">
@@ -214,10 +214,10 @@
       This function searches the Directory Server anonymously with optional arguments possible
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
           Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
           Directory Server Port Number
       </function-required-arg>
       <function-required-arg name="dsBaseDN">
@@ -253,16 +253,16 @@
       This function an entry in the Directory Server
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
         Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
         Directory Server Port Number
       </function-required-arg>
-      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-required-arg name="dsInstanceDn">
         Directory Server Manager DN
       </function-required-arg>
-      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-required-arg name="dsInstancePswd">
         Directory Server Manager Password
       </function-required-arg>
       <function-required-arg name="dsBaseDN">
@@ -299,16 +299,16 @@
       This function compares the attribute and value an entry to the Directory Server
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-required-arg name="dsInstanceHost">
         Directory Server Host Name
       </function-required-arg>
-      <function-required-arg name="dsInstancePort" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-required-arg name="dsInstancePort">
         Directory Server Port Number
       </function-required-arg>
-      <function-required-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-required-arg name="dsInstanceDn">
         Directory Server Manager DN
       </function-required-arg>
-      <function-required-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-required-arg name="dsInstancePswd">
         Directory Server Manager Password
       </function-required-arg>
       <function-required-arg name="attrToBeCompared">
