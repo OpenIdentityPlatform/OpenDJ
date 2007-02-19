@@ -590,7 +590,7 @@ public class SynchronizationDomain extends DirectoryThread
       String uuid = ctx.getEntryUid();
       if (findEntryDN(uuid) != null)
       {
-        addOperation.setResultCode(ResultCode.SUCCESS);
+        addOperation.setResultCode(ResultCode.CANCELED);
         return new SynchronizationProviderResult(false);
       }
 
