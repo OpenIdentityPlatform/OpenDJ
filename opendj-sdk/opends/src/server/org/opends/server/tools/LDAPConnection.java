@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
 import java.io.PrintStream;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -243,6 +244,18 @@ public class LDAPConnection
     {
       assert debugException(CLASS_NAME, "connectToHost", ex2);
       throw new LDAPConnectionException(ex2.getMessage(), ex2);
+    }
+
+    // We need this so that we don't run out of addresses when the tool
+    // commands are called A LOT, as in the unit tests.
+    try
+    {
+      socket.setSoLinger(true, 0);
+      socket.setReuseAddress(true);
+    } catch(IOException e)
+    {
+      assert debugException(CLASS_NAME, "connectToHost", e);
+      // It doesn't matter too much if this throws, so ignore it.
     }
 
     if (connectionOptions.getReportAuthzID())
