@@ -171,6 +171,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     super.onTestStart(tr);
     TestAccessLogger.clear();
     TestErrorLogger.clear();
+    TestCaseUtils.clearSystemOutContents();
+    TestCaseUtils.clearSystemErrContents();
   }
 
 
@@ -227,6 +229,16 @@ public class TestListener extends TestListenerAdapter implements IReporter {
         failureInfo.append(message);
         failureInfo.append(EOL);
       }
+    }
+
+    String systemOut = TestCaseUtils.getSystemOutContents();
+    if (systemOut.length() > 0) {
+      failureInfo.append(EOL + "System.out contents:" + EOL + systemOut);
+    }
+
+    String systemErr = TestCaseUtils.getSystemErrContents();
+    if (systemOut.length() > 0) {
+      failureInfo.append(EOL + "System.err contents:" + EOL + systemErr);
     }
 
     failureInfo.append(EOL + EOL);

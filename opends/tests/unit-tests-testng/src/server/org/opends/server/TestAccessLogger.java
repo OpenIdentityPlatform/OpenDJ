@@ -31,6 +31,7 @@ package org.opends.server;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Iterator;
+import java.util.ArrayList;
 
 import org.opends.server.api.AccessLogger;
 import org.opends.server.api.ClientConnection;
@@ -110,16 +111,18 @@ public class TestAccessLogger
 
 
   /**
-   * Retrieves the set of messages logged to this access logger since the last
-   * time it was cleared.  The caller must not attempt to alter the list in any
-   * way.
+   * Retrieves a copy of the set of messages logged to this error logger since
+   * the last time it was cleared.  A copy of the list is returned to avoid
+   * a ConcurrentModificationException.
    *
-   * @return  The set of messages logged to this access logger since the last
+   * @return  The set of messages logged to this error logger since the last
    *          time it was cleared.
    */
   public static List<String> getMessages()
   {
-    return SINGLETON.messageList;
+    synchronized (SINGLETON) {
+      return new ArrayList<String>(SINGLETON.messageList);
+    }
   }
 
 
@@ -129,7 +132,9 @@ public class TestAccessLogger
    */
   public static void clear()
   {
-    SINGLETON.messageList.clear();
+    synchronized (SINGLETON) {
+      SINGLETON.messageList.clear();
+    }
   }
 
 

@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
@@ -667,6 +669,8 @@ public final class TestCaseUtils {
     for (int i = 0; i < lines.length; i++) {
       buffer.append(lines[i]).append(EOL);
     }
+    // Append an extra line so we can append LDIF Strings.
+    buffer.append(EOL);
     return buffer.toString();
   }
 
@@ -836,6 +840,17 @@ public final class TestCaseUtils {
     }
   }
 
+  /**
+   * Return a Map constructed via alternating key and value pairs.
+   */
+  public static LinkedHashMap<String,String> makeMap(String... keyValuePairs) {
+    LinkedHashMap<String,String> map = new LinkedHashMap<String,String>();
+    for (int i = 0; i < keyValuePairs.length; i += 2) {
+      map.put(keyValuePairs[i], keyValuePairs[i+1]);
+    }
+    return map;
+  }
+
   // ---------------------------------------------------------------------------
   // ---------------------------------------------------------------------------
   // ---------------------------------------------------------------------------
@@ -851,12 +866,20 @@ public final class TestCaseUtils {
    *  must write something to System.out. */
   public final static PrintStream originalSystemOut = System.out;
 
+  /** System.err is redirected to here so that we can only print it out
+   *  if a test fails. */
+  private final static ByteArrayOutputStream redirectedSystemErr = new ByteArrayOutputStream();
+
+  /** System.out is redirected to here so that we can only print it out
+   *  if a test fails. */
+  private final static ByteArrayOutputStream redirectedSystemOut = new ByteArrayOutputStream();
+
   public synchronized static void suppressOutput() {
     String suppressStr = System.getProperty("org.opends.test.suppressOutput");
     if ((suppressStr != null) && suppressStr.equalsIgnoreCase("true"))
     {
-      System.setOut(NullOutputStream.printStream());
-      System.setErr(NullOutputStream.printStream());
+      System.setOut(new PrintStream(redirectedSystemOut));
+      System.setErr(new PrintStream(redirectedSystemErr));
 
       LogManager logManager = LogManager.getLogManager();
       Enumeration<String> loggerNames = logManager.getLoggerNames();
@@ -877,6 +900,38 @@ public final class TestCaseUtils {
     }
   }
 
+  /**
+   * @return everything written to System.out since the last time
+   * clearSystemOutContents was called.
+   */
+  public synchronized static String getSystemOutContents() {
+    return redirectedSystemOut.toString();
+  }
+
+  /**
+   * @return everything written to System.err since the last time
+   * clearSystemErrContents was called.
+   */
+  public synchronized static String getSystemErrContents() {
+    return redirectedSystemErr.toString();
+  }
+
+  /**
+   * @return clear everything written to System.out since the last time
+   * clearSystemOutContents was called.
+   */
+  public synchronized static void clearSystemOutContents() {
+    redirectedSystemOut.reset();
+  }
+
+  /**
+   * @return clear everything written to System.err since the last time
+   * clearSystemErrContents was called.
+   */
+  public synchronized static void clearSystemErrContents() {
+    redirectedSystemErr.reset();
+  }
+
   public synchronized static void unsupressOutput() {
     System.setOut(originalSystemOut);
     System.setErr(originalSystemErr);
@@ -887,5 +942,102 @@ public final class TestCaseUtils {
       l.addHandler(h);
     }
     disabledLogHandlers.clear();
+  }
+
+  /**
+   * Read the contents of a file and return it as a String.
+   */
+  public static String readFile(String name)
+          throws IOException {
+    return readFile(new File(name));
+  }
+
+  /**
+   * Read the contents of a file and return it as a String.
+   */
+  public static String readFile(File file)
+          throws IOException {
+    byte[] bytes = readFileBytes(file);
+    return new String(bytes);
+  }
+
+
+  /**
+   * Read the contents of a file and return it as a String.
+   */
+  private static byte[] readFileBytes(File file)
+          throws IOException {
+    FileInputStream fis = null;
+    byte[] bytes = null;
+    fis = new FileInputStream(file);
+    bytes = readInputStreamBytes(fis, true);
+    return bytes;
+  }
+
+  /**
+   * @param close - if true, close when finished reading.
+   * @return input stream content.
+   */
+  private static byte[] readInputStreamBytes(InputStream is, boolean close)
+          throws IOException {
+    byte[] bytes = null;
+    if (is != null) {
+      ByteArrayOutputStream bout = new ByteArrayOutputStream(1024);
+      try {
+        byte[] buf = new byte[1024];
+        int bytesRead = 0;
+        while ((bytesRead = is.read(buf)) != -1) {
+          bout.write(buf, 0, bytesRead);
+        } // end of while ((read(buf) != -1)
+        bytes = bout.toByteArray();
+      }
+      finally {
+        if (close && is != null) {
+          try {
+            is.close();
+          }
+          catch (java.io.IOException ex) {
+            // ignore these
+          }
+        } // end of if (is != null)
+      }
+    }
+    return bytes;
+  }
+
+
+  /**
+   * Store the contents of a String in a file.
+   */
+  public static void writeFile(File file, String contents)
+          throws IOException {
+    writeFile(file.getAbsolutePath(), contents);
+  }
+
+  /**
+   * Store the contents of a String in a file.
+   */
+  public static void writeFile(String name, String contents)
+          throws IOException {
+    writeFile(name, contents.getBytes());
+  }
+
+  /**
+   * Store the contents of a String in a file.
+   */
+  public static void writeFile(String path, byte[] contents)
+          throws IOException {
+    FileOutputStream fos = null;
+    try {
+      fos = new FileOutputStream(path);
+      fos.write(contents);
+    } finally {
+      try {
+        if (fos != null) fos.close();
+      }
+      catch (java.io.IOException e) {
+        // ignore these
+      }
+    }
   }
 }
