@@ -62,6 +62,7 @@ import java.util.IllegalFormatException;
  *   <LI>009 -- Generic backend processing</LI>
  *   <LI>00A -- Directory Server tools</LI>
  *   <LI>00B -- Task processing</LI>
+     <LI>00C -- Access Control</LI>
  *   <LI>800 through FFE -- Reserved for third-party modules</LI>
  *   <LI>FFF -- User-defined processing</LI>
  * </UL>
@@ -177,6 +178,11 @@ public class MessageHandler
    */
   public static final int CATEGORY_MASK_TASK = 0x00B00000;
 
+
+  /**
+   * The category bitmask used for messages associated with Access Control.
+   */
+  public static final int CATEGORY_MASK_ACCESS_CONTROL = 0x00C00000;
 
 
   /**
