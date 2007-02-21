@@ -22,24 +22,29 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
 
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
+import org.opends.server.api.ConfigHandler;
+import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
-import org.opends.server.extensions.SubjectEqualsDNCertificateMapper;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
@@ -51,16 +56,17 @@ import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
 
 /**
- * This class defines a utility that will be used to manage the configuration
- * for the Directory Server certificate mapper.  Only a single certificate
- * mapper may be defined, but if it is absent or disabled, then a default
- * provider will be used that will assume that the certificate subject is equal
- * to the user entry's DN.
+ * This class defines a utility that will be used to manage the set of
+ * certificate mappers defined in the Directory Server.  It will initialize the
+ * certificate mappers when the server starts, and then will manage any
+ * additions, removals, or modifications of any certificate mappers while the
+ * server is running.
  */
 public class CertificateMapperConfigManager
        implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
@@ -73,251 +79,139 @@ public class CertificateMapperConfigManager
 
 
 
+  // A mapping between the DNs of the config entries and the associated
+  // certificate mappers.
+  private ConcurrentHashMap<DN,CertificateMapper> mappers;
+
+  // The configuration handler for the Directory Server.
+  private ConfigHandler configHandler;
+
+
+
   /**
-   * Creates a new instance of this certificate mapper provider config manager.
+   * Creates a new instance of this certificate mapper config manager.
    */
   public CertificateMapperConfigManager()
   {
     assert debugConstructor(CLASS_NAME);
 
-    // No implementation is required.
+    configHandler = DirectoryServer.getConfigHandler();
+    mappers       = new ConcurrentHashMap<DN,CertificateMapper>();
   }
 
 
 
   /**
-   * Initializes the configuration associated with the Directory Server
-   * certificate mapper.  This should only be called at Directory Server
-   * startup.  If an error occurs, then a message will be logged and the default
-   * certificate mapper will be installed.
+   * Initializes all certificate mappers currently defined in the Directory
+   * Server configuration.  This should only be called at Directory Server
+   * startup.
    *
-   * @throws  InitializationException  If a problem occurs while trying to
-   *                                   install the default certificate mapper.
+   * @throws  ConfigException  If a configuration problem causes the certificate
+   *                           mapper initialization process to fail.
+   *
+   * @throws  InitializationException  If a problem occurs while initializing
+   *                                   the certificate mappers that is not
+   *                                   related to the server configuration.
    */
-  public void initializeCertificateMapper()
-         throws InitializationException
+  public void initializeCertificateMappers()
+         throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeCertificateMapper");
+    assert debugEnter(CLASS_NAME, "initializeCertificateMappers");
 
 
-    // First, install the default certificate mapper so that there will be one
-    // even if we encounter a problem later.
+    // First, get the configuration base entry.
+    ConfigEntry baseEntry;
     try
     {
-      SubjectEqualsDNCertificateMapper defaultMapper =
-           new SubjectEqualsDNCertificateMapper();
-      defaultMapper.initializeCertificateMapper(null);
-      DirectoryServer.setCertificateMapper(defaultMapper);
+      DN certMapperBase = DN.decode(DN_CERTMAPPER_CONFIG_BASE);
+      baseEntry = configHandler.getConfigEntry(certMapperBase);
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      assert debugException(CLASS_NAME, "initializeCertificateMappers",
+                            e);
 
-      int msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_INSTALL_DEFAULT_MAPPER;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      int    msgID   = MSGID_CONFIG_CERTMAPPER_CANNOT_GET_BASE;
+      String message = getMessage(msgID, String.valueOf(e));
+      throw new ConfigException(msgID, message, e);
+    }
+
+    if (baseEntry == null)
+    {
+      // The certificate mapper base entry does not exist.  This is not
+      // acceptable, so throw an exception.
+      int    msgID   = MSGID_CONFIG_CERTMAPPER_BASE_DOES_NOT_EXIST;
+      String message = getMessage(msgID);
+      throw new ConfigException(msgID, message);
     }
 
 
-    // Get the certificate mapper configuration entry.  If it is not present,
-    // then register an add listener and just go with the default mapper.
-    DN configEntryDN;
-    ConfigEntry configEntry;
-    try
-    {
-      configEntryDN = DN.decode(DN_CERTMAPPER_CONFIG);
-      configEntry   = DirectoryServer.getConfigEntry(configEntryDN);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+    // Register add and delete listeners with the certificate mapper base entry.
+    // We don't care about modifications to it.
+    baseEntry.registerAddListener(this);
+    baseEntry.registerDeleteListener(this);
 
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_CERTMAPPER_CANNOT_GET_CONFIG_ENTRY,
-               stackTraceToSingleLineString(e));
+
+    // See if the base entry has any children.  If not, then we don't need to do
+    // anything else.
+    if (! baseEntry.hasChildren())
+    {
       return;
     }
 
-    if (configEntry == null)
+
+    // Iterate through the child entries and process them as certificate mapper
+    // configuration entries.
+    for (ConfigEntry childEntry : baseEntry.getChildren().values())
     {
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_WARNING,
-               MSGID_CONFIG_CERTMAPPER_NO_CONFIG_ENTRY);
+      childEntry.registerChangeListener(this);
+
+      StringBuilder unacceptableReason = new StringBuilder();
+      if (! configAddIsAcceptable(childEntry, unacceptableReason))
+      {
+        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+                 MSGID_CONFIG_CERTMAPPER_ENTRY_UNACCEPTABLE,
+                 childEntry.getDN().toString(), unacceptableReason.toString());
+        continue;
+      }
 
       try
       {
-        ConfigEntry parentEntry =
-             DirectoryServer
-            .getConfigEntry(configEntryDN.getParentDNInSuffix());
-        if (parentEntry != null)
+        ConfigChangeResult result = applyConfigurationAdd(childEntry);
+        if (result.getResultCode() != ResultCode.SUCCESS)
         {
-          parentEntry.registerAddListener(this);
+          StringBuilder buffer = new StringBuilder();
+
+          List<String> resultMessages = result.getMessages();
+          if ((resultMessages == null) || (resultMessages.isEmpty()))
+          {
+            buffer.append(getMessage(MSGID_CONFIG_UNKNOWN_UNACCEPTABLE_REASON));
+          }
+          else
+          {
+            Iterator<String> iterator = resultMessages.iterator();
+
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(EOL);
+              buffer.append(iterator.next());
+            }
+          }
+
+          logError(ErrorLogCategory.CONFIGURATION,
+                   ErrorLogSeverity.SEVERE_ERROR,
+                   MSGID_CONFIG_CERTMAPPER_CANNOT_CREATE_MAPPER,
+                   childEntry.getDN().toString(), buffer.toString());
         }
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
-
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 MSGID_CONFIG_CERTMAPPER_CANNOT_REGISTER_ADD_LISTENER,
-                 stackTraceToSingleLineString(e));
-      }
-
-      return;
-    }
-
-
-    // At this point, we have a configuration entry.  Register a change listener
-    // with it so we can be notified of changes to it over time.  We will also
-    // want to register a delete listener with its parent to allow us to
-    // determine if the entry is deleted.
-    configEntry.registerChangeListener(this);
-    try
-    {
-      DN parentDN = configEntryDN.getParentDNInSuffix();
-      ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-      if (parentEntry != null)
-      {
-        parentEntry.registerDeleteListener(this);
+                 MSGID_CONFIG_CERTMAPPER_CANNOT_CREATE_MAPPER,
+                 childEntry.getDN().toString(), String.valueOf(e));
       }
     }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_WARNING,
-               MSGID_CONFIG_CERTMAPPER_CANNOT_REGISTER_DELETE_LISTENER,
-               stackTraceToSingleLineString(e));
-    }
-
-
-    // See if the entry indicates whether the certificate mapper should be
-    // enabled.
-    int msgID = MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_CERTMAPPER_ENABLED, getMessage(msgID),
-                                    false);
-    try
-    {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(enabledStub);
-      if (enabledAttr == null)
-      {
-        // The attribute is not present, so the certificate mapper will be
-        // disabled.  Log a warning message and return.
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING,
-                 MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR);
-        return;
-      }
-      else if (! enabledAttr.activeValue())
-      {
-        // The certificate mapper is explicitly disabled.  Log a mild warning
-        // and return.
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_WARNING,
-                 MSGID_CONFIG_CERTMAPPER_DISABLED);
-        return;
-      }
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_CERTMAPPER_UNABLE_TO_DETERMINE_ENABLED_STATE,
-               stackTraceToSingleLineString(e));
-      return;
-    }
-
-
-    // See if it specifies the class name for the certificate mapper
-    // implementation.
-    String className;
-    msgID = MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_CERTMAPPER_CLASS, getMessage(msgID),
-                                   true, false, false);
-    try
-    {
-      StringConfigAttribute classAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 MSGID_CONFIG_CERTMAPPER_NO_CLASS_ATTR);
-        return;
-      }
-      else
-      {
-        className = classAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_CERTMAPPER_CANNOT_DETERMINE_CLASS,
-               stackTraceToSingleLineString(e));
-      return;
-    }
-
-
-    // Try to load the class and instantiate it as a certificate mapper.
-    Class certificateMapperClass;
-    try
-    {
-      // FIXME -- Should we use a custom class loader for this?
-      certificateMapperClass = Class.forName(className);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_CERTMAPPER_CANNOT_LOAD_CLASS,
-               String.valueOf(className), stackTraceToSingleLineString(e));
-      return;
-    }
-
-    CertificateMapper certificateMapper;
-    try
-    {
-      certificateMapper =
-           (CertificateMapper) certificateMapperClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_CERTMAPPER_CANNOT_INSTANTIATE_CLASS,
-               String.valueOf(className), stackTraceToSingleLineString(e));
-      return;
-    }
-
-
-    // Try to initialize the certificate mapper with the contents of the
-    // configuration entry.
-    try
-    {
-      certificateMapper.initializeCertificateMapper(configEntry);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_CERTMAPPER_CANNOT_INITIALIZE,
-               String.valueOf(className), stackTraceToSingleLineString(e));
-      return;
-    }
-
-
-    // Install the new certificate mapper in the server.  We don't need to do
-    // anything to get rid of the previous null provider since it doesn't
-    // consume any resources.
-    DirectoryServer.setCertificateMapper(certificateMapper);
   }
 
 
@@ -342,21 +236,97 @@ public class CertificateMapperConfigManager
                       String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
-    // See if the entry indicates whether the certificate mapper should be
-    // enabled.
-    int msgID = MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_CERTMAPPER_ENABLED, getMessage(msgID),
-                                    false);
+    // Make sure that the entry has an appropriate objectclass for a certificate
+    // mapper.
+    if (! configEntry.hasObjectClass(OC_CERTIFICATE_MAPPER))
+    {
+      int    msgID   = MSGID_CONFIG_CERTMAPPER_INVALID_OBJECTCLASS;
+      String message = getMessage(msgID, configEntry.getDN().toString());
+      unacceptableReason.append(message);
+      return false;
+    }
+
+
+    // Make sure that the entry specifies the mapper class name.
+    StringConfigAttribute classNameAttr;
     try
     {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(enabledStub);
+      StringConfigAttribute classStub =
+           new StringConfigAttribute(ATTR_CERTMAPPER_CLASS,
+                    getMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS),
+                    true, false, true);
+      classNameAttr = (StringConfigAttribute)
+                      configEntry.getConfigAttribute(classStub);
+
+      if (classNameAttr == null)
+      {
+        int    msgID   = MSGID_CONFIG_CERTMAPPER_NO_CLASS_NAME;
+        String message = getMessage(msgID, configEntry.getDN().toString());
+        unacceptableReason.append(message);
+        return false;
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+
+      int    msgID   = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS_NAME;
+      String message = getMessage(msgID, configEntry.getDN().toString(),
+                                  String.valueOf(e));
+      unacceptableReason.append(message);
+      return false;
+    }
+
+    Class mapperClass;
+    try
+    {
+      // FIXME -- Should this be done with a custom class loader?
+      mapperClass = Class.forName(classNameAttr.pendingValue());
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+
+      int    msgID   = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS_NAME;
+      String message = getMessage(msgID, configEntry.getDN().toString(),
+                                  String.valueOf(e));
+      unacceptableReason.append(message);
+      return false;
+    }
+
+    try
+    {
+      CertificateMapper mapper = (CertificateMapper) mapperClass.newInstance();
+    }
+    catch(Exception e)
+    {
+      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+
+      int    msgID   = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS;
+      String message = getMessage(msgID, mapperClass.getName(),
+                                  String.valueOf(configEntry.getDN()),
+                                  String.valueOf(e));
+      unacceptableReason.append(message);
+      return false;
+    }
+
+
+    // See if this certificate mapper should be enabled.
+    BooleanConfigAttribute enabledAttr;
+    try
+    {
+      BooleanConfigAttribute enabledStub =
+           new BooleanConfigAttribute(ATTR_CERTMAPPER_ENABLED,
+                    getMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED),
+                               false);
+      enabledAttr = (BooleanConfigAttribute)
+                    configEntry.getConfigAttribute(enabledStub);
+
       if (enabledAttr == null)
       {
-        msgID = MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR;
-        unacceptableReason.append(getMessage(msgID));
+        int    msgID   = MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR;
+        String message = getMessage(msgID, configEntry.getDN().toString());
+        unacceptableReason.append(message);
         return false;
       }
     }
@@ -364,82 +334,16 @@ public class CertificateMapperConfigManager
     {
       assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
 
-      msgID = MSGID_CONFIG_CERTMAPPER_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      unacceptableReason.append(getMessage(msgID,
-                                           stackTraceToSingleLineString(e)));
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_ENABLED_VALUE;
+      String message = getMessage(msgID, configEntry.getDN().toString(),
+                                  String.valueOf(e));
+      unacceptableReason.append(message);
       return false;
     }
 
 
-    // See if it specifies the class name for the certificate mapper
-    // implementation.
-    String className;
-    msgID = MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_CERTMAPPER_CLASS, getMessage(msgID),
-                                   true, false, false);
-    try
-    {
-      StringConfigAttribute classAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        msgID = MSGID_CONFIG_CERTMAPPER_NO_CLASS_ATTR;
-        unacceptableReason.append(getMessage(msgID));
-        return false;
-      }
-      else
-      {
-        className = classAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_DETERMINE_CLASS;
-      unacceptableReason.append(getMessage(msgID,
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // Try to load the class and instantiate it as a certificate mapper.
-    Class certificateMapperClass;
-    try
-    {
-      // FIXME -- Should we use a custom class loader for this?
-      certificateMapperClass = Class.forName(className);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_LOAD_CLASS;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(className),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-    try
-    {
-      CertificateMapper certificateMapper =
-           (CertificateMapper) certificateMapperClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_INSTANTIATE_CLASS;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(className),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // If we've gotten to this point, then it is acceptable as far as we are
-    // concerned.  If it is unacceptable according to the configuration, then
-    // the certificate mapper itself will make that determination.
+    // If we've gotten here then the certificate mapper entry appears to be
+    // acceptable.
     return true;
   }
 
@@ -460,72 +364,78 @@ public class CertificateMapperConfigManager
     assert debugEnter(CLASS_NAME, "applyConfigurationChange",
                       String.valueOf(configEntry));
 
+
+    DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
 
 
-    // See if the entry indicates whether the certificate mapper should be
-    // enabled.  If not, then make sure that the certificate mapper is disabled
-    // and return since we don't need to do anything else.
-    boolean needsEnabled          = false;
-    String  existingProviderClass = null;
-    int msgID = MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_CERTMAPPER_ENABLED, getMessage(msgID),
-                                    false);
+    // Make sure that the entry has an appropriate objectclass for a certificate
+    // mapper.
+    if (! configEntry.hasObjectClass(OC_CERTIFICATE_MAPPER))
+    {
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+      resultCode = ResultCode.UNWILLING_TO_PERFORM;
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    }
+
+
+    // Get the corresponding certificate mapper if it is active.
+    CertificateMapper mapper = mappers.get(configEntryDN);
+
+
+    // See if this mapper should be enabled or disabled.
+    boolean needsEnabled = false;
+    BooleanConfigAttribute enabledAttr;
     try
     {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(enabledStub);
+      BooleanConfigAttribute enabledStub =
+           new BooleanConfigAttribute(ATTR_CERTMAPPER_ENABLED,
+                    getMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED),
+                    false);
+      enabledAttr = (BooleanConfigAttribute)
+                    configEntry.getConfigAttribute(enabledStub);
+
       if (enabledAttr == null)
       {
-        msgID = MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR;
-        messages.add(getMessage(msgID));
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
+        int msgID = MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR;
+        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+        resultCode = ResultCode.UNWILLING_TO_PERFORM;
         return new ConfigChangeResult(resultCode, adminActionRequired,
                                       messages);
       }
-      else if (! enabledAttr.pendingValue())
-      {
-        DirectoryServer.getCertificateMapper().finalizeCertificateMapper();
 
-        // The provider should be disabled, so install the default certificate
-        // mapper and return.
-        try
-        {
-          SubjectEqualsDNCertificateMapper defaultMapper =
-               new SubjectEqualsDNCertificateMapper();
-          defaultMapper.initializeCertificateMapper(null);
-          DirectoryServer.setCertificateMapper(defaultMapper);
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-        catch (Exception e)
-        {
-          assert debugException(CLASS_NAME, "applyConfigurationChange", e);
-
-          msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_INSTALL_DEFAULT_MAPPER;
-          messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-      }
-      else
+      if (enabledAttr.activeValue())
       {
-        // The provider should be enabled.  If it isn't, then set a flag to
-        // indicate that we need to create it when we have more information.
-        if (DirectoryServer.getCertificateMapper() instanceof
-            SubjectEqualsDNCertificateMapper)
+        if (mapper == null)
         {
           needsEnabled = true;
         }
         else
         {
-          existingProviderClass =
-               DirectoryServer.getCertificateMapper().getClass().getName();
+          // The mapper is already active, so no action is required.
+        }
+      }
+      else
+      {
+        if (mapper == null)
+        {
+          // The mapper is already disabled, so no action is required and we
+          // can short-circuit out of this processing.
+          return new ConfigChangeResult(resultCode, adminActionRequired,
+                                        messages);
+        }
+        else
+        {
+          // The mapper is active, so it needs to be disabled.  Do this and
+          // return that we were successful.
+          mappers.remove(configEntryDN);
+          DirectoryServer.deregisterCertificateMapper(configEntryDN);
+          mapper.finalizeCertificateMapper();
+          return new ConfigChangeResult(resultCode, adminActionRequired,
+                                        messages);
         }
       }
     }
@@ -533,133 +443,118 @@ public class CertificateMapperConfigManager
     {
       assert debugException(CLASS_NAME, "applyConfigurationChange", e);
 
-      msgID = MSGID_CONFIG_CERTMAPPER_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_ENABLED_VALUE;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                              String.valueOf(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
 
-    // Get the class name from the configuration entry.
+    // Make sure that the entry specifies the mapper class name.  If it has
+    // changed, then we will not try to dynamically apply it.
     String className;
-    msgID = MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_CERTMAPPER_CLASS, getMessage(msgID),
-                                   true, false, false);
     try
     {
-      StringConfigAttribute classAttr =
+      StringConfigAttribute classStub =
+           new StringConfigAttribute(ATTR_CERTMAPPER_CLASS,
+                    getMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS),
+                    true, false, true);
+      StringConfigAttribute classNameAttr =
            (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
+
+      if (classNameAttr == null)
       {
-        msgID = MSGID_CONFIG_CERTMAPPER_NO_CLASS_ATTR;
-        messages.add(getMessage(msgID));
+        int msgID = MSGID_CONFIG_CERTMAPPER_NO_CLASS_NAME;
+        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
         resultCode = ResultCode.OBJECTCLASS_VIOLATION;
         return new ConfigChangeResult(resultCode, adminActionRequired,
                                       messages);
       }
-      else
-      {
-        className = classAttr.activeValue();
-      }
+
+      className = classNameAttr.pendingValue();
     }
     catch (Exception e)
     {
       assert debugException(CLASS_NAME, "applyConfigurationChange", e);
 
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_DETERMINE_CLASS;
-      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS_NAME;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                              String.valueOf(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
 
-    // If the certificate mapper is already enabled and the specified class is
-    // different from the class that is currently in use, then we won't try to
-    // do anything.  The certificate mapper must be disabled and re-enabled
-    // before the configuration change will be accepted.
-    if (! needsEnabled)
+    boolean classChanged = false;
+    String  oldClassName = null;
+    if (mapper != null)
     {
-      if (! className.equals(existingProviderClass))
+      oldClassName = mapper.getClass().getName();
+      classChanged = (! className.equals(oldClassName));
+    }
+
+
+    if (classChanged)
+    {
+      // This will not be applied dynamically.  Add a message to the response
+      // and indicate that admin action is required.
+      adminActionRequired = true;
+      messages.add(getMessage(MSGID_CONFIG_CERTMAPPER_CLASS_ACTION_REQUIRED,
+                              String.valueOf(oldClassName),
+                              String.valueOf(className),
+                              String.valueOf(configEntryDN)));
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    }
+
+
+    if (needsEnabled)
+    {
+      try
       {
-        msgID = MSGID_CONFIG_CERTMAPPER_NOT_SWITCHING_CLASSES;
-        messages.add(getMessage(msgID, String.valueOf(existingProviderClass),
-                                String.valueOf(className)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        adminActionRequired = true;
+        // FIXME -- Should this be done with a dynamic class loader?
+        Class mapperClass = Class.forName(className);
+        mapper = (CertificateMapper) mapperClass.newInstance();
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+
+        int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS;
+        messages.add(getMessage(msgID, className,
+                                String.valueOf(configEntryDN),
+                                String.valueOf(e)));
+        resultCode = DirectoryServer.getServerErrorResultCode();
         return new ConfigChangeResult(resultCode, adminActionRequired,
                                       messages);
       }
-      else
+
+      try
       {
-        // We don't need to do anything because it's already enabled and has the
-        // right class.
+        mapper.initializeCertificateMapper(configEntry);
+      }
+      catch (Exception e)
+      {
+        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+
+        int msgID = MSGID_CONFIG_CERTMAPPER_INITIALIZATION_FAILED;
+        messages.add(getMessage(msgID, className,
+                                String.valueOf(configEntryDN),
+                                String.valueOf(e)));
+        resultCode = DirectoryServer.getServerErrorResultCode();
         return new ConfigChangeResult(resultCode, adminActionRequired,
                                       messages);
       }
-    }
 
 
-    // Try to load the class and instantiate it as a certificate mapper.
-    Class certificateMapperClass;
-    try
-    {
-      // FIXME -- Should we use a custom class loader for this?
-      certificateMapperClass = Class.forName(className);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_LOAD_CLASS;
-      messages.add(getMessage(msgID, String.valueOf(className),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-    CertificateMapper certificateMapper;
-    try
-    {
-      certificateMapper =
-           (CertificateMapper) certificateMapperClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_INSTANTIATE_CLASS;
-      messages.add(getMessage(msgID, String.valueOf(className),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      mappers.put(configEntryDN, mapper);
+      DirectoryServer.registerCertificateMapper(configEntryDN, mapper);
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
 
-    // Try to initialize the certificate mapper with the contents of the
-    // configuration entry.
-    try
-    {
-      certificateMapper.initializeCertificateMapper(configEntry);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_INITIALIZE;
-      messages.add(getMessage(msgID, String.valueOf(className),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // Install the new certificate mapper in the server.  We don't need to do
-    // anything to get rid of the previous default mapper since it doesn't
-    // consume any resources.
-    DirectoryServer.setCertificateMapper(certificateMapper);
-
-
+    // If we've gotten here, then there haven't been any changes to anything
+    // that we care about.
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
@@ -685,127 +580,161 @@ public class CertificateMapperConfigManager
                       String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
-    // Get the DN of the provided entry and see if it is the DN that we expect
-    // for the certificate mapper configuration.  If it is not, then it's not an
-    // entry that we care about so return true.
-    DN providedEntryDN = configEntry.getDN();
-    DN expectedEntryDN;
-    try
+    // Make sure that no entry already exists with the specified DN.
+    DN configEntryDN = configEntry.getDN();
+    if (mappers.containsKey(configEntryDN))
     {
-      expectedEntryDN = DN.decode(DN_CERTMAPPER_CONFIG);
-    }
-    catch (DirectoryException de)
-    {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", de);
-
-      unacceptableReason.append(de.getErrorMessage());
+      int    msgID   = MSGID_CONFIG_CERTMAPPER_EXISTS;
+      String message = getMessage(msgID, String.valueOf(configEntryDN));
+      unacceptableReason.append(message);
       return false;
     }
 
-    if (! providedEntryDN.equals(expectedEntryDN))
+
+    // Make sure that the entry has an appropriate objectclass for a certificate
+    // mapper.
+    if (! configEntry.hasObjectClass(OC_CERTIFICATE_MAPPER))
     {
-      return true;
+      int    msgID   = MSGID_CONFIG_CERTMAPPER_INVALID_OBJECTCLASS;
+      String message = getMessage(msgID, configEntry.getDN().toString());
+      unacceptableReason.append(message);
+      return false;
     }
 
 
-    // See if the entry indicates whether the certificate mapper should be
-    // enabled.
-    int msgID = MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_CERTMAPPER_ENABLED, getMessage(msgID),
-                                    false);
+    // Make sure that the entry specifies the certificate mapper class.
+    StringConfigAttribute classNameAttr;
     try
     {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(enabledStub);
+      StringConfigAttribute classStub =
+           new StringConfigAttribute(ATTR_CERTMAPPER_CLASS,
+                    getMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS),
+                    true, false, true);
+      classNameAttr = (StringConfigAttribute)
+                      configEntry.getConfigAttribute(classStub);
+
+      if (classNameAttr == null)
+      {
+        int msgID = MSGID_CONFIG_CERTMAPPER_NO_CLASS_NAME;
+        String message = getMessage(msgID, configEntry.getDN().toString());
+        unacceptableReason.append(message);
+        return false;
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS_NAME;
+      String message = getMessage(msgID, configEntry.getDN().toString(),
+                                  String.valueOf(e));
+      unacceptableReason.append(message);
+      return false;
+    }
+
+    Class mapperClass;
+    try
+    {
+      // FIXME -- Should this be done with a custom class loader?
+      mapperClass = Class.forName(classNameAttr.pendingValue());
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS_NAME;
+      String message = getMessage(msgID, configEntry.getDN().toString(),
+                                  String.valueOf(e));
+      unacceptableReason.append(message);
+      return false;
+    }
+
+    CertificateMapper mapper;
+    try
+    {
+      mapper = (CertificateMapper) mapperClass.newInstance();
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS;
+      String message = getMessage(msgID, mapperClass.getName(),
+                                  String.valueOf(configEntryDN),
+                                  String.valueOf(e));
+      unacceptableReason.append(message);
+      return false;
+    }
+
+
+    // See if this mapper should be enabled.
+    BooleanConfigAttribute enabledAttr;
+    try
+    {
+      BooleanConfigAttribute enabledStub =
+           new BooleanConfigAttribute(ATTR_CERTMAPPER_ENABLED,
+                    getMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED),
+                               false);
+      enabledAttr = (BooleanConfigAttribute)
+                    configEntry.getConfigAttribute(enabledStub);
+
       if (enabledAttr == null)
       {
-        msgID = MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR;
-        unacceptableReason.append(getMessage(msgID));
+        int msgID = MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR;
+        String message = getMessage(msgID, configEntry.getDN().toString());
+        unacceptableReason.append(message);
+        return false;
+      }
+      else if (! enabledAttr.pendingValue())
+      {
+        // The certificate mapper is not enabled so we don't need to do any
+        // further validation.
+        return true;
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_ENABLED_VALUE;
+      String message = getMessage(msgID, configEntry.getDN().toString(),
+                                  String.valueOf(e));
+      unacceptableReason.append(message);
+      return false;
+    }
+
+
+    // If the mapper is a configurable component, then make sure that its
+    // configuration is valid.
+    if (mapper instanceof ConfigurableComponent)
+    {
+      ConfigurableComponent cc = (ConfigurableComponent) mapper;
+      LinkedList<String> errorMessages = new LinkedList<String>();
+      if (! cc.hasAcceptableConfiguration(configEntry, errorMessages))
+      {
+        if (errorMessages.isEmpty())
+        {
+          int msgID = MSGID_CONFIG_CERTMAPPER_UNACCEPTABLE_CONFIG;
+          unacceptableReason.append(getMessage(msgID,
+                                               String.valueOf(configEntryDN)));
+        }
+        else
+        {
+          Iterator<String> iterator = errorMessages.iterator();
+          unacceptableReason.append(iterator.next());
+          while (iterator.hasNext())
+          {
+            unacceptableReason.append("  ");
+            unacceptableReason.append(iterator.next());
+          }
+        }
+
         return false;
       }
     }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      unacceptableReason.append(getMessage(msgID,
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
 
 
-    // See if it specifies the class name for the certificate mapper
-    // implementation.
-    String className;
-    msgID = MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_CERTMAPPER_CLASS, getMessage(msgID),
-                                   true, false, false);
-    try
-    {
-      StringConfigAttribute classAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        msgID = MSGID_CONFIG_CERTMAPPER_NO_CLASS_ATTR;
-        unacceptableReason.append(getMessage(msgID));
-        return false;
-      }
-      else
-      {
-        className = classAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_DETERMINE_CLASS;
-      unacceptableReason.append(getMessage(msgID,
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // Try to load the class and instantiate it as a certificate mapper.
-    Class certificateMapperClass;
-    try
-    {
-      // FIXME -- Should we use a custom class loader for this?
-      certificateMapperClass = Class.forName(className);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_LOAD_CLASS;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(className),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-    try
-    {
-      CertificateMapper certificateMapper =
-           (CertificateMapper) certificateMapperClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_INSTANTIATE_CLASS;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(className),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // If we've gotten to this point, then it is acceptable as far as we are
-    // concerned.  If it is unacceptable according to the configuration, then
-    // the certificate mapper itself will make that determination.
+    // If we've gotten here then the mapper entry appears to be acceptable.
     return true;
   }
 
@@ -825,84 +754,48 @@ public class CertificateMapperConfigManager
     assert debugEnter(CLASS_NAME, "applyConfigurationAdd",
                       String.valueOf(configEntry));
 
+
+    DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
 
 
-    // Get the DN of the provided entry and see if it is the DN that we expect
-    // for the certificate mapper configuration.  If it is not, then it's not an
-    // entry that we care about so return without doing anything.
-    DN providedEntryDN = configEntry.getDN();
-    DN expectedEntryDN;
-    try
+    // Make sure that the entry has an appropriate objectclass for a certificate
+    // mapper.
+    if (! configEntry.hasObjectClass(OC_CERTIFICATE_MAPPER))
     {
-      expectedEntryDN = DN.decode(DN_CERTMAPPER_CONFIG);
-    }
-    catch (DirectoryException de)
-    {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", de);
-
-      messages.add(de.getErrorMessage());
-      resultCode = de.getResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-    if (! providedEntryDN.equals(expectedEntryDN))
-    {
+      int    msgID   = MSGID_CONFIG_CERTMAPPER_INVALID_OBJECTCLASS;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+      resultCode = ResultCode.UNWILLING_TO_PERFORM;
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
 
-    // Register as a change listener of the provided entry so that we will be
-    // notified of changes to it.  We will also want to register a delete
-    // listener with its parent to allow us to determine if the entry is
-    // deleted.
-    configEntry.registerChangeListener(this);
+    // See if this mapper should be enabled or disabled.
+    BooleanConfigAttribute enabledAttr;
     try
     {
-      DN parentDN = configEntry.getDN().getParentDNInSuffix();
-      ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-      if (parentEntry != null)
-      {
-        parentEntry.registerDeleteListener(this);
-      }
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      BooleanConfigAttribute enabledStub =
+           new BooleanConfigAttribute(ATTR_CERTMAPPER_ENABLED,
+                    getMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED),
+                               false);
+      enabledAttr = (BooleanConfigAttribute)
+                    configEntry.getConfigAttribute(enabledStub);
 
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_WARNING,
-               MSGID_CONFIG_CERTMAPPER_CANNOT_REGISTER_DELETE_LISTENER,
-               stackTraceToSingleLineString(e));
-    }
-
-
-    // See if the entry indicates whether the certificate mapper should be
-    // enabled.
-    int msgID = MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_CERTMAPPER_ENABLED, getMessage(msgID),
-                                    false);
-    try
-    {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(enabledStub);
       if (enabledAttr == null)
       {
-        // The attribute is not present, so the certificate mapper will be
-        // disabled.  Log a warning message and return.
-        messages.add(getMessage(MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR));
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
+        // The attribute doesn't exist, so it will be disabled by default.
+        int msgID = MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR;
+        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+        resultCode = ResultCode.SUCCESS;
         return new ConfigChangeResult(resultCode, adminActionRequired,
                                       messages);
       }
       else if (! enabledAttr.activeValue())
       {
-        // The certificate mapper is explicitly disabled.  Log a mild warning
-        // and return.
-        messages.add(getMessage(MSGID_CONFIG_CERTMAPPER_DISABLED));
+        // It is explicitly configured as disabled, so we don't need to do
+        // anything.
         return new ConfigChangeResult(resultCode, adminActionRequired,
                                       messages);
       }
@@ -911,107 +804,86 @@ public class CertificateMapperConfigManager
     {
       assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
 
-      msgID = MSGID_CONFIG_CERTMAPPER_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_ENABLED_VALUE;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                              String.valueOf(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
 
-    // See if it specifies the class name for the certificate mapper
-    // implementation.
+    // Make sure that the entry specifies the mapper class name.
     String className;
-    msgID = MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_CERTMAPPER_CLASS, getMessage(msgID),
-                                   true, false, false);
     try
     {
-      StringConfigAttribute classAttr =
+      StringConfigAttribute classStub =
+           new StringConfigAttribute(ATTR_CERTMAPPER_CLASS,
+                    getMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS),
+                    true, false, true);
+      StringConfigAttribute classNameAttr =
            (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
+
+      if (classNameAttr == null)
       {
-        messages.add(getMessage(MSGID_CONFIG_CERTMAPPER_NO_CLASS_ATTR));
+        int msgID = MSGID_CONFIG_CERTMAPPER_NO_CLASS_NAME;
+        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
         resultCode = ResultCode.OBJECTCLASS_VIOLATION;
         return new ConfigChangeResult(resultCode, adminActionRequired,
                                       messages);
       }
-      else
-      {
-        className = classAttr.activeValue();
-      }
+
+      className = classNameAttr.pendingValue();
     }
     catch (Exception e)
     {
       assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
 
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_DETERMINE_CLASS;
-      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS_NAME;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                              String.valueOf(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
 
-    // Try to load the class and instantiate it as a certificate mapper.
-    Class certificateMapperClass;
+    // Load and initialize the mapper class, and register it with the Directory
+    // Server.
+    CertificateMapper mapper;
     try
     {
-      // FIXME -- Should we use a custom class loader for this?
-      certificateMapperClass = Class.forName(className);
+      // FIXME -- Should this be done with a dynamic class loader?
+      Class mapperClass = Class.forName(className);
+      mapper = (CertificateMapper) mapperClass.newInstance();
     }
     catch (Exception e)
     {
       assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
 
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_LOAD_CLASS;
-      messages.add(getMessage(msgID, String.valueOf(className),
-                              stackTraceToSingleLineString(e)));
+      int msgID = MSGID_CONFIG_CERTMAPPER_INVALID_CLASS;
+      messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
+                              String.valueOf(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
-    CertificateMapper certificateMapper;
     try
     {
-      certificateMapper =
-           (CertificateMapper) certificateMapperClass.newInstance();
+      mapper.initializeCertificateMapper(configEntry);
     }
     catch (Exception e)
     {
       assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
 
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_INSTANTIATE_CLASS;
-      messages.add(getMessage(msgID, String.valueOf(className),
-                              stackTraceToSingleLineString(e)));
+      int msgID = MSGID_CONFIG_CERTMAPPER_INITIALIZATION_FAILED;
+      messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
+                              String.valueOf(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
 
-    // Try to initialize the certificate mapper with the contents of the
-    // configuration entry.
-    try
-    {
-      certificateMapper.initializeCertificateMapper(configEntry);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
-
-      msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_INITIALIZE;
-      messages.add(getMessage(msgID, String.valueOf(className),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // Install the new certificate mapper in the server.  We don't need to do
-    // anything to get rid of the previous default mapper since it doesn't
-    // consume any resources.
-    DirectoryServer.setCertificateMapper(certificateMapper);
-
-
+    mappers.put(configEntryDN, mapper);
+    DirectoryServer.registerCertificateMapper(configEntryDN, mapper);
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
@@ -1037,46 +909,7 @@ public class CertificateMapperConfigManager
                       String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
-    // Get the DN of the provided entry and see if it is the DN that we expect
-    // for the certificate mapper configuration.  If it is not, then it's not an
-    // entry that we care about so return true.
-    DN providedEntryDN = configEntry.getDN();
-    DN expectedEntryDN;
-    try
-    {
-      expectedEntryDN = DN.decode(DN_CERTMAPPER_CONFIG);
-    }
-    catch (DirectoryException de)
-    {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", de);
-
-      unacceptableReason.append(de.getErrorMessage());
-      return false;
-    }
-
-    if (! providedEntryDN.equals(expectedEntryDN))
-    {
-      return true;
-    }
-
-
-    // Determine whether there is a valid certificate mapper installed (i.e.,
-    // not the default mapper).  If a valid mapper is installed, then we will
-    // not allow the entry to be removed.
-    CertificateMapper installedMapper =
-         DirectoryServer.getCertificateMapper();
-    if (! (installedMapper instanceof SubjectEqualsDNCertificateMapper))
-    {
-      int msgID = MSGID_CONFIG_CERTMAPPER_CANNOT_REMOVE_ACTIVE_PROVIDER;
-      unacceptableReason.append(getMessage(msgID,
-                                     installedMapper.getClass().getName()));
-      return false;
-    }
-
-
-    // If we've gotten to this point, then it is acceptable as far as we are
-    // concerned.  If it is unacceptable according to the configuration, then
-    // the certificate mapper itself will make that determination.
+    // A delete should always be acceptable, so just return true.
     return true;
   }
 
@@ -1095,14 +928,23 @@ public class CertificateMapperConfigManager
     assert debugEnter(CLASS_NAME, "applyConfigurationDelete",
                       String.valueOf(configEntry));
 
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+
+    DN         configEntryDN       = configEntry.getDN();
+    ResultCode resultCode          = ResultCode.SUCCESS;
+    boolean    adminActionRequired = false;
 
 
-    // Since we can never delete an active configuration, there is nothing that
-    // we need to do if a delete does go through.
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    // See if the entry is registered as a certificate mapper.  If so,
+    // deregister it and stop the mapper.
+    CertificateMapper mapper = mappers.remove(configEntryDN);
+    if (mapper != null)
+    {
+      DirectoryServer.deregisterCertificateMapper(configEntryDN);
+      mapper.finalizeCertificateMapper();
+    }
+
+
+    return new ConfigChangeResult(resultCode, adminActionRequired);
   }
 }
 

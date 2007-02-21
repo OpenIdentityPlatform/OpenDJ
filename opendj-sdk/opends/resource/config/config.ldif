@@ -265,6 +265,18 @@ ds-cfg-backend-base-dn: cn=tasks
 ds-cfg-task-backing-file: config/tasks.ldif
 ds-cfg-task-retention-time: 24 hours
 
+dn: cn=Certificate Mappers,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Certificate Mappers
+
+dn: cn=Subject Equals DN,cn=Certificate Mappers,cn=config
+objectClass: top
+objectClass: ds-cfg-certificate-mapper
+cn: Certificate Mapper
+ds-cfg-certificate-mapper-class: org.opends.server.extensions.SubjectEqualsDNCertificateMapper
+ds-cfg-certificate-mapper-enabled: true
+
 dn: cn=Connection Handlers,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
@@ -292,6 +304,31 @@ ds-cfg-allow-start-tls: false
 ds-cfg-use-ssl: false
 ds-cfg-ssl-client-auth-policy: optional
 ds-cfg-ssl-cert-nickname: server-cert
+
+dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
+objectClass: top
+objectClass: ds-cfg-connection-handler
+objectClass: ds-cfg-ldap-connection-handler
+cn: LDAPS Connection Handler
+ds-cfg-connection-handler-class: org.opends.server.protocols.ldap.LDAPConnectionHandler
+ds-cfg-connection-handler-enabled: false
+ds-cfg-listen-address: 0.0.0.0
+ds-cfg-listen-port: 636
+ds-cfg-accept-backlog: 128
+ds-cfg-allow-ldapv2: true
+ds-cfg-keep-stats: true
+ds-cfg-use-tcp-keepalive: true
+ds-cfg-use-tcp-nodelay: true
+ds-cfg-allow-tcp-reuse-address: true
+ds-cfg-send-rejection-notice: true
+ds-cfg-max-request-size: 5 megabytes
+ds-cfg-num-request-handlers: 2
+ds-cfg-allow-start-tls: false
+ds-cfg-use-ssl: true
+ds-cfg-ssl-client-auth-policy: optional
+ds-cfg-ssl-cert-nickname: server-cert
+ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config
+ds-cfg-trust-manager-provider-dn: cn=JKS,cn=Trust Manager Providers,cn=config
 
 dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config
 objectClass: top
@@ -372,6 +409,42 @@ cn: Exact Match
 ds-cfg-identity-mapper-class: org.opends.server.extensions.ExactMatchIdentityMapper
 ds-cfg-identity-mapper-enabled: true
 ds-cfg-match-attribute: uid
+
+dn: cn=Key Manager Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Key Manager Providers
+
+dn: cn=JKS,cn=Key Manager Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-key-manager-provider
+objectClass: ds-cfg-file-based-key-manager-provider
+cn: JKS
+ds-cfg-key-manager-provider-class: org.opends.server.extensions.FileBasedKeyManagerProvider
+ds-cfg-key-manager-provider-enabled: false
+ds-cfg-key-store-type: JKS
+ds-cfg-key-store-file: config/keystore
+ds-cfg-key-store-pin-file: config/keystore.pin
+
+dn: cn=PKCS12,cn=Key Manager Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-key-manager-provider
+objectClass: ds-cfg-file-based-key-manager-provider
+cn: PKCS12
+ds-cfg-key-manager-provider-class: org.opends.server.extensions.FileBasedKeyManagerProvider
+ds-cfg-key-manager-provider-enabled: false
+ds-cfg-key-store-type: PKCS12
+ds-cfg-key-store-file: config/keystore.p12
+ds-cfg-key-store-pin-file: config/keystore.pin
+
+dn: cn=PKCS11,cn=Key Manager Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-key-manager-provider
+objectClass: ds-cfg-pkcs11-key-manager-provider
+cn: PKCS11
+ds-cfg-key-manager-provider-class: org.opends.server.extensions.PKCS11KeyManagerProvider
+ds-cfg-key-manager-provider-enabled: false
+ds-cfg-key-store-pin-file: config/keystore.pin
 
 dn: cn=Loggers,cn=config
 objectClass: top
@@ -1114,6 +1187,7 @@ ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions.ExternalSASLMe
 ds-cfg-sasl-mechanism-handler-enabled: true
 ds-cfg-client-certificate-validation-policy: ifpresent
 ds-cfg-certificate-attribute: userCertificate
+ds-cfg-certificate-mapper-dn: cn=Subject Equals DN,cn=Certificate Mappers,cn=config
 
 dn: cn=GSSAPI,cn=SASL Mechanisms,cn=config
 objectClass: top
@@ -1133,36 +1207,6 @@ cn: PLAIN
 ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions.PlainSASLMechanismHandler
 ds-cfg-sasl-mechanism-handler-enabled: true
 ds-cfg-identity-mapper-dn: cn=Exact Match,cn=Identity Mappers,cn=config
-
-dn: cn=SSL,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: SSL
-
-dn: cn=Certificate Mapper,cn=SSL,cn=config
-objectClass: top
-objectClass: ds-cfg-certificate-mapper
-cn: Certificate Mapper
-ds-cfg-certificate-mapper-class: org.opends.server.extensions.SubjectEqualsDNCertificateMapper
-ds-cfg-certificate-mapper-enabled: true
-
-dn: cn=Key Manager Provider,cn=SSL,cn=config
-objectClass: top
-objectClass: ds-cfg-key-manager-provider
-objectClass: ds-cfg-file-based-key-manager-provider
-cn: Key Manager Provider
-ds-cfg-key-manager-provider-class: org.opends.server.extensions.FileBasedKeyManagerProvider
-ds-cfg-key-manager-provider-enabled: false
-ds-cfg-key-store-file: config/keystore
-
-dn: cn=Trust Manager Provider,cn=SSL,cn=config
-objectClass: top
-objectClass: ds-cfg-trust-manager-provider
-objectClass: ds-cfg-file-based-trust-manager-provider
-cn: Trust Manager Provider
-ds-cfg-trust-manager-provider-class: org.opends.server.extensions.FileBasedTrustManagerProvider
-ds-cfg-trust-manager-provider-enabled: false
-ds-cfg-trust-store-file: config/truststore
 
 dn: cn=Synchronization Providers,cn=config
 objectClass: top
@@ -1506,6 +1550,38 @@ objectClass: ds-cfg-attribute-syntax
 cn: UUID
 ds-cfg-syntax-class: org.opends.server.schema.UUIDSyntax
 ds-cfg-syntax-enabled: true
+
+dn: cn=Trust Manager Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Trust Manager Providers
+
+dn: cn=Blind Trust,cn=Trust Manager Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-trust-manager-provider
+cn: Blind Trust
+ds-cfg-trust-manager-provider-class: org.opends.server.extensions.BlindTrustManagerProvider
+ds-cfg-trust-manager-provider-enabled: false
+
+dn: cn=JKS,cn=Trust Manager Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-trust-manager-provider
+objectClass: ds-cfg-file-based-trust-manager-provider
+cn: JKS
+ds-cfg-trust-manager-provider-class: org.opends.server.extensions.FileBasedTrustManagerProvider
+ds-cfg-trust-manager-provider-enabled: false
+ds-cfg-trust-store-type: JKS
+ds-cfg-trust-store-file: config/truststore
+
+dn: cn=PKCS12,cn=Trust Manager Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-trust-manager-provider
+objectClass: ds-cfg-file-based-trust-manager-provider
+cn: PKCS12
+ds-cfg-trust-manager-provider-class: org.opends.server.extensions.FileBasedTrustManagerProvider
+ds-cfg-trust-manager-provider-enabled: false
+ds-cfg-trust-store-type: PKCS12
+ds-cfg-trust-store-file: config/truststore
 
 dn: cn=Virtual Attributes,cn=config
 objectClass: top

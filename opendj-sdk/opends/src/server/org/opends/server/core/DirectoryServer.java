@@ -264,10 +264,6 @@ public class DirectoryServer
   // Indicates whether the server should reject unauthenticated requests.
   private boolean rejectUnauthenticatedRequests;
 
-  // The certificate mapper used to establish a mapping between client
-  // certificates and user entries.
-  private CertificateMapper certificateMapper;
-
   // The configuration manager that will handle the certificate mapper.
   private CertificateMapperConfigManager certificateMapperConfigManager;
 
@@ -277,6 +273,9 @@ public class DirectoryServer
   // The set of account status notification handlers defined in the server.
   private ConcurrentHashMap<DN,AccountStatusNotificationHandler>
                accountStatusNotificationHandlers;
+
+  // The set of certificate mappers registered with the server.
+  private ConcurrentHashMap<DN,CertificateMapper> certificateMappers;
 
   // The set of alternate bind DNs for the root users.
   private ConcurrentHashMap<DN,DN> alternateRootBindDNs;
@@ -288,6 +287,9 @@ public class DirectoryServer
   // The set of JMX MBeans that have been registered with the server (mapped
   // between the associated configuration entry DN and the MBean).
   private ConcurrentHashMap<DN,JMXMBean> mBeans;
+
+  // The set of key manager providers registered with the server.
+  private ConcurrentHashMap<DN,KeyManagerProvider> keyManagerProviders;
 
   // The set of password generators registered with the Directory Server, as a
   // mapping between the DN of the associated configuration entry and the
@@ -303,6 +305,9 @@ public class DirectoryServer
   // mapping between the DN of the associated configuration entry and the
   // validator implementation.
   private ConcurrentHashMap<DN,PasswordValidator> passwordValidators;
+
+  // The set of trust manager providers registered with the server.
+  private ConcurrentHashMap<DN,TrustManagerProvider> trustManagerProviders;
 
   // The set of extended operation handlers registered with the server (mapped
   // between the OID of the extended operation and the handler).
@@ -415,9 +420,6 @@ public class DirectoryServer
   // a search.
   private int lookthroughLimit;
 
-  // The key manager provider for the Directory Server.
-  private KeyManagerProvider keyManagerProvider;
-
   // The key manager provider configuration manager for the Directory Server.
   private KeyManagerProviderConfigManager keyManagerProviderConfigManager;
 
@@ -529,9 +531,6 @@ public class DirectoryServer
   // The set of supported feature OIDs registered with the Directory Server.
   private TreeSet<String> supportedFeatures;
 
-  // The trust manager provider for the Directory Server.
-  private TrustManagerProvider trustManagerProvider;
-
   // The trust manager provider configuration manager for the Directory Server.
   private TrustManagerProviderConfigManager trustManagerProviderConfigManager;
 
@@ -625,6 +624,12 @@ public class DirectoryServer
          new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
     directoryServer.rootDNs = new CopyOnWriteArraySet<DN>();
     directoryServer.alternateRootBindDNs = new ConcurrentHashMap<DN,DN>();
+    directoryServer.keyManagerProviders =
+         new ConcurrentHashMap<DN,KeyManagerProvider>();
+    directoryServer.trustManagerProviders =
+         new ConcurrentHashMap<DN,TrustManagerProvider>();
+    directoryServer.certificateMappers =
+         new ConcurrentHashMap<DN,CertificateMapper>();
     directoryServer.passwordPolicies =
          new ConcurrentHashMap<DN,PasswordPolicyConfig>();
     directoryServer.defaultPasswordPolicyDN = null;
@@ -984,18 +989,18 @@ public class DirectoryServer
 
       // Initialize the key manager provider.
       keyManagerProviderConfigManager = new KeyManagerProviderConfigManager();
-      keyManagerProviderConfigManager.initializeKeyManagerProvider();
+      keyManagerProviderConfigManager.initializeKeyManagerProviders();
 
 
       // Initialize the trust manager provider.
       trustManagerProviderConfigManager =
            new TrustManagerProviderConfigManager();
-      trustManagerProviderConfigManager.initializeTrustManagerProvider();
+      trustManagerProviderConfigManager.initializeTrustManagerProviders();
 
 
       // Initialize the certificate mapper.
       certificateMapperConfigManager = new CertificateMapperConfigManager();
-      certificateMapperConfigManager.initializeCertificateMapper();
+      certificateMapperConfigManager.initializeCertificateMappers();
 
 
       // Initialize the identity mappers.
@@ -4954,93 +4959,209 @@ public class DirectoryServer
 
 
   /**
-   * Retrieves the key manager provider for the Directory Server.
+   * Retrieves the set of key manager providers registered with the Directory
+   * Server.
    *
-   * @return  The key manager provider for the Directory Server.
+   * @return  The set of key manager providers registered with the Directory
+   *          Server.
    */
-  public static KeyManagerProvider getKeyManagerProvider()
+  public static Map<DN,KeyManagerProvider> getKeyManagerProviders()
   {
-    assert debugEnter(CLASS_NAME, "getKeyManagerProvider");
+    assert debugEnter(CLASS_NAME, "getKeyManagerProviders");
 
-    return directoryServer.keyManagerProvider;
+    return directoryServer.keyManagerProviders;
   }
 
 
 
   /**
-   * Specifies the key manager provider for the Directory Server.
+   * Retrieves the key manager provider registered with the provided entry DN.
    *
-   * @param  keyManagerProvider  The key manager provider for the Directory
-   *                             Server.
+   * @param  providerDN  The DN with which the key manager provider is
+   *                     registered.
+   *
+   * @return  The key manager provider registered with the provided entry DN, or
+   *          {@code null} if there is no such key manager provider registered
+   *          with the server.
    */
-  public static void setKeyManagerProvider(KeyManagerProvider
-                                                keyManagerProvider)
+  public static KeyManagerProvider getKeyManagerProvider(DN providerDN)
   {
-    assert debugEnter(CLASS_NAME, "setKeyManagerProvider",
-                      String.valueOf(keyManagerProvider));
+    assert debugEnter(CLASS_NAME, "getKeyManagerProvider",
+                      String.valueOf(providerDN));
 
-    directoryServer.keyManagerProvider = keyManagerProvider;
+    return directoryServer.keyManagerProviders.get(providerDN);
   }
 
 
 
   /**
-   * Retrieves the trust manager provider for the Directory Server.
+   * Registers the provided key manager provider with the Directory Server.
    *
-   * @return  The trust manager provider for the Directory Server.
+   * @param  providerDN  The DN with which to register the key manager provider.
+   * @param  provider    The key manager provider to register with the server.
    */
-  public static TrustManagerProvider getTrustManagerProvider()
+  public static void registerKeyManagerProvider(DN providerDN,
+                                                KeyManagerProvider provider)
   {
-    assert debugEnter(CLASS_NAME, "getTrustManagerProvider");
+    assert debugEnter(CLASS_NAME, "registerKeyManagerProvider",
+                      String.valueOf(providerDN), String.valueOf(provider));
 
-    return directoryServer.trustManagerProvider;
+    directoryServer.keyManagerProviders.put(providerDN, provider);
   }
 
 
 
   /**
-   * Specifies the trust manager provider for the Directory Server.
+   * Deregisters the specified key manager provider with the Directory Server.
    *
-   * @param  trustManagerProvider  The trust manager provider for the Directory
-   *                               Server.
+   * @param  providerDN  The DN with which the key manager provider is
+   *                     registered.
    */
-  public static void setTrustManagerProvider(TrustManagerProvider
-                                                  trustManagerProvider)
+  public static void deregisterKeyManagerProvider(DN providerDN)
   {
-    assert debugEnter(CLASS_NAME, "setTrustManagerProvider",
-                      String.valueOf(trustManagerProvider));
+    assert debugEnter(CLASS_NAME, "deregisterKeyManagerProvider",
+                      String.valueOf(providerDN));
 
-    directoryServer.trustManagerProvider = trustManagerProvider;
+    directoryServer.keyManagerProviders.remove(providerDN);
   }
 
 
 
   /**
-   * Retrieves the certificate mapper for the Directory Server.
+   * Retrieves the set of trust manager providers registered with the Directory
+   * Server.
    *
-   * @return  The certificate mapper for the Directory Server.
+   * @return  The set of trust manager providers registered with the Directory
+   *          Server.
    */
-  public static CertificateMapper getCertificateMapper()
+  public static Map<DN,TrustManagerProvider> getTrustManagerProviders()
   {
-    assert debugEnter(CLASS_NAME, "getCertificateMapper");
+    assert debugEnter(CLASS_NAME, "getTrustManagerProviders");
 
-    return directoryServer.certificateMapper;
+    return directoryServer.trustManagerProviders;
   }
 
 
 
   /**
-   * Specifies the certificate mapper for the Directory Server.
+   * Retrieves the trust manager provider registered with the provided entry DN.
    *
-   * @param  certificateMapper  The certificate mapper for the Directory Server.
+   * @param  providerDN  The DN with which the trust manager provider is
+   *                     registered.
+   *
+   * @return  The trust manager provider registered with the provided entry DN,
+   *          or {@code null} if there is no such trust manager provider
+   *          registered with the server.
    */
-  public static void setCertificateMapper(CertificateMapper certificateMapper)
+  public static TrustManagerProvider getTrustManagerProvider(DN providerDN)
   {
-    assert debugEnter(CLASS_NAME, "setCertificateMapper",
-                      String.valueOf(certificateMapper));
+    assert debugEnter(CLASS_NAME, "getTrustManagerProvider",
+                      String.valueOf(providerDN));
 
-    directoryServer.certificateMapper = certificateMapper;
+    return directoryServer.trustManagerProviders.get(providerDN);
   }
+
+
+
+  /**
+   * Registers the provided trust manager provider with the Directory Server.
+   *
+   * @param  providerDN  The DN with which to register the trust manager
+   *                     provider.
+   * @param  provider    The trust manager provider to register with the server.
+   */
+  public static void registerTrustManagerProvider(DN providerDN,
+                                                  TrustManagerProvider provider)
+  {
+    assert debugEnter(CLASS_NAME, "registerTrustManagerProvider",
+                      String.valueOf(providerDN), String.valueOf(provider));
+
+    directoryServer.trustManagerProviders.put(providerDN, provider);
+  }
+
+
+
+  /**
+   * Deregisters the specified trust manager provider with the Directory Server.
+   *
+   * @param  providerDN  The DN with which the trust manager provider is
+   *                     registered.
+   */
+  public static void deregisterTrustManagerProvider(DN providerDN)
+  {
+    assert debugEnter(CLASS_NAME, "deregisterTrustManagerProvider",
+                      String.valueOf(providerDN));
+
+    directoryServer.trustManagerProviders.remove(providerDN);
+  }
+
+
+
+  /**
+   * Retrieves the set of certificate mappers registered with the Directory
+   * Server.
+   *
+   * @return  The set of certificate mappers registered with the Directory
+   *          Server.
+   */
+  public static Map<DN,CertificateMapper> getCertificateMappers()
+  {
+    assert debugEnter(CLASS_NAME, "getCertificateMappers");
+
+    return directoryServer.certificateMappers;
+  }
+
+
+
+  /**
+   * Retrieves the certificate mapper registered with the provided entry DN.
+   *
+   * @param  mapperDN  The DN with which the certificate mapper is registered.
+   *
+   * @return  The certificate mapper registered with the provided entry DN, or
+   *          {@code null} if there is no such certificate mapper registered
+   *          with the server.
+   */
+  public static CertificateMapper getCertificateMapper(DN mapperDN)
+  {
+    assert debugEnter(CLASS_NAME, "getCertificateMapper",
+                      String.valueOf(mapperDN));
+
+    return directoryServer.certificateMappers.get(mapperDN);
+  }
+
+
+
+  /**
+   * Registers the provided certificate mapper with the Directory Server.
+   *
+   * @param  mapperDN  The DN with which to register the certificate mapper.
+   * @param  mapper    The certificate mapper to register with the server.
+   */
+  public static void registerCertificateMapper(DN mapperDN,
+                                               CertificateMapper mapper)
+  {
+    assert debugEnter(CLASS_NAME, "registerCertificateMapper",
+                      String.valueOf(mapperDN), String.valueOf(mapper));
+
+    directoryServer.certificateMappers.put(mapperDN, mapper);
+  }
+
+
+
+  /**
+   * Deregisters the specified certificate mapper with the Directory Server.
+   *
+   * @param  mapperDN  The DN with which the certificate mapper is registered.
+   */
+  public static void deregisterCertificateMapper(DN mapperDN)
+  {
+    assert debugEnter(CLASS_NAME, "deregisterCertificateMapper",
+                      String.valueOf(mapperDN));
+
+    directoryServer.certificateMappers.remove(mapperDN);
+  }
+
 
 
 

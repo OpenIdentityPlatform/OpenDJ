@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -160,6 +160,7 @@ public class TLSConnectionSecurityProvider
                                         SocketChannel socketChannel,
                                         TLSConnectionSecurityProvider
                                              parentProvider)
+          throws DirectoryException
   {
     super();
 
@@ -171,7 +172,43 @@ public class TLSConnectionSecurityProvider
     Socket socket = socketChannel.socket();
     InetAddress inetAddress = socketChannel.socket().getInetAddress();
 
-    sslContext = parentProvider.sslContext;
+
+    // Create an SSL session based on the configured key and trust stores in the
+    // Directory Server.
+    KeyManagerProvider keyManagerProvider =
+         DirectoryServer.getKeyManagerProvider(
+              clientConnection.getKeyManagerProviderDN());
+    if (keyManagerProvider == null)
+    {
+      keyManagerProvider = new NullKeyManagerProvider();
+    }
+
+    TrustManagerProvider trustManagerProvider =
+         DirectoryServer.getTrustManagerProvider(
+              clientConnection.getTrustManagerProviderDN());
+    if (trustManagerProvider == null)
+    {
+      trustManagerProvider = new NullTrustManagerProvider();
+    }
+
+    try
+    {
+      // FIXME -- Is it bad to create a new SSLContext for each connection?
+      sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
+      sslContext.init(keyManagerProvider.getKeyManagers(),
+                      trustManagerProvider.getTrustManagers(), null);
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeConnectionSecurityProvider",
+                            e);
+
+      int msgID = MSGID_TLS_SECURITY_PROVIDER_CANNOT_INITIALIZE;
+      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, msgID, e);
+    }
+
     sslEngine = sslContext.createSSLEngine(inetAddress.getHostName(),
                                            socket.getPort());
     sslEngine.setUseClientMode(false);
@@ -259,32 +296,7 @@ public class TLSConnectionSecurityProvider
 
     sslEngine        = null;
 
-
-    // Create an SSL session based on the configured key and trust stores in the
-    // Directory Server.
-    KeyManagerProvider keyManagerProvider =
-         DirectoryServer.getKeyManagerProvider();
-    TrustManagerProvider trustManagerProvider =
-         DirectoryServer.getTrustManagerProvider();
-
-    try
-    {
-      sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
-      sslContext.init(keyManagerProvider.getKeyManagers(),
-                      trustManagerProvider.getTrustManagers(), null);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeConnectionSecurityProvider",
-                            e);
-
-      int msgID = MSGID_TLS_SECURITY_PROVIDER_CANNOT_INITIALIZE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
-    }
-
-
-    enabledProtocols = null;
+    enabledProtocols    = null;
     enabledCipherSuites = null;
     sslClientAuthPolicy = SSLClientAuthPolicy.OPTIONAL;
   }

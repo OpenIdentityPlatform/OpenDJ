@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.management.Attribute;
+import javax.management.AttributeNotFoundException;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.net.ssl.TrustManager;
@@ -356,31 +357,10 @@ public class JmxConnectTest extends JmxTestCase
   @Test(enabled=true)
   public void sslConnect() throws Exception
   {
-    // configure the JMX ssl key manager
-    ConfigEntry config = new ConfigEntry(TestCaseUtils.makeEntry(
-        "dn: cn=Key Manager Provider,cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-key-manager-provider",
-        "objectClass: ds-cfg-file-based-key-manager-provider",
-        "ds-cfg-key-manager-provider-class: org.opends.server.extensions.FileBasedKeyManagerProvider",
-        "ds-cfg-key-manager-provider-enabled: true",
-        "ds-cfg-key-store-file: " + getJmxKeystorePath(),
-        "ds-cfg-key-store-type: JKS",
-        "ds-cfg-key-store-pin: password"
-         ), null);
-
-    JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler();
-    assertNotNull(jmxConnectionHandler);
-    StringBuilder reason = new StringBuilder();
-    assertTrue(jmxConnectionHandler.configAddIsAcceptable(config, reason));
-    ConfigChangeResult result =
-      jmxConnectionHandler.applyConfigurationAdd(config);
-    assertEquals(ResultCode.SUCCESS, result.getResultCode());
-
     // Enable SSL by setting ds-cfg-use-ssl boolean and the
     // certificate alias using ds-cfg-ssl-cert-nickname attribute.
     int initJmxPort = (int) TestCaseUtils.getServerJmxPort();
-    config = new ConfigEntry(TestCaseUtils.makeEntry(
+    ConfigEntry config = new ConfigEntry(TestCaseUtils.makeEntry(
         "dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-connection-handler",
@@ -390,6 +370,7 @@ public class JmxConnectTest extends JmxTestCase
         "ds-cfg-connection-handler-enabled: true",
         "ds-cfg-use-ssl: true",
         "ds-cfg-listen-port: " + initJmxPort ,
+        "ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config",
         "cn: JMX Connection Handler"
          ), null);
 
@@ -610,11 +591,19 @@ public class JmxConnectTest extends JmxTestCase
   {
     String jmxName = JMXMBean.getJmxName(DN.decode(dn));
     ObjectName name = ObjectName.getInstance(jmxName);
-    Attribute status = (Attribute) mbsc.getAttribute(name, attributeName);
-    if (status == null)
+
+    try
+    {
+      Attribute status = (Attribute) mbsc.getAttribute(name, attributeName);
+      if (status == null)
+        return null;
+      else
+        return status.getValue();
+    }
+    catch (AttributeNotFoundException anfe)
+    {
       return null;
-    else
-      return status.getValue();
+    }
   }
 
   /**

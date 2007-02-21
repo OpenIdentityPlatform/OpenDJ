@@ -1442,6 +1442,52 @@ public abstract class ClientConnection
 
 
   /**
+   * Retrieves the DN of the key manager provider that should be used
+   * for operations requiring access to a key manager.  The default
+   * implementation returns {@code null} to indicate that no key
+   * manager provider is avaialble, but subclasses should override
+   * this method to return a valid DN if they perform operations which
+   * may need access to a key manager.
+   *
+   * @return  The DN of the key manager provider that should be used
+   *          for operations requiring access to a key manager, or
+   *          {@code null} if there is no key manager provider
+   *          configured for this client connection.
+   */
+  public DN getKeyManagerProviderDN()
+  {
+    assert debugEnter(CLASS_NAME, "getKeyManagerProviderDN");
+
+    // In the default implementation, we'll return null.
+    return null;
+  }
+
+
+
+  /**
+   * Retrieves the DN of the trust manager provider that should be
+   * used for operations requiring access to a trust manager.  The
+   * default implementation returns {@code null} to indicate that no
+   * trust manager provider is avaialble, but subclasses should
+   * override this method to return a valid DN if they perform
+   * operations which may need access to a trust manager.
+   *
+   * @return  The DN of the trust manager provider that should be used
+   *          for operations requiring access to a trust manager, or
+   *          {@code null} if there is no trust manager provider
+   *          configured for this client connection.
+   */
+  public DN getTrustManagerProviderDN()
+  {
+    assert debugEnter(CLASS_NAME, "getTrustManagerProviderDN");
+
+    // In the default implementation, we'll return null.
+    return null;
+  }
+
+
+
+  /**
    * Retrieves a string representation of this client connection.
    *
    * @return  A string representation of this client connection.

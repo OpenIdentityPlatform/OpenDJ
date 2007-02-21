@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -50,6 +50,8 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
+import org.opends.server.api.KeyManagerProvider;
+import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.api.plugin.PostConnectPluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
@@ -57,6 +59,7 @@ import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.IntegerConfigAttribute;
 import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.MultiChoiceConfigAttribute;
@@ -185,6 +188,12 @@ public class LDAPConnectionHandler
 
   // The DN of the configuration entry for this connection handler.
   private DN configEntryDN;
+
+  // The DN of the key manager provider for this connection handler.
+  private DN keyManagerProviderDN;
+
+  // The DN of the trust manager provider for this connection handler.
+  private DN trustManagerProviderDN;
 
   // The set of addresses on which to listen for new connections.
   private HashSet<InetAddress> listenAddresses;
@@ -965,6 +974,84 @@ public class LDAPConnectionHandler
     }
 
 
+    // Determine the key manager provider to use.
+    keyManagerProviderDN = null;
+    msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN;
+    DNConfigAttribute keyManagerStub =
+         new DNConfigAttribute(ATTR_KEYMANAGER_DN, getMessage(msgID), false,
+                               false, false);
+    try
+    {
+      DNConfigAttribute keyManagerAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(keyManagerStub);
+      if (keyManagerAttr != null)
+      {
+        keyManagerProviderDN = keyManagerAttr.activeValue();
+        KeyManagerProvider provider =
+             DirectoryServer.getKeyManagerProvider(keyManagerProviderDN);
+        if (provider == null)
+        {
+          msgID = MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN;
+          String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                      String.valueOf(keyManagerProviderDN));
+          throw new ConfigException(msgID, message);
+        }
+      }
+    }
+    catch (ConfigException ce)
+    {
+      throw ce;
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+
+      msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
+    }
+
+
+    // Determine the trust manager provider to use.
+    trustManagerProviderDN = null;
+    msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN;
+    DNConfigAttribute trustManagerStub =
+         new DNConfigAttribute(ATTR_TRUSTMANAGER_DN, getMessage(msgID), false,
+                               false, false);
+    try
+    {
+      DNConfigAttribute trustManagerAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(trustManagerStub);
+      if (trustManagerAttr != null)
+      {
+        trustManagerProviderDN = trustManagerAttr.activeValue();
+        TrustManagerProvider provider =
+             DirectoryServer.getTrustManagerProvider(trustManagerProviderDN);
+        if (provider == null)
+        {
+          msgID = MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN;
+          String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                      String.valueOf(trustManagerProviderDN));
+          throw new ConfigException(msgID, message);
+        }
+      }
+    }
+    catch (ConfigException ce)
+    {
+      throw ce;
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+
+      msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
+    }
+
+
     if (useSSL)
     {
       TLSConnectionSecurityProvider tlsProvider =
@@ -1667,6 +1754,44 @@ public class LDAPConnectionHandler
 
 
   /**
+   * Retrieves the DN of the key manager provider that should be used for
+   * operations associated with this connection handler which need access to a
+   * key manager.
+   *
+   * @return  The DN of the key manager provider that should be used for
+   *          operations associated with this connection handler which need
+   *          access to a key manager, or {@code null} if no key manager
+   *          provider has been configured for this connection handler.
+   */
+  public DN getKeyManagerProviderDN()
+  {
+    assert debugEnter(CLASS_NAME, "getKeyManagerProviderDN");
+
+    return keyManagerProviderDN;
+  }
+
+
+
+  /**
+   * Retrieves the DN of the trust manager provider that should be used for
+   * operations associated with this connection handler which need access to a
+   * trust manager.
+   *
+   * @return  The DN of the trust manager provider that should be used for
+   *          operations associated with this connection handler which need
+   *          access to a trust manager, or {@code null} if no trust manager
+   *          provider has been configured for this connection handler.
+   */
+  public DN getTrustManagerProviderDN()
+  {
+    assert debugEnter(CLASS_NAME, "getTrustManagerProviderDN");
+
+    return trustManagerProviderDN;
+  }
+
+
+
+  /**
    * Retrieves the maximum ASN.1 element value length that will be allowed by
    * this connection handler.
    *
@@ -1912,6 +2037,16 @@ public class LDAPConnectionHandler
     configAttrs.add(new StringConfigAttribute(ATTR_SSL_CIPHERS,
                              getMessage(msgID), false, true, false,
                              arrayToList(enabledSSLCipherSuites)));
+
+    msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN;
+    configAttrs.add(new DNConfigAttribute(ATTR_KEYMANAGER_DN, getMessage(msgID),
+                                          false, false, false,
+                                          keyManagerProviderDN));
+
+    msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN;
+    configAttrs.add(new DNConfigAttribute(ATTR_TRUSTMANAGER_DN,
+                                          getMessage(msgID), false, false,
+                                          false, trustManagerProviderDN));
 
 
     return configAttrs;
@@ -2491,6 +2626,78 @@ public class LDAPConnectionHandler
     }
 
 
+    // Determine the key manager provider to use.
+    msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN;
+    DNConfigAttribute keyManagerStub =
+         new DNConfigAttribute(ATTR_KEYMANAGER_DN, getMessage(msgID), false,
+                               false, false);
+    try
+    {
+      DNConfigAttribute keyManagerAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(keyManagerStub);
+      if (keyManagerAttr != null)
+      {
+        DN keyManagerProviderDN = keyManagerAttr.activeValue();
+        KeyManagerProvider provider =
+             DirectoryServer.getKeyManagerProvider(keyManagerProviderDN);
+        if (provider == null)
+        {
+          msgID = MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN;
+          String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                      String.valueOf(keyManagerProviderDN));
+          unacceptableReasons.add(message);
+          configValid = false;
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+
+      msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      unacceptableReasons.add(message);
+      configValid = false;
+    }
+
+
+    // Determine the trust manager provider to use.
+    msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN;
+    DNConfigAttribute trustManagerStub =
+         new DNConfigAttribute(ATTR_TRUSTMANAGER_DN, getMessage(msgID), false,
+                               false, false);
+    try
+    {
+      DNConfigAttribute trustManagerAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(trustManagerStub);
+      if (trustManagerAttr != null)
+      {
+        DN trustManagerProviderDN = trustManagerAttr.activeValue();
+        TrustManagerProvider provider =
+             DirectoryServer.getTrustManagerProvider(trustManagerProviderDN);
+        if (provider == null)
+        {
+          msgID = MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN;
+          String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                      String.valueOf(trustManagerProviderDN));
+          unacceptableReasons.add(message);
+          configValid = false;
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+
+      msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      unacceptableReasons.add(message);
+      configValid = false;
+    }
+
+
     return configValid;
   }
 
@@ -3039,6 +3246,92 @@ public class LDAPConnectionHandler
     }
 
 
+    // Determine the key manager provider to use.
+    DN newKeyManagerDN = null;
+    msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN;
+    DNConfigAttribute keyManagerStub =
+         new DNConfigAttribute(ATTR_KEYMANAGER_DN, getMessage(msgID), false,
+                               false, false);
+    try
+    {
+      DNConfigAttribute keyManagerAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(keyManagerStub);
+      if (keyManagerAttr != null)
+      {
+        newKeyManagerDN = keyManagerAttr.activeValue();
+        KeyManagerProvider provider =
+             DirectoryServer.getKeyManagerProvider(newKeyManagerDN);
+        if (provider == null)
+        {
+          if (resultCode == ResultCode.SUCCESS)
+          {
+            resultCode = ResultCode.CONSTRAINT_VIOLATION;
+          }
+
+          msgID = MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN;
+          messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                  String.valueOf(newKeyManagerDN)));
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = ResultCode.CONSTRAINT_VIOLATION;
+      }
+
+      msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                              stackTraceToSingleLineString(e)));
+    }
+
+
+    // Determine the trust manager provider to use.
+    DN newTrustManagerDN = null;
+    msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN;
+    DNConfigAttribute trustManagerStub =
+         new DNConfigAttribute(ATTR_TRUSTMANAGER_DN, getMessage(msgID), false,
+                               false, false);
+    try
+    {
+      DNConfigAttribute trustManagerAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(trustManagerStub);
+      if (trustManagerAttr != null)
+      {
+        newTrustManagerDN = trustManagerAttr.activeValue();
+        TrustManagerProvider provider =
+             DirectoryServer.getTrustManagerProvider(newTrustManagerDN);
+        if (provider == null)
+        {
+          if (resultCode == ResultCode.SUCCESS)
+          {
+            resultCode = ResultCode.CONSTRAINT_VIOLATION;
+          }
+
+          msgID = MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN;
+          messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                  String.valueOf(newTrustManagerDN)));
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = ResultCode.CONSTRAINT_VIOLATION;
+      }
+
+      msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                              stackTraceToSingleLineString(e)));
+    }
+
+
     // If the provided configuration is acceptable, then apply it.
     if (resultCode == ResultCode.SUCCESS)
     {
@@ -3204,6 +3497,60 @@ public class LDAPConnectionHandler
         {
           messages.add(getMessage(MSGID_LDAP_CONNHANDLER_NEW_SSL_CIPHERS,
                                   Arrays.toString(newSSLCiphers),
+                                  String.valueOf(configEntryDN)));
+        }
+      }
+
+
+      // Update the key manager provider DN.
+      if (keyManagerProviderDN == null)
+      {
+        if (newKeyManagerDN != null)
+        {
+          keyManagerProviderDN = newKeyManagerDN;
+          if (detailedResults)
+          {
+            messages.add(getMessage(MSGID_LDAP_CONNHANDLER_NEW_KEYMANAGER_DN,
+                                    String.valueOf(newKeyManagerDN),
+                                    String.valueOf(configEntryDN)));
+          }
+        }
+      }
+      else if ((newKeyManagerDN == null) ||
+               (! keyManagerProviderDN.equals(newKeyManagerDN)))
+      {
+        keyManagerProviderDN = newKeyManagerDN;
+        if (detailedResults)
+        {
+          messages.add(getMessage(MSGID_LDAP_CONNHANDLER_NEW_KEYMANAGER_DN,
+                                  String.valueOf(newKeyManagerDN),
+                                  String.valueOf(configEntryDN)));
+        }
+      }
+
+
+      // Update the trust manager provider DN.
+      if (trustManagerProviderDN == null)
+      {
+        if (newTrustManagerDN != null)
+        {
+          trustManagerProviderDN = newTrustManagerDN;
+          if (detailedResults)
+          {
+            messages.add(getMessage(MSGID_LDAP_CONNHANDLER_NEW_TRUSTMANAGER_DN,
+                                    String.valueOf(newTrustManagerDN),
+                                    String.valueOf(configEntryDN)));
+          }
+        }
+      }
+      else if ((newTrustManagerDN == null) ||
+               (! trustManagerProviderDN.equals(newTrustManagerDN)))
+      {
+        trustManagerProviderDN = newTrustManagerDN;
+        if (detailedResults)
+        {
+          messages.add(getMessage(MSGID_LDAP_CONNHANDLER_NEW_TRUSTMANAGER_DN,
+                                  String.valueOf(newTrustManagerDN),
                                   String.valueOf(configEntryDN)));
         }
       }

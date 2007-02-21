@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 
@@ -41,7 +41,9 @@ import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXServiceURL;
 import javax.management.remote.rmi.RMIConnectorServer;
 
+import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.JMXMBean;
+import org.opends.server.extensions.NullKeyManagerProvider;
 
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;
@@ -318,9 +320,15 @@ public class RmiConnector
         // ---------------------
         //
         // Get a Server socket factory
+        KeyManagerProvider provider = jmxConnectionHandler.keyManagerProvider;
+        if (provider == null)
+        {
+          provider = new NullKeyManagerProvider();
+        }
+
         SSLContext ctx = SSLContext.getInstance("TLSv1");
         ctx.init(
-            jmxConnectionHandler.jmxKeyManager.getKeyManagers(),
+            provider.getKeyManagers(),
             null,
             null);
         SSLSocketFactory ssf = ctx.getSocketFactory();

@@ -53,9 +53,9 @@ import static org.testng.Assert.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
- * A set of testcases for configuration attribute 
+ * A set of testcases for configuration attribute
  * "ds-cfg-reject-unauthenticated-requests".
- * 
+ *
  */
 
 public class RejectUnauthReqTests extends CoreTestCase
@@ -713,8 +713,6 @@ public class RejectUnauthReqTests extends CoreTestCase
   @AfterClass()
   public void  testResetRejUnauthReqCfgAttr()  throws Exception
   {
-    //Verify the modified setting of the configuration attribute.
-    assertEquals(DirectoryServer.rejectUnauthenticatedRequests(),true);
     String path = TestCaseUtils.createTempFile(
        "dn: cn=config",
        "changetype: modify",

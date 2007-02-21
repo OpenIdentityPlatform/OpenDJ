@@ -489,6 +489,15 @@ public class ConfigConstants
 
 
   /**
+   * The name of the configuration attribute that holds the DN of a certificate
+   * mapper configuration entry.
+   */
+  public static final String ATTR_CERTMAPPER_DN =
+       NAME_PREFIX_CFG + "certificate-mapper-dn";
+
+
+
+  /**
    * The name of the configuration attribute that indicates whether the
    * certificate mapper is enabled.
    */
@@ -842,6 +851,15 @@ public class ConfigConstants
 
 
   /**
+   * The name of the configuration attribute that specifies the DN of the
+   * configuration entry for the key manager provider.
+   */
+  public static final String ATTR_KEYMANAGER_DN =
+       NAME_PREFIX_CFG + "key-manager-provider-dn";
+
+
+
+  /**
    * The name of the configuration attribute that indicates whether the key
    * manager provider should be enabled.
    */
@@ -910,6 +928,15 @@ public class ConfigConstants
    */
   public static final String ATTR_TRUSTMANAGER_CLASS =
        NAME_PREFIX_CFG + "trust-manager-provider-class";
+
+
+
+  /**
+   * The name of the configuration attribute that specifies the DN of the
+   * configuration entry for the trust manager provider.
+   */
+  public static final String ATTR_TRUSTMANAGER_DN =
+       NAME_PREFIX_CFG + "trust-manager-provider-dn";
 
 
 
@@ -2582,36 +2609,28 @@ public class ConfigConstants
 
   /**
    * The DN of the entry that will be the base of the configuration information
-   * for the Directory Server SSL provider.
+   * for the Directory Server certificate mappers.
    */
-  public static final String DN_SSL_CONFIG_ROOT = "cn=SSL," + DN_CONFIG_ROOT;
+  public static final String DN_CERTMAPPER_CONFIG_BASE =
+       "cn=Certificate Mappers," + DN_CONFIG_ROOT;
 
 
 
   /**
-   * The DN of the entry that will hold the configuration for the Directory
-   * Server certificate mapper used for SASL EXTERNAL authentication.
+   * The DN of the entry that be the base of the configuration information for
+   * the Directory Server key manager providers.
    */
-  public static final String DN_CERTMAPPER_CONFIG =
-       "cn=Certificate Mapper," + DN_SSL_CONFIG_ROOT;
+  public static final String DN_KEYMANAGER_PROVIDER_CONFIG_BASE =
+       "cn=Key Manager Providers," + DN_CONFIG_ROOT;
 
 
 
   /**
-   * The DN of the entry that will hold the configuration for the Directory
-   * Server key manager provider used for SSL communication.
+   * The DN of the entry that be the base of the configuration information for
+   * the Directory Server trust manager providers.
    */
-  public static final String DN_KEYMANAGER_PROVIDER_CONFIG =
-       "cn=Key Manager Provider," + DN_SSL_CONFIG_ROOT;
-
-
-
-  /**
-   * The DN of the entry that will hold the configuration for the Directory
-   * Server trust manager provider used for SSL communication.
-   */
-  public static final String DN_TRUSTMANAGER_PROVIDER_CONFIG =
-       "cn=Trust Manager Provider," + DN_SSL_CONFIG_ROOT;
+  public static final String DN_TRUSTMANAGER_PROVIDER_CONFIG_BASE =
+       "cn=Trust Manager Providers," + DN_CONFIG_ROOT;
 
 
 
@@ -2906,6 +2925,15 @@ public class ConfigConstants
 
   /**
    * The name of the objectclass that will be used for a Directory Server
+   * certificate mapper.
+   */
+  public static final String OC_CERTIFICATE_MAPPER =
+       NAME_PREFIX_CFG + "certificate-mapper";
+
+
+
+  /**
+   * The name of the objectclass that will be used for a Directory Server
    * connection handler.
    */
   public static final String OC_CONNECTION_HANDLER =
@@ -2953,6 +2981,15 @@ public class ConfigConstants
    */
   public static final String OC_IDENTITY_MAPPER =
        NAME_PREFIX_CFG + "identity-mapper";
+
+
+
+  /**
+   * The name of the objectclass that will be used for a Directory Server key
+   * manager provider.
+   */
+  public static final String OC_KEY_MANAGER_PROVIDER =
+       NAME_PREFIX_CFG + "key-manager-provider";
 
 
 
@@ -3066,6 +3103,15 @@ public class ConfigConstants
    * definition.
    */
   public static final String OC_TASK = "ds-task";
+
+
+
+  /**
+   * The name of the objectclass that will be used for a Directory Server trust
+   * manager provider.
+   */
+  public static final String OC_TRUST_MANAGER_PROVIDER =
+       NAME_PREFIX_CFG + "trust-manager-provider";
 
 
 
