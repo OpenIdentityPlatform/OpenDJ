@@ -1277,7 +1277,8 @@ modifyProcessing:
         boolean enabledStateChanged = false;
         boolean wasLocked = false;
         int numPasswords;
-        if (currentEntry.hasAttribute(pwPolicyState.getPasswordAttribute()))
+        if (currentEntry.hasAttribute(
+                pwPolicyState.getPolicy().getPasswordAttribute()))
         {
           // It may actually have more than one, but we can't tell the
           // difference if the values are encoded, and its enough for our
@@ -1299,7 +1300,7 @@ modifyProcessing:
           for (Modification m : modifications)
           {
             if (m.getAttribute().getAttributeType().equals(
-                     pwPolicyState.getPasswordAttribute()))
+                     pwPolicyState.getPolicy().getPasswordAttribute()))
             {
               passwordChanged = true;
               if (! selfChange)
@@ -1333,8 +1334,8 @@ modifyProcessing:
             pwPolicyState.clearGraceLoginTimes();
             pwPolicyState.clearWarnedTime();
 
-            if (pwPolicyState.forceChangeOnAdd() ||
-                pwPolicyState.forceChangeOnReset())
+            if (pwPolicyState.getPolicy().forceChangeOnAdd() ||
+                pwPolicyState.getPolicy().forceChangeOnReset())
             {
               pwPolicyState.setMustChangePassword(! selfChange);
             }
@@ -1421,7 +1422,8 @@ modifyProcessing:
           // If the modification is updating the password attribute, then
           // perform any necessary password policy processing.  This processing
           // should be skipped for synchronization operations.
-          boolean isPassword = t.equals(pwPolicyState.getPasswordAttribute());
+          boolean isPassword
+                  = t.equals(pwPolicyState.getPolicy().getPasswordAttribute());
           if (isPassword && (!(isSynchronizationOperation())))
           {
            // If the attribute contains any options, then reject it.  Passwords
@@ -1440,7 +1442,8 @@ modifyProcessing:
 
 
             // If it's a self change, then see if that's allowed.
-            if (selfChange && (! pwPolicyState.allowUserPasswordChanges()))
+            if (selfChange &&
+                 (! pwPolicyState.getPolicy().allowUserPasswordChanges()))
             {
               setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
@@ -1452,7 +1455,7 @@ modifyProcessing:
 
             // If we require secure password changes, then makes sure it's a
             // secure communication channel.
-            if (pwPolicyState.requireSecurePasswordChanges() &&
+            if (pwPolicyState.getPolicy().requireSecurePasswordChanges() &&
                 (! clientConnection.isSecure()))
             {
               setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -1501,8 +1504,8 @@ modifyProcessing:
                 // If there were multiple password values provided, then make
                 // sure that's OK.
 
-                if ((!isInternalOperation()) &&
-                        (! pwPolicyState.allowMultiplePasswordValues()) &&
+                if (! isInternalOperation() &&
+                    ! pwPolicyState.getPolicy().allowExpiredPasswordChanges() &&
                     (passwordsToAdd > 1))
                 {
                   setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -1521,7 +1524,7 @@ modifyProcessing:
                   if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
                   {
                     if ((!isInternalOperation()) &&
-                            ! pwPolicyState.allowPreEncodedPasswords())
+                         ! pwPolicyState.getPolicy().allowPreEncodedPasswords())
                     {
                       setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
@@ -1616,128 +1619,124 @@ modifyProcessing:
                       appendErrorMessage(getMessage(msgID));
                       break modifyProcessing;
                     }
-                    else
+                    boolean found = false;
+                    for (Attribute attr : attrList)
                     {
-                      boolean found = false;
-                      for (Attribute attr : attrList)
+                      for (AttributeValue av : attr.getValues())
                       {
-                        for (AttributeValue av : attr.getValues())
+                        if (pwPolicyState.getPolicy().usesAuthPasswordSyntax())
                         {
-                          if (pwPolicyState.usesAuthPasswordSyntax())
+                          if (AuthPasswordSyntax.isEncoded(av.getValue()))
                           {
-                            if (AuthPasswordSyntax.isEncoded(av.getValue()))
+                            try
                             {
-                              try
+                              StringBuilder[] compoenents =
+                                   AuthPasswordSyntax.decodeAuthPassword(
+                                        av.getStringValue());
+                              PasswordStorageScheme scheme =
+                                   DirectoryServer.
+                                        getAuthPasswordStorageScheme(
+                                             compoenents[0].toString());
+                              if (scheme != null)
                               {
-                                StringBuilder[] compoenents =
-                                     AuthPasswordSyntax.decodeAuthPassword(
-                                          av.getStringValue());
-                                PasswordStorageScheme scheme =
-                                     DirectoryServer.
-                                          getAuthPasswordStorageScheme(
-                                               compoenents[0].toString());
-                                if (scheme != null)
+                                if (scheme.authPasswordMatches(
+                                     v.getValue(),
+                                     compoenents[1].toString(),
+                                     compoenents[2].toString()))
                                 {
-                                  if (scheme.authPasswordMatches(
-                                           v.getValue(),
-                                           compoenents[1].toString(),
-                                           compoenents[2].toString()))
-                                  {
-                                    encodedValues.add(av);
-                                    found = true;
-                                  }
+                                  encodedValues.add(av);
+                                  found = true;
                                 }
                               }
-                              catch (DirectoryException de)
-                              {
-                                assert debugException(CLASS_NAME, "run", de);
-
-                                setResultCode(de.getResultCode());
-
-                                int msgID = MSGID_MODIFY_CANNOT_DECODE_PW;
-                                appendErrorMessage(getMessage(msgID,
-                                                        de.getErrorMessage()));
-                                break modifyProcessing;
-                              }
                             }
-                            else
+                            catch (DirectoryException de)
                             {
-                              if (av.equals(v))
-                              {
-                                encodedValues.add(v);
-                                found = true;
-                              }
+                              assert debugException(CLASS_NAME, "run", de);
+
+                              setResultCode(de.getResultCode());
+
+                              int msgID = MSGID_MODIFY_CANNOT_DECODE_PW;
+                              appendErrorMessage(
+                                   getMessage(msgID, de.getErrorMessage()));
+                              break modifyProcessing;
                             }
                           }
                           else
                           {
-                            if (UserPasswordSyntax.isEncoded(av.getValue()))
+                            if (av.equals(v))
                             {
-                              try
+                              encodedValues.add(v);
+                              found = true;
+                            }
+                          }
+                        }
+                        else
+                        {
+                          if (UserPasswordSyntax.isEncoded(av.getValue()))
+                          {
+                            try
+                            {
+                              String[] compoenents =
+                                   UserPasswordSyntax.decodeUserPassword(
+                                        av.getStringValue());
+                              PasswordStorageScheme scheme =
+                                   DirectoryServer.getPasswordStorageScheme(
+                                        toLowerCase(compoenents[0]));
+                              if (scheme != null)
                               {
-                                String[] compoenents =
-                                     UserPasswordSyntax.decodeUserPassword(
-                                          av.getStringValue());
-                                PasswordStorageScheme scheme =
-                                     DirectoryServer.getPasswordStorageScheme(
-                                          toLowerCase(
-                                               compoenents[0].toString()));
-                                if (scheme != null)
+                                if (scheme.passwordMatches(
+                                     v.getValue(),
+                                     new ASN1OctetString(compoenents[1])))
                                 {
-                                  if (scheme.passwordMatches(
-                                        v.getValue(),
-                                        new ASN1OctetString(compoenents[1])))
-                                  {
-                                    encodedValues.add(av);
-                                    found = true;
-                                  }
+                                  encodedValues.add(av);
+                                  found = true;
                                 }
                               }
-                              catch (DirectoryException de)
-                              {
-                                assert debugException(CLASS_NAME, "run", de);
-
-                                setResultCode(de.getResultCode());
-
-                                int msgID = MSGID_MODIFY_CANNOT_DECODE_PW;
-                                appendErrorMessage(getMessage(msgID,
-                                                        de.getErrorMessage()));
-                                break modifyProcessing;
-                              }
                             }
-                            else
+                            catch (DirectoryException de)
                             {
-                              if (av.equals(v))
-                              {
-                                encodedValues.add(v);
-                                found = true;
-                              }
+                              assert debugException(CLASS_NAME, "run", de);
+
+                              setResultCode(de.getResultCode());
+
+                              int msgID = MSGID_MODIFY_CANNOT_DECODE_PW;
+                              appendErrorMessage(getMessage(msgID,
+                                                         de.getErrorMessage()));
+                              break modifyProcessing;
+                            }
+                          }
+                          else
+                          {
+                            if (av.equals(v))
+                            {
+                              encodedValues.add(v);
+                              found = true;
                             }
                           }
                         }
                       }
-
-                      if (found)
-                      {
-                        if (currentPasswords == null)
-                        {
-                          currentPasswords = new LinkedList<AttributeValue>();
-                        }
-                        currentPasswords.add(v);
-
-                        numPasswords--;
-                      }
-                      else
-                      {
-                        setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-
-                        int msgID = MSGID_MODIFY_INVALID_PASSWORD;
-                        appendErrorMessage(getMessage(msgID));
-                        break modifyProcessing;
-                      }
-
-                      currentPasswordProvided = true;
                     }
+
+                    if (found)
+                    {
+                      if (currentPasswords == null)
+                      {
+                        currentPasswords = new LinkedList<AttributeValue>();
+                      }
+                      currentPasswords.add(v);
+
+                      numPasswords--;
+                    }
+                    else
+                    {
+                      setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                      int msgID = MSGID_MODIFY_INVALID_PASSWORD;
+                      appendErrorMessage(getMessage(msgID));
+                      break modifyProcessing;
+                    }
+
+                    currentPasswordProvided = true;
                   }
                 }
 
@@ -2283,7 +2282,8 @@ modifyProcessing:
         {
           // If it was a self change, then see if the current password was
           // provided and handle accordingly.
-          if (selfChange && pwPolicyState.requireCurrentPassword() &&
+          if (selfChange &&
+              pwPolicyState.getPolicy().requireCurrentPassword() &&
               (! currentPasswordProvided))
           {
             setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -2297,7 +2297,7 @@ modifyProcessing:
           // If this change would result in multiple password values, then see
           // if that's OK.
           if ((numPasswords > 1) &&
-              (! pwPolicyState.allowMultiplePasswordValues()))
+              (! pwPolicyState.getPolicy().allowMultiplePasswordValues()))
           {
             setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
@@ -2308,7 +2308,8 @@ modifyProcessing:
 
 
           // If any of the password values should be validated, then do so now.
-          if (selfChange || (! pwPolicyState.skipValidationForAdministrators()))
+          if (selfChange ||
+               (! pwPolicyState.getPolicy().skipValidationForAdministrators()))
           {
             if (newPasswords != null)
             {
