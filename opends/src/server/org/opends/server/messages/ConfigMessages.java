@@ -3361,61 +3361,6 @@ public class ConfigMessages
 
 
   /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to install the null key manager provider.  This takes a single
-   * argument, which is a string representation of the exception that was
-   * caught.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_CANNOT_INSTALL_NULL_PROVIDER =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 308;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to retrieve the key manager provider configuration entry.  This
-   * takes a single argument, which is a string representation of the exception
-   * that was caught.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_CANNOT_GET_CONFIG_ENTRY =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 309;
-
-
-
-  /**
-   * The message ID for the message that will be used if the key manager
-   * provider configuration entry does not exist.  This does not take any
-   * arguments.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_NO_CONFIG_ENTRY =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 310;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to register to watch for the key manager provider configuration
-   * entry to be created.  This takes a single argument, which is a string
-   * representation of the exception that was caught.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_CANNOT_REGISTER_ADD_LISTENER =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 311;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to register to watch for the key manager provider configuration
-   * entry to be removed.  This takes a single argument, which is a string
-   * representation of the exception that was caught.
-   */
-  public static final int
-       MSGID_CONFIG_KEYMANAGER_CANNOT_REGISTER_DELETE_LISTENER =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 312;
-
-
-
-  /**
    * The message ID for the message that will be used as the description for the
    * key manager provider enabled attribute.  This does not take any arguments.
    */
@@ -3435,143 +3380,11 @@ public class ConfigMessages
 
 
   /**
-   * The message ID for the message that will be used if the key manager
-   * provider has been explicitly disabled.  This does not take any arguments.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_DISABLED =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 315;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to determine whether the key manager provider should be enabled.
-   * This takes a single argument, which is a string representation of the
-   * exception that was caught.
-   */
-  public static final int
-       MSGID_CONFIG_KEYMANAGER_UNABLE_TO_DETERMINE_ENABLED_STATE =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 316;
-
-
-
-  /**
    * The message ID for the message that will be used as the description for the
    * key manager provider class attribute.  This does not take any arguments.
    */
   public static final int MSGID_CONFIG_KEYMANAGER_DESCRIPTION_CLASS =
        CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 317;
-
-
-
-  /**
-   * The message ID for the message that will be used if the entry key manager
-   * provider configuration entry does not contain a class name attribute.  This
-   * does not take any arguments.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_NO_CLASS_ATTR =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 318;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to determine the class to use for the key manager provider.
-   * This takes a single argument, which is a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_CANNOT_DETERMINE_CLASS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 319;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to load the key manager provider class.  This takes two
-   * arguments, which are the class name and a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_CANNOT_LOAD_CLASS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 320;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to instantiate the key manager provider class.  This takes two
-   * arguments, which are the class name and a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_CANNOT_INSTANTIATE_CLASS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 321;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the key manager provider.  This takes two
-   * arguments, which are the class name and a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_CANNOT_INITIALIZE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 322;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to install the null trust manager provider.  This takes a single
-   * argument, which is a string representation of the exception that was
-   * caught.
-   */
-  public static final int
-       MSGID_CONFIG_TRUSTMANAGER_CANNOT_INSTALL_NULL_PROVIDER =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 323;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to retrieve the trust manager provider configuration entry.
-   * This takes a single argument, which is a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_TRUSTMANAGER_CANNOT_GET_CONFIG_ENTRY =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 324;
-
-
-
-  /**
-   * The message ID for the message that will be used if the trust manager
-   * provider configuration entry does not exist.  This does not take any
-   * arguments.
-   */
-  public static final int MSGID_CONFIG_TRUSTMANAGER_NO_CONFIG_ENTRY =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 325;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to register to watch for the trust manager provider
-   * configuration entry to be created.  This takes a single argument, which is
-   * a string representation of the exception that was caught.
-   */
-  public static final int
-       MSGID_CONFIG_TRUSTMANAGER_CANNOT_REGISTER_ADD_LISTENER =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 326;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to register to watch for the trust manager provider
-   * configuration entry to be removed.  This takes a single argument, which is
-   * a string representation of the exception that was caught.
-   */
-  public static final int
-       MSGID_CONFIG_TRUSTMANAGER_CANNOT_REGISTER_DELETE_LISTENER =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 327;
 
 
 
@@ -3596,189 +3409,11 @@ public class ConfigMessages
 
 
   /**
-   * The message ID for the message that will be used if the trust manager
-   * provider has been explicitly disabled.  This does not take any arguments.
-   */
-  public static final int MSGID_CONFIG_TRUSTMANAGER_DISABLED =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 330;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to determine whether the trust manager provider should be
-   * enabled.  This takes a single argument, which is a string representation of
-   * the exception that was caught.
-   */
-  public static final int
-       MSGID_CONFIG_TRUSTMANAGER_UNABLE_TO_DETERMINE_ENABLED_STATE =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 331;
-
-
-
-  /**
    * The message ID for the message that will be used as the description for the
    * trust manager provider class attribute.  This does not take any arguments.
    */
   public static final int MSGID_CONFIG_TRUSTMANAGER_DESCRIPTION_CLASS =
        CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 332;
-
-
-
-  /**
-   * The message ID for the message that will be used if the entry trust manager
-   * provider configuration entry does not contain a class name attribute.  This
-   * does not take any arguments.
-   */
-  public static final int MSGID_CONFIG_TRUSTMANAGER_NO_CLASS_ATTR =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 333;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to determine the class to use for the trust manager provider.
-   * This takes a single argument, which is a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_TRUSTMANAGER_CANNOT_DETERMINE_CLASS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 334;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to load the trust manager provider class.  This takes two
-   * arguments, which are the class name and a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_TRUSTMANAGER_CANNOT_LOAD_CLASS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 335;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to instantiate the trust manager provider class.  This takes two
-   * arguments, which are the class name and a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_TRUSTMANAGER_CANNOT_INSTANTIATE_CLASS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 336;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the trust manager provider.  This takes two
-   * arguments, which are the class name and a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_TRUSTMANAGER_CANNOT_INITIALIZE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 337;
-
-
-
-  /**
-   * The message ID for the message that will be used if an attempt is made to
-   * change the class used to implement a key manager provider while the
-   * existing key manager provider is still enabled.  This takes two arguments,
-   * which are the class name of the current key manager provider and the class
-   * name of the requested new key manager provider.
-   */
-  public static final int MSGID_CONFIG_KEYMANAGER_NOT_SWITCHING_CLASSES =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 338;
-
-
-
-  /**
-   * The message ID for the message that will be used if an attempt is made to
-   * remove the key manager provider configuration entry while the provider is
-   * still enabled.  This takes a single argument, which is the class name of
-   * the active key manager provider.
-   */
-  public static final int
-       MSGID_CONFIG_KEYMANAGER_CANNOT_REMOVE_ACTIVE_PROVIDER =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 339;
-
-
-
-  /**
-   * The message ID for the message that will be used if an attempt is made to
-   * change the class used to implement a trust manager provider while the
-   * existing trust manager provider is still enabled.  This takes two
-   * arguments, which are the class name of the current trust manager provider
-   * and the class name of the requested new trust manager provider.
-   */
-  public static final int MSGID_CONFIG_TRUSTMANAGER_NOT_SWITCHING_CLASSES =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 340;
-
-
-
-  /**
-   * The message ID for the message that will be used if an attempt is made to
-   * remove the trust manager provider configuration entry while the provider is
-   * still enabled.  This takes a single argument, which is the class name of
-   * the active trust manager provider.
-   */
-  public static final int
-       MSGID_CONFIG_TRUSTMANAGER_CANNOT_REMOVE_ACTIVE_PROVIDER =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 341;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to install the default certificate mapper.  This takes a single
-   * argument, which is a string representation of the exception that was
-   * caught.
-   */
-  public static final int
-       MSGID_CONFIG_CERTMAPPER_CANNOT_INSTALL_DEFAULT_MAPPER =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 342;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to retrieve the certificate mapper configuration entry.  This
-   * takes a single argument, which is a string representation of the exception
-   * that was caught.
-   */
-  public static final int MSGID_CONFIG_CERTMAPPER_CANNOT_GET_CONFIG_ENTRY =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 343;
-
-
-
-  /**
-   * The message ID for the message that will be used if the certificate mapper
-   * configuration entry does not exist.  This does not take any arguments.
-   */
-  public static final int MSGID_CONFIG_CERTMAPPER_NO_CONFIG_ENTRY =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 344;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to register to watch for the certificate mapper configuration
-   * entry to be created.  This takes a single argument, which is a string
-   * representation of the exception that was caught.
-   */
-  public static final int MSGID_CONFIG_CERTMAPPER_CANNOT_REGISTER_ADD_LISTENER =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 345;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to register to watch for the certificate mapper configuration
-   * entry to be removed.  This takes a single argument, which is a string
-   * representation of the exception that was caught.
-   */
-  public static final int
-       MSGID_CONFIG_CERTMAPPER_CANNOT_REGISTER_DELETE_LISTENER =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 346;
 
 
 
@@ -3793,32 +3428,11 @@ public class ConfigMessages
 
   /**
    * The message ID for the message that will be used if the certificate mapper
-   * configuration entry does not contain an enabled attribute.  This does not
-   * take any arguments.
+   * configuration entry does not contain an enabled attribute.  This takes a
+   * single argument, which is the DN of the configuration entry.
    */
   public static final int MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR =
        CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 348;
-
-
-
-  /**
-   * The message ID for the message that will be used if the certificate mapper
-   * has been explicitly disabled.  This does not take any arguments.
-   */
-  public static final int MSGID_CONFIG_CERTMAPPER_DISABLED =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 349;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to determine whether the certificate mapper should be enabled.
-   * This takes a single argument, which is a string representation of the
-   * exception that was caught.
-   */
-  public static final int
-       MSGID_CONFIG_CERTMAPPER_UNABLE_TO_DETERMINE_ENABLED_STATE =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 350;
 
 
 
@@ -3828,60 +3442,6 @@ public class ConfigMessages
    */
   public static final int MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS =
        CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 351;
-
-
-
-  /**
-   * The message ID for the message that will be used if the entry certificate
-   * mapper configuration entry does not contain a class name attribute.  This
-   * does not take any arguments.
-   */
-  public static final int MSGID_CONFIG_CERTMAPPER_NO_CLASS_ATTR =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 352;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to determine the class to use for the certificate mapper.  This
-   * takes a single argument, which is a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_CERTMAPPER_CANNOT_DETERMINE_CLASS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 353;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to load the certificate mapper class.  This takes two arguments,
-   * which are the class name and a string representation of the exception
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_CERTMAPPER_CANNOT_LOAD_CLASS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 354;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to instantiate the certificate mapper class.  This takes two
-   * arguments, which are the class name and a string representation of the
-   * exception that was caught.
-   */
-  public static final int MSGID_CONFIG_CERTMAPPER_CANNOT_INSTANTIATE_CLASS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 355;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the certificate mapper.  This takes two arguments,
-   * which are the class name and a string representation of the exception that
-   * was caught.
-   */
-  public static final int MSGID_CONFIG_CERTMAPPER_CANNOT_INITIALIZE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 356;
 
 
 
@@ -3914,30 +3474,6 @@ public class ConfigMessages
    */
   public static final int MSGID_CONFIG_LOGGER_NO_DISK_SPACE_USED =
        CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 360;
-
-
-
-  /**
-   * The message ID for the message that will be used if an attempt is made to
-   * change the class used to implement a certificate mapper while the existing
-   * certificate mapper is still enabled.  This takes two arguments, which are
-   * the class name of the current certificate mapper and the class name of the
-   * requested new certificate mapper.
-   */
-  public static final int MSGID_CONFIG_CERTMAPPER_NOT_SWITCHING_CLASSES =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 361;
-
-
-
-  /**
-   * The message ID for the message that will be used if an attempt is made to
-   * remove the certificate mapper configuration entry while the provider is
-   * still enabled.  This takes a single argument, which is the class name of
-   * the active certificate mapper.
-   */
-  public static final int
-       MSGID_CONFIG_CERTMAPPER_CANNOT_REMOVE_ACTIVE_PROVIDER =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 362;
 
 
 
@@ -6494,6 +6030,454 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to retrieve the certificate mapper base entry from the
+   * configuration.  This takes a single argument, which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_CANNOT_GET_BASE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 604;
+
+
+
+  /**
+   * The message ID for the message that will be used if the certificate mapper
+   * base entry does not exist in the Directory Server configuration.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_BASE_DOES_NOT_EXIST =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 605;
+
+
+
+  /**
+   * The message ID for the message that will be used if a certificate mapper
+   * configuration entry does not contain an acceptable mapper configuration.
+   * This takes two arguments, which are the DN of the configuration entry and
+   * the reason that it is not acceptable.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_ENTRY_UNACCEPTABLE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 606;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create a certificate mapper from a configuration entry.  This
+   * takes two arguments, which are the DN of the configuration entry and a
+   * message that explains the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_CANNOT_CREATE_MAPPER =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 607;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * certificate mapper base does not contain a valid objectclass.  This takes a
+   * single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_INVALID_OBJECTCLASS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 608;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * certificate mapper base does not contain a value for the class name.  This
+   * takes a single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_NO_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 609;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * certificate mapper base contains an invalid value for the class name.  This
+   * takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_INVALID_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 610;
+
+
+
+  /**
+   * The message ID for the message that will be used if a configuration entry
+   * defines a Directory Server certificate mapper but the associated class
+   * cannot be instantiated as a certificate mapper.  This takes three
+   * arguments, which are the mapper class name, the DN of the configuration
+   * entry, and a string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_INVALID_CLASS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 611;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * certificate mapper base has an invalid value for the enabled attribute.
+   * This takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_INVALID_ENABLED_VALUE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 612;
+
+
+
+  /**
+   * The message ID for the message that will be used if the certificate mapper
+   * class has changed and will require administrative action to take effect.
+   * This takes three arguments, which are the old class name, the new class
+   * name, and the DN of the associated configuration entry.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_CLASS_ACTION_REQUIRED =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 613;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing a Directory Server certificate maper.  This takes three
+   * arguments, which are the class name for the mapper class, the DN of the
+   * configuration entry, and a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_INITIALIZATION_FAILED =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 614;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new certificate mapper with a DN that matches the DN of a mapper that
+   * already exists.  This takes a single argument, which is the DN of the
+   * mapper configuration entry.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_EXISTS =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 615;
+
+
+
+  /**
+   * The message ID for the message that will be used if a certificate mapper
+   * entry contains an unacceptable configuration but does not provide any
+   * specific details about the nature of the problem.  This takes a single
+   * argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_UNACCEPTABLE_CONFIG =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 616;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to retrieve the key manager provider base entry from the
+   * configuration.  This takes a single argument, which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_CANNOT_GET_BASE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 617;
+
+
+
+  /**
+   * The message ID for the message that will be used if the key manager
+   * provider base entry does not exist in the Directory Server configuration.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_BASE_DOES_NOT_EXIST =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 618;
+
+
+
+  /**
+   * The message ID for the message that will be used if a key manager provider
+   * configuration entry does not contain an acceptable provider configuration.
+   * This takes two arguments, which are the DN of the configuration entry and
+   * the reason that it is not acceptable.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_ENTRY_UNACCEPTABLE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 619;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create a key manager provider from a configuration entry.  This
+   * takes two arguments, which are the DN of the configuration entry and a
+   * message that explains the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_CANNOT_CREATE_PROVIDER =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 620;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * key manager provider base does not contain a valid objectclass.  This takes
+   * a single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_INVALID_OBJECTCLASS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 621;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * key manager provider base does not contain a value for the class name.
+   * This takes a single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_NO_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 622;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * key manager provider base contains an invalid value for the class name.
+   * This takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_INVALID_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 623;
+
+
+
+  /**
+   * The message ID for the message that will be used if a configuration entry
+   * defines a Directory Server key manager provider but the associated class
+   * cannot be instantiated as a provider.  This takes three arguments, which
+   * are the provider class name, the DN of the configuration entry, and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_INVALID_CLASS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 624;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * key manager provider base has an invalid value for the enabled attribute.
+   * This takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_INVALID_ENABLED_VALUE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 625;
+
+
+
+  /**
+   * The message ID for the message that will be used if the key manager
+   * provider class has changed and will require administrative action to take
+   * effect.  This takes three arguments, which are the old class name, the new
+   * class name, and the DN of the associated configuration entry.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_CLASS_ACTION_REQUIRED =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 626;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing a Directory Server key manager provider.  This takes three
+   * arguments, which are the class name for the provider class, the DN of the
+   * configuration entry, and a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_INITIALIZATION_FAILED =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 627;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new key manager provider with a DN that matches the DN of a provider
+   * that already exists.  This takes a single argument, which is the DN of the
+   * provider configuration entry.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_EXISTS =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 628;
+
+
+
+  /**
+   * The message ID for the message that will be used if a key manager provider
+   * entry contains an unacceptable configuration but does not provide any
+   * specific details about the nature of the problem.  This takes a single
+   * argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_UNACCEPTABLE_CONFIG =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 629;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to retrieve the trust manager provider base entry from the
+   * configuration.  This takes a single argument, which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 630;
+
+
+
+  /**
+   * The message ID for the message that will be used if the trust manager
+   * provider base entry does not exist in the Directory Server configuration.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_BASE_DOES_NOT_EXIST =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 631;
+
+
+
+  /**
+   * The message ID for the message that will be used if a trust manager
+   * provider configuration entry does not contain an acceptable provider
+   * configuration. This takes two arguments, which are the DN of the
+   * configuration entry and the reason that it is not acceptable.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_ENTRY_UNACCEPTABLE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 632;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create a trust manager provider from a configuration entry.  This
+   * takes two arguments, which are the DN of the configuration entry and a
+   * message that explains the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_CANNOT_CREATE_PROVIDER =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 633;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * trust manager provider base does not contain a valid objectclass.  This
+   * takes a single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_INVALID_OBJECTCLASS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 634;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * trust manager provider base does not contain a value for the class name.
+   * This takes a single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_NO_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 635;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * trust manager provider base contains an invalid value for the class name.
+   * This takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_INVALID_CLASS_NAME =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 636;
+
+
+
+  /**
+   * The message ID for the message that will be used if a configuration entry
+   * defines a Directory Server trust manager provider but the associated class
+   * cannot be instantiated as a provider.  This takes three arguments, which
+   * are the provider class name, the DN of the configuration entry, and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_INVALID_CLASS =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 637;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry below the
+   * trust manager provider base has an invalid value for the enabled attribute.
+   * This takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_INVALID_ENABLED_VALUE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 638;
+
+
+
+  /**
+   * The message ID for the message that will be used if the trust manager
+   * provider class has changed and will require administrative action to take
+   * effect.  This takes three arguments, which are the old class name, the new
+   * class name, and the DN of the associated configuration entry.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_CLASS_ACTION_REQUIRED =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 639;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing a Directory Server trust manager provider.  This takes three
+   * arguments, which are the class name for the provider class, the DN of the
+   * configuration entry, and a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_INITIALIZATION_FAILED =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 640;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a new trust manager provider with a DN that matches the DN of a
+   * provider that already exists.  This takes a single argument, which is the
+   * DN of the provider configuration entry.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_EXISTS =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 641;
+
+
+
+  /**
+   * The message ID for the message that will be used if a trust manager
+   * provider entry contains an unacceptable configuration but does not provide
+   * any specific details about the nature of the problem.  This takes a single
+   * argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_UNACCEPTABLE_CONFIG =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 642;
+
+
+
+  /**
+   * The message ID for the message that will be used if it is not possible to
+   * retrieve a JMX attribute.  This takes three arguments, which are the name
+   * of the attribute to retrieve, the DN of the associated configuration entry,
+   * and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_JMX_CANNOT_GET_ATTRIBUTE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 643;
+
+
+
+  /**
+   * The message ID for the message that will be used if it is not possible to
+   * set a JMX attribute because there is no available JMX connection.  This
+   * takes two arguments, which are the name of the attribute and the DN of the
+   * associated configuration entry.
+   */
+  public static final int MSGID_CONFIG_JMX_SET_ATTR_NO_CONNECTION =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 644;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7177,6 +7161,13 @@ public class ConfigMessages
                     "The Directory Server could not register a JMX MBean for " +
                     "the component associated with configuration entry %s:  " +
                     "%s ");
+    registerMessage(MSGID_CONFIG_JMX_CANNOT_GET_ATTRIBUTE,
+                    "Unable to retrieve JMX attribute %s associated with " +
+                    "configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_JMX_SET_ATTR_NO_CONNECTION,
+                    "Unable to set the value of JMX attribute %s associated " +
+                    "with configuration entry %s because no JMX connection " +
+                    "is avaialble.");
 
 
     registerMessage(MSGID_CONFIG_WORK_QUEUE_DESCRIPTION_NUM_THREADS,
@@ -8190,37 +8181,40 @@ public class ConfigMessages
                     "should be excluded from the access log file.");
 
 
-    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_INSTALL_NULL_PROVIDER,
-                    "An unexpected error occurred that prevented the server " +
-                    "from installing a default null key manager provider for " +
-                    "use until the actual provider could be created from the " +
-                    "configuration:  %s.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_GET_CONFIG_ENTRY,
-                    "An unexpected error occurred while attempting to get " +
-                    "the \"" + DN_KEYMANAGER_PROVIDER_CONFIG +
-                    "\" entry, which holds the key manager provider " +
-                    "configuration:  %s.  No key manager provider will be " +
-                    "available.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_NO_CONFIG_ENTRY,
-                    "The key manager provider configuration entry \"" +
-                    DN_KEYMANAGER_PROVIDER_CONFIG + "\" does not exist in " +
-                    "the Directory Server configuration.  No key manager " +
-                    "provider will be available until this entry is created " +
-                    "with a valid key manager provider configuration.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_REGISTER_ADD_LISTENER,
-                    "An error occurred while attempting to register an " +
-                    "add listener to watch for the key manager provider " +
-                    "configuration entry to be created:  %s.  If a " +
-                    "key manager provider configuration is added while the " +
-                    "server is online, it will not be detected until the " +
-                    "server is restarted.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_REGISTER_DELETE_LISTENER,
-                    "An error occurred while attempting to register a " +
-                    "delete listener to watch for the key manager provider " +
-                    "configuration entry to be deleted: %s.  If the key " +
-                    "manager provider configuration entry is deleted while " +
-                    "the server is online, it will not be detected until the " +
-                    "server is restarted.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_GET_BASE,
+                    "An error occurred while attempting to retrieve the key " +
+                    "manager provider base entry " +
+                    DN_KEYMANAGER_PROVIDER_CONFIG_BASE +
+                    " from the Directory Server configuration:  %s.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_BASE_DOES_NOT_EXIST,
+                    "The key manager provider configuration base " +
+                    DN_KEYMANAGER_PROVIDER_CONFIG_BASE + " does not exist in " +
+                    "the Directory Server configuration.  This entry must be " +
+                    "present for the server to function properly.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_ENTRY_UNACCEPTABLE,
+                    "Configuration entry %s does not contain a valid key " +
+                    "manager provider configuration:  %s.  It will be " +
+                    "ignored.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_CREATE_PROVIDER,
+                    "An error occurred while attempting to create a " +
+                    "Directory Server key manager provider from the " +
+                    "information in configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_INVALID_OBJECTCLASS,
+                    "Configuration entry %s does not contain the " +
+                    OC_KEY_MANAGER_PROVIDER + " objectclass, which is " +
+                    "required for key manager provider definitions.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_NO_CLASS_NAME,
+                    "Configuration entry %s does not contain a valid value " +
+                    "for configuration attribute " + ATTR_KEYMANAGER_CLASS +
+                    " which specifies the fully-qualified class name for " +
+                    "the associated key manager provider.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_INVALID_CLASS_NAME,
+                    "Configuration entry %s has an invalid value for " +
+                    "attribute " + ATTR_KEYMANAGER_CLASS + ":  %s.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_INVALID_CLASS,
+                    "Class %s specified in configuration entry %s does not " +
+                    "contain a valid key manager provider implementation:  " +
+                    "%s.");
     registerMessage(MSGID_CONFIG_KEYMANAGER_DESCRIPTION_ENABLED,
                     "Indicates whether the Directory Server key manager " +
                     "provider should be enabled.  A key manager provider is " +
@@ -8230,101 +8224,75 @@ public class ConfigMessages
                     "immediately, but will only impact future attempts to " +
                     "access the key manager.");
     registerMessage(MSGID_CONFIG_KEYMANAGER_NO_ENABLED_ATTR,
-                    "Configuration entry \"" + DN_KEYMANAGER_PROVIDER_CONFIG +
-                    "\" does not contain a value for attribute " +
-                    ATTR_KEYMANAGER_ENABLED + ", which indicates whether " +
-                    "the key manager provider is enabled for use in the " +
-                    "server.  As a result, the key manager provider will be " +
-                    "disabled.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_DISABLED,
-                    "The Directory Server key manager provider configured in " +
-                    "entry \"" + DN_KEYMANAGER_PROVIDER_CONFIG +
-                    "\" has been disabled.  No key manager access will be " +
-                    "available within the server.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_UNABLE_TO_DETERMINE_ENABLED_STATE,
-                    "An unexpected error occurred while attempting to " +
-                    "determine whether the key manager provider configured " +
-                    "in entry \"" + DN_KEYMANAGER_PROVIDER_CONFIG +
-                    "\" is enabled:  %s.  As a result, the key manager " +
-                    "provider will be disabled.");
+                    "Configuration entry \"%s\" does not contain a value for " +
+                    "attribute " + ATTR_KEYMANAGER_ENABLED +
+                    ", which indicates whether the key manager provider is " +
+                    "enabled for use in the server.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_INVALID_ENABLED_VALUE,
+                    "Configuration entry %s has an invalid value for " +
+                    "attribute " + ATTR_KEYMANAGER_ENABLED + ":  %s.");
     registerMessage(MSGID_CONFIG_KEYMANAGER_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that includes the key manager provider implementation.  " +
                     "Changes to this configuration attribute will not take " +
                     "effect until the key manager provider has been disabled " +
                     "and then re-enabled, or until the server is restarted.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_NO_CLASS_ATTR,
-                    "Configuration entry \"" + DN_KEYMANAGER_PROVIDER_CONFIG +
-                    "\" does not contain a value for attribute " +
-                    ATTR_KEYMANAGER_CLASS + "\", which specifies the class " +
-                    "name for the key manager provider implementation.  As a " +
-                    "result, no key manager access will be available.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_DETERMINE_CLASS,
-                    "An unexpected error occurred while attempting to " +
-                    "determine the value of the " + ATTR_KEYMANAGER_CLASS +
-                    " attribute in configuration entry \"" +
-                    DN_KEYMANAGER_PROVIDER_CONFIG + "\":  %s.  No key " +
-                    "manager access will be available.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_LOAD_CLASS,
-                    "The class %s defined in attribute " +
-                    ATTR_KEYMANAGER_CLASS + " of configuration entry \"" +
-                    DN_KEYMANAGER_PROVIDER_CONFIG + "\" could not be " +
-                    "loaded:  %s.  No key manager access will be available.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_INSTANTIATE_CLASS,
-                    "The class %s defined in attribute " +
-                    ATTR_KEYMANAGER_CLASS + " of configuration entry \"" +
-                    DN_KEYMANAGER_PROVIDER_CONFIG + "\" could not be " +
-                    "instantiated as a Directory Server key manager " +
-                    "provider:  %s.  No key manager access will be available.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_INITIALIZE,
-                    "An error occurred while attempting to initialize " +
-                    "an instance of class %s for use as the Directory Server " +
-                    "key manager provider:  %s.  No key manager access will " +
-                    "be available.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_NOT_SWITCHING_CLASSES,
-                    "The Directory Server key manager provider is currently " +
-                    "enabled as an instance of class %s.  The requested new " +
-                    "class %s will not be used until the current key " +
-                    "manager provider is disabled.");
-    registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_REMOVE_ACTIVE_PROVIDER,
-                    "The Directory Server will not allow the removal of " +
-                    "configuration entry " + DN_KEYMANAGER_PROVIDER_CONFIG +
-                    " while it contains a configuration that is actively in " +
-                    "use.  The configured provider %s is still active and " +
-                    "must be disabled before this entry may be removed.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_CLASS_ACTION_REQUIRED,
+                    "The requested change in the key manager provider class " +
+                    "name from %s to %s in configuration entry %s cannot be " +
+                    "dynamically applied.  This change will not take effect " +
+                    "until the provider is disabled and re-enabled or the " +
+                    "Directory Server is restarted.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_INITIALIZATION_FAILED,
+                    "An error occurred while trying to initialize an " +
+                    "instance of class %s as a key manager provider as " +
+                    "defined in configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_EXISTS,
+                    "Unable to add a new key manager provider entry with DN " +
+                    "%s because there is already a provider registered with " +
+                    "that DN.");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_UNACCEPTABLE_CONFIG,
+                    "The configuration for the key manager provider defined " +
+                    "in configuration entry %s was not acceptable according " +
+                    "to its internal validation.  However, no specific " +
+                    "information is available regarding the problem(s) with " +
+                    "the entry.");
 
 
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_INSTALL_NULL_PROVIDER,
-                    "An unexpected error occurred that prevented the server " +
-                    "from installing a default null trust manager provider " +
-                    "for use until the actual provider could be created from " +
-                    "the configuration:  %s.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_GET_CONFIG_ENTRY,
-                    "An unexpected error occurred while attempting to get " +
-                    "the \"" + DN_TRUSTMANAGER_PROVIDER_CONFIG +
-                    "\" entry, which holds the trust manager provider " +
-                    "configuration:  %s.  No trust manager provider will be " +
-                    "available.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_NO_CONFIG_ENTRY,
-                    "The trust manager provider configuration entry \"" +
-                    DN_TRUSTMANAGER_PROVIDER_CONFIG + "\" does not exist in " +
-                    "the Directory Server configuration.  No trust manager " +
-                    "provider will be available until this entry is created " +
-                    "with a valid trust manager provider configuration.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_REGISTER_ADD_LISTENER,
-                    "An error occurred while attempting to register an " +
-                    "add listener to watch for the trust manager provider " +
-                    "configuration entry to be created:  %s.  If a " +
-                    "trust manager provider configuration is added while the " +
-                    "server is online, it will not be detected until the " +
-                    "server is restarted.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_REGISTER_DELETE_LISTENER,
-                    "An error occurred while attempting to register a " +
-                    "delete listener to watch for the trust manager provider " +
-                    "configuration entry to be deleted: %s.  If the trust " +
-                    "manager provider configuration entry is deleted while " +
-                    "the server is online, it will not be detected until the " +
-                    "server is restarted.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE,
+                    "An error occurred while attempting to retrieve the " +
+                    "trust manager provider base entry " +
+                    DN_TRUSTMANAGER_PROVIDER_CONFIG_BASE +
+                    " from the Directory Server configuration:  %s.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_BASE_DOES_NOT_EXIST,
+                    "The trust manager provider configuration base " +
+                    DN_TRUSTMANAGER_PROVIDER_CONFIG_BASE + " does not exist " +
+                    "in the Directory Server configuration.  This entry must " +
+                    "be present for the server to function properly.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_ENTRY_UNACCEPTABLE,
+                    "Configuration entry %s does not contain a valid trust " +
+                    "manager provider configuration:  %s.  It will be " +
+                    "ignored.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_CREATE_PROVIDER,
+                    "An error occurred while attempting to create a " +
+                    "Directory Server trust manager provider from the " +
+                    "information in configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_INVALID_OBJECTCLASS,
+                    "Configuration entry %s does not contain the " +
+                    OC_TRUST_MANAGER_PROVIDER + " objectclass, which is " +
+                    "required for trust manager provider definitions.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_NO_CLASS_NAME,
+                    "Configuration entry %s does not contain a valid value " +
+                    "for configuration attribute " + ATTR_TRUSTMANAGER_CLASS +
+                    " which specifies the fully-qualified class name for " +
+                    "the associated trust manager provider.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_INVALID_CLASS_NAME,
+                    "Configuration entry %s has an invalid value for " +
+                    "attribute " + ATTR_TRUSTMANAGER_CLASS + ":  %s.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_INVALID_CLASS,
+                    "Class %s specified in configuration entry %s does not " +
+                    "contain a valid trust manager provider implementation:  " +
+                    "%s.");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_DESCRIPTION_ENABLED,
                     "Indicates whether the Directory Server trust manager " +
                     "provider should be enabled.  A trust manager provider " +
@@ -8334,99 +8302,75 @@ public class ConfigMessages
                     "immediately, but will only impact future attempts to " +
                     "access the trust manager.");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_NO_ENABLED_ATTR,
-                    "Configuration entry \"" + DN_TRUSTMANAGER_PROVIDER_CONFIG +
-                    "\" does not contain a value for attribute " +
-                    ATTR_TRUSTMANAGER_ENABLED + ", which indicates whether " +
-                    "the trust manager provider is enabled for use in the " +
-                    "server.  As a result, the trust manager provider will " +
-                    "be disabled.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_DISABLED,
-                    "The Directory Server trust manager provider configured " +
-                    "in entry \"" + DN_TRUSTMANAGER_PROVIDER_CONFIG +
-                    "\" has been disabled.  No trust manager access will be " +
-                    "available within the server.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_UNABLE_TO_DETERMINE_ENABLED_STATE,
-                    "An unexpected error occurred while attempting to " +
-                    "determine whether the trust manager provider configured " +
-                    "in entry \"" + DN_TRUSTMANAGER_PROVIDER_CONFIG +
-                    "\" is enabled:  %s.  As a result, the trust manager " +
-                    "provider will be disabled.");
+                    "Configuration entry \"%s\" does not contain a value for " +
+                    "attribute " + ATTR_TRUSTMANAGER_ENABLED +
+                    ", which indicates whether the trust manager provider is " +
+                    "enabled for use in the server.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_INVALID_ENABLED_VALUE,
+                    "Configuration entry %s has an invalid value for " +
+                    "attribute " + ATTR_TRUSTMANAGER_ENABLED + ":  %s.");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that includes the trust manager provider " +
                     "implementation.  Changes to this configuration " +
-                    "attribute will not take effect until the key manager " +
+                    "attribute will not take effect until the trust manager " +
                     "provider has been disabled and then re-enabled, or " +
                     "until the server is restarted.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_NO_CLASS_ATTR,
-                    "Configuration entry \"" + DN_TRUSTMANAGER_PROVIDER_CONFIG +
-                    "\" does not contain a value for attribute " +
-                    ATTR_TRUSTMANAGER_CLASS + "\", which specifies the class " +
-                    "name for the trust manager provider implementation.  " +
-                    "As a result, no trust manager access will be available.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_DETERMINE_CLASS,
-                    "An unexpected error occurred while attempting to " +
-                    "determine the value of the " + ATTR_TRUSTMANAGER_CLASS +
-                    " attribute in configuration entry \"" +
-                    DN_TRUSTMANAGER_PROVIDER_CONFIG + "\":  %s.  No trust " +
-                    "manager access will be available.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_LOAD_CLASS,
-                    "The class %s defined in attribute " +
-                    ATTR_TRUSTMANAGER_CLASS + " of configuration entry \"" +
-                    DN_TRUSTMANAGER_PROVIDER_CONFIG + "\" could not be " +
-                    "loaded:  %s.  No trust manager access will be available.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_INSTANTIATE_CLASS,
-                    "The class %s defined in attribute " +
-                    ATTR_TRUSTMANAGER_CLASS + " of configuration entry \"" +
-                    DN_TRUSTMANAGER_PROVIDER_CONFIG + "\" could not be " +
-                    "instantiated as a Directory Server trust manager " +
-                    "provider:  %s.  No trust manager access will be " +
-                    "available.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_INITIALIZE,
-                    "An error occurred while attempting to initialize " +
-                    "an instance of class %s for use as the Directory Server " +
-                    "trust manager provider:  %s.  No key manager access " +
-                    "will be available.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_NOT_SWITCHING_CLASSES,
-                    "The Directory Server trust manager provider is " +
-                    "currently enabled as an instance of class %s.  The " +
-                    "requested new class %s will not be used until the " +
-                    "current trust manager provider is disabled.");
-    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_REMOVE_ACTIVE_PROVIDER,
-                    "The Directory Server will not allow the removal of " +
-                    "configuration entry " + DN_TRUSTMANAGER_PROVIDER_CONFIG +
-                    " while it contains a configuration that is actively in " +
-                    "use.  The configured provider %s is still active and " +
-                    "must be disabled before this entry may be removed.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CLASS_ACTION_REQUIRED,
+                    "The requested change in the trust manager provider " +
+                    "class name from %s to %s in configuration entry %s " +
+                    "cannot be dynamically applied.  This change will not " +
+                    "take effect until the provider is disabled and " +
+                    "re-enabled or the Directory Server is restarted.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_INITIALIZATION_FAILED,
+                    "An error occurred while trying to initialize an " +
+                    "instance of class %s as a trust manager provider as " +
+                    "defined in configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_EXISTS,
+                    "Unable to add a new trust manager provider entry with " +
+                    "DN %s because there is already a provider registered " +
+                    "with that DN.");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_UNACCEPTABLE_CONFIG,
+                    "The configuration for the trust manager provider " +
+                    "defined in configuration entry %s was not acceptable " +
+                    "according to its internal validation.  However, no " +
+                    "specific information is available regarding the " +
+                    "problem(s) with the entry.");
 
 
-    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_INSTALL_DEFAULT_MAPPER,
-                    "An unexpected error occurred that prevented the server " +
-                    "from installing the default certificate mapper:  %s.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_GET_CONFIG_ENTRY,
-                    "An unexpected error occurred while attempting to get " +
-                    "the \"" + DN_CERTMAPPER_CONFIG + "\" entry, which holds " +
-                    "the certificate mapper configuration:  %s.  The default " +
-                    "certificate mapper will be used.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_NO_CONFIG_ENTRY,
-                    "The certificate mapper configuration entry \"" +
-                    DN_CERTMAPPER_CONFIG + "\" does not exist in the " +
-                    "Directory Server configuration.  The default " +
-                    "certificate mapper will be used.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_REGISTER_ADD_LISTENER,
-                    "An error occurred while attempting to register an " +
-                    "add listener to watch for the certificate mapper " +
-                    "configuration entry to be created:  %s.  If a " +
-                    "certificate mapper configuration is added while the " +
-                    "server is online, it will not be detected until the " +
-                    "server is restarted.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_REGISTER_DELETE_LISTENER,
-                    "An error occurred while attempting to register a " +
-                    "delete listener to watch for the certificate mapper " +
-                    "configuration entry to be deleted: %s.  If the " +
-                    "certificate mapper configuration entry is deleted while " +
-                    "the server is online, it will not be detected until the " +
-                    "server is restarted.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_GET_BASE,
+                    "An error occurred while attempting to retrieve the " +
+                    "certificate mapper base entry " +
+                    DN_CERTMAPPER_CONFIG_BASE +
+                    " from the Directory Server configuration:  %s.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_BASE_DOES_NOT_EXIST,
+                    "The certificate mapper configuration base " +
+                    DN_CERTMAPPER_CONFIG_BASE + " does not exist in the " +
+                    "Directory Server configuration.  This entry must be " +
+                    "present for the server to function properly.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_ENTRY_UNACCEPTABLE,
+                    "Configuration entry %s does not contain a valid " +
+                    "certificate mapper configuration:  %s.  It will be " +
+                    "ignored.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_CREATE_MAPPER,
+                    "An error occurred while attempting to create a " +
+                    "Directory Server certificate mapper from the " +
+                    "information in configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_INVALID_OBJECTCLASS,
+                    "Configuration entry %s does not contain the " +
+                    OC_CERTIFICATE_MAPPER + " objectclass, which is required " +
+                    "for certificate mapper definitions.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_NO_CLASS_NAME,
+                    "Configuration entry %s does not contain a valid value " +
+                    "for configuration attribute " + ATTR_CERTMAPPER_CLASS +
+                    " which specifies the fully-qualified class name for " +
+                    "the associated certificate mapper.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_INVALID_CLASS_NAME,
+                    "Configuration entry %s has an invalid value for " +
+                    "attribute " + ATTR_CERTMAPPER_CLASS + ":  %s.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_INVALID_CLASS,
+                    "Class %s specified in configuration entry %s does not " +
+                    "contain a valid certificate mapper implementation:  %s.");
     registerMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED,
                     "Indicates whether the Directory Server certificate " +
                     "mapper should be enabled.  A certificate mapper is " +
@@ -8436,67 +8380,39 @@ public class ConfigMessages
                     "purposes.  Changes to this configuration attribute will " +
                     "take effect immediately.");
     registerMessage(MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR,
-                    "Configuration entry \"" + DN_CERTMAPPER_CONFIG +
-                    "\" does not contain a value for attribute " +
-                    ATTR_CERTMAPPER_ENABLED + ", which indicates whether " +
-                    "the certificate mapper is enabled for use in the " +
-                    "server.  As a result, the default certificate mapper " +
-                    "will be used.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_DISABLED,
-                    "The Directory Server certificate mapper configured in " +
-                    "entry \"" + DN_CERTMAPPER_CONFIG + "\" has been " +
-                    "disabled.  The default certificate mapper will be used.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_UNABLE_TO_DETERMINE_ENABLED_STATE,
-                    "An unexpected error occurred while attempting to " +
-                    "determine whether the certificate mapper configured " +
-                    "in entry \"" + DN_CERTMAPPER_CONFIG + "\" is enabled:  " +
-                    "%s.  As a result, the default certificate mapper will " +
-                    "be used.");
+                    "Configuration entry \"%s\" does not contain a value for " +
+                    "attribute " + ATTR_CERTMAPPER_ENABLED +
+                    ", which indicates whether the certificate mapper is " +
+                    "enabled for use in the server.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_INVALID_ENABLED_VALUE,
+                    "Configuration entry %s has an invalid value for " +
+                    "attribute " + ATTR_CERTMAPPER_ENABLED + ":  %s.");
     registerMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that includes the certificate mapper implementation.  " +
                     "Changes to this configuration attribute will not take " +
                     "effect until the certificate mapper has been disabled " +
                     "and then re-enabled, or until the server is restarted.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_NO_CLASS_ATTR,
-                    "Configuration entry \"" + DN_CERTMAPPER_CONFIG +
-                    "\" does not contain a value for attribute " +
-                    ATTR_CERTMAPPER_CLASS + "\", which specifies the class " +
-                    "name for the certificate mapper implementation.  As a " +
-                    "result, the default certificate mapper will be used.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_DETERMINE_CLASS,
-                    "An unexpected error occurred while attempting to " +
-                    "determine the value of the " + ATTR_CERTMAPPER_CLASS +
-                    " attribute in configuration entry \"" +
-                    DN_CERTMAPPER_CONFIG + "\":  %s.  The default " +
-                    "certificate mapper will be used.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_LOAD_CLASS,
-                    "The class %s defined in attribute " +
-                    ATTR_CERTMAPPER_CLASS + " of configuration entry \"" +
-                    DN_CERTMAPPER_CONFIG + "\" could not be loaded:  %s.  " +
-                    "The default certificate mapper will be used.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_INSTANTIATE_CLASS,
-                    "The class %s defined in attribute " +
-                    ATTR_CERTMAPPER_CLASS + " of configuration entry \"" +
-                    DN_CERTMAPPER_CONFIG + "\" could not be instantiated as " +
-                    "a Directory Server certificate mapper:  %s.  The " +
-                    "%default certificate mapper will be used.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_INITIALIZE,
-                    "An error occurred while attempting to initialize " +
-                    "an instance of class %s for use as the Directory Server " +
-                    "certificate mapper:  %s.  The default certificate " +
-                    "mapper will be used.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_NOT_SWITCHING_CLASSES,
-                    "The Directory Server certificate mapper is currently " +
-                    "enabled as an instance of class %s.  The requested new " +
-                    "class %s will not be used until the current certificate " +
-                    "mapper is disabled.");
-    registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_REMOVE_ACTIVE_PROVIDER,
-                    "The Directory Server will not allow the removal of " +
-                    "configuration entry " + DN_CERTMAPPER_CONFIG +
-                    " while it contains a configuration that is actively in " +
-                    "use.  The configured mapper %s is still active and " +
-                    "must be disabled before this entry may be removed.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_CLASS_ACTION_REQUIRED,
+                    "The requested change in the certificate mapper class " +
+                    "name from %s to %s in configuration entry %s cannot be " +
+                    "dynamically applied.  This change will not take effect " +
+                    "until the mapper is disabled and re-enabled or the " +
+                    "Directory Server is restarted.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_INITIALIZATION_FAILED,
+                    "An error occurred while trying to initialize an " +
+                    "instance of class %s as a certificate mapper as defined " +
+                    "in configuration entry %s:  %s.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_EXISTS,
+                    "Unable to add a new certificate mapper entry with DN %s " +
+                    "because there is already a mapper registered with that " +
+                    "DN.");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_UNACCEPTABLE_CONFIG,
+                    "The configuration for the certificate mapper defined in " +
+                    "configuration entry %s was not acceptable according to " +
+                    "its internal validation.  However, no specific " +
+                    "information is available regarding the problem(s) with " +
+                    "the entry.");
 
 
     registerMessage(MSGID_CONFIG_PWSCHEME_CANNOT_GET_BASE,

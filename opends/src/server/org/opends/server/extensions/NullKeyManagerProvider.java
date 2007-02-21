@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -37,7 +37,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 
 

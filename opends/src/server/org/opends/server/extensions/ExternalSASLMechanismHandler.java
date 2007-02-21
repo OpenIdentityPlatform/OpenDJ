@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.ConnectionSecurityProvider;
@@ -40,6 +41,7 @@ import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.MultiChoiceConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.BindOperation;
@@ -109,6 +111,9 @@ public class ExternalSASLMechanismHandler
   // Indicates whether to attempt to validate the certificate presented by the
   // client with a certificate in the user's entry.
   private CertificateValidationPolicy validationPolicy;
+
+  // The DN of the configuration entry for the associated certificate mapper.
+  private DN certificateMapperDN;
 
   // The DN of the configuration entry for this SASL mechanism handler.
   private DN configEntryDN;
@@ -217,6 +222,48 @@ public class ExternalSASLMechanismHandler
     }
 
 
+    // Get the DN of the certificate mapper to use with this handler.
+    msgID = MSGID_SASLEXTERNAL_DESCRIPTION_CERT_MAPPER_DN;
+    DNConfigAttribute certMapperStub =
+         new DNConfigAttribute(ATTR_CERTMAPPER_DN, getMessage(msgID), true,
+                               false, false);
+    try
+    {
+      DNConfigAttribute certMapperAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(certMapperStub);
+      if (certMapperAttr == null)
+      {
+        msgID = MSGID_SASLEXTERNAL_NO_CERTIFICATE_MAPPER_DN;
+        String message = getMessage(msgID, String.valueOf(configEntryDN));
+        throw new ConfigException(msgID, message);
+      }
+      else
+      {
+        certificateMapperDN = certMapperAttr.activeValue();
+        CertificateMapper mapper =
+             DirectoryServer.getCertificateMapper(certificateMapperDN);
+        if (mapper == null)
+        {
+          msgID = MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN;
+          String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                      String.valueOf(certificateMapperDN));
+          throw new ConfigException(msgID, message);
+        }
+      }
+    }
+    catch (ConfigException ce)
+    {
+      throw ce;
+    }
+    catch (Exception e)
+    {
+      msgID = MSGID_SASLEXTERNAL_CANNOT_GET_CERT_MAPPER_DN;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      throw new ConfigException(msgID, message);
+    }
+
+
     DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_EXTERNAL, this);
     DirectoryServer.registerConfigurableComponent(this);
   }
@@ -306,13 +353,27 @@ public class ExternalSASLMechanismHandler
     }
 
 
+    // Get the certificate mapper to use to map the certificate to a user entry.
+    CertificateMapper certificateMapper =
+         DirectoryServer.getCertificateMapper(certificateMapperDN);
+    if (certificateMapper == null)
+    {
+      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+      int    msgID   = MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  String.valueOf(certificateMapperDN));
+      bindOperation.setAuthFailureReason(msgID, message);
+      return;
+    }
+
+
     // Use the Directory Server certificate mapper to map the client certificate
     // chain to a single user DN.
     Entry userEntry;
     try
     {
-      userEntry = DirectoryServer.getCertificateMapper().mapCertificateToUser(
-                                                              clientCertChain);
+      userEntry = certificateMapper.mapCertificateToUser(clientCertChain);
     }
     catch (DirectoryException de)
     {
@@ -506,6 +567,11 @@ public class ExternalSASLMechanismHandler
                                            getMessage(msgID), false, false,
                                            false, certTypeStr));
 
+    msgID = MSGID_SASLEXTERNAL_DESCRIPTION_CERT_MAPPER_DN;
+    attrList.add(new DNConfigAttribute(ATTR_CERTMAPPER_DN, getMessage(msgID),
+                                       true, false, false,
+                                       certificateMapperDN));
+
     return attrList;
   }
 
@@ -598,6 +664,47 @@ public class ExternalSASLMechanismHandler
       msgID = MSGID_SASLEXTERNAL_UNKNOWN_CERT_ATTR;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(attrTypeName),
                                          String.valueOf(configEntryDN)));
+      return false;
+    }
+
+
+    // Look at the certificate mapper DN.
+    msgID = MSGID_SASLEXTERNAL_DESCRIPTION_CERT_MAPPER_DN;
+    DNConfigAttribute certMapperStub =
+         new DNConfigAttribute(ATTR_CERTMAPPER_DN, getMessage(msgID), true,
+                               false, false);
+    try
+    {
+      DNConfigAttribute certMapperAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(certMapperStub);
+      if (certMapperAttr == null)
+      {
+        msgID = MSGID_SASLEXTERNAL_NO_CERTIFICATE_MAPPER_DN;
+        String message = getMessage(msgID, String.valueOf(configEntryDN));
+        unacceptableReasons.add(message);
+        return false;
+      }
+      else
+      {
+        DN certMapperDN = certMapperAttr.activeValue();
+        CertificateMapper mapper =
+             DirectoryServer.getCertificateMapper(certMapperDN);
+        if (mapper == null)
+        {
+          msgID = MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN;
+          String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                      String.valueOf(certMapperDN));
+          unacceptableReasons.add(message);
+          return false;
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      msgID = MSGID_SASLEXTERNAL_CANNOT_GET_CERT_MAPPER_DN;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      unacceptableReasons.add(message);
       return false;
     }
 
@@ -716,6 +823,57 @@ public class ExternalSASLMechanismHandler
     }
 
 
+    // Look at the certificate mapper DN.
+    DN newCertificateMapperDN = null;
+    msgID = MSGID_SASLEXTERNAL_DESCRIPTION_CERT_MAPPER_DN;
+    DNConfigAttribute certMapperStub =
+         new DNConfigAttribute(ATTR_CERTMAPPER_DN, getMessage(msgID), true,
+                               false, false);
+    try
+    {
+      DNConfigAttribute certMapperAttr =
+           (DNConfigAttribute) configEntry.getConfigAttribute(certMapperStub);
+      if (certMapperAttr == null)
+      {
+        if (resultCode == ResultCode.SUCCESS)
+        {
+          resultCode = ResultCode.OBJECTCLASS_VIOLATION;
+        }
+
+        msgID = MSGID_SASLEXTERNAL_NO_CERTIFICATE_MAPPER_DN;
+        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+      }
+      else
+      {
+        newCertificateMapperDN = certMapperAttr.activeValue();
+        CertificateMapper mapper =
+             DirectoryServer.getCertificateMapper(newCertificateMapperDN);
+        if (mapper == null)
+        {
+          if (resultCode == ResultCode.SUCCESS)
+          {
+            resultCode = ResultCode.OBJECTCLASS_VIOLATION;
+          }
+
+          msgID = MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN;
+          messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                  String.valueOf(newCertificateMapperDN)));
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
+      }
+
+      msgID = MSGID_SASLEXTERNAL_CANNOT_GET_CERT_MAPPER_DN;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                              stackTraceToSingleLineString(e)));
+    }
+
+
     // If everything has been successful, then apply any changes that were made.
     if (resultCode == ResultCode.SUCCESS)
     {
@@ -740,6 +898,18 @@ public class ExternalSASLMechanismHandler
           msgID = MSGID_SASLEXTERNAL_UPDATED_CERT_ATTR;
           messages.add(getMessage(msgID, String.valueOf(configEntryDN),
                                   certificateAttributeType.getNameOrOID()));
+        }
+      }
+
+      if (! newCertificateMapperDN.equals(certificateMapperDN))
+      {
+        certificateMapperDN = newCertificateMapperDN;
+
+        if (detailedResults)
+        {
+          msgID = MSGID_SASLEXTERNAL_UPDATED_CERT_MAPPER_DN;
+          messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                  String.valueOf(newCertificateMapperDN)));
         }
       }
     }

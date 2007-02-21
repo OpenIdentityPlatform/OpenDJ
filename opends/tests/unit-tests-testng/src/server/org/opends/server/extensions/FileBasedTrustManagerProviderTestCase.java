@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -305,31 +305,10 @@ public class FileBasedTrustManagerProviderTestCase
     FileBasedTrustManagerProvider provider =
          new FileBasedTrustManagerProvider();
     provider.initializeTrustManagerProvider(configEntry);
-for (StringBuilder sb : e.toLDIF())
-{
-  System.err.println(sb.toString());
-}
-  }
-
-
-
-  /**
-   * Tests the <CODE>getTrustManagers</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testGetTrustManagers()
-         throws Exception
-  {
-    FileBasedTrustManagerProvider provider =
-         (FileBasedTrustManagerProvider)
-         DirectoryServer.getTrustManagerProvider();
-    assertNotNull(provider);
-
-    TrustManager[] trustManagers = provider.getTrustManagers();
-    assertNotNull(trustManagers);
-    assertFalse(trustManagers.length == 0);
+    for (StringBuilder sb : e.toLDIF())
+    {
+      System.err.println(sb.toString());
+    }
   }
 }
 

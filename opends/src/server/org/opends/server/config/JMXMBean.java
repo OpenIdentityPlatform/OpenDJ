@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
 
@@ -625,7 +625,7 @@ public class JMXMBean
    *                                      associated with this MBean.
    */
   public Attribute getAttribute(String attributeName)
-  throws AttributeNotFoundException
+         throws AttributeNotFoundException
   {
     assert debugEnter(CLASS_NAME, "getAttribute");
 
@@ -647,7 +647,13 @@ public class JMXMBean
     }
     catch (LDAPException e)
     {
-      throw new AttributeNotFoundException();
+      assert debugException(CLASS_NAME, "getAttribute", e);
+
+      int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_ATTRIBUTE;
+      String message = getMessage(msgID, String.valueOf(attributeName),
+                                  String.valueOf(configEntryDN),
+                                  stackTraceToSingleLineString(e));
+      throw new AttributeNotFoundException(message);
     }
 
     //
@@ -662,7 +668,12 @@ public class JMXMBean
     if (rc != ResultCode.SUCCESS)
     {
       jmxClientConnection = null ;
-      throw new AttributeNotFoundException();
+
+      int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_ATTRIBUTE;
+      String message = getMessage(msgID, String.valueOf(attributeName),
+                                  String.valueOf(configEntryDN),
+                                  String.valueOf(op.getErrorMessage()));
+      throw new AttributeNotFoundException(message);
     }
 
     try
@@ -673,11 +684,14 @@ public class JMXMBean
     {
       assert debugException(CLASS_NAME, "setAttribute", e);
 
+      int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  attributeName);
+
       logError(
           ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-          MSGID_CONFIG_JMX_ATTR_NO_ATTR, configEntryDN.toString(),
-          attributeName);
-      throw new AttributeNotFoundException();
+          message, msgID);
+      throw new AttributeNotFoundException(message);
     }
   }
 
@@ -712,13 +726,15 @@ private LDAPAttribute getLdapAttributeFromJmx(
     catch (Exception e)
     {
       assert debugException(CLASS_NAME, "setAttribute", e);
+
+      int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  String.valueOf(name));
+
       logError(
           ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.MILD_ERROR,
-          MSGID_CONFIG_JMX_ATTR_NO_ATTR,
-          configEntryDN.toString(),
-          name);
-      throw new AttributeNotFoundException();
+          ErrorLogSeverity.MILD_ERROR, message, msgID);
+      throw new AttributeNotFoundException(message);
     }
 
     //
@@ -788,13 +804,14 @@ private LDAPAttribute getLdapAttributeFromJmx(
     {
       assert debugException(CLASS_NAME, "setAttribute", e);
 
+      int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_CONFIG_ENTRY;
+      String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                  String.valueOf(e));
+
       logError(
           ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.MILD_ERROR,
-          MSGID_CONFIG_JMX_CANNOT_GET_CONFIG_ENTRY,
-          configEntryDN.toString(),
-          String.valueOf(e));
-      throw new AttributeNotFoundException();
+          ErrorLogSeverity.MILD_ERROR, message, msgID);
+      throw new AttributeNotFoundException(message);
     }
 
     //
@@ -802,7 +819,10 @@ private LDAPAttribute getLdapAttributeFromJmx(
     JmxClientConnection jmxClientConnection = getClientConnection();
     if (jmxClientConnection == null)
     {
-      throw new AttributeNotFoundException();
+      int    msgID   = MSGID_CONFIG_JMX_SET_ATTR_NO_CONNECTION;
+      String message = getMessage(msgID, attribute.getName(),
+                                  String.valueOf(configEntry.getDN()));
+      throw new AttributeNotFoundException(message);
     }
 
     //

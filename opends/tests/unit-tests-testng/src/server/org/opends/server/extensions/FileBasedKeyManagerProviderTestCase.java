@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -316,26 +316,6 @@ public class FileBasedKeyManagerProviderTestCase
 
     FileBasedKeyManagerProvider provider = new FileBasedKeyManagerProvider();
     provider.initializeKeyManagerProvider(configEntry);
-  }
-
-
-
-  /**
-   * Tests the <CODE>getKeyManagers</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testGetKeyManagers()
-         throws Exception
-  {
-    FileBasedKeyManagerProvider provider =
-         (FileBasedKeyManagerProvider) DirectoryServer.getKeyManagerProvider();
-    assertNotNull(provider);
-
-    KeyManager[] keyManagers = provider.getKeyManagers();
-    assertNotNull(keyManagers);
-    assertFalse(keyManagers.length == 0);
   }
 }
 

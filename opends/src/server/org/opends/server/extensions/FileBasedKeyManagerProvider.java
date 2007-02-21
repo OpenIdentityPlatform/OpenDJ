@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -639,6 +639,9 @@ pinSelection:
                       String.valueOf(configEntry), "java.util.List<String>");
 
 
+    DN configEntryDN = configEntry.getDN();
+
+
     // Make sure that a keystore file was provided.
     int msgID = MSGID_FILE_KEYMANAGER_DESCRIPTION_FILE;
     StringConfigAttribute fileStub =
@@ -734,6 +737,7 @@ pinSelection:
     // Make sure that there is some way to determine the PIN.  Look for the PIN
     // in a property, environment variable, file, or configuration attribute, in
     // that order.
+    char[] keyStorePIN = null;
 pinSelection:
     {
       msgID = MSGID_FILE_KEYMANAGER_DESCRIPTION_PIN_PROPERTY;
@@ -759,6 +763,7 @@ pinSelection:
           }
           else
           {
+            keyStorePIN = pinStr.toCharArray();
             break pinSelection;
           }
         }
@@ -797,6 +802,7 @@ pinSelection:
           }
           else
           {
+            keyStorePIN = pinStr.toCharArray();
             break pinSelection;
           }
         }
@@ -864,6 +870,7 @@ pinSelection:
             }
             else
             {
+              keyStorePIN = pinStr.toCharArray();
               break pinSelection;
             }
           }
@@ -891,6 +898,7 @@ pinSelection:
              configEntry.getConfigAttribute(pinStub);
         if (pinAttr != null)
         {
+          keyStorePIN = pinAttr.pendingValue().toCharArray();
           break pinSelection;
         }
       }

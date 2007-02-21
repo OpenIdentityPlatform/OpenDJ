@@ -2629,5 +2629,29 @@ public class LDAPClientConnection
     sendLDAPMessage(clearSecurityProvider,
                     operationToResponseLDAPMessage(operation));
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getKeyManagerProviderDN()
+  {
+    assert debugEnter(CLASS_NAME, "getKeyManagerProviderDN");
+
+    return connectionHandler.getKeyManagerProviderDN();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getTrustManagerProviderDN()
+  {
+    assert debugEnter(CLASS_NAME, "getTrustManagerProviderDN");
+
+    return connectionHandler.getTrustManagerProviderDN();
+  }
 }
 

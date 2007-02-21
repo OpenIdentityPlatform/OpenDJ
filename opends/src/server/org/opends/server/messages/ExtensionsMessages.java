@@ -476,15 +476,6 @@ public class ExtensionsMessages
 
 
   /**
-   * The message ID for the message that will be used if an attempt is made to
-   * access a key manager without having one defined in the configuration.
-   */
-  public static final int MSGID_NULL_KEYMANAGER_NO_MANAGER =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 42;
-
-
-
-  /**
    * The message ID for the message that will be used as the description of the
    * configuration attribute specifying the location of the key manager file.
    * This does not take any arguments.
@@ -4285,6 +4276,59 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used as the description of the
+   * certificate mapper DN configuration attribute.  It does not take any
+   * arguments.
+   */
+  public static final int MSGID_SASLEXTERNAL_DESCRIPTION_CERT_MAPPER_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 406;
+
+
+
+  /**
+   * The message ID for the message that will be used the SASL EXTERNAL
+   * configuration entry does not specify the certificate mapper DN. This takes
+   * a single argument, which is the DN of the configuration entry.
+   */
+  public static final int MSGID_SASLEXTERNAL_NO_CERTIFICATE_MAPPER_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 407;
+
+
+
+  /**
+   * The message ID for the message that will be used the SASL EXTERNAL
+   * configuration entry contains a certificate mapper DN that does not refer to
+   * a valid certificate mapper. This takes two arguments, which are the DN of
+   * the configuration entry and the certificate mapper DN.
+   */
+  public static final int MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 408;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine the certificate mapper to use with the SASL EXTERNAL
+   * handler.  This takes two arguments, which are the DN of the configuration
+   * entry and a string representation of the exception that was caught.
+   */
+  public static final int MSGID_SASLEXTERNAL_CANNOT_GET_CERT_MAPPER_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 409;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * certificate mapper DN for has been updated.  This takes two arguments,
+   * which are the DN of the configuration entry and the new certificate mapper
+   * DN.
+   */
+  public static final int MSGID_SASLEXTERNAL_UPDATED_CERT_MAPPER_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 410;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -4589,14 +4633,6 @@ public class ExtensionsMessages
                     "The password modify operation was not actually " +
                     "performed in the Directory Server because the LDAP " +
                     "no-op control was present in the request.");
-
-
-    registerMessage(MSGID_NULL_KEYMANAGER_NO_MANAGER,
-                    "The Directory Server is unable to process an operation " +
-                    "which requires access to an SSL key manager because no " +
-                    "valid key manager has been defined in entry " +
-                    DN_KEYMANAGER_PROVIDER_CONFIG +
-                    " of the server configuration.");
 
 
     registerMessage(MSGID_FILE_KEYMANAGER_DESCRIPTION_FILE,
@@ -5077,6 +5113,23 @@ public class ExtensionsMessages
                     "Directory Server schema.  The attribute that is to be " +
                     "used for certificate validation during SASL EXTERNAL " +
                     "authentication must be defined in the server schema.");
+    registerMessage(MSGID_SASLEXTERNAL_DESCRIPTION_CERT_MAPPER_DN,
+                    "Specifies the DN of the configuration entry that " +
+                    "defines the certificate mapper to use when mapping a " +
+                    "certificate to a user entry.  Changes to this " +
+                    "configuration attribute will take effect immediately.");
+    registerMessage(MSGID_SASLEXTERNAL_NO_CERTIFICATE_MAPPER_DN,
+                    "Configuration entry %s does not contain attribute " +
+                    ATTR_CERTMAPPER_DN + " which is required to specify " +
+                    "which certificate mapper should be used to map " +
+                    "certificates to user entries.");
+    registerMessage(MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN,
+                    "Configuration entry %s contains a certificate mapper DN " +
+                    "of %s, but no such certificate mapper is enabled for " +
+                    "use in the Directory Server.");
+    registerMessage(MSGID_SASLEXTERNAL_CANNOT_GET_CERT_MAPPER_DN,
+                    "An error occurred while attempting to retrieve the " +
+                    "certificate mapper DN from configuration entry %s:  %s.");
     registerMessage(MSGID_SASLEXTERNAL_NO_CERT_IN_ENTRY,
                     "Unable to authenticate via SASL EXTERNAL because the " +
                     "mapped user entry %s does not have any certificates " +
@@ -5098,6 +5151,11 @@ public class ExtensionsMessages
                     " in configuration entry %s has been updated.  The %s " +
                     "attribute will now be used when validating peer " +
                     "certificates.");
+    registerMessage(MSGID_SASLEXTERNAL_UPDATED_CERT_MAPPER_DN,
+                    "Attribute " + ATTR_CERTMAPPER_DN +
+                    " in configuration entry %s has been updated.  " +
+                    "Certificate mapper %s will now be used to map " +
+                    "certificates to user entries.");
 
 
     registerMessage(MSGID_STARTTLS_NO_CLIENT_CONNECTION,

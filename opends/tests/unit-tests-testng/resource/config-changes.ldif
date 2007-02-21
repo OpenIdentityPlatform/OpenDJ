@@ -10,6 +10,26 @@ ds-cfg-listen-port: #ldapport#
 -
 replace: ds-cfg-allow-start-tls
 ds-cfg-allow-start-tls: true
+-
+replace: ds-cfg-key-manager-provider-dn
+ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config
+-
+replace: ds-cfg-trust-manager-provider-dn
+ds-cfg-trust-manager-provider-dn: cn=JKS,cn=Trust Manager Providers,cn=config
+
+dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
+changeType: modify
+replace: ds-cfg-connection-handler-enabled
+ds-cfg-connection-handler-enabled: true
+-
+replace: ds-cfg-listen-port
+ds-cfg-listen-port: #ldapsport#
+-
+replace: ds-cfg-key-manager-provider-dn
+ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config
+-
+replace: ds-cfg-trust-manager-provider-dn
+ds-cfg-trust-manager-provider-dn: cn=JKS,cn=Trust Manager Providers,cn=config
 
 dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config
 changeType: modify
@@ -273,31 +293,7 @@ ds-cfg-plugin-enabled: true
 ds-cfg-plugin-type: preOperationAdd
 ds-cfg-plugin-type: preOperationModify
 
-dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
-changetype: add
-objectClass: top
-objectClass: ds-cfg-connection-handler
-objectClass: ds-cfg-ldap-connection-handler
-cn: LDAPS Connection Handler
-ds-cfg-connection-handler-class: org.opends.server.protocols.ldap.LDAPConnectionHandler
-ds-cfg-connection-handler-enabled: true
-ds-cfg-listen-address: 0.0.0.0
-ds-cfg-listen-port: #ldapsport#
-ds-cfg-accept-backlog: 128
-ds-cfg-allow-ldapv2: true
-ds-cfg-keep-stats: true
-ds-cfg-use-tcp-keepalive: true
-ds-cfg-use-tcp-nodelay: true
-ds-cfg-allow-tcp-reuse-address: true
-ds-cfg-send-rejection-notice: true
-ds-cfg-max-request-size: 5 megabytes
-ds-cfg-num-request-handlers: 2
-ds-cfg-allow-start-tls: false
-ds-cfg-use-ssl: true
-ds-cfg-ssl-client-auth-policy: optional
-ds-cfg-ssl-cert-nickname: server-cert
-
-dn: cn=Key Manager Provider,cn=SSL,cn=config
+dn: cn=JKS,cn=Key Manager Providers,cn=config
 changetype: modify
 replace: ds-cfg-key-manager-provider-enabled
 ds-cfg-key-manager-provider-enabled: true
@@ -307,8 +303,23 @@ ds-cfg-key-store-file: config/server.keystore
 -
 replace: ds-cfg-key-store-pin
 ds-cfg-key-store-pin: password
+-
+replace: ds-cfg-key-store-pin-file
 
-dn: cn=Trust Manager Provider,cn=SSL,cn=config
+dn: cn=PKCS12,cn=Key Manager Providers,cn=config
+changetype: modify
+replace: ds-cfg-key-manager-provider-enabled
+ds-cfg-key-manager-provider-enabled: true
+-
+replace: ds-cfg-key-store-file
+ds-cfg-key-store-file: config/server-cert.p12
+-
+replace: ds-cfg-key-store-pin
+ds-cfg-key-store-pin: password
+-
+replace: ds-cfg-key-store-pin-file
+
+dn: cn=JKS,cn=Trust Manager Providers,cn=config
 changetype: modify
 replace: ds-cfg-trust-manager-provider-enabled
 ds-cfg-trust-manager-provider-enabled: true
@@ -318,6 +329,8 @@ ds-cfg-trust-store-file: config/server.truststore
 -
 replace: ds-cfg-trust-store-pin
 ds-cfg-trust-store-pin: password
+-
+replace: ds-cfg-key-store-pin-file
 
 dn: cn=File-Based Debug Logger,cn=Loggers,cn=config
 changetype: modify

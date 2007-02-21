@@ -4228,6 +4228,126 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description of the
+   * key manager provider DN configuration attribute.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 390;
+
+
+
+  /**
+   * The message ID for the message that will be used if the specified key
+   * manager provider does not exist or is not enabled.  This takes two
+   * arguments, which are the DN of the configuration entry and the key manager
+   * provider DN.
+   */
+  public static final int MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 391;
+
+
+
+  /**
+   * The message ID for the message that will be used if an unexpected error
+   * occurs while trying to determine the key manager provider DN to use.  This
+   * takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int
+       MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN =
+            CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 392;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * trust manager provider DN configuration attribute.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 393;
+
+
+
+  /**
+   * The message ID for the message that will be used if the specified trust
+   * manager provider does not exist or is not enabled.  This takes two
+   * arguments, which are the DN of the configuration entry and the trust
+   * manager provider DN.
+   */
+  public static final int MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 394;
+
+
+
+  /**
+   * The message ID for the message that will be used if an unexpected error
+   * occurs while trying to determine the trust manager provider DN to use.
+   * This takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int
+       MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN =
+            CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 395;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that a new
+   * value has been applied for the key manager provider DN configuration
+   * option.  This takes two arguments, which are a string representation of the
+   * new key manager provider DN and the DN of the configuration entry.
+   */
+  public static final int MSGID_LDAP_CONNHANDLER_NEW_KEYMANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 396;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that a new
+   * value has been applied for the trust manager provider DN configuration
+   * option.  This takes two arguments, which are a string representation of the
+   * new trust manager provider DN and the DN of the configuration entry.
+   */
+  public static final int MSGID_LDAP_CONNHANDLER_NEW_TRUSTMANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 397;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * configuration attribute specifying the DN of the key manager provider for
+   * the JMX connection handler.
+   */
+  public static final int MSGID_JMX_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 398;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided key
+   * manager DN does not refer to a valid, enabled key manager.  This takes two
+   * arguments, which are the DN of the configuration entry and the provided key
+   * manager provider DN.
+   */
+  public static final int MSGID_JMX_CONNHANDLER_INVALID_KEY_MANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 399;
+
+
+
+  /**
+   * The message ID for the message that will be used if an unexpected error
+   * occurs while trying to determine the DN of the key manager provider to use.
+   * This takes two arguments, which are the DN of the configuration entry and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 400;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5420,6 +5540,40 @@ public class ProtocolMessages
                     ATTR_SSL_PROTOCOLS + " attribute in configuration " +
                     "entry %s, which is used to specify the names of the " +
                     "SSL cipher suites to allow for SSL/TLS sessions:  %s.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN,
+                    "Specifies the DN of the configuration entry for the key " +
+                    "manager provider that should be used with this LDAP " +
+                    "connection handler.  Changes to this attribute will " +
+                    "take effect immediately, but only for subsequent " +
+                    "attempts to access the key manager provider for " +
+                    "associated client connections.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN,
+                    "Configuration attribute " + ATTR_KEYMANAGER_DN +
+                    " of configuration entry %s has an invalid value %s " +
+                    "which does not reference an enabled key manager " +
+                    "provider.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN,
+                    "An error occurred while processing the " +
+                    ATTR_KEYMANAGER_DN + " attribute in configuration entry " +
+                    "%s, which is used to specify the key manager provider " +
+                    "for use with the LDAP connection handler:  %s.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN,
+                    "Specifies the DN of the configuration entry for the " +
+                    "trust manager provider that should be used with this " +
+                    "LDAP connection handler.  Changes to this attribute " +
+                    "will take effect immediately, but only for subsequent " +
+                    "attempts to access the trust manager provider for " +
+                    "associated client connections.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN,
+                    "Configuration attribute " + ATTR_TRUSTMANAGER_DN +
+                    " of configuration entry %s has an invalid value %s " +
+                    "which does not reference an enabled trust manager " +
+                    "provider.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN,
+                    "An error occurred while processing the " +
+                    ATTR_TRUSTMANAGER_DN + " attribute in configuration " +
+                    "entry %s, which is used to specify the trust manager " +
+                    "provider for use with the LDAP connection handler:  %s.");
     registerMessage(MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK,
                     "The string %s defined in attribute %s of configuration " +
                     "entry %s could not be decoded as a valid address mask:  "+
@@ -5464,6 +5618,14 @@ public class ProtocolMessages
                     "entry %s.");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_SSL_CIPHERS,
                     "The value of the " + ATTR_SSL_CIPHERS +
+                    " attribute has been updated to %s in configuration " +
+                    "entry %s.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_NEW_KEYMANAGER_DN,
+                    "The value of the " + ATTR_KEYMANAGER_DN +
+                    " attribute has been updated to %s in configuration " +
+                    "entry %s.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_NEW_TRUSTMANAGER_DN,
+                    "The value of the " + ATTR_TRUSTMANAGER_DN +
                     " attribute has been updated to %s in configuration " +
                     "entry %s.");
     registerMessage(MSGID_LDAP_CONNHANDLER_STARTED_LISTENING,
@@ -5949,6 +6111,22 @@ public class ProtocolMessages
             "entry %s, which is used to specify the nickname of the " +
             "certificate to use for accepting SSL/TSL connections:  " +
             "%s.");
+    registerMessage(MSGID_JMX_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN,
+            "Specifies the DN of the key manager provider that the " +
+            "connection handler should use when accepting SSL-based " +
+            "connections or performing StartTLS negotiation.  " +
+            "Changes to this configuration attribute will take effect " +
+            "immediately.");
+    registerMessage(MSGID_JMX_CONNHANDLER_INVALID_KEY_MANAGER_DN,
+            "An error occurred while processing the " + ATTR_KEYMANAGER_DN +
+            " attribute in configuration entry %s, because the provided " +
+            "key manager DN %s does not refer to an enabled key manager " +
+            "provider.");
+    registerMessage(MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN,
+            "An unexpected error occurred while processing the " +
+            ATTR_KEYMANAGER_DN + " attribute in configuration " +
+            "entry %s, which is used to specify the DN of the key manager " +
+            "provider to use for accepting SSL/TSL connections:  %s.");
 
 
     registerMessage(MSGID_PWPOLICYREQ_CONTROL_HAS_VALUE,

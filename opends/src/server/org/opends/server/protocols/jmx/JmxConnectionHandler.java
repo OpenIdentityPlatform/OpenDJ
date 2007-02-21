@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 
@@ -44,9 +44,6 @@ import java.util.List;
 
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.KeyManagerProvider;
@@ -54,6 +51,7 @@ import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.IntegerConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
@@ -73,9 +71,7 @@ import org.opends.server.types.ResultCode;
  * handler should be used.
  */
 public class JmxConnectionHandler
-    extends ConnectionHandler implements ConfigurableComponent,
-    ConfigChangeListener, ConfigDeleteListener, ConfigAddListener,
-    AlertGenerator
+    extends ConnectionHandler implements ConfigurableComponent, AlertGenerator
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -87,12 +83,6 @@ public class JmxConnectionHandler
    * The DN of the configuration entry for this connection handler.
    */
   private DN configEntryDN;
-
-  /**
-   * The RDN of the key Manager, if exists.
-   * TODO Should we move this 'static' definition into another file?
-   */
-  private final static String KeyManagerRDN = "cn=Key Manager Provider";
 
   /**
    * Indicates whether this connection handler is enabled.
@@ -150,9 +140,20 @@ public class JmxConnectionHandler
   private IntegerConfigAttribute listenPortAtt;
 
   /**
-   * The key manager to used for encryption.
+   * The DN of the key manager provider to use with this connection handler.
    */
-  protected KeyManagerProvider jmxKeyManager;
+  protected DN keyManagerProviderDN;
+
+  /**
+   * The key manager provider for this connection handler.
+   */
+  protected KeyManagerProvider keyManagerProvider;
+
+  /**
+   * The attribute which represents the DN of the key manager provider for this
+   * connection handler.
+   */
+  private DNConfigAttribute keyManagerDNAtt;
 
   /**
    * Key that may be placed into a JMX connection environment map to
@@ -206,199 +207,6 @@ public class JmxConnectionHandler
   }
 
   /**
-   * Indicates whether the configuration entry that will result from a
-   * proposed add is acceptable to this add listener.
-   * <br>
-   * Up to now, only a keyManager could be added under the JMX
-   * Connector.
-   *
-   * @param configEntry
-   *            The configuration entry that will result from the
-   *            requested add.
-   * @param unacceptableReason
-   *            A buffer to which this method can append a human-readable
-   *            message explaining why the proposed entry is not
-   *            acceptable.
-   * @return <CODE>true</CODE> if the proposed entry contains an
-   *         acceptable configuration, or <CODE>false</CODE> if it does
-   *         not.
-   */
-  public boolean configAddIsAcceptable(
-      ConfigEntry configEntry, StringBuilder unacceptableReason)
-  {
-    assert debugEnter(CLASS_NAME, "configAddIsAcceptable");
-
-    //
-    // First check if we already have a key manager. If yes, this means
-    // that the enter is already here and cannot be added ...
-    if (jmxKeyManager != null)
-    {
-      return false;
-    }
-
-    // Check if it's the correct DN:
-    // - Only child "key manager" is registered
-    // - We should have no more than one child under the JMX connection
-    // handler ...
-    DN JmxKeymanagerDN = null;
-    try
-    {
-      JmxKeymanagerDN = DN.decode(KeyManagerRDN + ", " + this.configEntryDN);
-    }
-    catch (Exception e)
-    {
-      return false;
-    }
-
-    if (!(JmxKeymanagerDN.equals(configEntry.getDN())))
-    {
-      return false;
-    }
-
-    //
-    // return part: all other cases are valid
-    return true;
-  }
-
-  /**
-   * Attempts to apply a new configuration based on the provided added
-   * entry.
-   *
-   * @param configEntry
-   *            The new configuration entry that contains the
-   *            configuration to apply.
-   * @return Information about the result of processing the configuration
-   *         change.
-   */
-  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
-  {
-    assert debugEnter(CLASS_NAME, "applyConfigurationAdd");
-    jmxKeyManager = getJmxKeyManager(configEntry);
-
-    //
-    // Ok, we have a key manager and if we have to use SSL, just do it.
-    if (useSSL)
-    {
-      applyNewConfiguration(listenPort, useSSL, sslServerCertNickname);
-    }
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
-  }
-
-  /**
-   * Indicates whether it is acceptable to remove the provided
-   * configuration entry.
-   *
-   * @param configEntry
-   *            The configuration entry that will be removed from the
-   *            configuration.
-   * @param unacceptableReason
-   *            A buffer to which this method can append a human-readable
-   *            message explaining why the proposed delete is not
-   *            acceptable.
-   * @return <CODE>true</CODE> if the proposed entry may be removed
-   *         from the configuration, or <CODE>false</CODE> if not.
-   */
-  public boolean configDeleteIsAcceptable(
-      ConfigEntry configEntry, StringBuilder unacceptableReason)
-  {
-    //
-    // We can allow to remove the key manager only if we don't use it.
-    if (useSSL)
-    {
-      return false;
-    }
-    else
-    {
-      return true;
-    }
-  }
-
-  /**
-   * Attempts to apply a new configuration based on the provided deleted
-   * entry.
-   *
-   * @param configEntry
-   *            The new configuration entry that has been deleted.
-   * @return Information about the result of processing the configuration
-   *         change.
-   */
-  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
-  {
-    //
-    // Just set the key manager to null
-    jmxKeyManager = null;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
-  }
-
-  /**
-   * Indicates whether the configuration entry that will result from a
-   * proposed modification is acceptable to this change listener.
-   *
-   * @param configEntry
-   *            The configuration entry that will result from the
-   *            requested update.
-   * @param unacceptableReason
-   *            A buffer to which this method can append a human-readable
-   *            message explaining why the proposed change is not
-   *            acceptable.
-   * @return <CODE>true</CODE> if the proposed entry contains an
-   *         acceptable configuration, or <CODE>false</CODE> if it does
-   *         not.
-   */
-  public boolean configChangeIsAcceptable(
-      ConfigEntry configEntry, StringBuilder unacceptableReason)
-  {
-    //
-    // We are checking first if we are dealing with a change
-    // in the current entry.
-    // Always return true as the check will be performed by the
-    // hasAcceptableConfiguration call
-    if (configEntry.getDN().equals(configEntryDN))
-    {
-      return true;
-    }
-
-    //
-    // Then, we are checking that a change in the key manager
-    // is acceptable.
-    if (useSSL)
-    {
-      return false;
-    }
-    else
-    {
-      return true;
-    }
-  }
-
-  /**
-   * Attempts to apply a new configuration to this Directory Server
-   * component based on the provided changed entry.
-   *
-   * @param configEntry
-   *            The configuration entry that containing the updated
-   *            configuration for this component.
-   * @return Information about the result of processing the configuration
-   *         change.
-   */
-  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
-  {
-    //
-    // We are checking first if we are dealing with a change
-    // in the current entry.
-    if (configEntry.getDN().equals(configEntryDN))
-    {
-      ArrayList<String> messages = new ArrayList<String>();
-      return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
-    }
-
-    //
-    // Only child "key manager" are registered
-    jmxKeyManager = getJmxKeyManager(configEntry);
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
-  }
-
-  /**
    * Initializes this connection handler based on the information in the
    * provided configuration entry.
    *
@@ -449,42 +257,18 @@ public class JmxConnectionHandler
     sslServerCertNickname = sslServerCertNickNameAtt.activeValue();
 
     //
-    // At this point, we have a configuration entry. Register a change
-    // listener with it so we can be notified of changes to it over
-    // time.
-    // We will also want to register a delete and add listeners with
-    // its parent.
-    configEntry.registerDeleteListener(this);
-    configEntry.registerChangeListener(this);
-    configEntry.registerAddListener(this);
-
-    //
-    // Get the KeyManager, if specified.
-    if (useSSL)
+    // Determine which key manager provider to use.
+    keyManagerDNAtt = getKeyManagerDN(configEntry);
+    configAttrs.add(keyManagerDNAtt);
+    if (keyManagerDNAtt == null)
     {
-      ConfigEntry keyManagerConfigEntry;
-      try
-      {
-        DN KeyManagerDN = DN.decode(KeyManagerRDN + ", " + configEntryDN);
-        keyManagerConfigEntry = DirectoryServer.getConfigEntry(KeyManagerDN);
-        jmxKeyManager = getJmxKeyManager(keyManagerConfigEntry);
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "initializeKeyManagerProvider", e);
-
-        logError(
-            ErrorLogCategory.CONFIGURATION,
-            ErrorLogSeverity.SEVERE_ERROR,
-            MSGID_CONFIG_KEYMANAGER_CANNOT_GET_CONFIG_ENTRY,
-            stackTraceToSingleLineString(e));
-        configEntry.registerAddListener(this);
-        jmxKeyManager = null;
-      }
+      keyManagerProviderDN = null;
     }
     else
     {
-      jmxKeyManager = null;
+      keyManagerProviderDN = keyManagerDNAtt.activeValue();
+      keyManagerProvider =
+           DirectoryServer.getKeyManagerProvider(keyManagerProviderDN);
     }
 
     // Create the associated RMI Connector
@@ -496,7 +280,7 @@ public class JmxConnectionHandler
 
     //
     // Check if we have a correct SSL configuration
-    if ((useSSL && jmxKeyManager == null))
+    if ((useSSL && keyManagerProvider == null))
     {
 
       //
@@ -695,11 +479,39 @@ public class JmxConnectionHandler
     }
 
     //
+    // Determine the DN of the key manager provider.
+    DN newKeyManagerProviderDN = null;
+    KeyManagerProvider newKeyManagerProvider = null;
+    try
+    {
+      DNConfigAttribute attr = getKeyManagerDN(configEntry);
+      if (attr == null)
+      {
+        newKeyManagerProviderDN = null;
+      }
+      else
+      {
+        newKeyManagerProviderDN = attr.pendingValue();
+        newKeyManagerProvider   =
+             DirectoryServer.getKeyManagerProvider(newKeyManagerProviderDN);
+      }
+    }
+    catch (Exception e)
+    {
+      int msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
+      unacceptableReasons.add(getMessage(
+          msgID,
+          String.valueOf(configEntryDN),
+          stackTraceToSingleLineString(e)));
+      configValid = false;
+    }
+
+    //
     // Determine whether to use SSL.
     try
     {
       boolean newUseSSL = getUseSSL(configEntry).activeValue();
-      if (newUseSSL && (jmxKeyManager == null))
+      if (newUseSSL && (newKeyManagerProvider == null))
       {
         //
         // TODO Set an appropriate message (instead of null)
@@ -834,13 +646,65 @@ public class JmxConnectionHandler
     }
 
     //
+    // Determine which key manager provider to use.
+    DN newKeyManagerProviderDN = keyManagerProviderDN;
+    KeyManagerProvider newKeyManagerProvider = keyManagerProvider;
+    try
+    {
+      DNConfigAttribute attr = getKeyManagerDN(configEntry);
+      if (attr == null)
+      {
+        newKeyManagerProviderDN = null;
+        newKeyManagerProvider   = null;
+        if (keyManagerProviderDN != null)
+        {
+          rmiConnectorRestart = true;
+        }
+      }
+      else
+      {
+        newKeyManagerProviderDN = attr.pendingValue();
+        newKeyManagerProvider =
+             DirectoryServer.getKeyManagerProvider(newKeyManagerProviderDN);
+        if (newUseSSL && (newKeyManagerProvider == null))
+        {
+          int msgID = MSGID_JMX_CONNHANDLER_INVALID_KEY_MANAGER_DN;
+          messages.add(getMessage(
+              msgID,
+              String.valueOf(configEntryDN),
+              String.valueOf(newKeyManagerProviderDN)));
+          resultCode = DirectoryServer.getServerErrorResultCode();
+        }
+        else
+        {
+          if (! newKeyManagerProviderDN.equals(keyManagerProviderDN))
+          {
+            rmiConnectorRestart = true;
+          }
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      int msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
+      messages.add(getMessage(
+          msgID,
+          String.valueOf(configEntryDN),
+          stackTraceToSingleLineString(e)));
+      resultCode = DirectoryServer.getServerErrorResultCode();
+    }
+
+    //
     // Apply new config, best effort mode
     if (rmiConnectorRestart)
     {
       applyNewConfiguration(
           newListenPort,
           newUseSSL,
-          newSslServerCertNickname);
+          newSslServerCertNickname,
+          newKeyManagerProviderDN,
+          newKeyManagerProvider);
     }
 
     //
@@ -857,9 +721,14 @@ public class JmxConnectionHandler
    *            Indicates if we should use ssl
    * @param newSslServerCertNickname
    *            Indicates the new server certificate nickname
+   * @param newKeyManagerProviderDN
+   *            The new key manager provider DN.
+   * @param newKeyManagerProvider
+   *            The new key manager provider instance.
    */
   private void applyNewConfiguration(
-      int newListenPort, boolean newUseSSL, String newSslServerCertNickname)
+      int newListenPort, boolean newUseSSL, String newSslServerCertNickname,
+      DN newKeyManagerProviderDN, KeyManagerProvider newKeyManagerProvider)
   {
     //
     // Stop the current connector
@@ -893,6 +762,39 @@ public class JmxConnectionHandler
       {
         sslServerCertNickNameAtt.setValue(newSslServerCertNickname);
         sslServerCertNickname = newSslServerCertNickname;
+      }
+      catch (Exception e)
+      {
+        // TODO
+        // Print error message
+      }
+    }
+
+    if (keyManagerProviderDN == null)
+    {
+      if (newKeyManagerProviderDN != null)
+      {
+        try
+        {
+          keyManagerProviderDN = newKeyManagerProviderDN;
+          keyManagerProvider   = newKeyManagerProvider;
+          keyManagerDNAtt.setValue(newKeyManagerProviderDN);
+        }
+        catch (Exception e)
+        {
+          // TODO
+          // Print error message
+        }
+      }
+    }
+    else if ((newKeyManagerProviderDN == null) ||
+             (! newKeyManagerProviderDN.equals(keyManagerProviderDN)))
+    {
+      try
+      {
+        keyManagerProviderDN = newKeyManagerProviderDN;
+        keyManagerProvider   = newKeyManagerProvider;
+        keyManagerDNAtt.setValue(newKeyManagerProviderDN);
       }
       catch (Exception e)
       {
@@ -1180,191 +1082,37 @@ public class JmxConnectionHandler
   }
 
   /**
-   * Retrieve the KeyManager configured for the JMX Connection handler.
-   * With look for the child config entry (We should have no more than
-   * one child entry)
-   *
-   * @param jmxConnectorDN the DN of the associated JMX connector
-   * entry
-   *
-   * @return the configured key manager if set or the server
-   * key manager
+   * Determine if the specified Configuration entry defines the
+   * key manager provider DN.
+   * @param configEntry The entry to check.
+   * @return The key manager provider DN.
+   * @throws InitializationException
+   *      If a problem occurs while attempting to get the key manager
+   *      provider DN.
    */
-  private KeyManagerProvider getJmxKeyManager(
-      ConfigEntry keyManagerConfigEntry)
+  private DNConfigAttribute getKeyManagerDN(ConfigEntry configEntry)
+      throws InitializationException
   {
-    //
-    // Get the key manager provider configuration entry. If it is not
-    // present, then register an add listener.
-    boolean shouldReturnNull = false;
-
-    if (keyManagerConfigEntry == null)
-    {
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_WARNING,
-          MSGID_CONFIG_KEYMANAGER_NO_CONFIG_ENTRY);
-      return null;
-    }
-
-    //
-    // See if the entry indicates whether the key manager provider
-    // should be enabled.
-    int msgID = MSGID_CONFIG_KEYMANAGER_DESCRIPTION_ENABLED;
-    BooleanConfigAttribute enabledStub = new BooleanConfigAttribute(
-        ATTR_KEYMANAGER_ENABLED, getMessage(msgID), false);
+    int msgID = MSGID_JMX_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN;
+    DNConfigAttribute keyManagerStub = new DNConfigAttribute(
+        ATTR_KEYMANAGER_DN, getMessage(msgID), false, false, false);
+    DNConfigAttribute keyManagerAttr = null;
     try
     {
-      BooleanConfigAttribute enabledAttr = (BooleanConfigAttribute)
-         keyManagerConfigEntry.getConfigAttribute(enabledStub);
-      if (enabledAttr == null)
-      {
-        //
-        // The attribute is not present, so the key manager
-        // provider will be disabled.
-        // Log a warning message and return.
-        // FIXME -- Message shouldn't be the same than the server one
-        logError(
-            ErrorLogCategory.CONFIGURATION,
-            ErrorLogSeverity.SEVERE_WARNING,
-            MSGID_CONFIG_KEYMANAGER_NO_ENABLED_ATTR);
-        shouldReturnNull = true;
-      }
-      else if (!enabledAttr.activeValue())
-      {
-        //
-        // The key manager provider is explicitly disabled. Log a
-        // mild warning and return.
-        // FIXME -- Message shouldn't be the same than the server one
-        logError(
-            ErrorLogCategory.CONFIGURATION,
-            ErrorLogSeverity.MILD_WARNING,
-            MSGID_CONFIG_KEYMANAGER_DISABLED);
-        shouldReturnNull = true;
-      }
+      keyManagerAttr = (DNConfigAttribute) configEntry
+          .getConfigAttribute(keyManagerStub);
+      return keyManagerAttr;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeKeyManagerProvider", e);
+      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
 
-      // FIXME -- Message shouldn't be the same than the server one
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          MSGID_CONFIG_KEYMANAGER_UNABLE_TO_DETERMINE_ENABLED_STATE,
+      msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
+      String message = getMessage(
+          msgID,
+          String.valueOf(configEntryDN),
           stackTraceToSingleLineString(e));
-      return null;
-    }
-
-    //
-    // See if it specifies the class name for the key manager provider
-    // implementation.
-    String className;
-    msgID = MSGID_CONFIG_KEYMANAGER_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub = new StringConfigAttribute(
-        ATTR_KEYMANAGER_CLASS, getMessage(msgID), true, false, false);
-    try
-    {
-      StringConfigAttribute classAttr = (StringConfigAttribute)
-            keyManagerConfigEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        // FIXME -- Message shouldn't be the same than the server one
-        logError(
-            ErrorLogCategory.CONFIGURATION,
-            ErrorLogSeverity.SEVERE_ERROR,
-            MSGID_CONFIG_KEYMANAGER_NO_CLASS_ATTR);
-        return null;
-      }
-      else
-      {
-        className = classAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeKeyManagerProvider", e);
-
-      // FIXME Message shouldn't be the same than the server one
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          MSGID_CONFIG_KEYMANAGER_CANNOT_DETERMINE_CLASS,
-          stackTraceToSingleLineString(e));
-      return null;
-    }
-
-    //
-    // Try to load the class and instantiate it as a key manager
-    // provider.
-    Class keyManagerProviderClass;
-    try
-    {
-      // FIXME -- Should we use a custom class loader for this?
-      keyManagerProviderClass = Class.forName(className);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeKeyManagerProvider", e);
-
-      // FIXME -- Message shouldn't be the same than the server one
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          MSGID_CONFIG_KEYMANAGER_CANNOT_LOAD_CLASS,
-          String.valueOf(className),
-          stackTraceToSingleLineString(e));
-      return null;
-    }
-
-    KeyManagerProvider keyManagerProvider;
-    try
-    {
-      keyManagerProvider = (KeyManagerProvider) keyManagerProviderClass
-          .newInstance();
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeKeyManagerProvider", e);
-
-      // FIXME -- Message shouldn't be the same than the server one
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          MSGID_CONFIG_KEYMANAGER_CANNOT_INSTANTIATE_CLASS,
-          String.valueOf(className),
-          stackTraceToSingleLineString(e));
-      return null;
-    }
-
-    //
-    // Try to initialize the key manager provider with the contents of
-    // the configuration entry.
-    try
-    {
-      keyManagerProvider.initializeKeyManagerProvider(keyManagerConfigEntry);
-    }
-    catch (Exception e)
-    {
-      assert debugException(CLASS_NAME, "initializeKeyManagerProvider", e);
-
-      // FIXME -- Message shouldn't be the same than the server one
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_WARNING,
-          MSGID_CONFIG_KEYMANAGER_CANNOT_INITIALIZE,
-          String.valueOf(className),
-          e.getMessage());
-      return null;
-    }
-
-    if (shouldReturnNull)
-    {
-      return null;
-    }
-    else
-    {
-      return keyManagerProvider;
+      throw new InitializationException(msgID, message, e);
     }
   }
 }
