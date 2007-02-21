@@ -250,7 +250,7 @@ public class LDAPConnection
     // commands are called A LOT, as in the unit tests.
     try
     {
-      socket.setSoLinger(true, 0);
+      socket.setSoLinger(true, 1);
       socket.setReuseAddress(true);
     } catch(IOException e)
     {
