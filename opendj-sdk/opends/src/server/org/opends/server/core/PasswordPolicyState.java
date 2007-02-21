@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -717,25 +717,11 @@ public class PasswordPolicyState
    *
    * @return  The password policy associated with this state information.
    */
-  public PasswordPolicy getPasswordPolicy()
+  public PasswordPolicy getPolicy()
   {
     assert debugEnter(CLASS_NAME, "getPasswordPolicy");
 
     return passwordPolicy;
-  }
-
-
-
-  /**
-   * Retrieves the user entry associated with this state information.
-   *
-   * @return  The user entry associated with this state information.
-   */
-  public Entry getUserEntry()
-  {
-    assert debugEnter(CLASS_NAME, "getUserEntry");
-
-    return userEntry;
   }
 
 
@@ -753,20 +739,6 @@ public class PasswordPolicyState
     assert debugEnter(CLASS_NAME, "getModifications");
 
     return modifications;
-  }
-
-
-
-  /**
-   * Retrieves the attribute type used to hold user passwords.
-   *
-   * @return  The attribute type used to hold user passwords.
-   */
-  public AttributeType getPasswordAttribute()
-  {
-    assert debugEnter(CLASS_NAME, "getPasswordAttribute");
-
-    return passwordPolicy.getPasswordAttribute();
   }
 
 
@@ -805,173 +777,6 @@ public class PasswordPolicyState
     assert debugEnter(CLASS_NAME, "requireSecureAuthentication");
 
     return passwordPolicy.requireSecureAuthentication();
-  }
-
-
-
-  /**
-   * Indicates whether the associated password policy requires that password
-   * changes be performed in a secure manner.
-   *
-   * @return  <CODE>true</CODE> if the associated password policy requires that
-   *          password changes be performed in a secure manner, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean requireSecurePasswordChanges()
-  {
-    assert debugEnter(CLASS_NAME, "requireSecurePasswordChanges");
-
-    return passwordPolicy.requireSecurePasswordChanges();
-  }
-
-
-
-  /**
-   * Indicates whether the associated password policy allows multiple different
-   * password values to be maintained.
-   *
-   * @return  <CODE>true</CODE> if the associated password policy allows
-   *          multiple different password values to be maintained, or
-   *          <CODE>false</CODE> if it does not.
-   */
-  public boolean allowMultiplePasswordValues()
-  {
-    assert debugEnter(CLASS_NAME, "allowMultiplePasswordValues");
-
-    return passwordPolicy.allowMultiplePasswordValues();
-  }
-
-
-
-  /**
-   * Indicates whether the associated password policy allows new passwords to be
-   * provided in a pre-encoded form.
-   *
-   * @return  <CODE>true</CODE> if the associated password policy allows new
-   *          passwords to be provided in a pre-encoded form, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean allowPreEncodedPasswords()
-  {
-    assert debugEnter(CLASS_NAME, "allowPreEncodedPasswords");
-
-    return passwordPolicy.allowPreEncodedPasswords();
-  }
-
-
-
-  /**
-   * Indicates whether the associated password policy allows end users to change
-   * their own passwords.
-   *
-   * @return  <CODE>true</CODE> if the associated password policy allows end
-   *          users to change their own passwords, or <CODE>false</CODE> if not.
-   */
-  public boolean allowUserPasswordChanges()
-  {
-    assert debugEnter(CLASS_NAME, "allowUserPasswordChanges");
-
-    return passwordPolicy.allowUserPasswordChanges();
-  }
-
-
-
-  /**
-   * Indicates whether users will be required to provide their current password
-   * when choosing a new one.
-   *
-   * @return  <CODE>true</CODE> if users will be required to provide their
-   *          current password when choosing a new one, or <CODE>false</CODE>
-   *          if not.
-   */
-  public boolean requireCurrentPassword()
-  {
-    assert debugEnter(CLASS_NAME, "requireCurrentPassword");
-
-    return passwordPolicy.requireCurrentPassword();
-  }
-
-
-
-  /**
-   * Indicates whether administrative password resets should be allowed to
-   * bypass validity checks for the new password.
-   *
-   * @return  <CODE>true</CODE> if administrative password resets should be
-   *          allowed to bypass validity checks for the new password, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean skipValidationForAdministrators()
-  {
-    assert debugEnter(CLASS_NAME, "skipValidationForAdministrators");
-
-    return passwordPolicy.skipValidationForAdministrators();
-  }
-
-
-
-  /**
-   * Indicates whether users should be required to change their passwords when
-   * they first authenticate after their account has been added.
-   *
-   * @return  <CODE>true</CODE> if users should be required to change their
-   *          passwords when they first authenticate after their account has
-   *          been added, or <CODE>false</CODE> if not.
-   */
-  public boolean forceChangeOnAdd()
-  {
-    assert debugEnter(CLASS_NAME, "forceChangeOnAdd");
-
-    return passwordPolicy.forceChangeOnAdd();
-  }
-
-
-
-  /**
-   * Indicates whether users should be required to change their passwords after
-   * they have been reset by an administrator.
-   *
-   * @return  <CODE>true</CODE> if users should be required to change their
-   *          passwords after they have been reset by an administrator, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean forceChangeOnReset()
-  {
-    assert debugEnter(CLASS_NAME, "forceChangeOnReset");
-
-    return passwordPolicy.forceChangeOnReset();
-  }
-
-
-
-  /**
-   * Indicates whether user passwords will be allowed to expire even if the user
-   * has never seen an expiration warning notification.
-   *
-   * @return  <CODE>true</CODE> if user passwords will be allowed to expire even
-   *          if the user has never seen an expiration warning notification, or
-   *          <CODE>false</CODE> if they will always be guaranteed at least one
-   *          warning before the password expires.
-   */
-  public boolean expirePasswordsWithoutWarning()
-  {
-    assert debugEnter(CLASS_NAME, "expirePasswordsWithoutWarning");
-
-    return passwordPolicy.expirePasswordsWithoutWarning();
-  }
-
-
-
-  /**
-   * Retrieves the time that the user's password was last changed.
-   *
-   * @return  The time that the user's password was last changed.
-   */
-  public long getPasswordChangedTime()
-  {
-    assert debugEnter(CLASS_NAME, "getPasswordChangedTime");
-
-    return passwordChangedTime;
   }
 
 
@@ -1593,22 +1398,6 @@ public class PasswordPolicyState
 
 
   /**
-   * Retrieves the maximum number of password failures that will be allowed
-   * before a user account is locked.
-   *
-   * @return  The maximum number of password failures that will be allowed
-   *          before a user account is locked, or zero if there is no maximum.
-   */
-  public int getMaxAllowedFailures()
-  {
-    assert debugEnter(CLASS_NAME, "getMaxAllowedFailures");
-
-    return passwordPolicy.getLockoutFailureCount();
-  }
-
-
-
-  /**
    * Indicates whether the associated user should be considered locked out as a
    * result of too many authentication failures.
    *
@@ -1763,23 +1552,6 @@ public class PasswordPolicyState
 
       return true;
     }
-  }
-
-
-
-  /**
-   * Retrieves the length of time in seconds that a user's account will be
-   * locked due to failed attempts before it will be automatically unlocked.
-   *
-   * @return  The length of time in seconds that a user's account will be
-   *          locked due to failed attempts before it will be automatically
-   *          unlocked, or zero if accounts will not be automatically unlocked.
-   */
-  public int getLockoutDuration()
-  {
-    assert debugEnter(CLASS_NAME, "getLockoutDuration");
-
-    return passwordPolicy.getLockoutDuration();
   }
 
 
@@ -2397,6 +2169,13 @@ public class PasswordPolicyState
                    " to set the reset flag to " + mustChangePassword);
     }
 
+    if (mustChangePassword ==
+            (this.mustChangePassword == ConditionResult.TRUE)){
+      return;  // requested state matches current state
+    }
+
+    this.mustChangePassword =
+            ConditionResult.inverseOf(this.mustChangePassword);
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_RESET_REQUIRED_LC);
@@ -2408,23 +2187,16 @@ public class PasswordPolicyState
 
     if (mustChangePassword)
     {
-      if (this.mustChangePassword == ConditionResult.TRUE)
-      {
-        return;
-      }
-
-      this.mustChangePassword = ConditionResult.TRUE;
-
       LinkedHashSet<AttributeValue> values =
            new LinkedHashSet<AttributeValue>(1);
-      values.add(new AttributeValue(type, String.valueOf(mustChangePassword)));
+      values.add(new AttributeValue(type, String.valueOf(true)));
       Attribute a = new Attribute(type, OP_ATTR_PWPOLICY_RESET_REQUIRED,
                                   values);
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
 
       if (updateEntry)
       {
+        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+        attrList.add(a);
         userEntry.putAttribute(type, attrList);
       }
       else
@@ -2434,13 +2206,6 @@ public class PasswordPolicyState
     }
     else
     {
-      if (this.mustChangePassword == ConditionResult.FALSE)
-      {
-        return;
-      }
-
-      this.mustChangePassword = ConditionResult.FALSE;
-
       if (updateEntry)
       {
         userEntry.removeAttribute(type);
@@ -2731,22 +2496,6 @@ public class PasswordPolicyState
     {
       return false;
     }
-  }
-
-
-
-  /**
-   * Indicates whether users will be allowed to change their passwords if they
-   * are expired.
-   *
-   * @return  <CODE>true</CODE> if users will be allowed to change their
-   *          passwords if they are expired, or <CODE>false</CODE> if not.
-   */
-  public boolean allowExpiredPasswordChanges()
-  {
-    assert debugEnter(CLASS_NAME, "allowExpiredPasswordChanges");
-
-    return passwordPolicy.allowExpiredPasswordChanges();
   }
 
 
@@ -3165,22 +2914,6 @@ public class PasswordPolicyState
                    CLASS_NAME, "clearWarnedTime",
                    "Cleared the warned time for user " + userDNString);
     }
-  }
-
-
-
-  /**
-   * Retrieves the maximum number of grace logins that the user will be allowed
-   * according to the associated password policy.
-   *
-   * @return  The maximum number of grace logins that the user will be allowed
-   *          according to the associated password policy.
-   */
-  public int getMaxAllowedGraceLogins()
-  {
-    assert debugEnter(CLASS_NAME, "getMaxAllowedGraceLogins");
-
-    return passwordPolicy.getGraceLoginCount();
   }
 
 
@@ -3675,23 +3408,6 @@ public class PasswordPolicyState
     }
 
     return false;
-  }
-
-
-
-  /**
-   * Indicates whether the user's password is stored using the auth password
-   * syntax or the user password syntax.
-   *
-   * @return  <CODE>true</CODE> if the user's password is stored using the auth
-   *          password syntax, or <CODE>false</CODE> if it is stored using the
-   *          user password syntax.
-   */
-  public boolean usesAuthPasswordSyntax()
-  {
-    assert debugEnter(CLASS_NAME, "usesAuthPasswordSyntax");
-
-    return passwordPolicy.usesAuthPasswordSyntax();
   }
 
 

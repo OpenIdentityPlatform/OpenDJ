@@ -1263,7 +1263,8 @@ bindProcessing:
             // Check to see if the user has a password.  If not, then fail.
             // FIXME -- We need to have a way to enable/disable debugging.
             pwPolicyState = new PasswordPolicyState(userEntry, false, false);
-            AttributeType pwType = pwPolicyState.getPasswordAttribute();
+            AttributeType pwType
+                 = pwPolicyState.getPolicy().getPasswordAttribute();
 
             List<Attribute> pwAttr = userEntry.getAttribute(pwType);
             if ((pwAttr == null) || (pwAttr.isEmpty()))
@@ -1378,7 +1379,8 @@ bindProcessing:
                 pwPolicyErrorType = PasswordPolicyErrorType.PASSWORD_EXPIRED;
               }
 
-              int maxGraceLogins = pwPolicyState.getMaxAllowedGraceLogins();
+              int maxGraceLogins
+                   = pwPolicyState.getPolicy().getGraceLoginCount();
               if ((maxGraceLogins > 0) && pwPolicyState.mayUseGraceLogin())
               {
                 List<Long> graceLoginTimes = pwPolicyState.getGraceLoginTimes();
@@ -1656,7 +1658,8 @@ bindProcessing:
               setResultCode(ResultCode.INVALID_CREDENTIALS);
               setAuthFailureReason(msgID, message);
 
-              int maxAllowedFailures = pwPolicyState.getMaxAllowedFailures();
+              int maxAllowedFailures
+                   = pwPolicyState.getPolicy().getLockoutFailureCount();
               if (maxAllowedFailures > 0)
               {
                 pwPolicyState.updateAuthFailureTimes();
@@ -1667,7 +1670,8 @@ bindProcessing:
 
                   AccountStatusNotificationType notificationType;
 
-                  int lockoutDuration = pwPolicyState.getLockoutDuration();
+                  int lockoutDuration
+                       = pwPolicyState.getPolicy().getLockoutDuration();
                   if (lockoutDuration > 0)
                   {
                     notificationType = AccountStatusNotificationType.
@@ -1893,7 +1897,8 @@ bindProcessing:
                   pwPolicyErrorType = PasswordPolicyErrorType.PASSWORD_EXPIRED;
                 }
 
-                int maxGraceLogins = pwPolicyState.getMaxAllowedGraceLogins();
+                int maxGraceLogins
+                     = pwPolicyState.getPolicy().getGraceLoginCount();
                 if ((maxGraceLogins > 0) && pwPolicyState.mayUseGraceLogin())
                 {
                   List<Long> graceLoginTimes =
@@ -2137,7 +2142,8 @@ bindProcessing:
               if (saslHandler.isPasswordBased(saslMechanism))
               {
 
-                int maxAllowedFailures = pwPolicyState.getMaxAllowedFailures();
+                int maxAllowedFailures
+                     = pwPolicyState.getPolicy().getLockoutFailureCount();
                 if (maxAllowedFailures > 0)
                 {
                   pwPolicyState.updateAuthFailureTimes();
@@ -2150,7 +2156,8 @@ bindProcessing:
                     int msgID;
                     String message;
 
-                    int lockoutDuration = pwPolicyState.getLockoutDuration();
+                    int lockoutDuration
+                         = pwPolicyState.getPolicy().getLockoutDuration();
                     if (lockoutDuration > 0)
                     {
                       notificationType = AccountStatusNotificationType.
