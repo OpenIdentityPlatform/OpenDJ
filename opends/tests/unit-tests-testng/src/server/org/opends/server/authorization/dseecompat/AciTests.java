@@ -761,7 +761,7 @@ public class AciTests extends DirectoryServerTestCase {
       }
     }
 
-    return (Object[][]) paramsList.toArray(new Object[][]{});
+    return paramsList.toArray(new Object[][]{});
   }
 
   @Test(dataProvider = "validAcis")
@@ -1368,7 +1368,7 @@ public class AciTests extends DirectoryServerTestCase {
         }
       }
 
-      return (Object[][]) allTestParams.toArray(new Object[][]{});
+      return allTestParams.toArray(new Object[][]{});
     } catch (Throwable e) {
       // We had some exceptions here and they were hard to track down
       // because they get hidden behind an InvocationTargetException.
