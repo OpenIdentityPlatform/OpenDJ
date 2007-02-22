@@ -54,7 +54,6 @@ import org.opends.quicksetup.installer.UserInstallDataException;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.installer.webstart.WebStartDownloader;
 import org.opends.quicksetup.installer.webstart.WebStartInstaller;
-import org.opends.quicksetup.ui.DirectoryManagerAuthenticationDialog;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
@@ -463,42 +462,16 @@ UninstallProgressUpdateListener
             }
             else
             {
-              if (Utils.isUnix())
+              if (displayConfirmation(
+                      getMsg("confirm-uninstall-server-running-msg"),
+                      getMsg("confirm-uninstall-server-running-title")))
               {
-                if (displayConfirmation(
-                    getMsg("confirm-uninstall-server-running-unix-msg"),
-                    getMsg("confirm-uninstall-server-running-unix-title")))
-                {
                   getUserUninstallData().setStopServer(true);
                   launchUninstallation();
                   setCurrentStep(nextStep(cStep));
-                }
-                else
-                {
-                  getUserUninstallData().setStopServer(false);
-                }
-              }
-              else
+              } else
               {
-                DirectoryManagerAuthenticationDialog dlg =
-                  new DirectoryManagerAuthenticationDialog(
-                      getDialog().getFrame(), installStatus);
-                dlg.setModal(true);
-                dlg.packAndShow();
-                if (dlg.isCancelled())
-                {
                   getUserUninstallData().setStopServer(false);
-                }
-                else
-                {
-                  getUserUninstallData().setStopServer(dlg.getStopServer());
-                  getUserUninstallData().setDirectoryManagerDn(
-                      dlg.getDirectoryManagerDn());
-                  getUserUninstallData().setDirectoryManagerPwd(
-                      dlg.getDirectoryManagerPwd());
-                  launchUninstallation();
-                  setCurrentStep(nextStep(cStep));
-                }
               }
             }
           }

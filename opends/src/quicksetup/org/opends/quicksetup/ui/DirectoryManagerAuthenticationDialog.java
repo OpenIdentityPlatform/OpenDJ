@@ -57,7 +57,7 @@ import org.opends.quicksetup.util.Utils;
 /**
  * This class is a dialog that appears when the user must provide authentication
  * of Directory Manager to connect to the Directory Server in order to be
- * able to do a shutdown. This is currently required for Windows.
+ * able to do a shutdown.
  */
 public class DirectoryManagerAuthenticationDialog extends JDialog
 {

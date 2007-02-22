@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
 package org.opends.statuspanel.ui;
@@ -168,16 +168,8 @@ public class LoginDialog extends JDialog
     gbc.fill = GridBagConstraints.BOTH;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = 0;
-    String msg;
+    String msg = getMsg("login-dialog-msg");
 
-    if (Utils.isWindows())
-    {
-      msg = getMsg("login-dialog-windows-msg");
-    }
-    else
-    {
-      msg = getMsg("login-dialog-unix-msg");
-    }
     JTextComponent textPane =
       UIFactory.makeHtmlPane(msg, UIFactory.INSTRUCTIONS_FONT);
     textPane.setOpaque(false);

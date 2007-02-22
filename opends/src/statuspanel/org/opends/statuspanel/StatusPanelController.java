@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
 package org.opends.statuspanel;
@@ -280,24 +280,7 @@ StatusPanelButtonListener
     }
     else
     {
-      boolean stopServer = false;
-      if (requiresAuthenticationToStop())
-      {
-        getLoginDialog().pack();
-        Utils.centerOnComponent(getLoginDialog(), getStatusPanelDialog());
-        getLoginDialog().setVisible(true);
-        if (!getLoginDialog().isCancelled())
-        {
-          serverStatusPooler.setAuthentication(
-              getLoginDialog().getDirectoryManagerDn(),
-              getLoginDialog().getDirectoryManagerPwd());
-          stopServer = confirmStop();
-        }
-      }
-      else
-      {
-        stopServer = confirmStop();
-      }
+      boolean stopServer = confirmStop();
 
       if (stopServer)
       {
@@ -378,24 +361,7 @@ StatusPanelButtonListener
     }
     else
     {
-      boolean restartServer = false;
-      if (requiresAuthenticationToRestart())
-      {
-        getLoginDialog().pack();
-        Utils.centerOnComponent(getLoginDialog(), getStatusPanelDialog());
-        getLoginDialog().setVisible(true);
-        if (!getLoginDialog().isCancelled())
-        {
-          serverStatusPooler.setAuthentication(
-              getLoginDialog().getDirectoryManagerDn(),
-              getLoginDialog().getDirectoryManagerPwd());
-          restartServer = confirmRestart();
-        }
-      }
-      else
-      {
-        restartServer = confirmRestart();
-      }
+      boolean restartServer = confirmRestart();
 
       if (restartServer)
       {
@@ -693,10 +659,6 @@ StatusPanelButtonListener
     if (Utils.isWindows())
     {
       argList.add(Utils.getPath(getBinariesPath(), "stop-ds.bat"));
-      argList.add("--bindDN");
-      argList.add(getLoginDialog().getDirectoryManagerDn());
-      argList.add("--bindPassword");
-      argList.add(getLoginDialog().getDirectoryManagerPwd());
     } else
     {
       argList.add(Utils.getPath(getBinariesPath(), "stop-ds"));
@@ -1216,26 +1178,5 @@ StatusPanelButtonListener
   private boolean isAuthenticated()
   {
     return serverStatusPooler.isAuthenticated();
-  }
-
-  private boolean requiresAuthenticationToStop()
-  {
-    boolean requireAuthentication;
-    ServerStatusDescriptor desc = serverStatusPooler.getLastDescriptor();
-    if (desc == null)
-    {
-      requireAuthentication = Utils.isWindows() && !isAuthenticated();
-    }
-    else
-    {
-      requireAuthentication = Utils.isWindows() &&
-      (!isAuthenticated() || desc.getErrorMessage() != null);
-    }
-    return requireAuthentication;
-  }
-
-  private boolean requiresAuthenticationToRestart()
-  {
-    return requiresAuthenticationToStop();
   }
 }

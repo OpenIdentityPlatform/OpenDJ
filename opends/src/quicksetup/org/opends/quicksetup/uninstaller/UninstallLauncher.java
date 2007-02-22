@@ -192,15 +192,7 @@ public class UninstallLauncher
      * This is required because the usage message contains '{' characters that
      * mess up the MessageFormat.format method.
      */
-    String msg;
-    if (Utils.isWindows())
-    {
-      msg = getMsg("uninstall-launcher-usage-windows");
-    }
-    else
-    {
-      msg = getMsg("uninstall-launcher-usage-unix");
-    }
+    String msg = getMsg("uninstall-launcher-usage");
     msg = msg.replace("{0}", arg);
     System.err.println(msg);
   }

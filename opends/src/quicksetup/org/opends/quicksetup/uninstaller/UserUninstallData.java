@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.uninstaller;
@@ -47,9 +47,6 @@ public class UserUninstallData
   private boolean removeConfigurationAndSchema;
 
   private boolean stopServer;
-
-  private String directoryManagerDn;
-  private String directoryManagerPwd;
 
   /**
    * Sets the database directories located outside the installation which must
@@ -229,43 +226,6 @@ public class UserUninstallData
   public boolean getStopServer()
   {
     return stopServer;
-  }
-
-  /**
-   * Sets the DN to be used to shut down the server in Windows.
-   * @param directoryManagerDn the DN to be used to shut down the server in
-   * Windows.
-   */
-  public void setDirectoryManagerDn(String directoryManagerDn)
-  {
-    this.directoryManagerDn = directoryManagerDn;
-  }
-
-  /**
-   * Returns the DN to be used to shut down the server in Windows.
-   * @return the DN to be used to shut down the server in Windows.
-   */
-  public String getDirectoryManagerDn()
-  {
-    return directoryManagerDn;
-  }
-
-  /**
-   * Sets the password to be used to shut down the server in Windows.
-   * @param password the password to be used to shut down the server in Windows.
-   */
-  public void setDirectoryManagerPwd(String password)
-  {
-    this.directoryManagerPwd = password;
-  }
-
-  /**
-   * Returns the password to be used to shut down the server in Windows.
-   * @return the password to be used to shut down the server in Windows.
-   */
-  public String getDirectoryManagerPwd()
-  {
-    return directoryManagerPwd;
   }
 }
 
