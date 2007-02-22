@@ -587,6 +587,10 @@
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.jar" />
     </copy>
+  	
+  	<copy todir="${pdir}/lib">
+  	  <fileset file="${lib.dir}/*.exe" />
+  	</copy>
 
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat"
          eol="lf" />
