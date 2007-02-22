@@ -51,6 +51,8 @@ if not "%1" == "--restart" goto execute
 goto testParameter2
 
 :testParameter2
+if "%2" == "" set NO_ARG_OR_ONLY_RESTART=1
+if "%NO_ARG_OR_ONLY_RESTART%" == "1" goto execute
 if not "%2" == "-R" goto testParameter2b
 goto testParameter3
 
