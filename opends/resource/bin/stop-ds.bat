@@ -23,10 +23,22 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Portions Copyright 2006 Sun Microsystems, Inc.
+rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.StopDS"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
+set DIR_HOME=%~dP0..
+
+set ARGUMENTS=1
+if "%*" == "" set ARGUMENTS=0
+if "%ARGUMENTS%" == "1" goto stopWithLDAP
+if not exist "%DIR_HOME%\logs\server.pid" goto stopWithLDAP
+"%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%" 
+goto end
+
+:stopWithLDAP
 call "%~dP0\_client-script.bat" %*
+
+:end

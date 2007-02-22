@@ -23,11 +23,11 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Portions Copyright 2006 Sun Microsystems, Inc.
+rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 setlocal
 
-set DIR_HOME=%~dP0
+set DIR_HOME=%~dP0.
 set INSTANCE_ROOT=%DIR_HOME%
 
 :checkJavaBin
@@ -57,8 +57,16 @@ FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
 
 set PATH=%SystemRoot%
 
-"%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.InstallLauncher -P setup.bat %*
+if "%*" == "" goto callLaunch
+goto callJava
 
+:callLaunch
+"%DIR_HOME%\lib\winlauncher.exe" launch "%DIR_HOME%" "%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.InstallLauncher -P setup.bat
+goto end
+
+:callJava
+"%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.InstallLauncher -P setup.bat %*
+goto end
 
 :end
 
