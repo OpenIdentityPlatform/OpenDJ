@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Portions Copyright 2006 Sun Microsystems, Inc.
+#      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 
 # Capture the current working directory so that we can change to it later.
@@ -102,6 +102,22 @@ STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 # Specify the script name so that it may be provided in command-line usage.
 SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=start-ds"
 export SCRIPT_NAME_ARG
+
+
+# See if the provided set of arguments were sufficient for us to be able to
+# start the server or perform the requested operation.  An exit code of 99
+# means that it should be possible to start the server.  An exit code of 98
+# means that the server is already running and we shouldn't try to start it.
+# An exit code of anything else means that we're not trying to start the server
+# and we can just exit with that exit code.
+${JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+            --configClass org.opends.server.extensions.ConfigFileHandler \
+            --configFile "${CONFIG_FILE}" --checkStartability "${@}"
+EC=${?}
+if test ${EC} -ne 99
+then
+  exit ${EC}
+fi
 
 
 # See if an "-N" or a "--nodetach" argument was provided as a command-line
