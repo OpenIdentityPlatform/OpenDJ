@@ -31,7 +31,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.opends.quicksetup.CurrentInstallStatus;
@@ -581,166 +580,19 @@ class UninstallCli
   {
     boolean cancelled = false;
 
-    String errorMsg = null;
     if (installStatus.isServerRunning())
     {
-      if (Utils.isWindows())
-      {
-        if (silentUninstall)
-        {
-          String dn = userData.getDirectoryManagerDn();
-          String pwd = userData.getDirectoryManagerPwd();
-          if ((dn == null) || (pwd == null))
-          {
-            errorMsg = getMsg("cli-uninstall-data-missing-to-shutdown-server");
-          }
-          else
-          {
-            if (!canConnectAsAdministrativeUser(installStatus.getLdapUrl(),
-                userData.getDirectoryManagerDn(),
-                userData.getDirectoryManagerPwd()))
-            {
-              errorMsg = getErrorMsgConnecting(dn, pwd, installStatus);
-            }
-          }
-
-          if (errorMsg != null)
-          {
-            throw new UserUninstallDataException(null, errorMsg);
-          }
-        }
-        else
-        {
-          /* Ask for the Directory Manager Dn and password if they were not
-           * provided.
-           */
-          boolean askForDn = userData.getDirectoryManagerDn() == null;
-          boolean askForPwd = userData.getDirectoryManagerPwd() == null;
-
-          boolean prompted = false;
-
-          if (!askForDn && !askForPwd)
-          {
-            String dn = userData.getDirectoryManagerDn();
-            String pwd = userData.getDirectoryManagerPwd();
-
-            if (!canConnectAsAdministrativeUser(installStatus.getLdapUrl(),
-                dn, pwd))
-            {
-              System.out.println(LINE_SEPARATOR+LINE_SEPARATOR+getMsg(
-              "cli-uninstall-stop-authentication-generic-prompt1"));
-              System.out.println(getErrorMsgConnecting(dn, pwd, installStatus));
-              askForDn = true;
-              askForPwd = true;
-            }
-            else
-            {
-              String[] validValues = {
-                  getMsg("cli-uninstall-yes-short"),
-                  getMsg("cli-uninstall-no-short"),
-                  getMsg("cli-uninstall-yes-long"),
-                  getMsg("cli-uninstall-no-long")
-              };
-              String answer = promptConfirm(
-                  getMsg("cli-uninstall-confirm-stop"),
-                  getMsg("cli-uninstall-yes-long"), validValues);
-
-              if (getMsg("cli-uninstall-no-short").equalsIgnoreCase(answer) ||
-                  getMsg("cli-uninstall-no-long").equalsIgnoreCase(answer))
-              {
-                cancelled = true;
-              }
-            }
-          }
-          else
-          {
-            System.out.println(
-                getMsg("cli-uninstall-stop-authentication-generic-prompt1"));
-          }
-
-          while (askForDn || askForPwd)
-          {
-            if (!prompted)
-            {
-              System.out.println(
-                getMsg("cli-uninstall-stop-authentication-generic-prompt2"));
-            }
-            if (askForDn)
-            {
-              String defaultDn = userData.getDirectoryManagerDn();
-              if ((defaultDn == null) || !Utils.isDn(defaultDn))
-              {
-                Set<String> dns = installStatus.getDirectoryManagerDns();
-                if (dns.size() > 0)
-                {
-                  defaultDn = dns.iterator().next();
-                }
-                else
-                {
-                  defaultDn = "cn=Directory Manager";
-                }
-              }
-              userData.setDirectoryManagerDn(
-                  promptForString(getMsg("cli-uninstall-prompt-dn"),
-                  defaultDn));
-              prompted = true;
-            }
-            if (askForPwd)
-            {
-              userData.setDirectoryManagerPwd(promptForPassword(
-                  getMsg("cli-uninstall-prompt-pwd")));
-              prompted = true;
-            }
-            String dn = userData.getDirectoryManagerDn();
-            String pwd = userData.getDirectoryManagerPwd();
-
-            if (!canConnectAsAdministrativeUser(installStatus.getLdapUrl(),
-                dn, pwd))
-            {
-              if (installStatus.isServerRunning())
-              {
-                System.out.println(LINE_SEPARATOR+getErrorMsgConnecting(dn, pwd,
-                    installStatus));
-                askForDn = true;
-                askForPwd = true;
-              }
-              else
-              {
-                /* The server was stopped while we asked the user to provide
-                 * authentication.  Inform of this and return.
-                 */
-                System.out.println(
-                    getMsg("cli-uninstall-server-stopped"));
-                askForDn = false;
-                askForPwd = false;
-                /* Ask for confirmation to delete files */
-                cancelled = !confirmDeleteFiles();
-              }
-            }
-            else
-            {
-              askForDn = false;
-              askForPwd = false;
-              /* Ask for confirmation to stop server */
-              cancelled = !confirmToStopServer();
-            }
-          }
-        }
-      }
-      else
-      {
         if (!silentUninstall)
         {
-          /* Ask for confirmation to stop server */
-          cancelled = !confirmToStopServer();
+            /* Ask for confirmation to stop server */
+            cancelled = !confirmToStopServer();
         }
-      }
 
-      if (!cancelled)
-      {
-        /* During all the confirmations, the server might be stopped. */
-        userData.setStopServer(installStatus.isServerRunning());
-      }
+        if (!cancelled)
+        {
+            /* During all the confirmations, the server might be stopped. */
+            userData.setStopServer(installStatus.isServerRunning());
+        }
     }
     else
     {
@@ -754,63 +606,6 @@ class UninstallCli
     return cancelled;
   }
 
-  /**
-   * Commodity method providing a localized message when we cannot connect to
-   * the server.
-   * @param dn the DN used to connect to the server.
-   * @param pwd the password used to connect to the server.
-   * @param installStatus the CurrentInstallStatus object describing the
-   * status of the installation.
-   * @return a localized message when we cannot connect to the server.
-   */
-  private String getErrorMsgConnecting(String dn, String pwd,
-      CurrentInstallStatus installStatus)
-  {
-    String msg;
-
-    ArrayList<String> possibleCauses = new ArrayList<String>();
-    if ("".equals(dn.trim()))
-    {
-      possibleCauses.add(getMsg("empty-directory-manager-dn"));
-    }
-    else if (!Utils.isDn(dn))
-    {
-      possibleCauses.add(getMsg("not-a-directory-manager-dn"));
-    }
-    else
-    {
-      boolean found = false;
-      Iterator<String> it =
-        installStatus.getDirectoryManagerDns().iterator();
-      while (it.hasNext() && !found)
-      {
-        found = Utils.areDnsEqual(dn, it.next());
-      }
-      if (!found)
-      {
-        possibleCauses.add(getMsg("not-a-directory-manager-in-config"));
-      }
-    }
-
-    if ("".equals(pwd))
-    {
-      possibleCauses.add(getMsg("empty-pwd"));
-    }
-    if (possibleCauses.size() > 0)
-    {
-      // Message with causes
-      String[] arg = {
-          Utils.getStringFromCollection(possibleCauses, "\n")
-      };
-      msg = getMsg("cli-uninstall-cannot-connect-to-shutdown-with-cause", arg);
-    }
-    else
-    {
-      // Generic message
-      msg = getMsg("cli-uninstall-cannot-connect-to-shutdown-without-cause");
-    }
-    return msg;
-  }
 
   /**
    * Returns <CODE>true</CODE> if this is a silent uninstall and
@@ -859,97 +654,11 @@ class UninstallCli
       {
         // Ignore
       }
-      else if (Utils.isWindows() &&
-          (args[i].equalsIgnoreCase("-D") ||
-          args[i].equalsIgnoreCase("--rootUserDN")))
-      {
-        if (i+1 >= args.length)
-        {
-          errors.add(getMsg("cli-uninstall-root-user-dn-not-provided"));
-        }
-        else
-        {
-          if (args[i+1].indexOf("-") == 0)
-          {
-            errors.add(getMsg("cli-uninstall-root-user-dn-not-provided"));
-          }
-          else
-          {
-            userData.setDirectoryManagerDn(args[i+1]);
-            i++;
-          }
-        }
-      }
-      else if (Utils.isWindows() &&
-          (args[i].equals("-w") ||
-          args[i].equalsIgnoreCase("--rootUserPassword")))
-      {
-        if (i+1 >= args.length)
-        {
-          errors.add(getMsg("cli-uninstall-root-user-pwd-not-provided"));
-        }
-        else
-        {
-          if (args[i+1].indexOf("-") == 0)
-          {
-            errors.add(getMsg("cli-uninstall-root-user-pwd-not-provided"));
-          }
-          else
-          {
-            directoryManagerPwd = args[i+1];
-            i++;
-          }
-        }
-      }
-      else if (Utils.isWindows() &&
-          (args[i].equals("-W") ||
-          args[i].equalsIgnoreCase("--rootUserPasswordFile")))
-      {
-        if (i+1 >= args.length)
-        {
-          errors.add(getMsg("cli-uninstall-root-user-pwd-file-not-provided"));
-        }
-        else
-        {
-          if (args[i+1].indexOf("-") == 0)
-          {
-            errors.add(getMsg("cli-uninstall-root-user-pwd-file-not-provided"));
-          }
-          else
-          {
-            directoryManagerPwdFile = args[i+1];
-            i++;
-          }
-        }
-      }
       else
       {
         String[] arg = {args[i]};
         errors.add(getMsg("cli-uninstall-unknown-argument", arg));
       }
-    }
-
-    if ((directoryManagerPwdFile != null) && (directoryManagerPwd != null))
-    {
-      errors.add(getMsg("cli-uninstall-pwd-and-pwd-file-provided"));
-    }
-    else
-    {
-      String pwd;
-      if (directoryManagerPwdFile != null)
-      {
-        pwd = readPwdFromFile(directoryManagerPwdFile);
-        if (pwd == null)
-        {
-          String[] arg = {directoryManagerPwdFile};
-          errors.add(getMsg("cli-uninstall-error-reading-pwd-file", arg));
-        }
-      }
-      else
-      {
-        pwd = directoryManagerPwd;
-      }
-      userData.setDirectoryManagerPwd(pwd);
     }
 
     if (errors.size() > 0)

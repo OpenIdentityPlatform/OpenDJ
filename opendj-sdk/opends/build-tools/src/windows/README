@@ -1,0 +1,72 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
+ */
+ 
+ WHAT is winlauncher.exe
+ ========================
+ winlauncher.exe is a small windows executable that is intended to be used by
+ the command line files to perform certain operations.  It is not intended to
+ be a final user interface and that is one of the reasons why is placed under
+ the lib subdirectory.
+
+ See the comments in winlauncher.c file for more information.
+ 
+ 
+ INSTRUCTIONS TO COMPILE winlauncher
+ ========================
+ 
+ Using Visual C++ and the command line  you must set your environment
+ variables to point to your Visual Studio install.  You can set the environment
+ variables by changing to the \bin subdirectory of your Visual C++ installation
+ and running the VCVARS32.bat batch file.
+ 
+ This will basically update your PATH, INCLUDE and LIB environment variables
+ to point to the correct paths of your Visual Studio install.
+ 
+Go to the directory where the source files winlauncher.c and winlauncher.h are
+and launch the following command:
+
+> cl winlauncher.c
+
+This will generate the binary winlauncher.exe.
+
+************************
+
+Using Visual C++ graphical interface you just must to Create a Project and add
+winlauncher.c and winlauncher.h to the project.   You can build winlauncher.c
+and then winlauncher.exe with the commands in the menu 'Build'.
+
+************************
+
+Using gcc (for instance you can get it with the open source project MinGW -
+Minimalist GNU for Windows), you must include the directory where the gcc
+binaries are on your PATH environment variable.
+Go to the directory where the source files winlauncher.c and winlauncher.h are
+and launch the following command:
+
+> gcc winlauncher.c -o winlauncher.exe
+
+This will generate the binary winlauncher.exe.

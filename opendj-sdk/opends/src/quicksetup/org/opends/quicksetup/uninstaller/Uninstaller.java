@@ -637,10 +637,6 @@ public class Uninstaller
     if (Utils.isWindows())
     {
       argList.add(Utils.getPath(getBinariesPath(), "stop-ds.bat"));
-      argList.add("--bindDN");
-      argList.add(userData.getDirectoryManagerDn());
-      argList.add("--bindPassword");
-      argList.add(userData.getDirectoryManagerPwd());
     } else
     {
       argList.add(Utils.getPath(getBinariesPath(), "stop-ds"));
