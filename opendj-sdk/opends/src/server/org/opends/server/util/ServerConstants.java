@@ -1222,6 +1222,44 @@ public class ServerConstants
 
   /**
    * The description for the alert type that will be used for the alert
+   * notification generated if the access control handler is disabled.
+   */
+  public static final String ALERT_DESCRIPTION_ACCESS_CONTROL_DISABLED =
+       "This alert type will be used to notify administrators that the " +
+       "access control handler has been disabled.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if the access control handler is disabled.
+   */
+  public static final String ALERT_TYPE_ACCESS_CONTROL_DISABLED =
+       "org.opends.server.AccessControlDisabled";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
+   * notification generated if the access control handler is enabled.
+   */
+  public static final String ALERT_DESCRIPTION_ACCESS_CONTROL_ENABLED =
+       "This alert type will be used to notify administrators that the " +
+       "access control handler has been enabled.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if the access control handler is enabled.
+   */
+  public static final String ALERT_TYPE_ACCESS_CONTROL_ENABLED =
+       "org.opends.server.AccessControlEnabled";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
    * notification generated if a recurring task cannot be found to schedule the
    * next iteration after the previous iteration has completed.
    */
