@@ -31,14 +31,48 @@ set OPENDS_INVOKE_CLASS="org.opends.server.tools.StopDS"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
 set DIR_HOME=%~dP0..
 
-set ARGUMENTS=1
-if "%*" == "" set ARGUMENTS=0
-if "%ARGUMENTS%" == "1" goto stopWithLDAP
+set RESTART=0
+set NO_ARG_OR_ONLY_RESTART=0
+
+if "%*" == "" set NO_ARG_OR_ONLY_RESTART=1
+if "%NO_ARG_OR_ONLY_RESTART%" == "1" goto execute
+
+for %%x in (%*) DO if "%%x" == "-R" set RESTART=1
+for %%x in (%*) DO if "%%x" == "--restart" set RESTART=1
+
+goto testParameter1
+
+:testParameter1
+if not "%1" == "-R" goto testParameter1b
+goto testParameter2
+
+:testParameter1b
+if not "%1" == "--restart" goto execute
+goto testParameter2
+
+:testParameter2
+if not "%2" == "-R" goto testParameter2b
+goto testParameter3
+
+:testParameter2b
+if not "%2" == "--restart" goto execute
+goto testParameter3
+
+:testParameter3
+if not "%3" == "" goto execute
+set NO_ARG_OR_ONLY_RESTART=1
+goto execute
+
+:execute
+if "%NO_ARG_OR_ONLY_RESTART%" == "0" goto stopWithLDAP
 if not exist "%DIR_HOME%\logs\server.pid" goto stopWithLDAP
-"%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%" 
+"%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%"
+if not %errorlevel% == 0 goto end
+if "%RESTART%" == "1" "%DIR_HOME%\bin\start-ds.bat"
 goto end
 
 :stopWithLDAP
 call "%~dP0\_client-script.bat" %*
 
 :end
+

@@ -106,9 +106,26 @@ export SCRIPT_NAME_ARG
 
 
 # See if any arguments were provided and if a local PID file exists.  If there
-# were no arguments and there is a PID file, then try to stop the server with
-# a kill command.
-if test -z "${1}" 
+# were no arguments (or only the -R argument was passed) and there is a PID
+# file, then try to stop the server with a kill command.
+NO_ARG_OR_ONLY_RESTART=1
+RESTART=0
+for ARG in "${@}"
+do
+  if test "${ARG}" != "-R"
+  then
+    if test "${ARG}" != "--restart"
+    then
+        NO_ARG_OR_ONLY_RESTART=0
+    else
+        RESTART=1
+    fi
+  else
+    RESTART=1
+  fi
+done
+
+if test ${NO_ARG_OR_ONLY_RESTART} -eq 1
 then
   if test -f "${INSTANCE_ROOT}/logs/server.pid"
   then
@@ -120,6 +137,14 @@ then
            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
            --logFile "${INSTANCE_ROOT}/logs/errors"
       EXIT_CODE=${?}
+      if test "${RESTART}" -eq 1
+      then
+        if test "${EXIT_CODE}" -eq 0
+        then
+            "${INSTANCE_ROOT}/bin/start-ds"
+            EXIT_CODE=${?}
+        fi
+      fi
     fi
     exit ${EXIT_CODE}
   fi
