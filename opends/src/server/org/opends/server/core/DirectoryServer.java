@@ -195,6 +195,14 @@ public class DirectoryServer
 
 
 
+  /**
+   * Indicates whether the server currently holds an exclusive lock on the
+   * server lock fiie.
+   */
+  private static boolean serverLocked = false;
+
+
+
   // The policy to use regarding single structural objectclass enforcement.
   private AcceptRejectWarn singleStructuralClassPolicy;
 
@@ -927,30 +935,35 @@ public class DirectoryServer
 
 
       // Acquire an exclusive lock for the Directory Server process.
-      String lockFile = LockFileManager.getServerLockFileName();
-      try
+      if (! serverLocked)
       {
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+        String lockFile = LockFileManager.getServerLockFileName();
+        try
         {
+          StringBuilder failureReason = new StringBuilder();
+          if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+          {
+            int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
+            String message = getMessage(msgID, lockFile,
+                                        String.valueOf(failureReason));
+            throw new InitializationException(msgID, message);
+          }
+
+          serverLocked = true;
+        }
+        catch (InitializationException ie)
+        {
+          throw ie;
+        }
+        catch (Exception e)
+        {
+          assert debugException(CLASS_NAME, "startServer", e);
+
           int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
           String message = getMessage(msgID, lockFile,
-                                      String.valueOf(failureReason));
-          throw new InitializationException(msgID, message);
+                                      stackTraceToSingleLineString(e));
+          throw new InitializationException(msgID, message, e);
         }
-      }
-      catch (InitializationException ie)
-      {
-        throw ie;
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "startServer", e);
-
-        int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
-        String message = getMessage(msgID, lockFile,
-                                    stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message, e);
       }
 
 
@@ -2437,7 +2450,24 @@ public class DirectoryServer
   {
     assert debugEnter(CLASS_NAME, "getServerRoot");
 
-    return directoryServer.configHandler.getServerRoot();
+    if (directoryServer.configHandler == null)
+    {
+      String serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
+      if (serverRoot != null)
+      {
+        return serverRoot;
+      }
+      else
+      {
+        // We don't know where the server root is, so we'll have to assume it's
+        // the current working directory.
+        return System.getProperty("user.dir");
+      }
+    }
+    else
+    {
+      return directoryServer.configHandler.getServerRoot();
+    }
   }
 
 
@@ -7483,6 +7513,8 @@ public class DirectoryServer
                      ErrorLogSeverity.SEVERE_WARNING, message, msgID);
             // FIXME -- Do we need to send an admin alert?
           }
+
+          serverLocked = false;
         }
         catch (Exception e2)
         {
@@ -8092,52 +8124,16 @@ public class DirectoryServer
    */
   public static void main(String[] args)
   {
-    // Configure the JVM to delete the PID file on exit, if it exists.
-    boolean pidFileMarkedForDeletion      = false;
-    boolean startingFileMarkedForDeletion = false;
-    try
-    {
-      String pidFilePath;
-      String startingFilePath;
-      String serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
-      if (serverRoot == null)
-      {
-        pidFilePath      = "logs/server.pid";
-        startingFilePath = "logs/server.starting";
-      }
-      else
-      {
-        pidFilePath      = serverRoot + File.separator + "logs" +
-                           File.separator + "server.pid";
-        startingFilePath = serverRoot + File.separator + "logs" +
-                           File.separator + "server.starting";
-      }
-
-      File pidFile = new File(pidFilePath);
-      if (pidFile.exists())
-      {
-        pidFile.deleteOnExit();
-        pidFileMarkedForDeletion = true;
-      }
-
-      File startingFile = new File(startingFilePath);
-      if (startingFile.exists())
-      {
-        startingFile.deleteOnExit();
-        startingFileMarkedForDeletion = true;
-      }
-    } catch (Exception e) {}
-
-
     // Define the arguments that may be provided to the server.
-    BooleanArgument displayUsage = null;
-    BooleanArgument dumpMessages = null;
-    BooleanArgument fullVersion  = null;
-    BooleanArgument noDetach     = null;
-    BooleanArgument systemInfo   = null;
-    BooleanArgument version      = null;
-    StringArgument  configClass  = null;
-    StringArgument  configFile   = null;
+    BooleanArgument checkStartability = null;
+    BooleanArgument displayUsage      = null;
+    BooleanArgument dumpMessages      = null;
+    BooleanArgument fullVersion       = null;
+    BooleanArgument noDetach          = null;
+    BooleanArgument systemInfo        = null;
+    BooleanArgument version           = null;
+    StringArgument  configClass       = null;
+    StringArgument  configFile        = null;
 
 
     // Create the command-line argument parser for use with this program.
@@ -8165,6 +8161,13 @@ public class DirectoryServer
                                       MSGID_DSCORE_DESCRIPTION_CONFIG_FILE);
       configFile.setHidden(true);
       argParser.addArgument(configFile);
+
+
+      checkStartability = new BooleanArgument("checkstartability", null,
+                              "checkStartability",
+                              MSGID_DSCORE_DESCRIPTION_CHECK_STARTABILITY);
+      checkStartability.setHidden(true);
+      argParser.addArgument(checkStartability);
 
 
       version = new BooleanArgument("version", 'v', "version",
@@ -8226,7 +8229,90 @@ public class DirectoryServer
 
 
     // If we should just display usage information, then print it and exit.
-    if (displayUsage.isPresent())
+    if (checkStartability.isPresent())
+    {
+      // This option should only be used if a PID file already exists in the
+      // server logs directory, and we need to check which of the following
+      // conditions best describes the current usage:
+      // - We're trying to start the server, but it's already running.  The
+      //   attempt to start the server should fail, and the server process will
+      //   exit with a result code of 98.
+      // - We're trying to start the server and it's not already running.  We
+      //   won't start it in this invocation, but the script used to get to this
+      //   point should go ahead and overwrite the PID file and retry the
+      //   startup process.  The server process will exit with a result code of
+      //   99.
+      // - We're not trying to start the server, but instead are trying to do
+      //   something else like display the version number.  In that case, we
+      //   don't need to write the PID file at all and can just execute the
+      //   intended command.  If that command was successful, then we'll have an
+      //   exit code of 0.  Otherwise, it will have an exit code that is
+      //   something other than 0, 98, or 99 to indicate that a problem
+      // occurred.
+      if (displayUsage.isPresent())
+      {
+        // We're just trying to display usage, and that's already been done so
+        // exit with a code of zero.
+        System.exit(0);
+      }
+      else if (fullVersion.isPresent() || version.isPresent() ||
+               systemInfo.isPresent() || dumpMessages.isPresent())
+      {
+        // We're not really trying to start, so rebuild the argument list
+        // without the "--checkStartability" argument and try again.  Exit with
+        // whatever that exits with.
+        LinkedList<String> newArgList = new LinkedList<String>();
+        for (String arg : args)
+        {
+          if (! arg.equalsIgnoreCase("--checkstartability"))
+          {
+            newArgList.add(arg);
+          }
+        }
+        String[] newArgs = new String[newArgList.size()];
+        newArgList.toArray(newArgs);
+        main(newArgs);
+        System.exit(0);
+      }
+      else
+      {
+        // We're trying to start the server, so see if it's already running by
+        // trying to grab an exclusive lock on the server lock file.  If it
+        // succeeds, then the server isn't running and we can try to start.
+        // Otherwise, the server is running and this attempt should fail.
+        String lockFile = LockFileManager.getServerLockFileName();
+        try
+        {
+          StringBuilder failureReason = new StringBuilder();
+          if (LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+          {
+            // The server isn't running, so it can be started.
+            LockFileManager.releaseLock(lockFile, failureReason);
+            System.exit(99);
+          }
+          else
+          {
+            // The server's already running.
+            int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
+            String message = getMessage(msgID, lockFile,
+                                        String.valueOf(failureReason));
+            System.err.println(message);
+            System.exit(98);
+          }
+        }
+        catch (Exception e)
+        {
+          // We'll treat this as if the server is running because we won't
+          // be able to start it anyway.
+          int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
+          String message = getMessage(msgID, lockFile,
+                                      stackTraceToSingleLineString(e));
+          System.err.println(message);
+          System.exit(98);
+        }
+      }
+    }
+    else if (displayUsage.isPresent())
     {
       System.exit(0);
     }
@@ -8316,6 +8402,71 @@ public class DirectoryServer
 
       return;
     }
+
+
+    // At this point, we know that we're going to try to start the server.
+    // Attempt to grab an exclusive lock for the Directory Server process.
+    String lockFile = LockFileManager.getServerLockFileName();
+    try
+    {
+      StringBuilder failureReason = new StringBuilder();
+      if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+      {
+        int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
+        String message = getMessage(msgID, lockFile,
+                                    String.valueOf(failureReason));
+        System.err.println(message);
+        System.exit(1);
+      }
+    }
+    catch (Exception e)
+    {
+      assert debugException(CLASS_NAME, "startServer", e);
+
+      int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
+      String message = getMessage(msgID, lockFile,
+                                  stackTraceToSingleLineString(e));
+      System.err.println(message);
+      System.exit(1);
+    }
+    serverLocked = true;
+
+
+    // Configure the JVM to delete the PID file on exit, if it exists.
+    boolean pidFileMarkedForDeletion      = false;
+    boolean startingFileMarkedForDeletion = false;
+    try
+    {
+      String pidFilePath;
+      String startingFilePath;
+      String serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
+      if (serverRoot == null)
+      {
+        pidFilePath      = "logs/server.pid";
+        startingFilePath = "logs/server.starting";
+      }
+      else
+      {
+        pidFilePath      = serverRoot + File.separator + "logs" +
+                           File.separator + "server.pid";
+        startingFilePath = serverRoot + File.separator + "logs" +
+                           File.separator + "server.starting";
+      }
+
+      File pidFile = new File(pidFilePath);
+      if (pidFile.exists())
+      {
+        pidFile.deleteOnExit();
+        pidFileMarkedForDeletion = true;
+      }
+
+      File startingFile = new File(startingFilePath);
+      if (startingFile.exists())
+      {
+        startingFile.deleteOnExit();
+        startingFileMarkedForDeletion = true;
+      }
+    } catch (Exception e) {}
 
 
     // Redirect standard output and standard error to the server.out file.  If

@@ -6239,6 +6239,15 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * checkStartability command-line argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DSCORE_DESCRIPTION_CHECK_STARTABILITY =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 596;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -7553,6 +7562,9 @@ public class CoreMessages
                     "Specifies the path to the file containing the " +
                     "information needed by the configuration handler to " +
                     "obtain the Directory Server configuration.");
+    registerMessage(MSGID_DSCORE_DESCRIPTION_CHECK_STARTABILITY,
+                    "Used to determine whether to write a server PID file " +
+                    "and attempt to start the server.");
     registerMessage(MSGID_DSCORE_DESCRIPTION_VERSION,
                     "Display Directory Server version information");
     registerMessage(MSGID_DSCORE_DESCRIPTION_FULLVERSION,

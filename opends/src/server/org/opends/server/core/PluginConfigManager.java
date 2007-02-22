@@ -212,6 +212,8 @@ public class PluginConfigManager
     searchResultEntryPlugins     = new DirectoryServerPlugin[0];
     searchResultReferencePlugins = new DirectoryServerPlugin[0];
     intermediateResponsePlugins  = new DirectoryServerPlugin[0];
+    registeredPlugins            =
+         new ConcurrentHashMap<DN,DirectoryServerPlugin>();
   }
 
 
@@ -241,7 +243,7 @@ public class PluginConfigManager
     assert debugEnter(CLASS_NAME, "initializePluginConfig");
 
 
-    registeredPlugins = new ConcurrentHashMap<DN,DirectoryServerPlugin>();
+    registeredPlugins.clear();
 
 
     // Get the configuration entry that is the root of all the plugins in the
