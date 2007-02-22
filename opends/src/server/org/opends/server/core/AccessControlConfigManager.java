@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -31,13 +31,16 @@ import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccessControlProvider;
+import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigEntry;
@@ -57,8 +60,9 @@ import org.opends.server.types.ResultCode;
  * implementation is used, which permits all operations regardless of
  * the identity of the user.
  */
-public final class AccessControlConfigManager {
-
+public final class AccessControlConfigManager
+       implements AlertGenerator
+{
   // Fully qualified class name for debugging purposes.
   private static final String CLASS_NAME =
     "org.opends.server.core.AccessControlConfigManager";
@@ -255,11 +259,21 @@ public final class AccessControlConfigManager {
         String message = getMessage(msgID);
         logError(ErrorLogCategory.CONFIGURATION,
             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        if (currentConfiguration != null)
+        {
+          DirectoryServer.sendAlertNotification(this,
+              ALERT_TYPE_ACCESS_CONTROL_DISABLED, msgID, message);
+        }
       } else {
         int msgID = MSGID_CONFIG_AUTHZ_ENABLED;
         String message = getMessage(msgID, newHandlerClass.getName());
         logError(ErrorLogCategory.CONFIGURATION,
             ErrorLogSeverity.NOTICE, message, msgID);
+        if (currentConfiguration != null)
+        {
+          DirectoryServer.sendAlertNotification(this,
+              ALERT_TYPE_ACCESS_CONTROL_ENABLED, msgID, message);
+        }
       }
     }
 
@@ -536,4 +550,64 @@ public final class AccessControlConfigManager {
       }
     }
   }
+
+
+
+  /**
+   * Retrieves the DN of the configuration entry with which this alert
+   * generator is associated.
+   *
+   * @return  The DN of the configuration entry with which this alert
+   *          generator is associated.
+   */
+  public DN getComponentEntryDN()
+  {
+    assert debugEnter(CLASS_NAME, "getComponentEntryDN");
+
+    return currentConfiguration.getConfigEntry().getDN();
+  }
+
+
+
+  /**
+   * Retrieves the fully-qualified name of the Java class for this
+   * alert generator implementation.
+   *
+   * @return  The fully-qualified name of the Java class for this
+   *          alert generator implementation.
+   */
+  public String getClassName()
+  {
+    assert debugEnter(CLASS_NAME, "getClassName");
+
+    return CLASS_NAME;
+  }
+
+
+
+  /**
+   * Retrieves information about the set of alerts that this generator
+   * may produce.  The map returned should be between the notification
+   * type for a particular notification and the human-readable
+   * description for that notification.  This alert generator must not
+   * generate any alerts with types that are not contained in this
+   * list.
+   *
+   * @return  Information about the set of alerts that this generator
+   *          may produce.
+   */
+  public LinkedHashMap<String,String> getAlerts()
+  {
+    assert debugEnter(CLASS_NAME, "getAlerts");
+
+    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+
+    alerts.put(ALERT_TYPE_ACCESS_CONTROL_DISABLED,
+               ALERT_DESCRIPTION_ACCESS_CONTROL_DISABLED);
+    alerts.put(ALERT_TYPE_ACCESS_CONTROL_ENABLED,
+               ALERT_DESCRIPTION_ACCESS_CONTROL_ENABLED);
+
+    return alerts;
+  }
 }
+
