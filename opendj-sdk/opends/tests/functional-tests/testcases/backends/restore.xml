@@ -33,7 +33,11 @@
   <function name="main_restore">
 
     <sequence>
-    
+
+      <script>
+        CurrentTestPath['suite']='restore'
+      </script>
+          
       <call function="'testSuite_Preamble'"/>
         
       <!--- Test Suite information

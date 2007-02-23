@@ -33,6 +33,10 @@
 
       <sequence>
 
+        <script>
+          CurrentTestPath['suite']='auth-pwd-syntax'
+        </script>
+        
         <call function="'testSuite_Preamble'"/>
         
         <parallel>

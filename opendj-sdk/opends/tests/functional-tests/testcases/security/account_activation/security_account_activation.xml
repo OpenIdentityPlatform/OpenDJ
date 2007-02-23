@@ -32,6 +32,10 @@
   <function name="security_account_activation">
 
       <sequence>
+      
+        <script>
+          CurrentTestPath['suite']='account-activation'
+        </script>
 
         <call function="'testSuite_Preamble'"/>
         

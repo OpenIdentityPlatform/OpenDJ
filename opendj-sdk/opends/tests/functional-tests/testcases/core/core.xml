@@ -32,7 +32,11 @@
   <function name="main_core">
 
     <sequence>
-      
+
+      <script>
+        CurrentTestPath['group']='core'
+      </script>
+            
       <call function="'testGroup_Preamble'"/>
 
       <parallel>

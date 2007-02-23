@@ -32,8 +32,6 @@
   <function name="main_quickstart">
 
     <sequence>
-    
-      <call function="'testGroup_Preamble'"/>
 
       <parallel>
       
@@ -62,38 +60,29 @@
          <block name="'Block Clients'">
     
           <sequence>
-          
-            <call function="'testSuite_Preamble'"/>
     
             <!--- Check that DS started -->
             <call function="'isAlive'">
               { 'noOfLoops'        : 5 ,
                 'noOfMilliSeconds' : 2000 }
             </call>
-    
-            <!--- Test Case : Add Quickstart Entries -->
-            <testcase name="'Quickstart: Add : Quick Start Entries'">
-              <sequence>
-                <call function="'testCase_Preamble'"/>
-                <message>
-                   'Quickstart: Adding quickstart entries'
-                </message>
-    
-                <call function="'addEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeAdded'   : '%s/quickstart/quickstart.ldif' % STAGED_DATA_DIR }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
-                <call function="'testCase_Postamble'"/>
-              </sequence>
-            </testcase>
+     
+            <message>
+               'Quickstart: Adding quickstart entries'
+            </message>
+
+            <call function="'addEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeAdded'   : '%s/quickstart/quickstart.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
     
             <!--- Stop DS -->
     		<sequence>
@@ -111,16 +100,12 @@
     		  </call>
     		</sequence>
     
-            <call function="'testSuite_Postamble'"/>
-    
           </sequence>
     
         <!--- End Block Clients -->
         </block>
 
       </parallel>
-
-      <call function="'testGroup_Postamble'"/>
       
     </sequence>
 

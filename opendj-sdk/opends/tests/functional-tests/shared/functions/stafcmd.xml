@@ -263,7 +263,9 @@
         name of target host
       </function-required-arg>
     </function-map-args>
+
     <sequence>
+
       <stafcmd name="'STAF Command: Get Folder Attributes'">
         <location>'%s' % (hostname)</location>
         <service>'fs'</service>
@@ -297,11 +299,91 @@
         cmdRC=RC
         cmdResult=STAFResult
       </script>
+      
       <call function="'checkRC'">
-        { 'returncode' : cmdRC ,
-          'result'     : cmdResult }
+          { 'returncode' : cmdRC ,
+            'result'     : cmdResult }
       </call>
+
       <return>cmdRC</return>
-    </sequence>
-  </function>
+        
+      </sequence>
+
+    </function>
+    
+    <function name="CreateFolder">
+
+    <function-prolog>
+        This function creates a folder
+    </function-prolog>
+
+    <function-map-args>
+      <function-required-arg name="hostname">
+          name of target host
+      </function-required-arg>
+      <function-required-arg name="foldername">
+          name of folder to be deleted
+      </function-required-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <stafcmd name="'STAF Command: Create Folder'">
+          <location>'%s' % (hostname)</location>
+          <service>'fs'</service>
+          <request>
+            'CREATE DIRECTORY %s FULLPATH' % foldername
+          </request>
+        </stafcmd>
+
+        <script>
+          cmdRC=RC
+          cmdResult=STAFResult
+        </script>
+        
+        <call function="'checkRC'">
+            { 'returncode' : cmdRC ,
+              'result'     : cmdResult }
+        </call>
+
+        <return>cmdRC</return>
+        
+      </sequence>
+
+    </function>  
+
+
+    <function name="queryLogs">
+
+    <function-prolog>
+        Queries the staf logs from startfrom point
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="hostname">
+            name of target host
+        </function-required-arg>
+        <function-required-arg name="logname">
+            name of log to query
+        </function-required-arg>
+        <function-required-arg name="startfrom">
+            timestamp to start logging
+        </function-required-arg>
+        <function-required-arg name="endat">
+            timestamp to end logging
+        </function-required-arg>
+    </function-map-args>
+
+      <sequence>
+        
+        <stafcmd name="'STAF Command: Log Query for Test Case Log.'">
+          <location>'%s' % (hostname)</location>
+          <service>'log'</service>
+          <request>'QUERY ALL MACHINE %s LOGNAME %s FROM %s TO %s' % (hostname,logname,startfrom,endat)</request>
+        </stafcmd>
+        
+      </sequence>
+
+    </function>
+        
 </stax>

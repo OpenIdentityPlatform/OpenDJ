@@ -51,7 +51,7 @@
                 'extraParams'      : '-x'}
             </call>
 
-            <call function="'checkRC'">
+            <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
