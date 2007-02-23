@@ -123,6 +123,12 @@ objectClass: top
 objectClass: ds-cfg-branch
 cn: Index
 
+dn: ds-cfg-index-attribute=aci,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: aci
+ds-cfg-index-type: presence
+
 dn: ds-cfg-index-attribute=cn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-je-index
