@@ -28,6 +28,16 @@ package org.opends.server.types;
 
 
 
+/********************
+ * NOTE:  Any changes to the set of public methods defined in this
+ *        class or the arguments that they contain must also be made
+ *        in the org.opends.server.interop.LazyDN package to ensure
+ *        continued interoperability with third-party applications
+ *        that rely on that functionality.
+ ********************/
+
+
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
