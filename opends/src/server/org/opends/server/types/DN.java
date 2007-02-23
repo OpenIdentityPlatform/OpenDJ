@@ -1267,9 +1267,9 @@ public class DN
    *                              valid attribute name from the
    *                              provided DN string.
    */
-  public static int parseAttributeName(byte[] dnBytes, int pos,
-                                       StringBuilder attributeName,
-                                       boolean allowExceptions)
+  static int parseAttributeName(byte[] dnBytes, int pos,
+                                StringBuilder attributeName,
+                                boolean allowExceptions)
           throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "parseAttributeName",
@@ -1689,9 +1689,9 @@ public class DN
    *                              valid attribute name from the
    *                              provided DN string.
    */
-  public static int parseAttributeName(String dnString, int pos,
-                                       StringBuilder attributeName,
-                                       boolean allowExceptions)
+  static int parseAttributeName(String dnString, int pos,
+                                StringBuilder attributeName,
+                                boolean allowExceptions)
           throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "parseAttributeName",
@@ -2103,8 +2103,8 @@ public class DN
    *                              valid attribute value from the
    *                              provided DN string.
    */
-  public static int parseAttributeValue(byte[] dnBytes, int pos,
-                                        ByteString attributeValue)
+  static int parseAttributeValue(byte[] dnBytes, int pos,
+                                 ByteString attributeValue)
           throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "parseAttributeValue",
@@ -2370,8 +2370,8 @@ public class DN
    *                              valid attribute value from the
    *                              provided DN string.
    */
-  public static int parseAttributeValue(String dnString, int pos,
-                                        ByteString attributeValue)
+  static int parseAttributeValue(String dnString, int pos,
+                                 ByteString attributeValue)
           throws DirectoryException
   {
     assert debugEnter(CLASS_NAME, "parseAttributeValue",
@@ -2698,9 +2698,9 @@ public class DN
    * @throws  DirectoryException  If any problem occurs during the
    *                              decoding process.
    */
-  public static void appendHexChars(String dnString,
-                                    StringBuilder valueString,
-                                    StringBuilder hexChars)
+  private static void appendHexChars(String dnString,
+                                     StringBuilder valueString,
+                                     StringBuilder hexChars)
           throws DirectoryException
   {
     try
