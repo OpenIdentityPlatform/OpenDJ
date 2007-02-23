@@ -226,8 +226,10 @@ public class AciHandler extends AccessControlHandler
                        container.setRights(ACI_WRITE_DELETE);
                        if(!skipAccessCheck && !accessAllowed(container))
                            return false;
-                   } else
+                   } else {
+                     if(!skipAccessCheck)
                        return false;
+                   }
                    /*
                     Check if the modification type has an "aci" attribute type.
                     If so, check the syntax of that attribute value. Fail the

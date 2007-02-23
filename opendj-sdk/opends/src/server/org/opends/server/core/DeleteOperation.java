@@ -682,23 +682,6 @@ deleteProcessing:
         // Check to see if the client has permission to perform the
         // delete.
 
-        // FIXME: for now assume that this will check all permission
-        // pertinent to the operation. This includes proxy authorization
-        // and any other controls specified.
-
-        // FIXME: earlier checks to see if the entry already exists may
-        // have already exposed sensitive information to the client.
-        if (AccessControlConfigManager.getInstance()
-            .getAccessControlHandler().isAllowed(this) == false) {
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-          int msgID = MSGID_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-          appendErrorMessage(getMessage(msgID, String.valueOf(entryDN)));
-
-          skipPostOperation = true;
-          break deleteProcessing;
-        }
-
         // Check to see if there are any controls in the request.  If so, then
         // see if there is any special processing required.
         boolean                   noOp           = false;
@@ -919,6 +902,23 @@ deleteProcessing:
           }
         }
 
+
+        // FIXME: for now assume that this will check all permission
+        // pertinent to the operation. This includes proxy authorization
+        // and any other controls specified.
+
+        // FIXME: earlier checks to see if the entry already exists may
+        // have already exposed sensitive information to the client.
+        if (AccessControlConfigManager.getInstance()
+            .getAccessControlHandler().isAllowed(this) == false) {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+          int msgID = MSGID_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+          appendErrorMessage(getMessage(msgID, String.valueOf(entryDN)));
+
+          skipPostOperation = true;
+          break deleteProcessing;
+        }
 
         // Check for and handle a request to cancel this operation.
         if (cancelRequest != null)

@@ -167,6 +167,7 @@ public class PrivilegeTestCase
       "ds-privilege-name: backend-backup",
       "ds-privilege-name: backend-restore",
       "ds-privilege-name: proxied-auth",
+      "ds-privilege-name: bypass-acl",
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config",
       "",
@@ -179,6 +180,7 @@ public class PrivilegeTestCase
       "givenName: Unprivileged",
       "sn: User",
       "uid: unprivileged.user",
+      "ds-privilege-name: bypass-acl",
       "userPassword: password",
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config",

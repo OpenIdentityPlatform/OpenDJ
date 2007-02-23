@@ -39,6 +39,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.ServerConstants;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
@@ -117,6 +118,7 @@ public class CompareOperationTestCase extends OperationTestCase
          "sn: User",
          "cn: Proxy User",
          "userPassword: password",
+         "ds-privilege-name: bypass-acl",
          "ds-privilege-name: proxied-auth");
 
     Entry proxyUserEntry =
@@ -338,7 +340,7 @@ public class CompareOperationTestCase extends OperationTestCase
     examineCompletedOperation(compareOperation);
   }
 
-  @Test(enabled = false) // FIXME Issue 739.
+  @Test
   public void testCompareSubtype()
   {
     InternalClientConnection conn =
@@ -556,14 +558,15 @@ public class CompareOperationTestCase extends OperationTestCase
     examineIncompleteOperation(compareOperation);
   }
 
-  @Test(enabled = false) // FIXME Issue 741.
+  @Test
   public void testCompareProxiedAuthV2Criticality() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    ProxiedAuthV2Control authV2Control =
-         new ProxiedAuthV2Control(new ASN1OctetString());
-    authV2Control.setCritical(false);
+    Control authV2Control =
+         new Control(ServerConstants.OID_PROXIED_AUTH_V2, false,
+                     new ASN1OctetString());
+
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
 

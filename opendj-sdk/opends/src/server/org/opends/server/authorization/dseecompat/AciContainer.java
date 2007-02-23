@@ -221,7 +221,7 @@ implements AciTargetMatchContext, AciEvalContext {
      * @return The client entry.
      */
     public Entry getClientEntry() {
-       return clientConnection.getAuthenticationInfo().getAuthorizationEntry();
+      return operation.getAuthorizationEntry();
     }
 
     /**
@@ -270,7 +270,7 @@ implements AciTargetMatchContext, AciEvalContext {
      * @return  The client's authorization DN.
      */
     public DN getClientDN() {
-        return clientConnection.getAuthenticationInfo().getAuthorizationDN();
+      return operation.getAuthorizationDN();
     }
 
     /**

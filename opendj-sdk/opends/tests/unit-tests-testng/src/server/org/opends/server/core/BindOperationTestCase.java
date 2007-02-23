@@ -1826,7 +1826,8 @@ public class BindOperationTestCase
          "cn: Test User");
 
     InternalClientConnection conn =
-         new InternalClientConnection(new AuthenticationInfo());
+         InternalClientConnection.getRootConnection();
+//         new InternalClientConnection(new AuthenticationInfo());
 
     AddOperation addOperation =
          conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),

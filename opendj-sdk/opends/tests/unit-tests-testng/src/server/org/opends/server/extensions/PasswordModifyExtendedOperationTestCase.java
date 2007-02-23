@@ -355,6 +355,7 @@ public class PasswordModifyExtendedOperationTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -418,6 +419,7 @@ public class PasswordModifyExtendedOperationTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -480,6 +482,7 @@ public class PasswordModifyExtendedOperationTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -534,6 +537,7 @@ public class PasswordModifyExtendedOperationTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -597,6 +601,7 @@ public class PasswordModifyExtendedOperationTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -660,6 +665,7 @@ public class PasswordModifyExtendedOperationTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -722,6 +728,7 @@ public class PasswordModifyExtendedOperationTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -784,6 +791,7 @@ public class PasswordModifyExtendedOperationTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -1941,6 +1949,7 @@ public class PasswordModifyExtendedOperationTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 

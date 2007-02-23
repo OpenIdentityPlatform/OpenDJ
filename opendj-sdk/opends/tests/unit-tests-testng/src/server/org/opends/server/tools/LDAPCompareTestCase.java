@@ -601,6 +601,7 @@ public class LDAPCompareTestCase
          "objectClass: inetOrgPerson",
          "cn: Test User",
          "givenName: Test",
+         "ds-privilege-name: bypass-acl",
          "sn: User");
 
     InternalClientConnection conn =
@@ -654,6 +655,7 @@ public class LDAPCompareTestCase
          "objectClass: inetOrgPerson",
          "cn: Test User",
          "givenName: Test",
+         "ds-privilege-name: bypass-acl",
          "sn: User");
 
     InternalClientConnection conn =
@@ -708,6 +710,7 @@ public class LDAPCompareTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
@@ -757,6 +760,7 @@ public class LDAPCompareTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
