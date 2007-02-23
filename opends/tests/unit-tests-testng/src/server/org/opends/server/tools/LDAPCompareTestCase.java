@@ -777,6 +777,7 @@ public class LDAPCompareTestCase
     {
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:test.user",
       "-o", "authzid=u:test.user",
       "-o", "realm=o=test",
