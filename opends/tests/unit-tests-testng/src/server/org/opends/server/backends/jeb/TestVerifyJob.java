@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006 - 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -389,21 +389,9 @@ public class TestVerifyJob extends JebTestCase
     	assertTrue(id2entry.putRaw(txn, key1, data1));
     	performBECompleteVerify("telephoneNumber", 3);
     }
-    
-    /**
-     * Change the stored count to invalid value in the telephoneNumber
-     * index.
-     * @throws Exception if the error count is not equal 1.
-     */
-    @Test() public void testBadStoredCount() throws Exception {
-    	preTest(2);
-    	//whack the count
-    	setStoredCount(100);
-    	performBECompleteVerify("telephoneNumber", 1);
-    }
 
     /**
-     * 
+     *
      * Runs complete verify against the dn2id index 
      * after adding various errors in the dn2id file.
      * 
@@ -425,7 +413,6 @@ public class TestVerifyJob extends JebTestCase
     	testDN=DN.decode(noParentDN);
     	id=new EntryID(12);      
     	assertTrue(dn2id.insert(txn, testDN, id));
-    	setStoredCount(12);
     	performBECompleteVerify("dn2id", 3);
     }
     
@@ -452,8 +439,7 @@ public class TestVerifyJob extends JebTestCase
     	byte[] idBytesp=new byte[16];
     	idBytesp[7]=(byte) 0xFF;
     	EntryIDSet idSetp=new EntryIDSet(null, idBytesp);
-    	id2child.writeKey(txn, keyp, idSetp);   	
-    	setStoredCount(12);  	
+    	id2child.writeKey(txn, keyp, idSetp);
     	performBECompleteVerify("id2children", 3);
     }
     
@@ -475,7 +461,6 @@ public class TestVerifyJob extends JebTestCase
     	EntryIDSet idSetp=new EntryIDSet();   	
     	DatabaseEntry key= new EntryID(2).getDatabaseEntry();
     	id2child.writeKey(txn, key, idSetp);
-    	setStoredCount(3);  	
     	performBECompleteVerify("id2children", 0);
     }
   
@@ -490,8 +475,7 @@ public class TestVerifyJob extends JebTestCase
     public void testVerifyID2Subtree() throws Exception {
     	preTest(2);
     	//Add entry with no parent
-    	addID2EntryReturnKey(noParentDN, 3, false);  	
-    	setStoredCount(3);
+    	addID2EntryReturnKey(noParentDN, 3, false);
     	performBECompleteVerify("id2subtree", 3);
     }
   
@@ -513,7 +497,6 @@ public class TestVerifyJob extends JebTestCase
     	EntryIDSet idSet=new EntryIDSet();   	
     	DatabaseEntry key= new EntryID(2).getDatabaseEntry();
     	id2subtree.writeKey(txn, key, idSet);
-    	setStoredCount(3);
     	performBECompleteVerify("id2subtree", 1);
     }
 
@@ -679,17 +662,6 @@ public class TestVerifyJob extends JebTestCase
     }
     
     
-    /**
-     * Adjust stored entry count in the id2entry file.
-     * @param c new count.
-     * @throws Exception if the putRaw method fails.
-     */
-    private void setStoredCount(long c) throws Exception {
-    	DatabaseEntry keyS= new EntryID(0).getDatabaseEntry();
-    	DatabaseEntry dataS= new EntryID(c).getDatabaseEntry();
-    	assertTrue(id2entry.putRaw(txn, keyS, dataS));
-    }
- 
     /**
      * Does a pretest setup. Creates some number of entries, gets
      * backend, rootcontainer, entryContainer objects, as well as 

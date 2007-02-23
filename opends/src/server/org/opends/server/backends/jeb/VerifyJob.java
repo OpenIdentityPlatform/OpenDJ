@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006 - 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -434,7 +434,7 @@ public class VerifyJob
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
 
-      Long storedEntryCount = null;
+      Long storedEntryCount = id2entry.getRecordCount();
 
       OperationStatus status;
       for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
@@ -455,48 +455,32 @@ public class VerifyJob
           continue;
         }
 
-        if (entryID.longValue() == 0)
-        {
-          // This is the stored entry count.
-          storedEntryCount = JebFormat.entryIDFromDatabase(data.getData());
-        }
-        else
-        {
-          keyCount++;
+        keyCount++;
 
-          Entry entry;
-          try
-          {
-            entry = JebFormat.entryFromDatabase(data.getData());
-          }
-          catch (Exception e)
-          {
-            assert debugException(CLASS_NAME, "iterateID2Entry", e);
-            errorCount++;
-            System.err.printf("Malformed id2entry record for ID %d:%n%s%n",
-                              entryID.longValue(),
-                              StaticUtils.bytesToHex(data.getData()));
-            continue;
-          }
-
-          verifyEntry(entryID, entry);
-        }
-      }
-      if (storedEntryCount != null)
-      {
-        if (keyCount != storedEntryCount)
+        Entry entry;
+        try
         {
+          entry = JebFormat.entryFromDatabase(data.getData());
+        }
+        catch (Exception e)
+        {
+          assert debugException(CLASS_NAME, "iterateID2Entry", e);
           errorCount++;
-          System.err.printf("The stored entry count in id2entry (%d) does " +
-                            "not agree with the actual number of entry " +
-                            "records found (%d).%n",
-                            storedEntryCount, keyCount);
+          System.err.printf("Malformed id2entry record for ID %d:%n%s%n",
+              entryID.longValue(),
+              StaticUtils.bytesToHex(data.getData()));
+          continue;
         }
+
+        verifyEntry(entryID, entry);
       }
-      else
+      if (keyCount != storedEntryCount)
       {
         errorCount++;
-        System.err.printf("Missing record count in id2entry.%n");
+        System.err.printf("The stored entry count in id2entry (%d) does " +
+            "not agree with the actual number of entry " +
+            "records found (%d).%n",
+            storedEntryCount, keyCount);
       }
     }
     finally

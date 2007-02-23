@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006 - 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -296,70 +296,12 @@ public class ID2Entry
   /**
    * Get the count of the number of entries stored.
    *
-   * @param txn A JE database transaction to be used for database access, or
-   * null if none is required.
    * @return The number of entries stored.
    *
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public long getRecordCount(Transaction txn) throws DatabaseException
+  public long getRecordCount() throws DatabaseException
   {
-    DatabaseEntry key;
-    DatabaseEntry data = new DatabaseEntry();
-
-    // The count is stored in a special record whose key is entry ID zero.
-    EntryID id = new EntryID(0);
-    key = id.getDatabaseEntry();
-
-    // Read the current count, if any.
-    OperationStatus status = EntryContainer.read(getDatabase(), txn,
-                                            key, data, LockMode.DEFAULT);
-
-    // Parse the current count.
-    long count = 0;
-    if (status == OperationStatus.SUCCESS)
-    {
-      count = JebFormat.entryIDFromDatabase(data.getData());
-    }
-
-    return count;
-  }
-
-  /**
-   * Adjust the count of the number of entries stored.
-   *
-   * @param txn A database transaction, required to be non-null if multiple
-   *            threads are calling this method concurrently.
-   * @param deltaCount Amount to increment (or decrement if negative).
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public void adjustRecordCount(Transaction txn, long deltaCount)
-       throws DatabaseException
-  {
-    DatabaseEntry key;
-    DatabaseEntry data = new DatabaseEntry();
-
-    // The count is stored in a special record whose key is entry ID zero.
-    EntryID id = new EntryID(0);
-    key = id.getDatabaseEntry();
-
-    // Read the current count, if any.
-    OperationStatus status = EntryContainer.read(getDatabase(), txn,
-                                            key, data, LockMode.RMW);
-
-    // Parse the current count.
-    long count = 0;
-    if (status == OperationStatus.SUCCESS)
-    {
-      count = JebFormat.entryIDFromDatabase(data.getData());
-    }
-
-    // Adjust the count.
-    count += deltaCount;
-
-    // Write it.
-    byte[] bytes = JebFormat.entryIDToDatabase(count);
-    data.setData(bytes);
-    EntryContainer.put(getDatabase(), txn, key, data);
+    return EntryContainer.count(getDatabase());
   }
 }
