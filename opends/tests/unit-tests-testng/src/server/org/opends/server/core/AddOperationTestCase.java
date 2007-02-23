@@ -31,6 +31,7 @@ package org.opends.server.core;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
 import org.testng.annotations.DataProvider;
@@ -1541,6 +1542,43 @@ public class AddOperationTestCase
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
+  }
+
+
+
+  /**
+   * Tests the behavior of the server when attempting to perform an add \
+   * operation with an entry containing an attribute with zero values.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testInternalAddFailureEmptyAttribute()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(false);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: o=test",
+         "objectClass: top",
+         "objectClass: organization",
+         "o: test");
+
+    Map<AttributeType,List<Attribute>> userAttrs = entry.getUserAttributes();
+
+    AttributeType attrType = DirectoryServer.getAttributeType("description");
+    ArrayList<Attribute> attrList = new ArrayList<Attribute>();
+    attrList.add(new Attribute(attrType));
+    userAttrs.put(attrType, attrList);
+
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(), userAttrs,
+                         entry.getOperationalAttributes());
+    assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
 

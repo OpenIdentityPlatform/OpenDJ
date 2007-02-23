@@ -2617,9 +2617,9 @@ public class Entry
     }
 
 
-    // Make sure all the user attributes are allowed, and make sure
-    // that if they are single-valued that they properly conform to
-    // that.
+    // Make sure all the user attributes are allowed, have at least
+    // one value, and if they are single-valued that they have exactly
+    // one value.
     for (AttributeType t : userAttributes.keySet())
     {
       boolean found = false;
@@ -2649,22 +2649,29 @@ public class Entry
         return false;
       }
 
-      if (t.isSingleValue())
+      List<Attribute> attrList = userAttributes.get(t);
+      if (attrList != null)
       {
-        List<Attribute> attrList = userAttributes.get(t);
-        if (attrList != null)
+        for (Attribute a : attrList)
         {
-          for (Attribute a : attrList)
+          LinkedHashSet<AttributeValue> values = a.getValues();
+          if (values.isEmpty())
           {
-            if (a.getValues().size() > 1)
-            {
-              int    msgID   = MSGID_ENTRY_SCHEMA_ATTR_SINGLE_VALUED;
-              String message = getMessage(msgID, String.valueOf(dn),
-                                          t.getNameOrOID());
+            int    msgID   = MSGID_ENTRY_SCHEMA_ATTR_NO_VALUES;
+            String message = getMessage(msgID, String.valueOf(dn),
+                                        t.getNameOrOID());
 
-              invalidReason.append(message);
-              return false;
-            }
+            invalidReason.append(message);
+            return false;
+          }
+          else if (t.isSingleValue() && (values.size() != 1))
+          {
+            int    msgID   = MSGID_ENTRY_SCHEMA_ATTR_SINGLE_VALUED;
+            String message = getMessage(msgID, String.valueOf(dn),
+                                        t.getNameOrOID());
+
+            invalidReason.append(message);
+            return false;
           }
         }
       }

@@ -6248,6 +6248,16 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if an entry includes an
+   * attribute with no values.  This takes two arguments, which are the DN of
+   * the entry and the name of the attribute.
+   */
+  public static final int MSGID_ENTRY_SCHEMA_ATTR_NO_VALUES =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 597;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6638,6 +6648,10 @@ public class CoreMessages
                     "configuration because it includes attribute %s which is " +
                     "not allowed by any of the objectclasses defined in that " +
                     "entry.");
+    registerMessage(MSGID_ENTRY_SCHEMA_ATTR_NO_VALUES,
+                    "Entry %s violates the Directory Server schema " +
+                    "configuration because it includes attribute %s without " +
+                    "any values.");
     registerMessage(MSGID_ENTRY_SCHEMA_ATTR_SINGLE_VALUED,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it includes multiple values for " +
