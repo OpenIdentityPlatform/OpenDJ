@@ -28,7 +28,6 @@ package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.TestErrorLogger;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.tools.LDAPModify;
@@ -50,9 +49,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
-import java.io.PrintStream;
-import java.io.FileOutputStream;
-import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -110,7 +106,7 @@ public class AciTests extends DirectoryServerTestCase {
 // TODO: Test userattr
 
   // Tests are disabled this way because a class-level @Test(enabled=false)
-  // doesn't appear to work and the aci code itself isn't checked in yet.  
+  // doesn't appear to work and the aci handler is not yet enabled.
   private static final boolean TESTS_ARE_DISABLED = true;
 
 
@@ -219,10 +215,10 @@ public class AciTests extends DirectoryServerTestCase {
 
   private static final String BIND_RULE_TODAY = "dayofweek=\"" + getThisDayOfWeek() + "\"";
   private static final String BIND_RULE_TODAY_AND_TOMORROW = "dayofweek=\"" + getThisDayOfWeek() + "," + getTomorrowDayOfWeek() + "\"";
-  private static final String BIND_RULE_NOT_TODAY = "dayofweek=\"" + getNotThisDayOfWeek() + "\""; 
+  private static final String BIND_RULE_NOT_TODAY = "dayofweek=\"" + getNotThisDayOfWeek() + "\"";
 
-  private static final String BIND_RULE_USERDN_ADMIN_AND_SSL = and(BIND_RULE_USERDN_ADMIN, BIND_RULE_AUTHMETHOD_SSL);  
-  private static final String BIND_RULE_IP_NOT_LOCALHOST_OR_USERDN_ADMIN = or(BIND_RULE_IP_NOT_LOCALHOST, BIND_RULE_USERDN_ADMIN);  
+  private static final String BIND_RULE_USERDN_ADMIN_AND_SSL = and(BIND_RULE_USERDN_ADMIN, BIND_RULE_AUTHMETHOD_SSL);
+  private static final String BIND_RULE_IP_NOT_LOCALHOST_OR_USERDN_ADMIN = or(BIND_RULE_IP_NOT_LOCALHOST, BIND_RULE_USERDN_ADMIN);
 
   private static final String BIND_RULE_ADMIN_AND_LOCALHOST_OR_SSL = and(BIND_RULE_USERDN_ADMIN, or(BIND_RULE_AUTHMETHOD_SSL, BIND_RULE_DNS_LOCALHOST));
 
@@ -233,7 +229,7 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_GROUPDN_3 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com || ldap:///cn=SomeThirdGroup,dc=example,dc=com\"";
   private static final String BIND_RULE_USERDN_FILTER = "userdn=\"ldap:///dc=example,dc=com??one?(|(ou=eng)(ou=acct))\"";
 
-  private static final String BIND_RULE_INVALID_DAY = "dayofweek=\"sumday\""; 
+  private static final String BIND_RULE_INVALID_DAY = "dayofweek=\"sumday\"";
 
   private static final String BIND_RULE_ONLY_AT_NOON = "timeofday=\"1200\"";
   private static final String BIND_RULE_NOT_AT_NOON = "timeofday!=\"1200\"";
@@ -315,7 +311,7 @@ public class AciTests extends DirectoryServerTestCase {
 
   private static final String DENY_READ_TO_TOP_LEVEL_CN_ADMINS =
           buildAciValue("name", "deny read to users with 'admin' in their cn", "targetattr", "*", "deny(read)", BIND_RULE_USERDN_TOP_LEVEL_CN_ADMINS);
-  
+
   private static final String DENY_ALL_TO_LOCALHOST =
           buildAciValue("name", "deny all to localhost", "targetattr", "*", "deny(all)", BIND_RULE_IP_LOCALHOST);
 
@@ -787,7 +783,7 @@ public class AciTests extends DirectoryServerTestCase {
       throw e;
     }
   }
-  
+
   // I'd like to make this  dependsOnMethods = {"testBasisOfInvalidityTestsAreValid(String,String,String)"}
   // but I can't figure out how.
   @Test(dataProvider = "invalidAcis")
@@ -874,7 +870,7 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String NO_ACIS_LDIF = "";
 
   // ------------------------------------------------------------
-  //  THESE ALL WILL RETURN NO RESULTS FOR ADMINS AND ANONYMOUS 
+  //  THESE ALL WILL RETURN NO RESULTS FOR ADMINS AND ANONYMOUS
   // ------------------------------------------------------------
 
   private static final String ALLOW_ALL_BASE_DENY_ALL_BASE_LDIF =
@@ -1042,7 +1038,7 @@ public class AciTests extends DirectoryServerTestCase {
   // -----------------------------------------------------------------
   //  THESE ALL WILL RETURN EVERYTHING IN AT LEAST OU=INNER FOR ADMINS
   // -----------------------------------------------------------------
-  
+
   private static final String ALLOW_ALL_BASE_TO_ADMIN =
           makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_ADMIN);
 
@@ -1089,7 +1085,7 @@ public class AciTests extends DirectoryServerTestCase {
           makeAddAciLdif(OU_BASE_DN, ALLOW_SEARCH_OU_AND_PERSON_TO_SIMPLE);
 
   // ------------------------------------------------------------
-  //  
+  //
   // ------------------------------------------------------------
 
   private static final String NO_SEARCH_RESULTS = "";
@@ -1149,7 +1145,7 @@ public class AciTests extends DirectoryServerTestCase {
             NO_ACIS_LDIF,
             ALLOW_ALL_BASE_DENY_ALL_BASE_LDIF,
             ALLOW_ALL_BASE_DENY_READ_BASE_LDIF,
-            ALLOW_READ_BASE_DENY_ALL_BASE_LDIF, 
+            ALLOW_READ_BASE_DENY_ALL_BASE_LDIF,
             ALLOW_ALL_BASE_DENY_ALL_INNER_LDIF,
             ALLOW_READ_BASE_DENY_ALL_INNER_LDIF,
             ALLOW_ALL_BASE_DENY_READ_INNER_LDIF,
@@ -1221,7 +1217,7 @@ public class AciTests extends DirectoryServerTestCase {
             ALLOW_BASE_SEARCH_OUR_ATTRS_TO_ADMIN,
             ALLOW_BASE_SEARCH_OU_AND_PERSON_TO_SIMPLE
     );
-    
+
     testParams.addSingleSearch(ADMIN_DN, OU_INNER_DN, OBJECTCLASS_STAR, SCOPE_SUB, INNER_OU_FULL_LDIF__SEARCH_TESTS);
     testParams.addSingleSearch(ADMIN_DN, OU_LEAF_DN, OBJECTCLASS_STAR, SCOPE_SUB, LEAF_OU_FULL_LDIF__SEARCH_TESTS);
     testParams.addSingleSearch(ADMIN_DN, OU_LEAF_DN, OBJECTCLASS_STAR, SCOPE_ONE, LEVEL_3_USER_LDIF__SEARCH_TESTS);

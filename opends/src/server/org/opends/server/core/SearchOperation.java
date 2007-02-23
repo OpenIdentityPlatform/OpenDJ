@@ -1652,23 +1652,6 @@ searchProcessing:
         break searchProcessing;
       }
 
-      // Check to see if the client has permission to perform the
-      // search.
-
-      // FIXME: for now assume that this will check all permission
-      // pertinent to the operation. This includes proxy authorization
-      // and any other controls specified.
-      if (AccessControlConfigManager.getInstance()
-          .getAccessControlHandler().isAllowed(this) == false) {
-        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-        int msgID = MSGID_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-        appendErrorMessage(getMessage(msgID, String.valueOf(baseDN)));
-
-        skipPostOperation = true;
-        break searchProcessing;
-      }
-
       // Check to see if there are any controls in the request.  If so, then
       // see if there is any special processing required.
       boolean       processSearch    = true;
@@ -1951,6 +1934,23 @@ searchProcessing:
         }
       }
 
+
+      // Check to see if the client has permission to perform the
+      // search.
+
+      // FIXME: for now assume that this will check all permission
+      // pertinent to the operation. This includes proxy authorization
+      // and any other controls specified.
+      if (AccessControlConfigManager.getInstance()
+          .getAccessControlHandler().isAllowed(this) == false) {
+        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+        int msgID = MSGID_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+        appendErrorMessage(getMessage(msgID, String.valueOf(baseDN)));
+
+        skipPostOperation = true;
+        break searchProcessing;
+      }
 
       // Check for and handle a request to cancel this operation.
       if (cancelRequest != null)

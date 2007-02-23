@@ -1401,6 +1401,8 @@ public class LDAPSearchTestCase
 
     String[] args =
     {
+      "-D", "cn=Directory Manager",
+      "-w", "password",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "o=test",
@@ -1413,6 +1415,8 @@ public class LDAPSearchTestCase
 
     args = new String[]
     {
+      "-D", "cn=Directory Manager",
+      "-w", "password",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "o=test",
@@ -1426,6 +1430,8 @@ public class LDAPSearchTestCase
 
     args = new String[]
     {
+      "-D", "cn=Directory Manager",
+      "-w", "password",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "o=test",

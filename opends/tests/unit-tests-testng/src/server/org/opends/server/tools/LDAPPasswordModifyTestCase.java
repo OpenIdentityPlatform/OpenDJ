@@ -339,7 +339,24 @@ public class LDAPPasswordModifyTestCase
                 "Should have been invalid because:  " + invalidReason);
   }
 
-
+  /**
+   * Add a test user.
+   */
+  private static void addTestUser() throws Exception
+  {
+    TestCaseUtils.addEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "ds-privilege-name: bypass-acl",
+         "userPassword: password");
+  }
 
   /**
    * Tests the ability to perform a self change including both the current and
@@ -353,24 +370,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -400,24 +400,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -446,24 +429,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -492,24 +458,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -537,24 +486,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -585,24 +517,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -634,24 +549,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -681,24 +579,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -727,24 +608,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -771,24 +635,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -817,24 +664,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -862,24 +692,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -912,24 +725,7 @@ public class LDAPPasswordModifyTestCase
     String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -960,24 +756,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -1011,24 +790,7 @@ public class LDAPPasswordModifyTestCase
     String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -1059,24 +821,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -1106,24 +851,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -1209,7 +937,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1221,13 +949,6 @@ public class LDAPPasswordModifyTestCase
          "cn: Test User",
          "userPassword: password",
          "ds-pwp-account-disabled: true");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -1258,24 +979,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -1306,24 +1010,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -1355,24 +1042,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {
@@ -1404,24 +1074,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addTestUser();
 
     String[] args =
     {

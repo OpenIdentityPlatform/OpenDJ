@@ -119,6 +119,7 @@ public class PasswordValidatorTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -176,6 +177,7 @@ public class PasswordValidatorTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -238,6 +240,7 @@ public class PasswordValidatorTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -294,6 +297,7 @@ public class PasswordValidatorTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -354,6 +358,7 @@ public class PasswordValidatorTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
@@ -415,6 +420,7 @@ public class PasswordValidatorTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
@@ -476,6 +482,7 @@ public class PasswordValidatorTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -553,6 +560,7 @@ public class PasswordValidatorTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -634,6 +642,7 @@ public class PasswordValidatorTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User",
+         "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
 
@@ -721,6 +730,7 @@ public class PasswordValidatorTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password",
+         "ds-privilege-name: bypass-acl",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
@@ -804,6 +814,7 @@ public class PasswordValidatorTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password",
+         "ds-privilege-name: bypass-acl",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 

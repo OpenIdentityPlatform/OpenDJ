@@ -40,6 +40,7 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.ServerConstants;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.controls.LDAPAssertionRequestControl;
@@ -1043,13 +1044,14 @@ public class TestModifyDNOperation extends OperationTestCase
     examineIncompleteOperation(modifyDNOperation);
   }
 
-  @Test(enabled = false) //FIXME: Issue 741
+  @Test
   public void testProcessedProxyAuthV2CriticalityModify() throws Exception
   {
-    ProxiedAuthV2Control authV2Control = new ProxiedAuthV2Control(
-         new ASN1OctetString("dn:cn=nonexistent,o=test"));
+    Control authV2Control =
+         new Control(ServerConstants.OID_PROXIED_AUTH_V2, false,
+                     new ASN1OctetString("dn:cn=nonexistent,o=test"));
+
     List<Control> controls = new ArrayList<Control>();
-    authV2Control.setCritical(false);
     controls.add(authV2Control);
     InvocationCounterPlugin.resetAllCounters();
 
