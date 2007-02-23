@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -97,6 +97,8 @@ public class SSLConnectionFactory
         BlindTrustManagerProvider blindTrustProvider =
             new BlindTrustManagerProvider();
         trustManagers = blindTrustProvider.getTrustManagers();
+      } else if (trustStorePath == null) {
+        trustManagers = PromptTrustManager.getTrustManagers();
       } else
       {
         trustManagers = getTrustManagers(KeyStore.getDefaultType(),
