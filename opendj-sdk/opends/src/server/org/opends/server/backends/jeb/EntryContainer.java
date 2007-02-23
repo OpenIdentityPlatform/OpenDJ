@@ -1521,8 +1521,6 @@ public class EntryContainer
         }
       }
 
-      // Increment the entry count.
-      id2entry.adjustRecordCount(txn, 1);
     }
 
     /**
@@ -2021,8 +2019,6 @@ public class EntryContainer
       id2cBuffered.flush();
       id2sBuffered.flush();
 
-      // Decrement the entry count.
-      id2entry.adjustRecordCount(txn, -getDeletedEntryCount());
     }
 
     /**
@@ -3253,7 +3249,7 @@ public class EntryContainer
    */
   public long getEntryCount() throws DatabaseException
   {
-    return id2entry.getRecordCount(null);
+    return id2entry.getRecordCount();
   }
 
   /**
@@ -3538,15 +3534,18 @@ public class EntryContainer
     // DATABASE_READ/DATABASE_WRITE
     StringBuilder builder = new StringBuilder();
     builder.append(operation);
-    if (status == OperationStatus.SUCCESS)
+    if(status != null)
     {
-      builder.append(" (ok)");
-    }
-    else
-    {
-      builder.append(" (");
-      builder.append(status.toString());
-      builder.append(")");
+      if (status == OperationStatus.SUCCESS)
+      {
+        builder.append(" (ok)");
+      }
+      else
+      {
+        builder.append(" (");
+        builder.append(status.toString());
+        builder.append(")");
+      }
     }
     builder.append(" db=");
     builder.append(database.getDatabaseName());
@@ -3734,6 +3733,21 @@ public class EntryContainer
     assert debugAccess("delete", DATABASE_WRITE,
                        status, database, txn, key, null);
     return status;
+  }
+
+  /**
+   * Get the count of key/data pairs in the database in a JE database.
+   * This is a simple wrapper around the JE Database.count method.
+   * @param database the JE database handle.
+   * @return The count of key/data pairs in the database.
+   * @throws DatabaseException If an error occurs in the JE operation.
+   */
+  public static long count(Database database) throws DatabaseException
+  {
+    long count = database.count();
+    assert debugAccess("count", DATABASE_READ, null, database,
+        null, null, null);
+    return count;
   }
 
   /**
