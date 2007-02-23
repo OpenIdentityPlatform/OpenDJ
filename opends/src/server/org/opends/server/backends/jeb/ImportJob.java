@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 - 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -581,6 +581,12 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       }
     }
 
+    // Record the entry count for each base DN.
+    for (ImportContext ic : importMap.values())
+    {
+      ID2Entry id2e = ic.getEntryContainer().getID2Entry();
+      id2e.adjustRecordCount(null, ic.getEntryInsertCount());
+    }
 
     return moreData;
   }
