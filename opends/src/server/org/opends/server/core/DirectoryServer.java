@@ -1028,14 +1028,11 @@ public class DirectoryServer
       // Initialize the group manager.
       initializeGroupManager();
 
-
-      // Initialize all the backends and their associated suffixes.
-      initializeBackends();
-
-
       // Initialize the access control handler.
       AccessControlConfigManager.getInstance().initializeAccessControl();
 
+      // Initialize all the backends and their associated suffixes.
+      initializeBackends();
 
       // Register the supported controls and supported features.
       initializeSupportedControls();
