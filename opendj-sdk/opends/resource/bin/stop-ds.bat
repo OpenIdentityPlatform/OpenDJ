@@ -32,9 +32,9 @@ set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
 set DIR_HOME=%~dP0..
 
 set RESTART=0
-set NO_ARG_OR_ONLY_RESTART=0
+set NO_ARG_OR_ONLY_RESTART=1
 
-if "%*" == "" set NO_ARG_OR_ONLY_RESTART=1
+for %%x in (%*) DO set NO_ARG_OR_ONLY_RESTART=0
 if "%NO_ARG_OR_ONLY_RESTART%" == "1" goto execute
 
 for %%x in (%*) DO if "%%x" == "-R" set RESTART=1
