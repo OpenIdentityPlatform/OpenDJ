@@ -33,6 +33,7 @@ import org.opends.server.extensions.ConfigFileHandler;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.DynamicConstants.*;
+import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -7568,6 +7569,74 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if the prompt trust
+   * manager is asked about trusting a client certificate.  This does not take
+   * any arguments.
+   */
+  public static final int MSGID_PROMPTTM_REJECTING_CLIENT_CERT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 795;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server did not
+   * present a certificate chain.  This does not take any arguments.
+   */
+  public static final int MSGID_PROMPTTM_NO_SERVER_CERT_CHAIN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 796;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server certificate
+   * is expired.  This takes a single argument, which is a string representation
+   * of the "notAfter" date.
+   */
+  public static final int MSGID_PROMPTTM_CERT_EXPIRED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 797;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server certificate
+   * is not yet valid.  This takes a single argument, which is a string
+   * representation of the "notBefore" date.
+   */
+  public static final int MSGID_PROMPTTM_CERT_NOT_YET_VALID =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 798;
+
+
+
+  /**
+   * The message ID for the message that will be used to provide details about
+   * the server certificate.  This takes four arguments, which are the string
+   * representations of the certificate's subject DN, issuer DN, validity start
+   * date, and validity end date.
+   */
+  public static final int MSGID_PROMPTTM_SERVER_CERT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 799;
+
+
+
+  /**
+   * The message ID for the message that will be used to prompt the user to
+   * enter "yes" or "no".  This does not take any arguments.
+   */
+  public static final int MSGID_PROMPTTM_YESNO_PROMPT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 800;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user rejected the
+   * certificate presented by the server.  This does not take any arguments.
+   */
+  public static final int MSGID_PROMPTTM_USER_REJECTED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 801;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -9886,6 +9955,33 @@ public class ToolMessages
     registerMessage(MSGID_LISTBACKENDS_CANNOT_DETERMINE_BASES_FOR_BACKEND,
                     "Unable to determine the set of base DNs defined in " +
                     "backend configuration entry %s:  %s.");
+
+
+    registerMessage(MSGID_PROMPTTM_REJECTING_CLIENT_CERT,
+                    "Rejecting client certificate chain because the prompt " +
+                    "trust manager may only be used to trust server " +
+                    "certificates.");
+    registerMessage(MSGID_PROMPTTM_NO_SERVER_CERT_CHAIN,
+                    "WARNING:  The server did not present a certificate " +
+                    "chain.  Do you still wish to attempt connecting to the " +
+                    "target server?");
+    registerMessage(MSGID_PROMPTTM_CERT_EXPIRED,
+                    "WARNING:  The server certificate is expired (expiration " +
+                    "time:  %s).");
+    registerMessage(MSGID_PROMPTTM_CERT_NOT_YET_VALID,
+                    "WARNING:  The server certificate will not be valid " +
+                    "until %s.");
+    registerMessage(MSGID_PROMPTTM_SERVER_CERT,
+                    "The server is using the following certificate:  " + EOL +
+                    "    Subject DN:  %s" + EOL +
+                    "    Issuer DN:  %s" + EOL +
+                    "    Validity:  %s through %s" + EOL +
+                    "Do you wish to trust this certificate and continue " +
+                    "connecting to the server?");
+    registerMessage(MSGID_PROMPTTM_YESNO_PROMPT,
+                    "Please enter \"yes\" or \"no\":  ");
+    registerMessage(MSGID_PROMPTTM_USER_REJECTED,
+                    "The server certificate has been rejected by the user.");
   }
 }
 
