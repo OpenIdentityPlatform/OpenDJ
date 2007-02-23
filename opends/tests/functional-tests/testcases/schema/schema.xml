@@ -32,7 +32,11 @@
   <function name="main_schema">
 
     <sequence>
-    
+
+      <script>
+        CurrentTestPath['group']='schema'
+      </script>
+          
       <call function="'testGroup_Preamble'"/>
 
       <parallel>

@@ -295,8 +295,8 @@
       Performs all the preoperations for a test case
     </function-prolog>
     <function-no-args />
-    <sequence>
-      <call function="'testCase_StartBanner'" />
+      <sequence>
+        <call function="'testCase_StartBanner'" />
     </sequence>
   </function>
 
@@ -316,7 +316,28 @@
     </function-prolog>
     <function-no-args />
     <sequence>
-      <message>'Enter test suite preamble'</message>
+
+      <!-- Take the values from the current test path -->     
+      <script>
+        if not CurrentTestPath.has_key('group'):
+          CurrentTestPath['group']='unknown-group'
+                   
+        if not CurrentTestPath.has_key('suite'):
+          CurrentTestPath['suite']='unknown-suite'
+          
+        ThisGroupName=CurrentTestPath['group']  
+        ThisSuiteName=CurrentTestPath['suite']
+      </script>
+
+      <!-- Start time of test suite -->      
+      <script>
+        TestSuiteStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+      </script>
+          
+      <message>
+        '### %s/%s suite preamble ###' % (ThisGroupName,ThisSuiteName)
+      </message>
+        
     </sequence>
   </function>
 
@@ -326,7 +347,50 @@
     </function-prolog>
     <function-no-args />
     <sequence>
-      <message>'Enter test suite postamble'</message>
+    
+      <!-- Take the values from the current test path -->     
+      <script>
+        if CurrentTestPath.has_key('suite'):
+          ThisSuiteName=CurrentTestPath['suite']
+        else:
+          ThisSuiteName='unknown-suite'
+          
+        if CurrentTestPath.has_key('group'):
+          ThisGroupName=CurrentTestPath['group']
+        else:
+          ThisGroupName='unknown-group'
+      </script>
+    
+      <message>
+        '### %s/%s suite postamble ###' % (ThisGroupName,ThisSuiteName)
+      </message>
+
+      <!-- Start time of test suite -->      
+      <script>
+        TestSuiteEndTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+      </script>
+      
+      <!-- Format the test group and suite names to create folder -->
+      <script>        
+        FormattedTestcase=format_testcase()
+        FormattedTestgroup=FormattedTestcase.group(ThisGroupName)         
+        FormattedTestsuite=FormattedTestcase.suite(ThisSuiteName)
+             
+        TestLogDir= '%s/%s' % (LogDir,FormattedTestgroup)
+        TestLogFile='%s/%s' % (TestLogDir,FormattedTestsuite) 
+      </script>
+                  
+      <call function="'WriteLogsForTestCase'">
+        { 'starttime' : TestSuiteStartTime,
+          'endtime'   : TestSuiteEndTime,
+          'tofile'    : TestLogFile }
+      </call>
+
+      <script>
+        if CurrentTestPath.has_key('suite'):
+           del CurrentTestPath['suite']
+      </script>
+              
     </sequence>
   </function>
 
@@ -336,7 +400,17 @@
     </function-prolog>
     <function-no-args />
     <sequence>
-      <message>'Enter test group postamble'</message>
+    
+      <!-- Take the values from the current test path -->     
+      <script>
+        if not CurrentTestPath.has_key('group'):
+          CurrentTestPath['group']='unknown-group'
+        
+        ThisGroupName=CurrentTestPath['group']          
+      </script>
+      
+      <message>'### %s group preamble ###' % ThisGroupName</message>
+      
     </sequence>
   </function>
 
@@ -346,7 +420,108 @@
     </function-prolog>
     <function-no-args />
     <sequence>
-      <message>'Enter test group postamble'</message>
+    
+      <script>
+        if CurrentTestPath.has_key('group'):
+          ThisGroupName=CurrentTestPath['group']
+        else:
+          ThisGroupName='unknown-group'
+      </script>
+      
+      <message>'### %s group postamble ###' % ThisGroupName</message>
+      
+      <script>
+        if CurrentTestPath.has_key('group'):
+          del CurrentTestPath['group']
+      </script>
+      
     </sequence>
   </function>
+  
+  <function name="WriteLogsForTestCase">
+
+    <function-prolog>
+      Queries the staf logs for the test case and write to file as text
+    </function-prolog>
+
+    <function-map-args>
+      <function-required-arg name="starttime">
+        timestamp to start logging from
+      </function-required-arg>
+      <function-required-arg name="endtime">
+        timestamp to start logging from
+      </function-required-arg>
+      <function-required-arg name="tofile">
+        timestamp to start logging from
+      </function-required-arg>
+    </function-map-args>
+
+    <sequence>
+
+      <call function="'queryLogs'">
+        { 'hostname'  : STAXServiceMachine,
+          'logname'   : 'STAX_Job_%s_User' % STAXJobID, 
+          'startfrom' : starttime,
+          'endat'     : endtime }
+      </call>
+
+      <call function="'WriteLogs'">
+        { 'queryresult' : STAFResult, 
+          'logfile'     : tofile }
+      </call>
+
+    </sequence>
+
+  </function>
+
+  <function name="WriteLogs">
+
+    <function-prolog>
+      Process staf log query results and write them to a file
+    </function-prolog>
+
+    <function-map-args>
+      <function-required-arg name="queryresult">
+        result of the staf log query
+      </function-required-arg>
+      <function-required-arg name="logfile">
+        name of the log file to where results are written
+      </function-required-arg>
+    </function-map-args>
+
+    <sequence>
+
+      <message>'Creating test log %s' % logfile</message>
+     
+      <script>
+        NewLogDir=posixpath.dirname(logfile)
+      </script>
+      
+      <call function="'CreateFolder'">
+        { 'hostname'   : STAXServiceMachine, 
+          'foldername' : NewLogDir }
+      </call>
+
+      <script>
+        testlogfh=open(logfile,'w')
+      </script>
+           
+      <message>'Writing query result'</message>
+      <iterate var="element" in="queryresult">
+        <script>
+          level=element['level'] 
+          message=element['message']
+          timestamp=element['timestamp']
+
+          testlogfh.write('%s %s %s\n' % (timestamp,level,message))
+        </script>
+
+      </iterate>
+
+      <script>testlogfh.close()</script>
+
+    </sequence>
+
+  </function>
+
 </stax>

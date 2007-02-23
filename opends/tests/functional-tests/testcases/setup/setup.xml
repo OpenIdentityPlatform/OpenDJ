@@ -32,7 +32,7 @@
   <function name="main_setup">
 
     <sequence>
-
+      
       <!-- Delete any existing files -->
       <message>'Delete temporary staging area'</message>
       <call function="'deletefolder'">

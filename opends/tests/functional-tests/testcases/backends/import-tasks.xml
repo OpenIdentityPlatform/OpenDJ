@@ -33,7 +33,11 @@
   <function name="main_import-tasks">
 
     <sequence>
-    
+
+      <script>
+        CurrentTestPath['suite']='import-tasks'
+      </script>
+          
       <call function="'testSuite_Preamble'"/>
     
       <parallel>

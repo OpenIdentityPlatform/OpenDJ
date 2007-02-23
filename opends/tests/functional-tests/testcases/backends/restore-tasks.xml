@@ -33,7 +33,11 @@
   <function name="main_restore-tasks">
 
     <sequence>
-    
+
+      <script>
+        CurrentTestPath['suite']='restore-tasks'
+      </script>
+          
       <call function="'testSuite_Preamble'"/>
 
       <!--- Test Suite information

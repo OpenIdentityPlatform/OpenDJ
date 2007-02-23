@@ -33,7 +33,11 @@
   <function name="main_backup-tasks">
 
     <sequence>
-    
+
+      <script>
+        CurrentTestPath['suite']='backup-tasks'
+      </script>
+          
       <call function="'testSuite_Preamble'"/>
 
          <!--- Start DS -->

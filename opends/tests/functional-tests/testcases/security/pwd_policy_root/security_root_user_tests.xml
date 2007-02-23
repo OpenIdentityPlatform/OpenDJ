@@ -31,101 +31,102 @@
 
   <function name="root_user_tests">
 
-      <sequence>
+    <sequence>
 
-        <!--- Check Existence of ds-cfg-default-password-storage-scheme Attr -->
-        <testcase name="'Security: Pwd Policy Root: Default Pwd Scheme'">
-          <sequence>
-            <call function="'testCase_Preamble'"/>
-            <message>
-               'Security: Pwd Policy Root: Checking default value ds-cfg-default-password-storage-scheme'
-            </message>
+      <!--- Check Existence of ds-cfg-default-password-storage-scheme Attr -->
+      <testcase name="'Security: Pwd Policy Root: Default Pwd Scheme'">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Security: Pwd Policy Root: Checking default value ds-cfg-default-password-storage-scheme'
+          </message>
 
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : 'cn=Root Password Policy,cn=Password Policies,cn=config' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'ds-cfg-default-password-storage-scheme' }
-            </call>
+          <call function="'SearchObject'">
+            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'         : 'cn=Root Password Policy,cn=Password Policies,cn=config' ,
+              'dsFilter'         : 'objectclass=*'  ,
+              'attributes'       : 'ds-cfg-default-password-storage-scheme' }
+          </call>
 
-            <script> 
-             returnString = STAXResult[0][1]
-            </script> 
+          <script> 
+           returnString = STAXResult[0][1]
+          </script> 
 
-            <call function="'checktestString'">
-                { 'returnString'       : returnString ,
-                  'expectedString'     : 'SSHA' }
-            </call>
-            
-            <call function="'testCase_Postamble'"/>
+          <call function="'checktestString'">
+              { 'returnString'       : returnString ,
+                'expectedString'     : 'SSHA' }
+          </call>
           
-          </sequence>
-        </testcase>
+          <call function="'testCase_Postamble'"/>
+        
+        </sequence>
+      </testcase>
 
-        <!--- Check Existence of ds-cfg-password-generator-dn Attr -->
-        <testcase name="'Security: Pwd Policy Root: No Default Pwd Generator'">
-          <sequence>
-            <call function="'testCase_Preamble'"/>
-            <message>
-               'Security: Pwd Policy Root: Checking for ds-cfg-password-generator-dn'
-            </message>
+      <!--- Check Existence of ds-cfg-password-generator-dn Attr -->
+      <testcase name="'Security: Pwd Policy Root: No Default Pwd Generator'">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Security: Pwd Policy Root: Checking for ds-cfg-password-generator-dn'
+          </message>
 
-            <call function="'compareEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-password-generator-dn:cn=anything',
-                'entryToBeCompared'   : 'cn=Root Password Policy,cn=Password Policies,cn=config' }
-            </call>
+          <call function="'compareEntry'">
+            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'attrToBeCompared'   : 'ds-cfg-password-generator-dn:cn=anything',
+              'entryToBeCompared'   : 'cn=Root Password Policy,cn=Password Policies,cn=config' }
+          </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 16 }
-            </call>
-            
-            <call function="'testCase_Postamble'"/>
-            
-          </sequence>
-        </testcase>
-
-       <!--- Check Existence of ds-cfg-password-change-requires-current-password Attr -->
-        <testcase name="'Security: Pwd Policy Root: Default Pwd Change Setting'">
-          <sequence>
-            <call function="'testCase_Preamble'"/>
-            <message>
-               'Security: Pwd Policy Root: Checking default value ds-cfg-password-change-requires-current-password'
-            </message>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : 'cn=Root Password Policy,cn=Password Policies,cn=config' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'ds-cfg-password-change-requires-current-password' }
-            </call>
-
-            <script> 
-             returnString = STAXResult[0][1]
-            </script> 
-
-            <call function="'checktestString'">
-                { 'returnString'       : returnString ,
-                  'expectedString'     : 'true' }
-            </call>
-            
-            <call function="'testCase_Postamble'"/>
+          <call function="'checktestRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult ,
+                'expected'   : 16 }
+          </call>
           
-          </sequence>
-        </testcase>
+          <call function="'testCase_Postamble'"/>
+          
+        </sequence>
+      </testcase>
 
-     </sequence>
+     <!--- Check Existence of ds-cfg-password-change-requires-current-password Attr -->
+      <testcase name="'Security: Pwd Policy Root: Default Pwd Change Setting'">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Security: Pwd Policy Root: Checking default value ds-cfg-password-change-requires-current-password'
+          </message>
+
+          <call function="'SearchObject'">
+            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'         : 'cn=Root Password Policy,cn=Password Policies,cn=config' ,
+              'dsFilter'         : 'objectclass=*'  ,
+              'attributes'      : 'ds-cfg-password-change-requires-current-password' }
+          </call>
+
+          <script> 
+           returnString = STAXResult[0][1]
+          </script> 
+
+          <call function="'checktestString'">
+              { 'returnString'       : returnString ,
+                'expectedString'     : 'true' }
+          </call>
+          
+          <call function="'testCase_Postamble'"/>
+        
+        </sequence>
+        
+      </testcase>
+
+    </sequence>
 
   </function>
 
