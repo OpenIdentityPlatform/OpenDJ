@@ -23,10 +23,11 @@
 #      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 #
 
-dn: cn=JKS,cn=Key Manager Providers,cn=config
+dn: cn=JKS,cn=Trust Manager Providers,cn=config
 changetype: modify
-replace: ds-cfg-key-manager-provider-enabled
-ds-cfg-key-manager-provider-enabled: true
+replace: ds-cfg-trust-manager-provider-class
+ds-cfg-trust-manager-provider-class: org.opends.server.extensions.FileBasedTrustManagerProvider
 -
-replace: ds-cfg-key-store-pin
-ds-cfg-key-store-pin: servercert
+replace: ds-cfg-trust-manager-provider-enabled
+ds-cfg-trust-manager-provider-enabled: false
+
