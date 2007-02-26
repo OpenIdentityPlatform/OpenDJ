@@ -622,7 +622,8 @@ UninstallProgressUpdateListener
       {
         try
         {
-          String cmd = Utils.isWindows()?"statuspanel.bat":"statuspanel";
+          String cmd = Utils.isWindows()?Utils.getWindowsStatusPanelFileName():
+              Utils.getUnixStatusPanelFileName();
           String serverPath;
           if (Utils.isWebStart())
           {
@@ -632,7 +633,8 @@ UninstallProgressUpdateListener
           {
             serverPath = Utils.getInstallPathFromClasspath();
           }
-          cmd = Utils.getPath(serverPath, "bin"+File.separator+cmd);
+          cmd = Utils.getPath(serverPath, Utils.getBinariesRelativePath()+
+                  File.separator+cmd);
           ProcessBuilder pb = new ProcessBuilder(new String[]{cmd});
           Map<String, String> env = pb.environment();
           env.put("JAVA_HOME", System.getProperty("java.home"));

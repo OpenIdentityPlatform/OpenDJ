@@ -39,10 +39,6 @@ import org.opends.statuspanel.i18n.ResourceProvider;
  */
 public class StatusPanelLauncher
 {
-  private static String COMMAND_NAME_WINDOWS = "statuspanel.bat";
-
-  private static String COMMAND_NAME_UNIX = "statuspanel";
-
   /**
    * The main method which is called by the control panel command lines.
    * @param args the arguments passed by the command lines.
@@ -124,10 +120,10 @@ public class StatusPanelLauncher
     String arg;
     if (Utils.isWindows())
     {
-      arg = COMMAND_NAME_WINDOWS;
+      arg = Utils.getWindowsStatusPanelFileName();
     } else
     {
-      arg = COMMAND_NAME_UNIX;
+      arg = Utils.getUnixStatusPanelFileName();
     }
     /*
      * This is required because the usage message contains '{' characters that

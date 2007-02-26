@@ -658,10 +658,12 @@ StatusPanelButtonListener
 
     if (Utils.isWindows())
     {
-      argList.add(Utils.getPath(getBinariesPath(), "stop-ds.bat"));
+      argList.add(Utils.getPath(getBinariesPath(),
+              Utils.getWindowsStopFileName()));
     } else
     {
-      argList.add(Utils.getPath(getBinariesPath(), "stop-ds"));
+      argList.add(Utils.getPath(getBinariesPath(),
+              Utils.getUnixStopFileName()));
     }
     String[] args = new String[argList.size()];
     argList.toArray(args);

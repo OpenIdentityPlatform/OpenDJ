@@ -43,10 +43,6 @@ import org.opends.quicksetup.util.Utils;
  */
 public class UninstallLauncher
 {
-  private static String COMMAND_NAME_WINDOWS = "uninstall.bat";
-
-  private static String COMMAND_NAME_UNIX = "uninstall";
-
   /**
    * The main method which is called by the uninstall command lines.
    * @param args the arguments passed by the command lines.
@@ -183,10 +179,10 @@ public class UninstallLauncher
     String arg;
     if (Utils.isWindows())
     {
-      arg = COMMAND_NAME_WINDOWS;
+      arg = Utils.getWindowsUninstallFileName();
     } else
     {
-      arg = COMMAND_NAME_UNIX;
+      arg = Utils.getUnixUninstallFileName();
     }
     /*
      * This is required because the usage message contains '{' characters that
