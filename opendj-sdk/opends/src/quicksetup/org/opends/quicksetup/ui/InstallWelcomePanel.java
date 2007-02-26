@@ -71,7 +71,8 @@ class InstallWelcomePanel extends QuickSetupStepPanel
     {
       msgKey = "welcome-panel-webstart-instructions";
       args = new String[3];
-      String cmd = Utils.isWindows()?"setup.bat":"setup";
+      String cmd = Utils.isWindows()?Utils.getWindowsSetupFileName():
+          Utils.getUnixSetupFileName();
       args[0] = UIFactory.applyFontToHtml(cmd,
           UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
       args[1] = org.opends.server.util.DynamicConstants.COMPACT_VERSION_STRING;

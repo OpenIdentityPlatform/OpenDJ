@@ -152,9 +152,6 @@ public class OfflineInstaller extends Installer
       status = InstallProgressStep.FINISHED_SUCCESSFULLY;
       notifyListeners(null);
 
-      if (false)
-        throw new InstallException(InstallException.Type.DOWNLOAD_ERROR,
-            getMsg("error-zipinputstreamnull"), null);
     } catch (InstallException ex)
     {
       if (ex.getCause() != null)

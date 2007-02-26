@@ -117,6 +117,66 @@ public class Utils
    */
   private static final String CONFIG_FILE_PATH_RELATIVE = "config/config.ldif";
 
+  /**
+   * The UNIX setup script file name.
+   */
+  private static final String UNIX_SETUP_FILE_NAME = "setup";
+
+  /**
+   * The Windows setup batch file name.
+   */
+  private static final String WINDOWS_SETUP_FILE_NAME = "setup.bat";
+
+  /**
+   * The UNIX uninstall script file name.
+   */
+  private static final String UNIX_UNINSTALL_FILE_NAME = "uninstall";
+
+  /**
+   * The Windows uninstall batch file name.
+   */
+  private static final String WINDOWS_UNINSTALL_FILE_NAME = "uninstall.bat";
+
+  /**
+   * The UNIX start script file name.
+   */
+  private static final String UNIX_START_FILE_NAME = "start-ds";
+
+  /**
+   * The Windows start batch file name.
+   */
+  private static final String WINDOWS_START_FILE_NAME = "start-ds.bat";
+
+  /**
+   * The UNIX stop script file name.
+   */
+  private static final String UNIX_STOP_FILE_NAME = "stop-ds";
+
+  /**
+   * The Windows stop batch file name.
+   */
+  private static final String WINDOWS_STOP_FILE_NAME = "stop-ds.bat";
+
+  /**
+   * The UNIX status panel script file name.
+   */
+  private static final String UNIX_STATUSPANEL_FILE_NAME = "statuspanel";
+
+  /**
+   * The Windows status panel batch file name.
+   */
+  private static final String WINDOWS_STATUSPANEL_FILE_NAME = "statuspanel.bat";
+
+  /**
+   * The UNIX status command line script file name.
+   */
+  private static final String UNIX_STATUSCLI_FILE_NAME = "status";
+
+  /**
+   * The Windows status command line batch file name.
+   */
+  private static final String WINDOWS_STATUSCLI_FILE_NAME = "status.bat";
+
   private Utils()
   {
   }
@@ -1087,6 +1147,114 @@ public class Utils
   public static String getConfigRelativePath()
   {
     return CONFIG_PATH_RELATIVE;
+  }
+
+  /**
+   * Returns the name of the UNIX setup script file name.
+   * @return the name of the UNIX setup script file name.
+   */
+  public static String getUnixSetupFileName()
+  {
+    return UNIX_SETUP_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the Windows setup batch file name.
+   * @return the name of the Windows setup batch file name.
+   */
+  public static String getWindowsSetupFileName()
+  {
+    return WINDOWS_SETUP_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the UNIX uninstall script file name.
+   * @return the name of the UNIX uninstall script file name.
+   */
+  public static String getUnixUninstallFileName()
+  {
+    return UNIX_UNINSTALL_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the Windows uninstall batch file name.
+   * @return the name of the Windows uninstall batch file name.
+   */
+  public static String getWindowsUninstallFileName()
+  {
+    return WINDOWS_UNINSTALL_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the UNIX start script file name.
+   * @return the name of the UNIX start script file name.
+   */
+  public static String getUnixStartFileName()
+  {
+    return UNIX_START_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the Windows start batch file name.
+   * @return the name of the Windows start batch file name.
+   */
+  public static String getWindowsStartFileName()
+  {
+    return WINDOWS_START_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the UNIX stop script file name.
+   * @return the name of the UNIX stop script file name.
+   */
+  public static String getUnixStopFileName()
+  {
+    return UNIX_STOP_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the Windows stop batch file name.
+   * @return the name of the Windows stop batch file name.
+   */
+  public static String getWindowsStopFileName()
+  {
+    return WINDOWS_STOP_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the UNIX status panel script file name.
+   * @return the name of the UNIX status panel script file name.
+   */
+  public static String getUnixStatusPanelFileName()
+  {
+    return UNIX_STATUSPANEL_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the Windows status panel batch file name.
+   * @return the name of the Windows status panel batch file name.
+   */
+  public static String getWindowsStatusPanelFileName()
+  {
+    return WINDOWS_STATUSPANEL_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the UNIX status command line script file name.
+   * @return the name of the UNIX status command line script file name.
+   */
+  public static String getUnixStatusCliFileName()
+  {
+    return UNIX_STATUSCLI_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the Windows status command line batch file name.
+   * @return the name of the Windows status command line batch file name.
+   */
+  public static String getWindowsStatusCliFileName()
+  {
+    return WINDOWS_STATUSCLI_FILE_NAME;
   }
 
   /**

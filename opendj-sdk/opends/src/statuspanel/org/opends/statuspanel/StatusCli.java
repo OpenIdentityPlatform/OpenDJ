@@ -74,10 +74,6 @@ class StatusCli
    */
   static int BUG = 2;
 
-  private static String COMMAND_NAME_WINDOWS = "status.bat";
-
-  private static String COMMAND_NAME_UNIX = "status";
-
   /**
    * The main method which is called by the status command lines.
    * @param args the arguments passed by the status command lines.
@@ -339,10 +335,10 @@ class StatusCli
     String arg;
     if (Utils.isWindows())
     {
-      arg = COMMAND_NAME_WINDOWS;
+      arg = Utils.getWindowsStatusCliFileName();
     } else
     {
-      arg = COMMAND_NAME_UNIX;
+      arg = Utils.getUnixStatusCliFileName();
     }
     /*
      * This is required because the usage message contains '{' characters that

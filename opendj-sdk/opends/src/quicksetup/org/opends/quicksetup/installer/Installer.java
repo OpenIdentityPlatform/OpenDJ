@@ -870,10 +870,12 @@ public abstract class Installer
 
     if (Utils.isWindows())
     {
-      argList.add(Utils.getPath(getBinariesPath(), "start-ds.bat"));
+      argList.add(Utils.getPath(getBinariesPath(),
+              Utils.getWindowsStartFileName()));
     } else
     {
-      argList.add(Utils.getPath(getBinariesPath(), "start-ds"));
+      argList.add(Utils.getPath(getBinariesPath(),
+              Utils.getUnixStartFileName()));
     }
 
     String[] args = new String[argList.size()];
@@ -1043,11 +1045,13 @@ public abstract class Installer
     String cmd;
     if (Utils.isWindows())
     {
-      cmd = "bin"+File.separator+"statuspanel.bat";
+      cmd = Utils.getBinariesRelativePath()+File.separator+
+      Utils.getWindowsStatusPanelFileName();
     }
     else
     {
-      cmd = "bin"+File.separator+"statuspanel";
+      cmd = Utils.getBinariesRelativePath()+File.separator+
+      Utils.getUnixStatusPanelFileName();
     }
     cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
     String[] args = {formatter.getFormattedText(getInstallationPath()), cmd};

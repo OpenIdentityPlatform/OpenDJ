@@ -43,10 +43,6 @@ import org.opends.quicksetup.util.Utils;
  */
 public class InstallLauncher
 {
-  private static String COMMAND_NAME_WINDOWS = "setup.bat";
-
-  private static String COMMAND_NAME_UNIX = "setup";
-
   /**
    * The main method which is called by the setup command lines.
    * @param args the arguments passed by the command lines.  In the case
@@ -93,10 +89,10 @@ public class InstallLauncher
       String arg;
       if (Utils.isWindows())
       {
-        arg = COMMAND_NAME_WINDOWS;
+        arg = Utils.getWindowsSetupFileName();
       } else
       {
-        arg = COMMAND_NAME_UNIX;
+        arg = Utils.getUnixSetupFileName();
       }
       /*
        * This is required because the usage message contains '{' characters that
@@ -142,11 +138,11 @@ public class InstallLauncher
     if (Utils.isWindows())
     {
       System.setProperty("org.opends.server.scriptName",
-          COMMAND_NAME_WINDOWS);
+          Utils.getWindowsSetupFileName());
     } else
     {
       System.setProperty("org.opends.server.scriptName",
-          COMMAND_NAME_UNIX);
+          Utils.getUnixSetupFileName());
     }
     ArrayList<String> newArgList = new ArrayList<String>();
     if (args != null)

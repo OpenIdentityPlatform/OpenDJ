@@ -424,7 +424,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
           try
           {
             copyZipEntry(entry, basePath, zipFirstPath, zipIn,
-                ratioBeforeCompleted, ratioWhenCompleted, permissions);
+            ratioBeforeCompleted, ratioWhenCompleted, permissions);
 
           } catch (IOException ioe)
           {
@@ -625,7 +625,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     } else if (path.endsWith(".sh"))
     {
       perm = "755";
-    } else if (path.endsWith("setup") || path.endsWith("uninstall"))
+    } else if (path.endsWith(Utils.getUnixSetupFileName()) ||
+            path.endsWith(Utils.getUnixUninstallFileName()))
     {
       perm = "755";
     } else
@@ -654,4 +655,3 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     return getUserData().getServerLocation();
   }
 }
-
