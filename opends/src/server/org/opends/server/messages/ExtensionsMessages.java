@@ -4329,6 +4329,381 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * subject attribute type attribute.  It does not take any arguments.
+   */
+  public static final int MSGID_SDTUACM_DESCRIPTION_SUBJECT_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 411;
+
+
+
+  /**
+   * The message ID for the message that will be used if the configuration entry
+   * does not specify which attribute type should be used to hold certificate
+   * subjects.  This takes two arguments, which are the DN of the configuration
+   * entry and the attribute type that should be used to specify the subject
+   * attribute.
+   */
+  public static final int MSGID_SDTUACM_NO_SUBJECT_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 412;
+
+
+
+  /**
+   * The message ID for the message that will be used if subject attribute type
+   * does not exist in the server schema.  This takes two arguments, which are
+   * the DN of the configuration entry and the name of the specified attribute
+   * type.
+   */
+  public static final int MSGID_SDTUACM_NO_SUCH_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 413;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine the subject attribute type.  This takes two arguments,
+   * which are the DN of the configuration entry and a string representation of
+   * the exception that was caught.
+   */
+  public static final int MSGID_SDTUACM_CANNOT_GET_SUBJECT_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 414;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * search base DN attribute.  It does not take any arguments.
+   */
+  public static final int MSGID_SDTUACM_DESCRIPTION_BASE_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 415;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine the search base DN.  This takes two arguments,
+   * which are the DN of the configuration entry and a string representation of
+   * the exception that was caught.
+   */
+  public static final int MSGID_SDTUACM_CANNOT_GET_BASE_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 416;
+
+
+
+  /**
+   * The message ID for the message that will be used if the client did not
+   * present any certificate to the server.  This does not take any arguments.
+   */
+  public static final int MSGID_SDTUACM_NO_PEER_CERTIFICATE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 417;
+
+
+
+  /**
+   * The message ID for the message that will be used if the client certificate
+   * was not an X.509 certificate.  This takes a single argument, which is the
+   * name of the certificate format.
+   */
+  public static final int MSGID_SDTUACM_PEER_CERT_NOT_X509 =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 418;
+
+
+
+  /**
+   * The message ID for the message that will be used if multiple user entries
+   * matched the specified certificate subject.  This takes three arguments,
+   * which are the certificate subject and the DNs of the first two users found
+   * to match that subject.
+   */
+  public static final int MSGID_SDTUACM_MULTIPLE_MATCHING_ENTRIES =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 419;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * attribute map attribute.  It does not take any arguments.
+   */
+  public static final int MSGID_SATUACM_DESCRIPTION_ATTR_MAP =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 420;
+
+
+
+  /**
+   * The message ID for the message that will be used if the configuration entry
+   * does not specify which attribute type should be used to map certificate
+   * attributes to user attributes.  This takes two arguments, which are the DN
+   * of the configuration entry and the attribute type that should be used to
+   * specify the mapping.
+   */
+  public static final int MSGID_SATUACM_NO_MAP_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 421;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attribute map value
+   * has an invalid format.  This takes two arguments, which are the DN of the
+   * configuration entry and the invalid map value.
+   */
+  public static final int MSGID_SATUACM_INVALID_MAP_FORMAT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 422;
+
+
+
+  /**
+   * The message ID for the message that will be used if there are multiple
+   * mappings that target the same certificate attribute.  This takes two
+   * arguments, which are the DN of the configuration entry and the name of the
+   * certificate attribute.
+   */
+  public static final int MSGID_SATUACM_DUPLICATE_CERT_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 423;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attribute mapping
+   * references a user attribute that is not defined in the server schema.
+   * This takes two argumetns, which are the DN of the configuration entry and
+   * the name of the undefined user attribute.
+   */
+  public static final int MSGID_SATUACM_NO_SUCH_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 424;
+
+
+
+  /**
+   * The message ID for the message that will be used if there are multiple
+   * mappings that target the same user attribute.  This takes two arguments,
+   * which are the DN of the configuration entry and the name of the user
+   * attribute.
+   */
+  public static final int MSGID_SATUACM_DUPLICATE_USER_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 425;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to process the attribute mapping.  This takes two arguments,
+   * which are the DN of the configuration entry and a string representation of
+   * the exception that was caught.
+   */
+  public static final int MSGID_SATUACM_CANNOT_GET_ATTR_MAP =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 426;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * search base DN attribute.  It does not take any arguments.
+   */
+  public static final int MSGID_SATUACM_DESCRIPTION_BASE_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 427;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to process the set of base DNs.  This takes two arguments,
+   * which are the DN of the configuration entry and a string representation of
+   * the exception that was caught.
+   */
+  public static final int MSGID_SATUACM_CANNOT_GET_BASE_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 428;
+
+
+
+  /**
+   * The message ID for the message that will be used if the client did not
+   * present any certificate to the server.  This does not take any arguments.
+   */
+  public static final int MSGID_SATUACM_NO_PEER_CERTIFICATE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 429;
+
+
+
+  /**
+   * The message ID for the message that will be used if the client certificate
+   * was not an X.509 certificate.  This takes a single argument, which is the
+   * name of the certificate format.
+   */
+  public static final int MSGID_SATUACM_PEER_CERT_NOT_X509 =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 430;
+
+
+
+  /**
+   * The message ID for the message that will be used if the peer certificate
+   * subject cannot be decoded as a DN.  This takes two arguments, which are
+   * the peer certificate subject and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_SATUACM_CANNOT_DECODE_SUBJECT_AS_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 431;
+
+
+
+  /**
+   * The message ID for the message that will be used if a peer certificate
+   * subject does not contain any mappable attributes.  This takes a single
+   * argument, which is the peer certificate subject.
+   */
+  public static final int MSGID_SATUACM_NO_MAPPABLE_ATTRIBUTES =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 432;
+
+
+
+  /**
+   * The message ID for the message that will be used if multiple user entries
+   * matched the specified certificate subject.  This takes three arguments,
+   * which are the certificate subject and the DNs of the first two users found
+   * to match that subject.
+   */
+  public static final int MSGID_SATUACM_MULTIPLE_MATCHING_ENTRIES =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 433;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * fingerprint attribute type attribute.  It does not take any arguments.
+   */
+  public static final int MSGID_FCM_DESCRIPTION_FINGERPRINT_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 434;
+
+
+
+  /**
+   * The message ID for the message that will be used if the configuration entry
+   * does not specify which attribute type should be used to hold certificate
+   * fingerprints.  This takes two arguments, which are the DN of the
+   * configuration entry and the attribute type that should be used to specify
+   * the fingerprint attribute.
+   */
+  public static final int MSGID_FCM_NO_FINGERPRINT_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 435;
+
+
+
+  /**
+   * The message ID for the message that will be used if the fingerprint
+   * attribute type does not exist in the server schema.  This takes two
+   * arguments, which are the DN of the configuration entry and the name of the
+   * specified attribute type.
+   */
+  public static final int MSGID_FCM_NO_SUCH_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 436;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine the fingerprint attribute type.  This takes two
+   * arguments, which are the DN of the configuration entry and a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_FCM_CANNOT_GET_FINGERPRINT_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 437;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * fingerprint algorithm attribute.  It does not take any arguments.
+   */
+  public static final int MSGID_FCM_DESCRIPTION_FINGERPRINT_ALGORITHM =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 438;
+
+
+
+  /**
+   * The message ID for the message that will be used if the configuration entry
+   * does not specify which digest algorithm should be used to compute
+   * fingerprints.  This takes two arguments, which are the DN of the
+   * configuration entry and the attribute type that should be used to specify
+   * the fingerprint algorithm.
+   */
+  public static final int MSGID_FCM_NO_FINGERPRINT_ALGORITHM =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 439;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine the fingerprint algorithm.  This takes two arguments,
+   * which are the DN of the configuration entry and a string  representation of
+   * the exception that was caught.
+   */
+  public static final int MSGID_FCM_CANNOT_GET_FINGERPRINT_ALGORITHM =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 440;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * search base DN attribute.  It does not take any arguments.
+   */
+  public static final int MSGID_FCM_DESCRIPTION_BASE_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 441;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine the search base DN.  This takes two arguments,
+   * which are the DN of the configuration entry and a string representation of
+   * the exception that was caught.
+   */
+  public static final int MSGID_FCM_CANNOT_GET_BASE_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 442;
+
+
+
+  /**
+   * The message ID for the message that will be used if the client did not
+   * present any certificate to the server.  This does not take any arguments.
+   */
+  public static final int MSGID_FCM_NO_PEER_CERTIFICATE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 443;
+
+
+
+  /**
+   * The message ID for the message that will be used if the client certificate
+   * was not an X.509 certificate.  This takes a single argument, which is the
+   * name of the certificate format.
+   */
+  public static final int MSGID_FCM_PEER_CERT_NOT_X509 =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 444;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to compute the fingerprint for a certificate.  This takes two
+   * arguments, which are the certificate subject and a string representation of
+   * the exception that was caught.
+   */
+  public static final int MSGID_FCM_CANNOT_CALCULATE_FINGERPRINT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 445;
+
+
+
+  /**
+   * The message ID for the message that will be used if multiple user entries
+   * matched the specified certificate fingerprint.  This takes three arguments,
+   * which are the certificate fingerprint and the DNs of the first two users
+   * found to match that fingerprint.
+   */
+  public static final int MSGID_FCM_MULTIPLE_MATCHING_ENTRIES =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 446;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6266,6 +6641,156 @@ public class ExtensionsMessages
                     "Cannot remove user %s as a member of static group %s " +
                     "because an error occurred while attempting to perform " +
                     "an internal modification to update the group:  %s.");
+
+
+    registerMessage(MSGID_SDTUACM_DESCRIPTION_SUBJECT_ATTR,
+                    "Specifies the name of the attribute type in user " +
+                    "entries that contains the subjects of the certificates " +
+                    "held by that user.  Changes to this configuration " +
+                    "attribute will take effect immediately.");
+    registerMessage(MSGID_SDTUACM_NO_SUBJECT_ATTR,
+                    "Configuration entry %s does not contain required " +
+                    "attribute %s, which is used to specify which attribute " +
+                    "should contain the subjects of the certificates held " +
+                    "by users.");
+    registerMessage(MSGID_SDTUACM_NO_SUCH_ATTR,
+                    "Configuration entry %s indicates that certificate " +
+                    "subjects should be held in attribute %s, but this " +
+                    "attribute is not defined in the server schema.");
+    registerMessage(MSGID_SDTUACM_CANNOT_GET_SUBJECT_ATTR,
+                    "An error occurred while attempting to determine which " +
+                    "attribute type should be used to hold certificate " +
+                    "subjects from configuration entry %s:  %s.");
+    registerMessage(MSGID_SDTUACM_DESCRIPTION_BASE_DN,
+                    "Specifies the base DNs below which the searches to " +
+                    "find matching user entries will be performed.  If no " +
+                    "base DN(s) are provided, then the server will search " +
+                    "below all public naming contexts.  Changes to this " +
+                    "configuration attribute will take effect immediately.");
+    registerMessage(MSGID_SDTUACM_CANNOT_GET_BASE_DN,
+                    "An error occurred while attempting to determine the " +
+                    "search base DN(s) from configuration entry %s:  %s.");
+    registerMessage(MSGID_SDTUACM_NO_PEER_CERTIFICATE,
+                    "Could not map the provided certificate chain to a user " +
+                    "entry because no peer certificate was available.");
+    registerMessage(MSGID_SDTUACM_PEER_CERT_NOT_X509,
+                    "Could not map the provided certificate chain to a user " +
+                    "because the peer certificate was not an X.509 " +
+                    "certificate (peer certificate format was %s).");
+    registerMessage(MSGID_SDTUACM_MULTIPLE_MATCHING_ENTRIES,
+                    "The certificate with subject %s could not be mapped to " +
+                    "exactly one user.  It maps to both %s and %s.");
+
+
+    registerMessage(MSGID_SATUACM_DESCRIPTION_ATTR_MAP,
+                    "Specifies the name of the attribute type in user " +
+                    "entries that defines the mapping between attributes " +
+                    "in certificate subjects and attributes in user " +
+                    "entries.  Values should be in the form " +
+                    "'certattr:userattr'.  Changes to this configuration " +
+                    "attribute will take effect immediately.");
+    registerMessage(MSGID_SATUACM_NO_MAP_ATTR,
+                    "Configuration entry %s does not contain required " +
+                    "attribute %s, which is used to specify the mappings " +
+                    "between attributes in certificate subjects and " +
+                    "attributes in user entries.");
+    registerMessage(MSGID_SATUACM_INVALID_MAP_FORMAT,
+                    "Configuration entry %s has value '%s' which violates " +
+                    "the format required for attribute mappings.  The " +
+                    "expected format is 'certattr:userattr'.");
+    registerMessage(MSGID_SATUACM_DUPLICATE_CERT_ATTR,
+                    "Configuration entry %s contains multiple mappings " +
+                    "for certificate attribute %s.");
+    registerMessage(MSGID_SATUACM_NO_SUCH_ATTR,
+                    "Mapping %s in configuration entry %s references " +
+                    "attribute %s which is not defined in the server schema.");
+    registerMessage(MSGID_SATUACM_DUPLICATE_USER_ATTR,
+                    "Configuration entry %s contains multiple mappings " +
+                    "for user attribute %s.");
+    registerMessage(MSGID_SATUACM_CANNOT_GET_ATTR_MAP,
+                    "An error occurred while attempting to determine the set " +
+                    "of attribute mappings from configuration entry %s:  %s.");
+    registerMessage(MSGID_SATUACM_DESCRIPTION_BASE_DN,
+                    "Specifies the base DNs below which the searches to " +
+                    "find matching user entries will be performed.  If no " +
+                    "base DN(s) are provided, then the server will search " +
+                    "below all public naming contexts.  Changes to this " +
+                    "configuration attribute will take effect immediately.");
+    registerMessage(MSGID_SATUACM_CANNOT_GET_BASE_DN,
+                    "An error occurred while attempting to determine the " +
+                    "search base DN(s) from configuration entry %s:  %s.");
+    registerMessage(MSGID_SATUACM_NO_PEER_CERTIFICATE,
+                    "Could not map the provided certificate chain to a user " +
+                    "entry because no peer certificate was available.");
+    registerMessage(MSGID_SATUACM_PEER_CERT_NOT_X509,
+                    "Could not map the provided certificate chain to a user " +
+                    "because the peer certificate was not an X.509 " +
+                    "certificate (peer certificate format was %s).");
+    registerMessage(MSGID_SATUACM_CANNOT_DECODE_SUBJECT_AS_DN,
+                    "Unable to decode peer certificate subject %s as a DN:  " +
+                    "%s.");
+    registerMessage(MSGID_SATUACM_NO_MAPPABLE_ATTRIBUTES,
+                    "Peer certificate subject %s does not contain any " +
+                    "attributes for which a mapping has been established.");
+    registerMessage(MSGID_SATUACM_MULTIPLE_MATCHING_ENTRIES,
+                    "The certificate with subject %s could not be mapped to " +
+                    "exactly one user.  It maps to both %s and %s.");
+
+
+    registerMessage(MSGID_FCM_DESCRIPTION_FINGERPRINT_ATTR,
+                    "Specifies the name of the attribute type in user " +
+                    "entries that contains the fingerprints of the " +
+                    "certificates held by that user.  Changes to this " +
+                    "configuration attribute will take effect immediately.");
+    registerMessage(MSGID_FCM_NO_FINGERPRINT_ATTR,
+                    "Configuration entry %s does not contain required " +
+                    "attribute %s, which is used to specify which attribute " +
+                    "should contain the fingerprints of the certificates " +
+                    "held by users.");
+    registerMessage(MSGID_FCM_NO_SUCH_ATTR,
+                    "Configuration entry %s indicates that certificate " +
+                    "fingerprints should be held in attribute %s, but this " +
+                    "attribute is not defined in the server schema.");
+    registerMessage(MSGID_FCM_CANNOT_GET_FINGERPRINT_ATTR,
+                    "An error occurred while attempting to determine which " +
+                    "attribute type should be used to hold certificate " +
+                    "fingerprints from configuration entry %s:  %s.");
+    registerMessage(MSGID_FCM_DESCRIPTION_FINGERPRINT_ALGORITHM,
+                    "Specifies the name of the digest algorithm used for " +
+                    "the certificate fingerprints.  The value should be " +
+                    "either 'MD5' or 'SHA1'.  Changes to this configuration " +
+                    "attribute will take effect immediately.");
+    registerMessage(MSGID_FCM_NO_FINGERPRINT_ALGORITHM,
+                    "Configuration entry %s does not contain required " +
+                    "attribute %s, which is used to specify which digest " +
+                    "algorithm should be used to compute certificate " +
+                    "fingerprints.");
+    registerMessage(MSGID_FCM_CANNOT_GET_FINGERPRINT_ALGORITHM,
+                    "An error occurred while attempting to determine the " +
+                    "digest algorithm from configuration entry %s:  %s.");
+    registerMessage(MSGID_FCM_DESCRIPTION_BASE_DN,
+                    "Specifies the base DNs below which the searches to " +
+                    "find matching user entries will be performed.  If no " +
+                    "base DN(s) are provided, then the server will search " +
+                    "below all public naming contexts.  Changes to this " +
+                    "configuration attribute will take effect immediately.");
+    registerMessage(MSGID_FCM_CANNOT_GET_BASE_DN,
+                    "An error occurred while attempting to determine the " +
+                    "search base DN(s) from configuration entry %s:  %s.");
+    registerMessage(MSGID_FCM_NO_PEER_CERTIFICATE,
+                    "Could not map the provided certificate chain to a user " +
+                    "entry because no peer certificate was available.");
+    registerMessage(MSGID_FCM_PEER_CERT_NOT_X509,
+                    "Could not map the provided certificate chain to a user " +
+                    "because the peer certificate was not an X.509 " +
+                    "certificate (peer certificate format was %s).");
+    registerMessage(MSGID_FCM_CANNOT_CALCULATE_FINGERPRINT,
+                    "An error occurred while attempting to calculate the " +
+                    "fingerprint for the peer certificate with subject %s:  " +
+                    "%s.");
+    registerMessage(MSGID_FCM_MULTIPLE_MATCHING_ENTRIES,
+                    "The certificate with fingerprint %s could not be mapped " +
+                    "to exactly one user.  It maps to both %s and %s.");
   }
 }
 
