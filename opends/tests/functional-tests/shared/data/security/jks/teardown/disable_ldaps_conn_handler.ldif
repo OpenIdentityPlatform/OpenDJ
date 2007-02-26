@@ -20,8 +20,11 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2006 Sun Microsystems, Inc.
+#      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 #
 
 dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
-changetype: delete
+changetype: modify
+replace: ds-cfg-connection-handler-enabled
+ds-cfg-connection-handler-enabled: false
+

@@ -20,13 +20,14 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2006 Sun Microsystems, Inc.
+#      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 #
 
-dn: cn=Trust Manager Provider,cn=SSL,cn=config
-objectClass: top
-objectclass: ds-cfg-trust-manager-provider
-cn: Trust Manager Provider
+dn: cn=JKS,cn=Trust Manager Providers,cn=config
+changetype: modify
+replace: ds-cfg-trust-manager-provider-class
 ds-cfg-trust-manager-provider-class: org.opends.server.extensions.BlindTrustManagerProvider
+-
+replace: ds-cfg-trust-manager-provider-enabled
 ds-cfg-trust-manager-provider-enabled: true
 

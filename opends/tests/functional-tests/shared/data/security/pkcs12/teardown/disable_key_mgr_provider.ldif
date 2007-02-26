@@ -20,15 +20,11 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2006 Sun Microsystems, Inc.
+#      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 #
 
-dn: cn=Key Manager Provider,cn=SSL,cn=config
+dn: cn=PKCS12,cn=Key Manager Providers,cn=config
 changetype: modify
 replace: ds-cfg-key-manager-provider-enabled
 ds-cfg-key-manager-provider-enabled: false
--
-delete: ds-cfg-key-store-type
--
-delete: ds-cfg-key-store-pin
 
