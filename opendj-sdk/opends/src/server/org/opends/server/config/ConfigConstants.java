@@ -480,6 +480,55 @@ public class ConfigConstants
 
 
   /**
+   * The name of the configuration attribute that holds the name of the
+   * attribute type that should be used when mapping a certificate fingerprint
+   * to a user entry.
+   */
+  public static final String ATTR_CERTIFICATE_FINGERPRINT_ATTR =
+       "ds-cfg-certificate-fingerprint-attribute-type";
+
+
+
+  /**
+   * The name of the configuration attribute that holds the name of the
+   * algorithm that should be used to generate the certificate fingerprint.
+   */
+  public static final String ATTR_CERTIFICATE_FINGERPRINT_ALGORITHM =
+       "ds-cfg-certificate-fingerprint-algorithm";
+
+
+
+  /**
+   * The name of the configuration attribute that holds the name of the
+   * attribute type that should be used when mapping a certificate subject to a
+   * user entry.
+   */
+  public static final String ATTR_CERTIFICATE_SUBJECT_ATTR =
+       "ds-cfg-certificate-subject-attribute-type";
+
+
+
+  /**
+   * The name of the configuration attribute that holds the name of the
+   * attribute type that should be used when mapping attributes in a certificate
+   * subject to a user entry.
+   */
+  public static final String ATTR_CERTIFICATE_SUBJECT_ATTR_MAP =
+       "ds-cfg-certificate-subject-attribute-mapping";
+
+
+
+  /**
+   * The name of the configuration attribute that holds the name of the
+   * attribute type that should be used when mapping a certificate subject to a
+   * user entry.
+   */
+  public static final String ATTR_CERTIFICATE_SUBJECT_BASEDN =
+       "ds-cfg-certificate-user-base-dn";
+
+
+
+  /**
    * The name of the configuration attribute that holds the fully-qualified name
    * of the Java class for the certificate mapper implementation.
    */

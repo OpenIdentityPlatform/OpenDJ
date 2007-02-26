@@ -759,6 +759,37 @@ public final class StaticUtils
 
   /**
    * Retrieves a string representation of the contents of the provided byte
+   * array using hexadecimal characters and a colon between each byte.
+   *
+   * @param  b  The byte array containing the data.
+   *
+   * @return  A string representation of the contents of the provided byte
+   *          array using hexadecimal characters.
+   */
+  public static String bytesToColonDelimitedHex(byte[] b)
+  {
+    if ((b == null) || (b.length == 0))
+    {
+      return "";
+    }
+
+    int arrayLength = b.length;
+    StringBuilder buffer = new StringBuilder((arrayLength - 1) * 3 + 2);
+    buffer.append(byteToHex(b[0]));
+
+    for (int i=1; i < arrayLength; i++)
+    {
+      buffer.append(":");
+      buffer.append(byteToHex(b[i]));
+    }
+
+    return buffer.toString();
+  }
+
+
+
+  /**
+   * Retrieves a string representation of the contents of the provided byte
    * buffer using hexadecimal characters and a space between each byte.
    *
    * @param  b  The byte buffer containing the data.
