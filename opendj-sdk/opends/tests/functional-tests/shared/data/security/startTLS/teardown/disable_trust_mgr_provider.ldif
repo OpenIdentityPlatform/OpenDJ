@@ -23,11 +23,11 @@
 #      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 #
 
-dn: cn=PKCS12,cn=Trust Manager Providers,cn=config
+dn: cn=JKS,cn=Trust Manager Providers,cn=config
 changetype: modify
 replace: ds-cfg-trust-manager-provider-class
-ds-cfg-trust-manager-provider-class: org.opends.server.extensions.BlindTrustManagerProvider
+ds-cfg-trust-manager-provider-class: org.opends.server.extensions.FileBasedTrustManagerProvider
 -
 replace: ds-cfg-trust-manager-provider-enabled
-ds-cfg-trust-manager-provider-enabled: true
+ds-cfg-trust-manager-provider-enabled: false
 

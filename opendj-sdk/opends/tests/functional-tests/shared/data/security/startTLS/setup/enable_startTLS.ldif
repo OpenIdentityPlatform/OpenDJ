@@ -20,11 +20,17 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2006 Sun Microsystems, Inc.
+#      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 #
 
 dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config
 changetype: modify
 replace: ds-cfg-allow-start-tls
 ds-cfg-allow-start-tls: true
+-
+replace: ds-cfg-trust-manager-provider-dn
+ds-cfg-trust-manager-provider-dn: cn=JKS,cn=Trust Manager Providers,cn=config
+-
+replace: ds-cfg-key-manager-provider-dn
+ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config
 
