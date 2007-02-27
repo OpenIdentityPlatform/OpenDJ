@@ -7567,7 +7567,6 @@ public class ToolMessages
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 794;
 
 
-
   /**
    * The message ID for the message that will be used if the prompt trust
    * manager is asked about trusting a client certificate.  This does not take
@@ -7635,6 +7634,26 @@ public class ToolMessages
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 801;
 
 
+  /**
+   * The message ID for the message that will be used when the server is
+   * already stopped.  This does not take any arguments.
+   */
+  public static final int MSGID_STOPDS_SERVER_ALREADY_STOPPED =
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 802;
+
+  /**
+   * The message ID for the message that will be used when the server is
+   * going to stopped.  This does not take any arguments.
+   */
+  public static final int MSGID_STOPDS_GOING_TO_STOP =
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 803;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * checkStoppability command-line argument.  This does not take any arguments.
+   */
+  public static final int MSGID_STOPDS_CHECK_STOPPABILITY =
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 804;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -8846,6 +8865,8 @@ public class ToolMessages
     registerMessage(MSGID_STOPDS_DESCRIPTION_RESTART,
                     "Attempt to automatically restart the server once it has " +
                     "stopped");
+    registerMessage(MSGID_STOPDS_CHECK_STOPPABILITY,
+                    "Used to determine whether the server is stopped or not.");
     registerMessage(MSGID_STOPDS_DESCRIPTION_STOP_TIME,
                     "Time to begin the shutdown in YYYYMMDDhhmmss format " +
                     "(local time)");
@@ -8907,6 +8928,10 @@ public class ToolMessages
     registerMessage(MSGID_STOPDS_INVALID_RESPONSE_TYPE,
                     "ERROR:  Expected an add response message but got a %s " +
                     "message instead.");
+    registerMessage(MSGID_STOPDS_SERVER_ALREADY_STOPPED,
+                    "Server already stopped.");
+    registerMessage(MSGID_STOPDS_GOING_TO_STOP,
+                    "Stopping Server...\n");
 
 
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_LDIF_FILE,
