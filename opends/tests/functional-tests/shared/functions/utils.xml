@@ -177,6 +177,44 @@
     </sequence>
   </function>
 
+    <function name="searchStringForSubstring">
+    <function-prolog>
+      This function simply searches a string for a substring
+    </function-prolog>
+    <function-map-args>
+      <function-required-arg name="testString">
+        the substring being tested from the command
+      </function-required-arg>
+      <function-required-arg name="returnString">
+        the return string received from command
+      </function-required-arg>
+    </function-map-args>
+
+    <sequence>
+      <script>
+        import re
+        searchre = re.compile(testString)
+      </script>
+      <if expr='re.search(searchre, returnString) == None'>
+        <sequence>
+          <script>returnCode='0'</script>
+          <message log="1">
+            'Result: Did Not Find substring, %s, in the return string' % (testString)
+          </message>
+        </sequence>
+        <else>
+          <sequence>
+            <script>returnCode='1'</script>
+            <message log="1">
+              'Result: Found substring, %s, in the return string' % (testString)
+            </message>
+          </sequence>
+        </else>
+      </if>
+      <return>returnCode</return>
+    </sequence>
+  </function>
+
   <function name="isAlive">
     <function-prolog>
       Checks that the ldap server is running
