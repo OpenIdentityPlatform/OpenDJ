@@ -27,9 +27,36 @@ rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 setlocal
 
+set PATH=%SystemRoot%
+
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.StopDS"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
 set DIR_HOME=%~dP0..
+
+:checkJavaBin
+if "%JAVA_BIN%" == "" goto noJavaBin
+goto setClassPath
+
+:noJavaBin
+if "%JAVA_HOME%" == "" goto noJavaHome
+if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
+set JAVA_BIN=%JAVA_HOME%\bin\java.exe
+goto setClassPath
+
+:noJavaHome
+if not exist "%DIR_HOME%\bin\set-java-home.bat" goto noSetJavaHome
+call "%DIR_HOME%\bin\set-java-home.bat"
+set JAVA_BIN=%JAVA_HOME%\bin\java.exe
+goto setClassPath
+
+:noSetJavaHome
+echo Error: JAVA_HOME environment variable is not set.
+echo        Please set it to a valid Java 5 installation.
+goto end
+
+:setClassPath
+FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
+
 
 set RESTART=0
 set NO_ARG_OR_ONLY_RESTART=1
@@ -67,9 +94,18 @@ goto execute
 
 :execute
 if "%NO_ARG_OR_ONLY_RESTART%" == "0" goto stopWithLDAP
+
+rem  	Use the code in StopDS class to know if the server is already
+rem  	stopped.  An exit code of 99 means that the server is stopped.
+"%JAVA_BIN%" %JAVA_ARGS% %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability
+if %errorlevel% == 99 goto serverStopped
+
 if not exist "%DIR_HOME%\logs\server.pid" goto stopWithLDAP
 "%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%"
 if not %errorlevel% == 0 goto end
+
+:serverStopped
+if exist "%DIR_HOME%\logs\server.pid" erase "%DIR_HOME%\logs\server.pid"
 if "%RESTART%" == "1" "%DIR_HOME%\bin\start-ds.bat"
 goto end
 

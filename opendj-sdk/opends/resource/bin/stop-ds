@@ -105,9 +105,11 @@ SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
 export SCRIPT_NAME_ARG
 
 
-# See if any arguments were provided and if a local PID file exists.  If there
-# were no arguments (or only the -R argument was passed) and there is a PID
-# file, then try to stop the server with a kill command.
+# If there were no arguments (or only the -R argument was passed) we assume that
+# the server to be stopped is the local server.  If this is the case we check if
+# the server is running or not.
+# If the server is running then try to stop the server with a kill command.  If
+# there are more arguments, try to stop the server using LDAP protocol.
 NO_ARG_OR_ONLY_RESTART=1
 RESTART=0
 for ARG in "${@}"
@@ -127,27 +129,60 @@ done
 
 if test ${NO_ARG_OR_ONLY_RESTART} -eq 1
 then
-  if test -f "${INSTANCE_ROOT}/logs/server.pid"
+  # Use the code in StopDS class to know if the server is already
+  # stopped.  An exit code of 99 means that the server is stopped.
+  STOPPED=0
+  "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+     org.opends.server.tools.StopDS --checkStoppability
+  EC=${?}
+  if test ${EC} -ne 99
   then
-    kill `cat "${INSTANCE_ROOT}/logs/server.pid"`
-    EXIT_CODE=${?}
-    if test "${EXIT_CODE}" -eq 0
+    STOPPED=1
+  fi
+  
+  EXIT_CODE=0
+  if test "${STOPPED}" -eq 1
+  then
+    if test -f "${INSTANCE_ROOT}/logs/server.pid"
     then
-      "${JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
-           --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
-           --logFile "${INSTANCE_ROOT}/logs/errors"
-      EXIT_CODE=${?}
-      if test "${RESTART}" -eq 1
-      then
+        kill `cat "${INSTANCE_ROOT}/logs/server.pid"`
+        EXIT_CODE=${?}
         if test "${EXIT_CODE}" -eq 0
         then
-            "${INSTANCE_ROOT}/bin/start-ds"
+            "${JAVA_BIN}" -Xms8M -Xmx8M \
+            org.opends.server.tools.WaitForFileDelete \
+            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
+            --logFile "${INSTANCE_ROOT}/logs/errors"
             EXIT_CODE=${?}
+            if test "${EXIT_CODE}" -eq 0
+            then
+                STOPPED=0
+            fi
         fi
-      fi
     fi
-    exit ${EXIT_CODE}
   fi
+  
+  # Delete the pid file if the server is stopped (this can occur if the process has
+  # been killed using kill -9).
+  if test "{$STOPPED}" -eq 0
+  then
+  	if test -f "${INSTANCE_ROOT}/logs/server.pid"
+  	then
+  		rm "${INSTANCE_ROOT}/logs/server.pid"
+    fi
+  fi
+  
+  # Now if the user wants to restart the server, try to restart it if the server
+  # is stopped.
+  if test "${RESTART}" -eq 1
+  then
+    if test "${STOPPED}" -eq 0
+    then
+        "${INSTANCE_ROOT}/bin/start-ds"
+        EXIT_CODE=${?}
+    fi
+  fi
+  exit ${EXIT_CODE}
 fi
 
 

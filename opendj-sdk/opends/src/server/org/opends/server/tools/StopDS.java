@@ -40,6 +40,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.controls.ProxiedAuthV2Control;
+import org.opends.server.core.LockFileManager;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -163,6 +164,7 @@ public class StopDS
     String toolDescription = getMessage(MSGID_STOPDS_TOOL_DESCRIPTION);
     ArgumentParser    argParser = new ArgumentParser(CLASS_NAME,
                                                      toolDescription, false);
+    BooleanArgument   checkStoppability;
     BooleanArgument   restart;
     BooleanArgument   showUsage;
     BooleanArgument   trustAll;
@@ -235,6 +237,12 @@ public class StopDS
                                       false, true, "{stopReason}", null, null,
                                       MSGID_STOPDS_DESCRIPTION_STOP_REASON);
       argParser.addArgument(stopReason);
+
+      checkStoppability = new BooleanArgument("checkstoppability", null,
+              "checkStoppability",
+              MSGID_STOPDS_CHECK_STOPPABILITY);
+      checkStoppability.setHidden(true);
+      argParser.addArgument(checkStoppability);
 
       restart = new BooleanArgument("restart", 'R', "restart",
                                     MSGID_STOPDS_DESCRIPTION_RESTART);
@@ -324,6 +332,46 @@ public class StopDS
       return LDAPResultCode.SUCCESS;
     }
 
+    if (checkStoppability.isPresent())
+    {
+      // This option should only be used if we want to check if the local
+      // server is running or not. If the server is running result code is 98.
+      // If the server is stopped the return code is 99.
+      String lockFile = LockFileManager.getServerLockFileName();
+      try
+        {
+          StringBuilder failureReason = new StringBuilder();
+          if (LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+          {
+            // The server is not running: write a message informing of that
+            // in the standard out (this is not an error message).
+            int    msgID   = MSGID_STOPDS_SERVER_ALREADY_STOPPED;
+            String message = getMessage(msgID, null, null);
+            System.out.println(message);
+            LockFileManager.releaseLock(lockFile, failureReason);
+            System.exit(99);
+          }
+          else
+          {
+            // Display a message informing that we are going to the server.
+            int    msgID   = MSGID_STOPDS_GOING_TO_STOP;
+            String message = getMessage(msgID, null, null);
+            System.out.println(message);
+            // The server is running.
+            System.exit(98);
+          }
+        }
+        catch (Exception e)
+        {
+          // Display a message informing that we are going to the server.
+          int    msgID   = MSGID_STOPDS_GOING_TO_STOP;
+          String message = getMessage(msgID, null, null);
+          System.out.println(message);
+          // Assume that if we cannot acquire the lock file the server is
+          // running.
+          System.exit(98);
+        }
+      }
 
     // If both a bind password and bind password file were provided, then return
     // an error.
@@ -480,7 +528,6 @@ public class StopDS
         else
         {
           String name  = s.substring(0, equalPos);
-          String value = s.substring(equalPos+1);
 
           if (name.equalsIgnoreCase("mech"))
           {
