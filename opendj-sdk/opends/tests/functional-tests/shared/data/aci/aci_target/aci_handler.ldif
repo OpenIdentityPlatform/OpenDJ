@@ -1,0 +1,9 @@
+dn: cn=Access Control Handler,cn=config
+changetype: modify
+replace: ds-cfg-acl-handler-class
+ds-cfg-acl-handler-class: org.opends.server.authorization.dseecompat.AciProvider
+-
+replace: ds-cfg-acl-handler-enabled
+ds-cfg-acl-handler-enabled: true
+
+
