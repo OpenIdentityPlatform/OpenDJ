@@ -374,7 +374,7 @@ ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHa
 ds-cfg-connection-handler-enabled: true
 ds-cfg-use-ssl: false
 ds-cfg-listen-port: 1689
-ds-cfg-ssl-cert-nickname: adm-server-cert
+ds-cfg-ssl-cert-nickname: server-cert
 
 dn: cn=Entry Cache,cn=config
 objectClass: top

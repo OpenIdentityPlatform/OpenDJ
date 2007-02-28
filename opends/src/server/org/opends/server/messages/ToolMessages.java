@@ -7655,6 +7655,17 @@ public class ToolMessages
   public static final int MSGID_STOPDS_CHECK_STOPPABILITY =
       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 804;
 
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * certNickname argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_CERT_NICKNAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 805;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -8117,6 +8128,8 @@ public class ToolMessages
                     "Certificate keystore PIN");
     registerMessage(MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE,
                     "Certificate keystore PIN file");
+    registerMessage(MSGID_DESCRIPTION_CERT_NICKNAME,
+                    "Nickname of certificate for SSL client authentication");
     registerMessage(MSGID_DESCRIPTION_TRUSTSTOREPASSWORD,
                     "Certificate trust store PIN");
     registerMessage(MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE,

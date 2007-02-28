@@ -32,6 +32,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.HashMap;
 
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.SSLContext;
 
@@ -47,6 +48,8 @@ import org.opends.server.extensions.NullKeyManagerProvider;
 
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogSeverity;
+
+import org.opends.server.util.SelectableCertificateKeyManager;
 
 import static org.opends.server.loggers.Debug.*;
 
@@ -320,15 +323,30 @@ public class RmiConnector
         // ---------------------
         //
         // Get a Server socket factory
+        KeyManager[] keyManagers;
         KeyManagerProvider provider = jmxConnectionHandler.keyManagerProvider;
         if (provider == null)
         {
-          provider = new NullKeyManagerProvider();
+          keyManagers = new NullKeyManagerProvider().getKeyManagers();
+        }
+        else
+        {
+          String nickname = jmxConnectionHandler.sslServerCertNickname;
+          if (nickname == null)
+          {
+            keyManagers = provider.getKeyManagers();
+          }
+          else
+          {
+            keyManagers =
+                 SelectableCertificateKeyManager.wrap(provider.getKeyManagers(),
+                                                      nickname);
+          }
         }
 
         SSLContext ctx = SSLContext.getInstance("TLSv1");
         ctx.init(
-            provider.getKeyManagers(),
+            keyManagers,
             null,
             null);
         SSLSocketFactory ssf = ctx.getSocketFactory();

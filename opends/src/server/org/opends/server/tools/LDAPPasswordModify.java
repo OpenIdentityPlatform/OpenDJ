@@ -550,7 +550,7 @@ public class LDAPPasswordModify
       {
         SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
         sslConnectionFactory.init(sslBlindTrust.isPresent(),
-                                  sslKeyStore.getValue(), keyPIN,
+                                  sslKeyStore.getValue(), keyPIN, null,
                                   sslTrustStore.getValue(), trustPIN);
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }

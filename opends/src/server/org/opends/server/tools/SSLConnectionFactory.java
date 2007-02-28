@@ -41,6 +41,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.opends.server.extensions.BlindTrustManagerProvider;
+import org.opends.server.util.SelectableCertificateKeyManager;
 
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -74,6 +75,7 @@ public class SSLConnectionFactory
    * @param  keyStorePath        The path to the key store file.
    * @param  keyStorePassword    The PIN to use to access the key store
    *                             contents.
+   * @param  clientAlias         The alias to use for the client certificate.
    * @param  trustStorePath      The path to the trust store file.
    * @param  trustStorePassword  The PIN to use to access the trust store
    *                             contents.
@@ -82,7 +84,7 @@ public class SSLConnectionFactory
    *                                  connection factory.
    */
   public void init(boolean trustAll, String keyStorePath,
-                   String keyStorePassword,
+                   String keyStorePassword, String clientAlias,
                    String trustStorePath, String trustStorePassword)
          throws SSLConnectionException
   {
@@ -108,6 +110,12 @@ public class SSLConnectionFactory
       {
         keyManagers = getKeyManagers(KeyStore.getDefaultType(), null,
                           keyStorePath, keyStorePassword);
+
+        if (clientAlias != null)
+        {
+          keyManagers = SelectableCertificateKeyManager.wrap(keyManagers,
+                                                             clientAlias);
+        }
       }
 
       ctx.init(keyManagers, trustManagers, new java.security.SecureRandom());

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -323,6 +323,7 @@ public class LDAPDelete
     IntegerArgument   version                = null;
     StringArgument    bindDN                 = null;
     StringArgument    bindPassword           = null;
+    StringArgument    certNickname           = null;
     StringArgument    controlStr             = null;
     StringArgument    encodingStr            = null;
     StringArgument    filename               = null;
@@ -414,6 +415,11 @@ public class LDAPDelete
                                  null, null,
                                  MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
       argParser.addArgument(keyStorePasswordFile);
+
+      certNickname = new StringArgument("certnickname", 'N', "certNickname",
+                                        false, false, true, "{nickname}", null,
+                                        null, MSGID_DESCRIPTION_CERT_NICKNAME);
+      argParser.addArgument(certNickname);
 
       trustStorePath = new StringArgument("trustStorePath", 'P',
                                           "trustStorePath", false, false, true,
@@ -679,10 +685,20 @@ public class LDAPDelete
       SSLConnectionFactory sslConnectionFactory = null;
       if(connectionOptions.useSSL() || connectionOptions.useStartTLS())
       {
+        String clientAlias;
+        if (certNickname.isPresent())
+        {
+          clientAlias = certNickname.getValue();
+        }
+        else
+        {
+          clientAlias = null;
+        }
+
         sslConnectionFactory = new SSLConnectionFactory();
         sslConnectionFactory.init(trustAll.isPresent(), keyStorePathValue,
-                                  keyStorePasswordValue, trustStorePathValue,
-                                  trustStorePasswordValue);
+                                  keyStorePasswordValue, clientAlias,
+                                  trustStorePathValue, trustStorePasswordValue);
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
 

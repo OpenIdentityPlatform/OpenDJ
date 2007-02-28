@@ -50,6 +50,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.SSLClientAuthPolicy;
+import org.opends.server.util.SelectableCertificateKeyManager;
 
 import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -195,8 +196,19 @@ public class TLSConnectionSecurityProvider
     {
       // FIXME -- Is it bad to create a new SSLContext for each connection?
       sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
-      sslContext.init(keyManagerProvider.getKeyManagers(),
-                      trustManagerProvider.getTrustManagers(), null);
+
+      String alias = clientConnection.getCertificateAlias();
+      if (alias == null)
+      {
+        sslContext.init(keyManagerProvider.getKeyManagers(),
+                        trustManagerProvider.getTrustManagers(), null);
+      }
+      else
+      {
+        sslContext.init(SelectableCertificateKeyManager.wrap(
+                             keyManagerProvider.getKeyManagers(), alias),
+                        trustManagerProvider.getTrustManagers(), null);
+      }
     }
     catch (Exception e)
     {

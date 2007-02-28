@@ -1488,6 +1488,24 @@ public abstract class ClientConnection
 
 
   /**
+   * Retrieves the alias of the server certificate that should be used
+   * for operations requiring a server certificate.  The default
+   * implementation returns {@code null} to indicate that any alias is
+   * acceptable.
+   *
+   * @return  The alias of the server certificate that should be used
+   *          for operations requring a server certificate, or
+   *          {@code null} if any alias is acceptable.
+   */
+  public String getCertificateAlias()
+  {
+    // In the default implementation, we'll return null.
+    return null;
+  }
+
+
+
+  /**
    * Retrieves a string representation of this client connection.
    *
    * @return  A string representation of this client connection.

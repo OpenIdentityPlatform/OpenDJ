@@ -2653,5 +2653,22 @@ public class LDAPClientConnection
 
     return connectionHandler.getTrustManagerProviderDN();
   }
+
+
+
+  /**
+   * Retrieves the alias of the server certificate that should be used
+   * for operations requiring a server certificate.  The default
+   * implementation returns {@code null} to indicate that any alias is
+   * acceptable.
+   *
+   * @return  The alias of the server certificate that should be used
+   *          for operations requring a server certificate, or
+   *          {@code null} if any alias is acceptable.
+   */
+  public String getCertificateAlias()
+  {
+    return connectionHandler.getSSLServerCertNickname();
+  }
 }
 

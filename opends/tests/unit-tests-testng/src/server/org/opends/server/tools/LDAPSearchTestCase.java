@@ -714,6 +714,116 @@ public class LDAPSearchTestCase
 
 
   /**
+   * Tests a simple LDAP search over SSL using a trust store and SASL EXTERNAL
+   * authentication when explicitly specifying a valid client certificate.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSimpleSearchSSLTrustStoreSASLExternalValidClientCert()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "givenName: Test",
+         "sn: User");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+                         e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    String keyStorePath   = DirectoryServer.getServerRoot() + File.separator +
+                            "config" + File.separator + "client.keystore";
+    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+                            "config" + File.separator + "client.truststore";
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-Z",
+      "-K", keyStorePath,
+      "-W", "password",
+      "-N", "client-cert",
+      "-P", trustStorePath,
+      "-r",
+      "-b", "",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests a simple LDAP search over SSL using a trust store and SASL EXTERNAL
+   * authentication when explicitly specifying an invalid client certificate.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSimpleSearchSSLTrustStoreSASLExternalInvalidClientCert()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "givenName: Test",
+         "sn: User");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+                         e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    String keyStorePath   = DirectoryServer.getServerRoot() + File.separator +
+                            "config" + File.separator + "client.keystore";
+    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+                            "config" + File.separator + "client.truststore";
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-Z",
+      "-K", keyStorePath,
+      "-W", "password",
+      "-N", "invalid",
+      "-P", trustStorePath,
+      "-r",
+      "-b", "",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
    * Tests a simple LDAP search using StartTLS with a trust store and SASL
    * EXTERNAL authentication.
    *
