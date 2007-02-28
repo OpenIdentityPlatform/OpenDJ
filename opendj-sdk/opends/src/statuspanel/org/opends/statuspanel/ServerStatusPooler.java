@@ -30,6 +30,7 @@ package org.opends.statuspanel;
 import java.io.File;
 import java.util.HashSet;
 
+import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.util.Utils;
 import org.opends.statuspanel.event.ServerStatusChangeEvent;
 import org.opends.statuspanel.event.ServerStatusChangeListener;
@@ -280,7 +281,7 @@ public class ServerStatusPooler
     {
       desc.setStatus(ServerStatusDescriptor.ServerStatus.STOPPING);
     }
-    else if (Utils.isServerRunning(Utils.getInstallPathFromClasspath()))
+    else if (CurrentInstallStatus.isServerRunning())
     {
       desc.setStatus(ServerStatusDescriptor.ServerStatus.STARTED);
     }

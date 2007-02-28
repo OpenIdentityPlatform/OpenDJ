@@ -30,9 +30,6 @@ package org.opends.server.tools;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -424,6 +421,29 @@ public class InstallDS
       try
       {
         ldapPortNumber = ldapPort.getIntValue();
+
+        if (! skipPortCheck.isPresent())
+        {
+          // Check if the port can be used.
+          if (!SetupUtils.canUseAsPort(ldapPortNumber))
+          {
+            int msgID;
+            String message;
+            if (SetupUtils.isPriviledgedPort(ldapPortNumber))
+            {
+              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
+              message = getMessage(msgID, ldapPortNumber);
+              System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            }
+            else
+            {
+              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
+              message = getMessage(msgID, ldapPortNumber);
+              System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            }
+            return 1;
+          }
+        }
       }
       catch (ArgumentException ae)
       {
@@ -439,45 +459,20 @@ public class InstallDS
         String message = getMessage(msgID);
         ldapPortNumber = promptForInteger(message, 389, 1, 65535);
 
-        if (! skipPortCheck.isPresent())
+        if (skipPortCheck.isPresent())
         {
-          try
+            break;
+        }
+        else
+        {
+          // Check if the port can be used.
+          if (SetupUtils.canUseAsPort(ldapPortNumber))
           {
-            InetSocketAddress socketAddress =
-                                   new InetSocketAddress(ldapPortNumber);
-            ServerSocket serverSocket = new ServerSocket();
-            serverSocket.setReuseAddress(true);
-            serverSocket.bind(socketAddress);
-            serverSocket.close();
-
-            try
-            {
-              Socket socket = new Socket("127.0.0.1", ldapPortNumber);
-              socket.close();
-              if ((ldapPortNumber <= 1024) && (! isWindows))
-              {
-                msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
-                message = getMessage(msgID, ldapPortNumber);
-                System.err.println(wrapText(message, MAX_LINE_WIDTH));
-              }
-              else
-              {
-                msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
-                message = getMessage(msgID, ldapPortNumber);
-                System.err.println(wrapText(message, MAX_LINE_WIDTH));
-              }
-
-              continue;
-            }
-            catch (Exception e)
-            {
-              // This is expected, so no action should be taken.
               break;
-            }
           }
-          catch (Exception e)
+          else
           {
-            if ((ldapPortNumber <= 1024) && (! isWindows))
+            if (SetupUtils.isPriviledgedPort(ldapPortNumber))
             {
               msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
               message = getMessage(msgID, ldapPortNumber);
@@ -489,8 +484,6 @@ public class InstallDS
               message = getMessage(msgID, ldapPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
-
-            continue;
           }
         }
       }

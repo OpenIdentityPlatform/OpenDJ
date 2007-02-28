@@ -26,15 +26,16 @@
  */
 package org.opends.server.types;
 
-
-
-import static org.opends.server.util.StaticUtils.*;
-
-
-
 /**
  * This class defines an enumeration that may be used to identify
  * the operating system on which the JVM is running.
+ *
+ * NOTE: to share code this class is used in SetupUtils and should
+ * not contain any dependency with other classes (not even with
+ * classes in this package).
+ * If this class is modified to depend on other classes it will break
+ * the quicksetup.  If this must be done, the references to this
+ * class in SetupUtils must be removed.
  */
 public enum OperatingSystem
 {
@@ -148,7 +149,7 @@ public enum OperatingSystem
     }
 
 
-    String lowerName = toLowerCase(osName);
+    String lowerName = osName.toLowerCase();
 
     if ((lowerName.indexOf("solaris") >= 0) ||
         (lowerName.indexOf("sunos") >= 0))

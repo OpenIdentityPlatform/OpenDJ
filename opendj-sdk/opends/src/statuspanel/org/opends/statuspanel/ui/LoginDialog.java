@@ -48,6 +48,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 
+import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.BackgroundTask;
@@ -535,7 +536,7 @@ public class LoginDialog extends JDialog
    */
   private boolean isServerRunning()
   {
-    return Utils.isServerRunning(Utils.getInstallPathFromClasspath());
+    return CurrentInstallStatus.isServerRunning();
   }
 
   /**

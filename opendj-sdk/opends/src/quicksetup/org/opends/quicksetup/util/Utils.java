@@ -31,7 +31,6 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -39,11 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
-import java.io.Writer;
 import java.net.ConnectException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -62,6 +57,7 @@ import javax.swing.JOptionPane;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.installer.webstart.JnlpProperties;
+import org.opends.server.util.SetupUtils;
 
 
 /**
@@ -229,51 +225,7 @@ public class Utils
    */
   public static boolean canUseAsPort(int port)
   {
-    boolean canUseAsPort = false;
-    ServerSocket serverSocket = null;
-    try
-    {
-      InetSocketAddress socketAddress = new InetSocketAddress(port);
-      serverSocket = new ServerSocket();
-      if (!isWindows())
-      {
-        serverSocket.setReuseAddress(true);
-      }
-      serverSocket.bind(socketAddress);
-      canUseAsPort = true;
-
-      serverSocket.close();
-
-      /* Try to create a socket because sometimes even if we can create a server
-       * socket there is already someone listening to the port (is the case
-       * of products as Sun DS 6.0).
-       */
-      try
-      {
-        new Socket("localhost", port);
-        canUseAsPort = false;
-
-      } catch (IOException ioe)
-      {
-      }
-
-    } catch (IOException ex)
-    {
-      canUseAsPort = false;
-    } finally
-    {
-      try
-      {
-        if (serverSocket != null)
-        {
-          serverSocket.close();
-        }
-      } catch (Exception ex)
-      {
-      }
-    }
-
-    return canUseAsPort;
+    return SetupUtils.canUseAsPort(port);
   }
 
   /**
@@ -285,7 +237,7 @@ public class Utils
    */
   public static boolean isPriviledgedPort(int port)
   {
-    return (port <= 1024) && !isWindows();
+    return SetupUtils.isPriviledgedPort(port);
   }
 
   /**
@@ -369,7 +321,7 @@ public class Utils
    */
   public static boolean isWindows()
   {
-    return containsOsProperty("windows");
+    return SetupUtils.isWindows();
   }
 
   /**
@@ -380,7 +332,7 @@ public class Utils
    */
   public static boolean isMacOS()
   {
-    return containsOsProperty("mac os");
+    return SetupUtils.isMacOS();
   }
 
   /**
@@ -391,7 +343,7 @@ public class Utils
    */
   public static boolean isUnix()
   {
-    return !isWindows();
+    return SetupUtils.isUnix();
   }
 
   /**
@@ -770,25 +722,6 @@ public class Utils
       msg = msg + "  " + i18n.getMsg("exception-details", arg);
     }
     return msg;
-  }
-
-  /**
-   * Commodity method to help identifying the OS we are running on.
-   * @param s the String that represents an OS.
-   * @return <CODE>true</CODE> if there is os java property exists and contains
-   * the value specified in s, <CODE>false</CODE> otherwise.
-   */
-  private static boolean containsOsProperty(String s)
-  {
-    boolean containsOsProperty = false;
-
-    String osName = System.getProperty("os.name");
-    if (osName != null)
-    {
-      containsOsProperty = osName.toLowerCase().indexOf(s) != -1;
-    }
-
-    return containsOsProperty;
   }
 
   /**
@@ -1359,62 +1292,6 @@ public class Utils
       }
     }
     return outsideLogs;
-  }
-
-  /**
-   * Returns if the server is running on the given path.
-   * @param serverPath the installation path of the server.
-   * @return <CODE>true</CODE> if the server is running and <CODE>false</CODE>
-   * otherwise.
-   */
-  public static boolean isServerRunning(String serverPath)
-  {
-    boolean isServerRunning;
-    if (isWindows())
-    {
-      String testPath = serverPath+File.separator+
-      "locks"+File.separator+"server.lock";
-      File testFile = new File(testPath);
-
-      boolean canWriteFile = false;
-      Writer output = null;
-      try {
-        //use buffering
-        //FileWriter always assumes default encoding is OK!
-        output = new BufferedWriter( new FileWriter(testFile) );
-        output.write("test");
-        output.close();
-        output = new BufferedWriter( new FileWriter(testFile) );
-        output.write("");
-        output.close();
-
-        canWriteFile = true;
-
-      }
-      catch (Throwable t)
-      {
-      }
-      finally
-      {
-        if (output != null)
-        {
-          try
-          {
-            output.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
-      }
-      isServerRunning = !canWriteFile;
-    }
-    else
-    {
-      isServerRunning = fileExists(serverPath+File.separator+
-          "logs"+File.separator+"server.pid");
-    }
-    return isServerRunning;
   }
 
   /**

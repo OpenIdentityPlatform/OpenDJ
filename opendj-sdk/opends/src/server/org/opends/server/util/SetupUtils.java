@@ -32,8 +32,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.LinkedList;
 
+import org.opends.server.types.OperatingSystem;
 
 
 /**
@@ -116,7 +120,27 @@ public class SetupUtils
     return templateFile;
   }
 
+  /**
+   * Returns {@code true} if we are running under Mac OS and
+   * {@code false} otherwise.
+   * @return {@code true} if we are running under Mac OS and
+   * {@code false} otherwise.
+   */
+  public static boolean isMacOS()
+  {
+    return OperatingSystem.MACOS == getOperatingSystem();
+  }
 
+  /**
+   * Returns {@code true} if we are running under Unix and
+   * {@code false} otherwise.
+   * @return {@code true} if we are running under Unix and
+   * {@code false} otherwise.
+   */
+  public static boolean isUnix()
+  {
+    return OperatingSystem.isUNIXBased(getOperatingSystem());
+  }
 
   /**
    * Indicates whether the underlying operating system is a Windows variant.
@@ -126,8 +150,17 @@ public class SetupUtils
    */
   public static boolean isWindows()
   {
-    String osName = System.getProperty("os.name");
-    return ((osName != null) && (osName.toLowerCase().indexOf("windows") >= 0));
+      return OperatingSystem.WINDOWS == getOperatingSystem();
+  }
+
+
+  /**
+   * Commodity method to help identifying the OS we are running on.
+   * @return the OperatingSystem we are running on.
+   */
+  private static OperatingSystem getOperatingSystem()
+  {
+    return OperatingSystem.forName(System.getProperty("os.name"));
   }
 
 
@@ -199,6 +232,74 @@ public class SetupUtils
     }
 
     return setJavaHomeFile;
+  }
+
+  /**
+   * Returns {@code true} if the provided port is free and we can use it,
+   * {@code false} otherwise.
+   * @param port the port we are analyzing.
+   * @return {@code true} if the provided port is free and we can use it,
+   * {@code false} otherwise.
+   */
+  public static boolean canUseAsPort(int port)
+  {
+    boolean canUseAsPort = false;
+    ServerSocket serverSocket = null;
+    try
+    {
+      InetSocketAddress socketAddress = new InetSocketAddress(port);
+      serverSocket = new ServerSocket();
+      if (!isWindows())
+      {
+        serverSocket.setReuseAddress(true);
+      }
+      serverSocket.bind(socketAddress);
+      canUseAsPort = true;
+
+      serverSocket.close();
+
+      /* Try to create a socket because sometimes even if we can create a server
+       * socket there is already someone listening to the port (is the case
+       * of products as Sun DS 6.0).
+       */
+      try
+      {
+        new Socket("localhost", port);
+        canUseAsPort = false;
+
+      } catch (IOException ioe)
+      {
+      }
+
+    } catch (IOException ex)
+    {
+      canUseAsPort = false;
+    } finally
+    {
+      try
+      {
+        if (serverSocket != null)
+        {
+          serverSocket.close();
+        }
+      } catch (Exception ex)
+      {
+      }
+    }
+
+    return canUseAsPort;
+  }
+
+  /**
+   * Returns {@code true} if the provided port is a priviledged port,
+   * {@code false} otherwise.
+   * @param port the port we are analyzing.
+   * @return {@code true} if the provided port is a priviledged port,
+   * {@code false} otherwise.
+   */
+  public static boolean isPriviledgedPort(int port)
+  {
+    return (port <= 1024) && !isWindows();
   }
 }
 
