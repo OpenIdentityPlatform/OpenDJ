@@ -256,37 +256,37 @@
   <target name="gui"
           description="brings up the stax gui" >
     <java classname="com.ibm.staf.service.stax.STAXMonitor"
-          classpath="${staf.install.dir}/services/stax/STAXMon.jar"
+          classpath="${staf.install.dir}/services/stax/STAXMon.jar${path.separator}${staf.install.dir}/bin/JSTAF.jar"
           fork="true" 
           spawn="true"/>
   </target>
 <!-- Gui section - bottom -->
 
 <!-- Run tests section - top    -->
-  <target name="run-tests-prepare" depends="status-do" if="staf.running">
+
+  <target name="get-pkg">
+    <condition property="product.package.dir" 
+               value="${daily.package.dir}"
+               else="${project.home}/build/package">
+       <isset property="tests.run.daily"/>
+     </condition>
+     <property name="product.package" 
+               value="${product.package.dir}/${product.name}.zip"/>
+  </target>
+
+  <target name="run-tests-prepare" 
+          depends="status-do,get-pkg" 
+          if="staf.running">
     <condition property="staf.lib.dir" 
       value="${staf.install.dir}${file.separator}bin" 
       else="${staf.install.dir}${file.separator}lib">
       <os family="windows"/>
     </condition>
-    <taskdef name="staf" classname="com.ibm.staf.ant.taskdef.STAF">
-      <classpath>
-        <fileset dir="${staf.lib.dir}">
-          <include name="STAFAnt.jar"/>
-          <include name="JSTAF.jar"/>
-        </fileset>
-      </classpath>
-    </taskdef>
     <!-- python config - top -->
       <!-- 1. get a timestamp for step 3 -->
       <tstamp>
         <format property="tests.run.time" pattern="yyyy.MM.dd-HH.mm.ss"/>
       </tstamp>
-      <condition property="product.package.path" 
-                 value="${daily.package.dir}"
-                 else="${project.home}/build/package">
-           <isset property="tests.run.daily"/>
-       </condition>
       <!-- make all the necessary directories for this test run -->
       <mkdir dir="${staf.tmp.dir}"/>
       <mkdir dir="${tests.run.dir}/${tests.run.time}"/>
@@ -295,6 +295,7 @@
       <!-- these will serve for after-the-fact archiving the logs -->
       <mkdir dir="${tests.run.dir}/${tests.run.time}/staf-logs"/>
       <mkdir dir="${tests.run.dir}/${tests.run.time}/server-logs"/>
+      <mkdir dir="${tests.run.dir}/${tests.run.time}/coverage"/>
       
       <!-- 3. perform the config back up if necessary -->
       <copy file="${tests.config}" 
@@ -318,16 +319,10 @@
             overwrite="true"/>
     <!-- python config - bottom -->
   </target>
-
+  
   <target name="run-tests"
     depends="status-do,run-tests-prepare" 
     if="staf.running">
-    <condition property="binary.extension" value=".exe" else="">
-      <or>
-        <os family="windows"/>
-        <os family="DOS"/>
-      </or>
-    </condition>
     <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_Functional_Tests SCRIPTFILE ${tests.config} SCRIPTFILE ${tests.python} WAIT CLEARLOGS"/>
     <condition property="tests.replay.script" value="replay.bat" else="replay.sh">
       <os family="windows"/>
@@ -340,27 +335,21 @@
       </filterchain>
     </copy>
     <echo>Running tests. This will take more than a while.</echo>
-    <!--    <staf location="LOCAL"
-          service="service"
-          request="list services"
-          />
-         <staf location="LOCAL"
-          service="MISC"
-          request="VERSION"
-          resultPrefix="version"
-          throwBuildException="1"/>-->
-
-   <staf location="local"
-          service="STAX"
-          request="${tests.request}"
-          resultPrefix="staxjob"
-          throwBuildException="1"/>
+    <property name="CLASSPATH" value="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+    <exec
+      dir="${staf.bin.dir}"
+      executable="${staf.executable}"
+      >
+      <arg line="LOCAL STAX ${tests.request}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+    </exec>
     <!-- restore the original config file to avoid it to be mistakenly commited
          with the generated values    -->
-    <copy file="${tests.config.backup}" 
-          tofile="${tests.config}" 
-          overwrite="true"/>
-    <delete file="${tests.config.backup}"/>
+    <delete file="${tests.config}"/>
+    <move file="${tests.config.backup}" 
+          tofile="${tests.config}"/>
     <echo file="${tests.run.dir}/last.run">${tests.run.time}</echo>
     <echo>Saving server logs</echo>
     <copy todir="${tests.run.dir}/${tests.run.time}/server-logs">
@@ -372,19 +361,41 @@
     </copy>
     <delete dir="${staf.home}/logs" />
     <echo>Saving report</echo>
-    <move todir="${tests.run.dir}/${tests.run.time}/report">
+    <copy todir="${tests.run.dir}/${tests.run.time}/report">
       <fileset dir="${staf.tmp.dir}">
         <include name="r*"/>
       </fileset>
-    </move>
-    <delete dir="${staf.tmp.dir}/${product.name}"/>
-    <delete file="${staf.tmp.dir}/${product.name}.zip"/>
+    </copy>
   </target>
   
-  <target name="run-daily" depends="status-do,download-daily">
+  <target name="daily">
     <property name="tests.run.daily" value="true"/>
-    <antcall target="run-tests"/>
   </target>
+  
+  <target name="run-daily" depends="status-do,daily,download-daily,coverage-instrument,run-tests"/>
+  
+  <target name="coverage-on">
+    <property name="coverage.on" value="true"/>
+  </target>
+  
+  <target name="coverage-instrument" depends="status-do,get-pkg" if="coverage.on">
+    <mkdir dir="${staf.tmp.dir}/coverage-instr"/>
+    <unzip src="${product.package}" 
+           dest="${staf.tmp.dir}/coverage-instr"/>
+    <move file="${product.package}" tofile="${product.package}.nocov"/>
+    <replace file="${staf.tmp.dir}/coverage-instr/${product.name}/bin/start-ds.bat"
+             token="start &quot;OpenDS %DIR_HOME%&quot; /B &quot;%JAVA_BIN%&quot;"
+             value="start &quot;OpenDS %DIR_HOME%&quot; /B &quot;%JAVA_BIN%&quot; -cp &quot;${project.home}${file.separator}ext${file.separator}emma${file.separator}lib${file.separator}emma.jar&quot; emmarun -cp &quot;%CLASSPATH%&quot; -sp &quot;${project.home}${file.separator}src${file.separator}server&quot; -ix org.opends.server.* -r html"/>
+   <zip basedir="${staf.tmp.dir}/coverage-instr" destfile="${product.package}"/>
+   <delete dir="${staf.tmp.dir}/coverage-instr"/>
+  </target>
+  <target name="restore-pkg" if="coverage-on">
+    <delete file="${product.package}"/>
+    <move file="${product.package}.nocov" tofile="${product.package}"/> 
+  </target>
+  <target name="daily-coverage" depends="coverage-on,run-daily,restore-pkg"/>
+  
+  <target name="testwithcoverage" depends="coverage-on,coverage-instrument,run-tests,restore-pkg"/> 
 <!-- Run tests section - bottom -->
   
 <!-- Uninstallation section - top    -->
@@ -420,23 +431,15 @@
           description="start the staf"
           if="staf.installed"
           unless="staf.running" >
-		<echo message="Starting staf ... on ${os.myname}" />
-    <condition 
-      property="staf.executable" 
-      value="${staf.install.dir}\bin\STAFProc.exe" 
-      else="${staf.install.dir}/bin/STAFProc" >
-      <os family="windows"/>
-    </condition>
-    <echo>Running [${staf.executable}]</echo>
-    <property environment="env" />
+		<echo message="Starting staf daemon ... on ${os.myname}" />
     <exec
-      dir="${staf.install.dir}/bin"
-      executable="${staf.executable}"
+      dir="${staf.bin.dir}"
+      executable="${staf.daemon}"
       spawn="true">
      <arg value="${staf.config}"/>
-     <env key="PATH" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${env.PATH}"/>
+     <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
      <env key="LD_LIBRARY_PATH" path="${staf.install.dir}/lib"/>
-     <env key="CLASSPATH" path="${staf.install.dir}/bin/JSTAF.jar${path.separator}${env.CLASSPATH}"/>
+     <env key="CLASSPATH" path="${staf.install.dir}/bin/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
      <env key="STAFCODEPAGE" value="LATIN_1"/>
      <env key="STAF_INSTANCE_NAME" value="STAF"/>
@@ -454,12 +457,6 @@
 <!-- Stop section - top     -->
 	<target name="stop-do" if="staf.running">
 		<echo>Stopping staf...</echo>
-    <condition 
-      property="staf.executable" 
-      value="${staf.install.dir}\bin\STAF.exe" 
-      else="${staf.install.dir}/bin/STAF" >
-      <os family="windows"/>
-    </condition>
     <exec
       executable="${staf.executable}"
       spawn="true"                                  >
@@ -545,6 +542,31 @@
           <contains string="${bits.staf.archive}" substring=".jar"/>
         </not>
       </condition>
+      <condition property="binary.extension" value=".exe" else="">
+          <os family="windows"/>
+      </condition>
+      <condition property="script.extension" value=".bat" else="">
+          <os family="windows"/>
+      </condition>
+      
+      <condition property="path.var" value="Path" else="PATH">
+        <os family="windows"/>
+      </condition>
+      <macrodef name="propertycopy">
+        <attribute name="name"/>
+        <attribute name="from"/>
+        <sequential>
+          <property name="@{name}" value="${@{from}}"/>
+        </sequential>
+      </macrodef>
+      <property environment="e"/>
+      <propertycopy name="path.current" from="e.${path.var}"/>
+
+      <property name="staf.executable" 
+                value="${staf.bin.dir}${file.separator}STAF${binary.extension}"/> 
+      <property name="staf.daemon" 
+                value="${staf.bin.dir}${file.separator}STAFProc${binary.extension}"/> 
+      
       <property name="status-do.already.run" value="true"/>
     </target>
   <!-- Get status section - bottom -->
@@ -559,7 +581,10 @@
       <echo>Operating System Version - ${os.version}</echo>
       <echo>Machine Architecture     - ${os.arch}</echo>
       <echo>Platform Supported       - ${is.platform.supported}</echo>
+      <echo>Java Home                - ${java.home}</echo>
       <echo>Java Version             - ${java.version}</echo>
+      <echo>PATH                     - ${path.current}</echo>
+      <echo>CLASSPATH                - ${e.CLASSPATH}</echo>
       <antcall target="status-staf-installed?"     />
       <antcall target="status-staf-not-installed?" />
     </target>
