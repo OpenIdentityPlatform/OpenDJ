@@ -1280,7 +1280,7 @@ bindProcessing:
 
             // Check to see if the authentication must be done in a secure
             // manner.  If so, then the client connection must be secure.
-            if (pwPolicyState.requireSecureAuthentication() &&
+            if (pwPolicyState.getPolicy().requireSecureAuthentication() &&
                 (! clientConnection.isSecure()))
             {
               int    msgID   = MSGID_BIND_OPERATION_INSECURE_SIMPLE_BIND;
@@ -1820,7 +1820,7 @@ bindProcessing:
               break bindProcessing;
             }
 
-            if (pwPolicyState.requireSecureAuthentication() &&
+            if (pwPolicyState.getPolicy().requireSecureAuthentication() &&
                 (! clientConnection.isSecure()) &&
                 (! saslHandler.isSecure(saslMechanism)))
             {
