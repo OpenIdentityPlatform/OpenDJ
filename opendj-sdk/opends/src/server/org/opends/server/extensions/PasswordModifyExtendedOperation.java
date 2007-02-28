@@ -614,7 +614,7 @@ public class PasswordModifyExtendedOperation
       }
       else
       {
-        if (pwPolicyState.requireSecureAuthentication() &&
+        if (pwPolicyState.getPolicy().requireSecureAuthentication() &&
             (! operation.getClientConnection().isSecure()))
         {
           operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
