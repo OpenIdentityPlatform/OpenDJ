@@ -1217,7 +1217,11 @@ public class ConfigConstants
    */
   public static final String ATTR_MATCHING_RULE_USE_LC = "matchingruleuse";
 
-
+  /**
+   * The name of the attribute that holds the sycnhronization state,
+   * formatted in lowercase.
+   */
+  public static final String ATTR_SYNCHRONIZATION_STATE_LC = "ds-sync-state";
 
   /**
    * The default maximum request size that should be used if none is specified

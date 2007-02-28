@@ -137,8 +137,12 @@ public class ConfigurableComponentTestCase
     DN          configEntryDN = c.getConfigurableComponentEntryDN();
     ConfigEntry configEntry   = DirectoryServer.getConfigEntry(configEntryDN);
 
-    ArrayList<String> unacceptableReasons = new ArrayList<String>();
-    assertTrue(c.hasAcceptableConfiguration(configEntry, unacceptableReasons));
+    if (configEntry != null)
+    {
+      ArrayList<String> unacceptableReasons = new ArrayList<String>();
+      assertTrue(c.hasAcceptableConfiguration(configEntry,
+                                              unacceptableReasons));
+    }
   }
 }
 

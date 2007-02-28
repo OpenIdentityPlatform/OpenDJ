@@ -123,7 +123,6 @@ public class UpdateOperationTest extends SynchronizationTestCase
           entry.getUserAttributes(), entry.getOperationalAttributes());
       addOp.setInternalOperation(true);
       addOp.run();
-      entryList.add(entry.getDN());
     }
 
     baseUUID = getEntryUUID(DN.decode("ou=People,dc=example,dc=com"));
@@ -819,6 +818,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
   {
     return new Object[][] { { false }, {true} };
   }
+
   /**
    * Tests done using directly the ChangelogBroker interface.
    */
@@ -838,19 +838,6 @@ public class UpdateOperationTest extends SynchronizationTestCase
     try {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
 
-      /*
-       * loop receiving update until there is nothing left
-       * to make sure that message from previous tests have been consumed.
-       */
-      try
-      {
-        while (true)
-        {
-          broker.receive();
-        }
-      }
-      catch (Exception e)
-      {}
       /*
        * Test that operations done on this server are sent to the
        * changelog server and forwarded to our changelog broker session.

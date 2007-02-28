@@ -35,7 +35,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -53,7 +52,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ModificationType;
@@ -72,8 +70,7 @@ public class PersistentServerState extends ServerState
    private boolean savedStatus = true;
    private InternalClientConnection conn =
        InternalClientConnection.getRootConnection();
-   private ASN1OctetString serverStateAsn1Dn;
-   private DN serverStateDn;
+   private ASN1OctetString asn1BaseDn;
 
    /**
     * The attribute name used to store the state in the backend.
@@ -87,16 +84,8 @@ public class PersistentServerState extends ServerState
   public PersistentServerState(DN baseDn)
   {
     this.baseDn = baseDn;
-    serverStateAsn1Dn = new ASN1OctetString(
-        "dc=ffffffff-ffffffff-ffffffff-ffffffff,"
-        + baseDn.toString());
-    try
-    {
-      serverStateDn = DN.decode(serverStateAsn1Dn);
-    } catch (DirectoryException e)
-    {
-      // never happens
-    }
+    asn1BaseDn = new ASN1OctetString(baseDn.toString());
+    loadState();
   }
 
   /**
@@ -121,22 +110,14 @@ public class PersistentServerState extends ServerState
     ResultCode resultCode = updateStateEntry();
     if (resultCode != ResultCode.SUCCESS)
     {
-      if (resultCode == ResultCode.NO_SUCH_OBJECT)
-      {
-        createStateEntry();
-      }
-      else
-      {
         savedStatus = false;
-
-      }
     }
   }
 
   /**
    * Load the ServerState from the backing entry in database to memory.
    */
-  public void loadState()
+  private void loadState()
   {
     /*
      * Read the serverState from the database,
@@ -156,10 +137,12 @@ public class PersistentServerState extends ServerState
      * Search the database entry that is used to periodically
      * save the ServerState
      */
-    InternalSearchOperation search = conn.processSearch(serverStateAsn1Dn,
+    LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
+    attributes.add(SYNCHRONIZATION_STATE);
+    InternalSearchOperation search = conn.processSearch(asn1BaseDn,
         SearchScope.BASE_OBJECT,
         DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
-        filter,new LinkedHashSet<String>(0));
+        filter,attributes);
     if (((search.getResultCode() != ResultCode.SUCCESS)) &&
         ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
     {
@@ -210,51 +193,6 @@ public class PersistentServerState extends ServerState
        * and an ordering index for historical attribute
        */
     }
-
-    if ((resultEntry == null) ||
-        ((search.getResultCode() != ResultCode.SUCCESS)))
-    {
-      createStateEntry();
-    }
-  }
-
-  /**
-   * Create the Entry that will be used to store the ServerState information.
-   * It will be updated when the server stops and periodically.
-   */
-  private void createStateEntry()
-  {
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
-
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    ASN1OctetString value = new ASN1OctetString("extensibleObject");
-    values.add(value);
-    LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    value = new ASN1OctetString("domain");
-    values.add(value);
-    attr = new LDAPAttribute("objectClass", values);
-    attrs.add(attr);
-
-    values = new ArrayList<ASN1OctetString>();
-    value = new ASN1OctetString("ffffffff-ffffffff-ffffffff-ffffffff");
-    values.add(value);
-    attr = new LDAPAttribute("dc", values);
-    attrs.add(attr);
-
-    AddOperation add = conn.processAdd(serverStateAsn1Dn, attrs);
-    ResultCode resultCode = add.getResultCode();
-    if ((resultCode != ResultCode.SUCCESS) &&
-        (resultCode != ResultCode.NO_SUCH_OBJECT))
-    {
-      int msgID = MSGID_ERROR_UPDATING_RUV;
-      String message = getMessage(msgID,
-          add.getResultCode().getResultCodeName(),
-          add.toString(), add.getErrorMessage(),
-          baseDn.toString());
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
-    }
   }
 
   /**
@@ -266,8 +204,7 @@ public class PersistentServerState extends ServerState
   private ResultCode updateStateEntry()
   {
     /*
-     * Generate a modify operation on the Server State Entry :
-     * cn=ffffffff-ffffffff-ffffffff-ffffffff, baseDn
+     * Generate a modify operation on the Server State baseD Entry.
      */
     ArrayList<ASN1OctetString> values = this.toASN1ArrayList();
 
@@ -283,10 +220,11 @@ public class PersistentServerState extends ServerState
     ModifyOperation op =
       new ModifyOperation(conn, InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
-          new ArrayList<Control>(0), serverStateAsn1Dn,
+          new ArrayList<Control>(0), asn1BaseDn,
           mods);
     op.setInternalOperation(true);
     op.setSynchronizationOperation(true);
+    op.setDontSynchronize(true);
 
     op.run();
 
@@ -301,15 +239,4 @@ public class PersistentServerState extends ServerState
     }
     return result;
   }
-
-  /**
-   * Get the Dn where the ServerState is stored.
-   * @return Returns the serverStateDn.
-   */
-  public DN getServerStateDn()
-  {
-    return serverStateDn;
-  }
-
-
 }

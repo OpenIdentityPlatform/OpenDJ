@@ -189,6 +189,9 @@ public class SchemaBackend
   // The attribute type that will be used to include the defined name forms.
   private AttributeType nameFormsType;
 
+  // The attribute type that will be used to save the synchronization state.
+  private AttributeType synchronizationStateType;
+
   // The value containing DN of the user we'll say created the configuration.
   private AttributeValue creatorsName;
 
@@ -293,6 +296,8 @@ public class SchemaBackend
     matchingRuleUsesType =
          DirectoryServer.getAttributeType(ATTR_MATCHING_RULE_USE_LC, true);
     nameFormsType = DirectoryServer.getAttributeType(ATTR_NAME_FORMS_LC, true);
+    synchronizationStateType =
+      DirectoryServer.getAttributeType(ATTR_SYNCHRONIZATION_STATE_LC, true);
 
 
     // Initialize the lastmod attributes.
@@ -797,6 +802,20 @@ public class SchemaBackend
                                valueSet));
     operationalAttrs.put(modifyTimestampType, attrList);
 
+    //  Add the synchronization State attribute.
+    valueSet = DirectoryServer.getSchema().getSynchronizationState();
+    attr = new Attribute(synchronizationStateType,
+                         ATTR_SYNCHRONIZATION_STATE_LC, valueSet);
+    attrList = new ArrayList<Attribute>(1);
+    attrList.add(attr);
+    if (synchronizationStateType.isOperational() && (! showAllAttributes))
+    {
+      operationalAttrs.put(synchronizationStateType, attrList);
+    }
+    else
+    {
+      userAttrs.put(synchronizationStateType, attrList);
+    }
 
     // Add all the user-defined attributes.
     for (Attribute a : userDefinedAttributes)
@@ -1350,10 +1369,19 @@ public class SchemaBackend
 
 
         default:
-          int    msgID   = MSGID_SCHEMA_INVALID_MODIFICATION_TYPE;
-          String message = getMessage(msgID, m.getModificationType());
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                       msgID);
+          if (!modifyOperation.isSynchronizationOperation())
+          {
+            int    msgID   = MSGID_SCHEMA_INVALID_MODIFICATION_TYPE;
+            String message = getMessage(msgID, m.getModificationType());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID);
+          }
+          else
+          {
+            if (at.equals(synchronizationStateType))
+              newSchema.setSynchronizationState(a.getValues());
+            modifiedSchemaFiles.add(FILE_USER_SCHEMA_ELEMENTS);
+          }
       }
     }
 
@@ -3438,6 +3466,18 @@ public class SchemaBackend
       schemaEntry.putAttribute(matchingRuleUsesType, attrList);
     }
 
+    if (schemaFile.equals(FILE_USER_SCHEMA_ELEMENTS))
+    {
+      values = schema.getSynchronizationState();
+      if (values != null)
+      {
+        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+        attrList.add(new Attribute(matchingRuleUsesType,
+                                 matchingRuleUsesType.getPrimaryName(),
+                                 values));
+        schemaEntry.putAttribute(matchingRuleUsesType, attrList);
+      }
+    }
 
     // Create a temporary file to which we can write the schema entry.
     File tempFile = File.createTempFile(schemaFile, "temp");

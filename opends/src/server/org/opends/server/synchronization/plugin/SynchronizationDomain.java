@@ -139,7 +139,6 @@ public class SynchronizationDomain extends DirectoryThread
 
   private short serverId;
 
-  private BooleanConfigAttribute receiveStatusStub;
   private int listenerThreadNumber = 10;
   private boolean receiveStatus = true;
 
@@ -157,16 +156,18 @@ public class SynchronizationDomain extends DirectoryThread
   private InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
-  static String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
-  static String BASE_DN_ATTR = "ds-cfg-synchronization-dn";
-  static String SERVER_ID_ATTR = "ds-cfg-directory-server-id";
-  static String RECEIVE_STATUS = "ds-cfg-receive-status";
-  static String MAX_RECEIVE_QUEUE = "ds-cfg-max-receive-queue";
-  static String MAX_RECEIVE_DELAY = "ds-cfg-max-receive-delay";
-  static String MAX_SEND_QUEUE = "ds-cfg-max-send-queue";
-  static String MAX_SEND_DELAY = "ds-cfg-max-send-delay";
-  static String WINDOW_SIZE = "ds-cfg-window-size";
-  static String HEARTBEAT_INTERVAL = "ds-cfg-heartbeat-interval";
+  private boolean solveConflictFlag = true;
+
+  static final String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
+  static final String BASE_DN_ATTR = "ds-cfg-synchronization-dn";
+  static final String SERVER_ID_ATTR = "ds-cfg-directory-server-id";
+  static final String RECEIVE_STATUS = "ds-cfg-receive-status";
+  static final String MAX_RECEIVE_QUEUE = "ds-cfg-max-receive-queue";
+  static final String MAX_RECEIVE_DELAY = "ds-cfg-max-receive-delay";
+  static final String MAX_SEND_QUEUE = "ds-cfg-max-send-queue";
+  static final String MAX_SEND_DELAY = "ds-cfg-max-send-delay";
+  static final String WINDOW_SIZE = "ds-cfg-window-size";
+  static final String HEARTBEAT_INTERVAL = "ds-cfg-heartbeat-interval";
 
   private static final StringConfigAttribute changelogStub =
     new StringConfigAttribute(CHANGELOG_SERVER_ATTR,
@@ -179,6 +180,10 @@ public class SynchronizationDomain extends DirectoryThread
   private static final DNConfigAttribute baseDnStub =
     new DNConfigAttribute(BASE_DN_ATTR, "synchronization base DN",
                           true, false, false);
+
+  private static final BooleanConfigAttribute receiveStatusStub =
+    new BooleanConfigAttribute(RECEIVE_STATUS, "receive status", false);
+
 
   /**
    * The set of time units that will be used for expressing the heartbeat
@@ -251,14 +256,33 @@ public class SynchronizationDomain extends DirectoryThread
       baseDN = baseDn.activeValue();
     configAttributes.add(baseDn);
 
+    /*
+     * Modify conflicts are solved for all suffixes but the cn=schema suffix
+     * because we don't want to store extra information in the schema
+     * ldif files.
+     * This has no negative impact because the changes on schema should
+     * not produce conflicts.
+     */
+    try
+    {
+      if (baseDN.compareTo(DN.decode("cn=schema")) == 0)
+      {
+        solveConflictFlag = false;
+      }
+      else
+      {
+        solveConflictFlag = true;
+      }
+    } catch (DirectoryException e1)
+    {
+      // never happens because "cn=schema" is a valid DN
+    }
+
     state = new PersistentServerState(baseDN);
-    state.loadState();
 
     /*
      * Read the Receive Status.
      */
-    receiveStatusStub = new BooleanConfigAttribute(RECEIVE_STATUS,
-        "receive status", false);
     BooleanConfigAttribute receiveStatusAttr = (BooleanConfigAttribute)
           configEntry.getConfigAttribute(receiveStatusStub);
     if (receiveStatusAttr != null)
@@ -712,6 +736,8 @@ public class SynchronizationDomain extends DirectoryThread
       // so this is not a synchronization operation.
       ChangeNumber changeNumber = generateChangeNumber(modifyOperation);
       String modifiedEntryUUID = Historical.getEntryUuid(modifiedEntry);
+      if (modifiedEntryUUID == null)
+        modifiedEntryUUID = modifyOperation.getEntryDN().toString();
       ctx = new ModifyContext(changeNumber, modifiedEntryUUID);
       modifyOperation.setAttachment(SYNCHROCONTEXT, ctx);
     }
@@ -719,7 +745,8 @@ public class SynchronizationDomain extends DirectoryThread
     {
       String modifiedEntryUUID = ctx.getEntryUid();
       String currentEntryUUID = Historical.getEntryUuid(modifiedEntry);
-      if (!currentEntryUUID.equals(modifiedEntryUUID))
+      if ((currentEntryUUID != null) &&
+          (!currentEntryUUID.equals(modifiedEntryUUID)))
       {
         /*
          * The current modified entry is not the same entry as the one on
@@ -1116,15 +1143,6 @@ public class SynchronizationDomain extends DirectoryThread
 
     // stop the ChangelogBroker
     broker.stop();
-  }
-
-  /**
-   * Get the DN where the ServerState is stored.
-   * @return The DN where the ServerState is stored.
-   */
-  public DN getServerStateDN()
-  {
-    return state.getServerStateDn();
   }
 
   /**
@@ -1826,5 +1844,15 @@ public class SynchronizationDomain extends DirectoryThread
   public int getNumLostConnections()
   {
     return broker.getNumLostConnections();
+  }
+
+  /**
+   * Check if the domain solve conflicts.
+   *
+   * @return a boolean indicating if the domain should sove conflicts.
+   */
+  public boolean solveConflict()
+  {
+    return solveConflictFlag;
   }
 }
