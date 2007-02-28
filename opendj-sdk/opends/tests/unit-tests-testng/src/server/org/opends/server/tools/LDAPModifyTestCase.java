@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -557,6 +557,114 @@ public class LDAPModifyTestCase
     };
 
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests a simple modify operation over SSL using a trust store and SASL
+   * EXTERNAL while explicitly specifying a valid client certificate.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSSLTrustStoreSASLExternalValidClientCert()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "givenName: Test",
+         "ds-privilege-name: bypass-acl",
+         "sn: User");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+                         e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    String keyStorePath   = DirectoryServer.getServerRoot() + File.separator +
+                            "config" + File.separator + "client.keystore";
+    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+                            "config" + File.separator + "client.truststore";
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-Z",
+      "-K", keyStorePath,
+      "-W", "password",
+      "-N", "client-cert",
+      "-P", trustStorePath,
+      "-r",
+      "-f", modifyFilePath
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests a simple modify operation over SSL using a trust store and SASL
+   * EXTERNAL while explicitly specifying an invalid client certificate.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSSLTrustStoreSASLExternalInvalidClientCert()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "givenName: Test",
+         "ds-privilege-name: bypass-acl",
+         "sn: User");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+                         e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    String keyStorePath   = DirectoryServer.getServerRoot() + File.separator +
+                            "config" + File.separator + "client.keystore";
+    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+                            "config" + File.separator + "client.truststore";
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-Z",
+      "-K", keyStorePath,
+      "-W", "password",
+      "-N", "invalid",
+      "-P", trustStorePath,
+      "-r",
+      "-f", modifyFilePath
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
 
 

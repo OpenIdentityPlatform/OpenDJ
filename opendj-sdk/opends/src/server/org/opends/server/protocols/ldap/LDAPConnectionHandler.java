@@ -901,8 +901,8 @@ public class LDAPConnectionHandler
            configEntry.getConfigAttribute(certNameStub);
       if (certNameAttr == null)
       {
-        // This is fine -- we'll just use the default.
-        sslServerCertNickname = DEFAULT_SSL_CERT_NICKNAME;
+        // This is fine -- We'll just let the server pick one.
+        sslServerCertNickname = null;
       }
       else
       {
@@ -1787,6 +1787,20 @@ public class LDAPConnectionHandler
     assert debugEnter(CLASS_NAME, "getTrustManagerProviderDN");
 
     return trustManagerProviderDN;
+  }
+
+
+
+  /**
+   * Retrieves the nickname of the server certificate that should be used in
+   * conjunction with this LDAP connection handler.
+   *
+   * @return  The nickname of the server certificate that should be used in
+   *          conjunction with this LDAP connection handler.
+   */
+  public String getSSLServerCertNickname()
+  {
+    return sslServerCertNickname;
   }
 
 

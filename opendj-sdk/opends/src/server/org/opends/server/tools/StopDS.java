@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -176,6 +176,7 @@ public class StopDS
     IntegerArgument   port;
     StringArgument    bindDN;
     StringArgument    bindPW;
+    StringArgument    certNickname;
     StringArgument    host;
     StringArgument    keyStoreFile;
     StringArgument    keyStorePW;
@@ -275,6 +276,11 @@ public class StopDS
                                              null, null,
                                              MSGID_STOPDS_DESCRIPTION_KSPWFILE);
       argParser.addArgument(keyStorePWFile);
+
+      certNickname = new StringArgument("certnickname", 'N', "certNickname",
+                                        false, false, true, "{nickname}", null,
+                                        null, MSGID_DESCRIPTION_CERT_NICKNAME);
+      argParser.addArgument(certNickname);
 
       trustStoreFile = new StringArgument("truststorefile", 'P',
                                           "trustStoreFile", false, false, true,
@@ -490,9 +496,19 @@ public class StopDS
     {
       try
       {
+        String clientAlias;
+        if (certNickname.isPresent())
+        {
+          clientAlias = certNickname.getValue();
+        }
+        else
+        {
+          clientAlias = null;
+        }
+
         SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
         sslConnectionFactory.init(trustAll.isPresent(), keyStoreFile.getValue(),
-                                  keyStorePW.getValue(),
+                                  keyStorePW.getValue(), clientAlias,
                                   trustStoreFile.getValue(),
                                   trustStorePW.getValue());
 

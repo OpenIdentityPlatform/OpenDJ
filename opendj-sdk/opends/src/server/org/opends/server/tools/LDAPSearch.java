@@ -584,6 +584,7 @@ public class LDAPSearch
     StringArgument    baseDN                   = null;
     StringArgument    bindDN                   = null;
     StringArgument    bindPassword             = null;
+    StringArgument    certNickname             = null;
     StringArgument    controlStr               = null;
     StringArgument    dereferencePolicy        = null;
     StringArgument    encodingStr              = null;
@@ -689,6 +690,11 @@ public class LDAPSearch
                                  null, null,
                                  MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
       argParser.addArgument(keyStorePasswordFile);
+
+      certNickname = new StringArgument("certnickname", 'N', "certNickname",
+                                        false, false, true, "{nickname}", null,
+                                        null, MSGID_DESCRIPTION_CERT_NICKNAME);
+      argParser.addArgument(certNickname);
 
       trustStorePath = new StringArgument("trustStorePath", 'P',
                                   "trustStorePath", false, false, true,
@@ -1315,10 +1321,20 @@ public class LDAPSearch
       SSLConnectionFactory sslConnectionFactory = null;
       if(connectionOptions.useSSL() || connectionOptions.useStartTLS())
       {
+        String clientAlias;
+        if (certNickname.isPresent())
+        {
+          clientAlias = certNickname.getValue();
+        }
+        else
+        {
+          clientAlias = null;
+        }
+
         sslConnectionFactory = new SSLConnectionFactory();
         sslConnectionFactory.init(trustAll.isPresent(), keyStorePathValue,
-                                  keyStorePasswordValue, trustStorePathValue,
-                                  trustStorePasswordValue);
+                                  keyStorePasswordValue, clientAlias,
+                                  trustStorePathValue, trustStorePasswordValue);
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
 

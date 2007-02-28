@@ -1062,9 +1062,9 @@ public class JmxConnectionHandler
       if (certNameAttr == null)
       {
         //
-        // This is fine -- we'll just use the default.
+        // This is fine -- we'll just let the server pick one.
         certNameAttr = new StringConfigAttribute(ATTR_SSL_CERT_NICKNAME,
-            getMessage(msgID), false, false, false, DEFAULT_SSL_CERT_NICKNAME);
+            getMessage(msgID), false, false, false, (String) null);
       }
       return certNameAttr;
     }

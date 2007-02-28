@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -2471,7 +2471,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     SSLConnectionFactory factory = new SSLConnectionFactory();
-    factory.init(false, keyStorePath, "password", trustStorePath, "password");
+    factory.init(false, keyStorePath, "password", "client-cert",
+                 trustStorePath, "password");
 
 
     Socket s = factory.createSocket("127.0.0.1",
@@ -2541,7 +2542,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     SSLConnectionFactory factory = new SSLConnectionFactory();
-    factory.init(false, keyStorePath, "password", trustStorePath, "password");
+    factory.init(false, keyStorePath, "password", "client-cert", trustStorePath,
+                 "password");
 
 
     Socket s = factory.createSocket("127.0.0.1",
@@ -2609,7 +2611,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     SSLConnectionFactory factory = new SSLConnectionFactory();
-    factory.init(false, keyStorePath, "password", trustStorePath, "password");
+    factory.init(false, keyStorePath, "password", "client-cert", trustStorePath,
+                 "password");
 
 
     Socket s = factory.createSocket("127.0.0.1",
@@ -2683,7 +2686,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     SSLConnectionFactory factory = new SSLConnectionFactory();
-    factory.init(false, keyStorePath, "password", trustStorePath, "password");
+    factory.init(false, keyStorePath, "password", "client-cert", trustStorePath,
+                 "password");
 
 
     Socket s = factory.createSocket("127.0.0.1",
@@ -4205,7 +4209,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     SSLConnectionFactory factory = new SSLConnectionFactory();
-    factory.init(false, keyStorePath, "password", trustStorePath, "password");
+    factory.init(false, keyStorePath, "password", "client-cert", trustStorePath,
+                 "password");
 
 
     Socket s = factory.createSocket("127.0.0.1",
