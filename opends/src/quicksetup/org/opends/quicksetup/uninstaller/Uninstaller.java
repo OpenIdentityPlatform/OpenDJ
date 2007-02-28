@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.event.UninstallProgressUpdateEvent;
 import org.opends.quicksetup.event.UninstallProgressUpdateListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
@@ -686,8 +687,7 @@ public class Uninstaller
 
           for (int i=0; i<nTries && !stopped; i++)
           {
-            stopped = !Utils.isServerRunning(
-                Utils.getInstallPathFromClasspath());
+            stopped = !CurrentInstallStatus.isServerRunning();
             if (!stopped)
             {
               String msg =

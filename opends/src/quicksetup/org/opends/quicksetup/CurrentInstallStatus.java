@@ -213,14 +213,40 @@ public class CurrentInstallStatus
   }
 
   /**
-   * Indicates whether there is the server is running.
-   *
-   * @return <CODE>true</CODE> if the server is running, or <CODE>false</CODE>
-   *         if not.
+   * Returns if the server is running on the given path.
+   * NOTE: this method is to be called only when the OpenDS.jar class has
+   * already been loaded as it uses classes in that jar.
+   * @return <CODE>true</CODE> if the server is running and <CODE>false</CODE>
+   * otherwise.
    */
-  public boolean isServerRunning()
+  public static boolean isServerRunning()
   {
-    return Utils.isServerRunning(Utils.getInstallPathFromClasspath());
+    boolean isServerRunning;
+    String lockFile =
+      org.opends.server.core.LockFileManager.getServerLockFileName();
+    StringBuilder failureReason = new StringBuilder();
+    try
+    {
+      if (org.opends.server.core.LockFileManager.acquireExclusiveLock(lockFile,
+          failureReason))
+      {
+        org.opends.server.core.LockFileManager.releaseLock(lockFile,
+            failureReason);
+        isServerRunning = false;
+      }
+      else
+      {
+        isServerRunning = true;
+      }
+    }
+    catch (Throwable t)
+    {
+      t.printStackTrace();
+      // Assume that if we cannot acquire the lock file the server is
+      // running.
+      isServerRunning = true;
+    }
+    return isServerRunning;
   }
 
   /**

@@ -37,6 +37,7 @@ import java.util.TreeSet;
 
 import javax.swing.table.TableModel;
 
+import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.util.Utils;
 
 import org.opends.server.core.DirectoryServer;
@@ -231,8 +232,7 @@ class StatusCli
     }
     else
     {
-      boolean isServerRunning =
-        Utils.isServerRunning(Utils.getInstallPathFromClasspath());
+      boolean isServerRunning = CurrentInstallStatus.isServerRunning();
       /* This is required to retrieve the ldap url to be used by the
        * ConfigFromLDAP class.
        */
@@ -355,7 +355,7 @@ class StatusCli
     ServerStatusDescriptor desc = new ServerStatusDescriptor();
     desc.setAuthenticated((dn != null) && (pwd != null));
 
-    if (Utils.isServerRunning(Utils.getInstallPathFromClasspath()))
+    if (CurrentInstallStatus.isServerRunning())
     {
       desc.setStatus(ServerStatusDescriptor.ServerStatus.STARTED);
     }

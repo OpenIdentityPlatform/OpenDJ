@@ -417,7 +417,7 @@
     </copy>
     <copy todir="${quicksetup.classes.dir}">
       <fileset dir="${classes.dir}"
-               includes="**/DynamicConstants.class **/SetupUtils.class" />
+               includes="**/DynamicConstants.class **/SetupUtils.class **/OperatingSystem.class" />
     </copy>
   </target>
 
@@ -516,7 +516,7 @@
 
     <copy todir="${quicksetup.classes.dir}">
         <fileset dir="${classes.dir}"
-            includes="**/DynamicConstants.class **/SetupUtils.class"/>
+            includes="**/DynamicConstants.class **/SetupUtils.class **/OperatingSystem.class"/>
     </copy>
 
     <!-- Generate the quicksetup.jar file -->
