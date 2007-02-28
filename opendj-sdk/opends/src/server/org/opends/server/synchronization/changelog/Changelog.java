@@ -29,6 +29,7 @@ package org.opends.server.synchronization.changelog;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.synchronization.common.LogMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import java.io.File;
@@ -40,6 +41,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -49,6 +51,7 @@ import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.IntegerConfigAttribute;
+import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.messages.MessageHandler;
@@ -100,6 +103,8 @@ public class Changelog implements Runnable, ConfigurableComponent
   private int rcvWindow;
   private int queueSize;
   private String dbDirname = null;
+  private long trimAge; // the time (in sec) after which the  changes must
+                        // de deleted from the persistent storage.
 
   static final String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
   static final String SERVER_ID_ATTR = "ds-cfg-changelog-server-id";
@@ -107,11 +112,12 @@ public class Changelog implements Runnable, ConfigurableComponent
   static final String WINDOW_SIZE_ATTR = "ds-cfg-window-size";
   static final String QUEUE_SIZE_ATTR = "ds-cfg-changelog-max-queue-size";
   static final String CHANGELOG_DIR_PATH_ATTR = "ds-cfg-changelog-db-dirname";
+  static final String PURGE_DELAY_ATTR = "ds-cfg-changelog-purge-delay";
+
 
   static final IntegerConfigAttribute changelogPortStub =
     new IntegerConfigAttribute(CHANGELOG_PORT_ATTR, "changelog port",
-      true, false, false, true, 0,
-      true, 65535);
+      true, false, false, true, 0, true, 65535);
 
   static final IntegerConfigAttribute serverIdStub =
     new IntegerConfigAttribute(SERVER_ID_ATTR, "server ID", true, false,
@@ -119,8 +125,7 @@ public class Changelog implements Runnable, ConfigurableComponent
 
   static final StringConfigAttribute changelogStub =
     new StringConfigAttribute(CHANGELOG_SERVER_ATTR,
-        "changelog server information", true,
-        true, false);
+        "changelog server information", true, true, false);
 
   static final IntegerConfigAttribute windowStub =
     new IntegerConfigAttribute(WINDOW_SIZE_ATTR, "window size",
@@ -132,8 +137,30 @@ public class Changelog implements Runnable, ConfigurableComponent
 
   static final StringConfigAttribute dbDirnameStub =
     new StringConfigAttribute(CHANGELOG_DIR_PATH_ATTR,
-        "changelog storage directory path", false,
-        false, true);
+        "changelog storage directory path", false, false, true);
+
+  /**
+   * The set of time units that will be used for expressing the
+   * changelog purge delay.
+   */
+  private static final LinkedHashMap<String,Double> purgeTimeUnits =
+       new LinkedHashMap<String,Double>();
+
+  static
+  {
+    purgeTimeUnits.put(TIME_UNIT_SECONDS_ABBR, 1D);
+    purgeTimeUnits.put(TIME_UNIT_SECONDS_FULL, 1D);
+    purgeTimeUnits.put(TIME_UNIT_MINUTES_ABBR, 60D);
+    purgeTimeUnits.put(TIME_UNIT_MINUTES_FULL, 1D);
+    purgeTimeUnits.put(TIME_UNIT_HOURS_ABBR, 60*60D);
+    purgeTimeUnits.put(TIME_UNIT_HOURS_FULL, 60*60D);
+    purgeTimeUnits.put(TIME_UNIT_DAYS_ABBR, 24*60*60D);
+    purgeTimeUnits.put(TIME_UNIT_DAYS_FULL, 24*60*60D);
+  }
+
+  static final IntegerWithUnitConfigAttribute purgeDelayStub =
+    new IntegerWithUnitConfigAttribute(PURGE_DELAY_ATTR,
+        "changelog purge delay", false, purgeTimeUnits, true, 0, false, 0);
 
   /**
    * Check if a ConfigEntry is valid.
@@ -297,6 +324,20 @@ public class Changelog implements Runnable, ConfigurableComponent
     {
       throw new ConfigException(MSGID_FILE_CHECK_CREATE_FAILED,
           e.getMessage() + " " + getFileForPath(dbDirname));
+    }
+
+    /*
+     * Read the Purge Delay (trim age) attribute
+     */
+    IntegerWithUnitConfigAttribute purgeDelayAttr =
+      (IntegerWithUnitConfigAttribute) config.getConfigAttribute(
+          purgeDelayStub);
+    if (purgeDelayAttr == null)
+      trimAge = 24*60*60;  // not present : use the default value : 1 day
+    else
+    {
+      trimAge = purgeDelayAttr.activeCalculatedValue();
+      configAttributes.add(purgeDelayAttr);
     }
 
     initialize(changelogServerId, changelogPort);
@@ -605,5 +646,17 @@ public class Changelog implements Runnable, ConfigurableComponent
   public DbHandler newDbHandler(short id, DN baseDn) throws DatabaseException
   {
     return new DbHandler(id, baseDn, this, dbEnv);
+  }
+
+  /**
+   * Retrieves the time after which changes must be deleted from the
+   * persistent storage (in milliseconds).
+   *
+   * @return  The time after which changes must be deleted from the
+   *          persistent storage (in milliseconds).
+   */
+  public long getTrimage()
+  {
+    return trimAge * 1000;
   }
 }
