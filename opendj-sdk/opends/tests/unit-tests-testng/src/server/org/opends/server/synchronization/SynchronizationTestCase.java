@@ -129,9 +129,12 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
       int port, int timeout, boolean emptyOldChanges)
           throws Exception, SocketException
   {
-    PersistentServerState state = new PersistentServerState(baseDn);
+    ServerState state;
     if (emptyOldChanges)
-      state.loadState();
+       state = new PersistentServerState(baseDn);
+    else
+       state = new ServerState();
+
     ChangelogBroker broker = new ChangelogBroker(
         state, baseDn, serverId, 0, 0, 0, 0, window_size, 0);
     ArrayList<String> servers = new ArrayList<String>(1);
@@ -188,9 +191,12 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
       boolean emptyOldChanges)
           throws Exception, SocketException
   {
-    PersistentServerState state = new PersistentServerState(baseDn);
+    ServerState state;
     if (emptyOldChanges)
-      state.loadState();
+       state = new PersistentServerState(baseDn);
+    else
+       state = new ServerState();
+
     ChangelogBroker broker = new ChangelogBroker(
         state, baseDn, serverId, maxRcvQueue, 0,
         maxSendQueue, 0, window_size, 0);

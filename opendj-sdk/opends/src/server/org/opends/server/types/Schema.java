@@ -188,6 +188,9 @@ public class Schema
   // file.
   private long youngestModificationTime;
 
+  // The Synchronization State.
+  private LinkedHashSet<AttributeValue> synchronizationState = null;
+
 
 
   /**
@@ -3030,8 +3033,35 @@ public class Schema
     dupSchema.objectClassSet.addAll(objectClassSet);
     dupSchema.oldestModificationTime   = oldestModificationTime;
     dupSchema.youngestModificationTime = youngestModificationTime;
+    if (synchronizationState != null)
+    {
+      dupSchema.synchronizationState =
+        new LinkedHashSet<AttributeValue>(synchronizationState);
+    }
 
     return dupSchema;
+  }
+
+
+  /**
+   * Retrieves the Synchronization state for this schema.
+   *
+   * @return  The Synchronization state for this schema.
+   */
+  public LinkedHashSet<AttributeValue> getSynchronizationState()
+  {
+    return synchronizationState;
+  }
+
+  /**
+   * Sets the Synchronization state for this schema.
+   *
+   * @param  values  Synchronization state for this schema.
+   */
+  public void setSynchronizationState(
+              LinkedHashSet<AttributeValue> values)
+  {
+    synchronizationState = values;
   }
 }
 

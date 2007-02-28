@@ -138,6 +138,10 @@ public abstract class Operation
   // in the response to the client.
   private StringBuilder errorMessage;
 
+  // Indicates whether this operation nneds to be synchronized to
+  // other copies of the data.
+  private boolean dontSynchronizeFlag;
+
 
 
   /**
@@ -730,6 +734,21 @@ public abstract class Operation
   }
 
 
+  /**
+   * Specifies whether this operation must be synchronized to other copies
+   * of the data.
+   *
+   * @param  dontSynchronize  Specifies whether this operation must be
+   *                          synchronized to other copies
+   *                          of the data.
+   */
+  public final void setDontSynchronize(boolean dontSynchronize)
+  {
+    assert debugEnter(CLASS_NAME, "setDontSynchronize",
+                      String.valueOf(dontSynchronize));
+
+    this.dontSynchronizeFlag = dontSynchronize;
+  }
 
   /**
    * Retrieves the entry for the user that should be considered the
@@ -1058,5 +1077,21 @@ public abstract class Operation
    *                 operation should be appended.
    */
   public abstract void toString(StringBuilder buffer);
+
+
+  /**
+   * Indicates whether this operation needs to be synchronized to
+   * other copies of the data.
+   *
+   * @return  <CODE>true</CODE> if this operation don't need to be
+   *                            synchronized, or
+   *          <CODE>false</CODE> if it needs to be synchronized.
+   */
+  public boolean dontSynchronize()
+  {
+    assert debugEnter(CLASS_NAME, "dontSynchronize");
+
+    return dontSynchronizeFlag;
+  }
 }
 

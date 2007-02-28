@@ -1053,6 +1053,19 @@ public class SchemaConfigManager
 
     List<Attribute> mruList = entry.getAttribute(mruAttrType);
 
+    AttributeType synchronizationStateType =
+      schema.getAttributeType(ATTR_SYNCHRONIZATION_STATE_LC);
+    if (synchronizationStateType == null)
+    {
+      synchronizationStateType =
+        DirectoryServer.getDefaultAttributeType(ATTR_SYNCHRONIZATION_STATE_LC,
+            new MatchingRuleUseSyntax());
+    }
+
+    List<Attribute> synchronizationState =
+      entry.getAttribute(synchronizationStateType);
+    if (synchronizationState != null && !(synchronizationState.isEmpty()))
+      schema.setSynchronizationState(synchronizationState.get(0).getValues());
 
     // Parse the attribute type definitions if there are any.
     if (attrList != null)

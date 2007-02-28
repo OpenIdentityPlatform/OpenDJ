@@ -65,8 +65,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
- * Test the contructors, encoders and decoders of the synchronization AckMsg,
- * ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
+ * Stress test for the synchronization code using the ChangelogBroker API.
  */
 public class StressTest extends SynchronizationTestCase
 {
@@ -109,7 +108,6 @@ public class StressTest extends SynchronizationTestCase
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
     final int TOTAL_MESSAGES = 1000;
-    cleanEntries();
 
     ChangelogBroker broker =
       openChangelogSession(baseDn, (short) 18, 100, 8989, 5000, true);

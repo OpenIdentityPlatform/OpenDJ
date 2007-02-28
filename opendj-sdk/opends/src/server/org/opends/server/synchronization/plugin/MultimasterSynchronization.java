@@ -38,7 +38,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.synchronization.changelog.Changelog;
 import org.opends.server.synchronization.common.LogMessages;
-import org.opends.server.synchronization.common.ServerState;
 import org.opends.server.types.DN;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.types.DirectoryException;
@@ -74,20 +73,6 @@ public class MultimasterSynchronization extends SynchronizationProvider
   private static Map<DN, SynchronizationDomain> domains =
     new HashMap<DN, SynchronizationDomain>() ;
 
-  /**
-   * Get the ServerState associated to the SynchronizationDomain
-   * with a given DN.
-   *
-   * @param baseDn The DN of the Synchronization Domain for which the
-   *               ServerState must be returned.
-   * @return the ServerState associated to the SynchronizationDomain
-   *         with the DN in parameter.
-   */
-  public static ServerState getServerState(DN baseDn)
-  {
-    SynchronizationDomain domain = findDomain(baseDn);
-    return domain.getServerState();
-  }
 
   /**
    * {@inheritDoc}
@@ -323,7 +308,8 @@ public class MultimasterSynchronization extends SynchronizationProvider
   public SynchronizationProviderResult handleConflictResolution(
                                                 ModifyOperation modifyOperation)
   {
-    SynchronizationDomain domain = findDomain(modifyOperation.getEntryDN());
+    SynchronizationDomain domain =
+      findDomain(modifyOperation.getEntryDN(), modifyOperation);
     if (domain == null)
       return new SynchronizationProviderResult(true);
 
@@ -337,7 +323,8 @@ public class MultimasterSynchronization extends SynchronizationProvider
   public SynchronizationProviderResult handleConflictResolution(
       AddOperation addOperation) throws DirectoryException
   {
-    SynchronizationDomain domain = findDomain(addOperation.getEntryDN());
+    SynchronizationDomain domain =
+      findDomain(addOperation.getEntryDN(), addOperation);
     if (domain == null)
       return new SynchronizationProviderResult(true);
 
@@ -351,7 +338,8 @@ public class MultimasterSynchronization extends SynchronizationProvider
   public SynchronizationProviderResult handleConflictResolution(
       DeleteOperation deleteOperation) throws DirectoryException
   {
-    SynchronizationDomain domain = findDomain(deleteOperation.getEntryDN());
+    SynchronizationDomain domain =
+      findDomain(deleteOperation.getEntryDN(), deleteOperation);
     if (domain == null)
       return new SynchronizationProviderResult(true);
 
@@ -365,7 +353,8 @@ public class MultimasterSynchronization extends SynchronizationProvider
   public SynchronizationProviderResult handleConflictResolution(
       ModifyDNOperation modifyDNOperation) throws DirectoryException
   {
-    SynchronizationDomain domain = findDomain(modifyDNOperation.getEntryDN());
+    SynchronizationDomain domain =
+      findDomain(modifyDNOperation.getEntryDN(), modifyDNOperation);
     if (domain == null)
       return new SynchronizationProviderResult(true);
 
@@ -379,8 +368,10 @@ public class MultimasterSynchronization extends SynchronizationProvider
   public SynchronizationProviderResult
       doPreOperation(ModifyOperation modifyOperation)
   {
-    SynchronizationDomain domain = findDomain(modifyOperation.getEntryDN());
-    if (domain == null)
+    DN operationDN = modifyOperation.getEntryDN();
+    SynchronizationDomain domain = findDomain(operationDN, modifyOperation);
+
+    if ((domain == null) || (!domain.solveConflict()))
       return new SynchronizationProviderResult(true);
 
     Historical historicalInformation = (Historical)
@@ -423,7 +414,8 @@ public class MultimasterSynchronization extends SynchronizationProvider
   @Override
   public SynchronizationProviderResult doPreOperation(AddOperation addOperation)
   {
-    SynchronizationDomain domain = findDomain(addOperation.getEntryDN());
+    SynchronizationDomain domain =
+      findDomain(addOperation.getEntryDN(), addOperation);
     if (domain == null)
       return new SynchronizationProviderResult(true);
 
@@ -457,8 +449,15 @@ public class MultimasterSynchronization extends SynchronizationProvider
    * @param dn The DN for which the domain must be returned.
    * @return The Synchronization domain for this DN.
    */
-  private static SynchronizationDomain findDomain(DN dn)
+  private static SynchronizationDomain findDomain(DN dn, Operation op)
   {
+    /*
+     * Don't run the special synchronization code on Operation that are
+     * specifically marked as don't synchronize.
+     */
+    if (op.dontSynchronize())
+      return null;
+
     SynchronizationDomain domain = null;
     DN temp = dn;
     do
@@ -471,13 +470,6 @@ public class MultimasterSynchronization extends SynchronizationProvider
       }
     } while (domain == null);
 
-    /*
-     * Don't apply synchronization to the special entry where the ServerState
-     * is stored.
-     */
-    if ((domain!= null) && (domain.getServerStateDN().equals(dn)))
-      return null;
-
     return domain;
   }
 
@@ -489,7 +481,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
    */
   private void genericPostOperation(Operation operation, DN dn)
   {
-    SynchronizationDomain domain = findDomain(dn);
+    SynchronizationDomain domain = findDomain(dn, operation);
     if (domain == null)
       return;
 
