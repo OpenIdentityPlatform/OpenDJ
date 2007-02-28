@@ -274,6 +274,58 @@ public class LogMessages {
     CATEGORY_MASK_SYNC | SEVERITY_MASK_MILD_ERROR | 36;
 
   /**
+   * The message ID for the description of the attribute used to specify the
+   * list of other Changelog Servers in the Changelog Server
+   * Configuration.
+   */
+  public static final int MSGID_CHANGELOG_SERVER_ATTR =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 37;
+
+  /**
+   * The message ID for the description of the attribute used to specify
+   * the identifier of the Changelog Server.
+   */
+  public static final int MSGID_SERVER_ID_ATTR =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 38;
+
+  /**
+   * The message id for the description of the attribute used to specify
+   * the port number of the Changelog Server.
+   */
+  public static final int MSGID_CHANGELOG_PORT_ATTR =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 39;
+
+  /**
+   * The message id for the description of the attribute used to specify
+   * the receive Window Size used by a Changelog Server.
+   */
+  public static final int MSGID_WINDOW_SIZE_ATTR =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 40;
+
+  /**
+   * The message id for thedescription of the  attribute used to specify
+   * the maximum queue size used by a Changelog Server.
+   */
+  public static final int MSGID_QUEUE_SIZE_ATTR =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 41;
+
+  /**
+   * The message id for the Attribute used to specify the directory where the
+   * persistent storage of the Changelog server will be saved.
+   */
+  public static final int MSGID_CHANGELOG_DIR_PATH_ATTR =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 42;
+
+  /**
+   * The message id for thedescription of the attribute used to configure
+   * the purge delay of the Changelog Servers.
+   */
+  public static final int MSGID_PURGE_DELAY_ATTR =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 43;
+
+
+
+  /**
    * Register the messages from this class in the core server.
    *
    */
@@ -367,5 +419,35 @@ public class LogMessages {
     MessageHandler.registerMessage(MSGID_FILE_CHECK_CREATE_FAILED,
         "An Exception was caught while testing existence or trying " +
         " to create the directory for the changelog database : %s");
+    MessageHandler.registerMessage(MSGID_CHANGELOG_SERVER_ATTR,
+        "Specifies the list of Changelog Servers to which this" +
+        " Changelog Server should connect. Each value of this attribute" +
+        " should contain a values build with the hostname and the port" +
+        " number of the remote server separated with a \":\"");
+    MessageHandler.registerMessage(MSGID_SERVER_ID_ATTR,
+        "Specifies the server ID. Each Changelog Server in the topology" +
+        " Must be assigned a unique server ID in the topology.");
+    MessageHandler.registerMessage(MSGID_CHANGELOG_PORT_ATTR,
+        "Specifies the port number that the changelog server will use to" +
+        " listen for connections from LDAP servers.");
+    MessageHandler.registerMessage(MSGID_WINDOW_SIZE_ATTR,
+        "Specifies the receive window size of the changelog server.");
+    MessageHandler.registerMessage(MSGID_QUEUE_SIZE_ATTR,
+        "Specifies the receive queue size of the changelog server." +
+        " The Changelog servers will queue up to this number of messages" +
+        " in its memory queue and save the older messages to persistent" +
+        " storage. Using a larger size may improve performances when" +
+        " The synchronization delay is larger than this size but at the cost" +
+        " of using more memory.");
+    MessageHandler.registerMessage(MSGID_CHANGELOG_DIR_PATH_ATTR,
+        "Specifies the Changelog Server directory. The Changelog server" +
+        " will create all persistent storage below this path.");
+    MessageHandler.registerMessage(MSGID_PURGE_DELAY_ATTR,
+        "Specifies the Changelog Purge Delay, The Changelog servers will" +
+        " keep all changes up to this amount of time before deleting them." +
+        " This values defines the maximum age of a backup that can be" +
+        " restored because changelog servers would not be able to refresh" +
+        " LDAP servers with older versions of the data. A zero value" +
+        " can be used to specify an infinite delay (or never purge).");
   }
 }

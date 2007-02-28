@@ -83,13 +83,17 @@ public class DbHandler implements Runnable
   private boolean done = false;
   private DirectoryThread thread = null;
   private Object flushLock = new Object();
+  /**
+   * the trim age in milliseconds.
+   */
+  private long trimage;
 
   /**
    * Creates a New dbHandler associated to a given LDAP server.
    *
    * @param id Identifier of the DB.
-   * @param baseDn of the DB.
-   * @param changelog the Changelog that creates this dbHandler.
+   * @param baseDn the baseDn for which this DB was created.
+   * @param changelog The Changelog that creates this dbHandler.
    * @param dbenv the Database Env to use to create the Changelog DB.
    * @throws DatabaseException If a database problem happened
    */
@@ -99,6 +103,7 @@ public class DbHandler implements Runnable
   {
     this.serverId = id;
     this.baseDn = baseDn;
+    this.trimage = changelog.getTrimage();
     db = new ChangelogDB(id, baseDn, changelog, dbenv);
     firstChange = db.readFirstChange();
     lastChange = db.readLastChange();
@@ -337,9 +342,10 @@ public class DbHandler implements Runnable
    */
   private void trim() throws DatabaseException, Exception
   {
+    if (trimage == 0)
+      return;
     int size = 0;
     boolean finished = false;
-    int trimage = 24*60*60*1000; // TODO : make trim-age a config parameter
     ChangeNumber trimDate = new ChangeNumber(TimeThread.getTime() - trimage,
         (short) 0, (short)0);
 
@@ -491,6 +497,15 @@ public class DbHandler implements Runnable
   public String toString()
   {
     return(baseDn + " " + serverId + " " + firstChange + " " + lastChange);
+  }
+
+  /**
+   * Set the Purge delay for this db Handler.
+   * @param delay The purge delay in Milliseconds.
+   */
+  public void setPurgeDelay(long delay)
+  {
+    trimage = delay;
   }
 
 }
