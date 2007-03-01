@@ -46,6 +46,7 @@ import java.util.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCought;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugError;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.loggers.Error.logError;
@@ -202,10 +203,11 @@ public class ExportJob
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("Malformed id2entry ID %s.%n",
+                            StaticUtils.bytesToHex(key.getData()));
           }
           skippedCount++;
-          System.err.printf("Malformed id2entry ID %s.%n",
-                            StaticUtils.bytesToHex(key.getData()));
           continue;
         }
 
@@ -225,11 +227,12 @@ public class ExportJob
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("Malformed id2entry record for ID %d:%n%s%n",
+                       entryID.longValue(),
+                       StaticUtils.bytesToHex(data.getData()));
           }
           skippedCount++;
-          System.err.printf("Malformed id2entry record for ID %d:%n%s%n",
-                            entryID.longValue(),
-                            StaticUtils.bytesToHex(data.getData()));
           continue;
         }
 

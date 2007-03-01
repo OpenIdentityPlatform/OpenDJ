@@ -57,6 +57,7 @@ import org.opends.server.util.ServerConstants;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCought;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugError;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
@@ -444,13 +445,14 @@ public class VerifyJob
         }
         catch (Exception e)
         {
+          errorCount++;
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("Malformed id2entry ID %s.%n",
+                       StaticUtils.bytesToHex(key.getData()));
           }
-          errorCount++;
-          System.err.printf("Malformed id2entry ID %s.%n",
-                            StaticUtils.bytesToHex(key.getData()));
           continue;
         }
 
@@ -463,14 +465,15 @@ public class VerifyJob
         }
         catch (Exception e)
         {
+          errorCount++;
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("Malformed id2entry record for ID %d:%n%s%n",
+                       entryID.longValue(),
+                       StaticUtils.bytesToHex(data.getData()));
           }
-          errorCount++;
-          System.err.printf("Malformed id2entry record for ID %d:%n%s%n",
-              entryID.longValue(),
-              StaticUtils.bytesToHex(data.getData()));
           continue;
         }
 
@@ -479,10 +482,12 @@ public class VerifyJob
       if (keyCount != storedEntryCount)
       {
         errorCount++;
-        System.err.printf("The stored entry count in id2entry (%d) does " +
-            "not agree with the actual number of entry " +
-            "records found (%d).%n",
-            storedEntryCount, keyCount);
+        if (debugEnabled())
+        {
+          debugError("The stored entry count in id2entry (%d) does " +
+              "not agree with the actual number of entry " +
+              "records found (%d).%n", storedEntryCount, keyCount);
+        }
       }
     }
     finally
@@ -555,13 +560,14 @@ public class VerifyJob
         }
         catch (DirectoryException e)
         {
+          errorCount++;
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("File dn2id has malformed key %s.%n",
+                       StaticUtils.bytesToHex(key.getData()));
           }
-          errorCount++;
-          System.err.printf("File dn2id has malformed key %s.%n",
-                            StaticUtils.bytesToHex(key.getData()));
           continue;
         }
 
@@ -572,14 +578,15 @@ public class VerifyJob
         }
         catch (Exception e)
         {
+          errorCount++;
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("File dn2id has malformed ID for DN <%s>:%n%s%n",
+                       dn.toNormalizedString(),
+                       StaticUtils.bytesToHex(data.getData()));
           }
-          errorCount++;
-          System.err.printf("File dn2id has malformed ID for DN <%s>:%n%s%n",
-                            dn.toNormalizedString(),
-                            StaticUtils.bytesToHex(data.getData()));
           continue;
         }
 
@@ -590,31 +597,34 @@ public class VerifyJob
         }
         catch (Exception e)
         {
+          errorCount++;
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
           }
-          errorCount++;
-          System.err.println(e.getMessage());
           continue;
         }
 
         if (entry == null)
         {
           errorCount++;
-          System.err.printf("File dn2id has DN <%s> referencing unknown " +
-                            "ID %d%n",
-                            dn.toNormalizedString(), entryID.longValue());
+          if (debugEnabled())
+          {
+            debugError("File dn2id has DN <%s> referencing unknown " +
+                "ID %d%n", dn.toNormalizedString(), entryID.longValue());
+          }
         }
         else
         {
           if (!entry.getDN().equals(dn))
           {
             errorCount++;
-            System.err.printf("File dn2id has DN <%s> referencing entry " +
-                              "with wrong DN <%s>%n",
-                              dn.toNormalizedString(),
-                              entry.getDN().toNormalizedString());
+            if (debugEnabled())
+            {
+              debugError("File dn2id has DN <%s> referencing entry " +
+                  "with wrong DN <%s>%n", dn.toNormalizedString(),
+                                          entry.getDN().toNormalizedString());
+            }
           }
         }
       }
@@ -654,13 +664,14 @@ public class VerifyJob
         }
         catch (Exception e)
         {
+          errorCount++;
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("File id2children has malformed ID %s%n",
+                       StaticUtils.bytesToHex(key.getData()));
           }
-          errorCount++;
-          System.err.printf("File id2children has malformed ID %s%n",
-                            StaticUtils.bytesToHex(key.getData()));
           continue;
         }
 
@@ -673,15 +684,15 @@ public class VerifyJob
         }
         catch (Exception e)
         {
+          errorCount++;
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("File id2children has malformed ID list " +
+                "for ID %s:%n%s%n", entryID,
+                                    StaticUtils.bytesToHex(data.getData()));
           }
-          errorCount++;
-          System.err.printf("File id2children has malformed ID list " +
-                            "for ID %s:%n%s%n",
-                            entryID,
-                            StaticUtils.bytesToHex(data.getData()));
           continue;
         }
 
@@ -701,15 +712,17 @@ public class VerifyJob
               debugCought(DebugLogLevel.ERROR, e);
             }
             errorCount++;
-            System.err.println(e.getMessage());
             continue;
           }
 
           if (entry == null)
           {
             errorCount++;
-            System.err.printf("File id2children has unknown ID %d%n",
-                              entryID.longValue());
+            if (debugEnabled())
+            {
+              debugError("File id2children has unknown ID %d%n",
+                         entryID.longValue());
+            }
             continue;
           }
 
@@ -727,16 +740,17 @@ public class VerifyJob
                 debugCought(DebugLogLevel.ERROR, e);
               }
               errorCount++;
-              System.err.println(e.getMessage());
               continue;
             }
 
             if (childEntry == null)
             {
               errorCount++;
-              System.err.printf("File id2children has ID %d referencing " +
-                                "unknown ID %d%n",
-                                entryID.longValue(), id.longValue());
+              if (debugEnabled())
+              {
+                debugError("File id2children has ID %d referencing " +
+                    "unknown ID %d%n", entryID.longValue(), id.longValue());
+              }
               continue;
             }
 
@@ -745,10 +759,13 @@ public class VerifyJob
                  entry.getDN().getNumComponents() + 1)
             {
               errorCount++;
-              System.err.printf("File id2children has ID %d with DN <%s> " +
-                                "referencing ID %d with non-child DN <%s>%n",
-                                entryID.longValue(), entry.getDN().toString(),
-                                id.longValue(), childEntry.getDN().toString());
+              if (debugEnabled())
+              {
+                debugError("File id2children has ID %d with DN <%s> " +
+                    "referencing ID %d with non-child DN <%s>%n",
+                           entryID.longValue(), entry.getDN().toString(),
+                           id.longValue(), childEntry.getDN().toString());
+              }
             }
           }
         }
@@ -789,13 +806,14 @@ public class VerifyJob
         }
         catch (Exception e)
         {
+          errorCount++;
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("File id2subtree has malformed ID %s%n",
+                       StaticUtils.bytesToHex(key.getData()));
           }
-          errorCount++;
-          System.err.printf("File id2subtree has malformed ID %s%n",
-                            StaticUtils.bytesToHex(key.getData()));
           continue;
         }
 
@@ -807,15 +825,15 @@ public class VerifyJob
         }
         catch (Exception e)
         {
+          errorCount++;
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("File id2subtree has malformed ID list " +
+                "for ID %s:%n%s%n", entryID,
+                                    StaticUtils.bytesToHex(data.getData()));
           }
-          errorCount++;
-          System.err.printf("File id2subtree has malformed ID list " +
-                            "for ID %s:%n%s%n",
-                            entryID,
-                            StaticUtils.bytesToHex(data.getData()));
           continue;
         }
 
@@ -835,15 +853,17 @@ public class VerifyJob
               debugCought(DebugLogLevel.ERROR, e);
             }
             errorCount++;
-            System.err.println(e.getMessage());
             continue;
           }
 
           if (entry == null)
           {
             errorCount++;
-            System.err.printf("File id2subtree has unknown ID %d%n",
-                              entryID.longValue());
+            if (debugEnabled())
+            {
+              debugError("File id2subtree has unknown ID %d%n",
+                         entryID.longValue());
+            }
             continue;
           }
 
@@ -861,27 +881,31 @@ public class VerifyJob
                 debugCought(DebugLogLevel.ERROR, e);
               }
               errorCount++;
-              System.err.println(e.getMessage());
               continue;
             }
 
             if (subordEntry == null)
             {
               errorCount++;
-              System.err.printf("File id2subtree has ID %d referencing " +
-                                "unknown ID %d%n",
-                                entryID.longValue(), id.longValue());
+              if (debugEnabled())
+              {
+                debugError("File id2subtree has ID %d referencing " +
+                    "unknown ID %d%n", entryID.longValue(), id.longValue());
+              }
               continue;
             }
 
             if (!subordEntry.getDN().isDescendantOf(entry.getDN()))
             {
               errorCount++;
-              System.err.printf("File id2subtree has ID %d with DN <%s> " +
-                                "referencing ID %d with non-subordinate " +
-                                "DN <%s>%n",
-                                entryID.longValue(), entry.getDN().toString(),
-                                id.longValue(), subordEntry.getDN().toString());
+              if (debugEnabled())
+              {
+                debugError("File id2subtree has ID %d with DN <%s> " +
+                    "referencing ID %d with non-subordinate " +
+                    "DN <%s>%n",
+                           entryID.longValue(), entry.getDN().toString(),
+                           id.longValue(), subordEntry.getDN().toString());
+              }
             }
           }
         }
@@ -984,14 +1008,15 @@ public class VerifyJob
         }
         catch (Exception e)
         {
+          errorCount++;
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("Malformed ID list: %s%n%s",
+                       StaticUtils.bytesToHex(data.getData()),
+                       keyDump(index, key.getData()));
           }
-          errorCount++;
-          System.err.printf("Malformed ID list: %s%n%s",
-                            StaticUtils.bytesToHex(data.getData()),
-                            keyDump(index, key.getData()));
           continue;
         }
 
@@ -1030,8 +1055,10 @@ public class VerifyJob
 
             default:
               errorCount++;
-              System.err.printf("Malformed value%n%s",
-                                keyDump(index, value));
+              if (debugEnabled())
+              {
+                debugError("Malformed value%n%s", keyDump(index, value));
+              }
               continue;
           }
 
@@ -1040,8 +1067,11 @@ public class VerifyJob
           {
             if (prevID != null && id.equals(prevID))
             {
-              System.err.printf("Duplicate reference to ID %d%n%s",
-                                id.longValue(), keyDump(index, key.getData()));
+              if (debugEnabled())
+              {
+                debugError("Duplicate reference to ID %d%n%s",
+                           id.longValue(), keyDump(index, key.getData()));
+              }
             }
             prevID = id;
 
@@ -1057,15 +1087,17 @@ public class VerifyJob
                 debugCought(DebugLogLevel.ERROR, e);
               }
               errorCount++;
-              System.err.println(e.getMessage());
               continue;
             }
 
             if (entry == null)
             {
               errorCount++;
-              System.err.printf("Reference to unknown ID %d%n%s",
-                                id.longValue(), keyDump(index, key.getData()));
+              if (debugEnabled())
+              {
+                debugError("Reference to unknown ID %d%n%s",
+                           id.longValue(), keyDump(index, key.getData()));
+              }
               continue;
             }
 
@@ -1074,9 +1106,12 @@ public class VerifyJob
               if (!sf.matchesEntry(entry))
               {
                 errorCount++;
-                System.err.printf("Reference to entry " +
-                                  "<%s> which does not match the value%n%s",
-                                  entry.getDN(), keyDump(index, value));
+                if (debugEnabled())
+                {
+                  debugError("Reference to entry " +
+                      "<%s> which does not match the value%n%s",
+                             entry.getDN(), keyDump(index, value));
+                }
               }
             }
             catch (DirectoryException e)
@@ -1135,16 +1170,22 @@ public class VerifyJob
       EntryID id = dn2id.get(null, dn);
       if (id == null)
       {
-        System.err.printf("File dn2id is missing key %s.%n",
-                          dn.toNormalizedString());
+        if (debugEnabled())
+        {
+          debugError("File dn2id is missing key %s.%n",
+                     dn.toNormalizedString());
+        }
         errorCount++;
       }
       else if (!id.equals(entryID))
       {
-        System.err.printf("File dn2id has ID %d instead of %d for key %s.%n",
-                          id.longValue(),
-                          entryID.longValue(),
-                          dn.toNormalizedString());
+        if (debugEnabled())
+        {
+          debugError("File dn2id has ID %d instead of %d for key %s.%n",
+                     id.longValue(),
+                     entryID.longValue(),
+                     dn.toNormalizedString());
+        }
         errorCount++;
       }
     }
@@ -1153,10 +1194,11 @@ public class VerifyJob
       if (debugEnabled())
       {
         debugCought(DebugLogLevel.ERROR, e);
+
+        debugError("File dn2id has error reading key %s: %s.%n",
+                   dn.toNormalizedString(),
+                   e.getMessage());
       }
-      System.err.printf("File dn2id has error reading key %s: %s.%n",
-                        dn.toNormalizedString(),
-                        e.getMessage());
       errorCount++;
     }
 
@@ -1169,8 +1211,11 @@ public class VerifyJob
         EntryID id = dn2id.get(null, parentDN);
         if (id == null)
         {
-          System.err.printf("File dn2id is missing key %s.%n",
-                            parentDN.toNormalizedString());
+          if (debugEnabled())
+          {
+            debugError("File dn2id is missing key %s.%n",
+                       parentDN.toNormalizedString());
+          }
           errorCount++;
         }
       }
@@ -1179,10 +1224,11 @@ public class VerifyJob
         if (debugEnabled())
         {
           debugCought(DebugLogLevel.ERROR, e);
+
+          debugError("File dn2id has error reading key %s: %s.%n",
+                     parentDN.toNormalizedString(),
+                     e.getMessage());
         }
-        System.err.printf("File dn2id has error reading key %s: %s.%n",
-                          parentDN.toNormalizedString(),
-                          e.getMessage());
         errorCount++;
       }
     }
@@ -1207,8 +1253,11 @@ public class VerifyJob
         parentID = dn2id.get(null, parentDN);
         if (parentID == null)
         {
-          System.err.printf("File dn2id is missing key %s.%n",
-                            parentDN.toNormalizedString());
+          if (debugEnabled())
+          {
+            debugError("File dn2id is missing key %s.%n",
+                       parentDN.toNormalizedString());
+          }
           errorCount++;
         }
       }
@@ -1217,10 +1266,11 @@ public class VerifyJob
         if (debugEnabled())
         {
           debugCought(DebugLogLevel.ERROR, e);
+
+          debugError("File dn2id has error reading key %s: %s.",
+                     parentDN.toNormalizedString(),
+                     e.getMessage());
         }
-        System.err.printf("File dn2id has error reading key %s: %s.",
-                          parentDN.toNormalizedString(),
-                          e.getMessage());
         errorCount++;
       }
       if (parentID != null)
@@ -1231,9 +1281,12 @@ public class VerifyJob
           cr = id2c.containsID(null, parentID.getDatabaseEntry(), entryID);
           if (cr == ConditionResult.FALSE)
           {
-            System.err.printf("File id2children is missing ID %d " +
-                              "for key %d.%n",
-                              entryID.longValue(), parentID.longValue());
+            if (debugEnabled())
+            {
+              debugError("File id2children is missing ID %d " +
+                  "for key %d.%n",
+                         entryID.longValue(), parentID.longValue());
+            }
             errorCount++;
           }
           else if (cr == ConditionResult.UNDEFINED)
@@ -1246,9 +1299,10 @@ public class VerifyJob
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("File id2children has error reading key %d: %s.",
+                       parentID.longValue(), e.getMessage());
           }
-          System.err.printf("File id2children has error reading key %d: %s.",
-                            parentID.longValue(), e.getMessage());
           errorCount++;
         }
       }
@@ -1271,8 +1325,11 @@ public class VerifyJob
         id = dn2id.get(null, dn);
         if (id == null)
         {
-          System.err.printf("File dn2id is missing key %s.%n",
-                            dn.toNormalizedString());
+          if (debugEnabled())
+          {
+            debugError("File dn2id is missing key %s.%n",
+                       dn.toNormalizedString());
+          }
           errorCount++;
         }
       }
@@ -1281,10 +1338,11 @@ public class VerifyJob
         if (debugEnabled())
         {
           debugCought(DebugLogLevel.ERROR, e);
+
+          debugError("File dn2id has error reading key %s: %s.%n",
+                     dn.toNormalizedString(),
+                     e.getMessage());
         }
-        System.err.printf("File dn2id has error reading key %s: %s.%n",
-                          dn.toNormalizedString(),
-                          e.getMessage());
         errorCount++;
       }
       if (id != null)
@@ -1295,9 +1353,12 @@ public class VerifyJob
           cr = id2s.containsID(null, id.getDatabaseEntry(), entryID);
           if (cr == ConditionResult.FALSE)
           {
-            System.err.printf("File id2subtree is missing ID %d " +
-                              "for key %d.%n",
-                              entryID.longValue(), id.longValue());
+            if (debugEnabled())
+            {
+              debugError("File id2subtree is missing ID %d " +
+                  "for key %d.%n",
+                         entryID.longValue(), id.longValue());
+            }
             errorCount++;
           }
           else if (cr == ConditionResult.UNDEFINED)
@@ -1310,9 +1371,10 @@ public class VerifyJob
           if (debugEnabled())
           {
             debugCought(DebugLogLevel.ERROR, e);
+
+            debugError("File id2subtree has error reading key %d: %s.%n",
+                       id.longValue(), e.getMessage());
           }
-          System.err.printf("File id2subtree has error reading key %d: %s.%n",
-                            id.longValue(), e.getMessage());
           errorCount++;
         }
       }
@@ -1374,12 +1436,13 @@ public class VerifyJob
         if (debugEnabled())
         {
           debugCought(DebugLogLevel.ERROR, e);
+
+          debugError("Error normalizing values of attribute %s in " +
+              "entry <%s>: %s.%n",
+                     attrIndex.getAttributeType().toString(),
+                     entry.getDN().toString(),
+                     e.getErrorMessage());
         }
-        System.err.printf("Error normalizing values of attribute %s in " +
-                          "entry <%s>: %s.%n",
-                          attrIndex.getAttributeType().toString(),
-                          entry.getDN().toString(),
-                          e.getErrorMessage());
       }
     }
   }
@@ -1413,9 +1476,12 @@ public class VerifyJob
         cr = presenceIndex.containsID(txn, presenceKey, entryID);
         if (cr == ConditionResult.FALSE)
         {
-          System.err.printf("Missing ID %d%n%s",
-                            entryID.longValue(),
-                            keyDump(presenceIndex, presenceKey.getData()));
+          if (debugEnabled())
+          {
+            debugError("Missing ID %d%n%s",
+                       entryID.longValue(),
+                       keyDump(presenceIndex, presenceKey.getData()));
+          }
           errorCount++;
         }
         else if (cr == ConditionResult.UNDEFINED)
@@ -1428,10 +1494,11 @@ public class VerifyJob
         if (debugEnabled())
         {
           debugCought(DebugLogLevel.ERROR, e);
+
+          debugError("Error reading database: %s%n%s",
+                     e.getMessage(),
+                     keyDump(presenceIndex, presenceKey.getData()));
         }
-        System.err.printf("Error reading database: %s%n%s",
-                          e.getMessage(),
-                          keyDump(presenceIndex, presenceKey.getData()));
         errorCount++;
       }
     }
@@ -1455,9 +1522,12 @@ public class VerifyJob
               cr = equalityIndex.containsID(txn, key, entryID);
               if (cr == ConditionResult.FALSE)
               {
-                System.err.printf("Missing ID %d%n%s",
-                                  entryID.longValue(),
-                                  keyDump(equalityIndex, normalizedBytes));
+                if (debugEnabled())
+                {
+                  debugError("Missing ID %d%n%s",
+                             entryID.longValue(),
+                             keyDump(equalityIndex, normalizedBytes));
+                }
                 errorCount++;
               }
               else if (cr == ConditionResult.UNDEFINED)
@@ -1470,10 +1540,11 @@ public class VerifyJob
               if (debugEnabled())
               {
                 debugCought(DebugLogLevel.ERROR, e);
+
+                debugError("Error reading database: %s%n%s",
+                           e.getMessage(),
+                           keyDump(equalityIndex, normalizedBytes));
               }
-              System.err.printf("Error reading database: %s%n%s",
-                                e.getMessage(),
-                                keyDump(equalityIndex, normalizedBytes));
               errorCount++;
             }
           }
@@ -1493,9 +1564,12 @@ public class VerifyJob
                 cr = substringIndex.containsID(txn, key, entryID);
                 if (cr == ConditionResult.FALSE)
                 {
-                  System.err.printf("Missing ID %d%n%s",
-                                    entryID.longValue(),
-                                    keyDump(substringIndex, key.getData()));
+                  if (debugEnabled())
+                  {
+                    debugError("Missing ID %d%n%s",
+                               entryID.longValue(),
+                               keyDump(substringIndex, key.getData()));
+                  }
                   errorCount++;
                 }
                 else if (cr == ConditionResult.UNDEFINED)
@@ -1508,10 +1582,11 @@ public class VerifyJob
                 if (debugEnabled())
                 {
                   debugCought(DebugLogLevel.ERROR, e);
+
+                  debugError("Error reading database: %s%n%s",
+                             e.getMessage(),
+                             keyDump(substringIndex, key.getData()));
                 }
-                System.err.printf("Error reading database: %s%n%s",
-                                  e.getMessage(),
-                                  keyDump(substringIndex, key.getData()));
                 errorCount++;
               }
             }
@@ -1534,9 +1609,12 @@ public class VerifyJob
               cr = orderingIndex.containsID(txn, key, entryID);
               if (cr == ConditionResult.FALSE)
               {
-                System.err.printf("Missing ID %d%n%s",
-                                  entryID.longValue(),
-                                  keyDump(orderingIndex, normalizedBytes));
+                if (debugEnabled())
+                {
+                  debugError("Missing ID %d%n%s",
+                             entryID.longValue(),
+                             keyDump(orderingIndex, normalizedBytes));
+                }
                 errorCount++;
               }
               else if (cr == ConditionResult.UNDEFINED)
@@ -1549,10 +1627,11 @@ public class VerifyJob
               if (debugEnabled())
               {
                 debugCought(DebugLogLevel.ERROR, e);
+
+                debugError("Error reading database: %s%n%s",
+                           e.getMessage(),
+                           keyDump(orderingIndex, normalizedBytes));
               }
-              System.err.printf("Error reading database: %s%n%s",
-                                e.getMessage(),
-                                keyDump(orderingIndex, normalizedBytes));
               errorCount++;
             }
           }

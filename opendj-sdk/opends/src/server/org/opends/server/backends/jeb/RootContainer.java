@@ -399,10 +399,12 @@ public class RootContainer
 
           preloadConfig.setMaxMillisecs(timeRemaining);
           PreloadStats preloadStats = db.preload(preloadConfig);
-/*
-          System.out.println("file=" + db.getDatabaseName() +
-                             " LNs=" + preloadStats.getNLNsLoaded());
-*/
+
+          if(debugEnabled())
+          {
+            debugInfo("file=" + db.getDatabaseName() +
+                      " LNs=" + preloadStats.getNLNsLoaded());
+          }
 
           // Stop if the cache is full or the time limit has been exceeded.
           if (preloadStats.getStatus() != PreloadStatus.SUCCESS)
@@ -596,9 +598,12 @@ public class RootContainer
         String newValue = newEnvConfig.getConfigParam(param.getName());
         if (!oldValue.equalsIgnoreCase(newValue))
         {
-          System.out.println("The change to the following property will " +
-                             "take effect when the backend is restarted: " +
-                             param.getName());
+          if(debugEnabled())
+          {
+            debugInfo("The change to the following property will " +
+                      "take effect when the backend is restarted: " +
+                      param.getName());
+          }
         }
       }
     }

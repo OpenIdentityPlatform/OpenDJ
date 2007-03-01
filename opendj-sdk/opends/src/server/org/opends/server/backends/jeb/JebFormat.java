@@ -44,6 +44,9 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
 
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -274,10 +277,12 @@ public class JebFormat
         bytes = new byte[compressedSize];
         System.arraycopy(compressedBuffer, 0, bytes, 0, compressedSize);
 
-/*
-        System.out.printf("Compression %d/%d%n",
-                          compressedSize, uncompressedSize);
-*/
+        if(debugEnabled())
+        {
+          debugInfo("Compression %d/%d%n",
+                    compressedSize, uncompressedSize);
+        }
+
       }
 
     }
