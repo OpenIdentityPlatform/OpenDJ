@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -30,7 +30,9 @@ package org.opends.server.protocols.ldap;
 
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Null;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -45,11 +47,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class UnbindRequestProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.UnbindRequestProtocolOp";
 
 
 
@@ -58,7 +55,6 @@ public class UnbindRequestProtocolOp
    */
   public UnbindRequestProtocolOp()
   {
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -70,7 +66,6 @@ public class UnbindRequestProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_UNBIND_REQUEST;
   }
@@ -84,7 +79,6 @@ public class UnbindRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Unbind Request";
   }
@@ -99,7 +93,6 @@ public class UnbindRequestProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     return new ASN1Null(OP_TYPE_UNBIND_REQUEST);
   }
@@ -119,7 +112,6 @@ public class UnbindRequestProtocolOp
   public static UnbindRequestProtocolOp decodeUnbindRequest(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeUnbindRequest");
 
     try
     {
@@ -128,7 +120,10 @@ public class UnbindRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeUnbindRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_LDAP_UNBIND_DECODE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -146,7 +141,6 @@ public class UnbindRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("UnbindRequest()");
   }
@@ -163,8 +157,6 @@ public class UnbindRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     for (int i=0; i < indent; i++)
     {

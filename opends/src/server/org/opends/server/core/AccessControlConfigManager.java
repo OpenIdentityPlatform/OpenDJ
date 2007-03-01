@@ -27,7 +27,9 @@
 package org.opends.server.core;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -63,7 +65,7 @@ import org.opends.server.types.ResultCode;
 public final class AccessControlConfigManager
        implements AlertGenerator
 {
-  // Fully qualified class name for debugging purposes.
+  // Fully qualified class name.
   private static final String CLASS_NAME =
     "org.opends.server.core.AccessControlConfigManager";
 
@@ -82,7 +84,6 @@ public final class AccessControlConfigManager
    * @return The access control manager.
    */
   public static AccessControlConfigManager getInstance() {
-    assert debugEnter(CLASS_NAME, "getInstance");
 
     if (instance == null) {
       instance = new AccessControlConfigManager();
@@ -98,7 +99,6 @@ public final class AccessControlConfigManager
    *         <code>false</code> otherwise.
    */
   public boolean isAccessControlEnabled() {
-    assert debugEnter(CLASS_NAME, "isEnabled");
     return currentConfiguration.isEnabled();
   }
 
@@ -112,7 +112,6 @@ public final class AccessControlConfigManager
    *         <code>null</code>).
    */
   public AccessControlHandler getAccessControlHandler() {
-    assert debugEnter(CLASS_NAME, "getAccessControlHandler");
     return accessControlProvider.get().getInstance();
   }
 
@@ -132,7 +131,6 @@ public final class AccessControlConfigManager
    */
   void initializeAccessControl() throws ConfigException,
       InitializationException {
-    assert debugEnter(CLASS_NAME, "initializeAccessControl");
 
     // Get the access control handler configuration entry.
     ConfigEntry configEntry;
@@ -140,8 +138,10 @@ public final class AccessControlConfigManager
       DN configEntryDN = DN.decode(DN_AUTHZ_HANDLER_CONFIG);
       configEntry = DirectoryServer.getConfigEntry(configEntryDN);
     } catch (Exception e) {
-      assert debugException(CLASS_NAME,
-          "initializeAccessControlConfigManager", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_AUTHZ_CANNOT_GET_ENTRY;
       String message = getMessage(msgID,
@@ -173,7 +173,6 @@ public final class AccessControlConfigManager
    * manager.
    */
   private AccessControlConfigManager() {
-    assert debugConstructor(CLASS_NAME);
 
     this.accessControlProvider = new AtomicReference<AccessControlProvider>(
         new DefaultAccessControlProvider());
@@ -194,7 +193,6 @@ public final class AccessControlConfigManager
    */
   private void updateConfiguration(Configuration newConfiguration)
       throws ConfigException, InitializationException {
-    assert debugEnter(CLASS_NAME, "updateConfiguration");
 
     DN configEntryDN = newConfiguration.getConfigEntry().getDN();
     Class<? extends AccessControlProvider> newHandlerClass = null;
@@ -233,7 +231,10 @@ public final class AccessControlConfigManager
       try {
         newHandler = newHandlerClass.newInstance();
       } catch (Exception e) {
-        assert debugException(CLASS_NAME, "updateConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER;
         String message = getMessage(msgID, newHandlerClass.getName(),
@@ -289,16 +290,12 @@ public final class AccessControlConfigManager
    * Internal class implementing the change listener interface.
    */
   private class ChangeListener implements ConfigChangeListener {
-    // Fully qualified class name for debugging purposes.
-    private static final String CLASS_NAME =
-      "org.opends.server.core.AccessControlConfigManager.ChangeListener";
 
     /**
      * {@inheritDoc}
      */
     public boolean configChangeIsAcceptable(ConfigEntry configEntry,
         StringBuilder unacceptableReason) {
-      assert debugEnter(CLASS_NAME, "configChangeIsAcceptable");
 
       try {
         // Parse the configuration entry.
@@ -316,8 +313,6 @@ public final class AccessControlConfigManager
      */
     public ConfigChangeResult applyConfigurationChange(
         ConfigEntry configEntry) {
-      assert debugEnter(CLASS_NAME, "applyConfigurationChange", String
-          .valueOf(configEntry));
 
       ResultCode resultCode = ResultCode.SUCCESS;
       ArrayList<String> messages = new ArrayList<String>();
@@ -345,9 +340,6 @@ public final class AccessControlConfigManager
    * Internal class used to represent the parsed configuration entry.
    */
   private static class Configuration {
-    // Fully qualified class name for debugging purposes.
-    private static final String CLASS_NAME =
-      "org.opends.server.core.AccessControlConfigManager.Configuration";
 
     // Flag indicating whether or not access control is enabled.
     private boolean enabled;
@@ -371,7 +363,6 @@ public final class AccessControlConfigManager
      */
     public static Configuration readConfiguration(
         ConfigEntry configEntry) throws ConfigException {
-      assert debugEnter(CLASS_NAME, "createConfiguration");
 
       // The access control configuration entry must have the correct
       // object class.
@@ -397,7 +388,6 @@ public final class AccessControlConfigManager
      *         <code>false</code> otherwise.
      */
     public boolean isEnabled() {
-      assert debugEnter(CLASS_NAME, "isEnabled");
       return enabled;
     }
 
@@ -408,7 +398,6 @@ public final class AccessControlConfigManager
      * @return Returns the {@link AccessControlProvider} class.
      */
     public Class<? extends AccessControlProvider> getProviderClass() {
-      assert debugEnter(CLASS_NAME, "getProviderClass");
       return providerClass;
     }
 
@@ -419,7 +408,6 @@ public final class AccessControlConfigManager
      * @return Returns the configuration entry.
      */
     public ConfigEntry getConfigEntry() {
-      assert debugEnter(CLASS_NAME, "getConfigEntry");
       return configEntry;
     }
 
@@ -436,7 +424,6 @@ public final class AccessControlConfigManager
      */
     private Configuration(ConfigEntry configEntry, boolean enabled,
         Class<? extends AccessControlProvider> providerClass) {
-      assert debugConstructor(CLASS_NAME);
 
       this.configEntry = configEntry;
       this.enabled = enabled;
@@ -456,7 +443,6 @@ public final class AccessControlConfigManager
      */
     private static boolean getEnabledAttribute(ConfigEntry configEntry)
         throws ConfigException {
-      assert debugEnter(CLASS_NAME, "getEnabledAttribute");
 
       // See if the entry contains an attribute that indicates whether
       // or not access control should be enabled.
@@ -499,7 +485,6 @@ public final class AccessControlConfigManager
      */
     private static Class<? extends AccessControlProvider> getClassAttribute(
         ConfigEntry configEntry) throws ConfigException {
-      assert debugEnter(CLASS_NAME, "getClassAttribute");
 
       // If access control is enabled then make sure that the class
       // attribute is present.
@@ -525,7 +510,10 @@ public final class AccessControlConfigManager
           return Class.forName(className).asSubclass(
               AccessControlProvider.class);
         } catch (ClassNotFoundException e) {
-          assert debugException(CLASS_NAME, "updateConfiguration", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_LOAD_CLASS;
           String message = getMessage(msgID, className, String
@@ -533,7 +521,10 @@ public final class AccessControlConfigManager
               stackTraceToSingleLineString(e));
           throw new ConfigException(msgID, message, e);
         } catch (ClassCastException e) {
-          assert debugException(CLASS_NAME, "updateConfiguration", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_CONFIG_AUTHZ_BAD_CLASS;
           String message = getMessage(msgID, className, String
@@ -562,7 +553,6 @@ public final class AccessControlConfigManager
    */
   public DN getComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getComponentEntryDN");
 
     return currentConfiguration.getConfigEntry().getDN();
   }
@@ -578,7 +568,6 @@ public final class AccessControlConfigManager
    */
   public String getClassName()
   {
-    assert debugEnter(CLASS_NAME, "getClassName");
 
     return CLASS_NAME;
   }
@@ -598,7 +587,6 @@ public final class AccessControlConfigManager
    */
   public LinkedHashMap<String,String> getAlerts()
   {
-    assert debugEnter(CLASS_NAME, "getAlerts");
 
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 

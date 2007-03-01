@@ -37,8 +37,10 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -65,11 +67,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class DoubleMetaphoneApproximateMatchingRule
        extends ApproximateMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.DoubleMetaphoneApproximateMatchingRule";
 
 
 
@@ -80,7 +77,6 @@ public class DoubleMetaphoneApproximateMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -102,8 +98,6 @@ public class DoubleMetaphoneApproximateMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRule",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -118,7 +112,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return AMR_DOUBLE_METAPHONE_NAME;
   }
@@ -132,7 +125,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return AMR_DOUBLE_METAPHONE_OID;
   }
@@ -147,7 +139,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     // There is no standard description for this matching rule.
     return AMR_DOUBLE_METAPHONE_DESCRIPTION;
@@ -163,7 +154,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     // Approximate matching is really only appropriate for DirectoryString
     // values.
@@ -186,7 +176,6 @@ public class DoubleMetaphoneApproximateMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeValue", String.valueOf(value));
 
     String valueString = value.stringValue();
     int length = valueString.length();
@@ -1188,8 +1177,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   public boolean approximatelyMatch(ByteString value1, ByteString value2)
   {
-    assert debugEnter(CLASS_NAME, "approximatelyMatch",
-                      String.valueOf(value1), String.valueOf(value2));
 
     // If the values have been normalized, then we just need to compare their
     // byte arrays.
@@ -1215,9 +1202,6 @@ public class DoubleMetaphoneApproximateMatchingRule
   private boolean hasSubstring(String value, int start,
                                String substring)
   {
-    assert debugEnter(CLASS_NAME, "hasSubstring", String.valueOf(value),
-                      String.valueOf(start),
-                      String.valueOf(substring));
 
     try
     {
@@ -1247,7 +1231,10 @@ public class DoubleMetaphoneApproximateMatchingRule
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasSubstring", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return false;
     }
@@ -1265,7 +1252,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   private boolean isVowel(char c)
   {
-    assert debugEnter(CLASS_NAME, "isVowel", String.valueOf(c));
 
     switch (c)
     {
@@ -1294,7 +1280,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   private boolean isSlavoGermanic(String s)
   {
-    assert debugEnter(CLASS_NAME, "isSlavoGermanic", String.valueOf(s));
 
     return (s.contains("W") || s.contains("K") || s.contains("CZ") ||
             s.contains("WITZ"));
@@ -1313,7 +1298,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   private boolean isGermanic(String s)
   {
-    assert debugEnter(CLASS_NAME, "isGermanic", String.valueOf(s));
 
     return (s.startsWith("VAN ") || s.startsWith("VON ") ||
             s.startsWith("SCH"));

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
@@ -32,7 +32,9 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 
@@ -44,11 +46,6 @@ import static org.opends.server.messages.ProtocolMessages.*;
  */
 public class ASN1Reader
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.asn1.ASN1Reader";
 
 
 
@@ -75,7 +72,6 @@ public class ASN1Reader
   public ASN1Reader(Socket socket)
          throws IOException
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(socket));
 
     this.socket = socket;
     inputStream = socket.getInputStream();
@@ -94,7 +90,6 @@ public class ASN1Reader
    */
   public ASN1Reader(InputStream inputStream)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(inputStream));
 
     this.inputStream = inputStream;
     socket           = null;
@@ -112,7 +107,6 @@ public class ASN1Reader
    */
   public int getMaxElementSize()
   {
-    assert debugEnter(CLASS_NAME, "getMaxElementSize");
 
     return maxElementSize;
   }
@@ -128,8 +122,6 @@ public class ASN1Reader
    */
   public void setMaxElementSize(int maxElementSize)
   {
-    assert debugEnter(CLASS_NAME, "setMaxElementSize",
-                      String.valueOf(maxElementSize));
 
     this.maxElementSize = maxElementSize;
   }
@@ -152,7 +144,6 @@ public class ASN1Reader
   public int getIOTimeout()
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "getIOTimeout");
 
     if (socket == null)
     {
@@ -182,7 +173,6 @@ public class ASN1Reader
   public void setIOTimeout(int ioTimeout)
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "setIOTimeout", String.valueOf(ioTimeout));
 
     if (socket == null)
     {
@@ -298,7 +288,6 @@ public class ASN1Reader
    */
   public void close()
   {
-    assert debugEnter(CLASS_NAME, "close");
 
     try
     {
@@ -306,7 +295,10 @@ public class ASN1Reader
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "close", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     if (socket != null)
@@ -317,7 +309,10 @@ public class ASN1Reader
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "close", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }

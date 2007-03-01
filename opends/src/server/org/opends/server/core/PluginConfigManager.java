@@ -73,7 +73,9 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -92,11 +94,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class PluginConfigManager
        implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.PluginConfigManager";
 
 
 
@@ -163,7 +160,6 @@ public class PluginConfigManager
    */
   public PluginConfigManager()
   {
-    assert debugConstructor(CLASS_NAME);
 
     pluginLock = new ReentrantLock();
 
@@ -240,7 +236,6 @@ public class PluginConfigManager
   public void initializePluginConfig(Set<PluginType> pluginTypes)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePluginConfig");
 
 
     registeredPlugins.clear();
@@ -256,7 +251,10 @@ public class PluginConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePluginConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_GET_CONFIG_BASE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -312,7 +310,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializePluginConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_PLUGIN_ERROR_INTERACTING_WITH_PLUGIN_ENTRY;
         String message = getMessage(msgID, String.valueOf(entryDN),
@@ -357,7 +358,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializePluginConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_PLUGIN_UNABLE_TO_DETERMINE_ENABLED_STATE;
         String message = getMessage(msgID, String.valueOf(entryDN),
@@ -420,7 +424,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializePluginConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_PLUGIN_TYPES;
         String message = getMessage(msgID, String.valueOf(entryDN),
@@ -464,7 +471,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializePluginConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
         String message = getMessage(msgID, String.valueOf(entryDN),
@@ -483,7 +493,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializePluginConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_PLUGIN_CANNOT_INSTANTIATE;
         String message = getMessage(msgID, String.valueOf(className),
@@ -503,7 +516,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializePluginConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_PLUGIN_CANNOT_INITIALIZE;
         String message = getMessage(msgID, String.valueOf(className),
@@ -541,7 +557,10 @@ parsePluginEntry:
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "finalizePlugins", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
 
@@ -564,7 +583,6 @@ parsePluginEntry:
    */
   public ConcurrentHashMap<DN,DirectoryServerPlugin> getRegisteredPlugins()
   {
-    assert debugEnter(CLASS_NAME, "getRegisteredPlugins");
 
     return registeredPlugins;
   }
@@ -582,8 +600,6 @@ parsePluginEntry:
    */
   public DirectoryServerPlugin getRegisteredPlugin(DN pluginDN)
   {
-    assert debugEnter(CLASS_NAME, "getRegisteredPlugin",
-                      String.valueOf(pluginDN));
 
     return registeredPlugins.get(pluginDN);
   }
@@ -606,8 +622,6 @@ parsePluginEntry:
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configChangeIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // Make sure that the entry has an appropriate objectclass for a plugin.
@@ -641,7 +655,10 @@ parsePluginEntry:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -658,7 +675,10 @@ parsePluginEntry:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -674,7 +694,10 @@ parsePluginEntry:
     }
     catch(Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_INSTANTIATE;
       String message = getMessage(msgID, pluginClass.getName(),
@@ -706,7 +729,10 @@ parsePluginEntry:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_PLUGIN_UNABLE_TO_DETERMINE_ENABLED_STATE;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -738,7 +764,10 @@ parsePluginEntry:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_GET_PLUGIN_TYPES;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -766,8 +795,6 @@ parsePluginEntry:
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationChange",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -844,7 +871,10 @@ parsePluginEntry:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PLUGIN_UNABLE_TO_DETERMINE_ENABLED_STATE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -896,7 +926,10 @@ parsePluginEntry:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_PLUGIN_TYPES;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -931,7 +964,10 @@ parsePluginEntry:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -973,7 +1009,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_PLUGIN_CANNOT_INSTANTIATE;
         messages.add(getMessage(msgID, className,
@@ -991,7 +1030,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_PLUGIN_CANNOT_INITIALIZE;
         messages.add(getMessage(msgID, className,
@@ -1031,8 +1073,6 @@ parsePluginEntry:
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configAddIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // NYI
@@ -1052,8 +1092,6 @@ parsePluginEntry:
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationAdd",
-                      String.valueOf(configEntry));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -1083,8 +1121,6 @@ parsePluginEntry:
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configDeleteIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // NYI
@@ -1103,8 +1139,6 @@ parsePluginEntry:
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationDelete",
-                      String.valueOf(configEntry));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -1131,8 +1165,6 @@ parsePluginEntry:
   private void registerPlugin(DirectoryServerPlugin plugin, DN pluginEntryDN,
                               HashSet<PluginType> pluginTypes)
   {
-    assert debugEnter(CLASS_NAME, "registerPlugin",
-                      String.valueOf(plugin), String.valueOf(pluginTypes));
 
     pluginLock.lock();
 
@@ -1334,8 +1366,6 @@ parsePluginEntry:
   private DirectoryServerPlugin[] addPlugin(DirectoryServerPlugin[] pluginArray,
                                             DirectoryServerPlugin plugin)
   {
-    assert debugEnter(CLASS_NAME, "addPlugin", String.valueOf(pluginArray),
-                      String.valueOf(plugin));
 
     DirectoryServerPlugin[] newPlugins =
          new DirectoryServerPlugin[pluginArray.length+1];
@@ -1355,8 +1385,6 @@ parsePluginEntry:
    */
   private void deregisterPlugin(DN configEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterPlugin",
-                      String.valueOf(configEntryDN));
 
     pluginLock.lock();
 
@@ -1566,8 +1594,6 @@ parsePluginEntry:
                removePlugin(DirectoryServerPlugin[] pluginArray,
                             DirectoryServerPlugin plugin)
   {
-    assert debugEnter(CLASS_NAME, "addPlugin", String.valueOf(pluginArray),
-                      String.valueOf(plugin));
 
     int slot   = -1;
     int length = pluginArray.length;
@@ -1620,7 +1646,6 @@ parsePluginEntry:
    */
   public StartupPluginResult invokeStartupPlugins()
   {
-    assert debugEnter(CLASS_NAME, "invokeStartupPlugins");
 
 
     StartupPluginResult result = null;
@@ -1633,7 +1658,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokeStartupPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_STARTUP_PLUGIN_EXCEPTION;
         String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
@@ -1699,8 +1727,6 @@ parsePluginEntry:
    */
   public void invokeShutdownPlugins(String reason)
   {
-    assert debugEnter(CLASS_NAME, "invokeShutdownPlugins",
-                      String.valueOf(reason));
 
 
     for (DirectoryServerPlugin p : shutdownPlugins)
@@ -1711,7 +1737,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokeShutdownPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION;
         String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
@@ -1735,8 +1764,6 @@ parsePluginEntry:
   public PostConnectPluginResult invokePostConnectPlugins(ClientConnection
                                                                clientConnection)
   {
-    assert debugEnter(CLASS_NAME, "invokePostConnectPlugins",
-                      String.valueOf(clientConnection));
 
 
     PostConnectPluginResult result = null;
@@ -1749,7 +1776,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostConnectPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_PLUGIN_POST_CONNECT_PLUGIN_EXCEPTION;
         String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
@@ -1766,7 +1796,10 @@ parsePluginEntry:
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "invokePostConnectPlugins", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
         }
 
         return new PostConnectPluginResult(true, false);
@@ -1790,7 +1823,10 @@ parsePluginEntry:
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "invokePostConnectPlugins", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         return new PostConnectPluginResult(true, false);
@@ -1833,8 +1869,6 @@ parsePluginEntry:
                                          DisconnectReason disconnectReason,
                                          int messageID, String message)
   {
-    assert debugEnter(CLASS_NAME, "invokePostConnectPlugins",
-                      String.valueOf(clientConnection));
 
 
     PostDisconnectPluginResult result = null;
@@ -1848,7 +1882,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostDisconnectPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID = MSGID_PLUGIN_POST_DISCONNECT_PLUGIN_EXCEPTION;
         String msg   = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
@@ -1904,8 +1941,6 @@ parsePluginEntry:
   public LDIFPluginResult invokeLDIFImportPlugins(LDIFImportConfig importConfig,
                                                   Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "invokeLDIFImportPlugins",
-                      String.valueOf(importConfig), String.valueOf(entry));
 
     LDIFPluginResult result = null;
 
@@ -1917,7 +1952,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokeLDIFImportPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION;
         String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
@@ -1970,8 +2008,6 @@ parsePluginEntry:
   public LDIFPluginResult invokeLDIFExportPlugins(LDIFExportConfig exportConfig,
                                                   Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "invokeLDIFExportPlugins",
-                      String.valueOf(exportConfig), String.valueOf(entry));
 
     LDIFPluginResult result = null;
 
@@ -1983,7 +2019,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokeLDIFExportPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_LDIF_EXPORT_PLUGIN_EXCEPTION;
         String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
@@ -2035,8 +2074,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseAbandonPlugins(
                                    AbandonOperation abandonOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreParseAbandonPlugins",
-                      String.valueOf(abandonOperation));
 
     PreParsePluginResult result = null;
 
@@ -2048,7 +2085,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreParseAbandonPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
@@ -2117,8 +2157,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseAddPlugins(AddOperation
                                                             addOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreParseAddPlugins",
-                      String.valueOf(addOperation));
 
     PreParsePluginResult result = null;
 
@@ -2130,7 +2168,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreParseAddPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
@@ -2197,8 +2238,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseBindPlugins(
                                    BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreParseBindPlugins",
-                      String.valueOf(bindOperation));
 
     PreParsePluginResult result = null;
 
@@ -2210,7 +2249,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreParseBindPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
@@ -2277,8 +2319,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseComparePlugins(
                                    CompareOperation compareOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreParseComparePlugins",
-                      String.valueOf(compareOperation));
 
     PreParsePluginResult result = null;
 
@@ -2290,7 +2330,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreParseComparePlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
@@ -2359,8 +2402,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseDeletePlugins(
                                    DeleteOperation deleteOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreParseDeletePlugins",
-                      String.valueOf(deleteOperation));
 
     PreParsePluginResult result = null;
 
@@ -2372,7 +2413,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreParseDeletePlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
@@ -2441,8 +2485,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseExtendedPlugins(
                                    ExtendedOperation extendedOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreParseExtendedPlugins",
-                      String.valueOf(extendedOperation));
 
     PreParsePluginResult result = null;
 
@@ -2454,7 +2496,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreParseExtendedPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
@@ -2523,8 +2568,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseModifyPlugins(
                                    ModifyOperation modifyOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreParseModifyPlugins",
-                      String.valueOf(modifyOperation));
 
     PreParsePluginResult result = null;
 
@@ -2536,7 +2579,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreParseModifyPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
@@ -2605,8 +2651,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseModifyDNPlugins(
                                    ModifyDNOperation modifyDNOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreParseModifyDNPlugins",
-                      String.valueOf(modifyDNOperation));
 
     PreParsePluginResult result = null;
 
@@ -2618,7 +2662,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreParseModifyDNPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
@@ -2687,8 +2734,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseSearchPlugins(
                                    SearchOperation searchOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreParseSearchPlugins",
-                      String.valueOf(searchOperation));
 
     PreParsePluginResult result = null;
 
@@ -2700,7 +2745,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreParseSearchPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
@@ -2769,8 +2817,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseUnbindPlugins(
                                    UnbindOperation unbindOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreParseUnbindPlugins",
-                      String.valueOf(unbindOperation));
 
     PreParsePluginResult result = null;
 
@@ -2782,7 +2828,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreParseUnbindPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
@@ -2851,8 +2900,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationAddPlugins(
                                        AddOperation addOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreOperationAddPlugins",
-                      String.valueOf(addOperation));
 
     PreOperationPluginResult result = null;
 
@@ -2864,7 +2911,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreOperationAddPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -2931,8 +2981,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationBindPlugins(
                                        BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreOperationBindPlugins",
-                      String.valueOf(bindOperation));
 
     PreOperationPluginResult result = null;
 
@@ -2944,7 +2992,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreOperationBindPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3011,8 +3062,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationComparePlugins(
                                        CompareOperation compareOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreOperationComparePlugins",
-                      String.valueOf(compareOperation));
 
     PreOperationPluginResult result = null;
 
@@ -3024,8 +3073,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreOperationComparePlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3094,8 +3145,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationDeletePlugins(
                                        DeleteOperation deleteOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreOperationDeletePlugins",
-                      String.valueOf(deleteOperation));
 
     PreOperationPluginResult result = null;
 
@@ -3107,7 +3156,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreOperationDeletePlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3176,8 +3228,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationExtendedPlugins(
                                        ExtendedOperation extendedOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreOperationExtendedPlugins",
-                      String.valueOf(extendedOperation));
 
     PreOperationPluginResult result = null;
 
@@ -3189,8 +3239,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreOperationExtendedPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3259,8 +3311,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationModifyPlugins(
                                        ModifyOperation modifyOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreOperationModifyPlugins",
-                      String.valueOf(modifyOperation));
 
     PreOperationPluginResult result = null;
 
@@ -3272,7 +3322,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreOperationModifyPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3341,8 +3394,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationModifyDNPlugins(
                                        ModifyDNOperation modifyDNOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreOperationModifyDNPlugins",
-                      String.valueOf(modifyDNOperation));
 
     PreOperationPluginResult result = null;
 
@@ -3354,8 +3405,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreOperationModifyDNPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3424,8 +3477,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationSearchPlugins(
                                        SearchOperation searchOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePreOperationSearchPlugins",
-                      String.valueOf(searchOperation));
 
     PreOperationPluginResult result = null;
 
@@ -3437,8 +3488,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePreOperationSearchPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3507,8 +3560,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationAbandonPlugins(
                                         AbandonOperation abandonOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostOperationAbandonPlugins",
-                      String.valueOf(abandonOperation));
 
     PostOperationPluginResult result = null;
 
@@ -3520,8 +3571,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostOperationAbandonPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3590,8 +3643,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationAddPlugins(
                                         AddOperation addOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostOperationAddPlugins",
-                      String.valueOf(addOperation));
 
     PostOperationPluginResult result = null;
 
@@ -3603,7 +3654,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostOperationAddPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3670,8 +3724,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationBindPlugins(
                                         BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostOperationBindPlugins",
-                      String.valueOf(bindOperation));
 
     PostOperationPluginResult result = null;
 
@@ -3683,7 +3735,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostOperationBindPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3750,8 +3805,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationComparePlugins(
                                         CompareOperation compareOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostOperationComparePlugins",
-                      String.valueOf(compareOperation));
 
     PostOperationPluginResult result = null;
 
@@ -3763,8 +3816,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostOperationComparePlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3833,8 +3888,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationDeletePlugins(
                                         DeleteOperation deleteOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostOperationDeletePlugins",
-                      String.valueOf(deleteOperation));
 
     PostOperationPluginResult result = null;
 
@@ -3846,8 +3899,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostOperationDeletePlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3916,8 +3971,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationExtendedPlugins(
                                         ExtendedOperation extendedOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostOperationExtendedPlugins",
-                      String.valueOf(extendedOperation));
 
     PostOperationPluginResult result = null;
 
@@ -3929,8 +3982,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostOperationExtendedPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -3999,8 +4054,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationModifyPlugins(
                                         ModifyOperation modifyOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostOperationModifyPlugins",
-                      String.valueOf(modifyOperation));
 
     PostOperationPluginResult result = null;
 
@@ -4012,8 +4065,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostOperationModifyPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -4082,8 +4137,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationModifyDNPlugins(
                                         ModifyDNOperation modifyDNOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostOperationModifyDNPlugins",
-                      String.valueOf(modifyDNOperation));
 
     PostOperationPluginResult result = null;
 
@@ -4095,8 +4148,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostOperationModifyDNPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -4165,8 +4220,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationSearchPlugins(
                                         SearchOperation searchOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostOperationSearchPlugins",
-                      String.valueOf(searchOperation));
 
     PostOperationPluginResult result = null;
 
@@ -4178,8 +4231,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostOperationSearchPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -4248,8 +4303,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationUnbindPlugins(
                                         UnbindOperation unbindOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostOperationUnbindPlugins",
-                      String.valueOf(unbindOperation));
 
     PostOperationPluginResult result = null;
 
@@ -4261,8 +4314,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostOperationUnbindPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
         String message =
@@ -4331,8 +4386,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseAddPlugins(
                                        AddOperation addOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostResponseAddPlugins",
-                      String.valueOf(addOperation));
 
     PostResponsePluginResult result = null;
 
@@ -4344,7 +4397,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostResponseAddPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
         String message =
@@ -4405,8 +4461,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseBindPlugins(
                                        BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostResponseBindPlugins",
-                      String.valueOf(bindOperation));
 
     PostResponsePluginResult result = null;
 
@@ -4418,7 +4472,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostResponseBindPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
         String message =
@@ -4479,8 +4536,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseComparePlugins(
                                        CompareOperation compareOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostResponseComparePlugins",
-                      String.valueOf(compareOperation));
 
     PostResponsePluginResult result = null;
 
@@ -4492,8 +4547,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostResponseComparePlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
         String message =
@@ -4554,8 +4611,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseDeletePlugins(
                                        DeleteOperation deleteOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostResponseDeletePlugins",
-                      String.valueOf(deleteOperation));
 
     PostResponsePluginResult result = null;
 
@@ -4567,7 +4622,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostResponseDeletePlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
         String message =
@@ -4628,8 +4686,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseExtendedPlugins(
                                        ExtendedOperation extendedOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostResponseExtendedPlugins",
-                      String.valueOf(extendedOperation));
 
     PostResponsePluginResult result = null;
 
@@ -4641,8 +4697,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostResponseExtendedPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
         String message =
@@ -4703,8 +4761,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseModifyPlugins(
                                        ModifyOperation modifyOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostResponseModifyPlugins",
-                      String.valueOf(modifyOperation));
 
     PostResponsePluginResult result = null;
 
@@ -4716,7 +4772,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostResponseModifyPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
         String message =
@@ -4777,8 +4836,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseModifyDNPlugins(
                                        ModifyDNOperation modifyDNOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostResponseModifyDNPlugins",
-                      String.valueOf(modifyDNOperation));
 
     PostResponsePluginResult result = null;
 
@@ -4790,8 +4847,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostResponseModifyDNPlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
         String message =
@@ -4852,8 +4911,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseSearchPlugins(
                                        SearchOperation searchOperation)
   {
-    assert debugEnter(CLASS_NAME, "invokePostResponseSearchPlugins",
-                      String.valueOf(searchOperation));
 
     PostResponsePluginResult result = null;
 
@@ -4865,7 +4922,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokePostResponseSearchPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
         String message =
@@ -4928,9 +4988,6 @@ parsePluginEntry:
                                       SearchOperation searchOperation,
                                       SearchResultEntry searchEntry)
   {
-    assert debugEnter(CLASS_NAME, "invokeSearchResultEntryPlugins",
-                      String.valueOf(searchOperation),
-                      String.valueOf(searchEntry));
 
     SearchEntryPluginResult result = null;
 
@@ -4942,7 +4999,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokeSearchResultEntryPlugins", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION;
         String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
@@ -5001,9 +5061,6 @@ parsePluginEntry:
                                           SearchOperation searchOperation,
                                           SearchResultReference searchReference)
   {
-    assert debugEnter(CLASS_NAME, "invokeSearchResultReferencePlugins",
-                      String.valueOf(searchOperation),
-                      String.valueOf(searchReference));
 
     SearchReferencePluginResult result = null;
 
@@ -5015,8 +5072,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokeSearchResultReferencePlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION;
         String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
@@ -5074,8 +5133,6 @@ parsePluginEntry:
               invokeIntermediateResponsePlugins(
                    IntermediateResponse intermediateResponse)
   {
-    assert debugEnter(CLASS_NAME, "invokeIntermediateResponsePlugins",
-                      String.valueOf(intermediateResponse));
 
     IntermediateResponsePluginResult result = null;
     Operation operation = intermediateResponse.getOperation();
@@ -5088,8 +5145,10 @@ parsePluginEntry:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "invokeIntermediateResponsePlugins",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_EXCEPTION;
         String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),

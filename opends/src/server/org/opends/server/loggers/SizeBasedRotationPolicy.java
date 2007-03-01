@@ -22,14 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 
 /**
  * This class implements a rotation policy based on the size of the
@@ -37,9 +36,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class SizeBasedRotationPolicy implements RotationPolicy
 {
-
-  private static final String CLASS_NAME =
-      "org.opends.server.loggers.SizeBasedRotationPolicy";
 
   private long sizeLimit;
   private DirectoryFileHandler fileHandler;
@@ -51,7 +47,7 @@ public class SizeBasedRotationPolicy implements RotationPolicy
    */
   public SizeBasedRotationPolicy(long size)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(size));
+
     sizeLimit = size;
   }
 
@@ -83,12 +79,13 @@ public class SizeBasedRotationPolicy implements RotationPolicy
   */
   public boolean rotateFile()
   {
-    assert debugEnter(CLASS_NAME, "rotateFile");
-    if(fileHandler.getFileSize() >= sizeLimit)
+
+    if (fileHandler.getFileSize() >= sizeLimit)
     {
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.INFO, CLASS_NAME, "rotateFile",
-                          "File Length:" + fileHandler.getFileSize());
+      if (debugEnabled())
+      {
+        debugInfo("File Length: %d", fileHandler.getFileSize());
+      }
       return true;
     }
     return false;

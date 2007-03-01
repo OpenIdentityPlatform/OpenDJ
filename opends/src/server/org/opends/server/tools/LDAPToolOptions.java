@@ -29,7 +29,6 @@ package org.opends.server.tools;
 import java.util.ArrayList;
 import org.opends.server.protocols.ldap.LDAPControl;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -39,11 +38,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class LDAPToolOptions
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tools.LDAPToolOptions";
 
   private boolean showOperations =  false;
   private boolean verbose = false;
@@ -57,7 +51,6 @@ public class LDAPToolOptions
    */
   public LDAPToolOptions()
   {
-    assert debugConstructor(CLASS_NAME);
   }
 
   /**

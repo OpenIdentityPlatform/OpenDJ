@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -49,7 +49,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchFilter;
 
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 /**
  * Class representing an attribute index.
@@ -65,11 +67,6 @@ import static org.opends.server.loggers.Debug.debugException;
  */
 public class AttributeIndex
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.AttributeIndex";
 
 
   /**
@@ -513,7 +510,10 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      assert debugException(CLASS_NAME, "evaluateEqualityFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       return new EntryIDSet();
     }
   }
@@ -568,7 +568,10 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      assert debugException(CLASS_NAME, "evaluateGreaterOrEqualFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       return new EntryIDSet();
     }
   }
@@ -605,7 +608,10 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      assert debugException(CLASS_NAME, "evaluateLessOrEqualFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       return new EntryIDSet();
     }
   }
@@ -691,7 +697,10 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      assert debugException(CLASS_NAME, "evaluateSubstringFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       return new EntryIDSet();
     }
   }
@@ -730,7 +739,10 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      assert debugException(CLASS_NAME, "evaluateBoundedRange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       return new EntryIDSet();
     }
   }

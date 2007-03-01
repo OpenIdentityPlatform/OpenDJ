@@ -22,11 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.authorization;
 
-import static org.opends.server.loggers.Debug.debugEnter;
 
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.core.AddOperation;
@@ -46,16 +45,12 @@ import org.opends.server.types.SearchResultReference;
  * requests made by the core directory server.
  */
 final class BasicAccessControlHandler extends AccessControlHandler {
-  // Fully qualified class name for debugging purposes.
-  private static final String CLASS_NAME =
-    "org.opends.server.authorization.BasicAccessControlHandler";
 
   /**
    * {@inheritDoc}
    */
   @Override
   public boolean isAllowed(AddOperation addOperation) {
-    assert debugEnter(CLASS_NAME, "isAllowed");
 
     // TODO: not yet implemented.
 
@@ -67,7 +62,6 @@ final class BasicAccessControlHandler extends AccessControlHandler {
    */
   @Override
   public boolean isAllowed(BindOperation bindOperation) {
-    assert debugEnter(CLASS_NAME, "isAllowed");
 
     // TODO: not yet implemented.
 
@@ -79,7 +73,6 @@ final class BasicAccessControlHandler extends AccessControlHandler {
    */
   @Override
   public boolean isAllowed(CompareOperation compareOperation) {
-    assert debugEnter(CLASS_NAME, "isAllowed");
 
     // TODO: not yet implemented.
 
@@ -91,7 +84,6 @@ final class BasicAccessControlHandler extends AccessControlHandler {
    */
   @Override
   public boolean isAllowed(DeleteOperation deleteOperation) {
-    assert debugEnter(CLASS_NAME, "isAllowed");
 
     // TODO: not yet implemented.
 
@@ -103,7 +95,6 @@ final class BasicAccessControlHandler extends AccessControlHandler {
    */
   @Override
   public boolean isAllowed(ExtendedOperation extendedOperation) {
-    assert debugEnter(CLASS_NAME, "isAllowed");
 
     // TODO: not yet implemented.
 
@@ -115,7 +106,6 @@ final class BasicAccessControlHandler extends AccessControlHandler {
    */
   @Override
   public boolean isAllowed(ModifyOperation modifyOperation) {
-    assert debugEnter(CLASS_NAME, "isAllowed");
 
     // TODO: not yet implemented.
 
@@ -127,7 +117,6 @@ final class BasicAccessControlHandler extends AccessControlHandler {
    */
   @Override
   public boolean isAllowed(ModifyDNOperation modifyDNOperation) {
-    assert debugEnter(CLASS_NAME, "isAllowed");
 
     // TODO: not yet implemented.
 
@@ -139,7 +128,6 @@ final class BasicAccessControlHandler extends AccessControlHandler {
    */
   @Override
   public boolean isAllowed(SearchOperation searchOperation) {
-    assert debugEnter(CLASS_NAME, "isAllowed");
 
     // TODO: not yet implemented.
 
@@ -152,7 +140,6 @@ final class BasicAccessControlHandler extends AccessControlHandler {
   @Override
   public boolean maySend(SearchOperation searchOperation,
       SearchResultEntry searchEntry) {
-    assert debugEnter(CLASS_NAME, "maySend");
 
     // TODO: not yet implemented.
 
@@ -165,7 +152,6 @@ final class BasicAccessControlHandler extends AccessControlHandler {
   @Override
   public SearchResultEntry filterEntry(SearchOperation searchOperation,
       SearchResultEntry searchEntry) {
-    assert debugEnter(CLASS_NAME, "filterEntry");
 
     // TODO: not yet implemented.
 
@@ -178,7 +164,6 @@ final class BasicAccessControlHandler extends AccessControlHandler {
   @Override
   public boolean maySend(SearchOperation searchOperation,
       SearchResultReference searchReference) {
-    assert debugEnter(CLASS_NAME, "maySend");
 
     // TODO: not yet implemented.
 

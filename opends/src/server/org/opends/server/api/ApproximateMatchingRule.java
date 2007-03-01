@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -31,7 +31,6 @@ package org.opends.server.api;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -43,11 +42,6 @@ import static org.opends.server.loggers.Debug.*;
 public abstract class ApproximateMatchingRule
        extends MatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.ApproximateMatchingRule";
 
 
 
@@ -90,9 +84,6 @@ public abstract class ApproximateMatchingRule
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "valuesMatch",
-                      String.valueOf(attributeValue),
-                      String.valueOf(assertionValue));
 
     if (approximatelyMatch(attributeValue, assertionValue))
     {

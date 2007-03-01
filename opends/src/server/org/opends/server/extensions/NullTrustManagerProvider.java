@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -36,9 +36,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
 
 
 
@@ -51,11 +48,6 @@ import static org.opends.server.messages.MessageHandler.*;
 public class NullTrustManagerProvider
        extends TrustManagerProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.NullTrustManagerProvider";
 
 
 
@@ -66,7 +58,6 @@ public class NullTrustManagerProvider
    */
   public NullTrustManagerProvider()
   {
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation is required.
   }
@@ -91,8 +82,6 @@ public class NullTrustManagerProvider
   public void initializeTrustManagerProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeTrustManagerProvider",
-                      String.valueOf(configEntry));
 
     // No implementation is required.
   }
@@ -105,7 +94,6 @@ public class NullTrustManagerProvider
    */
   public void finalizeTrustManagerProvider()
   {
-    assert debugEnter(CLASS_NAME, "finalizeTrustManagerProvider");
 
     // No implementation is required.
   }
@@ -125,7 +113,6 @@ public class NullTrustManagerProvider
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getTrustManagers");
 
     return new TrustManager[0];
   }

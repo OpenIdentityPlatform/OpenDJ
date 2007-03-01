@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
 
@@ -43,13 +43,14 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -60,11 +61,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class StringConfigAttribute
        extends ConfigAttribute
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.config.StringConfigAttribute";
 
 
 
@@ -98,11 +94,6 @@ public class StringConfigAttribute
   {
     super(name, description, isRequired, isMultiValued, requiresAdminAction);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(name),
-                            String.valueOf(isRequired),
-                            String.valueOf(isMultiValued),
-                            String.valueOf(description),
-                            String.valueOf(requiresAdminAction));
 
     activeValues  = new ArrayList<String>();
     pendingValues = activeValues;
@@ -134,16 +125,6 @@ public class StringConfigAttribute
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
           getValueSet(value));
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(isRequired),
-                              String.valueOf(isMultiValued),
-                              String.valueOf(description),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(value)
-                            });
 
     if (value == null)
     {
@@ -184,16 +165,6 @@ public class StringConfigAttribute
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
           getValueSet(values));
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(isRequired),
-                              String.valueOf(isMultiValued),
-                              String.valueOf(description),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(values)
-                            });
 
     if (values == null)
     {
@@ -238,17 +209,6 @@ public class StringConfigAttribute
           getValueSet(activeValues), (pendingValues != null),
           getValueSet(pendingValues));
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(isRequired),
-                              String.valueOf(isMultiValued),
-                              String.valueOf(description),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(activeValues),
-                              String.valueOf(pendingValues)
-                            });
 
     if (activeValues == null)
     {
@@ -281,7 +241,6 @@ public class StringConfigAttribute
    */
   public String getDataType()
   {
-    assert debugEnter(CLASS_NAME, "getDataType");
 
     return "String";
   }
@@ -295,7 +254,6 @@ public class StringConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-    assert debugEnter(CLASS_NAME,"getSyntax");
 
     return DirectoryServer.getDefaultStringSyntax();
   }
@@ -314,7 +272,6 @@ public class StringConfigAttribute
   public String activeValue()
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "activeValue");
 
     if ((activeValues == null) || activeValues.isEmpty())
     {
@@ -342,7 +299,6 @@ public class StringConfigAttribute
    */
   public List<String> activeValues()
   {
-    assert debugEnter(CLASS_NAME, "activeValues");
 
     return activeValues;
   }
@@ -363,7 +319,6 @@ public class StringConfigAttribute
   public String pendingValue()
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "pendingValue");
 
     if (! hasPendingValues())
     {
@@ -398,7 +353,6 @@ public class StringConfigAttribute
    */
   public List<String> pendingValues()
   {
-    assert debugEnter(CLASS_NAME, "pendingValues");
 
     if (! hasPendingValues())
     {
@@ -420,7 +374,6 @@ public class StringConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(value));
 
     if ((value == null) || (value.length() == 0))
     {
@@ -457,7 +410,6 @@ public class StringConfigAttribute
   public void setValues(List<String> values)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValues", String.valueOf(values));
 
 
     // First check if the set is empty and if that is allowed.
@@ -548,7 +500,6 @@ public class StringConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(String value)
   {
-    assert debugEnter(CLASS_NAME, "getValueSet", String.valueOf(value));
 
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
@@ -570,7 +521,6 @@ public class StringConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(List<String> values)
   {
-    assert debugEnter(CLASS_NAME, "getValueSet", String.valueOf(values));
 
     if (values == null)
     {
@@ -598,7 +548,6 @@ public class StringConfigAttribute
    */
   public void applyPendingValues()
   {
-    assert debugEnter(CLASS_NAME, "applyPendingValues");
 
     if (! hasPendingValues())
     {
@@ -626,8 +575,6 @@ public class StringConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
 
     // The only requirement is that the value is not null or empty.
@@ -668,9 +615,6 @@ public class StringConfigAttribute
                               boolean allowFailures)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "stringsToValues",
-                      String.valueOf(valueStrings),
-                      String.valueOf(allowFailures));
 
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
@@ -750,7 +694,6 @@ public class StringConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-    assert debugEnter(CLASS_NAME, "activeValuesToStrings");
 
     return activeValues;
   }
@@ -770,7 +713,6 @@ public class StringConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-    assert debugEnter(CLASS_NAME, "pendingValuesToStrings");
 
     if (hasPendingValues())
     {
@@ -808,8 +750,6 @@ public class StringConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getConfigAttribute",
-                      String.valueOf(attributeList));
 
 
     ArrayList<String> activeValues  = null;
@@ -955,7 +895,6 @@ public class StringConfigAttribute
    */
   private javax.management.Attribute _toJMXAttribute(boolean pending)
   {
-    assert debugEnter(CLASS_NAME, "_toJMXAttribute");
     List<String> requestedValues ;
     String name ;
     if (pending)
@@ -998,7 +937,6 @@ public class StringConfigAttribute
    */
   public javax.management.Attribute toJMXAttribute()
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttribute");
     return _toJMXAttribute(false) ;
   }
 
@@ -1012,7 +950,6 @@ public class StringConfigAttribute
    */
   public javax.management.Attribute toJMXAttributePending()
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttributePending");
     return _toJMXAttribute(true) ;
   }
 
@@ -1031,8 +968,6 @@ public class StringConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttribute",
-                      String.valueOf(attributeList));
 
     if (activeValues.size() > 0)
     {
@@ -1099,8 +1034,6 @@ public class StringConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttributeInfo",
-                      String.valueOf(attributeInfoList));
 
 
     if (isMultiValued())
@@ -1151,7 +1084,6 @@ public class StringConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-    assert debugEnter(CLASS_NAME, "toJMXParameterInfo");
 
     if (isMultiValued())
     {
@@ -1181,7 +1113,6 @@ public class StringConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(jmxAttribute));
 
     Object value = jmxAttribute.getValue();
     if (value instanceof String)
@@ -1208,13 +1139,19 @@ public class StringConfigAttribute
         }
         catch (ConfigException ce)
         {
-          assert debugException(CLASS_NAME, "setValue", ce);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, ce);
+          }
 
           throw ce;
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "setValue", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_CONFIG_ATTR_INVALID_STRING_VALUE;
           String message = getMessage(msgID, getName(), String.valueOf(value),
@@ -1247,7 +1184,6 @@ public class StringConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     return new StringConfigAttribute(getName(), getDescription(), isRequired(),
                                      isMultiValued(), requiresAdminAction(),

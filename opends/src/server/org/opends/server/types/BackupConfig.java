@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -51,11 +46,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class BackupConfig
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.BackupConfig";
 
 
 
@@ -106,10 +96,6 @@ public class BackupConfig
   public BackupConfig(BackupDirectory backupDirectory,
                       String backupID, boolean isIncremental)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(backupDirectory),
-                            String.valueOf(backupID),
-                            String.valueOf(isIncremental));
 
     this.backupDirectory = backupDirectory;
     this.backupID        = backupID;
@@ -127,7 +113,6 @@ public class BackupConfig
    */
   public BackupDirectory getBackupDirectory()
   {
-    assert debugEnter(CLASS_NAME, "getBackupDirectory");
 
     return backupDirectory;
   }
@@ -145,7 +130,6 @@ public class BackupConfig
    */
   public String getBackupID()
   {
-    assert debugEnter(CLASS_NAME, "getBackupID");
 
     return backupID;
   }
@@ -163,7 +147,6 @@ public class BackupConfig
    */
   public boolean isIncremental()
   {
-    assert debugEnter(CLASS_NAME, "isIncremental");
 
     return isIncremental;
   }
@@ -182,7 +165,6 @@ public class BackupConfig
    */
   public String getIncrementalBaseID()
   {
-    assert debugEnter(CLASS_NAME, "getIncrementalBaseID");
 
     return incrementalBaseID;
   }
@@ -199,8 +181,6 @@ public class BackupConfig
    */
   public void setIncrementalBaseID(String incrementalBaseID)
   {
-    assert debugEnter(CLASS_NAME, "setIncrementalBaseID",
-                      String.valueOf(incrementalBaseID));
 
     this.incrementalBaseID = incrementalBaseID;
   }
@@ -217,7 +197,6 @@ public class BackupConfig
    */
   public boolean compressData()
   {
-    assert debugEnter(CLASS_NAME, "compressData");
 
     return compressData;
   }
@@ -233,8 +212,6 @@ public class BackupConfig
    */
   public void setCompressData(boolean compressData)
   {
-    assert debugEnter(CLASS_NAME, "setCompressData",
-                      String.valueOf(compressData));
 
     this.compressData = compressData;
   }
@@ -251,7 +228,6 @@ public class BackupConfig
    */
   public boolean encryptData()
   {
-    assert debugEnter(CLASS_NAME, "encryptData");
 
     return encryptData;
   }
@@ -267,8 +243,6 @@ public class BackupConfig
    */
   public void setEncryptData(boolean encryptData)
   {
-    assert debugEnter(CLASS_NAME, "setEncryptData",
-                      String.valueOf(encryptData));
 
     this.encryptData = encryptData;
   }
@@ -286,7 +260,6 @@ public class BackupConfig
    */
   public boolean hashData()
   {
-    assert debugEnter(CLASS_NAME, "hashData");
 
     return hashData;
   }
@@ -302,8 +275,6 @@ public class BackupConfig
    */
   public void setHashData(boolean hashData)
   {
-    assert debugEnter(CLASS_NAME, "setHashData",
-                      String.valueOf(hashData));
 
     this.hashData = hashData;
   }
@@ -322,7 +293,6 @@ public class BackupConfig
    */
   public boolean signHash()
   {
-    assert debugEnter(CLASS_NAME, "signHash");
 
     return signHash;
   }
@@ -338,8 +308,6 @@ public class BackupConfig
    */
   public void setSignHash(boolean signHash)
   {
-    assert debugEnter(CLASS_NAME, "setSignHash",
-                      String.valueOf(signHash));
 
     this.signHash = signHash;
   }

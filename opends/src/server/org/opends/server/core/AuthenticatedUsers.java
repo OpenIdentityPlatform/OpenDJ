@@ -41,7 +41,6 @@ import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 
@@ -60,11 +59,6 @@ import static org.opends.server.messages.MessageHandler.*;
 public class AuthenticatedUsers
        implements ChangeNotificationListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.AuthenticatedUsers";
 
 
 
@@ -80,7 +74,6 @@ public class AuthenticatedUsers
    */
   public AuthenticatedUsers()
   {
-    assert debugConstructor(CLASS_NAME);
 
     userMap = new ConcurrentHashMap<DN,CopyOnWriteArraySet<ClientConnection>>();
 
@@ -99,8 +92,6 @@ public class AuthenticatedUsers
    */
   public synchronized void put(DN userDN, ClientConnection clientConnection)
   {
-    assert debugEnter(CLASS_NAME, "put", String.valueOf(userDN),
-                      String.valueOf(clientConnection));
 
     CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(userDN);
     if (connectionSet == null)
@@ -127,8 +118,6 @@ public class AuthenticatedUsers
    */
   public synchronized void remove(DN userDN, ClientConnection clientConnection)
   {
-    assert debugEnter(CLASS_NAME, "put", String.valueOf(userDN),
-                      String.valueOf(clientConnection));
 
     CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(userDN);
     if (connectionSet != null)

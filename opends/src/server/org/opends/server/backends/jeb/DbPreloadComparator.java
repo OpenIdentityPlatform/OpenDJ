@@ -22,13 +22,15 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 import java.util.Comparator;
 
@@ -38,11 +40,6 @@ import java.util.Comparator;
  */
 public class DbPreloadComparator implements Comparator<Database>
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.EntryContainer";
 
   /**
    * Calculate the relative priority of a database for preloading.
@@ -70,7 +67,10 @@ public class DbPreloadComparator implements Comparator<Database>
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "TODO", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       return 3;
     }
   }

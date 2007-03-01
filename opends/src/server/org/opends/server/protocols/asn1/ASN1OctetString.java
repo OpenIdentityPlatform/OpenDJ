@@ -22,15 +22,17 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
 
 
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -55,11 +57,6 @@ public class ASN1OctetString
        extends ASN1Element
        implements ByteString
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.asn1.ASN1OctetString";
 
 
 
@@ -87,7 +84,6 @@ public class ASN1OctetString
   {
     super(UNIVERSAL_OCTET_STRING_TYPE);
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -102,7 +98,6 @@ public class ASN1OctetString
   {
     super(type);
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type));
   }
 
 
@@ -117,7 +112,6 @@ public class ASN1OctetString
   {
     super(UNIVERSAL_OCTET_STRING_TYPE, value);
 
-    assert debugConstructor(CLASS_NAME, bytesToHex(value));
 
     this.stringValue = null;
   }
@@ -135,7 +129,6 @@ public class ASN1OctetString
   {
     super(UNIVERSAL_OCTET_STRING_TYPE, getBytes(stringValue));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(stringValue));
 
     this.stringValue = stringValue;
   }
@@ -153,7 +146,6 @@ public class ASN1OctetString
   {
     super(type, value);
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type), bytesToHex(value));
 
     this.stringValue = null;
   }
@@ -172,8 +164,6 @@ public class ASN1OctetString
   {
     super(type, getBytes(stringValue));
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type),
-                            String.valueOf(stringValue));
 
     this.stringValue = stringValue;
   }
@@ -191,7 +181,6 @@ public class ASN1OctetString
    */
   public String stringValue()
   {
-    assert debugEnter(CLASS_NAME, "stringValue");
 
     if (stringValue == null)
     {
@@ -217,7 +206,10 @@ public class ASN1OctetString
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "stringValue", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         stringValue = new String(value());
       }
@@ -237,7 +229,6 @@ public class ASN1OctetString
    */
   public void stringValue(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "stringValue", "java.lang.StringBuilder");
 
     if (stringValue != null)
     {
@@ -263,9 +254,12 @@ public class ASN1OctetString
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "stringValue", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
-          s = new String(value, i, (length-i));
+          s = new String(value, i, (length - i));
         }
 
         buffer.append(s);
@@ -283,7 +277,6 @@ public class ASN1OctetString
    */
   public void setValue(String stringValue)
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(stringValue));
 
     if (stringValue == null)
     {
@@ -306,7 +299,6 @@ public class ASN1OctetString
    */
   public void setValue(byte[] value)
   {
-    assert debugEnter(CLASS_NAME, "setValue", bytesToHex(value));
 
     if (value == null)
     {
@@ -335,8 +327,6 @@ public class ASN1OctetString
   public static ASN1OctetString decodeAsOctetString(ASN1Element element)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsOctetString",
-                      String.valueOf(element));
 
     if (element == null)
     {
@@ -364,8 +354,6 @@ public class ASN1OctetString
   public static ASN1OctetString decodeAsOctetString(byte[] encodedElement)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsOctetString",
-                      bytesToHex(encodedElement));
 
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 element.
@@ -440,7 +428,6 @@ public class ASN1OctetString
    */
   public ASN1OctetString duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     byte[] value = value();
     int length = value.length;
@@ -461,7 +448,6 @@ public class ASN1OctetString
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append(stringValue());
   }
@@ -479,8 +465,6 @@ public class ASN1OctetString
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
@@ -516,7 +500,6 @@ public class ASN1OctetString
    */
   public ASN1OctetString toASN1OctetString()
   {
-    assert debugEnter(CLASS_NAME, "toASN1OctetString");
 
     return this;
   }

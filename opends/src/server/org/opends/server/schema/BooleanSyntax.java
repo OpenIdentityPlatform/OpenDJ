@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -45,7 +45,6 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -63,11 +62,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class BooleanSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.BooleanSyntax";
 
 
 
@@ -104,7 +98,6 @@ public class BooleanSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -122,8 +115,6 @@ public class BooleanSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
 
     defaultEqualityMatchingRule =
@@ -145,7 +136,6 @@ public class BooleanSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_BOOLEAN_NAME;
   }
@@ -159,7 +149,6 @@ public class BooleanSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_BOOLEAN_OID;
   }
@@ -173,7 +162,6 @@ public class BooleanSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_BOOLEAN_DESCRIPTION;
   }
@@ -190,7 +178,6 @@ public class BooleanSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -207,7 +194,6 @@ public class BooleanSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     // Ordering matches are not allowed by default.
     return null;
@@ -225,7 +211,6 @@ public class BooleanSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     // Substring matches are not allowed by default.
     return null;
@@ -243,7 +228,6 @@ public class BooleanSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // Approximate matches are not allowed by default.
     return null;
@@ -266,8 +250,6 @@ public class BooleanSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
     String valueString = value.stringValue().toUpperCase();
 
@@ -301,7 +283,6 @@ public class BooleanSyntax
    */
   public static AttributeValue createBooleanValue(boolean b)
   {
-    assert debugEnter(CLASS_NAME, "createBooleanValue", String.valueOf(b));
 
     if (b)
     {
@@ -330,8 +311,6 @@ public class BooleanSyntax
   public static boolean decodeBooleanValue(ByteString normalizedValue)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decodeBooleanValue",
-                      String.valueOf(normalizedValue));
 
     String valueString = normalizedValue.stringValue();
     if (valueString.equals("TRUE"))

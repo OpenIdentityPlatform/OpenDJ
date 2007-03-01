@@ -26,9 +26,8 @@
  */
 package org.opends.server.util;
 
-import static org.opends.server.loggers.Debug.debugMessage;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugError;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.messages.UtilityMessages;
@@ -102,9 +101,6 @@ public class Validator {
   public static final boolean ENABLE_CHECKS = true;
 
 
-  /** The fully-qualified class name for this class, which is used for
-   *  debugging purposes. */
-  private static final String CLASS_NAME = Validator.class.getName();
 
 
   /** A one-based array for parameter descriptions. */
@@ -390,8 +386,10 @@ public class Validator {
     String messageWithStack = message + ServerConstants.EOL + getCallingStack();
 
     // Log to the debug log.
-    debugMessage(DebugLogCategory.CORE_SERVER, DebugLogSeverity.ERROR,
-            CLASS_NAME, "logError", messageWithStack);
+    if (debugEnabled())
+    {
+      debugError(messageWithStack);
+    }
 
     // Log to the error log.
     org.opends.server.loggers.Error.logError(ErrorLogCategory.CORE_SERVER,

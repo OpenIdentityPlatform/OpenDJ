@@ -32,7 +32,9 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class defines a thread that will be used for performing asynchronous
@@ -41,9 +43,6 @@ import static org.opends.server.loggers.Debug.*;
 public class LoggerThread extends DirectoryThread
        implements ServerShutdownListener
 {
-
-  private static final String CLASS_NAME =
-    "org.opends.server.loggers.LoggerThread";
 
   private CopyOnWriteArrayList<RotationPolicy> rotationPolicies;
   private CopyOnWriteArrayList<RetentionPolicy> retentionPolicies;
@@ -88,41 +87,44 @@ public class LoggerThread extends DirectoryThread
    */
   public void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
+
 
     this.loggerThread = Thread.currentThread();
 
-    while(! stopRequested)
+    while (!stopRequested)
     {
       try
       {
         sleep(time);
       }
-      catch(InterruptedException e)
+      catch (InterruptedException e)
       {
         // We expect this to happen.
       }
-      catch(Exception e)
+      catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       handler.flush();
 
-      if(rotationPolicies != null)
+      if (rotationPolicies != null)
       {
-        for(RotationPolicy rotationPolicy : rotationPolicies)
+        for (RotationPolicy rotationPolicy : rotationPolicies)
         {
-          if(rotationPolicy.rotateFile())
+          if (rotationPolicy.rotateFile())
           {
             handler.rollover();
           }
         }
       }
 
-      if(retentionPolicies != null)
+      if (retentionPolicies != null)
       {
-        for(RetentionPolicy retentionPolicy : retentionPolicies)
+        for (RetentionPolicy retentionPolicy : retentionPolicies)
         {
           int numFilesDeleted = retentionPolicy.deleteFiles();
           System.out.println(numFilesDeleted + " files deleted");
@@ -140,7 +142,7 @@ public class LoggerThread extends DirectoryThread
    */
   public String getShutdownListenerName()
   {
-    assert debugEnter(CLASS_NAME, "getShutdownListenerName");
+
 
     return "Logger Thread " + getName();
   }
@@ -156,8 +158,7 @@ public class LoggerThread extends DirectoryThread
    */
   public void processServerShutdown(String reason)
   {
-    assert debugEnter(CLASS_NAME, "processServerShutdown",
-                      String.valueOf(reason));
+
 
     stopRequested = true;
 
@@ -170,7 +171,10 @@ public class LoggerThread extends DirectoryThread
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processServerShutdown", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 }

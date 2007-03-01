@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -39,11 +38,6 @@ import static org.opends.server.loggers.Debug.*;
 public class LDAPException
        extends Exception
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.LDAPException";
 
 
 
@@ -78,8 +72,6 @@ public class LDAPException
   {
     super(message);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(resultCode),
-                            String.valueOf(messageID), String.valueOf(message));
 
     this.resultCode = resultCode;
     this.messageID  = messageID;
@@ -101,9 +93,6 @@ public class LDAPException
   {
     super(message, cause);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(resultCode),
-                            String.valueOf(messageID), String.valueOf(message),
-                            String.valueOf(cause));
 
     this.resultCode = resultCode;
     this.messageID  = messageID;
@@ -118,7 +107,6 @@ public class LDAPException
    */
   public int getResultCode()
   {
-    assert debugEnter(CLASS_NAME, "getResultCode");
 
     return resultCode;
   }
@@ -132,7 +120,6 @@ public class LDAPException
    */
   public int getMessageID()
   {
-    assert debugEnter(CLASS_NAME, "getMessageID");
 
     return messageID;
   }

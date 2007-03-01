@@ -58,7 +58,9 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -73,11 +75,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class PasswordPolicy
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.PasswordPolicy";
 
 
 
@@ -201,7 +198,6 @@ public class PasswordPolicy
    */
   private PasswordPolicy()
   {
-    assert debugConstructor(CLASS_NAME);
 
     configEntryDN                    = null;
     passwordAttribute                = null;
@@ -354,7 +350,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_ATTRIBUTE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -420,7 +419,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_DEFAULT_STORAGE_SCHEMES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -448,7 +450,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_DEPRECATED_STORAGE_SCHEMES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -494,7 +499,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_VALIDATORS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -540,7 +548,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_NOTIFICATION_HANDLERS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -566,7 +577,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_USER_PW_CHANGES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -592,7 +606,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CURRENT_PW;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -618,7 +635,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_FORCE_CHANGE_ON_ADD;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -644,7 +664,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_FORCE_CHANGE_ON_RESET;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -671,7 +694,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_SKIP_ADMIN_VALIDATION;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -711,7 +737,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_GENERATOR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -737,7 +766,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_SECURE_AUTH;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -764,7 +796,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_SECURE_CHANGES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -790,7 +825,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_MULTIPLE_PW_VALUES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -816,7 +854,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_PREENCODED;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -843,7 +884,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_MIN_AGE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -870,7 +914,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_MAX_AGE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -898,7 +945,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_MAX_RESET_AGE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -925,7 +975,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_WARNING_INTERVAL;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -952,7 +1005,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_EXPIRE_WITHOUT_WARNING;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -990,7 +1046,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_EXPIRED_CHANGES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1016,7 +1075,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_GRACE_LOGIN_COUNT;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1043,7 +1105,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LOCKOUT_FAILURE_COUNT;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1071,7 +1136,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LOCKOUT_DURATION;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1100,7 +1168,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_FAILURE_EXPIRATION;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1145,7 +1216,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CHANGE_BY_TIME;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1189,14 +1263,16 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
                                   stackTraceToSingleLineString(e));
       throw new InitializationException(msgID, message, e);
     }
-
 
     // Get the last login time format.  If specified, it must be a valid format
     // string.
@@ -1219,8 +1295,10 @@ public class PasswordPolicy
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "PasswordPolicy",
-                                e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           msgID = MSGID_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT;
           String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1237,7 +1315,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_FORMAT;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1269,7 +1350,10 @@ public class PasswordPolicy
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "PasswordPolicy", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             msgID = MSGID_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT;
             String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1288,7 +1372,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PREVIOUS_LAST_LOGIN_TIME_FORMAT;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1316,7 +1403,10 @@ public class PasswordPolicy
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "PasswordPolicy", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_IDLE_LOCKOUT_INTERVAL;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1370,7 +1460,6 @@ public class PasswordPolicy
    */
   public AttributeType getPasswordAttribute()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordAttribute");
 
     return passwordAttribute;
   }
@@ -1386,7 +1475,6 @@ public class PasswordPolicy
    */
   public boolean usesAuthPasswordSyntax()
   {
-    assert debugEnter(CLASS_NAME, "usesAuthPasswordSyntax");
 
     return authPasswordSyntax;
   }
@@ -1403,7 +1491,6 @@ public class PasswordPolicy
    */
   public CopyOnWriteArrayList<PasswordStorageScheme> getDefaultStorageSchemes()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultStorageSchemes");
 
     return defaultStorageSchemes;
   }
@@ -1422,8 +1509,6 @@ public class PasswordPolicy
    */
   public boolean isDefaultStorageScheme(String name)
   {
-    assert debugEnter(CLASS_NAME, "isDefaultStorageScheme",
-                      String.valueOf(name));
 
     CopyOnWriteArrayList<PasswordStorageScheme> defaultSchemes =
          getDefaultStorageSchemes();
@@ -1468,7 +1553,6 @@ public class PasswordPolicy
    */
   public CopyOnWriteArraySet<String> getDeprecatedStorageSchemes()
   {
-    assert debugEnter(CLASS_NAME, "getDeprecatedStorageSchemes");
 
     return deprecatedStorageSchemes;
   }
@@ -1486,8 +1570,6 @@ public class PasswordPolicy
    */
   public boolean isDeprecatedStorageScheme(String name)
   {
-    assert debugEnter(CLASS_NAME, "isDeprecatedStorageScheme",
-                      String.valueOf(name));
 
     CopyOnWriteArraySet<String> deprecatedSchemes =
          getDeprecatedStorageSchemes();
@@ -1517,7 +1599,6 @@ public class PasswordPolicy
    */
   public ConcurrentHashMap<DN,PasswordValidator> getPasswordValidators()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordValidators");
 
     return passwordValidators;
   }
@@ -1535,7 +1616,6 @@ public class PasswordPolicy
   public ConcurrentHashMap<DN,AccountStatusNotificationHandler>
               getAccountStatusNotificationHandlers()
   {
-    assert debugEnter(CLASS_NAME, "getAccountStatusNotificationHandlers");
 
     return notificationHandlers;
   }
@@ -1551,7 +1631,6 @@ public class PasswordPolicy
    */
   public boolean allowUserPasswordChanges()
   {
-    assert debugEnter(CLASS_NAME, "allowUserPasswordChanges");
 
     return allowUserPasswordChanges;
   }
@@ -1568,7 +1647,6 @@ public class PasswordPolicy
    */
   public boolean requireCurrentPassword()
   {
-    assert debugEnter(CLASS_NAME, "requireCurrentPassword");
 
     return requireCurrentPassword;
   }
@@ -1585,7 +1663,6 @@ public class PasswordPolicy
    */
   public boolean forceChangeOnAdd()
   {
-    assert debugEnter(CLASS_NAME, "forceChangeOnAdd");
 
     return forceChangeOnAdd;
   }
@@ -1602,7 +1679,6 @@ public class PasswordPolicy
    */
   public boolean forceChangeOnReset()
   {
-    assert debugEnter(CLASS_NAME, "forceChangeOnReset");
 
     return forceChangeOnReset;
   }
@@ -1620,7 +1696,6 @@ public class PasswordPolicy
    */
   public boolean skipValidationForAdministrators()
   {
-    assert debugEnter(CLASS_NAME, "skipValidationForAdministrators");
 
     return skipValidationForAdministrators;
   }
@@ -1634,7 +1709,6 @@ public class PasswordPolicy
    */
   public DN getPasswordGeneratorDN()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordGeneratorDN");
 
     return passwordGeneratorDN;
   }
@@ -1650,7 +1724,6 @@ public class PasswordPolicy
    */
   public PasswordGenerator getPasswordGenerator()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordGenerator");
 
     return passwordGenerator;
   }
@@ -1668,7 +1741,6 @@ public class PasswordPolicy
    */
   public boolean requireSecureAuthentication()
   {
-    assert debugEnter(CLASS_NAME, "requireSecureAuthentication");
 
     return requireSecureAuthentication;
   }
@@ -1687,7 +1759,6 @@ public class PasswordPolicy
    */
   public boolean requireSecurePasswordChanges()
   {
-    assert debugEnter(CLASS_NAME, "requireSecurePasswordChanges");
 
     return requireSecurePasswordChanges;
   }
@@ -1703,7 +1774,6 @@ public class PasswordPolicy
    */
   public boolean allowMultiplePasswordValues()
   {
-    assert debugEnter(CLASS_NAME, "allowMultiplePasswordValues");
 
     return allowMultiplePasswordValues;
   }
@@ -1719,7 +1789,6 @@ public class PasswordPolicy
    */
   public boolean allowPreEncodedPasswords()
   {
-    assert debugEnter(CLASS_NAME, "allowPreEncodedPasswords");
 
     return allowPreEncodedPasswords;
   }
@@ -1736,7 +1805,6 @@ public class PasswordPolicy
    */
   public int getMinimumPasswordAge()
   {
-    assert debugEnter(CLASS_NAME, "getMinimumPasswordAge");
 
     if (minimumPasswordAge <= 0)
     {
@@ -1758,7 +1826,6 @@ public class PasswordPolicy
    */
   public int getMaximumPasswordAge()
   {
-    assert debugEnter(CLASS_NAME, "getMaximumPasswordAge");
 
     if (maximumPasswordAge < 0)
     {
@@ -1781,7 +1848,6 @@ public class PasswordPolicy
    */
   public int getMaximumPasswordResetAge()
   {
-    assert debugEnter(CLASS_NAME, "getMaximumPasswordResetAge");
 
     if (maximumPasswordResetAge < 0)
     {
@@ -1803,7 +1869,6 @@ public class PasswordPolicy
    */
   public int getWarningInterval()
   {
-    assert debugEnter(CLASS_NAME, "getWarningInterval");
 
     if (warningInterval < 0)
     {
@@ -1826,7 +1891,6 @@ public class PasswordPolicy
    */
   public boolean expirePasswordsWithoutWarning()
   {
-    assert debugEnter(CLASS_NAME, "expirePasswordsWithoutWarning");
 
     return expirePasswordsWithoutWarning;
   }
@@ -1845,7 +1909,6 @@ public class PasswordPolicy
    */
   public boolean allowExpiredPasswordChanges()
   {
-    assert debugEnter(CLASS_NAME, "allowExpiredPasswordChanges");
 
     return allowExpiredPasswordChanges;
   }
@@ -1864,7 +1927,6 @@ public class PasswordPolicy
    */
   public int getGraceLoginCount()
   {
-    assert debugEnter(CLASS_NAME, "getGraceLoginCount");
 
     if (graceLoginCount < 0)
     {
@@ -1886,7 +1948,6 @@ public class PasswordPolicy
    */
   public int getLockoutFailureCount()
   {
-    assert debugEnter(CLASS_NAME, "getLockoutFailureCount");
 
     if (lockoutFailureCount < 0)
     {
@@ -1909,7 +1970,6 @@ public class PasswordPolicy
    */
   public int getLockoutDuration()
   {
-    assert debugEnter(CLASS_NAME, "getLockoutDuration");
 
     if (lockoutDuration < 0)
     {
@@ -1933,7 +1993,6 @@ public class PasswordPolicy
    */
   public int getLockoutFailureExpirationInterval()
   {
-    assert debugEnter(CLASS_NAME, "getLockoutFailureExpirationInterval");
 
     if (lockoutFailureExpirationInterval < 0)
     {
@@ -1958,7 +2017,6 @@ public class PasswordPolicy
    */
   public long getRequireChangeByTime()
   {
-    assert debugEnter(CLASS_NAME, "getRequireChangeTime");
 
     if (requireChangeByTime < 0)
     {
@@ -1978,7 +2036,6 @@ public class PasswordPolicy
    */
   public AttributeType getLastLoginTimeAttribute()
   {
-    assert debugEnter(CLASS_NAME, "getLastLoginTimeAttribute");
 
     return lastLoginTimeAttribute;
   }
@@ -1994,7 +2051,6 @@ public class PasswordPolicy
    */
   public String getLastLoginTimeFormat()
   {
-    assert debugEnter(CLASS_NAME, "getLastLoginTimeFormat");
 
     return lastLoginTimeFormat;
   }
@@ -2010,7 +2066,6 @@ public class PasswordPolicy
    */
   public CopyOnWriteArrayList<String> getPreviousLastLoginTimeFormats()
   {
-    assert debugEnter(CLASS_NAME, "getPreviousLastLoginTimeFormats");
 
     return previousLastLoginTimeFormats;
   }
@@ -2027,7 +2082,6 @@ public class PasswordPolicy
    */
   public int getIdleLockoutInterval()
   {
-    assert debugEnter(CLASS_NAME, "getIdleLockoutInterval");
 
     if (idleLockoutInterval < 0)
     {
@@ -2046,7 +2100,6 @@ public class PasswordPolicy
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -2063,7 +2116,6 @@ public class PasswordPolicy
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
 
     buffer.append("Password Attribute:                    ");

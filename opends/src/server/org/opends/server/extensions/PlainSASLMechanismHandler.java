@@ -57,9 +57,9 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -82,11 +82,6 @@ public class PlainSASLMechanismHandler
        extends SASLMechanismHandler
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.PlainSASLMechanismHandler";
 
 
 
@@ -110,7 +105,6 @@ public class PlainSASLMechanismHandler
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -122,8 +116,6 @@ public class PlainSASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSASLMechanismHandler",
-                      String.valueOf(configEntry));
 
 
     this.configEntryDN = configEntry.getDN();
@@ -163,7 +155,10 @@ public class PlainSASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLPLAIN_CANNOT_GET_IDENTITY_MAPPER;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -184,7 +179,6 @@ public class PlainSASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSASLMechanismHandler");
 
     DirectoryServer.deregisterConfigurableComponent(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_PLAIN);
@@ -199,8 +193,6 @@ public class PlainSASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "processSASLBind",
-                      String.valueOf(bindOperation));
 
 
     // Get the SASL credentials provided by the user and decode them.
@@ -288,7 +280,10 @@ public class PlainSASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -342,7 +337,10 @@ public class PlainSASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -371,7 +369,10 @@ public class PlainSASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -415,7 +416,10 @@ public class PlainSASLMechanismHandler
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "processSASLBind", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -470,7 +474,10 @@ public class PlainSASLMechanismHandler
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME, "processSASLBind", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -516,7 +523,10 @@ public class PlainSASLMechanismHandler
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "processSASLBind", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -568,7 +578,10 @@ public class PlainSASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processSASLBind", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -601,7 +614,6 @@ public class PlainSASLMechanismHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -618,7 +630,6 @@ public class PlainSASLMechanismHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
@@ -649,8 +660,6 @@ public class PlainSASLMechanismHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // Look at the identity mapper configuration.
@@ -685,7 +694,10 @@ public class PlainSASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLPLAIN_CANNOT_GET_IDENTITY_MAPPER;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -719,9 +731,6 @@ public class PlainSASLMechanismHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -767,7 +776,10 @@ public class PlainSASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLPLAIN_CANNOT_GET_IDENTITY_MAPPER;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -806,7 +818,6 @@ public class PlainSASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isPasswordBased", String.valueOf(mechanism));
 
     // This is a password-based mechanism.
     return true;
@@ -820,7 +831,6 @@ public class PlainSASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isSecure", String.valueOf(mechanism));
 
     // This is not a secure mechanism.
     return false;

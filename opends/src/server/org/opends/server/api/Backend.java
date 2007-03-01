@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -56,7 +56,6 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.WritabilityMode;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 
@@ -68,11 +67,6 @@ import static org.opends.server.messages.MessageHandler.*;
  */
 public abstract class Backend
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.Backend";
 
 
 
@@ -106,7 +100,6 @@ public abstract class Backend
    */
   protected Backend()
   {
-    assert debugConstructor(CLASS_NAME);
 
     backendID           = null;
     parentBackend       = null;
@@ -221,8 +214,6 @@ public abstract class Backend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "entryExists",
-                      String.valueOf(entryDN));
 
     Lock lock = null;
     for (int i=0; i < 3; i++)
@@ -411,8 +402,6 @@ public abstract class Backend
    */
   public final boolean supportsControl(String controlOID)
   {
-    assert debugEnter(CLASS_NAME, "supportsControl",
-                      String.valueOf(controlOID));
 
     Set<String> supportedControls = getSupportedControls();
     return ((supportedControls != null) &&
@@ -443,8 +432,6 @@ public abstract class Backend
    */
   public final boolean supportsFeature(String featureOID)
   {
-    assert debugEnter(CLASS_NAME, "supportsFeature",
-                      String.valueOf(featureOID));
 
     Set<String> supportedFeatures = getSupportedFeatures();
     return ((supportedFeatures != null) &&
@@ -634,7 +621,6 @@ public abstract class Backend
    */
   public String getBackendID()
   {
-    assert debugEnter(CLASS_NAME, "getBackendID");
 
     return backendID;
   }
@@ -648,8 +634,6 @@ public abstract class Backend
    */
   public void setBackendID(String backendID)
   {
-    assert debugEnter(CLASS_NAME, "setBackendID",
-                      String.valueOf(backendID));
 
     this.backendID = backendID;
   }
@@ -664,7 +648,6 @@ public abstract class Backend
    */
   public boolean isPrivateBackend()
   {
-    assert debugEnter(CLASS_NAME, "isPrivateBackend");
 
     return isPrivateBackend;
   }
@@ -691,7 +674,6 @@ public abstract class Backend
    */
   public WritabilityMode getWritabilityMode()
   {
-    assert debugEnter(CLASS_NAME, "getWritabilityMode");
 
     return writabilityMode;
   }
@@ -705,8 +687,6 @@ public abstract class Backend
    */
   public void setWritabilityMode(WritabilityMode writabilityMode)
   {
-    assert debugEnter(CLASS_NAME, "setWritabilityMode",
-                      String.valueOf(writabilityMode));
 
     if (writabilityMode == null)
     {
@@ -729,7 +709,6 @@ public abstract class Backend
    */
   public BackendMonitor getBackendMonitor()
   {
-    assert debugEnter(CLASS_NAME, "getBackendMonitor");
 
     return backendMonitor;
   }
@@ -743,8 +722,6 @@ public abstract class Backend
    */
   public void setBackendMonitor(BackendMonitor backendMonitor)
   {
-    assert debugEnter(CLASS_NAME, "setBackendMonitor",
-                      String.valueOf(backendMonitor));
 
     this.backendMonitor = backendMonitor;
   }
@@ -770,7 +747,6 @@ public abstract class Backend
    */
   public Backend getParentBackend()
   {
-    assert debugEnter(CLASS_NAME, "getParentBackend");
 
     return parentBackend;
   }
@@ -784,8 +760,6 @@ public abstract class Backend
    */
   public void setParentBackend(Backend parentBackend)
   {
-    assert debugEnter(CLASS_NAME, "setParentBackend",
-                      String.valueOf(parentBackend));
 
     synchronized (this)
     {
@@ -803,7 +777,6 @@ public abstract class Backend
    */
   public Backend[] getSubordinateBackends()
   {
-    assert debugEnter(CLASS_NAME, "getSubordinateBackends");
 
     return subordinateBackends;
   }
@@ -818,8 +791,6 @@ public abstract class Backend
    */
   public void setSubordinateBackends(Backend[] subordinateBackends)
   {
-    assert debugEnter(CLASS_NAME, "setSubordinateBackends",
-                      String.valueOf(subordinateBackends));
 
     synchronized (this)
     {
@@ -843,8 +814,6 @@ public abstract class Backend
    */
   public boolean hasSubSuffix(DN subSuffixDN)
   {
-    assert debugEnter(CLASS_NAME, "hasSubSuffix",
-                      String.valueOf(subSuffixDN));
 
     Backend[] subBackends = subordinateBackends;
     for (Backend b : subBackends)
@@ -885,8 +854,6 @@ public abstract class Backend
   public void removeSubSuffix(DN subSuffixDN, DN parentDN)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "removeSubSuffix",
-                      String.valueOf(subSuffixDN));
 
     synchronized (this)
     {
@@ -951,8 +918,6 @@ public abstract class Backend
    */
   public void addSubordinateBackend(Backend subordinateBackend)
   {
-    assert debugEnter(CLASS_NAME, "addSubordinateBackend",
-                      String.valueOf(subordinateBackend));
 
     synchronized (this)
     {
@@ -986,8 +951,6 @@ public abstract class Backend
    */
   public void removeSubordinateBackend(Backend subordinateBackend)
   {
-    assert debugEnter(CLASS_NAME, "removeSubordinateBackend",
-                      String.valueOf(subordinateBackend));
 
     synchronized (this)
     {
@@ -1032,8 +995,6 @@ public abstract class Backend
    */
   public boolean handlesEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "handlesEntry",
-                      String.valueOf(entryDN));
 
     DN[] baseDNs = getBaseDNs();
     for (int i=0; i < baseDNs.length; i++)
@@ -1076,8 +1037,6 @@ public abstract class Backend
                                            List<DN> baseDNs,
                                            List<DN> excludeDNs)
   {
-    assert debugEnter(CLASS_NAME, "handlesEntry",
-                      String.valueOf(entryDN));
 
     for (DN baseDN : baseDNs)
     {

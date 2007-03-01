@@ -33,7 +33,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -44,11 +43,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public abstract class SASLMechanismHandler
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.SASLMechanismHandler";
 
 
 
@@ -83,7 +77,6 @@ public abstract class SASLMechanismHandler
    */
   public void finalizeSASLMechanismHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSASLMechanismHandler");
 
     // No implementation is required by default.
   }

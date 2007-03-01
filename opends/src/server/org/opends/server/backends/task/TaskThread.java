@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
 
@@ -31,7 +31,9 @@ package org.opends.server.backends.task;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -46,11 +48,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class TaskThread
        extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.task.TaskThread";
 
 
 
@@ -83,8 +80,6 @@ public class TaskThread
   {
     super("Task Thread " + threadID);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(taskScheduler),
-                            String.valueOf(threadID));
 
     this.taskScheduler = taskScheduler;
     this.threadID      = threadID;
@@ -105,7 +100,6 @@ public class TaskThread
    */
   public Task getTask()
   {
-    assert debugEnter(CLASS_NAME, "getTask");
 
     return task;
   }
@@ -120,7 +114,6 @@ public class TaskThread
    */
   public void setTask(Task task)
   {
-    assert debugEnter(CLASS_NAME, "setTask", String.valueOf(task));
 
     this.task = task;
 
@@ -145,7 +138,6 @@ public class TaskThread
   public void interruptTask(TaskState interruptState, String interruptReason,
                             boolean exitThread)
   {
-    assert debugEnter(CLASS_NAME, "interruptTask", String.valueOf(exitThread));
 
     if (task != null)
     {
@@ -155,7 +147,10 @@ public class TaskThread
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "interruptTask", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -173,7 +168,6 @@ public class TaskThread
    */
   public void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     while (! exitRequested)
     {
@@ -188,7 +182,10 @@ public class TaskThread
         }
         catch (InterruptedException ie)
         {
-          assert debugException(CLASS_NAME, "run", ie);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, ie);
+          }
         }
 
         continue;
@@ -201,7 +198,10 @@ public class TaskThread
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_TASK_EXECUTE_FAILED;
         String message = getMessage(msgID,

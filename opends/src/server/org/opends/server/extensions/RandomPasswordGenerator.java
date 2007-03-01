@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -53,7 +53,9 @@ import org.opends.server.types.NamedCharacterSet;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -69,11 +71,6 @@ public class RandomPasswordGenerator
        extends PasswordGenerator
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.RandomPasswordGenerator";
 
 
 
@@ -119,8 +116,6 @@ public class RandomPasswordGenerator
   public void initializePasswordGenerator(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePasswordGenerator",
-                      String.valueOf(configEntry));
 
 
     this.configEntryDN = configEntry.getDN();
@@ -171,7 +166,10 @@ public class RandomPasswordGenerator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordGenerator", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -234,7 +232,10 @@ public class RandomPasswordGenerator
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "initializePasswordGenerator", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             msgID = MSGID_RANDOMPWGEN_INVALID_PWFORMAT;
             String message = getMessage(msgID, String.valueOf(formatString));
@@ -260,7 +261,10 @@ public class RandomPasswordGenerator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordGenerator", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -279,7 +283,6 @@ public class RandomPasswordGenerator
    */
   public void finalizePasswordGenerator()
   {
-    assert debugEnter(CLASS_NAME, "finalizePasswordGenerator");
 
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -301,8 +304,6 @@ public class RandomPasswordGenerator
   public ByteString generatePassword(Entry userEntry)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "generatePassword",
-                      String.valueOf(userEntry));
 
 
     StringBuilder buffer = new StringBuilder(totalLength);
@@ -335,7 +336,6 @@ public class RandomPasswordGenerator
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
 
     return configEntryDN;
@@ -352,7 +352,6 @@ public class RandomPasswordGenerator
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
@@ -401,8 +400,6 @@ public class RandomPasswordGenerator
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // Get the character sets for use in generating the password.  At least one
@@ -451,7 +448,10 @@ public class RandomPasswordGenerator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -502,7 +502,10 @@ public class RandomPasswordGenerator
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             msgID = MSGID_RANDOMPWGEN_INVALID_PWFORMAT;
             String message = getMessage(msgID, String.valueOf(formatString));
@@ -519,7 +522,10 @@ public class RandomPasswordGenerator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -553,9 +559,6 @@ public class RandomPasswordGenerator
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -621,7 +624,10 @@ public class RandomPasswordGenerator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordGenerator", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS;
       messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
@@ -694,7 +700,10 @@ public class RandomPasswordGenerator
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "initializePasswordGenerator", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             msgID = MSGID_RANDOMPWGEN_INVALID_PWFORMAT;
             messages.add(getMessage(msgID, String.valueOf(newFormatString)));
@@ -718,7 +727,10 @@ public class RandomPasswordGenerator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordGenerator", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT;
       messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));

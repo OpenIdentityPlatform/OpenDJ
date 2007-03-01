@@ -48,7 +48,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.*;
@@ -63,11 +65,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class PasswordPolicyConfig
         implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.PasswordPolicyConfig";
 
   /**
    * The password policy object corresponding to the configuration entry. The
@@ -87,7 +84,6 @@ public class PasswordPolicyConfig
    */
   public PasswordPolicyConfig(PasswordPolicy policy)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(policy));
 
     this.currentPolicy = policy;
     DirectoryServer.registerConfigurableComponent(this);
@@ -100,7 +96,6 @@ public class PasswordPolicyConfig
    */
   public void finalizePasswordPolicyConfig()
   {
-    assert debugEnter(CLASS_NAME, "finalizePasswordPolicyConfig");
 
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -116,7 +111,6 @@ public class PasswordPolicyConfig
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return currentPolicy.getConfigEntryDN();
   }
@@ -132,7 +126,6 @@ public class PasswordPolicyConfig
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     // Create a list of units and values that we can use to represent time
@@ -409,8 +402,6 @@ public class PasswordPolicyConfig
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
     assert configEntry.getDN().equals(this.currentPolicy.getConfigEntryDN() )
             : "Internal Error: mismatch between DN of configuration entry and"
@@ -422,14 +413,20 @@ public class PasswordPolicyConfig
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
       unacceptableReasons.add(ce.getMessage());
       return false;
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       unacceptableReasons.add(ie.getMessage());
       return false;
@@ -460,9 +457,6 @@ public class PasswordPolicyConfig
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
     assert configEntry.getDN().equals(this.currentPolicy.getConfigEntryDN() )
             : "Internal Error: mismatch between DN of configuration entry and"
@@ -476,7 +470,10 @@ public class PasswordPolicyConfig
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
       ArrayList<String> messages = new ArrayList<String>();
       messages.add(ce.getMessage());
       return new ConfigChangeResult(
@@ -485,7 +482,10 @@ public class PasswordPolicyConfig
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
       ArrayList<String> messages = new ArrayList<String>();
       messages.add(ie.getMessage());
       return new ConfigChangeResult(

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
 
@@ -44,9 +44,11 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -62,11 +64,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class MultiChoiceConfigAttribute
        extends ConfigAttribute
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.config.MultiChoiceConfigAttribute";
 
 
 
@@ -108,16 +105,6 @@ public class MultiChoiceConfigAttribute
   {
     super(name, description, isRequired, isMultiValued, requiresAdminAction);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(isRequired),
-                              String.valueOf(isMultiValued),
-                              String.valueOf(description),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(allowedValues)
-                            });
 
     this.allowedValues = allowedValues;
 
@@ -156,17 +143,6 @@ public class MultiChoiceConfigAttribute
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
           getValueSet(value));
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(isRequired),
-                              String.valueOf(isMultiValued),
-                              String.valueOf(description),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(allowedValues),
-                              String.valueOf(value)
-                            });
 
     this.allowedValues = allowedValues;
 
@@ -215,17 +191,6 @@ public class MultiChoiceConfigAttribute
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
           getValueSet(values));
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(isRequired),
-                              String.valueOf(isMultiValued),
-                              String.valueOf(description),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(allowedValues),
-                              String.valueOf(values)
-                            });
 
     this.allowedValues = allowedValues;
 
@@ -277,18 +242,6 @@ public class MultiChoiceConfigAttribute
           getValueSet(activeValues), (pendingValues != null),
           getValueSet(pendingValues));
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(isRequired),
-                              String.valueOf(isMultiValued),
-                              String.valueOf(description),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(allowedValues),
-                              String.valueOf(activeValues),
-                              String.valueOf(pendingValues)
-                            });
 
     this.allowedValues = allowedValues;
 
@@ -323,7 +276,6 @@ public class MultiChoiceConfigAttribute
    */
   public String getDataType()
   {
-    assert debugEnter(CLASS_NAME, "getDataType");
 
     return "MultiChoice";
   }
@@ -337,7 +289,6 @@ public class MultiChoiceConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getSyntax");
 
     return DirectoryServer.getDefaultStringSyntax();
   }
@@ -356,7 +307,6 @@ public class MultiChoiceConfigAttribute
   public String activeValue()
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "activeValue");
 
     if ((activeValues == null) || activeValues.isEmpty())
     {
@@ -384,7 +334,6 @@ public class MultiChoiceConfigAttribute
    */
   public List<String> activeValues()
   {
-    assert debugEnter(CLASS_NAME, "activeValues");
 
     return activeValues;
   }
@@ -405,7 +354,6 @@ public class MultiChoiceConfigAttribute
   public String pendingValue()
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "pendingValue");
 
     if (! hasPendingValues())
     {
@@ -440,7 +388,6 @@ public class MultiChoiceConfigAttribute
    */
   public List<String> pendingValues()
   {
-    assert debugEnter(CLASS_NAME, "pendingValues");
 
     if (! hasPendingValues())
     {
@@ -461,7 +408,6 @@ public class MultiChoiceConfigAttribute
    */
   public Set<String> allowedValues()
   {
-    assert debugEnter(CLASS_NAME, "getAllowedValues");
 
     return allowedValues;
   }
@@ -478,7 +424,6 @@ public class MultiChoiceConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(value));
 
     if ((value == null) || (value.length() == 0))
     {
@@ -522,7 +467,6 @@ public class MultiChoiceConfigAttribute
   public void setValues(List<String> values)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValues", String.valueOf(values));
 
 
     // First check if the set is empty and if that is allowed.
@@ -621,7 +565,6 @@ public class MultiChoiceConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(String value)
   {
-    assert debugEnter(CLASS_NAME, "getValueSet", String.valueOf(value));
 
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
@@ -643,7 +586,6 @@ public class MultiChoiceConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(List<String> values)
   {
-    assert debugEnter(CLASS_NAME, "getValueSet", String.valueOf(values));
 
     if (values == null)
     {
@@ -671,7 +613,6 @@ public class MultiChoiceConfigAttribute
    */
   public void applyPendingValues()
   {
-    assert debugEnter(CLASS_NAME, "applyPendingValues");
 
     if (! hasPendingValues())
     {
@@ -699,8 +640,6 @@ public class MultiChoiceConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
 
     // Make sure that the value is non-empty.
@@ -752,9 +691,6 @@ public class MultiChoiceConfigAttribute
                               boolean allowFailures)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "stringsToValues",
-                      String.valueOf(valueStrings),
-                      String.valueOf(allowFailures));
 
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
@@ -851,7 +787,6 @@ public class MultiChoiceConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-    assert debugEnter(CLASS_NAME, "activeValuesToStrings");
 
     return activeValues;
   }
@@ -871,7 +806,6 @@ public class MultiChoiceConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-    assert debugEnter(CLASS_NAME, "pendingValuesToStrings");
 
     if (hasPendingValues())
     {
@@ -909,8 +843,6 @@ public class MultiChoiceConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getConfigAttribute",
-                      String.valueOf(attributeList));
 
 
     ArrayList<String> activeValues  = null;
@@ -1077,7 +1009,6 @@ public class MultiChoiceConfigAttribute
    */
   private javax.management.Attribute _toJMXAttribute(boolean pending)
   {
-    assert debugEnter(CLASS_NAME, "_toJMXAttribute");
 
     List<String> requestedValues ;
     String name ;
@@ -1122,7 +1053,6 @@ public class MultiChoiceConfigAttribute
    */
   public javax.management.Attribute toJMXAttribute()
   {
-      assert debugEnter(CLASS_NAME, "toJMXAttribute");
       return _toJMXAttribute(false) ;
   }
 
@@ -1136,7 +1066,6 @@ public class MultiChoiceConfigAttribute
    */
   public javax.management.Attribute toJMXAttributePending()
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttributePending");
 
     return _toJMXAttribute(true) ;
   }
@@ -1155,8 +1084,6 @@ public class MultiChoiceConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttribute",
-                      String.valueOf(attributeList));
 
     if (activeValues.size() > 0)
     {
@@ -1223,8 +1150,6 @@ public class MultiChoiceConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttributeInfo",
-                      String.valueOf(attributeInfoList));
 
 
     if (isMultiValued())
@@ -1275,7 +1200,6 @@ public class MultiChoiceConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-    assert debugEnter(CLASS_NAME, "toJMXParameterInfo");
 
     if (isMultiValued())
     {
@@ -1305,7 +1229,6 @@ public class MultiChoiceConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(jmxAttribute));
 
     Object value = jmxAttribute.getValue();
     if (value instanceof String)
@@ -1332,13 +1255,19 @@ public class MultiChoiceConfigAttribute
         }
         catch (ConfigException ce)
         {
-          assert debugException(CLASS_NAME, "setValue", ce);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, ce);
+          }
 
           throw ce;
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "setValue", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_CONFIG_ATTR_INVALID_STRING_VALUE;
           String message = getMessage(msgID, getName(), String.valueOf(value),
@@ -1371,7 +1300,6 @@ public class MultiChoiceConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     return new MultiChoiceConfigAttribute(getName(), getDescription(),
                                           isRequired(), isMultiValued(),

@@ -40,7 +40,6 @@ import org.opends.server.types.MemberList;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -64,11 +63,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public abstract class Group
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.Group";
 
 
 
@@ -104,7 +98,6 @@ public abstract class Group
    */
   public void finalizeGroupImplementation()
   {
-    assert debugEnter(CLASS_NAME, "finalizeGroupImplementation");
 
     // No implementation is required by default.
   }
@@ -294,7 +287,6 @@ public abstract class Group
   public MemberList getMembers()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getMembers");
 
     return getMembers(null, null, null);
   }
@@ -395,7 +387,6 @@ public abstract class Group
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);

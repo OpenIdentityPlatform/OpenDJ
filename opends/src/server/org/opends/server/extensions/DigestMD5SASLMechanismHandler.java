@@ -72,8 +72,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -99,11 +100,6 @@ public class DigestMD5SASLMechanismHandler
        extends SASLMechanismHandler
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.DigestMD5SASLMechanismHandler";
 
 
 
@@ -140,7 +136,6 @@ public class DigestMD5SASLMechanismHandler
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -152,8 +147,6 @@ public class DigestMD5SASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSASLMechanismHandler",
-                      String.valueOf(configEntry));
 
 
     this.configEntryDN = configEntry.getDN();
@@ -169,7 +162,10 @@ public class DigestMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_GET_MESSAGE_DIGEST;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -211,7 +207,10 @@ public class DigestMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_IDENTITY_MAPPER;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -237,7 +236,10 @@ public class DigestMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_REALM;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -259,7 +261,6 @@ public class DigestMD5SASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSASLMechanismHandler");
 
     DirectoryServer.deregisterConfigurableComponent(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_DIGEST_MD5);
@@ -274,8 +275,6 @@ public class DigestMD5SASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "processSASLBind",
-                      String.valueOf(bindOperation));
 
 
     // The DIGEST-MD5 bind process uses two stages.  See if the client provided
@@ -432,7 +431,10 @@ public class DigestMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processSASLBind", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This isn't necessarily fatal because we're going to retry using UTF-8,
       // but we want to log it anyway.
@@ -451,7 +453,10 @@ public class DigestMD5SASLMechanismHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // This is fatal because either we can't parse the credentials as a
         // string at all, or we know we need to do so using UTF-8 and can't.
@@ -566,7 +571,10 @@ public class DigestMD5SASLMechanismHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "processSASLBind", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -583,7 +591,10 @@ public class DigestMD5SASLMechanismHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "processSASLBind", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -659,7 +670,10 @@ public class DigestMD5SASLMechanismHandler
         }
         catch (ParseException pe)
         {
-          assert debugException(CLASS_NAME, "processSASLBind", pe);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, pe);
+          }
 
           int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_PARSE_RESPONSE_DIGEST;
           String message = getMessage(msgID, stackTraceToSingleLineString(pe));
@@ -770,7 +784,10 @@ public class DigestMD5SASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -825,7 +842,10 @@ public class DigestMD5SASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -866,7 +886,10 @@ public class DigestMD5SASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -921,7 +944,10 @@ public class DigestMD5SASLMechanismHandler
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "processSASLBind", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -977,7 +1003,10 @@ public class DigestMD5SASLMechanismHandler
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "processSASLBind", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -1023,7 +1052,10 @@ public class DigestMD5SASLMechanismHandler
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME, "processSASLBind", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -1106,7 +1138,10 @@ public class DigestMD5SASLMechanismHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         logError(ErrorLogCategory.EXTENSIONS,
                  ErrorLogSeverity.SEVERE_WARNING,
@@ -1148,7 +1183,10 @@ public class DigestMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processSASLBind", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -1191,7 +1229,6 @@ public class DigestMD5SASLMechanismHandler
    */
   private String generateNonce()
   {
-    assert debugEnter(CLASS_NAME, "generateNonce");
 
     byte[] nonceBytes = new byte[16];
 
@@ -1234,9 +1271,6 @@ public class DigestMD5SASLMechanismHandler
                         StringBuilder token)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "readToken", String.valueOf(credentials),
-                      String.valueOf(startPos), String.valueOf(length),
-                      "java.lang.StringBuilder");
 
 
     // If the position is greater than or equal to the length, then we shouldn't
@@ -1395,19 +1429,6 @@ public class DigestMD5SASLMechanismHandler
                                        String qop, String charset)
          throws UnsupportedEncodingException
   {
-    assert debugEnter(CLASS_NAME, "generateResponseDigest",
-                      new String[]
-                      {
-                        String.valueOf(userName),
-                        String.valueOf(authzID),
-                        String.valueOf(password),
-                        String.valueOf(realm),
-                        String.valueOf(nonce),
-                        String.valueOf(cnonce),
-                        String.valueOf(nonceCount),
-                        String.valueOf(digestURI),
-                        String.valueOf(charset)
-                      });
 
     digestLock.lock();
 
@@ -1515,19 +1536,6 @@ public class DigestMD5SASLMechanismHandler
                                            String qop, String charset)
          throws UnsupportedEncodingException
   {
-    assert debugEnter(CLASS_NAME, "generateResponseDigest",
-                      new String[]
-                      {
-                        String.valueOf(userName),
-                        String.valueOf(authzID),
-                        String.valueOf(password),
-                        String.valueOf(realm),
-                        String.valueOf(nonce),
-                        String.valueOf(cnonce),
-                        String.valueOf(nonceCount),
-                        String.valueOf(digestURI),
-                        String.valueOf(charset)
-                      });
 
     digestLock.lock();
 
@@ -1618,7 +1626,6 @@ public class DigestMD5SASLMechanismHandler
    */
   private String getHexString(byte[] byteArray)
   {
-    assert debugEnter(CLASS_NAME, "getHexString", String.valueOf(byteArray));
 
     StringBuilder buffer = new StringBuilder(2*byteArray.length);
     for (byte b : byteArray)
@@ -1640,7 +1647,6 @@ public class DigestMD5SASLMechanismHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -1657,7 +1663,6 @@ public class DigestMD5SASLMechanismHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
@@ -1693,8 +1698,6 @@ public class DigestMD5SASLMechanismHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // Look at the identity mapper configuration.
@@ -1729,7 +1732,10 @@ public class DigestMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_IDENTITY_MAPPER;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1750,7 +1756,10 @@ public class DigestMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_REALM;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1784,9 +1793,6 @@ public class DigestMD5SASLMechanismHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -1832,7 +1838,10 @@ public class DigestMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_IDENTITY_MAPPER;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1858,7 +1867,10 @@ public class DigestMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_REALM;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1940,7 +1952,6 @@ public class DigestMD5SASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isPasswordBased", String.valueOf(mechanism));
 
     // This is a password-based mechanism.
     return true;
@@ -1954,7 +1965,6 @@ public class DigestMD5SASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isSecure", String.valueOf(mechanism));
 
     // This may be considered a secure mechanism.
     return true;

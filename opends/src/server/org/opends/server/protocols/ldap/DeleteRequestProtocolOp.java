@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -31,13 +31,14 @@ package org.opends.server.protocols.ldap;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-
 
 
 /**
@@ -47,11 +48,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class DeleteRequestProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.DeleteRequestProtocolOp";
 
 
 
@@ -67,7 +63,6 @@ public class DeleteRequestProtocolOp
    */
   public DeleteRequestProtocolOp(ASN1OctetString dn)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn));
 
     this.dn = dn;
   }
@@ -81,7 +76,6 @@ public class DeleteRequestProtocolOp
    */
   public ASN1OctetString getDN()
   {
-    assert debugEnter(CLASS_NAME, "getDN");
 
     return dn;
   }
@@ -95,7 +89,6 @@ public class DeleteRequestProtocolOp
    */
   public void setDN(ASN1OctetString dn)
   {
-    assert debugEnter(CLASS_NAME, "setDN", String.valueOf(dn));
 
     this.dn = dn;
   }
@@ -109,7 +102,6 @@ public class DeleteRequestProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_DELETE_REQUEST;
   }
@@ -123,7 +115,6 @@ public class DeleteRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Delete Request";
   }
@@ -138,7 +129,6 @@ public class DeleteRequestProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     dn.setType(OP_TYPE_DELETE_REQUEST);
     return dn;
@@ -159,8 +149,6 @@ public class DeleteRequestProtocolOp
   public static DeleteRequestProtocolOp decodeDeleteRequest(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeDeleteRequest",
-                      String.valueOf(element));
 
     try
     {
@@ -168,9 +156,12 @@ public class DeleteRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeDeleteRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_DELETE_REQUEST_DECODE_DN;
+      int msgID = MSGID_LDAP_DELETE_REQUEST_DECODE_DN;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -186,7 +177,6 @@ public class DeleteRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("DeleteRequest(dn=");
     dn.toString(buffer);
@@ -205,8 +195,6 @@ public class DeleteRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -39,11 +34,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class CancelRequest
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.CancelRequest";
 
 
 
@@ -74,9 +64,6 @@ public class CancelRequest
   public CancelRequest(boolean notifyOriginalRequestor,
                        String cancelReason)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(notifyOriginalRequestor),
-                            String.valueOf(cancelReason));
 
     this.notifyOriginalRequestor = notifyOriginalRequestor;
     this.cancelReason            = cancelReason;
@@ -103,10 +90,6 @@ public class CancelRequest
                        String cancelReason,
                        StringBuilder responseMessage)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(notifyOriginalRequestor),
-                            String.valueOf(cancelReason),
-                            "java.lang.StringBuilder");
 
     this.notifyOriginalRequestor = notifyOriginalRequestor;
     this.cancelReason            = cancelReason;
@@ -125,7 +108,6 @@ public class CancelRequest
    */
   public final boolean notifyOriginalRequestor()
   {
-    assert debugEnter(CLASS_NAME, "notifyOriginalRequestor");
 
     return notifyOriginalRequestor;
   }
@@ -141,7 +123,6 @@ public class CancelRequest
    */
   public final String getCancelReason()
   {
-    assert debugEnter(CLASS_NAME, "getCancelReason");
 
     return cancelReason;
   }
@@ -159,7 +140,6 @@ public class CancelRequest
    */
   public final StringBuilder getResponseMessage()
   {
-    assert debugEnter(CLASS_NAME, "getResponseMessage");
 
     return responseMessage;
   }
@@ -175,8 +155,6 @@ public class CancelRequest
    */
   public final void addResponseMessage(String message)
   {
-    assert debugEnter(CLASS_NAME, "addResponseMessage",
-                      String.valueOf(message));
 
     responseMessage.append(message);
   }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -40,7 +40,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -50,11 +52,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class PersistentSearch
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.PersistentSearch";
 
 
 
@@ -93,9 +90,6 @@ public class PersistentSearch
                           Set<PersistentSearchChangeType> changeTypes,
                           boolean returnECs)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(searchOperation),
-                            String.valueOf(changeTypes),
-                            String.valueOf(returnECs));
 
     this.searchOperation = searchOperation;
     this.changeTypes     = changeTypes;
@@ -115,7 +109,6 @@ public class PersistentSearch
    */
   public SearchOperation getSearchOperation()
   {
-    assert debugEnter(CLASS_NAME, "getSearchOperation");
 
     return searchOperation;
   }
@@ -129,7 +122,6 @@ public class PersistentSearch
    */
   public Set<PersistentSearchChangeType> getChangeTypes()
   {
-    assert debugEnter(CLASS_NAME, "getChangeTypes");
 
     return changeTypes;
   }
@@ -143,7 +135,6 @@ public class PersistentSearch
    */
   public boolean getReturnECs()
   {
-    assert debugEnter(CLASS_NAME, "getReturnECs");
 
     return returnECs;
   }
@@ -157,7 +148,6 @@ public class PersistentSearch
    */
   public DN getBaseDN()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDN");
 
     return baseDN;
   }
@@ -171,7 +161,6 @@ public class PersistentSearch
    */
   public SearchScope getScope()
   {
-    assert debugEnter(CLASS_NAME, "getScope");
 
     return scope;
   }
@@ -185,7 +174,6 @@ public class PersistentSearch
    */
   public SearchFilter getFilter()
   {
-    assert debugEnter(CLASS_NAME, "getFilter");
 
     return filter;
   }
@@ -200,8 +188,6 @@ public class PersistentSearch
    */
   public void processAdd(AddOperation addOperation, Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "processAdd", String.valueOf(addOperation),
-                      String.valueOf(entry));
 
 
     // See if we care about add operations.
@@ -254,7 +240,10 @@ public class PersistentSearch
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processAdd", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       // FIXME -- Do we need to do anything here?
 
@@ -285,7 +274,10 @@ public class PersistentSearch
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       DirectoryServer.deregisterPersistentSearch(this);
 
@@ -295,7 +287,10 @@ public class PersistentSearch
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "processAdd", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
       }
     }
   }
@@ -310,8 +305,6 @@ public class PersistentSearch
    */
   public void processDelete(DeleteOperation deleteOperation, Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "processDelete",
-                      String.valueOf(deleteOperation), String.valueOf(entry));
 
 
     // See if we care about delete operations.
@@ -364,7 +357,10 @@ public class PersistentSearch
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processDelete", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       // FIXME -- Do we need to do anything here?
 
@@ -395,7 +391,10 @@ public class PersistentSearch
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processDelete", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       DirectoryServer.deregisterPersistentSearch(this);
 
@@ -405,7 +404,10 @@ public class PersistentSearch
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "processDelete", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
       }
     }
   }
@@ -422,9 +424,6 @@ public class PersistentSearch
   public void processModify(ModifyOperation modifyOperation, Entry oldEntry,
                             Entry newEntry)
   {
-    assert debugEnter(CLASS_NAME, "processModify",
-                      String.valueOf(modifyOperation), String.valueOf(oldEntry),
-                      String.valueOf(newEntry));
 
 
     // See if we care about modify operations.
@@ -478,7 +477,10 @@ public class PersistentSearch
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processModify", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       // FIXME -- Do we need to do anything here?
 
@@ -509,7 +511,10 @@ public class PersistentSearch
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processModify", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       DirectoryServer.deregisterPersistentSearch(this);
 
@@ -519,7 +524,10 @@ public class PersistentSearch
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "processModify", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
       }
     }
   }
@@ -536,9 +544,6 @@ public class PersistentSearch
   public void processModifyDN(ModifyDNOperation modifyDNOperation,
                               Entry oldEntry, Entry newEntry)
   {
-    assert debugEnter(CLASS_NAME, "processModifyDN",
-                      String.valueOf(modifyDNOperation),
-                      String.valueOf(oldEntry), String.valueOf(newEntry));
 
 
     // See if we care about modify DN operations.
@@ -614,7 +619,10 @@ public class PersistentSearch
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processModifyDN", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       // FIXME -- Do we need to do anything here?
 
@@ -646,7 +654,10 @@ public class PersistentSearch
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processModifyDN", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       DirectoryServer.deregisterPersistentSearch(this);
 
@@ -656,7 +667,10 @@ public class PersistentSearch
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "processModifyDN", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
       }
     }
   }
@@ -670,7 +684,6 @@ public class PersistentSearch
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -687,7 +700,6 @@ public class PersistentSearch
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("PersistentSearch(connID=");
     buffer.append(searchOperation.getConnectionID());

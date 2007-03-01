@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -43,7 +43,6 @@ import org.opends.server.types.operation.PreParseAbandonOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 
@@ -58,11 +57,6 @@ public class AbandonOperation
        extends Operation
        implements PreParseAbandonOperation, PostOperationAbandonOperation
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.AbandonOperation";
 
 
 
@@ -95,11 +89,6 @@ public class AbandonOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(clientConnection),
-                            String.valueOf(operationID),
-                            String.valueOf(messageID),
-                            String.valueOf(requestControls),
-                            String.valueOf(idToAbandon));
 
     this.idToAbandon = idToAbandon;
   }
@@ -113,7 +102,6 @@ public class AbandonOperation
    */
   public final int getIDToAbandon()
   {
-    assert debugEnter(CLASS_NAME, "getIDToAbandon");
 
     return idToAbandon;
   }
@@ -126,7 +114,6 @@ public class AbandonOperation
   @Override()
   public final long getProcessingStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
     return processingStartTime;
   }
@@ -139,7 +126,6 @@ public class AbandonOperation
   @Override()
   public final long getProcessingStopTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
     return processingStopTime;
   }
@@ -152,7 +138,6 @@ public class AbandonOperation
   @Override()
   public final long getProcessingTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingTime");
 
     return (processingStopTime - processingStartTime);
   }
@@ -165,7 +150,6 @@ public class AbandonOperation
   @Override()
   public final OperationType getOperationType()
   {
-    assert debugEnter(CLASS_NAME, "getOperationType");
 
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -197,7 +181,6 @@ public class AbandonOperation
   @Override()
   public final String[][] getRequestLogElements()
   {
-    assert debugEnter(CLASS_NAME, "getRequestLogElements");
 
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
@@ -253,7 +236,6 @@ public class AbandonOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-    assert debugEnter(CLASS_NAME, "getResponseControls");
 
     // An abandon operation can never have a response, so just return an empty
     // list.
@@ -290,7 +272,6 @@ public class AbandonOperation
   @Override()
   public final void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     setResultCode(ResultCode.UNDEFINED);
 
@@ -392,7 +373,6 @@ abandonProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
     cancelRequest.addResponseMessage(getMessage(MSGID_CANNOT_CANCEL_ABANDON));
     return CancelResult.CANNOT_CANCEL;
@@ -406,7 +386,6 @@ abandonProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-    assert debugEnter(CLASS_NAME, "getCancelRequest");
 
     return null;
   }
@@ -419,8 +398,6 @@ abandonProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "setCancelRequest",
-                      String.valueOf(cancelRequest));
 
     // Abandon operations cannot be canceled.
     return false;
@@ -434,7 +411,6 @@ abandonProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("AbandonOperation(connID=");
     buffer.append(clientConnection.getConnectionID());

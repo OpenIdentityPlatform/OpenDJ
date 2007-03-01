@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -48,9 +43,6 @@ import java.util.NoSuchElementException;
  */
 public final class AttributeValueIterable implements
     Iterable<AttributeValue> {
-  // Fully qualified class name for debugging purposes.
-  private static final String CLASS_NAME =
-       AttributeValueIterable.class.getName();
 
   // The set of attributes having the same type and options.
   private Iterable<Attribute> attributes;
@@ -70,7 +62,6 @@ public final class AttributeValueIterable implements
   public AttributeValueIterable(Iterable<Attribute> attributes) {
     this(attributes, null);
 
-    assert debugConstructor(CLASS_NAME);
   }
 
   /**
@@ -85,7 +76,6 @@ public final class AttributeValueIterable implements
    */
   public AttributeValueIterable(Iterable<Attribute> attributes,
       HashSet<String> options) {
-    assert debugConstructor(CLASS_NAME);
 
     this.attributes = attributes;
     this.options = options;
@@ -95,7 +85,6 @@ public final class AttributeValueIterable implements
    * {@inheritDoc}
    */
   public Iterator<AttributeValue> iterator() {
-    assert debugEnter(CLASS_NAME, "iterator");
 
     return new AttributeValueIterator();
   }
@@ -118,7 +107,6 @@ public final class AttributeValueIterable implements
      * Create a new attribute value iterator over the attribute set.
      */
     private AttributeValueIterator() {
-      assert debugConstructor(CLASS_NAME);
 
       this.valueIterator = null;
 
@@ -135,7 +123,6 @@ public final class AttributeValueIterable implements
      * {@inheritDoc}
      */
     public boolean hasNext() {
-      assert debugEnter(CLASS_NAME, "hasNext");
 
       return hasNext;
     }
@@ -144,7 +131,6 @@ public final class AttributeValueIterable implements
      * {@inheritDoc}
      */
     public AttributeValue next() {
-      assert debugEnter(CLASS_NAME, "next");
 
       if (hasNext == false) {
         throw new NoSuchElementException();
@@ -165,7 +151,6 @@ public final class AttributeValueIterable implements
      * {@inheritDoc}
      */
     public void remove() {
-      assert debugEnter(CLASS_NAME, "remove");
 
       throw new UnsupportedOperationException();
     }
@@ -179,7 +164,6 @@ public final class AttributeValueIterable implements
      *         <code>false</code> otherwise.
      */
     private boolean skipNonMatchingAttributes() {
-      assert debugEnter(CLASS_NAME, "skipNonMatchingAttributes");
 
       while (attributeIterator.hasNext()) {
         Attribute attribute = attributeIterator.next();

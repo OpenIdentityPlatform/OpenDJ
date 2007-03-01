@@ -65,8 +65,9 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -83,11 +84,6 @@ public class TaskBackend
        extends Backend
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.task.TaskBackend";
 
 
 
@@ -161,7 +157,6 @@ public class TaskBackend
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
 
     // Perform all initialization in initializeBackend.
@@ -188,8 +183,6 @@ public class TaskBackend
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeBackend",
-                      String.valueOf(configEntry));
 
 
     // Make sure that a configuration entry was provided.  If not, then we will
@@ -232,7 +225,10 @@ public class TaskBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackend", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // This should never happen.
         int    msgID   = MSGID_TASKBE_CANNOT_DECODE_RECURRING_TASK_BASE_DN;
@@ -250,7 +246,10 @@ public class TaskBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackend", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // This should never happen.
         int    msgID   = MSGID_TASKBE_CANNOT_DECODE_SCHEDULED_TASK_BASE_DN;
@@ -285,7 +284,10 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_TASKBE_CANNOT_INITIALIZE_RETENTION_TIME;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -314,7 +316,10 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_TASKBE_CANNOT_INITIALIZE_BACKING_FILE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -343,7 +348,10 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
       String message = getMessage(msgID, taskRootDN.toString(),
@@ -367,7 +375,6 @@ public class TaskBackend
    */
   public void finalizeBackend()
   {
-    assert debugEnter(CLASS_NAME, "finalizeBackend");
 
 
     DirectoryServer.deregisterConfigurableComponent(this);
@@ -379,7 +386,10 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "finalizeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     try
@@ -392,7 +402,10 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "finalizeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     try
@@ -401,7 +414,10 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "finalizeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -414,7 +430,6 @@ public class TaskBackend
    */
   public DN[] getBaseDNs()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDNs");
 
     return baseDNs;
   }
@@ -426,7 +441,6 @@ public class TaskBackend
    */
   public long getEntryCount()
   {
-    assert debugEnter(CLASS_NAME, "getEntryCount");
 
     if (taskScheduler != null)
     {
@@ -449,7 +463,6 @@ public class TaskBackend
    */
   public boolean isLocal()
   {
-    assert debugEnter(CLASS_NAME, "isLocal");
 
     // For the purposes of this method, this is a local backend.
     return true;
@@ -471,7 +484,6 @@ public class TaskBackend
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
 
     if (entryDN == null)
@@ -534,7 +546,6 @@ public class TaskBackend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "entryExists", String.valueOf(entryDN));
 
 
     if (entryDN == null)
@@ -586,8 +597,6 @@ public class TaskBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addEntry", String.valueOf(entry),
-                      String.valueOf(addOperation));
 
 
     // Get the DN for the entry and then get its parent.
@@ -603,7 +612,6 @@ public class TaskBackend
                                    msgID);
     }
 
-
     // If the parent DN is equal to the parent for scheduled tasks, then try to
     // treat the provided entry like a scheduled task.
     if (parentDN.equals(scheduledTaskParentDN))
@@ -613,7 +621,6 @@ public class TaskBackend
       return;
     }
 
-
     // If the parent DN is equal to the parent for recurring tasks, then try to
     // treat the provided entry like a recurring task.
     if (parentDN.equals(recurringTaskParentDN))
@@ -622,7 +629,6 @@ public class TaskBackend
       taskScheduler.addRecurringTask(recurringTask, true);
       return;
     }
-
 
     // We won't allow the entry to be added.
     int msgID = MSGID_TASKBE_ADD_DISALLOWED_DN;
@@ -651,8 +657,6 @@ public class TaskBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "deleteEntry", String.valueOf(entryDN),
-                      String.valueOf(deleteOperation));
 
 
     // Get the parent for the provided entry DN.  It must be either the
@@ -740,8 +744,6 @@ public class TaskBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "replaceEntry", String.valueOf(entry),
-                      String.valueOf(modifyOperation));
 
     // FIXME -- We need to support this.
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -770,8 +772,6 @@ public class TaskBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "renameEntry", String.valueOf(currentDN),
-                      String.valueOf(entry), String.valueOf(modifyDNOperation));
 
 
     int    msgID   = MSGID_TASKBE_MODIFY_DN_NOT_SUPPORTED;
@@ -799,7 +799,6 @@ public class TaskBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException, CancelledOperationException
   {
-    assert debugEnter(CLASS_NAME, "search", String.valueOf(searchOperation));
 
 
     // Look at the base DN and scope for the search operation to decide which
@@ -1020,7 +1019,6 @@ public class TaskBackend
    */
   public HashSet<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return supportedControls;
   }
@@ -1034,7 +1032,6 @@ public class TaskBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return supportedFeatures;
   }
@@ -1050,7 +1047,6 @@ public class TaskBackend
    */
   public boolean supportsLDIFExport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFExport");
 
     // LDIF exports are supported.
     return true;
@@ -1075,7 +1071,6 @@ public class TaskBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "exportLDIF", String.valueOf(exportConfig));
 
 
     // FIXME -- Implement support for exporting to LDIF.
@@ -1092,7 +1087,6 @@ public class TaskBackend
    */
   public boolean supportsLDIFImport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFImport");
 
     // This backend does not support LDIF imports.
     return false;
@@ -1117,7 +1111,6 @@ public class TaskBackend
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "importLDIF", String.valueOf(importConfig));
 
 
     // This backend does not support LDIF imports.
@@ -1142,7 +1135,6 @@ public class TaskBackend
    */
   public boolean supportsBackup()
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
     // This backend does provide a backup/restore mechanism.
     return true;
@@ -1168,7 +1160,6 @@ public class TaskBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
 
     // This backend does provide a backup/restore mechanism.
@@ -1193,7 +1184,6 @@ public class TaskBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createBackup", String.valueOf(backupConfig));
 
 
     // NYI -- Create the backup.
@@ -1217,9 +1207,6 @@ public class TaskBackend
                            String backupID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeBackup",
-                      String.valueOf(backupDirectory),
-                      String.valueOf(backupID));
 
 
     // NYI -- Remove the backup.
@@ -1235,7 +1222,6 @@ public class TaskBackend
    */
   public boolean supportsRestore()
   {
-    assert debugEnter(CLASS_NAME, "supportsRestore");
 
 
     // This backend does provide a backup/restore mechanism.
@@ -1261,8 +1247,6 @@ public class TaskBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "restoreBackup",
-                      String.valueOf(restoreConfig));
 
 
     // NYI -- Restore the backup.
@@ -1279,7 +1263,6 @@ public class TaskBackend
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -1295,7 +1278,6 @@ public class TaskBackend
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -1333,8 +1315,6 @@ public class TaskBackend
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     boolean configIsAcceptable = true;
@@ -1395,7 +1375,10 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_BACKING_FILE;
       unacceptableReasons.add(getMessage(msgID, ATTR_TASK_BACKING_FILE,
@@ -1424,7 +1407,10 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_RETENTION_TIME;
       unacceptableReasons.add(getMessage(msgID, ATTR_TASK_RETENTION_TIME,
@@ -1458,9 +1444,6 @@ public class TaskBackend
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -1522,7 +1505,10 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_BACKING_FILE;
       messages.add(getMessage(msgID, ATTR_TASK_BACKING_FILE,
@@ -1560,7 +1546,10 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_RETENTION_TIME;
       messages.add(getMessage(msgID, ATTR_TASK_RETENTION_TIME,
@@ -1608,7 +1597,6 @@ public class TaskBackend
    */
   public DN getConfigEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigEntryDN");
 
     return configEntryDN;
   }
@@ -1624,7 +1612,6 @@ public class TaskBackend
    */
   public String getTaskBackingFile()
   {
-    assert debugEnter(CLASS_NAME, "getTaskBackingFile");
 
     File f = getFileForPath(taskBackingFile);
     return f.getPath();
@@ -1641,7 +1628,6 @@ public class TaskBackend
    */
   public long getRetentionTime()
   {
-    assert debugEnter(CLASS_NAME, "getRetentionTime");
 
     return retentionTime;
   }
@@ -1657,7 +1643,6 @@ public class TaskBackend
    */
   public DN getTaskRootDN()
   {
-    assert debugEnter(CLASS_NAME, "getTaskRootDN");
 
     return taskRootDN;
   }
@@ -1673,7 +1658,6 @@ public class TaskBackend
    */
   public DN getRecurringTasksParentDN()
   {
-    assert debugEnter(CLASS_NAME, "getRecurringTasksParentDN");
 
     return recurringTaskParentDN;
   }
@@ -1689,7 +1673,6 @@ public class TaskBackend
    */
   public DN getScheduledTasksParentDN()
   {
-    assert debugEnter(CLASS_NAME, "getScheduledTasksParentDN");
 
     return scheduledTaskParentDN;
   }
@@ -1706,8 +1689,6 @@ public class TaskBackend
    */
   public Task getScheduledTask(DN taskEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getScheduledTask",
-                      String.valueOf(taskEntryDN));
 
     return taskScheduler.getScheduledTask(taskEntryDN);
   }
@@ -1725,8 +1706,6 @@ public class TaskBackend
    */
   public RecurringTask getRecurringTask(DN taskEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getScheduledTask",
-                      String.valueOf(taskEntryDN));
 
     return taskScheduler.getRecurringTask(taskEntryDN);
   }

@@ -54,8 +54,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import org.opends.server.messages.MessageHandler;
@@ -71,11 +72,6 @@ import static org.opends.server.util.StaticUtils.*;
 public abstract class Task
        implements Comparable<Task>
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.task.Task";
 
 
 
@@ -146,8 +142,6 @@ public abstract class Task
                                            Entry taskEntry)
          throws InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeTaskInternal",
-                      String.valueOf(taskEntry));
 
     this.taskScheduler = taskScheduler;
     this.taskEntry     = taskEntry;
@@ -223,7 +217,10 @@ public abstract class Task
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeTaskInternal", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_TASK_CANNOT_PARSE_SCHEDULED_START_TIME;
         String message = getMessage(msgID, timeString, taskDN);
@@ -254,7 +251,10 @@ public abstract class Task
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeTaskInternal", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_TASK_CANNOT_PARSE_ACTUAL_START_TIME;
         String message = getMessage(msgID, timeString, taskDN);
@@ -285,7 +285,10 @@ public abstract class Task
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeTaskInternal", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_TASK_CANNOT_PARSE_COMPLETION_TIME;
         String message = getMessage(msgID, timeString, taskDN);
@@ -343,9 +346,6 @@ public abstract class Task
   private String getAttributeValue(String attributeName, boolean isRequired)
           throws InitializationException
   {
-    assert debugEnter(CLASS_NAME, "getAttributeValue",
-                      String.valueOf(attributeName),
-                      String.valueOf(isRequired));
 
     List<Attribute> attrList =
          taskEntry.getAttribute(attributeName.toLowerCase());
@@ -418,8 +418,6 @@ public abstract class Task
   private LinkedList<String> getAttributeValues(String attributeName)
           throws InitializationException
   {
-    assert debugEnter(CLASS_NAME, "getAttributeValues",
-                      String.valueOf(attributeName));
 
     LinkedList<String> valueStrings = new LinkedList<String>();
 
@@ -455,7 +453,6 @@ public abstract class Task
    */
   public final DN getTaskEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getTaskEntryDN");
 
     return taskEntryDN;
   }
@@ -469,7 +466,6 @@ public abstract class Task
    */
   public final Entry getTaskEntry()
   {
-    assert debugEnter(CLASS_NAME, "getTaskEntry");
 
     return taskEntry;
   }
@@ -489,7 +485,6 @@ public abstract class Task
    */
   public final Operation getOperation()
   {
-    assert debugEnter(CLASS_NAME, "getOperation");
 
     return operation;
   }
@@ -503,7 +498,6 @@ public abstract class Task
    */
   public final void setOperation(Operation operation)
   {
-    assert debugEnter(CLASS_NAME, "setOperation", String.valueOf(operation));
 
     this.operation = operation;
   }
@@ -517,7 +511,6 @@ public abstract class Task
    */
   public final String getTaskID()
   {
-    assert debugEnter(CLASS_NAME, "getTaskID");
 
     return taskID;
   }
@@ -534,7 +527,6 @@ public abstract class Task
    */
   public final String getRecurringTaskID()
   {
-    assert debugEnter(CLASS_NAME, "getRecurringTaskID");
 
     return recurringTaskID;
   }
@@ -548,7 +540,6 @@ public abstract class Task
    */
   public final TaskState getTaskState()
   {
-    assert debugEnter(CLASS_NAME, "getTaskState");
 
     return taskState;
   }
@@ -564,7 +555,6 @@ public abstract class Task
    */
   void setTaskState(TaskState taskState)
   {
-    assert debugEnter(CLASS_NAME, "setTaskState", String.valueOf(taskState));
 
     Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
@@ -607,7 +597,6 @@ public abstract class Task
    */
   public final long getScheduledStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getStartTime");
 
     return scheduledStartTime;
   }
@@ -624,7 +613,6 @@ public abstract class Task
    */
   public final long getActualStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getActualStartTime");
 
     return actualStartTime;
   }
@@ -640,8 +628,6 @@ public abstract class Task
    */
   private void setActualStartTime(long actualStartTime)
   {
-    assert debugEnter(CLASS_NAME, "setActualStartTime",
-                      String.valueOf(actualStartTime));
 
     Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
@@ -689,7 +675,6 @@ public abstract class Task
    */
   public final long getCompletionTime()
   {
-    assert debugEnter(CLASS_NAME, "getCompletionTime");
 
     return completionTime;
   }
@@ -705,8 +690,6 @@ public abstract class Task
    */
   private void setCompletionTime(long completionTime)
   {
-    assert debugEnter(CLASS_NAME, "setCompletionTime",
-                      String.valueOf(completionTime));
 
     Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
@@ -751,7 +734,6 @@ public abstract class Task
    */
   public final LinkedList<String> getDependencyIDs()
   {
-    assert debugEnter(CLASS_NAME, "getDependencyIDs");
 
     return dependencyIDs;
   }
@@ -767,7 +749,6 @@ public abstract class Task
    */
   public final FailedDependencyAction getFailedDependencyAction()
   {
-    assert debugEnter(CLASS_NAME, "getFailedDependencyAction");
 
     return failedDependencyAction;
   }
@@ -787,7 +768,6 @@ public abstract class Task
    */
   public final LinkedList<String> getNotifyOnCompletionAddresses()
   {
-    assert debugEnter(CLASS_NAME, "getNotifyOnCompletionAddresses");
 
     return notifyOnCompletion;
   }
@@ -805,7 +785,6 @@ public abstract class Task
    */
   public final LinkedList<String> getNotifyOnErrorAddresses()
   {
-    assert debugEnter(CLASS_NAME, "getNotifyOnErrorAddresses");
 
     return notifyOnError;
   }
@@ -820,7 +799,6 @@ public abstract class Task
    */
   public final LinkedList<String> getLogMessages()
   {
-    assert debugEnter(CLASS_NAME, "getLogMessages");
 
     return logMessages;
   }
@@ -912,9 +890,6 @@ public abstract class Task
   void addLogMessage(ErrorLogSeverity severity, int messageID,
                      String messageString)
   {
-    assert debugEnter(CLASS_NAME, "addLogMessage",
-                      String.valueOf(severity), String.valueOf(messageID),
-                      String.valueOf(messageString));
 
     Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
@@ -997,7 +972,6 @@ public abstract class Task
    */
   public final int compareTo(Task task)
   {
-    assert debugEnter(CLASS_NAME, "compareTo", String.valueOf(task));
 
     if (completionTime > 0)
     {
@@ -1090,7 +1064,6 @@ public abstract class Task
    */
   public final TaskState execute()
   {
-    assert debugEnter(CLASS_NAME, "execute");
 
     setActualStartTime(TimeThread.getTime());
     setTaskState(TaskState.RUNNING);
@@ -1103,7 +1076,10 @@ public abstract class Task
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "execute", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       setTaskState(TaskState.STOPPED_BY_ERROR);
 
@@ -1138,7 +1114,6 @@ public abstract class Task
   public void initializeTask()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "initializeTask");
 
     // No action is performed by default.
   }
@@ -1167,7 +1142,6 @@ public abstract class Task
    */
   public void interruptTask(TaskState interruptState, String interruptReason)
   {
-    assert debugEnter(CLASS_NAME, "interruptTask");
 
     // No action is performed by default.
   }

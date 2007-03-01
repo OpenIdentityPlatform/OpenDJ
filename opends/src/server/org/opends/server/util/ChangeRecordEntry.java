@@ -22,14 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
-
-
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.util.Validator.*;
 
 import org.opends.server.types.DN;
@@ -43,11 +39,6 @@ import org.opends.server.types.DN;
  */
 public abstract class ChangeRecordEntry
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-      "org.opends.server.util.ChangeRecordEntry";
 
 
   // The DN for this entry.
@@ -62,7 +53,6 @@ public abstract class ChangeRecordEntry
    */
   protected ChangeRecordEntry(DN dn)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn));
 
     ensureNotNull(dn);
     this.dn = dn;
@@ -76,7 +66,6 @@ public abstract class ChangeRecordEntry
    */
   public final DN getDN()
   {
-    assert debugEnter(CLASS_NAME, "getDN");
 
     return dn;
   }

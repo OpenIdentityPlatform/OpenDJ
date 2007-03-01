@@ -54,7 +54,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.WritabilityMode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -71,11 +73,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class CoreConfigManager
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.CoreConfigManager";
 
 
 
@@ -113,7 +110,6 @@ public class CoreConfigManager
    */
   public CoreConfigManager()
   {
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation is required.
   }
@@ -134,7 +130,6 @@ public class CoreConfigManager
   public void initializeCoreConfig()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeCoreConfig");
 
 
     // Get the configuration root entry, since all the attributes we care about
@@ -172,7 +167,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_CHECK_SCHEMA,
@@ -213,7 +211,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_ALLOW_EXCEPTIONS,
@@ -250,7 +251,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_ADD_MISSING_RDN_ATTRS,
@@ -290,7 +294,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_SERVER_ERROR_RESULT_CODE,
@@ -347,7 +354,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_ENFORCE_STRICT_SYNTAX,
@@ -406,7 +416,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_STRUCTURAL_CLASS_BEHAVIOR,
@@ -444,7 +457,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_MAX_ALLOWED_CONNECTIONS,
@@ -483,7 +499,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_NOTIFY_ABANDONED_OPERATIONS,
@@ -520,7 +539,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_PROXY_MAPPER_DN, configRoot.getDN(),
@@ -554,7 +576,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_SIZE_LIMIT, configRoot.getDN(),
@@ -589,7 +614,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_TIME_LIMIT, configRoot.getDN(),
@@ -624,7 +652,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_LOOKTHROUGH_LIMIT, configRoot.getDN(),
@@ -680,7 +711,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_WRITABILITY_MODE,
@@ -716,7 +750,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_BIND_WITH_DN_REQUIRES_PW,
@@ -760,7 +797,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_CORE_INVALID_DEFAULT_PWPOLICY_DN,
@@ -795,7 +835,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "initializeCoreConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
          MSGID_CONFIG_CORE_REJECT_UNAUTHENTICATED_REQUESTS_INVALID,
          String.valueOf(configEntryDN.toString()), String.valueOf(e));
@@ -818,7 +861,6 @@ public class CoreConfigManager
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -834,7 +876,6 @@ public class CoreConfigManager
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrs = new LinkedList<ConfigAttribute>();
 
@@ -846,7 +887,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
                MSGID_CONFIG_CANNOT_GET_CONFIG_ENTRY, configEntryDN.toString(),
@@ -875,7 +919,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -905,7 +952,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -934,7 +984,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -966,7 +1019,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1002,7 +1058,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1039,7 +1098,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1069,7 +1131,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1099,7 +1164,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1128,7 +1196,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1158,7 +1229,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1189,7 +1263,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1225,7 +1302,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1254,7 +1334,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1284,7 +1367,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred.  Log a message and continue.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1315,9 +1401,6 @@ public class CoreConfigManager
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(unacceptableReasons));
 
 
     // Start out assuming that the configuration is valid.
@@ -1338,7 +1421,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_CHECK_SCHEMA;
@@ -1362,7 +1448,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_ALLOW_EXCEPTIONS;
@@ -1386,7 +1475,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_ADD_MISSING_RDN_ATTRS;
@@ -1415,7 +1507,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_SERVER_ERROR_RESULT_CODE;
@@ -1445,7 +1540,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_ENFORCE_STRICT_SYNTAX;
@@ -1476,7 +1574,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_STRUCTURAL_CLASS_BEHAVIOR;
@@ -1500,7 +1601,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_MAX_ALLOWED_CONNECTIONS;
@@ -1524,7 +1628,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_NOTIFY_ABANDONED_OPERATIONS;
@@ -1561,7 +1668,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_PROXY_MAPPER_DN;
@@ -1586,7 +1696,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_SIZE_LIMIT;
@@ -1611,7 +1724,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_TIME_LIMIT;
@@ -1641,7 +1757,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_WRITABILITY_MODE;
@@ -1664,7 +1783,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_BIND_WITH_DN_REQUIRES_PW;
@@ -1688,7 +1810,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_REJECT_UNAUTHENTICATED_REQUESTS_INVALID;
@@ -1733,7 +1858,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_CONFIG_CORE_INVALID_DEFAULT_PWPOLICY_DN;
@@ -1767,9 +1895,6 @@ public class CoreConfigManager
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
     ArrayList<String> resultMessages      = new ArrayList<String>();
     boolean           adminActionRequired = false;
@@ -1800,7 +1925,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -1836,7 +1964,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -1874,7 +2005,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -1918,7 +2052,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -1973,7 +2110,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -2028,7 +2168,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -2070,7 +2213,10 @@ public class CoreConfigManager
     {
       // An error occurred, but this should not be considered fatal.  Log an
       // error message and use the default.
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -2108,7 +2254,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -2145,7 +2294,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -2179,7 +2331,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -2213,7 +2368,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -2247,7 +2405,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -2298,7 +2459,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -2331,7 +2495,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -2365,7 +2532,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-       assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.
@@ -2409,7 +2579,10 @@ public class CoreConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so we will not allow this configuration change to
       // take place.

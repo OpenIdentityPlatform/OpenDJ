@@ -67,7 +67,9 @@ import org.opends.server.types.operation.PreParseCompareOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -85,11 +87,6 @@ public class CompareOperation
        implements PreParseCompareOperation, PreOperationCompareOperation,
                   PostOperationCompareOperation, PostResponseCompareOperation
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.CompareOperation";
 
 
 
@@ -147,17 +144,6 @@ public class CompareOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(rawEntryDN),
-                              String.valueOf(rawAttributeType),
-                              String.valueOf(assertionValue)
-                            });
 
     this.rawEntryDN       = rawEntryDN;
     this.rawAttributeType = rawAttributeType;
@@ -192,17 +178,6 @@ public class CompareOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(entryDN),
-                              String.valueOf(attributeType),
-                              String.valueOf(assertionValue)
-                            });
 
     this.entryDN        = entryDN;
     this.attributeType  = attributeType;
@@ -226,7 +201,6 @@ public class CompareOperation
    */
   public final ByteString getRawEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getRawEntryDN");
 
     return rawEntryDN;
   }
@@ -242,7 +216,6 @@ public class CompareOperation
    */
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "setRawEntryDN");
 
     this.rawEntryDN = rawEntryDN;
 
@@ -261,7 +234,6 @@ public class CompareOperation
    */
   public final DN getEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getEntryDN");
 
     return entryDN;
   }
@@ -275,7 +247,6 @@ public class CompareOperation
    */
   public final String getRawAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getRawAttributeType");
 
     return rawAttributeType;
   }
@@ -291,8 +262,6 @@ public class CompareOperation
    */
   public final void setRawAttributeType(String rawAttributeType)
   {
-    assert debugEnter(CLASS_NAME, "setRawAttributeType",
-                      String.valueOf(rawAttributeType));
 
     this.rawAttributeType = rawAttributeType;
 
@@ -310,7 +279,6 @@ public class CompareOperation
    */
   public final AttributeType getAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType");
 
     return attributeType;
   }
@@ -324,7 +292,6 @@ public class CompareOperation
    */
   public final ByteString getAssertionValue()
   {
-    assert debugEnter(CLASS_NAME, "getAssertionValue");
 
     return assertionValue;
   }
@@ -339,8 +306,6 @@ public class CompareOperation
    */
   public final void setAssertionValue(ByteString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "setAssertionValue",
-                      String.valueOf(assertionValue));
 
     this.assertionValue = assertionValue;
   }
@@ -356,7 +321,6 @@ public class CompareOperation
    */
   public final Entry getEntryToCompare()
   {
-    assert debugEnter(CLASS_NAME, "getEntryToCompare");
 
     return entry;
   }
@@ -369,7 +333,6 @@ public class CompareOperation
   @Override()
   public final long getProcessingStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
     return processingStartTime;
   }
@@ -382,7 +345,6 @@ public class CompareOperation
   @Override()
   public final long getProcessingStopTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
     return processingStopTime;
   }
@@ -395,7 +357,6 @@ public class CompareOperation
   @Override()
   public final long getProcessingTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingTime");
 
     return (processingStopTime - processingStartTime);
   }
@@ -528,7 +489,6 @@ public class CompareOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-    assert debugEnter(CLASS_NAME, "getResponseControls");
 
     return responseControls;
   }
@@ -563,7 +523,6 @@ public class CompareOperation
   @Override()
   public final void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     setResultCode(ResultCode.UNDEFINED);
 
@@ -642,7 +601,10 @@ compareProcessing:
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "run", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         setResultCode(de.getResultCode());
         appendErrorMessage(de.getErrorMessage());
@@ -725,7 +687,10 @@ compareProcessing:
               }
               catch (Exception e)
               {
-                assert debugException(CLASS_NAME, "run", e);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, e);
+                }
                 break;
               }
 
@@ -737,7 +702,10 @@ compareProcessing:
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "run", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           setResultCode(de.getResultCode());
           appendErrorMessage(de.getErrorMessage());
@@ -770,7 +738,10 @@ compareProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -796,7 +767,10 @@ compareProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 setResultCode(ResultCode.PROTOCOL_ERROR);
 
@@ -833,7 +807,10 @@ compareProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -850,7 +827,10 @@ compareProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 setResultCode(de.getResultCode());
                 appendErrorMessage(de.getErrorMessage());
@@ -887,7 +867,10 @@ compareProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -904,7 +887,10 @@ compareProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 setResultCode(de.getResultCode());
                 appendErrorMessage(de.getErrorMessage());
@@ -1134,7 +1120,6 @@ compareProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
     this.cancelRequest = cancelRequest;
 
@@ -1149,7 +1134,10 @@ compareProcessing:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "cancel", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       cancelResult = getCancelResult();
@@ -1175,7 +1163,6 @@ compareProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-    assert debugEnter(CLASS_NAME, "getCancelRequest");
 
     return cancelRequest;
   }
@@ -1188,8 +1175,6 @@ compareProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "setCancelRequest",
-                      String.valueOf(cancelRequest));
 
     this.cancelRequest = cancelRequest;
     return true;
@@ -1203,7 +1188,6 @@ compareProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("CompareOperation(connID=");
     buffer.append(clientConnection.getConnectionID());

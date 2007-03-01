@@ -53,7 +53,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -69,10 +71,6 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public final class StaticUtils
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME = "org.opends.server.util.StaticUtils";
 
 
 
@@ -122,7 +120,10 @@ public final class StaticUtils
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getBytes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       try
       {
@@ -130,7 +131,10 @@ public final class StaticUtils
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "getBytes", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
 
         return s.getBytes();
       }
@@ -2012,8 +2016,6 @@ public final class StaticUtils
    */
   public static boolean needsBase64Encoding(byte[] valueBytes)
   {
-    assert debugEnter(CLASS_NAME, "needsBase64Encoding",
-                      String.valueOf(valueBytes));
 
     int length;
     if ((valueBytes == null) || ((length = valueBytes.length) == 0))
@@ -2077,8 +2079,6 @@ public final class StaticUtils
    */
   public static boolean needsBase64Encoding(String valueString)
   {
-    assert debugEnter(CLASS_NAME, "needsBase64Encoding",
-                      String.valueOf(valueString));
 
     int length;
     if ((valueString == null) || ((length = valueString.length()) == 0))
@@ -2134,7 +2134,6 @@ public final class StaticUtils
    */
   public static boolean mayUseExec()
   {
-    assert debugEnter(CLASS_NAME, "mayUseExec");
 
     String s = System.getProperty(PROPERTY_DISABLE_EXEC);
     if (s == null)
@@ -2179,8 +2178,6 @@ public final class StaticUtils
                          Map<String,String> environment, List<String> output)
          throws IOException, SecurityException
   {
-    assert debugEnter(CLASS_NAME, "exec", String.valueOf(command),
-                      String.valueOf(args));
 
 
     // See whether we'll allow the use of exec on this system.  If not, then
@@ -2226,7 +2223,10 @@ public final class StaticUtils
       }
       catch (InterruptedException ie)
       {
-        assert debugException(CLASS_NAME, "exec", ie);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ie);
+        }
 
         // If this happens, then we have no choice but to forcefully terminate
         // the process.
@@ -2236,7 +2236,10 @@ public final class StaticUtils
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "exec", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         return process.exitValue();
@@ -2271,7 +2274,10 @@ public final class StaticUtils
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "exec", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
 
@@ -2281,7 +2287,10 @@ public final class StaticUtils
       }
       catch (InterruptedException ie)
       {
-        assert debugException(CLASS_NAME, "exec", ie);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ie);
+        }
 
         // If this happens, then we have no choice but to forcefully terminate
         // the process.
@@ -2291,7 +2300,10 @@ public final class StaticUtils
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "exec", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         return process.exitValue();
@@ -2321,9 +2333,6 @@ public final class StaticUtils
                                              int endPos,
                                              StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "isValidSchemaElement",
-                      String.valueOf(element), String.valueOf(startPos),
-                      String.valueOf(endPos), "java.lang.StringBuilder");
 
 
     if ((element == null) || (startPos >= endPos))
@@ -2462,7 +2471,6 @@ public final class StaticUtils
    */
   public static String toLowerCase(String s)
   {
-    assert debugEnter(CLASS_NAME, "toLowerCase", String.valueOf(s));
 
     if (s == null)
     {
@@ -2490,8 +2498,6 @@ public final class StaticUtils
    */
   public static void toLowerCase(String s, StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toLowerCase", String.valueOf(s),
-                      "java.lang.StringBuilder");
 
     if (s == null)
     {
@@ -2614,8 +2620,6 @@ public final class StaticUtils
    */
   public static void toLowerCase(byte[] b, StringBuilder buffer, boolean trim)
   {
-    assert debugEnter(CLASS_NAME, "toLowerCase", String.valueOf(b),
-                      "java.lang.StringBuilder", String.valueOf(trim));
 
     if (b == null)
     {
@@ -2633,8 +2637,11 @@ public final class StaticUtils
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "toLowerCase", e);
-          buffer.append(new String(b, i, (length-i)).toLowerCase());
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
+          buffer.append(new String(b, i, (length - i)).toLowerCase());
         }
         break;
       }
@@ -2768,7 +2775,6 @@ public final class StaticUtils
    */
   public static String toUpperCase(String s)
   {
-    assert debugEnter(CLASS_NAME, "toUpperCase", String.valueOf(s));
 
     if (s == null)
     {
@@ -2796,8 +2802,6 @@ public final class StaticUtils
    */
   public static void toUpperCase(String s, StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toUpperCase", String.valueOf(s),
-                      "java.lang.StringBuilder");
 
     if (s == null)
     {
@@ -2920,8 +2924,6 @@ public final class StaticUtils
    */
   public static void toUpperCase(byte[] b, StringBuilder buffer, boolean trim)
   {
-    assert debugEnter(CLASS_NAME, "toUpperCase", String.valueOf(b),
-                      "java.lang.StringBuilder", String.valueOf(trim));
 
     if (b == null)
     {
@@ -2939,8 +2941,11 @@ public final class StaticUtils
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "toUpperCase", e);
-          buffer.append(new String(b, i, (length-i)).toUpperCase());
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
+          buffer.append(new String(b, i, (length - i)).toUpperCase());
         }
         break;
       }
@@ -3090,7 +3095,6 @@ public final class StaticUtils
   public static StringBuilder toRFC3641StringValue(StringBuilder builder,
       String string)
   {
-    assert debugEnter(CLASS_NAME, "toRFC3641StringValue");
 
     // Initial double-quote.
     builder.append('"');
@@ -3124,7 +3128,6 @@ public final class StaticUtils
    */
   public static String[] listToArray(List<String> stringList)
   {
-    assert debugEnter(CLASS_NAME, "listToArray", "java.util.List<String>");
 
     if (stringList == null)
     {
@@ -3147,7 +3150,6 @@ public final class StaticUtils
    */
   public static ArrayList<String> arrayToList(String[] stringArray)
   {
-    assert debugEnter(CLASS_NAME, "arrayToList", String.valueOf(stringArray));
 
     if (stringArray == null)
     {
@@ -3177,7 +3179,6 @@ public final class StaticUtils
    */
   public static boolean recursiveDelete(File file)
   {
-    assert debugEnter(CLASS_NAME, "recursiveDelete", String.valueOf(file));
 
     boolean successful = true;
     if (file.isDirectory())
@@ -3276,7 +3277,6 @@ public final class StaticUtils
    */
   public static boolean isRelativePath(String path)
   {
-    assert debugEnter(CLASS_NAME, "isRelativePath", String.valueOf(path));
 
     File f = new File(path);
     return (! f.isAbsolute());
@@ -3296,7 +3296,6 @@ public final class StaticUtils
    */
   public static File getFileForPath(String path)
   {
-    assert debugEnter(CLASS_NAME, "getFileForPath", String.valueOf(path));
 
     File f = new File (path);
 
@@ -3338,7 +3337,6 @@ public final class StaticUtils
    */
   public static Entry createEntry(DN dn)
   {
-    assert debugEnter(CLASS_NAME, "createEntry", String.valueOf(dn));
 
 
     // If the provided DN was null or empty, then return null because we don't

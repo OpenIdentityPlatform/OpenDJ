@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -43,7 +43,9 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.Control;
 import org.opends.server.types.ObjectClass;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -60,11 +62,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPPostReadRequestControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.LDAPPostReadRequestControl";
 
 
 
@@ -100,8 +97,6 @@ public class LDAPPostReadRequestControl
     super(OID_LDAP_READENTRY_POSTREAD, isCritical,
           encodeAttributes(rawAttributes));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(isCritical),
-                            String.valueOf(rawAttributes));
 
     if (rawAttributes == null)
     {
@@ -135,9 +130,6 @@ public class LDAPPostReadRequestControl
   {
     super(oid, isCritical, encodeAttributes(rawAttributes));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(rawAttributes));
 
     if (rawAttributes == null)
     {
@@ -173,10 +165,6 @@ public class LDAPPostReadRequestControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(rawAttributes),
-                            String.valueOf(encodedValue));
 
     if (rawAttributes == null)
     {
@@ -210,7 +198,6 @@ public class LDAPPostReadRequestControl
   public static LDAPPostReadRequestControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
     if (! control.hasValue())
     {
@@ -232,7 +219,10 @@ public class LDAPPostReadRequestControl
     }
     catch (ASN1Exception ae)
     {
-      assert debugException(CLASS_NAME, "decodeControl", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
 
       int    msgID   = MSGID_POSTREADREQ_CANNOT_DECODE_VALUE;
       String message = getMessage(msgID, ae.getMessage());
@@ -260,8 +250,6 @@ public class LDAPPostReadRequestControl
   private static ASN1OctetString encodeAttributes(LinkedHashSet<String>
                                                        rawAttributes)
   {
-    assert debugEnter(CLASS_NAME, "encodeAttributes",
-                      String.valueOf(rawAttributes));
 
     if (rawAttributes == null)
     {
@@ -289,7 +277,6 @@ public class LDAPPostReadRequestControl
    */
   public LinkedHashSet<String> getRawAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getRawAttributes");
 
     return rawAttributes;
   }
@@ -304,8 +291,6 @@ public class LDAPPostReadRequestControl
    */
   public void setRawAttributes(LinkedHashSet<String> rawAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setRawAttributes",
-                      String.valueOf(rawAttributes));
 
     if (rawAttributes == null)
     {
@@ -331,7 +316,6 @@ public class LDAPPostReadRequestControl
    */
   public LinkedHashSet<AttributeType> getRequestedAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getRequestedAttributes");
 
     if (requestedAttributes == null)
     {
@@ -391,7 +375,6 @@ public class LDAPPostReadRequestControl
    */
   public boolean returnAllUserAttributes()
   {
-    assert debugEnter(CLASS_NAME, "returnAllUserAttributes");
 
     if (requestedAttributes == null)
     {
@@ -415,7 +398,6 @@ public class LDAPPostReadRequestControl
    */
   public boolean returnAllOperationalAttributes()
   {
-    assert debugEnter(CLASS_NAME, "returnAllOperationalAttributes");
 
     if (requestedAttributes == null)
     {
@@ -439,8 +421,6 @@ public class LDAPPostReadRequestControl
    */
   public boolean allowsAttribute(AttributeType attrType)
   {
-    assert debugEnter(CLASS_NAME, "allowsAttribute",
-                      String.valueOf(attrType));
 
     if (requestedAttributes == null)
     {
@@ -471,7 +451,6 @@ public class LDAPPostReadRequestControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -488,7 +467,6 @@ public class LDAPPostReadRequestControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("LDAPPostReadRequestControl(criticality=");
     buffer.append(isCritical());

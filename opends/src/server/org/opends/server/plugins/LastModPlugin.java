@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
 
@@ -51,7 +51,9 @@ import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
 import static org.opends.server.util.TimeThread.*;
@@ -67,11 +69,6 @@ import static org.opends.server.util.TimeThread.*;
 public final class LastModPlugin
        extends DirectoryServerPlugin
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.plugins.LastModPlugin";
 
 
 
@@ -99,7 +96,6 @@ public final class LastModPlugin
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
 
     // Get the attribute types for the attributes that we will use.  This needs
@@ -125,9 +121,6 @@ public final class LastModPlugin
                                      ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(pluginTypes),
-                      String.valueOf(configEntry));
 
 
     // Make sure that the plugin has been enabled for the appropriate types.
@@ -159,8 +152,6 @@ public final class LastModPlugin
   public final PreOperationPluginResult
        doPreOperation(PreOperationAddOperation addOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(addOperation));
 
 
     // Create the attribute list for the creatorsName attribute, if appropriate.
@@ -212,8 +203,6 @@ public final class LastModPlugin
   public final PreOperationPluginResult
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(modifyOperation));
 
 
     // Create the modifiersName attribute.
@@ -241,7 +230,10 @@ public final class LastModPlugin
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "doPreOperation", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       // This should never happen.
       modifyOperation.setResultCode(DirectoryConfig.getServerErrorResultCode());
@@ -265,7 +257,10 @@ public final class LastModPlugin
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "doPreOperation", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       // This should never happen.
       modifyOperation.setResultCode(DirectoryConfig.getServerErrorResultCode());
@@ -287,8 +282,6 @@ public final class LastModPlugin
   public final PreOperationPluginResult
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(modifyDNOperation));
 
 
     // Create the modifiersName attribute.

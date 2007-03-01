@@ -59,7 +59,9 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.WritabilityMode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -77,11 +79,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class BackendConfigManager
        implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.BackendConfigManager";
 
 
 
@@ -99,7 +96,6 @@ public class BackendConfigManager
    */
   public BackendConfigManager()
   {
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation is required.
   }
@@ -120,7 +116,6 @@ public class BackendConfigManager
   public void initializeBackendConfig()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeBackendConfig");
 
 
     registeredBackends = new ConcurrentHashMap<DN,Backend>();
@@ -137,7 +132,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -192,7 +190,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
         String message = getMessage(msgID, String.valueOf(backendDN),
@@ -238,7 +239,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
         String message = getMessage(msgID, String.valueOf(backendDN),
@@ -287,7 +291,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(backendDN),
@@ -341,7 +348,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY;
         String message = getMessage(msgID, String.valueOf(backendDN),
@@ -380,7 +390,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS;
         String message = getMessage(msgID, String.valueOf(backendDN),
@@ -420,7 +433,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS;
         String message = getMessage(msgID, String.valueOf(backendDN),
@@ -439,7 +455,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
         String message = getMessage(msgID, String.valueOf(className),
@@ -484,7 +503,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
         String message = getMessage(msgID, backendID,
@@ -503,7 +525,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
         String message = getMessage(msgID, String.valueOf(className),
@@ -528,7 +553,10 @@ public class BackendConfigManager
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "initializeBackendConfig", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
 
           msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
           message = getMessage(msgID, backendID,
@@ -557,7 +585,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackendConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
         String message = getMessage(msgID, backendID,
@@ -592,8 +623,6 @@ public class BackendConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configChangeIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
     DN backendDN = configEntry.getDN();
 
@@ -614,7 +643,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
@@ -645,7 +677,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
@@ -674,7 +709,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
@@ -708,7 +746,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
@@ -770,7 +811,10 @@ public class BackendConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "configChangeIsAcceptable", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             unacceptableReason.append(de.getMessage());
             return false;
@@ -785,7 +829,10 @@ public class BackendConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "configChangeIsAcceptable", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             unacceptableReason.append(de.getMessage());
             return false;
@@ -795,7 +842,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
@@ -831,7 +881,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
@@ -853,7 +906,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
       unacceptableReason.append(getMessage(msgID, String.valueOf(className),
@@ -883,8 +939,6 @@ public class BackendConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationChange",
-                      String.valueOf(configEntry));
 
     DN                backendDN           = configEntry.getDN();
     Backend           backend             = registeredBackends.get(backendDN);
@@ -911,7 +965,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -989,7 +1046,10 @@ public class BackendConfigManager
           }
           catch (Exception e2)
           {
-            assert debugException(CLASS_NAME, "applyConfigurationChange", e2);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e2);
+            }
 
             msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
             String message = getMessage(msgID, backend.getBackendID(),
@@ -1010,7 +1070,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1047,7 +1110,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1101,7 +1167,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1140,7 +1209,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1179,7 +1251,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1227,7 +1302,10 @@ public class BackendConfigManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
           messages.add(getMessage(msgID, String.valueOf(className),
@@ -1292,7 +1370,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
         String message = getMessage(msgID, backendID,
@@ -1315,7 +1396,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
         messages.add(getMessage(msgID, String.valueOf(className),
@@ -1339,7 +1423,10 @@ public class BackendConfigManager
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "applyConfigurationChange", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
 
           msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
           String message = getMessage(msgID, backendID,
@@ -1369,7 +1456,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
         String message = getMessage(msgID, backendID,
@@ -1422,8 +1512,6 @@ public class BackendConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configAddIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     DN backendDN = configEntry.getDN();
@@ -1445,7 +1533,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
@@ -1476,11 +1567,14 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                stackTraceToSingleLineString(e)));
+                                           stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -1516,11 +1610,14 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                stackTraceToSingleLineString(e)));
+                                           stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -1550,7 +1647,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
@@ -1584,7 +1684,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
@@ -1620,11 +1723,14 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS;
       unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                stackTraceToSingleLineString(e)));
+                                           stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -1637,12 +1743,15 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
       unacceptableReason.append(getMessage(msgID, String.valueOf(className),
-                                String.valueOf(backendDN),
-                                stackTraceToSingleLineString(e)));
+                                           String.valueOf(backendDN),
+                                           stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -1716,8 +1825,6 @@ public class BackendConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationAdd",
-                      String.valueOf(configEntry));
 
 
     DN                backendDN           = configEntry.getDN();
@@ -1749,7 +1856,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1798,7 +1908,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1846,7 +1959,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1900,7 +2016,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1940,7 +2059,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1979,7 +2101,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
@@ -1997,7 +2122,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
       messages.add(getMessage(msgID, String.valueOf(className),
@@ -2038,7 +2166,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
       String message = getMessage(msgID, backendID,
@@ -2062,7 +2193,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
       messages.add(getMessage(msgID, String.valueOf(className),
@@ -2086,7 +2220,10 @@ public class BackendConfigManager
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationAdd", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
 
         msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
         String message = getMessage(msgID, backendID,
@@ -2116,7 +2253,10 @@ public class BackendConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
       String message = getMessage(msgID, backendID,
@@ -2155,8 +2295,6 @@ public class BackendConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configDeleteIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     DN backendDN = configEntry.getDN();
@@ -2200,8 +2338,6 @@ public class BackendConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationDelete",
-                      String.valueOf(configEntry));
 
 
     DN                backendDN           = configEntry.getDN();
@@ -2233,7 +2369,10 @@ public class BackendConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationDelete", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       for (BackendInitializationListener listener :

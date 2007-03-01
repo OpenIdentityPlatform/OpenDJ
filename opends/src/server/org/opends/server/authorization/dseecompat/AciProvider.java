@@ -32,15 +32,12 @@ import org.opends.server.api.AccessControlProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
-import static org.opends.server.loggers.Debug.debugConstructor;
 
 /**
  * This class is the provider class for the dseecompt ACI.
  */
 public class AciProvider  implements AccessControlProvider  {
 
-    private static final String CLASS_NAME =
-      "org.opends.server.authorization.dseecompat.AciProvider";
 
     private static AciHandler instance = null;
 
@@ -49,7 +46,6 @@ public class AciProvider  implements AccessControlProvider  {
      */
     public AciProvider() {
         super();
-        assert debugConstructor(CLASS_NAME);
     }
 
 

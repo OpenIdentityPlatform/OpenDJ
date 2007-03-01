@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -60,7 +60,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -78,11 +80,6 @@ public class SoftReferenceEntryCache
        extends EntryCache
        implements ConfigurableComponent, Runnable
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.SoftReferenceEntryCache";
 
 
 
@@ -142,7 +139,6 @@ public class SoftReferenceEntryCache
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
     dnMap = new ConcurrentHashMap<DN,SoftReference<CacheEntry>>();
     idMap = new ConcurrentHashMap<Backend,
@@ -179,8 +175,6 @@ public class SoftReferenceEntryCache
   public void initializeEntryCache(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeEntryCache",
-                      String.valueOf(configEntry));
 
     dnMap.clear();
     idMap.clear();
@@ -211,7 +205,10 @@ public class SoftReferenceEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -254,7 +251,10 @@ public class SoftReferenceEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeEntryCache", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter.  Log a warning and continue.
               logError(ErrorLogCategory.CONFIGURATION,
@@ -277,7 +277,10 @@ public class SoftReferenceEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -319,7 +322,10 @@ public class SoftReferenceEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeEntryCache", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter.  Log a warning and continue.
               logError(ErrorLogCategory.CONFIGURATION,
@@ -342,7 +348,10 @@ public class SoftReferenceEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -360,7 +369,6 @@ public class SoftReferenceEntryCache
    */
   public void finalizeEntryCache()
   {
-    assert debugEnter(CLASS_NAME, "finalizeEntryCache");
 
     dnMap.clear();
     idMap.clear();
@@ -380,7 +388,6 @@ public class SoftReferenceEntryCache
    */
   public boolean containsEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "containsEntry", String.valueOf(entryDN));
 
     // Indicate whether the DN map contains the specified DN.
     return dnMap.containsKey(entryDN);
@@ -400,7 +407,6 @@ public class SoftReferenceEntryCache
    */
   public Entry getEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
     SoftReference<CacheEntry> ref = dnMap.get(entryDN);
     if (ref == null)
@@ -435,7 +441,6 @@ public class SoftReferenceEntryCache
    */
   public long getEntryID(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getEntryID", String.valueOf(entryDN));
 
     SoftReference<CacheEntry> ref = dnMap.get(entryDN);
     if (ref == null)
@@ -477,8 +482,6 @@ public class SoftReferenceEntryCache
   public Entry getEntry(DN entryDN, LockType lockType,
                         List<Lock> lockList)
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN),
-                      String.valueOf(lockType), "java.util.List<Lock>");
 
     SoftReference<CacheEntry> ref = dnMap.get(entryDN);
     if (ref == null)
@@ -514,7 +517,10 @@ public class SoftReferenceEntryCache
               }
               catch (Exception e)
               {
-                assert debugException(CLASS_NAME, "getEntry", e);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, e);
+                }
 
                 // The attempt to add the lock to the list failed, so we need to
                 // release the lock and return null.
@@ -524,7 +530,10 @@ public class SoftReferenceEntryCache
                 }
                 catch (Exception e2)
                 {
-                  assert debugException(CLASS_NAME, "getEntry", e2);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, e2);
+                  }
                 }
 
                 return null;
@@ -549,7 +558,10 @@ public class SoftReferenceEntryCache
               }
               catch (Exception e)
               {
-                assert debugException(CLASS_NAME, "getEntry", e);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, e);
+                }
 
                 // The attempt to add the lock to the list failed, so we need to
                 // release the lock and return null.
@@ -559,7 +571,10 @@ public class SoftReferenceEntryCache
                 }
                 catch (Exception e2)
                 {
-                  assert debugException(CLASS_NAME, "getEntry", e2);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, e2);
+                  }
                 }
 
                 return null;
@@ -601,9 +616,6 @@ public class SoftReferenceEntryCache
   public Entry getEntry(Backend backend, long entryID,
                         LockType lockType, List<Lock> lockList)
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(backend),
-                      String.valueOf(entryID), String.valueOf(lockType),
-                      "java.util.List<Lock>");
 
     ConcurrentHashMap<Long,SoftReference<CacheEntry>> map = idMap.get(backend);
     if (map == null)
@@ -643,7 +655,10 @@ public class SoftReferenceEntryCache
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "getEntry", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // The attempt to add the lock to the list failed, so we need to
             // release the lock and return null.
@@ -653,7 +668,10 @@ public class SoftReferenceEntryCache
             }
             catch (Exception e2)
             {
-              assert debugException(CLASS_NAME, "getEntry", e2);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e2);
+              }
             }
 
             return null;
@@ -678,7 +696,10 @@ public class SoftReferenceEntryCache
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "getEntry", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // The attempt to add the lock to the list failed, so we need to
             // release the lock and return null.
@@ -688,7 +709,10 @@ public class SoftReferenceEntryCache
             }
             catch (Exception e2)
             {
-              assert debugException(CLASS_NAME, "getEntry", e2);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e2);
+              }
             }
 
             return null;
@@ -719,8 +743,6 @@ public class SoftReferenceEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-    assert debugEnter(CLASS_NAME, "putEntry", String.valueOf(entry),
-                      String.valueOf(backend), String.valueOf(entryID));
 
 
     // If there is a set of exclude filters, then make sure that the provided
@@ -738,7 +760,10 @@ public class SoftReferenceEntryCache
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "putEntry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // This shouldn't happen, but if it does then we can't be sure whether
           // the entry should be excluded, so we will by default.
@@ -765,7 +790,10 @@ public class SoftReferenceEntryCache
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "putEntry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // This shouldn't happen, but if it does, then just ignore it.
         }
@@ -828,8 +856,6 @@ public class SoftReferenceEntryCache
   public boolean putEntryIfAbsent(Entry entry, Backend backend,
                                   long entryID)
   {
-    assert debugEnter(CLASS_NAME, "putIfAbsent", String.valueOf(entry),
-                      String.valueOf(backend), String.valueOf(entryID));
 
 
     // If there is a set of exclude filters, then make sure that the provided
@@ -847,7 +873,10 @@ public class SoftReferenceEntryCache
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "putEntry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // This shouldn't happen, but if it does then we can't be sure whether
           // the entry should be excluded, so we will by default.
@@ -874,7 +903,10 @@ public class SoftReferenceEntryCache
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "putEntry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // This shouldn't happen, but if it does, then just ignore it.
         }
@@ -925,7 +957,6 @@ public class SoftReferenceEntryCache
    */
   public void removeEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "removeEntry", String.valueOf(entryDN));
 
 
     SoftReference<CacheEntry> ref = dnMap.remove(entryDN);
@@ -960,7 +991,6 @@ public class SoftReferenceEntryCache
    */
   public void clear()
   {
-    assert debugEnter(CLASS_NAME, "clear");
 
     dnMap.clear();
     idMap.clear();
@@ -976,7 +1006,6 @@ public class SoftReferenceEntryCache
    */
   public void clearBackend(Backend backend)
   {
-    assert debugEnter(CLASS_NAME, "clearBackend", String.valueOf(backend));
 
 
     // FIXME -- Would it be better just to dump everything?
@@ -1008,7 +1037,6 @@ public class SoftReferenceEntryCache
    */
   public void clearSubtree(DN baseDN)
   {
-    assert debugEnter(CLASS_NAME, "clearSubtree", String.valueOf(baseDN));
 
 
     // Determine the backend used to hold the specified base DN and clear it.
@@ -1034,7 +1062,6 @@ public class SoftReferenceEntryCache
    */
   public void handleLowMemory()
   {
-    assert debugEnter(CLASS_NAME, "handleLowMemory");
 
 
     // This function should automatically be taken care of by the nature of the
@@ -1053,7 +1080,6 @@ public class SoftReferenceEntryCache
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -1069,7 +1095,6 @@ public class SoftReferenceEntryCache
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -1133,8 +1158,6 @@ public class SoftReferenceEntryCache
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // Start out assuming that the configuration is valid.
@@ -1155,7 +1178,10 @@ public class SoftReferenceEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_LOCK_TIMEOUT;
@@ -1196,7 +1222,10 @@ public class SoftReferenceEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeEntryCache", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter, so it isn't valid.
               msgID = MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTER;
@@ -1212,7 +1241,10 @@ public class SoftReferenceEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTERS;
@@ -1253,7 +1285,10 @@ public class SoftReferenceEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeEntryCache", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter, so it isn't valid.
               msgID = MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTER;
@@ -1269,7 +1304,10 @@ public class SoftReferenceEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTERS;
@@ -1303,9 +1341,6 @@ public class SoftReferenceEntryCache
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     // Create a set of variables to use for the result.
@@ -1334,7 +1369,10 @@ public class SoftReferenceEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_LOCK_TIMEOUT;
@@ -1379,7 +1417,10 @@ public class SoftReferenceEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter, so it isn't valid.
               msgID = MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTER;
@@ -1400,7 +1441,10 @@ public class SoftReferenceEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTERS;
@@ -1445,7 +1489,10 @@ public class SoftReferenceEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter, so it isn't valid.
               msgID = MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTER;
@@ -1466,7 +1513,10 @@ public class SoftReferenceEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTERS;
@@ -1567,7 +1617,10 @@ public class SoftReferenceEntryCache
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }

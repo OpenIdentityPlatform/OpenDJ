@@ -66,8 +66,10 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -85,7 +87,7 @@ public class TaskScheduler
        implements AlertGenerator
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
        "org.opends.server.backends.task.TaskScheduler";
@@ -165,7 +167,6 @@ public class TaskScheduler
   {
     super("Task Scheduler Thread");
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(taskBackend));
 
     this.taskBackend = taskBackend;
 
@@ -208,9 +209,6 @@ public class TaskScheduler
                                boolean scheduleIteration)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addRecurringTask",
-                      String.valueOf(recurringTask),
-                      String.valueOf(scheduleIteration));
 
     schedulerLock.lock();
 
@@ -262,8 +260,6 @@ public class TaskScheduler
   public RecurringTask removeRecurringTask(String recurringTaskID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeRecurringTask",
-                      String.valueOf(recurringTaskID));
 
     schedulerLock.lock();
 
@@ -315,7 +311,6 @@ public class TaskScheduler
   public void scheduleTask(Task task, boolean writeState)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "scheduleTask", String.valueOf(task));
 
     schedulerLock.lock();
 
@@ -386,7 +381,6 @@ public class TaskScheduler
    */
   public Task cancelTask(String taskID)
   {
-    assert debugEnter(CLASS_NAME, "cancelTask", String.valueOf(taskID));
 
     schedulerLock.lock();
 
@@ -430,7 +424,6 @@ public class TaskScheduler
   public Task removePendingTask(String taskID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removePendingTask", String.valueOf(taskID));
 
     schedulerLock.lock();
 
@@ -479,8 +472,6 @@ public class TaskScheduler
   public Task removeCompletedTask(String taskID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeCompletedTask",
-                      String.valueOf(taskID));
 
     schedulerLock.lock();
 
@@ -526,7 +517,6 @@ public class TaskScheduler
    */
   public boolean threadDone(TaskThread taskThread, Task completedTask)
   {
-    assert debugEnter(CLASS_NAME, "threadDone", String.valueOf(taskThread));
 
     schedulerLock.lock();
 
@@ -573,7 +563,10 @@ public class TaskScheduler
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME, "threadDone", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               int msgID = MSGID_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION;
               String message = getMessage(msgID, recurringTaskID,
@@ -620,8 +613,6 @@ public class TaskScheduler
    */
   public void addCompletedTask(Task completedTask)
   {
-    assert debugEnter(CLASS_NAME, "addCompletedTask",
-                      String.valueOf(completedTask));
 
     // The scheduler lock is reentrant, so even if we already hold it, we can
     // acquire it again.
@@ -648,7 +639,6 @@ public class TaskScheduler
    */
   public void stopScheduler()
   {
-    assert debugEnter(CLASS_NAME, "stopScheduler");
 
     stopRequested = true;
 
@@ -658,7 +648,10 @@ public class TaskScheduler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "stopScheduler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     try
@@ -667,7 +660,10 @@ public class TaskScheduler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "stopScheduler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     pendingTasks.clear();
@@ -699,8 +695,6 @@ public class TaskScheduler
   public void interruptRunningTasks(TaskState interruptState,
                                     String interruptReason, boolean waitForStop)
   {
-    assert debugEnter(CLASS_NAME, "interruptRunningTasks",
-                      String.valueOf(waitForStop));
 
 
     // Grab a copy of the running threads so that we can operate on them without
@@ -729,7 +723,10 @@ public class TaskScheduler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "interruptRunningTasks", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -745,7 +742,10 @@ public class TaskScheduler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "interruptRunningTasks", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -759,7 +759,6 @@ public class TaskScheduler
    */
   public void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     isRunning       = true;
     schedulerThread = currentThread();
@@ -887,7 +886,6 @@ public class TaskScheduler
    */
   private TaskState shouldStart(Task task)
   {
-    assert debugEnter(CLASS_NAME, "shouldStart", String.valueOf(task));
 
     if (! isRunning)
     {
@@ -929,7 +927,6 @@ public class TaskScheduler
   private void initializeTasksFromBackingFile()
           throws InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeTasksFromBackingFile");
 
     String backingFilePath = taskBackend.getTaskBackingFile();
 
@@ -960,8 +957,10 @@ public class TaskScheduler
         }
         catch (LDIFException le)
         {
-          assert debugException(CLASS_NAME, "initializeTasksFromBackingFile",
-                                le);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, le);
+          }
 
           if (le.canContinueReading())
           {
@@ -981,8 +980,10 @@ public class TaskScheduler
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME,
-                                    "initializeTasksFromBackingFile", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
             }
 
             int    msgID   = MSGID_TASKSCHED_CANNOT_PARSE_ENTRY_FATAL;
@@ -1030,8 +1031,10 @@ public class TaskScheduler
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME,
-                                    "initializeTasksFromBackingFile", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               int msgID =
                    MSGID_TASKSCHED_CANNOT_SCHEDULE_RECURRING_TASK_FROM_ENTRY;
@@ -1057,8 +1060,10 @@ public class TaskScheduler
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME,
-                                    "initializeTasksFromBackingFile", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               int    msgID   = MSGID_TASKSCHED_CANNOT_SCHEDULE_TASK_FROM_ENTRY;
               String message = getMessage(msgID, String.valueOf(entryDN),
@@ -1082,7 +1087,10 @@ public class TaskScheduler
     }
     catch (IOException ioe)
     {
-      assert debugException(CLASS_NAME, "initializeTasksFromBackingFile", ioe);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ioe);
+      }
 
       int msgID = MSGID_TASKSCHED_ERROR_READING_TASK_BACKING_FILE;
       String message = getMessage(msgID, String.valueOf(backingFilePath),
@@ -1104,7 +1112,6 @@ public class TaskScheduler
   private void createNewTaskBackingFile()
           throws InitializationException
   {
-    assert debugEnter(CLASS_NAME, "createNewTaskBackingFile");
 
     String backingFile = taskBackend.getTaskBackingFile();
     LDIFExportConfig exportConfig =
@@ -1138,7 +1145,10 @@ public class TaskScheduler
     }
     catch (IOException ioe)
     {
-      assert debugException(CLASS_NAME, "createNewTaskBackingFile", ioe);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ioe);
+      }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_CREATE_BACKING_FILE;
       String message = getMessage(msgID, backingFile,
@@ -1147,7 +1157,10 @@ public class TaskScheduler
     }
     catch (LDIFException le)
     {
-      assert debugException(CLASS_NAME, "createNewTaskBackingFile", le);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, le);
+      }
 
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_CREATE_BACKING_FILE;
@@ -1163,7 +1176,6 @@ public class TaskScheduler
    */
   public void writeState()
   {
-    assert debugEnter(CLASS_NAME, "writeState");
 
 
     String backingFilePath = taskBackend.getTaskBackingFile();
@@ -1218,7 +1230,10 @@ public class TaskScheduler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "writeState", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
 
@@ -1233,7 +1248,10 @@ public class TaskScheduler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "writeState", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_TASKSCHED_CANNOT_RENAME_CURRENT_BACKING_FILE;
         String message = getMessage(msgID, String.valueOf(backingFilePath),
@@ -1256,7 +1274,10 @@ public class TaskScheduler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "writeState", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_TASKSCHED_CANNOT_RENAME_NEW_BACKING_FILE;
         String message = getMessage(msgID, String.valueOf(tmpFilePath),
@@ -1272,7 +1293,10 @@ public class TaskScheduler
     }
     catch (IOException ioe)
     {
-      assert debugException(CLASS_NAME, "createNewTaskBackingFile", ioe);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ioe);
+      }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_WRITE_BACKING_FILE;
       String message = getMessage(msgID, tmpFilePath,
@@ -1285,7 +1309,10 @@ public class TaskScheduler
     }
     catch (LDIFException le)
     {
-      assert debugException(CLASS_NAME, "createNewTaskBackingFile", le);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, le);
+      }
 
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_WRITE_BACKING_FILE;
@@ -1298,7 +1325,10 @@ public class TaskScheduler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createNewTaskBackingFile", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_WRITE_BACKING_FILE;
       String message = getMessage(msgID, tmpFilePath,
@@ -1324,7 +1354,6 @@ public class TaskScheduler
    */
   public long getEntryCount()
   {
-    assert debugEnter(CLASS_NAME, "getEntryCount");
 
     schedulerLock.lock();
 
@@ -1349,7 +1378,6 @@ public class TaskScheduler
    */
   public Entry getTaskRootEntry()
   {
-    assert debugEnter(CLASS_NAME, "getTaskRootEntry");
 
     return taskRootEntry;
   }
@@ -1365,7 +1393,6 @@ public class TaskScheduler
    */
   public Entry getScheduledTaskParentEntry()
   {
-    assert debugEnter(CLASS_NAME, "getScheduledTaskParentEntry");
 
     return scheduledTaskParentEntry;
   }
@@ -1381,7 +1408,6 @@ public class TaskScheduler
    */
   public Entry getRecurringTaskParentEntry()
   {
-    assert debugEnter(CLASS_NAME, "getRecurringTaskParentEntry");
 
     return recurringTaskParentEntry;
   }
@@ -1398,7 +1424,6 @@ public class TaskScheduler
    */
   public Task getScheduledTask(String taskID)
   {
-    assert debugEnter(CLASS_NAME, "getScheduledTask", String.valueOf(taskID));
 
     schedulerLock.lock();
 
@@ -1425,8 +1450,6 @@ public class TaskScheduler
    */
   public Task getScheduledTask(DN taskEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getScheduledTask",
-                      String.valueOf(taskEntryDN));
 
     schedulerLock.lock();
 
@@ -1460,7 +1483,6 @@ public class TaskScheduler
    */
   Lock writeLockEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "lockEntry", String.valueOf(entryDN));
 
     Lock lock = LockManager.lockWrite(entryDN);
     while (lock == null)
@@ -1486,7 +1508,6 @@ public class TaskScheduler
   Lock readLockEntry(DN entryDN)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "lockEntry", String.valueOf(entryDN));
 
     Lock lock = LockManager.lockRead(entryDN);
     for (int i=0; ((lock == null) && (i < 4)); i++)
@@ -1517,8 +1538,6 @@ public class TaskScheduler
    */
   void unlockEntry(DN entryDN, Lock lock)
   {
-    assert debugEnter(CLASS_NAME, "unlockEntry", String.valueOf(entryDN),
-                      String.valueOf(lock));
 
     LockManager.unlock(entryDN, lock);
   }
@@ -1537,8 +1556,6 @@ public class TaskScheduler
    */
   public Entry getScheduledTaskEntry(DN scheduledTaskEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getScheduledTaskEntry",
-                      String.valueOf(scheduledTaskEntryDN));
 
 
     schedulerLock.lock();
@@ -1584,8 +1601,6 @@ public class TaskScheduler
   public boolean searchScheduledTasks(SearchOperation searchOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "searchScheduledTasks",
-                      String.valueOf(searchOperation));
 
     SearchFilter filter = searchOperation.getFilter();
 
@@ -1636,8 +1651,6 @@ public class TaskScheduler
    */
   public RecurringTask getRecurringTask(String recurringTaskID)
   {
-    assert debugEnter(CLASS_NAME, "getRecurringTask",
-                      String.valueOf(recurringTaskID));
 
     schedulerLock.lock();
 
@@ -1664,8 +1677,6 @@ public class TaskScheduler
    */
   public RecurringTask getRecurringTask(DN recurringTaskEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getRecurringTask",
-                      String.valueOf(recurringTaskEntryDN));
 
     schedulerLock.lock();
 
@@ -1701,8 +1712,6 @@ public class TaskScheduler
    */
   public Entry getRecurringTaskEntry(DN recurringTaskEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getRecurringTaskEntry",
-                      String.valueOf(recurringTaskEntryDN));
 
 
     schedulerLock.lock();
@@ -1748,8 +1757,6 @@ public class TaskScheduler
   public boolean searchRecurringTasks(SearchOperation searchOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "searchRecurringTasks",
-                      String.valueOf(searchOperation));
 
     SearchFilter filter = searchOperation.getFilter();
 
@@ -1805,8 +1812,6 @@ public class TaskScheduler
   public Task entryToScheduledTask(Entry entry, Operation operation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "entryToScheduledTask",
-                      String.valueOf(entry));
 
 
     // Get the name of the class that implements the task logic.
@@ -1866,7 +1871,10 @@ public class TaskScheduler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "entryToScheduledTask", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_LOAD_CLASS;
       String message = getMessage(msgID, String.valueOf(taskClassName),
@@ -1885,7 +1893,10 @@ public class TaskScheduler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "entryToScheduledTask", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_INSTANTIATE_CLASS_AS_TASK;
       String message = getMessage(msgID, String.valueOf(taskClassName));
@@ -1901,7 +1912,10 @@ public class TaskScheduler
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "entryToScheduledTask", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_INITIALIZE_INTERNAL;
       String message = getMessage(msgID, String.valueOf(taskClassName),
@@ -1941,8 +1955,6 @@ public class TaskScheduler
   public RecurringTask entryToRecurringTask(Entry entry)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "entryToRecurringTask",
-                      String.valueOf(entry));
 
     return new RecurringTask(this, entry);
   }
@@ -1958,7 +1970,6 @@ public class TaskScheduler
    */
   public DN getComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getComponentEntryDN");
 
     return taskBackend.getConfigEntryDN();
   }
@@ -1974,7 +1985,6 @@ public class TaskScheduler
    */
   public String getClassName()
   {
-    assert debugEnter(CLASS_NAME, "getClassName");
 
     return CLASS_NAME;
   }
@@ -1993,7 +2003,6 @@ public class TaskScheduler
    */
   public LinkedHashMap<String,String> getAlerts()
   {
-    assert debugEnter(CLASS_NAME, "getAlerts");
 
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 

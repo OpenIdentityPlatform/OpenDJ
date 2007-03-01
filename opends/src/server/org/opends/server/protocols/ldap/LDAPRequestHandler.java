@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -44,7 +44,9 @@ import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -66,11 +68,6 @@ public class LDAPRequestHandler
        extends DirectoryThread
        implements ServerShutdownListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.LDAPRequestHandler";
 
 
 
@@ -119,7 +116,6 @@ public class LDAPRequestHandler
     super("LDAP Request Handler " + requestHandlerID +
           " for connection handler " + connectionHandler.toString());
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(connectionHandler));
 
     this.connectionHandler = connectionHandler;
 
@@ -132,7 +128,10 @@ public class LDAPRequestHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_LDAP_REQHANDLER_OPEN_SELECTOR_FAILED;
       String message = getMessage(msgID, handlerName, String.valueOf(e));
@@ -172,7 +171,6 @@ public class LDAPRequestHandler
    */
   public void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
 
     // Operate in a loop until the server shuts down.  Each time through the
@@ -187,7 +185,10 @@ public class LDAPRequestHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // FIXME -- Should we do something else with this?
       }
@@ -220,7 +221,10 @@ public class LDAPRequestHandler
                 }
                 catch (Exception e)
                 {
-                  assert debugException(CLASS_NAME, "run", e);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, e);
+                  }
 
                   // Some other error occurred while we were trying to read data
                   // from the client.
@@ -232,7 +236,10 @@ public class LDAPRequestHandler
               }
               catch (Exception e)
               {
-                assert debugException(CLASS_NAME, "run", e);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, e);
+                }
 
                 // We got some other kind of error.  If nothing else, cancel the
                 // key, but if the client connection is available then
@@ -253,7 +260,10 @@ public class LDAPRequestHandler
           }
           catch (CancelledKeyException cke)
           {
-            assert debugException(CLASS_NAME, "run", cke);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, cke);
+            }
 
             // This could happen if a connection was closed between the time
             // that select returned and the time that we try to access the
@@ -262,7 +272,10 @@ public class LDAPRequestHandler
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "run", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // This should not happen, and it would have caused our reader
             // thread to die.  Log a severe error.
@@ -294,7 +307,10 @@ public class LDAPRequestHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "run", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           c.disconnect(DisconnectReason.SERVER_ERROR, true,
                        MSGID_LDAP_REQHANDLER_CANNOT_REGISTER, handlerName,
@@ -318,8 +334,6 @@ public class LDAPRequestHandler
    */
   public boolean registerClient(LDAPClientConnection clientConnection)
   {
-    assert debugEnter(CLASS_NAME, "registerClient",
-                      String.valueOf(clientConnection));
 
     // FIXME -- Need to check if the maximum client limit has been reached.
 
@@ -361,8 +375,6 @@ public class LDAPRequestHandler
    */
   public void deregisterClient(LDAPClientConnection clientConnection)
   {
-    assert debugEnter(CLASS_NAME, "deregisterClient",
-                      String.valueOf(clientConnection));
 
     SelectionKey[] keyArray = selector.keys().toArray(new SelectionKey[0]);
     for (SelectionKey key : keyArray)
@@ -376,7 +388,10 @@ public class LDAPRequestHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "deregisterClient", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         try
@@ -385,7 +400,10 @@ public class LDAPRequestHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "deregisterClient", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -398,7 +416,6 @@ public class LDAPRequestHandler
    */
   public void deregisterAllClients()
   {
-    assert debugEnter(CLASS_NAME, "deregisterAllClients");
 
     SelectionKey[] keyArray = selector.keys().toArray(new SelectionKey[0]);
     for (SelectionKey key : keyArray)
@@ -409,7 +426,10 @@ public class LDAPRequestHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "deregisterAllClients", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       try
@@ -418,7 +438,10 @@ public class LDAPRequestHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "deregisterAllClients", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -434,7 +457,6 @@ public class LDAPRequestHandler
    */
   public Collection<LDAPClientConnection> getClientConnections()
   {
-    assert debugEnter(CLASS_NAME, "getClientConnections");
 
     SelectionKey[] keyArray = selector.keys().toArray(new SelectionKey[0]);
 
@@ -457,7 +479,6 @@ public class LDAPRequestHandler
    */
   public String getShutdownListenerName()
   {
-    assert debugEnter(CLASS_NAME, "getShutdownListenerName");
 
     return handlerName;
   }
@@ -472,7 +493,6 @@ public class LDAPRequestHandler
    */
   public void registerShutdownListener()
   {
-    assert debugEnter(CLASS_NAME, "registerShutdownListener");
 
     DirectoryServer.registerShutdownListener(this);
   }
@@ -488,8 +508,6 @@ public class LDAPRequestHandler
    */
   public void processServerShutdown(String reason)
   {
-    assert debugEnter(CLASS_NAME, "processServerShutdown",
-                      String.valueOf(reason));
 
     shutdownRequested = true;
 
@@ -508,7 +526,10 @@ public class LDAPRequestHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "processServerShutdown", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -522,7 +543,10 @@ public class LDAPRequestHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processServerShutdown", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 }

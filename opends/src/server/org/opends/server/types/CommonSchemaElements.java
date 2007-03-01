@@ -26,10 +26,6 @@
  */
 package org.opends.server.types;
 
-
-
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import static org.opends.server.util.Validator.*;
@@ -69,11 +65,6 @@ import java.util.Map;
  * protocol may be associated with a particular schema file.
  */
 public abstract class CommonSchemaElements {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-    "org.opends.server.types.CommonSchemaElements";
 
   // Indicates whether this definition is declared "obsolete".
   private final boolean isObsolete;
@@ -134,10 +125,6 @@ public abstract class CommonSchemaElements {
       boolean isObsolete, Map<String, List<String>> extraProperties)
       throws NullPointerException {
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(primaryName),
-        String.valueOf(names), String.valueOf(oid), String
-            .valueOf(description), String.valueOf(isObsolete), String
-            .valueOf(extraProperties));
 
     // Make sure mandatory parameters are specified.
     if (oid == null) {
@@ -197,7 +184,6 @@ public abstract class CommonSchemaElements {
    *         <code>null</code> if there is no primary name.
    */
   public final String getPrimaryName() {
-    assert debugEnter(CLASS_NAME, "getPrimaryName");
 
     return primaryName;
   }
@@ -211,7 +197,6 @@ public abstract class CommonSchemaElements {
    *         type, or <code>null</code> if there is no primary name.
    */
   public final String getNormalizedPrimaryName() {
-    assert debugEnter(CLASS_NAME, "getNormalizedPrimaryName");
 
     return lowerName;
   }
@@ -228,7 +213,6 @@ public abstract class CommonSchemaElements {
    *         may be used to reference this schema definition.
    */
   public final Iterable<String> getNormalizedNames() {
-    assert debugEnter(CLASS_NAME, "getNormalizedNames");
 
     return names.keySet();
   }
@@ -243,7 +227,6 @@ public abstract class CommonSchemaElements {
    *         that may be used to reference this schema definition.
    */
   public final Iterable<String> getUserDefinedNames() {
-    assert debugEnter(CLASS_NAME, "getUserDefinedNames");
 
     return names.values();
   }
@@ -259,8 +242,6 @@ public abstract class CommonSchemaElements {
    *         this schema definition, or <code>false</code> if not.
    */
   public final boolean hasName(String lowerName) {
-    assert debugEnter(CLASS_NAME, "hasName", String
-        .valueOf(lowerName));
 
     return names.containsKey(lowerName);
   }
@@ -273,7 +254,6 @@ public abstract class CommonSchemaElements {
    * @return The OID for this schema definition.
    */
   public final String getOID() {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return oid;
   }
@@ -288,7 +268,6 @@ public abstract class CommonSchemaElements {
    * @return The name or OID for this schema definition.
    */
   public final String getNameOrOID() {
-    assert debugEnter(CLASS_NAME, "getNameOrOID");
 
     if (primaryName != null) {
       return primaryName;
@@ -311,8 +290,6 @@ public abstract class CommonSchemaElements {
    *         or <code>false</code> if not.
    */
   public final boolean hasNameOrOID(String lowerValue) {
-    assert debugEnter(CLASS_NAME, "hasNameOrOID", String
-        .valueOf(lowerValue));
 
     if (names.containsKey(lowerValue)) {
       return true;
@@ -332,7 +309,6 @@ public abstract class CommonSchemaElements {
    *         is not known or if it is not stored in any schema file.
    */
   public final String getSchemaFile() {
-    assert debugEnter(CLASS_NAME, "getSchemaFile");
 
     List<String> values = extraProperties
         .get(SCHEMA_PROPERTY_FILENAME);
@@ -356,8 +332,6 @@ public abstract class CommonSchemaElements {
    *                     definition for this schema element.
    */
   public final void setSchemaFile(String schemaFile) {
-    assert debugEnter(CLASS_NAME, "setSchemaFile",
-                      String.valueOf(schemaFile));
 
     setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
@@ -371,7 +345,6 @@ public abstract class CommonSchemaElements {
    *         <code>null</code> if there is no description.
    */
   public final String getDescription() {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return description;
   }
@@ -385,7 +358,6 @@ public abstract class CommonSchemaElements {
    *         "obsolete", or <code>false</code> if not.
    */
   public final boolean isObsolete() {
-    assert debugEnter(CLASS_NAME, "isObsolete");
 
     return isObsolete;
   }
@@ -400,7 +372,6 @@ public abstract class CommonSchemaElements {
    *         associated with this schema definition.
    */
   public final Iterable<String> getExtraPropertyNames() {
-    assert debugEnter(CLASS_NAME, "getExtraPropertyNames");
 
     return extraProperties.keySet();
   }
@@ -419,8 +390,6 @@ public abstract class CommonSchemaElements {
    *         <code>null</code> if no such property is defined.
    */
   public final Iterable<String> getExtraProperty(String name) {
-    assert debugEnter(CLASS_NAME, "getExtraProperty", String
-        .valueOf(name));
 
     return extraProperties.get(name);
   }
@@ -440,8 +409,6 @@ public abstract class CommonSchemaElements {
    *                removed.
    */
   public final void setExtraProperty(String name, String value) {
-    assert debugEnter(CLASS_NAME, "setExtraProperty",
-                      String.valueOf(name), String.valueOf(value));
 
     ensureNotNull(name);
 
@@ -475,8 +442,6 @@ public abstract class CommonSchemaElements {
    */
   public final void setExtraProperty(String name,
                                      List<String> values) {
-    assert debugEnter(CLASS_NAME, "setExtraProperty",
-                      String.valueOf(name), String.valueOf(values));
 
     ensureNotNull(name);
 
@@ -504,7 +469,6 @@ public abstract class CommonSchemaElements {
    *         this schema definition, or <code>false</code> if not.
    */
   public final boolean equals(Object o) {
-    assert debugEnter(CLASS_NAME, "equals");
 
     if (this == o) {
       return true;
@@ -527,7 +491,6 @@ public abstract class CommonSchemaElements {
    * @return The hash code for this schema definition.
    */
   public final int hashCode() {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     return oid.hashCode();
   }
@@ -542,7 +505,6 @@ public abstract class CommonSchemaElements {
    *         the form specified in RFC 2252.
    */
   public final String toString() {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer, true);
@@ -564,9 +526,6 @@ public abstract class CommonSchemaElements {
    */
   public final void toString(StringBuilder buffer,
       boolean includeFileElement) {
-    assert debugEnter(CLASS_NAME, "toString",
-        "java.lang.StringBuilder",
-        String.valueOf(includeFileElement));
 
     buffer.append("( ");
     buffer.append(oid);

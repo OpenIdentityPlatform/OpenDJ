@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -36,8 +36,10 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -54,11 +56,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class SearchResultReferenceProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.SearchResultReferenceProtocolOp";
 
 
 
@@ -75,7 +72,6 @@ public class SearchResultReferenceProtocolOp
    */
   public SearchResultReferenceProtocolOp(List<String> referralURLs)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(referralURLs));
 
     if (referralURLs == null)
     {
@@ -98,7 +94,6 @@ public class SearchResultReferenceProtocolOp
    */
   public SearchResultReferenceProtocolOp(SearchResultReference searchReference)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(searchReference));
 
     referralURLs = searchReference.getReferralURLs();
     if (referralURLs == null)
@@ -118,7 +113,6 @@ public class SearchResultReferenceProtocolOp
    */
   public List<String> getReferralURLs()
   {
-    assert debugEnter(CLASS_NAME, "getReferralURLs");
 
     return referralURLs;
   }
@@ -132,7 +126,6 @@ public class SearchResultReferenceProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_SEARCH_RESULT_REFERENCE;
   }
@@ -146,7 +139,6 @@ public class SearchResultReferenceProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Search Result Reference";
   }
@@ -161,7 +153,6 @@ public class SearchResultReferenceProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements =
          new ArrayList<ASN1Element>(referralURLs.size());
@@ -191,8 +182,6 @@ public class SearchResultReferenceProtocolOp
                      decodeSearchReference(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeSearchReference",
-                      String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -201,9 +190,12 @@ public class SearchResultReferenceProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchReference", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REFERENCE_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_SEARCH_REFERENCE_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -219,9 +211,12 @@ public class SearchResultReferenceProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchReference", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REFERENCE_DECODE_URLS;
+      int msgID = MSGID_LDAP_SEARCH_REFERENCE_DECODE_URLS;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -240,7 +235,6 @@ public class SearchResultReferenceProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("SearchReference(referralURLs={");
 
@@ -271,8 +265,6 @@ public class SearchResultReferenceProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

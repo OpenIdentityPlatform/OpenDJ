@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -42,7 +42,9 @@ import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -54,11 +56,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class UserPasswordEqualityMatchingRule
        extends EqualityMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.UserPasswordEqualityMatchingRule";
 
 
 
@@ -69,7 +66,6 @@ public class UserPasswordEqualityMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -91,8 +87,6 @@ public class UserPasswordEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRule",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -107,7 +101,6 @@ public class UserPasswordEqualityMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return EMR_USER_PASSWORD_NAME;
   }
@@ -121,7 +114,6 @@ public class UserPasswordEqualityMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return EMR_USER_PASSWORD_OID;
   }
@@ -136,7 +128,6 @@ public class UserPasswordEqualityMatchingRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     // There is no standard description for this matching rule.
     return EMR_USER_PASSWORD_DESCRIPTION;
@@ -152,7 +143,6 @@ public class UserPasswordEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     return SYNTAX_USER_PASSWORD_OID;
   }
@@ -173,7 +163,6 @@ public class UserPasswordEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeValue", String.valueOf(value));
 
 
     // We will not alter the value in any way, but we'll create a new value
@@ -199,8 +188,6 @@ public class UserPasswordEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-    assert debugEnter(CLASS_NAME, "areEqual", String.valueOf(value1),
-                      String.valueOf(value2));
 
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.
@@ -227,9 +214,6 @@ public class UserPasswordEqualityMatchingRule
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "valuesMatch",
-                      String.valueOf(attributeValue),
-                      String.valueOf(assertionValue));
 
 
     // We must be able to decode the attribute value using the user password
@@ -242,7 +226,10 @@ public class UserPasswordEqualityMatchingRule
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "valuesMatch", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return ConditionResult.FALSE;
     }
@@ -289,8 +276,6 @@ public class UserPasswordEqualityMatchingRule
    */
   public int generateHashCode(AttributeValue attributeValue)
   {
-    assert debugEnter(CLASS_NAME, "generateHashCode",
-                      String.valueOf(attributeValue));
 
 
     // Because of the variable encoding that may be used, we have no way of

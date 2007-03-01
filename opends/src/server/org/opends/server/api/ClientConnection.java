@@ -61,7 +61,11 @@ import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -75,11 +79,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public abstract class ClientConnection
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.ClientConnection";
 
 
 
@@ -129,7 +128,6 @@ public abstract class ClientConnection
    */
   protected ClientConnection()
   {
-    assert debugConstructor(CLASS_NAME);
 
     connectTime        = TimeThread.getTime();
     connectTimeString  = TimeThread.getUTCTime();
@@ -195,8 +193,10 @@ public abstract class ClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "finalizeConnectionInternal",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -227,7 +227,6 @@ public abstract class ClientConnection
    */
   public long getConnectTime()
   {
-    assert debugEnter(CLASS_NAME, "getConnectTime");
 
     return connectTime;
   }
@@ -243,7 +242,6 @@ public abstract class ClientConnection
    */
   public String getConnectTimeString()
   {
-    assert debugEnter(CLASS_NAME, "getConnectTimeString");
 
     return connectTimeString;
   }
@@ -462,8 +460,6 @@ public abstract class ClientConnection
   public final boolean sendIntermediateResponse(
                             IntermediateResponse intermediateResponse)
   {
-    assert debugEnter(CLASS_NAME, "sendIntermediateResponse",
-                      String.valueOf(intermediateResponse));
 
 
     // Invoke the intermediate response plugins for the response
@@ -526,11 +522,6 @@ public abstract class ClientConnection
                                boolean sendNotification,
                                int messageID, Object... arguments)
   {
-    assert debugEnter(CLASS_NAME, "disconnect",
-                      String.valueOf(disconnectReason),
-                      String.valueOf(sendNotification),
-                      String.valueOf(messageID),
-                      String.valueOf(arguments));
 
     String message = getMessage(messageID, arguments);
     disconnect(disconnectReason, sendNotification, message,
@@ -581,7 +572,6 @@ public abstract class ClientConnection
    */
   public boolean bindInProgress()
   {
-    assert debugEnter(CLASS_NAME, "bindInProgress");
 
     return bindInProgress;
   }
@@ -598,8 +588,6 @@ public abstract class ClientConnection
    */
   public void setBindInProgress(boolean bindInProgress)
   {
-    assert debugEnter(CLASS_NAME, "setBindInProgress",
-                      String.valueOf(bindInProgress));
 
     this.bindInProgress = bindInProgress;
   }
@@ -618,7 +606,6 @@ public abstract class ClientConnection
    */
   public boolean mustChangePassword()
   {
-    assert debugEnter(CLASS_NAME, "mustChangePassword");
 
     if (authenticationInfo == null)
     {
@@ -644,8 +631,6 @@ public abstract class ClientConnection
    */
   public void setMustChangePassword(boolean mustChangePassword)
   {
-    assert debugEnter(CLASS_NAME, "setMustChangePassword",
-                      String.valueOf(mustChangePassword));
 
     if (authenticationInfo == null)
     {
@@ -709,7 +694,6 @@ public abstract class ClientConnection
   public CopyOnWriteArrayList<PersistentSearch>
               getPersistentSearches()
   {
-    assert debugEnter(CLASS_NAME, "getPersistentSearches");
 
     return persistentSearches;
   }
@@ -728,8 +712,6 @@ public abstract class ClientConnection
   public void registerPersistentSearch(PersistentSearch
                                             persistentSearch)
   {
-    assert debugEnter(CLASS_NAME, "registerPersistentSearch",
-                      String.valueOf(persistentSearch));
 
     persistentSearches.add(persistentSearch);
   }
@@ -748,8 +730,6 @@ public abstract class ClientConnection
   public void deregisterPersistentSearch(PersistentSearch
                                               persistentSearch)
   {
-    assert debugEnter(CLASS_NAME, "deregisterPersistentSearch",
-                      String.valueOf(persistentSearch));
 
     persistentSearches.remove(persistentSearch);
   }
@@ -806,7 +786,6 @@ public abstract class ClientConnection
    */
   public AuthenticationInfo getAuthenticationInfo()
   {
-    assert debugEnter(CLASS_NAME, "getAuthenticationInfo");
 
     return authenticationInfo;
   }
@@ -825,8 +804,6 @@ public abstract class ClientConnection
   public void setAuthenticationInfo(AuthenticationInfo
                                          authenticationInfo)
   {
-    assert debugEnter(CLASS_NAME, "setAuthenticationInfo",
-                      String.valueOf(authenticationInfo));
 
     if (this.authenticationInfo != null)
     {
@@ -916,9 +893,6 @@ public abstract class ClientConnection
    */
   public void updateAuthenticationInfo(Entry oldEntry, Entry newEntry)
   {
-    assert debugEnter(CLASS_NAME, "updateAuthenticationInfo",
-                      String.valueOf(oldEntry),
-                      String.valueOf(newEntry));
 
     Entry authNEntry = authenticationInfo.getAuthenticationEntry();
     Entry authZEntry = authenticationInfo.getAuthorizationEntry();
@@ -958,7 +932,6 @@ public abstract class ClientConnection
    */
   public void setUnauthenticated()
   {
-    assert debugEnter(CLASS_NAME, "setUnauthenticated");
 
     this.authenticationInfo = new AuthenticationInfo();
     this.sizeLimit          = DirectoryServer.getSizeLimit();
@@ -984,9 +957,6 @@ public abstract class ClientConnection
   public boolean hasPrivilege(Privilege privilege,
                               Operation operation)
   {
-    assert debugEnter(CLASS_NAME, "hasPrivilege",
-                      String.valueOf(privilege),
-                      String.valueOf(operation));
 
     boolean result = privileges.contains(privilege);
     if (operation == null)
@@ -1035,9 +1005,6 @@ public abstract class ClientConnection
   public boolean hasAllPrivileges(Privilege[] privileges,
                                   Operation operation)
   {
-    assert debugEnter(CLASS_NAME, "hasAllPrivileges",
-                      String.valueOf(privileges),
-                      String.valueOf(operation));
 
     HashSet<Privilege> privSet = this.privileges;
     boolean result = true;
@@ -1103,8 +1070,6 @@ public abstract class ClientConnection
    */
   private void updatePrivileges(Entry entry, boolean isRoot)
   {
-    assert debugEnter(CLASS_NAME, "updatePrivileges",
-                      String.valueOf(entry));
 
     HashSet<Privilege> newPrivileges = new HashSet<Privilege>();
     HashSet<Privilege> removePrivileges = new HashSet<Privilege>();
@@ -1183,7 +1148,6 @@ public abstract class ClientConnection
    */
   public final Object getSASLAuthStateInfo()
   {
-    assert debugEnter(CLASS_NAME, "getSASLAuthStateInfo");
 
     return saslAuthState;
   }
@@ -1200,8 +1164,6 @@ public abstract class ClientConnection
    */
   public final void setSASLAuthStateInfo(Object saslAuthState)
   {
-    assert debugEnter(CLASS_NAME, "setSASLAuthStateInfo",
-                      String.valueOf(saslAuthState));
 
     this.saslAuthState = saslAuthState;
   }
@@ -1217,7 +1179,6 @@ public abstract class ClientConnection
    */
   public final int getSizeLimit()
   {
-    assert debugEnter(CLASS_NAME, "getSizeLimit");
 
     return sizeLimit;
   }
@@ -1234,8 +1195,6 @@ public abstract class ClientConnection
    */
   public final void setSizeLimit(int sizeLimit)
   {
-    assert debugEnter(CLASS_NAME, "setSizeLimit",
-                      String.valueOf(sizeLimit));
 
     this.sizeLimit = sizeLimit;
   }
@@ -1251,7 +1210,6 @@ public abstract class ClientConnection
    */
   public final int getLookthroughLimit()
   {
-    assert debugEnter(CLASS_NAME, "getLookthroughLimit");
 
     return lookthroughLimit;
   }
@@ -1268,8 +1226,6 @@ public abstract class ClientConnection
    */
   public final void setLookthroughLimit(int lookthroughLimit)
   {
-    assert debugEnter(CLASS_NAME, "setLookthroughLimit",
-      String.valueOf(lookthroughLimit));
 
     this.lookthroughLimit = lookthroughLimit;
   }
@@ -1285,7 +1241,6 @@ public abstract class ClientConnection
    */
   public final int getTimeLimit()
   {
-    assert debugEnter(CLASS_NAME, "getTimeLimit");
 
     return timeLimit;
   }
@@ -1302,8 +1257,6 @@ public abstract class ClientConnection
    */
   public final void setTimeLimit(int timeLimit)
   {
-    assert debugEnter(CLASS_NAME, "setTimeLimit",
-                      String.valueOf(timeLimit));
 
     this.timeLimit = timeLimit;
   }
@@ -1352,8 +1305,6 @@ public abstract class ClientConnection
   public boolean isMemberOf(Group group, Operation operation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "isMemberOf", String.valueOf(group),
-                      String.valueOf(operation));
 
     if (operation == null)
     {
@@ -1392,8 +1343,6 @@ public abstract class ClientConnection
   public Set<Group> getGroups(Operation operation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getGroups",
-                      String.valueOf(operation));
 
 
     // FIXME -- This probably isn't the most efficient implementation.
@@ -1456,7 +1405,6 @@ public abstract class ClientConnection
    */
   public DN getKeyManagerProviderDN()
   {
-    assert debugEnter(CLASS_NAME, "getKeyManagerProviderDN");
 
     // In the default implementation, we'll return null.
     return null;
@@ -1479,7 +1427,6 @@ public abstract class ClientConnection
    */
   public DN getTrustManagerProviderDN()
   {
-    assert debugEnter(CLASS_NAME, "getTrustManagerProviderDN");
 
     // In the default implementation, we'll return null.
     return null;
@@ -1512,7 +1459,6 @@ public abstract class ClientConnection
    */
   public final String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);

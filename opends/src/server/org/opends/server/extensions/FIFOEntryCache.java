@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -63,7 +63,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -101,11 +103,6 @@ public class FIFOEntryCache
        extends EntryCache
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.FIFOEntryCache";
 
 
 
@@ -175,7 +172,6 @@ public class FIFOEntryCache
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
     // All initialization should be performed in the initializeEntryCache.
   }
@@ -200,8 +196,6 @@ public class FIFOEntryCache
   public void initializeEntryCache(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeEntryCache",
-                      String.valueOf(configEntry));
 
     configEntryDN = configEntry.getDN();
 
@@ -237,7 +231,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -272,7 +269,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -304,7 +304,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -347,7 +350,10 @@ public class FIFOEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeEntryCache", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter.  Log a warning and continue.
               logError(ErrorLogCategory.CONFIGURATION,
@@ -370,7 +376,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -412,7 +421,10 @@ public class FIFOEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeEntryCache", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter.  Log a warning and continue.
               logError(ErrorLogCategory.CONFIGURATION,
@@ -435,7 +447,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -453,7 +468,6 @@ public class FIFOEntryCache
    */
   public void finalizeEntryCache()
   {
-    assert debugEnter(CLASS_NAME, "finalizeEntryCache");
 
 
     // Release all memory currently in use by this cache.
@@ -467,7 +481,10 @@ public class FIFOEntryCache
     catch (Exception e)
     {
       // This should never happen.
-      assert debugException(CLASS_NAME, "finalizeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -489,7 +506,6 @@ public class FIFOEntryCache
    */
   public boolean containsEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "containsEntry", String.valueOf(entryDN));
 
     // Indicate whether the DN map contains the specified DN.
     return dnMap.containsKey(entryDN);
@@ -509,7 +525,6 @@ public class FIFOEntryCache
    */
   public Entry getEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
 
     // Simply return the entry from the DN map.
@@ -538,7 +553,6 @@ public class FIFOEntryCache
    */
   public long getEntryID(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getEntryID", String.valueOf(entryDN));
 
     // Simply return the ID from the DN map.
     CacheEntry e = dnMap.get(entryDN);
@@ -572,8 +586,6 @@ public class FIFOEntryCache
    */
   public Entry getEntry(DN entryDN, LockType lockType, List<Lock> lockList)
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN),
-                      String.valueOf(lockType), "java.util.List<Lock>");
 
 
     // Get the entry from the DN map if it is present.  If not, then return
@@ -606,7 +618,10 @@ public class FIFOEntryCache
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "getEntry", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // The attempt to add the lock to the list failed, so we need to
             // release the lock and return null.
@@ -616,7 +631,10 @@ public class FIFOEntryCache
             }
             catch (Exception e2)
             {
-              assert debugException(CLASS_NAME, "getEntry", e2);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e2);
+              }
             }
 
             return null;
@@ -640,7 +658,10 @@ public class FIFOEntryCache
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "getEntry", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // The attempt to add the lock to the list failed, so we need to
             // release the lock and return null.
@@ -650,7 +671,10 @@ public class FIFOEntryCache
             }
             catch (Exception e2)
             {
-              assert debugException(CLASS_NAME, "getEntry", e2);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e2);
+              }
             }
 
             return null;
@@ -689,9 +713,6 @@ public class FIFOEntryCache
   public Entry getEntry(Backend backend, long entryID, LockType lockType,
                         List<Lock> lockList)
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(backend),
-                      String.valueOf(entryID), String.valueOf(lockType),
-                      "java.util.List<Lock>");
 
     // Get the hash map for the provided backend.  If it isn't present, then
     // return null.
@@ -733,7 +754,10 @@ public class FIFOEntryCache
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "getEntry", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // The attempt to add the lock to the list failed, so we need to
             // release the lock and return null.
@@ -743,7 +767,10 @@ public class FIFOEntryCache
             }
             catch (Exception e2)
             {
-              assert debugException(CLASS_NAME, "getEntry", e2);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e2);
+              }
             }
 
             return null;
@@ -767,7 +794,10 @@ public class FIFOEntryCache
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "getEntry", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // The attempt to add the lock to the list failed, so we need to
             // release the lock and return null.
@@ -777,7 +807,10 @@ public class FIFOEntryCache
             }
             catch (Exception e2)
             {
-              assert debugException(CLASS_NAME, "getEntry", e2);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e2);
+              }
             }
 
             return null;
@@ -808,8 +841,6 @@ public class FIFOEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-    assert debugEnter(CLASS_NAME, "putEntry", String.valueOf(entry),
-                      String.valueOf(backend), String.valueOf(entryID));
 
 
     // If there is a set of exclude filters, then make sure that the provided
@@ -827,7 +858,10 @@ public class FIFOEntryCache
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "putEntry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // This shouldn't happen, but if it does then we can't be sure whether
           // the entry should be excluded, so we will by default.
@@ -854,7 +888,10 @@ public class FIFOEntryCache
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "putEntry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // This shouldn't happen, but if it does, then just ignore it.
         }
@@ -881,7 +918,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "putEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return;
     }
@@ -955,7 +995,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "putEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return;
     }
@@ -987,8 +1030,6 @@ public class FIFOEntryCache
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
-    assert debugEnter(CLASS_NAME, "putEntryIfAbsent", String.valueOf(entry),
-                      String.valueOf(backend), String.valueOf(entryID));
 
 
     // If there is a set of exclude filters, then make sure that the provided
@@ -1006,7 +1047,10 @@ public class FIFOEntryCache
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "putEntry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // This shouldn't happen, but if it does then we can't be sure whether
           // the entry should be excluded, so we will by default.
@@ -1033,7 +1077,10 @@ public class FIFOEntryCache
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "putEntry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // This shouldn't happen, but if it does, then just ignore it.
         }
@@ -1061,7 +1108,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "putEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // We can't rule out the possibility of a conflict, so return false.
       return false;
@@ -1148,7 +1198,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "putEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // We can't be sure there wasn't a conflict, so return false.
       return false;
@@ -1168,7 +1221,6 @@ public class FIFOEntryCache
    */
   public void removeEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "removeEntry", String.valueOf(entryDN));
 
 
     // Acquire the lock on the cache.  We should not return until the entry is
@@ -1205,7 +1257,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "removeEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This shouldn't happen, but there's not much that we can do if it does.
     }
@@ -1223,7 +1278,6 @@ public class FIFOEntryCache
    */
   public void clear()
   {
-    assert debugEnter(CLASS_NAME, "clear");
 
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
@@ -1242,7 +1296,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "clear", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This shouldn't happen, but there's not much that we can do if it does.
     }
@@ -1262,7 +1319,6 @@ public class FIFOEntryCache
    */
   public void clearBackend(Backend backend)
   {
-    assert debugEnter(CLASS_NAME, "clearBackend", String.valueOf(backend));
 
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
@@ -1305,7 +1361,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "clearBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This shouldn't happen, but there's not much that we can do if it does.
     }
@@ -1324,7 +1383,6 @@ public class FIFOEntryCache
    */
   public void clearSubtree(DN baseDN)
   {
-    assert debugEnter(CLASS_NAME, "clearSubtree", String.valueOf(baseDN));
 
 
     // Determine which backend should be used for the provided base DN.  If
@@ -1349,7 +1407,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "clearBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This shouldn't happen, but there's not much that we can do if it does.
     }
@@ -1370,8 +1431,6 @@ public class FIFOEntryCache
    */
   private void clearSubtree(DN baseDN, Backend backend)
   {
-    assert debugEnter(CLASS_NAME, "clearSubtree", String.valueOf(baseDN),
-                      String.valueOf(backend));
 
 
     // See if there are any entries for the provided backend in the cache.  If
@@ -1404,7 +1463,7 @@ public class FIFOEntryCache
       }
 
       entriesExamined++;
-      if ((entriesExamined % 1000)  == 0)
+      if ((entriesExamined % 1000) == 0)
       {
         cacheLock.unlock();
         Thread.currentThread().yield();
@@ -1444,7 +1503,6 @@ public class FIFOEntryCache
    */
   public void handleLowMemory()
   {
-    assert debugEnter(CLASS_NAME, "handleLowMemory");
 
 
     // Grab the lock on the cache and wait until we have it.
@@ -1484,7 +1542,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "handleLowMemory", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This shouldn't happen, but there's not much that we can do if it does.
     }
@@ -1505,7 +1566,6 @@ public class FIFOEntryCache
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -1521,7 +1581,6 @@ public class FIFOEntryCache
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -1601,8 +1660,6 @@ public class FIFOEntryCache
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // Start out assuming that the configuration is valid.
@@ -1624,7 +1681,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_FIFOCACHE_INVALID_MAX_MEMORY_PCT;
@@ -1648,7 +1708,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_FIFOCACHE_INVALID_MAX_ENTRIES;
@@ -1672,7 +1735,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_FIFOCACHE_INVALID_LOCK_TIMEOUT;
@@ -1713,7 +1779,10 @@ public class FIFOEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeEntryCache", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter, so it isn't valid.
               msgID = MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER;
@@ -1729,7 +1798,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_FIFOCACHE_INVALID_INCLUDE_FILTERS;
@@ -1770,7 +1842,10 @@ public class FIFOEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "initializeEntryCache", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter, so it isn't valid.
               msgID = MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTER;
@@ -1786,7 +1861,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTERS;
@@ -1820,9 +1898,6 @@ public class FIFOEntryCache
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     // Create a set of variables to use for the result.
@@ -1852,7 +1927,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_FIFOCACHE_INVALID_MAX_MEMORY_PCT;
@@ -1882,7 +1960,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_FIFOCACHE_INVALID_MAX_ENTRIES;
@@ -1917,7 +1998,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_FIFOCACHE_INVALID_LOCK_TIMEOUT;
@@ -1962,7 +2046,10 @@ public class FIFOEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter, so it isn't valid.
               msgID = MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER;
@@ -1983,7 +2070,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_FIFOCACHE_INVALID_INCLUDE_FILTERS;
@@ -2028,7 +2118,10 @@ public class FIFOEntryCache
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't decode this filter, so it isn't valid.
               msgID = MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTER;
@@ -2049,7 +2142,10 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTERS;

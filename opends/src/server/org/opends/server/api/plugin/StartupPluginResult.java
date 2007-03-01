@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -39,11 +38,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class StartupPluginResult
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.plugin.StartupPluginResult";
 
 
 
@@ -107,11 +101,6 @@ public class StartupPluginResult
                              boolean continueStartup, int errorID,
                              String errorMessage)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(completedSuccessfully),
-                            String.valueOf(continueStartup),
-                            String.valueOf(errorID),
-                            String.valueOf(errorMessage));
 
     this.completedSuccessfully = completedSuccessfully;
     this.continueStartup       = continueStartup;
@@ -130,7 +119,6 @@ public class StartupPluginResult
    */
   public boolean completedSuccessfully()
   {
-    assert debugEnter(CLASS_NAME, "completedSuccessfully");
 
     return completedSuccessfully;
   }
@@ -147,7 +135,6 @@ public class StartupPluginResult
    */
   public boolean continueStartup()
   {
-    assert debugEnter(CLASS_NAME, "continueStartup");
 
     return continueStartup;
   }
@@ -163,7 +150,6 @@ public class StartupPluginResult
    */
   public int getErrorID()
   {
-    assert debugEnter(CLASS_NAME, "getErrorID");
 
     return errorID;
   }
@@ -180,7 +166,6 @@ public class StartupPluginResult
    */
   public String getErrorMessage()
   {
-    assert debugEnter(CLASS_NAME, "getErrorMessage");
 
     return errorMessage;
   }
@@ -194,7 +179,6 @@ public class StartupPluginResult
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -212,8 +196,6 @@ public class StartupPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("StartupPluginResult(completedSuccessfully=");
     buffer.append(completedSuccessfully);

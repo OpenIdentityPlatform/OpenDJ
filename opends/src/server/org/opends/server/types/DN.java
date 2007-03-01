@@ -45,7 +45,10 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -60,11 +63,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class DN
        implements Comparable<DN>, Serializable
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.DN";
 
 
 
@@ -121,8 +119,6 @@ public class DN
    */
   public DN(RDN[] rdnComponents)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(rdnComponents));
 
     if (rdnComponents == null)
     {
@@ -149,8 +145,6 @@ public class DN
    */
   public DN(ArrayList<RDN> rdnComponents)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(rdnComponents));
 
     if ((rdnComponents == null) || rdnComponents.isEmpty())
     {
@@ -176,7 +170,6 @@ public class DN
    */
   public static DN nullDN()
   {
-    assert debugEnter(CLASS_NAME, "nullDN");
 
     return NULL_DN;
   }
@@ -193,7 +186,6 @@ public class DN
    */
   public boolean isNullDN()
   {
-    assert debugEnter(CLASS_NAME, "isNullDN");
 
     return (numComponents == 0);
   }
@@ -207,7 +199,6 @@ public class DN
    */
   public int getNumComponents()
   {
-    assert debugEnter(CLASS_NAME, "getNumComponents");
 
     return numComponents;
   }
@@ -224,7 +215,6 @@ public class DN
    */
   public RDN getRDN()
   {
-    assert debugEnter(CLASS_NAME, "getRDN");
 
     if (numComponents == 0)
     {
@@ -249,7 +239,6 @@ public class DN
    */
   public RDN getRDN(int pos)
   {
-    assert debugEnter(CLASS_NAME, "getRDN", String.valueOf(pos));
 
     return rdnComponents[pos];
   }
@@ -268,7 +257,6 @@ public class DN
    */
   public DN getParent()
   {
-    assert debugEnter(CLASS_NAME, "getParent");
 
     if (numComponents <= 1)
     {
@@ -298,7 +286,6 @@ public class DN
    */
   public DN getParentDNInSuffix()
   {
-    assert debugEnter(CLASS_NAME, "getParent");
 
     if ((numComponents <= 1) ||
         DirectoryServer.isNamingContext(this))
@@ -325,7 +312,6 @@ public class DN
    */
   public DN concat(RDN rdn)
   {
-    assert debugEnter(CLASS_NAME, "concat", String.valueOf(rdn));
 
     RDN[] newComponents = new RDN[rdnComponents.length+1];
     newComponents[0] = rdn;
@@ -349,8 +335,6 @@ public class DN
    */
   public DN concat(RDN[] rdnComponents)
   {
-    assert debugEnter(CLASS_NAME, "concat",
-                      String.valueOf(rdnComponents));
 
     RDN[] newComponents =
          new RDN[rdnComponents.length+this.rdnComponents.length];
@@ -378,8 +362,6 @@ public class DN
    */
   public DN concat(DN relativeBaseDN)
   {
-    assert debugEnter(CLASS_NAME, "concat",
-                      String.valueOf(relativeBaseDN));
 
     RDN[] newComponents =
                new RDN[rdnComponents.length+
@@ -408,8 +390,6 @@ public class DN
    */
   public boolean isDescendantOf(DN dn)
   {
-    assert debugEnter(CLASS_NAME, "isDescendantOf",
-                      String.valueOf(dn));
 
     int offset = numComponents - dn.numComponents;
     if (offset < 0)
@@ -442,7 +422,6 @@ public class DN
    */
   public boolean isAncestorOf(DN dn)
   {
-    assert debugEnter(CLASS_NAME, "isAncestorOf", String.valueOf(dn));
 
     int offset = dn.numComponents - numComponents;
     if (offset < 0)
@@ -477,7 +456,6 @@ public class DN
   public static DN decode(ByteString dnString)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(dnString));
 
 
     // A null or empty DN is acceptable.
@@ -882,7 +860,6 @@ public class DN
   public static DN decode(String dnString)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(dnString));
 
 
     // A null or empty DN is acceptable.
@@ -1282,9 +1259,6 @@ public class DN
                                 boolean allowExceptions)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "parseAttributeName",
-                      String.valueOf(dnBytes), String.valueOf(pos),
-                      "java.lang.StringBuilder");
 
     int length = dnBytes.length;
 
@@ -1704,9 +1678,6 @@ public class DN
                                 boolean allowExceptions)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "parseAttributeName",
-                      String.valueOf(dnString), String.valueOf(pos),
-                      "java.lang.StringBuilder");
 
     int length = dnString.length();
 
@@ -2117,9 +2088,6 @@ public class DN
                                  ByteString attributeValue)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "parseAttributeValue",
-                      String.valueOf(dnBytes), String.valueOf(pos),
-                      "java.lang.StringBuilder");
 
 
     // All leading spaces have already been stripped so we can start
@@ -2228,7 +2196,10 @@ public class DN
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "parseAttributeValue", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
         String message = getMessage(msgID, new String(dnBytes),
@@ -2275,7 +2246,10 @@ public class DN
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "parseAttributeValue", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // This should never happen.  Just in case, work around it by
         // converting to a string and back.
@@ -2348,7 +2322,10 @@ public class DN
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "parseAttributeValue", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // This should never happen.  Just in case, work around it by
         // converting to a string and back.
@@ -2384,9 +2361,6 @@ public class DN
                                  ByteString attributeValue)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "parseAttributeValue",
-                      String.valueOf(dnString), String.valueOf(pos),
-                      "java.lang.StringBuilder");
 
 
     // All leading spaces have already been stripped so we can start
@@ -2492,7 +2466,10 @@ public class DN
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "parseAttributeValue", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
         String message = getMessage(msgID, dnString,
@@ -2721,9 +2698,12 @@ public class DN
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "appendHexChars", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
+      int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
       String message = getMessage(msgID, dnString, String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                    message, msgID);
@@ -2745,7 +2725,6 @@ public class DN
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (this == o)
     {
@@ -2768,7 +2747,10 @@ public class DN
       // return false on an exception than to perform the checks to
       // see if it meets the appropriate
       // conditions.
-      assert debugException(CLASS_NAME, "equals", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return false;
     }
@@ -2784,7 +2766,6 @@ public class DN
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     return normalizedDN.hashCode();
   }
@@ -2798,7 +2779,6 @@ public class DN
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     if (dnString == null)
     {
@@ -2835,8 +2815,6 @@ public class DN
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append(toString());
   }
@@ -2850,7 +2828,6 @@ public class DN
    */
   public String toNormalizedString()
   {
-    assert debugEnter(CLASS_NAME, "toNormalizedString");
 
     if (normalizedDN == null)
     {
@@ -2887,8 +2864,6 @@ public class DN
    */
   public void toNormalizedString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toNormalizedString",
-                      "java.lang.StringBuilder");
 
     buffer.append(toNormalizedString());
   }
@@ -2910,7 +2885,6 @@ public class DN
    */
   public int compareTo(DN dn)
   {
-    assert debugEnter(CLASS_NAME, "compareTo", String.valueOf(dn));
 
     if (equals(dn))
     {

@@ -76,7 +76,11 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugData;
+import static org.opends.server.loggers.debug.DebugLogger.debugProtocolElement;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -94,11 +98,6 @@ public class LDAPClientConnection
        extends ClientConnection
        implements TLSCapableConnection
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.LDAPClientConnection";
 
 
 
@@ -215,8 +214,6 @@ public class LDAPClientConnection
   {
     super();
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(connectionHandler),
-                            String.valueOf(clientChannel));
 
     this.connectionHandler     = connectionHandler;
     this.clientChannel         = clientChannel;
@@ -275,7 +272,6 @@ public class LDAPClientConnection
    */
   public long getConnectionID()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionID");
 
     return connectionID;
   }
@@ -289,7 +285,6 @@ public class LDAPClientConnection
    */
   public ConnectionHandler getConnectionHandler()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionHandler");
 
     return connectionHandler;
   }
@@ -305,7 +300,6 @@ public class LDAPClientConnection
    */
   public LDAPRequestHandler getRequestHandler()
   {
-    assert debugEnter(CLASS_NAME, "getRequestHandler");
 
     return requestHandler;
   }
@@ -321,8 +315,6 @@ public class LDAPClientConnection
    */
   public void setRequestHandler(LDAPRequestHandler requestHandler)
   {
-    assert debugEnter(CLASS_NAME, "setRequestHandler",
-                      String.valueOf(requestHandler));
 
     this.requestHandler = requestHandler;
   }
@@ -338,7 +330,6 @@ public class LDAPClientConnection
    */
   public SocketChannel getSocketChannel()
   {
-    assert debugEnter(CLASS_NAME, "getSocketChannel");
 
     return clientChannel;
   }
@@ -354,7 +345,6 @@ public class LDAPClientConnection
    */
   public String getProtocol()
   {
-    assert debugEnter(CLASS_NAME, "getProtocol");
 
     return protocol;
   }
@@ -368,7 +358,6 @@ public class LDAPClientConnection
    */
   public String getClientAddress()
   {
-    assert debugEnter(CLASS_NAME, "getClientAddress");
 
     return clientAddress;
   }
@@ -382,7 +371,6 @@ public class LDAPClientConnection
    */
   public int getClientPort()
   {
-    assert debugEnter(CLASS_NAME, "getClientPort");
 
     return clientPort;
   }
@@ -410,7 +398,6 @@ public class LDAPClientConnection
    */
   public String getServerAddress()
   {
-    assert debugEnter(CLASS_NAME, "getServerAddress");
 
     return serverAddress;
   }
@@ -424,7 +411,6 @@ public class LDAPClientConnection
    */
   public int getServerPort()
   {
-    assert debugEnter(CLASS_NAME, "getServerPort");
 
     return serverPort;
   }
@@ -453,7 +439,6 @@ public class LDAPClientConnection
    */
   public InetAddress getRemoteAddress()
   {
-    assert debugEnter(CLASS_NAME, "getRemoteAddress");
 
     return clientChannel.socket().getInetAddress();
   }
@@ -471,7 +456,6 @@ public class LDAPClientConnection
    */
   public InetAddress getLocalAddress()
   {
-    assert debugEnter(CLASS_NAME, "getLocalAddress");
 
     return clientChannel.socket().getLocalAddress();
   }
@@ -491,7 +475,6 @@ public class LDAPClientConnection
    */
   public boolean isSecure()
   {
-    assert debugEnter(CLASS_NAME, "isSecure");
 
     return securityProvider.isSecure();
   }
@@ -505,7 +488,6 @@ public class LDAPClientConnection
    */
   public ConnectionSecurityProvider getConnectionSecurityProvider()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionSecurityProvider");
 
     return securityProvider;
   }
@@ -521,8 +503,6 @@ public class LDAPClientConnection
   public void setConnectionSecurityProvider(ConnectionSecurityProvider
                                                  securityProvider)
   {
-    assert debugEnter(CLASS_NAME, "setConnectionSecurityProvider",
-                      String.valueOf(securityProvider));
 
     this.securityProvider = securityProvider;
 
@@ -548,7 +528,6 @@ public class LDAPClientConnection
    */
   public String getSecurityMechanism()
   {
-    assert debugEnter(CLASS_NAME, "getSecurityMechanism");
 
     return securityProvider.getSecurityMechanismName();
   }
@@ -562,7 +541,6 @@ public class LDAPClientConnection
    */
   public long nextOperationID()
   {
-    assert debugEnter(CLASS_NAME, "nextOperationID");
 
     return nextOperationID.getAndIncrement();
   }
@@ -577,7 +555,6 @@ public class LDAPClientConnection
    */
   public void sendResponse(Operation operation)
   {
-    assert debugEnter(CLASS_NAME, "sendResponse", String.valueOf(operation));
 
     LDAPMessage message = operationToResponseLDAPMessage(operation);
     if (message != null)
@@ -600,8 +577,6 @@ public class LDAPClientConnection
    */
   private LDAPMessage operationToResponseLDAPMessage(Operation operation)
   {
-    assert debugEnter(CLASS_NAME, "operationToResponseLDAPMessage",
-                      String.valueOf(operation));
 
     ResultCode resultCode = operation.getResultCode();
     if (resultCode == null)
@@ -759,9 +734,6 @@ public class LDAPClientConnection
   public void sendSearchEntry(SearchOperation searchOperation,
                               SearchResultEntry searchEntry)
   {
-    assert debugEnter(CLASS_NAME, "sendSearchEntry",
-                      String.valueOf(searchOperation),
-                      String.valueOf(searchEntry));
 
     SearchResultEntryProtocolOp protocolOp =
          new SearchResultEntryProtocolOp(searchEntry);
@@ -804,9 +776,6 @@ public class LDAPClientConnection
   public boolean sendSearchReference(SearchOperation searchOperation,
                                      SearchResultReference searchReference)
   {
-    assert debugEnter(CLASS_NAME, "sendSearchReference",
-                      String.valueOf(searchOperation),
-                      String.valueOf(searchReference));
 
 
     // Make sure this is not an LDAPv2 client.  If it is, then they can't see
@@ -862,8 +831,6 @@ public class LDAPClientConnection
   protected boolean sendIntermediateResponseMessage(
                          IntermediateResponse intermediateResponse)
   {
-    assert debugEnter(CLASS_NAME, "sendIntermediateResponseMessage",
-                      String.valueOf(intermediateResponse));
 
     IntermediateResponseProtocolOp protocolOp =
          new IntermediateResponseProtocolOp(intermediateResponse.getOID(),
@@ -902,7 +869,6 @@ public class LDAPClientConnection
   private void sendLDAPMessage(ConnectionSecurityProvider secProvider,
                                LDAPMessage message)
   {
-    assert debugEnter(CLASS_NAME, "sendLDAPMessage", String.valueOf(message));
 
     ASN1Element messageElement = message.encode();
 
@@ -923,23 +889,26 @@ public class LDAPClientConnection
           return;
         }
 
-        assert debugProtocolElementWritten(CLASS_NAME, "sendLDAPMessage",
-                                           message);
-        assert debugProtocolElementWritten(CLASS_NAME, "sendLDAPMessage",
-                                           messageElement);
+        debugProtocolElement(DebugLogLevel.VERBOSE, message);
+        debugProtocolElement(DebugLogLevel.VERBOSE, messageElement);
 
         messageBuffer.rewind();
-        assert debugBytesWritten(CLASS_NAME, "sendLDAPMessage",
-                                 messageBuffer);
+        if (debugEnabled())
+        {
+          debugData(DebugLogLevel.VERBOSE, messageBuffer);
+        }
 
         if (keepStats)
         {
           statTracker.updateMessageWritten(message, bytesWritten);
         }
       }
-      catch (Exception e)
+      catch (@Deprecated Exception e)
       {
-        assert debugException(CLASS_NAME, "sendLDAPMessage", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // We were unable to send the message due to some other internal
         // problem.  Disconnect from the client and return.
@@ -950,7 +919,10 @@ public class LDAPClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "sendLDAPMessage", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // FIXME -- Log a message or something
       disconnect(DisconnectReason.SERVER_ERROR, true, -1, String.valueOf(e),
@@ -986,10 +958,6 @@ public class LDAPClientConnection
                          boolean sendNotification, String message,
                          int messageID)
   {
-    assert debugEnter(CLASS_NAME, "disconnect",
-                      String.valueOf(disconnectReason),
-                      String.valueOf(sendNotification), String.valueOf(message),
-                      String.valueOf(messageID));
 
 
     // If we are already in the middle of a disconnect, then don't do anything.
@@ -1024,7 +992,10 @@ public class LDAPClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "disconnect", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -1110,7 +1081,10 @@ public class LDAPClientConnection
     {
       // In general, we don't care about any exception that might be thrown
       // here.
-      assert debugException(CLASS_NAME, "disconnect", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     try
@@ -1121,7 +1095,10 @@ public class LDAPClientConnection
     {
       // In general, we don't care about any exception that might be thrown
       // here.
-      assert debugException(CLASS_NAME, "disconnect", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
 
@@ -1148,7 +1125,10 @@ public class LDAPClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "disconnect", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -1162,7 +1142,6 @@ public class LDAPClientConnection
    */
   public Collection<Operation> getOperationsInProgress()
   {
-    assert debugEnter(CLASS_NAME, "getOperationsInProgress");
 
     return operationsInProgress.values();
   }
@@ -1179,8 +1158,6 @@ public class LDAPClientConnection
    */
   public Operation getOperationInProgress(int messageID)
   {
-    assert debugEnter(CLASS_NAME, "getOperationInProgress",
-                      String.valueOf(messageID));
 
     return operationsInProgress.get(messageID);
   }
@@ -1201,8 +1178,6 @@ public class LDAPClientConnection
   public void addOperationInProgress(Operation operation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addOperationInProgress",
-                      String.valueOf(operation));
 
     int messageID = operation.getMessageID();
 
@@ -1244,7 +1219,10 @@ public class LDAPClientConnection
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "addOperationInProgress", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       operationsInProgress.remove(messageID);
 
@@ -1252,7 +1230,10 @@ public class LDAPClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "addOperationInProgress", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_CLIENT_CANNOT_ENQUEUE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1280,8 +1261,6 @@ public class LDAPClientConnection
    */
   public boolean removeOperationInProgress(int messageID)
   {
-    assert debugEnter(CLASS_NAME, "removeOperationInProgress",
-                      String.valueOf(messageID));
 
     Operation operation = operationsInProgress.remove(messageID);
     return (operation != null);
@@ -1302,8 +1281,6 @@ public class LDAPClientConnection
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancelOperation",
-                      String.valueOf(messageID), String.valueOf(cancelRequest));
 
     Operation op = operationsInProgress.get(messageID);
     if (op == null)
@@ -1349,8 +1326,6 @@ public class LDAPClientConnection
    */
   public void cancelAllOperations(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancelAllOperations",
-                      String.valueOf(cancelRequest));
 
 
     // Make sure that no one can add any new operations.
@@ -1370,7 +1345,10 @@ public class LDAPClientConnection
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "cancelAllOperations", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
 
@@ -1384,7 +1362,10 @@ public class LDAPClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "cancelAllOperations", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -1406,8 +1387,6 @@ public class LDAPClientConnection
   public void cancelAllOperationsExcept(CancelRequest cancelRequest,
                                         int messageID)
   {
-    assert debugEnter(CLASS_NAME, "cancelAllOperationsExcept",
-                      String.valueOf(cancelRequest), String.valueOf(messageID));
 
 
     // Make sure that no one can add any new operations.
@@ -1435,7 +1414,10 @@ public class LDAPClientConnection
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "cancelAllOperationsExcept", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
           }
         }
 
@@ -1450,7 +1432,10 @@ public class LDAPClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "cancelAllOperationsExcept", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -1485,8 +1470,10 @@ public class LDAPClientConnection
    */
   public boolean processDataRead(ByteBuffer buffer)
   {
-    assert debugEnter(CLASS_NAME, "processDataRead", String.valueOf(buffer));
-    assert debugBytesRead(CLASS_NAME, "processDataRead", buffer);
+    if (debugEnabled())
+    {
+      debugData(DebugLogLevel.VERBOSE, buffer);
+    }
 
 
     int bytesAvailable = buffer.limit() - buffer.position();
@@ -1677,12 +1664,14 @@ public class LDAPClientConnection
             {
               requestSequence = ASN1Sequence.decodeAsSequence(elementType,
                                                               elementValue);
-              assert debugProtocolElementRead(CLASS_NAME, "processDataRead",
-                                              requestSequence);
+              debugProtocolElement(DebugLogLevel.VERBOSE, requestSequence);
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "processDataRead", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               disconnect(DisconnectReason.PROTOCOL_ERROR, true,
                          MSGID_LDAP_CLIENT_DECODE_ASN1_FAILED,
@@ -1694,12 +1683,14 @@ public class LDAPClientConnection
             try
             {
               requestMessage = LDAPMessage.decode(requestSequence);
-              assert debugProtocolElementRead(CLASS_NAME, "processDataRead",
-                                              requestMessage);
+              debugProtocolElement(DebugLogLevel.VERBOSE, requestMessage);
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "processDataRead", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               disconnect(DisconnectReason.PROTOCOL_ERROR, true,
                          MSGID_LDAP_CLIENT_DECODE_LDAP_MESSAGE_FAILED,
@@ -1763,8 +1754,6 @@ public class LDAPClientConnection
    */
   private boolean processLDAPMessage(LDAPMessage message)
   {
-    assert debugEnter(CLASS_NAME, "processLDAPMessage",
-                      String.valueOf(message));
 
 
     if (keepStats)
@@ -1832,11 +1821,14 @@ public class LDAPClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processLDAPMessage", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_LDAP_DISCONNECT_DUE_TO_PROCESSING_FAILURE;
       String msg = getMessage(msgID, message.getProtocolOpName(),
-                              message.getMessageID(),String.valueOf(e));
+                              message.getMessageID(), String.valueOf(e));
       disconnect(DisconnectReason.SERVER_ERROR, true, msg, msgID);
       return false;
     }
@@ -1860,8 +1852,6 @@ public class LDAPClientConnection
   private boolean processAbandonRequest(LDAPMessage message,
                                         ArrayList<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "processAbandonRequest",
-                      String.valueOf(message));
 
 
     AbandonRequestProtocolOp protocolOp = message.getAbandonRequestProtocolOp();
@@ -1896,8 +1886,6 @@ public class LDAPClientConnection
   private boolean processAddRequest(LDAPMessage message,
                                     ArrayList<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "processAddRequest",
-                      String.valueOf(message));
 
 
     // Create the add operation and add it into the work queue.
@@ -1913,7 +1901,10 @@ public class LDAPClientConnection
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processAddRequest", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       AddResponseProtocolOp responseOp =
            new AddResponseProtocolOp(de.getResultCode().getIntValue(),
@@ -1944,8 +1935,6 @@ public class LDAPClientConnection
   private boolean processBindRequest(LDAPMessage message,
                                      ArrayList<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "processBindRequest",
-                      String.valueOf(message));
 
 
     BindRequestProtocolOp protocolOp = message.getBindRequestProtocolOp();
@@ -2001,7 +1990,10 @@ public class LDAPClientConnection
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processBindRequest", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       BindResponseProtocolOp responseOp =
            new BindResponseProtocolOp(de.getResultCode().getIntValue(),
@@ -2042,8 +2034,6 @@ public class LDAPClientConnection
   private boolean processCompareRequest(LDAPMessage message,
                                         ArrayList<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "processCompareRequest",
-                      String.valueOf(message));
 
 
     CompareRequestProtocolOp protocolOp = message.getCompareRequestProtocolOp();
@@ -2061,7 +2051,10 @@ public class LDAPClientConnection
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processCompareRequest", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       CompareResponseProtocolOp responseOp =
            new CompareResponseProtocolOp(de.getResultCode().getIntValue(),
@@ -2094,8 +2087,6 @@ public class LDAPClientConnection
   private boolean processDeleteRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "processDeleteRequest",
-                      String.valueOf(message));
 
 
     DeleteRequestProtocolOp protocolOp = message.getDeleteRequestProtocolOp();
@@ -2112,7 +2103,10 @@ public class LDAPClientConnection
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processDeleteRequest", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       DeleteResponseProtocolOp responseOp =
            new DeleteResponseProtocolOp(de.getResultCode().getIntValue(),
@@ -2144,8 +2138,6 @@ public class LDAPClientConnection
   private boolean processExtendedRequest(LDAPMessage message,
                                          ArrayList<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "processExtendedRequest",
-                      String.valueOf(message));
 
 
     // See if this is an LDAPv2 client.  If it is, then they should not be
@@ -2183,7 +2175,10 @@ public class LDAPClientConnection
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processExtendedRequest", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       ExtendedResponseProtocolOp responseOp =
            new ExtendedResponseProtocolOp(de.getResultCode().getIntValue(),
@@ -2216,8 +2211,6 @@ public class LDAPClientConnection
   private boolean processModifyRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "processModifyRequest",
-                      String.valueOf(message));
 
 
     ModifyRequestProtocolOp protocolOp = message.getModifyRequestProtocolOp();
@@ -2234,7 +2227,10 @@ public class LDAPClientConnection
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processModifyRequest", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       ModifyResponseProtocolOp responseOp =
            new ModifyResponseProtocolOp(de.getResultCode().getIntValue(),
@@ -2266,8 +2262,6 @@ public class LDAPClientConnection
   private boolean processModifyDNRequest(LDAPMessage message,
                                          ArrayList<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "processModifyDNRequest",
-                      String.valueOf(message));
 
 
     ModifyDNRequestProtocolOp protocolOp =
@@ -2287,7 +2281,10 @@ public class LDAPClientConnection
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processModifyDNRequest", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       ModifyDNResponseProtocolOp responseOp =
            new ModifyDNResponseProtocolOp(de.getResultCode().getIntValue(),
@@ -2320,8 +2317,6 @@ public class LDAPClientConnection
   private boolean processSearchRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "processSearchRequest",
-                      String.valueOf(message));
 
 
     SearchRequestProtocolOp protocolOp = message.getSearchRequestProtocolOp();
@@ -2343,7 +2338,10 @@ public class LDAPClientConnection
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processSearchRequest", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       SearchResultDoneProtocolOp responseOp =
            new SearchResultDoneProtocolOp(de.getResultCode().getIntValue(),
@@ -2376,8 +2374,6 @@ public class LDAPClientConnection
   private boolean processUnbindRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "processUnbindRequest",
-                      String.valueOf(message));
 
 
     UnbindOperation unbindOp =
@@ -2398,7 +2394,6 @@ public class LDAPClientConnection
    */
   public String getMonitorSummary()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorSummary");
 
     StringBuilder buffer = new StringBuilder();
     buffer.append("connID=\"");
@@ -2450,7 +2445,6 @@ public class LDAPClientConnection
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("LDAP client connection from ");
     buffer.append(clientAddress);
@@ -2479,8 +2473,6 @@ public class LDAPClientConnection
    */
   public boolean tlsProtectionAvailable(StringBuilder unavailableReason)
   {
-    assert debugEnter(CLASS_NAME, "tlsProtectionAvailable",
-                      "java.lang.StringBuilder");
 
 
     // Make sure that this client connection does not already have some other
@@ -2524,7 +2516,10 @@ public class LDAPClientConnection
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "tlsProtectionAvailable", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         tlsSecurityProvider = null;
 
@@ -2555,7 +2550,6 @@ public class LDAPClientConnection
   public void enableTLSConnectionSecurityProvider()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "enableTLSConnectionSecurityProvider");
 
     if (tlsSecurityProvider == null)
     {
@@ -2587,7 +2581,6 @@ public class LDAPClientConnection
   public void disableTLSConnectionSecurityProvider()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "disableTLSConnectionSecurityProvider");
 
     int    msgID   = MSGID_LDAP_TLS_CLOSURE_NOT_ALLOWED;
     String message = getMessage(msgID);
@@ -2615,8 +2608,6 @@ public class LDAPClientConnection
   public void sendClearResponse(Operation operation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "sendClearResponse",
-                      String.valueOf(operation));
 
     if (clearSecurityProvider == null)
     {
@@ -2637,7 +2628,6 @@ public class LDAPClientConnection
    */
   public DN getKeyManagerProviderDN()
   {
-    assert debugEnter(CLASS_NAME, "getKeyManagerProviderDN");
 
     return connectionHandler.getKeyManagerProviderDN();
   }
@@ -2649,7 +2639,6 @@ public class LDAPClientConnection
    */
   public DN getTrustManagerProviderDN()
   {
-    assert debugEnter(CLASS_NAME, "getTrustManagerProviderDN");
 
     return connectionHandler.getTrustManagerProviderDN();
   }

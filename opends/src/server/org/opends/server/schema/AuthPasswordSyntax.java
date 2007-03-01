@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -42,7 +42,6 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -59,11 +58,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class AuthPasswordSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.AuthPasswordSyntax";
 
 
 
@@ -82,7 +76,6 @@ public class AuthPasswordSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -100,8 +93,6 @@ public class AuthPasswordSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_AUTH_PASSWORD_EXACT_OID);
@@ -122,7 +113,6 @@ public class AuthPasswordSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_AUTH_PASSWORD_NAME;
   }
@@ -136,7 +126,6 @@ public class AuthPasswordSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_AUTH_PASSWORD_OID;
   }
@@ -150,7 +139,6 @@ public class AuthPasswordSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_AUTH_PASSWORD_DESCRIPTION;
   }
@@ -167,7 +155,6 @@ public class AuthPasswordSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -184,7 +171,6 @@ public class AuthPasswordSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     // There is no ordering matching rule by default.
     return null;
@@ -202,7 +188,6 @@ public class AuthPasswordSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     // There is no substring matching rule by default.
     return null;
@@ -220,7 +205,6 @@ public class AuthPasswordSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // There is no approximate matching rule by default.
     return null;
@@ -243,8 +227,6 @@ public class AuthPasswordSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
     try
     {
@@ -275,8 +257,6 @@ public class AuthPasswordSyntax
   public static StringBuilder[] decodeAuthPassword(String authPasswordValue)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decodeAuthPassword",
-                      String.valueOf(authPasswordValue));
 
 
     // Create placeholders for the values to return.
@@ -530,7 +510,6 @@ readAuthValue:
    */
   public static boolean isEncoded(ByteString value)
   {
-    assert debugEnter(CLASS_NAME, "isEncoded", String.valueOf(value));
 
 
     // FIXME -- Make this more efficient, and don't use exceptions for flow

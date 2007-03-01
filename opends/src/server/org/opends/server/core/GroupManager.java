@@ -68,7 +68,9 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -92,11 +94,6 @@ public class GroupManager
        implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener,
                   BackendInitializationListener, ChangeNotificationListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.GroupManager";
 
 
 
@@ -118,7 +115,6 @@ public class GroupManager
    */
   public GroupManager()
   {
-    assert debugConstructor(CLASS_NAME);
 
     configHandler        = DirectoryServer.getConfigHandler();
     groupImplementations = new ConcurrentHashMap<DN,Group>();
@@ -145,7 +141,6 @@ public class GroupManager
   public void initializeGroupImplementations()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeGroupImplementations");
 
 
     // First, get the configuration base entry.
@@ -158,7 +153,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeGroupImplementations", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_GROUP_CANNOT_GET_BASE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -251,7 +249,6 @@ public class GroupManager
    */
   public void finalizeGroupManager()
   {
-    assert debugEnter(CLASS_NAME, "finalizeGroupManager");
 
     deregisterAllGroups();
 
@@ -274,7 +271,6 @@ public class GroupManager
    */
   public Iterable<Group> getGroupImplementations()
   {
-    assert debugEnter(CLASS_NAME, "getGroupImplementations");
 
     return groupImplementations.values();
   }
@@ -290,7 +286,6 @@ public class GroupManager
    */
   public Iterable<Group> getGroupInstances()
   {
-    assert debugEnter(CLASS_NAME, "getGroupInstances");
 
     return groupInstances.values();
   }
@@ -308,7 +303,6 @@ public class GroupManager
    */
   public Group getGroupInstance(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getGroupInstance", String.valueOf(entryDN));
 
     Group group = groupInstances.get(entryDN);
     if (group == null)
@@ -338,8 +332,6 @@ public class GroupManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configChangeIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // Make sure that the entry has an appropriate objectclass for an extended
@@ -374,7 +366,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -391,7 +386,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -406,7 +404,10 @@ public class GroupManager
     }
     catch(Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS;
       String message = getMessage(msgID, groupClass.getName(),
@@ -438,7 +439,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -467,8 +471,6 @@ public class GroupManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationChange",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -558,7 +560,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -593,7 +598,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -635,7 +643,10 @@ public class GroupManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_GROUP_INVALID_CLASS;
         messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
@@ -651,7 +662,10 @@ public class GroupManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_GROUP_INITIALIZATION_FAILED;
         messages.add(getMessage(msgID, className,
@@ -695,8 +709,6 @@ public class GroupManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configAddIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // Make sure that no entry already exists with the specified DN.
@@ -742,7 +754,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -759,7 +774,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -775,7 +793,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS;
       String message = getMessage(msgID, groupClass.getName(),
@@ -837,7 +858,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -864,8 +888,6 @@ public class GroupManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationAdd",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -915,7 +937,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -949,7 +974,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -970,7 +998,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_GROUP_INVALID_CLASS;
       messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
@@ -985,7 +1016,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_GROUP_INITIALIZATION_FAILED;
       messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
@@ -1017,8 +1051,6 @@ public class GroupManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configDeleteIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // A delete should always be acceptable, so just return true.
@@ -1037,8 +1069,6 @@ public class GroupManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationDelete",
-                      String.valueOf(configEntry));
 
 
     DN         configEntryDN       = configEntry.getDN();
@@ -1078,8 +1108,6 @@ public class GroupManager
    */
   public void performBackendInitializationProcessing(Backend backend)
   {
-    assert debugEnter(CLASS_NAME, "performBackendInitializationProcessing",
-                      String.valueOf(backend));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -1093,8 +1121,10 @@ public class GroupManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME,
-                              "performBackendInitializationProcessing", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // FIXME -- Is there anything that we need to do here?
         continue;
@@ -1112,8 +1142,10 @@ public class GroupManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME,
-                                "performBackendInitializationProcessing", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // FIXME -- Is there anything that we need to do here?
           continue;
@@ -1132,8 +1164,10 @@ public class GroupManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME,
-                                "performBackendInitializationProcessing", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // FIXME -- Is there anything that we need to do here?
           continue;
@@ -1148,8 +1182,10 @@ public class GroupManager
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME,
-                                  "performBackendInitializationProcessing", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // FIXME -- Handle this.
             continue;
@@ -1167,8 +1203,6 @@ public class GroupManager
    */
   public void performBackendFinalizationProcessing(Backend backend)
   {
-    assert debugEnter(CLASS_NAME, "performBackendFinalizationProcessing",
-                      String.valueOf(backend));
 
     Iterator<Map.Entry<DN,Group>> iterator =
          groupInstances.entrySet().iterator();
@@ -1193,8 +1227,6 @@ public class GroupManager
   public void handleAddOperation(PostResponseAddOperation addOperation,
                                  Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "handleAddOperation",
-                      String.valueOf(addOperation), String.valueOf(entry));
 
     List<Control> requestControls = addOperation.getRequestControls();
     if (requestControls != null)
@@ -1220,8 +1252,6 @@ public class GroupManager
   public void handleDeleteOperation(PostResponseDeleteOperation deleteOperation,
                                     Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "handleDeleteOperation",
-                      String.valueOf(deleteOperation), String.valueOf(entry));
 
     List<Control> requestControls = deleteOperation.getRequestControls();
     if (requestControls != null)
@@ -1248,9 +1278,6 @@ public class GroupManager
   public void handleModifyOperation(PostResponseModifyOperation modifyOperation,
                                     Entry oldEntry, Entry newEntry)
   {
-    assert debugEnter(CLASS_NAME, "handleModifyOperation",
-                      String.valueOf(modifyOperation), String.valueOf(oldEntry),
-                      String.valueOf(newEntry));
 
     List<Control> requestControls = modifyOperation.getRequestControls();
     if (requestControls != null)
@@ -1292,9 +1319,6 @@ public class GroupManager
                    PostResponseModifyDNOperation modifyDNOperation,
                    Entry oldEntry, Entry newEntry)
   {
-    assert debugEnter(CLASS_NAME, "handleModifyDNOperation",
-                      String.valueOf(modifyDNOperation),
-                      String.valueOf(oldEntry), String.valueOf(newEntry));
 
     List<Control> requestControls = modifyDNOperation.getRequestControls();
     if (requestControls != null)
@@ -1329,8 +1353,6 @@ public class GroupManager
    */
   private void createAndRegisterGroup(Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "createAndRegisterGroup",
-                      String.valueOf(entry));
 
     for (Group groupImplementation : groupImplementations.values())
     {
@@ -1344,7 +1366,10 @@ public class GroupManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "createAndRegisterGroup", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // FIXME -- Do we need to do anything else?
       }

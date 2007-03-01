@@ -79,7 +79,9 @@ import org.opends.server.types.SSLClientAuthPolicy;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -103,7 +105,7 @@ public class LDAPConnectionHandler
        implements ConfigurableComponent, AlertGenerator
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
        "org.opends.server.protocols.ldap.LDAPConnectionHandler";
@@ -265,7 +267,6 @@ public class LDAPConnectionHandler
   {
     super("LDAP Connection Handler Thread");
 
-    assert debugConstructor(CLASS_NAME);
 
     // No real implementation is required.  Do all the work in the
     // initializeConnectionHandler method.
@@ -289,8 +290,6 @@ public class LDAPConnectionHandler
   public void initializeConnectionHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeConnectionHandler",
-                      String.valueOf(configEntry));
 
 
     enabled = true;
@@ -323,8 +322,10 @@ public class LDAPConnectionHandler
           }
           catch (UnknownHostException uhe)
           {
-            assert debugException(CLASS_NAME, "initializeConnectionHandler",
-                                  uhe);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, uhe);
+            }
 
             msgID = MSGID_LDAP_CONNHANDLER_UNKNOWN_LISTEN_ADDRESS;
             String message = getMessage(msgID, s,
@@ -336,13 +337,19 @@ public class LDAPConnectionHandler
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
       throw ce;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_LISTEN_ADDRESS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -372,13 +379,19 @@ public class LDAPConnectionHandler
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
       throw ce;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_LISTEN_PORT;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -409,7 +422,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_BACKLOG;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -441,8 +457,10 @@ public class LDAPConnectionHandler
           }
           catch (ConfigException ce)
           {
-            assert debugException(CLASS_NAME, "initializeConnectionHandler",
-                                  ce);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, ce);
+            }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
             String message = getMessage(msgID, maskStrings.get(i),
@@ -456,7 +474,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOWED_CLIENTS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -488,8 +509,10 @@ public class LDAPConnectionHandler
           }
           catch (ConfigException ce)
           {
-            assert debugException(CLASS_NAME, "initializeConnectionHandler",
-                                  ce);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, ce);
+            }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
             String message = getMessage(msgID, maskStrings.get(i),
@@ -503,7 +526,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_DENIED_CLIENTS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -535,7 +561,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_LDAPV2;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -567,7 +596,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEEP_STATS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -599,7 +631,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_NUM_REQUEST_HANDLERS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -630,7 +665,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SEND_REJECTION_NOTICE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -661,7 +699,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_KEEPALIVE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -692,7 +733,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_NODELAY;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -723,7 +767,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_REUSE_ADDRESS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -756,7 +803,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_MAX_REQUEST_SIZE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -786,7 +836,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_SSL;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -830,7 +883,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_STARTTLS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -874,13 +930,19 @@ public class LDAPConnectionHandler
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
       throw ce;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CLIENT_AUTH_POLICY;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -911,7 +973,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -938,7 +1003,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_PROTOCOLS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -965,7 +1033,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CIPHERS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1004,7 +1075,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1043,7 +1117,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -1081,7 +1158,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_OPEN_SELECTOR_FAILED;
       String message = getMessage(msgID, configEntryDN,
@@ -1155,7 +1235,6 @@ public class LDAPConnectionHandler
   public void finalizeConnectionHandler(String finalizeReason,
                                        boolean closeConnections)
   {
-    assert debugEnter(CLASS_NAME, "finalizeConnectionHandler");
 
     shutdownRequested = true;
 
@@ -1167,7 +1246,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
 
@@ -1194,7 +1276,6 @@ public class LDAPConnectionHandler
    */
   public String getConnectionHandlerName()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionHandlerName");
 
     return handlerName;
   }
@@ -1206,7 +1287,6 @@ public class LDAPConnectionHandler
    */
   public String getProtocol()
   {
-    assert debugEnter(CLASS_NAME, "getProtocol");
 
     return protocol;
   }
@@ -1218,7 +1298,6 @@ public class LDAPConnectionHandler
    */
   public Collection<HostPort> getListeners()
   {
-    assert debugEnter(CLASS_NAME, "getProtocol");
 
     return listeners;
   }
@@ -1234,7 +1313,6 @@ public class LDAPConnectionHandler
    */
   public Collection<ClientConnection> getClientConnections()
   {
-    assert debugEnter(CLASS_NAME, "getClientConnections");
 
     LinkedList<ClientConnection> connectionList =
          new LinkedList<ClientConnection>();
@@ -1257,7 +1335,6 @@ public class LDAPConnectionHandler
    */
   public int getListenPort()
   {
-    assert debugEnter(CLASS_NAME, "getListenPort");
 
     return listenPort;
   }
@@ -1270,7 +1347,6 @@ public class LDAPConnectionHandler
    */
   public void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     connHandlerThread = Thread.currentThread();
     setName(handlerName);
@@ -1329,7 +1405,10 @@ public class LDAPConnectionHandler
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "run", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             logError(ErrorLogCategory.CONNECTION_HANDLING,
                      ErrorLogSeverity.SEVERE_ERROR,
@@ -1466,7 +1545,10 @@ public class LDAPConnectionHandler
                   }
                   catch (Exception e)
                   {
-                    assert debugException(CLASS_NAME, "run", e);
+                    if (debugEnabled())
+                    {
+                      debugCought(DebugLogLevel.ERROR, e);
+                    }
 
                     int msgID =
                              MSGID_LDAP_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT;
@@ -1506,7 +1588,10 @@ public class LDAPConnectionHandler
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "run", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             logError(ErrorLogCategory.CONNECTION_HANDLING,
                      ErrorLogSeverity.SEVERE_WARNING,
@@ -1534,7 +1619,10 @@ public class LDAPConnectionHandler
               try
               {
                 cleanUpSelector();
-              } catch (Exception e2) {}
+              }
+              catch (Exception e2)
+              {
+              }
             }
             else
             {
@@ -1545,7 +1633,10 @@ public class LDAPConnectionHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // This is very bad because we failed outside the loop.  The only
         // thing we can do here is log a message, send an alert, and disable the
@@ -1579,7 +1670,6 @@ public class LDAPConnectionHandler
    */
   private void cleanUpSelector()
   {
-    assert debugEnter(CLASS_NAME, "cleanUpSelector");
 
     try
     {
@@ -1594,7 +1684,10 @@ public class LDAPConnectionHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "cleanUpSelector", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         try
@@ -1603,13 +1696,19 @@ public class LDAPConnectionHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "cleanUpSelector", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "cleanUpSelector", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -1623,7 +1722,6 @@ public class LDAPConnectionHandler
    */
   public boolean keepStats()
   {
-    assert debugEnter(CLASS_NAME, "keepStats");
 
     return keepStats;
   }
@@ -1638,7 +1736,6 @@ public class LDAPConnectionHandler
    */
   public void setKeepStats(boolean keepStats)
   {
-    assert debugEnter(CLASS_NAME, "setKeepStats", String.valueOf(keepStats));
 
     this.keepStats = keepStats;
   }
@@ -1652,7 +1749,6 @@ public class LDAPConnectionHandler
    */
   public LDAPStatistics getStatTracker()
   {
-    assert debugEnter(CLASS_NAME, "getStatTracker");
 
     return statTracker;
   }
@@ -1668,7 +1764,6 @@ public class LDAPConnectionHandler
    */
   public boolean allowLDAPv2()
   {
-    assert debugEnter(CLASS_NAME, "allowLDAPv2");
 
     return allowLDAPv2;
   }
@@ -1684,7 +1779,6 @@ public class LDAPConnectionHandler
    */
   public boolean allowStartTLS()
   {
-    assert debugEnter(CLASS_NAME, "allowStartTLS");
 
     return allowStartTLS;
   }
@@ -1700,7 +1794,6 @@ public class LDAPConnectionHandler
    */
   public boolean useSSL()
   {
-    assert debugEnter(CLASS_NAME, "useSSL");
 
     return useSSL;
   }
@@ -1714,7 +1807,6 @@ public class LDAPConnectionHandler
    */
   public SSLClientAuthPolicy getSSLClientAuthPolicy()
   {
-    assert debugEnter(CLASS_NAME, "getSSLClientAuthPolicy");
 
     return sslClientAuthPolicy;
   }
@@ -1730,7 +1822,6 @@ public class LDAPConnectionHandler
    */
   public String[] getEnabledSSLProtocols()
   {
-    assert debugEnter(CLASS_NAME, "getEnabledSSLProtocols");
 
     return enabledSSLProtocols;
   }
@@ -1746,7 +1837,6 @@ public class LDAPConnectionHandler
    */
   public String[] getEnabledSSLCipherSuites()
   {
-    assert debugEnter(CLASS_NAME, "getEnabledSSLCipherSuites");
 
     return enabledSSLCipherSuites;
   }
@@ -1765,7 +1855,6 @@ public class LDAPConnectionHandler
    */
   public DN getKeyManagerProviderDN()
   {
-    assert debugEnter(CLASS_NAME, "getKeyManagerProviderDN");
 
     return keyManagerProviderDN;
   }
@@ -1784,7 +1873,6 @@ public class LDAPConnectionHandler
    */
   public DN getTrustManagerProviderDN()
   {
-    assert debugEnter(CLASS_NAME, "getTrustManagerProviderDN");
 
     return trustManagerProviderDN;
   }
@@ -1814,7 +1902,6 @@ public class LDAPConnectionHandler
    */
   public int getMaxRequestSize()
   {
-    assert debugEnter(CLASS_NAME, "getMaxRequestSize");
 
     return maxRequestSize;
   }
@@ -1828,7 +1915,6 @@ public class LDAPConnectionHandler
    */
   public String getShutdownListenerName()
   {
-    assert debugEnter(CLASS_NAME, "getShutdownListenerName");
 
     return handlerName;
   }
@@ -1844,7 +1930,6 @@ public class LDAPConnectionHandler
    */
   public void processServerShutdown(String reason)
   {
-    assert debugEnter(CLASS_NAME, "processServerShutdown");
 
     shutdownRequested = true;
 
@@ -1871,7 +1956,6 @@ public class LDAPConnectionHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -1887,7 +1971,6 @@ public class LDAPConnectionHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> configAttrs = new LinkedList<ConfigAttribute>();
 
@@ -2085,8 +2168,6 @@ public class LDAPConnectionHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     boolean configValid = true;
@@ -2116,8 +2197,10 @@ public class LDAPConnectionHandler
           }
           catch (UnknownHostException uhe)
           {
-            assert debugException(CLASS_NAME, "hasAcceptableConfiguration",
-                                  uhe);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, uhe);
+            }
 
             msgID = MSGID_LDAP_CONNHANDLER_UNKNOWN_LISTEN_ADDRESS;
             unacceptableReasons.add(getMessage(msgID, s,
@@ -2129,7 +2212,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_LISTEN_ADDRESS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2158,7 +2244,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_LISTEN_PORT;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2180,7 +2269,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_BACKLOG;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2209,7 +2301,10 @@ public class LDAPConnectionHandler
           }
           catch (ConfigException ce)
           {
-            assert debugException(CLASS_NAME, "hasAcceptableConfiguration", ce);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, ce);
+            }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
             unacceptableReasons.add(getMessage(msgID, s, ATTR_ALLOWED_CLIENT,
@@ -2222,7 +2317,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOWED_CLIENTS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2251,7 +2349,10 @@ public class LDAPConnectionHandler
           }
           catch (ConfigException ce)
           {
-            assert debugException(CLASS_NAME, "hasAcceptableConfiguration", ce);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, ce);
+            }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
             unacceptableReasons.add(getMessage(msgID, s, ATTR_DENIED_CLIENT,
@@ -2264,7 +2365,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_DENIED_CLIENTS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2286,7 +2390,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_LDAPV2;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2308,7 +2415,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEEP_STATS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2331,7 +2441,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_NUM_REQUEST_HANDLERS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2353,7 +2466,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SEND_REJECTION_NOTICE;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2375,7 +2491,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_KEEPALIVE;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2397,7 +2516,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_NODELAY;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2419,7 +2541,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_REUSE_ADDRESS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2443,7 +2568,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_MAX_REQUEST_SIZE;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2473,7 +2601,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_SSL;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2517,7 +2648,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_STARTTLS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2561,7 +2695,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CLIENT_AUTH_POLICY;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2583,7 +2720,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2607,7 +2747,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_PROTOCOLS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2631,7 +2774,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CIPHERS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2666,7 +2812,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -2702,7 +2851,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -2736,9 +2888,6 @@ public class LDAPConnectionHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     // Create variables to include in the response.
@@ -2777,7 +2926,10 @@ public class LDAPConnectionHandler
           }
           catch (ConfigException ce)
           {
-            assert debugException(CLASS_NAME, "applyNewConfiguration", ce);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, ce);
+            }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
             messages.add(getMessage(msgID, s, ATTR_ALLOWED_CLIENT,
@@ -2793,7 +2945,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOWED_CLIENTS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2857,7 +3012,10 @@ public class LDAPConnectionHandler
           }
           catch (ConfigException ce)
           {
-            assert debugException(CLASS_NAME, "applyNewConfiguration", ce);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, ce);
+            }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
             messages.add(getMessage(msgID, s, ATTR_DENIED_CLIENT,
@@ -2873,7 +3031,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_DENIED_CLIENTS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2936,7 +3097,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_LDAPV2;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -2972,7 +3136,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEEP_STATS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -3012,7 +3179,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SEND_REJECTION_NOTICE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -3048,7 +3218,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_KEEPALIVE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -3084,7 +3257,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_NODELAY;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -3126,7 +3302,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_MAX_REQUEST_SIZE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -3167,7 +3346,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_STARTTLS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -3208,7 +3390,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_PROTOCOLS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -3246,7 +3431,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CIPHERS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -3290,7 +3478,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -3333,7 +3524,10 @@ public class LDAPConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -3583,7 +3777,6 @@ public class LDAPConnectionHandler
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append(handlerName);
   }
@@ -3599,7 +3792,6 @@ public class LDAPConnectionHandler
    */
   public DN getComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getComponentEntryDN");
 
     return configEntryDN;
   }
@@ -3615,7 +3807,6 @@ public class LDAPConnectionHandler
    */
   public String getClassName()
   {
-    assert debugEnter(CLASS_NAME, "getClassName");
 
     return CLASS_NAME;
   }
@@ -3634,7 +3825,6 @@ public class LDAPConnectionHandler
    */
   public LinkedHashMap<String,String> getAlerts()
   {
-    assert debugEnter(CLASS_NAME, "getAlerts");
 
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 

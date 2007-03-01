@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -40,7 +40,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 
@@ -52,11 +54,6 @@ import static org.opends.server.messages.UtilityMessages.*;
  */
 public class LDIFExportConfig
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.LDIFExportConfig";
 
 
 
@@ -139,8 +136,6 @@ public class LDIFExportConfig
   public LDIFExportConfig(String ldifFile,
                           ExistingFileBehavior existingFileBehavior)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(ldifFile),
-                            String.valueOf(existingFileBehavior));
 
     this.ldifFile                = ldifFile;
     this.existingFileBehavior    = existingFileBehavior;
@@ -175,8 +170,6 @@ public class LDIFExportConfig
    */
   public LDIFExportConfig(OutputStream ldifOutputStream)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(ldifOutputStream));
 
     this.ldifOutputStream        = ldifOutputStream;
     ldifFile                     = null;
@@ -215,7 +208,6 @@ public class LDIFExportConfig
   public BufferedWriter getWriter()
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "getWriter");
 
     if (writer == null)
     {
@@ -285,7 +277,6 @@ public class LDIFExportConfig
    */
   public boolean invokeExportPlugins()
   {
-    assert debugEnter(CLASS_NAME, "invokeExportPlugins");
 
     return invokeExportPlugins;
   }
@@ -302,8 +293,6 @@ public class LDIFExportConfig
    */
   public void setInvokeExportPlugins(boolean invokeExportPlugins)
   {
-    assert debugEnter(CLASS_NAME, "setInvokeExportPlugins",
-                      String.valueOf(invokeExportPlugins));
 
     this.invokeExportPlugins = invokeExportPlugins;
   }
@@ -319,7 +308,6 @@ public class LDIFExportConfig
    */
   public boolean compressData()
   {
-    assert debugEnter(CLASS_NAME, "compressData");
 
     return compressData;
   }
@@ -336,8 +324,6 @@ public class LDIFExportConfig
    */
   public void setCompressData(boolean compressData)
   {
-    assert debugEnter(CLASS_NAME, "setCompressData",
-                      String.valueOf(compressData));
 
     this.compressData = compressData;
   }
@@ -353,7 +339,6 @@ public class LDIFExportConfig
    */
   public boolean encryptData()
   {
-    assert debugEnter(CLASS_NAME, "encryptData");
 
     return encryptData;
   }
@@ -370,8 +355,6 @@ public class LDIFExportConfig
    */
   public void setEncryptData(boolean encryptData)
   {
-    assert debugEnter(CLASS_NAME, "setEncryptData",
-                      String.valueOf(encryptData));
 
     this.encryptData = encryptData;
   }
@@ -387,7 +370,6 @@ public class LDIFExportConfig
    */
   public boolean hashData()
   {
-    assert debugEnter(CLASS_NAME, "hashData");
 
     return hashData;
   }
@@ -404,8 +386,6 @@ public class LDIFExportConfig
    */
   public void setHashData(boolean hashData)
   {
-    assert debugEnter(CLASS_NAME, "setHashData",
-                      String.valueOf(hashData));
 
     this.hashData = hashData;
   }
@@ -421,7 +401,6 @@ public class LDIFExportConfig
    */
   public boolean signHash()
   {
-    assert debugEnter(CLASS_NAME, "signHash");
 
     return signHash;
   }
@@ -441,8 +420,6 @@ public class LDIFExportConfig
    */
   public void setSignHash(boolean signHash)
   {
-    assert debugEnter(CLASS_NAME, "setSignHash",
-                      String.valueOf(signHash));
 
     this.signHash = signHash;
   }
@@ -460,7 +437,6 @@ public class LDIFExportConfig
    */
   public boolean typesOnly()
   {
-    assert debugEnter(CLASS_NAME, "typesOnly");
 
     return typesOnly;
   }
@@ -478,8 +454,6 @@ public class LDIFExportConfig
    */
   public void setTypesOnly(boolean typesOnly)
   {
-    assert debugEnter(CLASS_NAME, "setTypesOnly",
-                      String.valueOf(typesOnly));
 
     this.typesOnly = typesOnly;
   }
@@ -495,7 +469,6 @@ public class LDIFExportConfig
    */
   public int getWrapColumn()
   {
-    assert debugEnter(CLASS_NAME, "getWrapColumn");
 
     return wrapColumn;
   }
@@ -512,8 +485,6 @@ public class LDIFExportConfig
    */
   public void setWrapColumn(int wrapColumn)
   {
-    assert debugEnter(CLASS_NAME, "setWrapColumn",
-                      String.valueOf(wrapColumn));
 
     this.wrapColumn = wrapColumn;
   }
@@ -530,7 +501,6 @@ public class LDIFExportConfig
    */
   public List<DN> getExcludeBranches()
   {
-    assert debugEnter(CLASS_NAME, "getExcludeBranches");
 
     return excludeBranches;
   }
@@ -546,8 +516,6 @@ public class LDIFExportConfig
    */
   public void setExcludeBranches(List<DN> excludeBranches)
   {
-    assert debugEnter(CLASS_NAME, "setExcludeBranches",
-                      String.valueOf(excludeBranches));
 
     if (excludeBranches == null)
     {
@@ -571,7 +539,6 @@ public class LDIFExportConfig
    */
   public List<DN> getIncludeBranches()
   {
-    assert debugEnter(CLASS_NAME, "getIncludeBranches");
 
     return includeBranches;
   }
@@ -587,8 +554,6 @@ public class LDIFExportConfig
    */
   public void setIncludeBranches(List<DN> includeBranches)
   {
-    assert debugEnter(CLASS_NAME, "setIncludeBranches",
-                      String.valueOf(includeBranches));
 
     if (includeBranches == null)
     {
@@ -612,7 +577,6 @@ public class LDIFExportConfig
    */
   public boolean includeObjectClasses()
   {
-    assert debugEnter(CLASS_NAME, "includeObjectClasses");
 
     return includeObjectClasses;
   }
@@ -628,7 +592,6 @@ public class LDIFExportConfig
    */
   public boolean includeOperationalAttributes()
   {
-    assert debugEnter(CLASS_NAME, "includeOperationalAttributes");
 
     return includeOperationalAttributes;
   }
@@ -647,8 +610,6 @@ public class LDIFExportConfig
   public void setIncludeOperationalAttributes(
                    boolean includeOperationalAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setIncludeOperationalAttributes",
-                      String.valueOf(includeOperationalAttributes));
 
     this.includeOperationalAttributes = includeOperationalAttributes;
   }
@@ -665,7 +626,6 @@ public class LDIFExportConfig
    */
   public Set<AttributeType> getExcludeAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getExcludeAttributes");
 
     return excludeAttributes;
   }
@@ -683,8 +643,6 @@ public class LDIFExportConfig
   public void setExcludeAttributes(
                    Set<AttributeType> excludeAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setExcludeAttributes",
-                      String.valueOf(excludeAttributes));
 
     if (excludeAttributes == null)
     {
@@ -708,7 +666,6 @@ public class LDIFExportConfig
    */
   public Set<AttributeType> getIncludeAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getIncludeAttributes");
 
     return includeAttributes;
   }
@@ -726,8 +683,6 @@ public class LDIFExportConfig
   public void setIncludeAttributes(
                    Set<AttributeType> includeAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setIncludeAttributes",
-                      String.valueOf(includeAttributes));
 
     if (includeAttributes == null)
     {
@@ -754,8 +709,6 @@ public class LDIFExportConfig
    */
   public boolean includeAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "includeAttribute",
-                      String.valueOf(attributeType));
 
     if ((! excludeAttributes.isEmpty()) &&
         excludeAttributes.contains(attributeType))
@@ -783,7 +736,6 @@ public class LDIFExportConfig
    */
   public List<SearchFilter> getExcludeFilters()
   {
-    assert debugEnter(CLASS_NAME, "getExcludeFilters");
 
     return excludeFilters;
   }
@@ -800,8 +752,6 @@ public class LDIFExportConfig
    */
   public void setExcludeFilters(List<SearchFilter> excludeFilters)
   {
-    assert debugEnter(CLASS_NAME, "setExcludeFilters",
-                      String.valueOf(excludeFilters));
 
     if (excludeFilters == null)
     {
@@ -825,7 +775,6 @@ public class LDIFExportConfig
    */
   public List<SearchFilter> getIncludeFilters()
   {
-    assert debugEnter(CLASS_NAME, "getIncludeFilters");
 
     return includeFilters;
   }
@@ -842,8 +791,6 @@ public class LDIFExportConfig
    */
   public void setIncludeFilters(List<SearchFilter> includeFilters)
   {
-    assert debugEnter(CLASS_NAME, "setIncludeFilters",
-                      String.valueOf(includeFilters));
 
     if (includeFilters == null)
     {
@@ -874,8 +821,6 @@ public class LDIFExportConfig
   public boolean includeEntry(Entry entry)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "includeEntry",
-                      String.valueOf(entry));
 
     DN dn = entry.getDN();
     if (! excludeBranches.isEmpty())
@@ -936,7 +881,6 @@ public class LDIFExportConfig
    */
   public void close()
   {
-    assert debugEnter(CLASS_NAME, "close");
 
 
     // FIXME -- Need to add code to generate a signed hash of the LDIF
@@ -948,7 +892,10 @@ public class LDIFExportConfig
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "close", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 }

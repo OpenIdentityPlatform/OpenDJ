@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -35,7 +35,9 @@ import java.util.StringTokenizer;
 
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -51,11 +53,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LDAPURL
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.LDAPURL";
 
 
 
@@ -149,14 +146,6 @@ public class LDAPURL
                  SearchScope scope, String rawFilter,
                  LinkedList<String> extensions)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(scheme),
-                            String.valueOf(host),
-                            String.valueOf(port),
-                            String.valueOf(rawBaseDN),
-                            String.valueOf(attributes),
-                            String.valueOf(scope),
-                            String.valueOf(rawFilter),
-                            String.valueOf(extensions));
 
 
     this.host = toLowerCase(host);
@@ -249,14 +238,6 @@ public class LDAPURL
                  LinkedHashSet<String> attributes, SearchScope scope,
                  SearchFilter filter, LinkedList<String> extensions)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(scheme),
-                            String.valueOf(host),
-                            String.valueOf(port),
-                            String.valueOf(baseDN),
-                            String.valueOf(attributes),
-                            String.valueOf(scope),
-                            String.valueOf(filter),
-                            String.valueOf(extensions));
 
 
     this.host = toLowerCase(host);
@@ -351,7 +332,6 @@ public class LDAPURL
   public static LDAPURL decode(String url, boolean fullyDecode)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(url));
 
 
     // Find the "://" component, which will separate the scheme from
@@ -443,7 +423,10 @@ public class LDAPURL
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "decode", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_LDAPURL_CANNOT_DECODE_PORT;
           String message = getMessage(msgID, String.valueOf(url),
@@ -711,7 +694,6 @@ public class LDAPURL
   private static String urlDecode(String s)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "urlDecode", String.valueOf(s));
 
 
     if (s == null)
@@ -881,7 +863,10 @@ public class LDAPURL
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "urlDecode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This should never happen.
       int    msgID   = MSGID_LDAPURL_CANNOT_CREATE_UTF8_STRING;
@@ -907,7 +892,6 @@ public class LDAPURL
    */
   private static String urlEncode(String s, boolean isExtension)
   {
-    assert debugEnter(CLASS_NAME, "urlEncode", String.valueOf(s));
 
 
     if (s == null)
@@ -1012,7 +996,6 @@ public class LDAPURL
    */
   private static void hexEncode(char c, StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "hexEncode");
 
 
     if ((c & (byte) 0xFF) == c)
@@ -1044,7 +1027,6 @@ public class LDAPURL
    */
   public String getScheme()
   {
-    assert debugEnter(CLASS_NAME, "getScheme");
 
     return scheme;
   }
@@ -1058,8 +1040,6 @@ public class LDAPURL
    */
   public void setScheme(String scheme)
   {
-    assert debugEnter(CLASS_NAME, "setScheme",
-                      String.valueOf(scheme));
 
     if (scheme == null)
     {
@@ -1081,7 +1061,6 @@ public class LDAPURL
    */
   public String getHost()
   {
-    assert debugEnter(CLASS_NAME, "getHost");
 
     return host;
   }
@@ -1095,7 +1074,6 @@ public class LDAPURL
    */
   public void setHost(String host)
   {
-    assert debugEnter(CLASS_NAME, "setHost", String.valueOf(host));
 
     this.host = host;
   }
@@ -1109,7 +1087,6 @@ public class LDAPURL
    */
   public int getPort()
   {
-    assert debugEnter(CLASS_NAME, "getPort");
 
     return port;
   }
@@ -1123,7 +1100,6 @@ public class LDAPURL
    */
   public void setPort(int port)
   {
-    assert debugEnter(CLASS_NAME, "setPort", String.valueOf(port));
 
     if ((port <= 0) || (port > 65535))
     {
@@ -1146,7 +1122,6 @@ public class LDAPURL
    */
   public String getRawBaseDN()
   {
-    assert debugEnter(CLASS_NAME, "getRawBaseDN");
 
     return rawBaseDN;
   }
@@ -1161,7 +1136,6 @@ public class LDAPURL
    */
   public void setRawBaseDN(String rawBaseDN)
   {
-    assert debugEnter(CLASS_NAME, "setRawBaseDN");
 
     this.rawBaseDN = rawBaseDN;
     this.baseDN    = null;
@@ -1180,7 +1154,6 @@ public class LDAPURL
   public DN getBaseDN()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getBaseDN");
 
     if (baseDN == null)
     {
@@ -1204,7 +1177,6 @@ public class LDAPURL
    */
   public void setBaseDN(DN baseDN)
   {
-    assert debugEnter(CLASS_NAME, "setDN", String.valueOf(baseDN));
 
 
     if (baseDN == null)
@@ -1229,7 +1201,6 @@ public class LDAPURL
    */
   public LinkedHashSet<String> getAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributes");
 
     return attributes;
   }
@@ -1245,7 +1216,6 @@ public class LDAPURL
    */
   public SearchScope getScope()
   {
-    assert debugEnter(CLASS_NAME, "getScope");
 
     return scope;
   }
@@ -1259,7 +1229,6 @@ public class LDAPURL
    */
   public void setScope(SearchScope scope)
   {
-    assert debugEnter(CLASS_NAME, "setScope", String.valueOf(scope));
 
     if (scope == null)
     {
@@ -1282,7 +1251,6 @@ public class LDAPURL
    */
   public String getRawFilter()
   {
-    assert debugEnter(CLASS_NAME, "getRawFilter");
 
     return rawFilter;
   }
@@ -1297,8 +1265,6 @@ public class LDAPURL
    */
   public void setRawFilter(String rawFilter)
   {
-    assert debugEnter(CLASS_NAME, "setRawFilter",
-                      String.valueOf(rawFilter));
 
     this.rawFilter = rawFilter;
     this.filter    = null;
@@ -1317,7 +1283,6 @@ public class LDAPURL
   public SearchFilter getFilter()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getFilter");
 
     if (filter == null)
     {
@@ -1343,8 +1308,6 @@ public class LDAPURL
    */
   public void setFilter(SearchFilter filter)
   {
-    assert debugEnter(CLASS_NAME, "setFilter",
-                      String.valueOf(filter));
 
 
     if (filter == null)
@@ -1369,7 +1332,6 @@ public class LDAPURL
    */
   public LinkedList<String> getExtensions()
   {
-    assert debugEnter(CLASS_NAME, "getExtensions");
 
     return extensions;
   }
@@ -1386,7 +1348,6 @@ public class LDAPURL
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals");
 
     if (o == null)
     {
@@ -1441,7 +1402,10 @@ public class LDAPURL
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "equals", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (rawBaseDN == null)
       {
@@ -1476,7 +1440,10 @@ public class LDAPURL
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "equals", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (rawFilter == null)
       {
@@ -1554,7 +1521,6 @@ outerExtLoop:
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     int hashCode = 0;
 
@@ -1573,7 +1539,10 @@ outerExtLoop:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hashCode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (rawBaseDN != null)
       {
@@ -1594,7 +1563,10 @@ outerExtLoop:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hashCode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (rawFilter != null)
       {
@@ -1619,7 +1591,6 @@ outerExtLoop:
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer, false);
@@ -1641,9 +1612,6 @@ outerExtLoop:
    */
   public void toString(StringBuilder buffer, boolean baseOnly)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder",
-                      String.valueOf(baseOnly));
 
     urlEncode(scheme, false, buffer);
     buffer.append("://");

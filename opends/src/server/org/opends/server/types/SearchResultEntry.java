@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -31,7 +31,6 @@ package org.opends.server.types;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -48,11 +47,6 @@ import static org.opends.server.loggers.Debug.*;
 public class SearchResultEntry
        extends Entry
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.SearchResultEntry";
 
 
 
@@ -76,7 +70,6 @@ public class SearchResultEntry
           entry.getUserAttributes(),
           entry.getOperationalAttributes());
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(entry));
 
     this.controls = new ArrayList<Control>(0);
   }
@@ -100,8 +93,6 @@ public class SearchResultEntry
           entry.getUserAttributes(),
           entry.getOperationalAttributes());
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(entry),
-                            String.valueOf(controls));
 
     if (controls == null)
     {
@@ -125,7 +116,6 @@ public class SearchResultEntry
    */
   public List<Control> getControls()
   {
-    assert debugEnter(CLASS_NAME, "getControls");
 
     return controls;
   }

@@ -37,7 +37,6 @@ import java.util.Date;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -56,11 +55,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class PromptTrustManager
        implements X509TrustManager
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tools.PromptTrustManager";
 
 
 
@@ -75,7 +69,6 @@ public class PromptTrustManager
    */
   private PromptTrustManager()
   {
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation is required.
   }
@@ -93,7 +86,6 @@ public class PromptTrustManager
    */
   public static TrustManager[] getTrustManagers()
   {
-    assert debugEnter(CLASS_NAME, "getTrustManagers");
 
     return trustManagerArray;
   }
@@ -114,8 +106,6 @@ public class PromptTrustManager
   public void checkClientTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
-    assert debugEnter(CLASS_NAME, "checkClientTrusted",
-                      String.valueOf(chain), String.valueOf(authType));
 
     int    msgID   = MSGID_PROMPTTM_REJECTING_CLIENT_CERT;
     String message = getMessage(msgID);
@@ -137,8 +127,6 @@ public class PromptTrustManager
   public void checkServerTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
-    assert debugEnter(CLASS_NAME, "checkServerTrusted",
-                      String.valueOf(chain), String.valueOf(authType));
 
     if ((chain == null) || (chain.length == 0))
     {
@@ -209,7 +197,6 @@ public class PromptTrustManager
    */
   public X509Certificate[] getAcceptedIssuers()
   {
-    assert debugEnter(CLASS_NAME, "getAcceptedIssuers");
 
     return new X509Certificate[0];
   }

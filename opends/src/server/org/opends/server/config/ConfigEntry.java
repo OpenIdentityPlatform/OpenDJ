@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
 
@@ -44,9 +44,11 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -60,11 +62,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class ConfigEntry
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.config.ConfigEntry";
 
 
 
@@ -101,8 +98,6 @@ public class ConfigEntry
    */
   public ConfigEntry(Entry entry, ConfigEntry parent)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(entry),
-                            String.valueOf(parent));
 
     this.entry  = entry;
     this.parent = parent;
@@ -123,7 +118,6 @@ public class ConfigEntry
    */
   public Entry getEntry()
   {
-    assert debugEnter(CLASS_NAME, "getEntry");
 
     return entry;
   }
@@ -142,7 +136,6 @@ public class ConfigEntry
    */
   public void setEntry(Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "setEntry", String.valueOf(entry));
 
     entryLock.lock();
 
@@ -165,7 +158,6 @@ public class ConfigEntry
    */
   public DN getDN()
   {
-    assert debugEnter(CLASS_NAME, "getDN");
 
     return entry.getDN();
   }
@@ -184,7 +176,6 @@ public class ConfigEntry
    */
   public boolean hasObjectClass(String name)
   {
-    assert debugEnter(CLASS_NAME, "hasObjectClass", String.valueOf(name));
 
     ObjectClass oc = DirectoryServer.getObjectClass(name.toLowerCase());
     if (oc == null)
@@ -215,7 +206,6 @@ public class ConfigEntry
   public ConfigAttribute getConfigAttribute(ConfigAttribute stub)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getConfigAttribute", String.valueOf(stub));
 
     String attrName = stub.getName();
     AttributeType attrType =
@@ -246,8 +236,6 @@ public class ConfigEntry
    */
   public void putConfigAttribute(ConfigAttribute attribute)
   {
-    assert debugEnter(CLASS_NAME, "putConfigAttribute",
-                      String.valueOf(attribute));
 
     String name = attribute.getName();
     AttributeType attrType =
@@ -285,8 +273,6 @@ public class ConfigEntry
    */
   public boolean removeConfigAttribute(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "removeConfigAttribute",
-                      String.valueOf(lowerName));
 
     for (AttributeType t : entry.getUserAttributes().keySet())
     {
@@ -321,7 +307,6 @@ public class ConfigEntry
    */
   public ConfigEntry getParent()
   {
-    assert debugEnter(CLASS_NAME, "getParent");
 
     return parent;
   }
@@ -336,7 +321,6 @@ public class ConfigEntry
    */
   public ConcurrentHashMap<DN,ConfigEntry> getChildren()
   {
-    assert debugEnter(CLASS_NAME, "getChildren");
 
     return children;
   }
@@ -351,7 +335,6 @@ public class ConfigEntry
    */
   public boolean hasChildren()
   {
-    assert debugEnter(CLASS_NAME, "hasChildren");
 
     return (! children.isEmpty());
   }
@@ -374,7 +357,6 @@ public class ConfigEntry
   public void addChild(ConfigEntry childEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "addChild", String.valueOf(childEntry));
 
 
     ConfigEntry conflictingChild;
@@ -387,7 +369,10 @@ public class ConfigEntry
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "addChild", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       conflictingChild = null;
     }
@@ -424,7 +409,6 @@ public class ConfigEntry
   public ConfigEntry removeChild(DN childDN)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "removeChild", String.valueOf(childDN));
 
     entryLock.lock();
 
@@ -456,9 +440,12 @@ public class ConfigEntry
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "removeChild", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_CONFIG_ENTRY_CANNOT_REMOVE_CHILD;
+      int msgID = MSGID_CONFIG_ENTRY_CANNOT_REMOVE_CHILD;
       String message = getMessage(msgID, String.valueOf(childDN),
                                   String.valueOf(entry.getDN()),
                                   stackTraceToSingleLineString(e));
@@ -486,7 +473,6 @@ public class ConfigEntry
    */
   public ConfigEntry duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     return new ConfigEntry(entry.duplicate(), parent);
   }
@@ -502,7 +488,6 @@ public class ConfigEntry
    */
   public CopyOnWriteArrayList<ConfigChangeListener> getChangeListeners()
   {
-    assert debugEnter(CLASS_NAME, "getChangeListeners");
 
     return changeListeners;
   }
@@ -518,8 +503,6 @@ public class ConfigEntry
    */
   public void registerChangeListener(ConfigChangeListener listener)
   {
-    assert debugEnter(CLASS_NAME, "registerChangeListener",
-                      String.valueOf(listener));
 
     changeListeners.add(listener);
   }
@@ -537,8 +520,6 @@ public class ConfigEntry
    */
   public boolean deregisterChangeListener(ConfigChangeListener listener)
   {
-    assert debugEnter(CLASS_NAME, "deregisterChangeListener",
-                      String.valueOf(listener));
 
     return changeListeners.remove(listener);
   }
@@ -554,7 +535,6 @@ public class ConfigEntry
    */
   public CopyOnWriteArrayList<ConfigAddListener> getAddListeners()
   {
-    assert debugEnter(CLASS_NAME, "getAddListeners");
 
     return addListeners;
   }
@@ -569,8 +549,6 @@ public class ConfigEntry
    */
   public void registerAddListener(ConfigAddListener listener)
   {
-    assert debugEnter(CLASS_NAME, "registerAddListener",
-                      String.valueOf(listener));
 
     addListeners.addIfAbsent(listener);
   }
@@ -586,8 +564,6 @@ public class ConfigEntry
    */
   public void deregisterAddListener(ConfigAddListener listener)
   {
-    assert debugEnter(CLASS_NAME, "deregisterAddListener",
-                      String.valueOf(listener));
 
     addListeners.remove(listener);
   }
@@ -603,7 +579,6 @@ public class ConfigEntry
    */
   public CopyOnWriteArrayList<ConfigDeleteListener> getDeleteListeners()
   {
-    assert debugEnter(CLASS_NAME, "getDeleteListeners");
 
     return deleteListeners;
   }
@@ -618,8 +593,6 @@ public class ConfigEntry
    */
   public void registerDeleteListener(ConfigDeleteListener listener)
   {
-    assert debugEnter(CLASS_NAME, "registerDeleteListener",
-                      String.valueOf(listener));
 
     deleteListeners.addIfAbsent(listener);
   }
@@ -634,8 +607,6 @@ public class ConfigEntry
    */
   public void deregisterDeleteListener(ConfigDeleteListener listener)
   {
-    assert debugEnter(CLASS_NAME, "deregisterDeleteListener",
-                      String.valueOf(listener));
 
     deleteListeners.remove(listener);
   }

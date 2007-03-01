@@ -36,8 +36,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.MessageHandler.*;
 
 
 
@@ -49,11 +47,6 @@ import static org.opends.server.messages.MessageHandler.*;
 public class NullKeyManagerProvider
        extends KeyManagerProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.NullKeyManagerProvider";
 
 
 
@@ -64,7 +57,6 @@ public class NullKeyManagerProvider
    */
   public NullKeyManagerProvider()
   {
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation is required.
   }
@@ -89,8 +81,6 @@ public class NullKeyManagerProvider
   public void initializeKeyManagerProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeKeyManagerProvider",
-                      String.valueOf(configEntry));
 
     // No implementation is required.
   }
@@ -103,7 +93,6 @@ public class NullKeyManagerProvider
    */
   public void finalizeKeyManagerProvider()
   {
-    assert debugEnter(CLASS_NAME, "finalizeKeyManagerProvider");
 
     // No implementation is required.
   }
@@ -123,7 +112,6 @@ public class NullKeyManagerProvider
   public KeyManager[] getKeyManagers()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getKeyManagers");
 
     return new KeyManager[0];
   }

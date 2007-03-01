@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
@@ -42,14 +42,15 @@ import org.opends.server.config.MultiChoiceConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.LoggerMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.loggers.Error.*;
-import static org.opends.server.loggers.Debug.*;
-
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 
 
 /**
@@ -58,8 +59,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class RotationConfigUtil
 {
-  private static final String CLASS_NAME =
-      "org.opends.server.loggers.RotationConfigUtil";
 
 
   /**
@@ -78,8 +77,6 @@ public class RotationConfigUtil
                      getRotationPolicies(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getRotationPolicies",
-                      String.valueOf(configEntry));
 
     HashSet<String> allowedValues = new HashSet<String>();
     allowedValues.add("size");
@@ -210,8 +207,6 @@ public class RotationConfigUtil
                      getRetentionPolicies(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getRetentionPolicies",
-                      String.valueOf(configEntry));
 
     StringConfigAttribute logFileStub =
                   new StringConfigAttribute(ATTR_LOGGER_FILE,
@@ -348,8 +343,7 @@ public class RotationConfigUtil
                      getPostRotationActions(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getPostRotationActions",
-                      String.valueOf(configEntry));
+
     ArrayList<ActionType> actions = new ArrayList<ActionType>();
 
     StringConfigAttribute rotationActionStub =
@@ -425,7 +419,10 @@ public class RotationConfigUtil
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getCertificateAlias", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return null;
     }
@@ -450,8 +447,7 @@ public class RotationConfigUtil
   public static int getIntegerAttribute(ConfigEntry configEntry,
       String attrName, int msgID) throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getIntegerAttribute",
-                      String.valueOf(configEntry), attrName);
+
     int value = -1;
 
     IntegerConfigAttribute attrStub =

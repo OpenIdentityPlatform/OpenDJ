@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
@@ -31,7 +31,9 @@ import java.util.ArrayList;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.config.ConfigEntry;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 /**
  * This thread is spawned off at the time of file rotation to
@@ -40,9 +42,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class RotationActionThread extends DirectoryThread
 {
-
-  private static final String CLASS_NAME =
-    "org.opends.server.loggers.RotationActionThread";
 
   private ArrayList<ActionType> actions;
   private String filename;
@@ -115,7 +114,10 @@ public class RotationActionThread extends DirectoryThread
       }
     } catch(Exception e)
     {
-      assert debugException(CLASS_NAME, "run", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 

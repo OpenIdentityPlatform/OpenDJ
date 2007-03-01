@@ -51,7 +51,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -66,11 +68,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class GSSAPIStateInfo
        implements PrivilegedExceptionAction<Boolean>, CallbackHandler
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.GSSAPIStateInfo";
 
 
 
@@ -118,8 +115,6 @@ public class GSSAPIStateInfo
                          BindOperation bindOperation, String serverFQDN)
          throws InitializationException
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(bindOperation),
-                            String.valueOf(serverFQDN));
 
     this.gssapiHandler = gssapiHandler;
     this.bindOperation = bindOperation;
@@ -140,7 +135,10 @@ public class GSSAPIStateInfo
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -153,7 +151,10 @@ public class GSSAPIStateInfo
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_AUTHENTICATE_SERVER;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -176,8 +177,6 @@ public class GSSAPIStateInfo
    */
   public void setBindOperation(BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "setBindOperation",
-                      String.valueOf(bindOperation));
 
     this.bindOperation = bindOperation;
   }
@@ -194,7 +193,6 @@ public class GSSAPIStateInfo
    */
   public Entry getUserEntry()
   {
-    assert debugEnter(CLASS_NAME, "getUserEntry");
 
     return userEntry;
   }
@@ -213,7 +211,10 @@ public class GSSAPIStateInfo
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "dispose", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -227,7 +228,6 @@ public class GSSAPIStateInfo
    */
   public void processAuthenticationStage()
   {
-    assert debugEnter(CLASS_NAME, "processAuthenticationStage");
 
     try
     {
@@ -235,7 +235,10 @@ public class GSSAPIStateInfo
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processAuthenticationStage", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -253,7 +256,6 @@ public class GSSAPIStateInfo
    */
   public Boolean run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
 
     if (saslServer == null)
@@ -275,7 +277,10 @@ public class GSSAPIStateInfo
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_SASL_SERVER;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -319,7 +324,10 @@ public class GSSAPIStateInfo
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "run", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       try
       {
@@ -327,7 +335,10 @@ public class GSSAPIStateInfo
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "run", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
       }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_EVALUATE_RESPONSE;
@@ -362,7 +373,10 @@ public class GSSAPIStateInfo
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       int    msgID   = MSGID_SASLGSSAPI_NO_AUTHZ_ID;
@@ -381,7 +395,10 @@ public class GSSAPIStateInfo
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "run", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       try
       {
@@ -389,7 +406,10 @@ public class GSSAPIStateInfo
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -410,7 +430,10 @@ public class GSSAPIStateInfo
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_MAP_AUTHZID;
@@ -444,7 +467,10 @@ public class GSSAPIStateInfo
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "run", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     return true;
@@ -467,7 +493,6 @@ public class GSSAPIStateInfo
   public void handle(Callback[] callbacks)
          throws UnsupportedCallbackException
   {
-    assert debugEnter(CLASS_NAME, "handle", String.valueOf(callbacks));
 
 
     for (Callback callback : callbacks)

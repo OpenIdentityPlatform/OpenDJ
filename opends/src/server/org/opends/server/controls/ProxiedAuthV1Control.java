@@ -45,7 +45,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -66,11 +68,6 @@ import static org.opends.server.util.Validator.*;
 public class ProxiedAuthV1Control
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.ProxiedAuthV1Control";
 
 
 
@@ -93,7 +90,6 @@ public class ProxiedAuthV1Control
   {
     super(OID_PROXIED_AUTH_V1, true, encodeValue(rawAuthorizationDN));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(rawAuthorizationDN));
 
     this.rawAuthorizationDN = rawAuthorizationDN;
 
@@ -114,7 +110,6 @@ public class ProxiedAuthV1Control
     super(OID_PROXIED_AUTH_V1, true,
           encodeValue(new ASN1OctetString(authorizationDN.toString())));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(authorizationDN));
 
     this.authorizationDN = authorizationDN;
 
@@ -141,10 +136,6 @@ public class ProxiedAuthV1Control
   {
     super(oid, isCritical, controlValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(controlValue),
-                            String.valueOf(rawAuthorizationDN));
 
     this.rawAuthorizationDN = rawAuthorizationDN;
 
@@ -165,8 +156,6 @@ public class ProxiedAuthV1Control
    */
   private static ASN1OctetString encodeValue(ASN1OctetString rawAuthorizationDN)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue",
-                      String.valueOf(rawAuthorizationDN));
 
     ensureNotNull(rawAuthorizationDN);
 
@@ -195,7 +184,6 @@ public class ProxiedAuthV1Control
   public static ProxiedAuthV1Control decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
     ensureNotNull(control);
 
@@ -235,7 +223,10 @@ public class ProxiedAuthV1Control
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeControl", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_PROXYAUTH1_CANNOT_DECODE_VALUE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -255,7 +246,6 @@ public class ProxiedAuthV1Control
    */
   public ASN1OctetString getRawAuthorizationDN()
   {
-    assert debugEnter(CLASS_NAME, "getRawAuthorizationDN");
 
     return rawAuthorizationDN;
   }
@@ -271,8 +261,6 @@ public class ProxiedAuthV1Control
    */
   public void setRawAuthorizationDN(ASN1OctetString rawAuthorizationDN)
   {
-    assert debugEnter(CLASS_NAME, "setRawAuthorizationDN",
-                      String.valueOf(rawAuthorizationDN));
 
     this.rawAuthorizationDN = rawAuthorizationDN;
 
@@ -293,7 +281,6 @@ public class ProxiedAuthV1Control
   public DN getAuthorizationDN()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getAuthorizationDN");
 
     if (authorizationDN == null)
     {
@@ -313,8 +300,6 @@ public class ProxiedAuthV1Control
    */
   public void setAuthorizationDN(DN authorizationDN)
   {
-    assert debugEnter(CLASS_NAME, "setAuthorizationDN",
-                      String.valueOf(authorizationDN));
 
     ensureNotNull(authorizationDN);
 
@@ -343,7 +328,6 @@ public class ProxiedAuthV1Control
   public Entry getAuthorizationEntry()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getAuthorizationEntry");
 
     DN authzDN = getAuthorizationDN();
     if (authzDN.isNullDN())
@@ -427,7 +411,6 @@ public class ProxiedAuthV1Control
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -444,7 +427,6 @@ public class ProxiedAuthV1Control
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ProxiedAuthorizationV1Control(authorizationDN=\"");
     rawAuthorizationDN.toString(buffer);

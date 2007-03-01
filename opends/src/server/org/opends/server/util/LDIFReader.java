@@ -28,7 +28,11 @@ package org.opends.server.util;
 
 
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugProtocolElement;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.UtilityMessages.*;
@@ -58,8 +62,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
@@ -69,7 +72,6 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
 
 
-
 /**
  * This class provides the ability to read information from an LDIF file.  It
  * provides support for both standard entries and change entries (as would be
@@ -77,10 +79,6 @@ import org.opends.server.types.RDN;
  */
 public final class LDIFReader
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME = "org.opends.server.util.LDIFReader";
 
 
 
@@ -137,7 +135,6 @@ public final class LDIFReader
   public LDIFReader(LDIFImportConfig importConfig)
          throws IOException
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(importConfig));
 
     ensureNotNull(importConfig);
     this.importConfig = importConfig;
@@ -170,7 +167,6 @@ public final class LDIFReader
   public Entry readEntry()
          throws IOException, LDIFException
   {
-    assert debugEnter(CLASS_NAME, "readEntry");
 
     return readEntry(importConfig.validateSchema());
   }
@@ -198,7 +194,6 @@ public final class LDIFReader
   public Entry readEntry(boolean checkSchema)
          throws IOException, LDIFException
   {
-    assert debugEnter(CLASS_NAME, "readEntry");
 
 
     while (true)
@@ -223,14 +218,14 @@ public final class LDIFReader
         // read and return the next entry.
         continue;
       }
-      else if (! importConfig.includeEntry(entryDN))
+      else if (!importConfig.includeEntry(entryDN))
       {
-        assert debugMessage(DebugLogCategory.PROTOCOL_READ,
-                            DebugLogSeverity.INFO, CLASS_NAME, "readEntry",
-                            "Skipping entry " + String.valueOf(entryDN) +
-                            " because the DN is not one that should be " +
-                            "included based on the include and exclude " +
-                            "branches.");
+        if (debugEnabled())
+        {
+          debugInfo("Skipping entry %s because the DN is not one that should " +
+              "be included based on the include and exclude branches.",
+                    entryDN);
+        }
         entriesRead++;
         entriesIgnored++;
         continue;
@@ -265,25 +260,28 @@ public final class LDIFReader
       // import.
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
                                operationalAttributes);
-      assert debugProtocolElementRead(CLASS_NAME, "readEntry", entry);
+      debugProtocolElement(DebugLogLevel.VERBOSE, entry);
 
       try
       {
         if (! importConfig.includeEntry(entry))
         {
-          assert debugMessage(DebugLogCategory.PROTOCOL_READ,
-                              DebugLogSeverity.INFO, CLASS_NAME, "readEntry",
-                              "Skipping entry " + String.valueOf(entryDN) +
-                              " because the DN is not one that should be " +
-                              "included based on the include and exclude " +
-                              "filters.");
+          if (debugEnabled())
+          {
+            debugInfo("Skipping entry %s because the DN is not one that " +
+                "should be included based on the include and exclude filters.",
+                      entryDN);
+          }
           entriesIgnored++;
           continue;
         }
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "readEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT;
         String message = getMessage(msgID, String.valueOf(entry.getDN()),
@@ -345,7 +343,6 @@ public final class LDIFReader
   public ChangeRecordEntry readChangeRecord(boolean defaultAdd)
          throws IOException, LDIFException
   {
-    assert debugEnter(CLASS_NAME, "readChangeRecord");
 
     while (true)
     {
@@ -430,7 +427,6 @@ public final class LDIFReader
   private LinkedList<StringBuilder> readEntryLines()
           throws IOException, LDIFException
   {
-    assert debugEnter(CLASS_NAME, "readEntryLines");
 
     // Read the entry lines into a buffer.
     LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
@@ -534,7 +530,6 @@ public final class LDIFReader
   private DN readDN(LinkedList<StringBuilder> lines)
           throws LDIFException
   {
-    assert debugEnter(CLASS_NAME, "readDN", String.valueOf(lines));
 
     if (lines.isEmpty())
     {
@@ -603,7 +598,10 @@ public final class LDIFReader
       catch (Exception e)
       {
         // The value did not have a valid base64-encoding.
-        assert debugException(CLASS_NAME, "readDN", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_DN;
         String message = getMessage(msgID, lastEntryLineNumber, line,
@@ -620,7 +618,10 @@ public final class LDIFReader
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "readDN", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
         String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
@@ -632,7 +633,10 @@ public final class LDIFReader
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "readDN", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
         String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
@@ -661,7 +665,10 @@ public final class LDIFReader
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "readDN", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
         String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
@@ -673,7 +680,10 @@ public final class LDIFReader
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "readDN", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
         String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
@@ -703,7 +713,6 @@ public final class LDIFReader
   private String readChangeType(LinkedList<StringBuilder> lines)
           throws LDIFException
   {
-    assert debugEnter(CLASS_NAME, "readChangeType", String.valueOf(lines));
 
     if (lines.isEmpty())
     {
@@ -767,7 +776,10 @@ public final class LDIFReader
       catch (Exception e)
       {
         // The value did not have a valid base64-encoding.
-        assert debugException(CLASS_NAME, "readChangeType", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_DN;
         String message = getMessage(msgID, lastEntryLineNumber, line,
@@ -821,12 +833,6 @@ public final class LDIFReader
        HashMap<AttributeType,List<Attribute>> operationalAttributes)
           throws LDIFException
   {
-    assert debugEnter(CLASS_NAME, "readAttribute",
-        String.valueOf(line),
-        String.valueOf(entryDN),
-        String.valueOf(objectClasses),
-        String.valueOf(userAttributes),
-        String.valueOf(operationalAttributes));
 
     // Parse the attribute type description.
     int colonPos = parseColonPosition(lines, line);
@@ -846,12 +852,11 @@ public final class LDIFReader
     {
       if (! importConfig.includeObjectClasses())
       {
-        assert debugMessage(DebugLogCategory.PROTOCOL_READ,
-                            DebugLogSeverity.VERBOSE, CLASS_NAME,
-                            "readAttribute",
-                            "Skipping objectclass " + String.valueOf(value) +
-                            " for entry " + String.valueOf(entryDN) +
-                            " due to the import configuration.");
+        if (debugEnabled())
+        {
+          debugVerbose("Skipping objectclass %s for entry %s due to the " +
+              "import configuration.", value, entryDN);
+        }
         return;
       }
 
@@ -886,12 +891,11 @@ public final class LDIFReader
 
       if (! importConfig.includeAttribute(attrType))
       {
-        assert debugMessage(DebugLogCategory.PROTOCOL_READ,
-                            DebugLogSeverity.VERBOSE, CLASS_NAME,
-                            "readAttribute",
-                            "Skipping attribute " + String.valueOf(attrName) +
-                            " for entry " + String.valueOf(entryDN) +
-                            " due to the import configuration.");
+        if (debugEnabled())
+        {
+          debugVerbose("Skipping attribute %s for entry %s due to the import " +
+              "configuration.", attrName, entryDN);
+        }
         return;
       }
 
@@ -996,11 +1000,6 @@ public final class LDIFReader
        LinkedList<StringBuilder> lines, StringBuilder line, DN entryDN,
        String attributeName) throws LDIFException
   {
-    assert debugEnter(CLASS_NAME, "readSingleValueAttribute",
-        String.valueOf(lines),
-        String.valueOf(line),
-        String.valueOf(entryDN),
-        String.valueOf(attributeName));
 
     // Parse the attribute type description.
     int colonPos = parseColonPosition(lines, line);
@@ -1041,7 +1040,6 @@ public final class LDIFReader
    */
   public long getLastEntryLineNumber()
   {
-    assert debugEnter(CLASS_NAME, "getLastEntryLineNumber");
 
     return lastEntryLineNumber;
   }
@@ -1059,7 +1057,6 @@ public final class LDIFReader
    */
   public void rejectLastEntry(String message)
   {
-    assert debugEnter(CLASS_NAME, "rejectLastEntry", String.valueOf(message));
 
     entriesRejected++;
 
@@ -1091,7 +1088,10 @@ public final class LDIFReader
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "rejectLastEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -1103,7 +1103,6 @@ public final class LDIFReader
    */
   public void close()
   {
-    assert debugEnter(CLASS_NAME, "close");
 
     importConfig.close();
   }
@@ -1118,8 +1117,6 @@ public final class LDIFReader
    */
   private static Attribute parseAttrDescription(String attrDescr)
   {
-    assert debugEnter(CLASS_NAME, "parseAttributeDescription",
-                      String.valueOf(attrDescr));
 
     String attrName;
     String lowerName;
@@ -1173,7 +1170,6 @@ public final class LDIFReader
    */
   public long getEntriesRead()
   {
-    assert debugEnter(CLASS_NAME, "getEntriesRead");
 
     return entriesRead;
   }
@@ -1188,7 +1184,6 @@ public final class LDIFReader
    */
   public long getEntriesIgnored()
   {
-    assert debugEnter(CLASS_NAME, "getEntriesIgnored");
 
     return entriesIgnored;
   }
@@ -1206,7 +1201,6 @@ public final class LDIFReader
    */
   public long getEntriesRejected()
   {
-    assert debugEnter(CLASS_NAME, "getEntriesRejected");
 
     return entriesRejected;
   }
@@ -1226,10 +1220,6 @@ public final class LDIFReader
    */
   private ChangeRecordEntry parseModifyDNChangeRecordEntry(DN entryDN,
       LinkedList<StringBuilder> lines) throws LDIFException {
-    assert debugEnter(CLASS_NAME, "parseModifyDNChangeRecordEntry",
-        String.valueOf(entryDN),
-        String.valueOf(lines),
-        String.valueOf(lineNumber));
 
     DN newSuperiorDN = null;
     RDN newRDN = null;
@@ -1250,14 +1240,20 @@ public final class LDIFReader
       newRDN = RDN.decode(rdnStr);
     } catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "parse", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
       int    msgID   = MSGID_LDIF_INVALID_DN;
       String message = getMessage(msgID, lineNumber, line.toString(),
           de.getErrorMessage());
       throw new LDIFException(msgID, message, lineNumber, true);
     } catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "parse", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       int    msgID   = MSGID_LDIF_INVALID_DN;
       String message = getMessage(msgID, lineNumber, line.toString(),
           e.getMessage());
@@ -1306,14 +1302,20 @@ public final class LDIFReader
         newSuperiorDN = DN.decode(dnStr);
       } catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "parse", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
         int    msgID   = MSGID_LDIF_INVALID_DN;
         String message = getMessage(msgID, lineNumber, line.toString(),
             de.getErrorMessage());
         throw new LDIFException(msgID, message, lineNumber, true);
       } catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "parse", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         int    msgID   = MSGID_LDIF_INVALID_DN;
         String message = getMessage(msgID, lineNumber, line.toString(),
             e.getMessage());
@@ -1350,11 +1352,6 @@ public final class LDIFReader
                                    DN entryDN,
                                    String attributeName) throws LDIFException
   {
-    assert debugEnter(CLASS_NAME, "getModifyDNAttributeValue",
-        String.valueOf(lines),
-        String.valueOf(line),
-        String.valueOf(entryDN),
-        String.valueOf(attributeName));
 
     Attribute attr =
       readSingleValueAttribute(lines, line, entryDN, attributeName);
@@ -1380,10 +1377,6 @@ public final class LDIFReader
    */
   private ChangeRecordEntry parseModifyChangeRecordEntry(DN entryDN,
       LinkedList<StringBuilder> lines) throws LDIFException {
-    assert debugEnter(CLASS_NAME, "parseModifyChangeRecordEntry",
-        String.valueOf(entryDN),
-        String.valueOf(lines),
-        String.valueOf(lineNumber));
 
     List<LDAPModification> modifications = new ArrayList<LDAPModification>();
     while(!lines.isEmpty())
@@ -1459,12 +1452,8 @@ public final class LDIFReader
    */
   private ChangeRecordEntry parseDeleteChangeRecordEntry(DN entryDN,
       LinkedList<StringBuilder> lines) throws LDIFException {
-    assert debugEnter(CLASS_NAME, "parseDeleteChangeRecordEntry",
-        String.valueOf(entryDN),
-        String.valueOf(lines),
-        String.valueOf(lineNumber));
 
-    if(!lines.isEmpty())
+    if (!lines.isEmpty())
     {
       int msgID = MSGID_LDIF_INVALID_DELETE_ATTRIBUTES;
       String message = getMessage(msgID);
@@ -1490,10 +1479,6 @@ public final class LDIFReader
    */
   private ChangeRecordEntry parseAddChangeRecordEntry(DN entryDN,
       LinkedList<StringBuilder> lines) throws LDIFException {
-    assert debugEnter(CLASS_NAME, "parseAddChangeRecordEntry",
-        String.valueOf(entryDN),
-        String.valueOf(lines),
-        String.valueOf(lineNumber));
 
     HashMap<ObjectClass,String> objectClasses =
       new HashMap<ObjectClass,String>();
@@ -1536,9 +1521,6 @@ public final class LDIFReader
    */
   private int parseColonPosition(LinkedList<StringBuilder> lines,
       StringBuilder line) throws LDIFException {
-    assert debugEnter(CLASS_NAME, "parseColonPosition",
-        String.valueOf(lines),
-        String.valueOf(lineNumber));
 
     int colonPos = line.indexOf(":");
     if (colonPos <= 0)
@@ -1576,12 +1558,6 @@ public final class LDIFReader
       DN entryDN,
       int colonPos,
       String attrName) throws LDIFException {
-    assert debugEnter(CLASS_NAME, "parseSingleValue",
-        String.valueOf(lines),
-        String.valueOf(line),
-        String.valueOf(entryDN),
-        String.valueOf(colonPos),
-        String.valueOf(attrName));
 
     // Look at the character immediately after the colon. If there is
     // none, then assume an attribute with an empty value. If it is another
@@ -1613,7 +1589,10 @@ public final class LDIFReader
         catch (Exception e)
         {
           // The value did not have a valid base64-encoding.
-          assert debugException(CLASS_NAME, "readAttribute", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
           String message = getMessage(msgID, String.valueOf(entryDN),
@@ -1641,7 +1620,10 @@ public final class LDIFReader
         catch (Exception e)
         {
           // The URL was malformed or had an invalid protocol.
-          assert debugException(CLASS_NAME, "readAttribute", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_LDIF_INVALID_URL;
           String message = getMessage(msgID, String.valueOf(entryDN),
@@ -1672,7 +1654,10 @@ public final class LDIFReader
         {
           // We were unable to read the contents of that URL for some
           // reason.
-          assert debugException(CLASS_NAME, "readAttribute", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_LDIF_URL_IO_ERROR;
           String message = getMessage(msgID, String.valueOf(entryDN),
@@ -1730,9 +1715,6 @@ public final class LDIFReader
    */
   private void logToRejectWriter(LinkedList<StringBuilder> lines,
       String message) {
-    assert debugEnter(CLASS_NAME, "logToRejectWriter",
-        String.valueOf(lines),
-        String.valueOf(message));
 
     BufferedWriter rejectWriter = importConfig.getRejectWriter();
     if (rejectWriter != null)
@@ -1752,7 +1734,10 @@ public final class LDIFReader
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "logToRejectWriter", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }

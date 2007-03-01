@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -32,7 +32,6 @@ import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -46,11 +45,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class PasswordPolicyRequestControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.PasswordPolicyRequestControl";
 
 
 
@@ -62,7 +56,6 @@ public class PasswordPolicyRequestControl
   {
     super(OID_PASSWORD_POLICY_CONTROL, false);
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -79,8 +72,6 @@ public class PasswordPolicyRequestControl
   {
     super(oid, isCritical);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical));
   }
 
 
@@ -101,7 +92,6 @@ public class PasswordPolicyRequestControl
   public static PasswordPolicyRequestControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
     if (control.hasValue())
     {
@@ -124,7 +114,7 @@ public class PasswordPolicyRequestControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
+
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -141,7 +131,7 @@ public class PasswordPolicyRequestControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
+
 
     buffer.append("PasswordPolicyRequestControl()");
   }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
@@ -35,7 +35,6 @@ import java.util.Arrays;
 import org.opends.server.api.ProtocolElement;
 import org.opends.server.types.ByteString;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -52,11 +51,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class ASN1Element
        implements ProtocolElement, Serializable
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.asn1.ASN1Element";
 
 
 
@@ -85,7 +79,6 @@ public class ASN1Element
    */
   public ASN1Element(byte type)
   {
-    assert debugConstructor(CLASS_NAME, byteToHex(type));
 
     this.type  = type;
     this.value = NO_VALUE;
@@ -101,7 +94,6 @@ public class ASN1Element
    */
   public ASN1Element(byte type, byte[] value)
   {
-    assert debugConstructor(CLASS_NAME, byteToHex(type), bytesToHex(value));
 
     this.type  = type;
 
@@ -124,7 +116,6 @@ public class ASN1Element
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return type;
   }
@@ -138,7 +129,6 @@ public class ASN1Element
    */
   public void setType(byte type)
   {
-    assert debugEnter(CLASS_NAME, "setType", byteToHex(type));
 
     this.type = type;
   }
@@ -153,7 +143,6 @@ public class ASN1Element
    */
   public boolean isUniversal()
   {
-    assert debugEnter(CLASS_NAME, "isUniversal");
 
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_UNIVERSAL);
   }
@@ -168,7 +157,6 @@ public class ASN1Element
    */
   public boolean isApplicationSpecific()
   {
-    assert debugEnter(CLASS_NAME, "isApplicationSpecific");
 
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_APPLICATION);
   }
@@ -183,7 +171,6 @@ public class ASN1Element
    */
   public boolean isContextSpecific()
   {
-    assert debugEnter(CLASS_NAME, "isContextSpecific");
 
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_CONTEXT);
   }
@@ -198,7 +185,6 @@ public class ASN1Element
    */
   public boolean isPrivate()
   {
-    assert debugEnter(CLASS_NAME, "isPrivate");
 
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_PRIVATE);
   }
@@ -213,7 +199,6 @@ public class ASN1Element
    */
   public boolean isPrimitive()
   {
-    assert debugEnter(CLASS_NAME, "isPrimitive");
 
     return ((type & TYPE_MASK_ALL_BUT_PC) == TYPE_MASK_PRIMITIVE);
   }
@@ -228,7 +213,6 @@ public class ASN1Element
    */
   public boolean isConstructed()
   {
-    assert debugEnter(CLASS_NAME, "isConstructed");
 
     return ((type & TYPE_MASK_ALL_BUT_PC) == TYPE_MASK_CONSTRUCTED);
   }
@@ -242,7 +226,6 @@ public class ASN1Element
    */
   public byte[] value()
   {
-    assert debugEnter(CLASS_NAME, "value");
 
     return value;
   }
@@ -260,7 +243,6 @@ public class ASN1Element
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "setValue", bytesToHex(value));
 
     if (value == null)
     {
@@ -284,7 +266,6 @@ public class ASN1Element
    */
   protected final void setValueInternal(byte[] value)
   {
-    assert debugEnter(CLASS_NAME, "setValueInternal", bytesToHex(value));
 
     this.value = value;
   }
@@ -300,7 +281,6 @@ public class ASN1Element
    */
   public static byte[] encodeLength(int length)
   {
-    assert debugEnter(CLASS_NAME, "encodeLength", String.valueOf(length));
 
     if (length < 128)
     {
@@ -356,7 +336,6 @@ public class ASN1Element
    */
   public byte[] encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     if (value.length == 0)
     {
@@ -400,7 +379,6 @@ public class ASN1Element
    */
   public static byte[] encodeValue(boolean booleanValue)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue", String.valueOf(booleanValue));
 
     return (booleanValue ? BOOLEAN_VALUE_TRUE : BOOLEAN_VALUE_FALSE);
   }
@@ -418,7 +396,6 @@ public class ASN1Element
    */
   public static byte[] encodeValue(int intValue)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue", String.valueOf(intValue));
 
     if ((intValue & 0x0000007F) == intValue)
     {
@@ -469,7 +446,6 @@ public class ASN1Element
    */
   public static byte[] encodeLongValue(long longValue)
   {
-    assert debugEnter(CLASS_NAME, "encodeLongValue", String.valueOf(longValue));
 
     if ((longValue & 0x000000000000007FL) == longValue)
     {
@@ -570,7 +546,6 @@ public class ASN1Element
    */
   public static byte[] encodeValue(ArrayList<ASN1Element> elements)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue", String.valueOf(elements));
 
     if (elements == null)
     {
@@ -613,7 +588,6 @@ public class ASN1Element
   public static ASN1Element decode(byte[] encodedElement)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decode", bytesToHex(encodedElement));
 
 
     // First make sure that the array is not null and long enough to contain
@@ -701,8 +675,6 @@ public class ASN1Element
                                    int length)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decode", bytesToHex(encodedElement),
-                      String.valueOf(startPos), String.valueOf(length));
 
 
     // First make sure that the array is not null and long enough to contain
@@ -782,7 +754,6 @@ public class ASN1Element
   public ASN1Boolean decodeAsBoolean()
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsBoolean");
 
     return ASN1Boolean.decodeAsBoolean(this);
   }
@@ -800,7 +771,6 @@ public class ASN1Element
   public ASN1Enumerated decodeAsEnumerated()
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsEnumerated");
 
     return ASN1Enumerated.decodeAsEnumerated(this);
   }
@@ -818,7 +788,6 @@ public class ASN1Element
   public ASN1Integer decodeAsInteger()
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsInteger");
 
     return ASN1Integer.decodeAsInteger(this);
   }
@@ -836,7 +805,6 @@ public class ASN1Element
   public ASN1Long decodeAsLong()
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsLong");
 
     return ASN1Long.decodeAsLong(this);
   }
@@ -854,7 +822,6 @@ public class ASN1Element
   public ASN1Null decodeAsNull()
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsNull");
 
     return ASN1Null.decodeAsNull(this);
   }
@@ -872,7 +839,6 @@ public class ASN1Element
   public ASN1OctetString decodeAsOctetString()
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsOctetString");
 
     return ASN1OctetString.decodeAsOctetString(this);
   }
@@ -890,7 +856,6 @@ public class ASN1Element
   public ASN1Sequence decodeAsSequence()
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsSequence");
 
     return ASN1Sequence.decodeAsSequence(this);
   }
@@ -908,7 +873,6 @@ public class ASN1Element
   public ASN1Set decodeAsSet()
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsSet");
 
     return ASN1Set.decodeAsSet(this);
   }
@@ -929,8 +893,6 @@ public class ASN1Element
   public static ArrayList<ASN1Element> decodeElements(byte[] encodedElements)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeElements",
-                      bytesToHex(encodedElements));
 
 
     // Make sure that the element array is not null.
@@ -1014,7 +976,6 @@ public class ASN1Element
    */
   public String getProtocolElementName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolElementName");
 
     return "ASN.1";
   }
@@ -1033,7 +994,6 @@ public class ASN1Element
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (this == o)
     {
@@ -1063,8 +1023,6 @@ public class ASN1Element
    */
   public boolean equalsIgnoreType(ASN1Element element)
   {
-    assert debugEnter(CLASS_NAME, "equalsIgnoreType",
-                      String.valueOf(element));
 
     return Arrays.equals(value, element.value);
   }
@@ -1083,8 +1041,6 @@ public class ASN1Element
    */
   public boolean equalsIgnoreType(ByteString byteString)
   {
-    assert debugEnter(CLASS_NAME, "equalsIgnoreType",
-                      String.valueOf(byteString));
 
     return Arrays.equals(value, byteString.value());
   }
@@ -1102,7 +1058,6 @@ public class ASN1Element
    */
   public boolean equalsElement(ASN1Element e)
   {
-    assert debugEnter(CLASS_NAME, "equalsElement", String.valueOf(e));
 
     if (this == e)
     {
@@ -1127,7 +1082,6 @@ public class ASN1Element
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     int hashCode = type;
     int length = Math.min(20, value.length);
@@ -1148,7 +1102,6 @@ public class ASN1Element
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -1165,7 +1118,6 @@ public class ASN1Element
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ASN1Element(type=");
     buffer.append(byteToHex(type));
@@ -1187,8 +1139,6 @@ public class ASN1Element
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

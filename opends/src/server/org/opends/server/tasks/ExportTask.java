@@ -26,7 +26,6 @@
  */
 package org.opends.server.tasks;
 
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.messages.TaskMessages.*;
@@ -65,11 +64,6 @@ import java.util.List;
  */
 public class ExportTask extends Task
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tasks.ExportTask";
 
 
 
@@ -92,7 +86,6 @@ public class ExportTask extends Task
    */
   @Override public void initializeTask() throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "initializeTask");
 
 
     // If the client connection is available, then make sure the associated
@@ -204,7 +197,6 @@ public class ExportTask extends Task
    */
   protected TaskState runTask()
   {
-    assert debugEnter(CLASS_NAME, "runTask");
 
     // See if there were any user-defined sets of include/exclude attributes or
     // filters.  If so, then process them.

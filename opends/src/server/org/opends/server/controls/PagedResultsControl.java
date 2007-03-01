@@ -22,13 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
-import static org.opends.server.loggers.Debug.debugEnter;
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.protocols.ldap.LDAPResultCode.PROTOCOL_ERROR;
@@ -60,11 +60,6 @@ import java.util.ArrayList;
  */
 public class PagedResultsControl extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.PagedResultsControl";
 
 
   /**
@@ -93,8 +88,6 @@ public class PagedResultsControl extends Control
   {
     super(OID_PAGED_RESULTS_CONTROL, isCritical);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(size),
-                            cookie.toString());
 
     this.size   = size;
     this.cookie = cookie;
@@ -133,7 +126,10 @@ public class PagedResultsControl extends Control
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_PAGED_RESULTS_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -154,7 +150,10 @@ public class PagedResultsControl extends Control
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_PAGED_RESULTS_DECODE_SIZE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -167,7 +166,10 @@ public class PagedResultsControl extends Control
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_PAGED_RESULTS_DECODE_COOKIE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -183,7 +185,6 @@ public class PagedResultsControl extends Control
    */
   public ASN1OctetString encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1Integer(size));

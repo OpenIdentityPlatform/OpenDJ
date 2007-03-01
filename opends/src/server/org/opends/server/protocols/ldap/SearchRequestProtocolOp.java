@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -40,8 +40,10 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.SearchScope;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -57,11 +59,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class SearchRequestProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.SearchRequestProtocolOp";
 
 
 
@@ -111,16 +108,6 @@ public class SearchRequestProtocolOp
                                  boolean typesOnly, LDAPFilter filter,
                                  LinkedHashSet<String> attributes)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(baseDN),
-                            String.valueOf(scope),
-                            String.valueOf(dereferencePolicy),
-                            String.valueOf(sizeLimit),
-                            String.valueOf(timeLimit),
-                            String.valueOf(typesOnly),
-                            String.valueOf(filter),
-                            String.valueOf(attributes)
-    );
 
 
     this.baseDN            = baseDN;
@@ -150,7 +137,6 @@ public class SearchRequestProtocolOp
    */
   public ASN1OctetString getBaseDN()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDN");
 
     return baseDN;
   }
@@ -164,7 +150,6 @@ public class SearchRequestProtocolOp
    */
   public void setBaseDN(ASN1OctetString baseDN)
   {
-    assert debugEnter(CLASS_NAME, "setBaseDN", String.valueOf(baseDN));
 
     this.baseDN = baseDN;
   }
@@ -178,7 +163,6 @@ public class SearchRequestProtocolOp
    */
   public SearchScope getScope()
   {
-    assert debugEnter(CLASS_NAME, "getScope");
 
     return scope;
   }
@@ -192,7 +176,6 @@ public class SearchRequestProtocolOp
    */
   public void setScope(SearchScope scope)
   {
-    assert debugEnter(CLASS_NAME, "setScope", String.valueOf(scope));
 
     this.scope = scope;
   }
@@ -206,7 +189,6 @@ public class SearchRequestProtocolOp
    */
   public DereferencePolicy getDereferencePolicy()
   {
-    assert debugEnter(CLASS_NAME, "getDereferencePolicy");
 
     return dereferencePolicy;
   }
@@ -221,8 +203,6 @@ public class SearchRequestProtocolOp
    */
   public void setDereferencePolicy(DereferencePolicy dereferencePolicy)
   {
-    assert debugEnter(CLASS_NAME, "setDereferencePolicy",
-                      String.valueOf(dereferencePolicy));
 
     this.dereferencePolicy = dereferencePolicy;
   }
@@ -236,7 +216,6 @@ public class SearchRequestProtocolOp
    */
   public int getSizeLimit()
   {
-    assert debugEnter(CLASS_NAME, "getSizeLimit");
 
     return sizeLimit;
   }
@@ -250,7 +229,6 @@ public class SearchRequestProtocolOp
    */
   public void setSizeLimit(int sizeLimit)
   {
-    assert debugEnter(CLASS_NAME, "setSizeLimit", String.valueOf(sizeLimit));
 
     this.sizeLimit = sizeLimit;
   }
@@ -264,7 +242,6 @@ public class SearchRequestProtocolOp
    */
   public int getTimeLimit()
   {
-    assert debugEnter(CLASS_NAME, "getTimeLimit");
 
     return timeLimit;
   }
@@ -278,7 +255,6 @@ public class SearchRequestProtocolOp
    */
   public void setTimeLimit(int timeLimit)
   {
-    assert debugEnter(CLASS_NAME, "setTimeLimit", String.valueOf(timeLimit));
 
     this.timeLimit = timeLimit;
   }
@@ -292,7 +268,6 @@ public class SearchRequestProtocolOp
    */
   public boolean getTypesOnly()
   {
-    assert debugEnter(CLASS_NAME, "getTypesOnly");
 
     return typesOnly;
   }
@@ -306,7 +281,6 @@ public class SearchRequestProtocolOp
    */
   public void setTypesOnly(boolean typesOnly)
   {
-    assert debugEnter(CLASS_NAME, "setTypesOnly", String.valueOf(typesOnly));
 
     this.typesOnly = typesOnly;
   }
@@ -320,7 +294,6 @@ public class SearchRequestProtocolOp
    */
   public LDAPFilter getFilter()
   {
-    assert debugEnter(CLASS_NAME, "getFilter");
 
     return filter;
   }
@@ -334,7 +307,6 @@ public class SearchRequestProtocolOp
    */
   public void setFilter(LDAPFilter filter)
   {
-    assert debugEnter(CLASS_NAME, "setFilter", String.valueOf(filter));
 
     this.filter = filter;
   }
@@ -349,7 +321,6 @@ public class SearchRequestProtocolOp
    */
   public LinkedHashSet<String> getAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributes");
 
     return attributes;
   }
@@ -364,7 +335,6 @@ public class SearchRequestProtocolOp
    */
   public void setAttributes(LinkedHashSet<String> attributes)
   {
-    assert debugEnter(CLASS_NAME, "setAttributes", String.valueOf(attributes));
 
     if (attributes == null)
     {
@@ -385,7 +355,6 @@ public class SearchRequestProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_SEARCH_REQUEST;
   }
@@ -399,7 +368,6 @@ public class SearchRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Search Request";
   }
@@ -414,7 +382,6 @@ public class SearchRequestProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(8);
     elements.add(baseDN);
@@ -452,8 +419,6 @@ public class SearchRequestProtocolOp
   public static SearchRequestProtocolOp decodeSearchRequest(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeSearchRequest",
-                      String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -462,9 +427,12 @@ public class SearchRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REQUEST_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -486,9 +454,12 @@ public class SearchRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REQUEST_DECODE_BASE;
+      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_BASE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -524,9 +495,12 @@ public class SearchRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REQUEST_DECODE_SCOPE;
+      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_SCOPE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -562,9 +536,12 @@ public class SearchRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REQUEST_DECODE_DEREF;
+      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_DEREF;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -577,9 +554,12 @@ public class SearchRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REQUEST_DECODE_SIZE_LIMIT;
+      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_SIZE_LIMIT;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -592,9 +572,12 @@ public class SearchRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REQUEST_DECODE_TIME_LIMIT;
+      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_TIME_LIMIT;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -607,9 +590,12 @@ public class SearchRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REQUEST_DECODE_TYPES_ONLY;
+      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_TYPES_ONLY;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -622,9 +608,12 @@ public class SearchRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REQUEST_DECODE_FILTER;
+      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_FILTER;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -643,9 +632,12 @@ public class SearchRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_SEARCH_REQUEST_DECODE_ATTRIBUTES;
+      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_ATTRIBUTES;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -666,7 +658,6 @@ public class SearchRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("SearchRequest(baseDN=");
     baseDN.toString(buffer);
@@ -711,8 +702,6 @@ public class SearchRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

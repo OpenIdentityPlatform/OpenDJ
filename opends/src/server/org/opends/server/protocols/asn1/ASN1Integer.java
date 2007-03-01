@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -44,11 +43,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class ASN1Integer
        extends ASN1Element
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.asn1.ASN1Integer";
 
 
 
@@ -78,7 +72,6 @@ public class ASN1Integer
   {
     super(UNIVERSAL_INTEGER_TYPE, encodeValue(intValue));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(intValue));
 
     this.intValue = intValue;
   }
@@ -95,8 +88,6 @@ public class ASN1Integer
   {
     super(type, encodeValue(intValue));
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type),
-                            String.valueOf(intValue));
 
     this.intValue = intValue;
   }
@@ -114,8 +105,6 @@ public class ASN1Integer
   {
     super(type, value);
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type), bytesToHex(value),
-                            String.valueOf(intValue));
 
     this.intValue = intValue;
   }
@@ -129,7 +118,6 @@ public class ASN1Integer
    */
   public int intValue()
   {
-    assert debugEnter(CLASS_NAME, "intValue");
 
     return intValue;
   }
@@ -143,7 +131,6 @@ public class ASN1Integer
    */
   public void setValue(int intValue)
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(intValue));
 
     this.intValue = intValue;
     setValueInternal(encodeValue(intValue));
@@ -162,7 +149,6 @@ public class ASN1Integer
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "setValue", bytesToHex(value));
 
     if (value == null)
     {
@@ -202,7 +188,6 @@ public class ASN1Integer
   public static ASN1Integer decodeAsInteger(ASN1Element element)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsInteger", String.valueOf(element));
 
     if (element == null)
     {
@@ -244,8 +229,6 @@ public class ASN1Integer
   public static ASN1Integer decodeAsInteger(byte[] encodedElement)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsInteger",
-                      bytesToHex(encodedElement));
 
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 integer element.
@@ -337,7 +320,6 @@ public class ASN1Integer
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ASN1Integer(type=");
     buffer.append(byteToHex(getType()));
@@ -359,8 +341,6 @@ public class ASN1Integer
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

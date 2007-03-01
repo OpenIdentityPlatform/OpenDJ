@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -32,8 +32,10 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -50,11 +52,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class PasswordExpiringControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.PasswordExpiringControl";
 
 
 
@@ -75,7 +72,6 @@ public class PasswordExpiringControl
     super(OID_NS_PASSWORD_EXPIRING, false,
           new ASN1OctetString(String.valueOf(secondsUntilExpiration)));
 
-    assert debugConstructor(CLASS_NAME);
 
     this.secondsUntilExpiration = secondsUntilExpiration;
   }
@@ -99,8 +95,6 @@ public class PasswordExpiringControl
     super(oid, isCritical,
           new ASN1OctetString(String.valueOf(secondsUntilExpiration)));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical));
 
     this.secondsUntilExpiration = secondsUntilExpiration;
   }
@@ -125,8 +119,6 @@ public class PasswordExpiringControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical));
 
     this.secondsUntilExpiration = secondsUntilExpiration;
   }
@@ -148,7 +140,6 @@ public class PasswordExpiringControl
   public static PasswordExpiringControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
     if (! control.hasValue())
     {
@@ -166,7 +157,10 @@ public class PasswordExpiringControl
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeControl", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -189,7 +183,6 @@ public class PasswordExpiringControl
    */
   public int getSecondsUntilExpiration()
   {
-    assert debugEnter(CLASS_NAME, "getSecondsUntilExpiration");
 
     return secondsUntilExpiration;
   }
@@ -203,7 +196,6 @@ public class PasswordExpiringControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -220,7 +212,6 @@ public class PasswordExpiringControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("PasswordExpiringControl(secondsUntilExpiration=");
     buffer.append(secondsUntilExpiration);

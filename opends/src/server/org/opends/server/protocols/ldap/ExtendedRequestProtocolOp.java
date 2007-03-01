@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -34,13 +34,14 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-
 
 
 /**
@@ -51,11 +52,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class ExtendedRequestProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.ExtendedRequestProtocolOp";
 
 
 
@@ -75,7 +71,6 @@ public class ExtendedRequestProtocolOp
    */
   public ExtendedRequestProtocolOp(String oid)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid));
 
     this.oid   = oid;
     this.value = null;
@@ -92,8 +87,6 @@ public class ExtendedRequestProtocolOp
    */
   public ExtendedRequestProtocolOp(String oid, ASN1OctetString value)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(value));
 
     this.oid   = oid;
     this.value = value;
@@ -108,7 +101,6 @@ public class ExtendedRequestProtocolOp
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return oid;
   }
@@ -122,7 +114,6 @@ public class ExtendedRequestProtocolOp
    */
   public void setOID(String oid)
   {
-    assert debugEnter(CLASS_NAME, "setOID", String.valueOf(oid));
 
     this.oid = oid;
   }
@@ -137,7 +128,6 @@ public class ExtendedRequestProtocolOp
    */
   public ASN1OctetString getValue()
   {
-    assert debugEnter(CLASS_NAME, "getValue");
 
     return value;
   }
@@ -151,7 +141,6 @@ public class ExtendedRequestProtocolOp
    */
   public void setValue(ASN1OctetString value)
   {
-    assert debugEnter(CLASS_NAME, "setValue");
 
     this.value = value;
   }
@@ -165,7 +154,6 @@ public class ExtendedRequestProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_EXTENDED_REQUEST;
   }
@@ -179,7 +167,6 @@ public class ExtendedRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Extended Request";
   }
@@ -194,7 +181,6 @@ public class ExtendedRequestProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1OctetString(TYPE_EXTENDED_REQUEST_OID, oid));
@@ -225,8 +211,6 @@ public class ExtendedRequestProtocolOp
                                                                      element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeExtendedRequest",
-                      String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -235,9 +219,12 @@ public class ExtendedRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeExtendedRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_EXTENDED_REQUEST_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_EXTENDED_REQUEST_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -259,9 +246,12 @@ public class ExtendedRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeExtendedRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_EXTENDED_REQUEST_DECODE_OID;
+      int msgID = MSGID_LDAP_EXTENDED_REQUEST_DECODE_OID;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -276,9 +266,12 @@ public class ExtendedRequestProtocolOp
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "decodeExtendedRequest", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
-        int    msgID   = MSGID_LDAP_EXTENDED_REQUEST_DECODE_VALUE;
+        int msgID = MSGID_LDAP_EXTENDED_REQUEST_DECODE_VALUE;
         String message = getMessage(msgID, String.valueOf(e));
         throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
       }
@@ -302,7 +295,6 @@ public class ExtendedRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ExtendedRequest(oid=");
     buffer.append(oid);
@@ -328,8 +320,6 @@ public class ExtendedRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

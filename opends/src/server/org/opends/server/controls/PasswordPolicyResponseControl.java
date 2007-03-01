@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -40,7 +40,9 @@ import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -56,11 +58,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class PasswordPolicyResponseControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.PasswordPolicyResponseControl";
 
 
 
@@ -97,7 +94,6 @@ public class PasswordPolicyResponseControl
   {
     super(OID_PASSWORD_POLICY_CONTROL, false, encodeValue(null, -1, null));
 
-    assert debugConstructor(CLASS_NAME);
 
     warningType  = null;
     errorType    = null;
@@ -127,9 +123,6 @@ public class PasswordPolicyResponseControl
     super(OID_PASSWORD_POLICY_CONTROL, false,
           encodeValue(warningType, warningValue, errorType));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(warningType),
-                            String.valueOf(warningValue),
-                            String.valueOf(errorType));
 
     this.warningType  = warningType;
     this.warningValue = warningValue;
@@ -161,11 +154,6 @@ public class PasswordPolicyResponseControl
   {
     super(oid, isCritical, encodeValue(warningType, warningValue, errorType));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(warningType),
-                            String.valueOf(warningValue),
-                            String.valueOf(errorType));
 
     this.warningType  = warningType;
     this.warningValue = warningValue;
@@ -199,11 +187,6 @@ public class PasswordPolicyResponseControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(warningType),
-                            String.valueOf(warningValue),
-                            String.valueOf(errorType));
 
     this.warningType  = warningType;
     this.warningValue = warningValue;
@@ -232,8 +215,6 @@ public class PasswordPolicyResponseControl
                                       int warningValue,
                                       PasswordPolicyErrorType errorType)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue", String.valueOf(warningType),
-                      String.valueOf(warningValue), String.valueOf(errorType));
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
 
@@ -273,7 +254,6 @@ public class PasswordPolicyResponseControl
   public static PasswordPolicyResponseControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
 
     ASN1OctetString controlValue = control.getValue();
@@ -344,7 +324,10 @@ public class PasswordPolicyResponseControl
     }
     catch (ASN1Exception ae)
     {
-      assert debugException(CLASS_NAME, "decodeControl", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
 
       int    msgID   = MSGID_PWPOLICYRES_DECODE_ERROR;
       String message = getMessage(msgID, ae.getMessage());
@@ -352,7 +335,10 @@ public class PasswordPolicyResponseControl
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeControl", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_PWPOLICYRES_DECODE_ERROR;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -370,7 +356,6 @@ public class PasswordPolicyResponseControl
    */
   public PasswordPolicyWarningType getWarningType()
   {
-    assert debugEnter(CLASS_NAME, "getWarningType");
 
     return warningType;
   }
@@ -385,7 +370,6 @@ public class PasswordPolicyResponseControl
    */
   public int getWarningValue()
   {
-    assert debugEnter(CLASS_NAME, "getWarningValue");
 
     return warningValue;
   }
@@ -400,7 +384,6 @@ public class PasswordPolicyResponseControl
    */
   public PasswordPolicyErrorType getErrorType()
   {
-    assert debugEnter(CLASS_NAME, "getErrorType");
 
     return errorType;
   }
@@ -414,7 +397,6 @@ public class PasswordPolicyResponseControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -431,7 +413,6 @@ public class PasswordPolicyResponseControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("PasswordPolicyResponseControl(");
 

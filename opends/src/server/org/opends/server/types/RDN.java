@@ -37,7 +37,9 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -52,11 +54,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class RDN
        implements Comparable<RDN>
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.RDN";
 
 
 
@@ -91,8 +88,6 @@ public class RDN
   public RDN(AttributeType attributeType,
              AttributeValue attributeValue)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(attributeType),
-                            String.valueOf(attributeValue));
 
     attributeTypes  = new AttributeType[] { attributeType };
     attributeNames  = new String[] { attributeType.getPrimaryName() };
@@ -118,9 +113,6 @@ public class RDN
   public RDN(AttributeType attributeType, String attributeName,
              AttributeValue attributeValue)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(attributeType),
-                            String.valueOf(attributeName),
-                            String.valueOf(attributeValue));
 
     attributeTypes  = new AttributeType[] { attributeType };
     attributeNames  = new String[] { attributeName };
@@ -151,10 +143,6 @@ public class RDN
              List<String> attributeNames,
              List<AttributeValue> attributeValues)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(attributeTypes),
-                            String.valueOf(attributeNames),
-                            String.valueOf(attributeValues));
 
     this.attributeTypes  = new AttributeType[attributeTypes.size()];
     this.attributeNames  = new String[attributeNames.size()];
@@ -188,10 +176,6 @@ public class RDN
   public RDN(AttributeType[] attributeTypes, String[] attributeNames,
              AttributeValue[] attributeValues)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(attributeTypes),
-                            String.valueOf(attributeNames),
-                            String.valueOf(attributeValues));
 
     this.numValues       = attributeTypes.length;
     this.attributeTypes  = attributeTypes;
@@ -217,9 +201,6 @@ public class RDN
   public static RDN create(AttributeType attributeType,
                            AttributeValue attributeValue)
   {
-    assert debugEnter(CLASS_NAME, "create",
-                      String.valueOf(attributeType),
-                      String.valueOf(attributeValue));
 
     return new RDN(attributeType, attributeValue);
   }
@@ -235,7 +216,6 @@ public class RDN
    */
   public int getNumValues()
   {
-    assert debugEnter(CLASS_NAME, "getNumValues");
 
     return numValues;
   }
@@ -253,8 +233,6 @@ public class RDN
    */
   public boolean hasAttributeType(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "hasAttributeType",
-                      String.valueOf(attributeType));
 
     for (AttributeType t : attributeTypes)
     {
@@ -281,8 +259,6 @@ public class RDN
    */
   public boolean hasAttributeType(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "hasAttributeType",
-                      String.valueOf(lowerName));
 
     for (AttributeType t : attributeTypes)
     {
@@ -316,8 +292,6 @@ public class RDN
    */
   public AttributeType getAttributeType(int pos)
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType",
-                      String.valueOf(pos));
 
     return attributeTypes[pos];
   }
@@ -336,8 +310,6 @@ public class RDN
    */
   public String getAttributeName(int pos)
   {
-    assert debugEnter(CLASS_NAME, "getAttributeName",
-                      String.valueOf(pos));
 
     return attributeNames[pos];
   }
@@ -357,8 +329,6 @@ public class RDN
    */
   public AttributeValue getAttributeValue(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "getAttributeValue",
-                      String.valueOf(attributeType));
 
     for (int i=0; i < numValues; i++)
     {
@@ -385,8 +355,6 @@ public class RDN
    */
   public AttributeValue getAttributeValue(int pos)
   {
-    assert debugEnter(CLASS_NAME, "getAttributeName",
-                      String.valueOf(pos));
 
     return attributeValues[pos];
   }
@@ -401,7 +369,6 @@ public class RDN
    */
   public boolean isMultiValued()
   {
-    assert debugEnter(CLASS_NAME, "isMultiValued");
 
     return (numValues > 1);
   }
@@ -421,8 +388,6 @@ public class RDN
    */
   public boolean hasValue(AttributeType type, AttributeValue value)
   {
-    assert debugEnter(CLASS_NAME, "hasValue", String.valueOf(type),
-                      String.valueOf(value));
 
     for (int i=0; i < numValues; i++)
     {
@@ -453,8 +418,6 @@ public class RDN
   boolean addValue(AttributeType type, String name,
                    AttributeValue value)
   {
-    assert debugEnter(CLASS_NAME, "addValue", String.valueOf(type),
-                      String.valueOf(name), String.valueOf(value));
 
     for (int i=0; i < numValues; i++)
     {
@@ -506,8 +469,6 @@ public class RDN
   public static RDN decode(String rdnString)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decode",
-                      String.valueOf(rdnString));
 
 
     // A null or empty RDN is not acceptable.
@@ -886,7 +847,6 @@ public class RDN
    */
   public RDN duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     AttributeType[] newTypes = new AttributeType[numValues];
     System.arraycopy(attributeTypes, 0, newTypes, 0, numValues);
@@ -916,7 +876,6 @@ public class RDN
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (this == o)
     {
@@ -942,7 +901,6 @@ public class RDN
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     return toNormalizedString().hashCode();
   }
@@ -989,8 +947,6 @@ public class RDN
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append(toString());
   }
@@ -1023,8 +979,6 @@ public class RDN
    */
   public void toNormalizedString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toNormalizedString",
-                      "java.lang.StringBuilder");
 
     if (normalizedRDN != null)
     {
@@ -1046,7 +1000,10 @@ public class RDN
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "toNormalizedString", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         buffer.append(attributeValues[0].getStringValue());
       }
@@ -1067,7 +1024,10 @@ public class RDN
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "toNormalizedString", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           b2.append(attributeValues[i].getStringValue());
         }
@@ -1106,7 +1066,6 @@ public class RDN
    */
   public int compareTo(RDN rdn)
   {
-    assert debugEnter(CLASS_NAME, "compareTo", String.valueOf(rdn));
 
     if ((attributeTypes.length == 1) &&
         (rdn.attributeTypes.length == 1))
@@ -1126,11 +1085,14 @@ public class RDN
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "compareTo", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             return attributeValues[0].getStringValue().
-                        compareTo(rdn.attributeValues[0].
-                             getStringValue());
+                compareTo(rdn.attributeValues[0].
+                    getStringValue());
           }
         }
         else
@@ -1143,11 +1105,14 @@ public class RDN
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "compareTo", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             return omr.compareValues(
-                        attributeValues[0].getValue(),
-                        rdn.attributeValues[0].getValue());
+                attributeValues[0].getValue(),
+                rdn.attributeValues[0].getValue());
           }
         }
       }
@@ -1214,11 +1179,14 @@ public class RDN
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "compareTo", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             valueComparison =
-                 value1.getStringValue().compareTo(
-                      value2.getStringValue());
+                value1.getStringValue().compareTo(
+                    value2.getStringValue());
           }
         }
         else
@@ -1231,11 +1199,14 @@ public class RDN
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "compareTo", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             valueComparison =
-                 omr.compareValues(value1.getValue(),
-                                   value2.getValue());
+                omr.compareValues(value1.getValue(),
+                                  value2.getValue());
           }
         }
 

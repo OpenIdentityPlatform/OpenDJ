@@ -82,7 +82,9 @@ import org.opends.server.types.operation.PreParseModifyDNOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -100,11 +102,6 @@ public class ModifyDNOperation
        implements PreParseModifyDNOperation, PreOperationModifyDNOperation,
                   PostOperationModifyDNOperation, PostResponseModifyDNOperation
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.ModifyDNOperation";
 
 
 
@@ -183,18 +180,6 @@ public class ModifyDNOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(rawEntryDN),
-                              String.valueOf(rawNewRDN),
-                              String.valueOf(deleteOldRDN),
-                              String.valueOf(rawNewSuperior)
-                            });
 
     this.rawEntryDN      = rawEntryDN;
     this.rawNewRDN       = rawNewRDN;
@@ -237,18 +222,6 @@ public class ModifyDNOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(entryDN),
-                              String.valueOf(newRDN),
-                              String.valueOf(deleteOldRDN),
-                              String.valueOf(newSuperior)
-                            });
 
     this.entryDN      = entryDN;
     this.newRDN       = newRDN;
@@ -286,7 +259,6 @@ public class ModifyDNOperation
    */
   public final ByteString getRawEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getRawEntryDN");
 
     return rawEntryDN;
   }
@@ -302,7 +274,6 @@ public class ModifyDNOperation
    */
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "setRawEntryDN");
 
     this.rawEntryDN = rawEntryDN;
 
@@ -321,7 +292,6 @@ public class ModifyDNOperation
    */
   public final DN getEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getEntryDN");
 
     return entryDN;
   }
@@ -338,7 +308,6 @@ public class ModifyDNOperation
    */
   public final ByteString getRawNewRDN()
   {
-    assert debugEnter(CLASS_NAME, "getRawNewRDN");
 
     return rawNewRDN;
   }
@@ -355,7 +324,6 @@ public class ModifyDNOperation
    */
   public final void setRawNewRDN(ByteString rawNewRDN)
   {
-    assert debugEnter(CLASS_NAME, "setRawNewRDN", String.valueOf(rawNewRDN));
 
     this.rawNewRDN = rawNewRDN;
 
@@ -374,7 +342,6 @@ public class ModifyDNOperation
    */
   public final RDN getNewRDN()
   {
-    assert debugEnter(CLASS_NAME, "getNewRDN");
 
     return newRDN;
   }
@@ -389,7 +356,6 @@ public class ModifyDNOperation
    */
   public final boolean deleteOldRDN()
   {
-    assert debugEnter(CLASS_NAME, "deleteOldRDN");
 
     return deleteOldRDN;
   }
@@ -404,8 +370,6 @@ public class ModifyDNOperation
    */
   public final void setDeleteOldRDN(boolean deleteOldRDN)
   {
-    assert debugEnter(CLASS_NAME, "setDeleteOldRDN",
-                      String.valueOf(deleteOldRDN));
 
     this.deleteOldRDN = deleteOldRDN;
   }
@@ -422,7 +386,6 @@ public class ModifyDNOperation
    */
   public final ByteString getRawNewSuperior()
   {
-    assert debugEnter(CLASS_NAME, "getRawNewSuperior");
 
     return rawNewSuperior;
   }
@@ -439,8 +402,6 @@ public class ModifyDNOperation
    */
   public final void setRawNewSuperior(ByteString rawNewSuperior)
   {
-    assert debugEnter(CLASS_NAME, "setRawNewSuperior",
-                      String.valueOf(rawNewSuperior));
 
     this.rawNewSuperior = rawNewSuperior;
 
@@ -461,7 +422,6 @@ public class ModifyDNOperation
    */
   public final DN getNewSuperior()
   {
-    assert debugEnter(CLASS_NAME, "getNewSuperior");
 
     return newSuperior;
   }
@@ -487,7 +447,6 @@ public class ModifyDNOperation
    */
   public final List<Modification> getModifications()
   {
-    assert debugEnter(CLASS_NAME, "getModifications");
 
     return modifications;
   }
@@ -504,8 +463,6 @@ public class ModifyDNOperation
    */
   public final void addModification(Modification modification)
   {
-    assert debugEnter(CLASS_NAME, "addModification",
-                      String.valueOf(modification));
 
     modifications.add(modification);
   }
@@ -522,7 +479,6 @@ public class ModifyDNOperation
    */
   public final Entry getOriginalEntry()
   {
-    assert debugEnter(CLASS_NAME, "getOriginalEntry");
 
     return currentEntry;
   }
@@ -539,7 +495,6 @@ public class ModifyDNOperation
    */
   public final Entry getUpdatedEntry()
   {
-    assert debugEnter(CLASS_NAME, "getUpdatedEntry");
 
     return newEntry;
   }
@@ -552,7 +507,6 @@ public class ModifyDNOperation
   @Override()
   public final long getProcessingStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
     return processingStartTime;
   }
@@ -565,7 +519,6 @@ public class ModifyDNOperation
   @Override()
   public final long getProcessingStopTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
     return processingStopTime;
   }
@@ -578,7 +531,6 @@ public class ModifyDNOperation
   @Override()
   public final long getProcessingTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingTime");
 
     return (processingStopTime - processingStartTime);
   }
@@ -594,7 +546,6 @@ public class ModifyDNOperation
    */
   public final long getChangeNumber()
   {
-    assert debugEnter(CLASS_NAME, "getChangeNumber");
 
     return changeNumber;
   }
@@ -610,8 +561,6 @@ public class ModifyDNOperation
    */
   public final void setChangeNumber(long changeNumber)
   {
-    assert debugEnter(CLASS_NAME, "setChangeNumber",
-                      String.valueOf(changeNumber));
 
     this.changeNumber = changeNumber;
   }
@@ -756,7 +705,6 @@ public class ModifyDNOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-    assert debugEnter(CLASS_NAME, "getResponseControls");
 
     return responseControls;
   }
@@ -791,7 +739,6 @@ public class ModifyDNOperation
   @Override()
   public final void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     setResultCode(ResultCode.UNDEFINED);
 
@@ -871,7 +818,10 @@ modifyDNProcessing:
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "run", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         setResultCode(de.getResultCode());
         appendErrorMessage(de.getErrorMessage());
@@ -889,7 +839,10 @@ modifyDNProcessing:
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "run", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         setResultCode(de.getResultCode());
         appendErrorMessage(de.getErrorMessage());
@@ -913,7 +866,10 @@ modifyDNProcessing:
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "run", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           setResultCode(de.getResultCode());
           appendErrorMessage(de.getErrorMessage());
@@ -1020,7 +976,10 @@ modifyDNProcessing:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         LockManager.unlock(entryDN, currentLock);
 
@@ -1073,7 +1032,10 @@ modifyDNProcessing:
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "run", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           setResultCode(de.getResultCode());
           appendErrorMessage(de.getErrorMessage());
@@ -1099,7 +1061,10 @@ modifyDNProcessing:
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "run", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               break;
             }
 
@@ -1130,7 +1095,10 @@ modifyDNProcessing:
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "run", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
                      ErrorLogSeverity.SEVERE_ERROR,
@@ -1173,7 +1141,10 @@ modifyDNProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -1199,7 +1170,10 @@ modifyDNProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 setResultCode(ResultCode.PROTOCOL_ERROR);
 
@@ -1229,7 +1203,10 @@ modifyDNProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -1253,7 +1230,10 @@ modifyDNProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -1288,7 +1268,10 @@ modifyDNProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -1305,7 +1288,10 @@ modifyDNProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 setResultCode(de.getResultCode());
                 appendErrorMessage(de.getErrorMessage());
@@ -1342,7 +1328,10 @@ modifyDNProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -1359,7 +1348,10 @@ modifyDNProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 setResultCode(de.getResultCode());
                 appendErrorMessage(de.getErrorMessage());
@@ -1655,7 +1647,10 @@ modifyDNProcessing:
                 }
                 catch (Exception e)
                 {
-                  assert debugException(CLASS_NAME, "run", e);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, e);
+                  }
 
                   setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
@@ -1696,7 +1691,10 @@ modifyDNProcessing:
                 }
                 catch (Exception e)
                 {
-                  assert debugException(CLASS_NAME, "run", e);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, e);
+                  }
 
                   setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
@@ -1822,7 +1820,10 @@ modifyDNProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 logError(ErrorLogCategory.SYNCHRONIZATION,
                          ErrorLogSeverity.SEVERE_ERROR,
@@ -1943,7 +1944,10 @@ modifyDNProcessing:
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "run", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           setResultCode(de.getResultCode());
           appendErrorMessage(de.getErrorMessage());
@@ -1954,7 +1958,10 @@ modifyDNProcessing:
         }
         catch (CancelledOperationException coe)
         {
-          assert debugException(CLASS_NAME, "run", coe);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, coe);
+          }
 
           CancelResult cancelResult = coe.getCancelResult();
 
@@ -1984,7 +1991,10 @@ modifyDNProcessing:
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "run", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
                      ErrorLogSeverity.SEVERE_ERROR,
@@ -2035,7 +2045,10 @@ modifyDNProcessing:
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "run", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -2070,7 +2083,10 @@ modifyDNProcessing:
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "run", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_PERSISTENT_SEARCH;
           String message = getMessage(msgID, String.valueOf(persistentSearch),
@@ -2096,7 +2112,6 @@ modifyDNProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
     this.cancelRequest = cancelRequest;
 
@@ -2111,7 +2126,10 @@ modifyDNProcessing:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "cancel", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       cancelResult = getCancelResult();
@@ -2137,7 +2155,6 @@ modifyDNProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-    assert debugEnter(CLASS_NAME, "getCancelRequest");
 
     return cancelRequest;
   }
@@ -2150,8 +2167,6 @@ modifyDNProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "setCancelRequest",
-                      String.valueOf(cancelRequest));
 
     this.cancelRequest = cancelRequest;
     return true;
@@ -2165,7 +2180,6 @@ modifyDNProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ModifyDNOperation(connID=");
     buffer.append(clientConnection.getConnectionID());

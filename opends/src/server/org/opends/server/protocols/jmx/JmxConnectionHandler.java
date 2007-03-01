@@ -27,9 +27,9 @@
 package org.opends.server.protocols.jmx;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -74,7 +74,7 @@ public class JmxConnectionHandler
     extends ConnectionHandler implements ConfigurableComponent, AlertGenerator
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
     "org.opends.server.protocols.jmx.JMXConnectionHandler";
@@ -200,7 +200,6 @@ public class JmxConnectionHandler
   {
     super("JMX Connection Handler Thread");
 
-    assert debugConstructor(CLASS_NAME);
 
     // No real implementation is required. Do all the work in the
     // initializeConnectionHandler method.
@@ -223,8 +222,6 @@ public class JmxConnectionHandler
   public void initializeConnectionHandler(ConfigEntry configEntry)
       throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeConnectionHandler", String
-        .valueOf(configEntry));
 
     //
     // If the initializeConnectionHandler method is called,
@@ -324,7 +321,6 @@ public class JmxConnectionHandler
   public void finalizeConnectionHandler(
       String finalizeReason, boolean closeConnections)
   {
-    assert debugEnter(CLASS_NAME, "finalizeConnectionHandler");
 
     // We should also close the RMI registry.
     rmiConnector.finalizeConnectionHandler(closeConnections, true);
@@ -335,7 +331,6 @@ public class JmxConnectionHandler
    */
   public String getConnectionHandlerName()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionHandlerName");
 
     return connectionHandlerName;
   }
@@ -345,7 +340,6 @@ public class JmxConnectionHandler
    */
   public String getProtocol()
   {
-    assert debugEnter(CLASS_NAME, "getProtocol");
 
     return protocol;
   }
@@ -355,7 +349,6 @@ public class JmxConnectionHandler
    */
   public Collection<HostPort> getListeners()
   {
-    assert debugEnter(CLASS_NAME, "getListeners");
 
     return listeners;
   }
@@ -369,7 +362,6 @@ public class JmxConnectionHandler
    */
   public Collection<ClientConnection> getClientConnections()
   {
-    assert debugEnter(CLASS_NAME, "getClientConnections");
     return connectionList;
   }
 
@@ -388,7 +380,6 @@ public class JmxConnectionHandler
    */
   public String getShutdownListenerName()
   {
-    assert debugEnter(CLASS_NAME, "getShutdownListenerName");
 
     return handlerName;
   }
@@ -403,7 +394,6 @@ public class JmxConnectionHandler
    */
   public void processServerShutdown(String reason)
   {
-    assert debugEnter(CLASS_NAME, "processServerShutdown");
     //  We should also close the RMI registry.
     rmiConnector.finalizeConnectionHandler(true, true);
 
@@ -418,7 +408,6 @@ public class JmxConnectionHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -432,7 +421,6 @@ public class JmxConnectionHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     return configAttrs;
 
@@ -457,8 +445,6 @@ public class JmxConnectionHandler
   public boolean hasAcceptableConfiguration(
       ConfigEntry configEntry, List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration", String
-        .valueOf(configEntry), "java.util.List<String>");
 
     boolean configValid = true;
 
@@ -540,7 +526,10 @@ public class JmxConnectionHandler
     catch (Exception e)
     {
       configValid = false;
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       int msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME;
       unacceptableReasons.add(getMessage(
           msgID,
@@ -573,8 +562,6 @@ public class JmxConnectionHandler
   public ConfigChangeResult applyNewConfiguration(
       ConfigEntry configEntry, boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration", String
-        .valueOf(configEntry), String.valueOf(detailedResults));
 
     //
     // Create variables to include in the response.
@@ -636,7 +623,10 @@ public class JmxConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       int msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME;
       messages.add(getMessage(
           msgID,
@@ -686,7 +676,10 @@ public class JmxConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       int msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
       messages.add(getMessage(
           msgID,
@@ -829,7 +822,6 @@ public class JmxConnectionHandler
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append(handlerName);
   }
@@ -843,7 +835,6 @@ public class JmxConnectionHandler
    */
   public DN getComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getComponentEntryDN");
 
     return configEntryDN;
   }
@@ -857,7 +848,6 @@ public class JmxConnectionHandler
    */
   public String getClassName()
   {
-    assert debugEnter(CLASS_NAME, "getClassName");
 
     return CLASS_NAME;
   }
@@ -874,7 +864,6 @@ public class JmxConnectionHandler
    */
   public LinkedHashMap<String, String> getAlerts()
   {
-    assert debugEnter(CLASS_NAME, "getAlerts");
 
     LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
 
@@ -918,13 +907,19 @@ public class JmxConnectionHandler
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
       throw ce;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_NO_ENABLED_ATTR;
       String message = getMessage(
@@ -976,13 +971,19 @@ public class JmxConnectionHandler
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
       throw ce;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_LISTEN_PORT;
       String message = getMessage(
@@ -1027,7 +1028,10 @@ public class JmxConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL;
       String message = getMessage(
@@ -1070,7 +1074,10 @@ public class JmxConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME;
       String message = getMessage(
@@ -1105,7 +1112,10 @@ public class JmxConnectionHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
       String message = getMessage(

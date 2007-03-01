@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
@@ -114,48 +114,6 @@ public class DirectoryLogLevel extends Level
      */
     public static final Level STARTUP_DEBUG = new DirectoryLogLevel(
          "STARTUP", CoreMessages.MSGID_ERROR_SEVERITY_STARTUP_DEBUG);
-
-
-
-    /**
-     * The log level that will be used for verbose messages.
-     */
-    public static final Level VERBOSE = new DirectoryLogLevel(
-         "VERBOSE", CoreMessages.MSGID_DEBUG_SEVERITY_VERBOSE);
-
-
-
-    /**
-     * The log level that will be used for informational messages.
-     */
-    public static final Level INFO = new DirectoryLogLevel(
-         "INFO", CoreMessages.MSGID_DEBUG_SEVERITY_INFO);
-
-
-
-    /**
-     * The log level that will be used for warning messages.
-     */
-    public static final Level WARNING = new DirectoryLogLevel(
-         "WARNING", CoreMessages.MSGID_DEBUG_SEVERITY_WARNING);
-
-
-
-    /**
-     * The log level that will be used for error messages.
-     */
-    public static final Level ERROR = new DirectoryLogLevel(
-         "ERROR", CoreMessages.MSGID_DEBUG_SEVERITY_ERROR);
-
-
-
-    /**
-     * The log level that will be used for messages related to client
-     * communication.
-     */
-    public static final Level COMMUNICATION = new DirectoryLogLevel(
-         "COMMUNICATION", CoreMessages.MSGID_DEBUG_SEVERITY_COMMUNICATION);
-
 
 
     /**

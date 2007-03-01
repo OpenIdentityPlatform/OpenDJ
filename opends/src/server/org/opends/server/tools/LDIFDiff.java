@@ -89,7 +89,7 @@ import static org.opends.server.messages.ToolMessages.*;
 public class LDIFDiff
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME = "org.opends.server.tools.LDIFDiff";
 

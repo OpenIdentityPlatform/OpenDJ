@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -39,7 +39,6 @@ import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -53,11 +52,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class WhoAmIExtendedOperation
        extends ExtendedOperationHandler
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.WhoAmIExtendedOperation";
 
 
 
@@ -70,7 +64,6 @@ public class WhoAmIExtendedOperation
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -95,8 +88,6 @@ public class WhoAmIExtendedOperation
   public void initializeExtendedOperationHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeExtendedOperationHandler",
-                      String.valueOf(configEntry));
 
     // No special configuration is required.
 
@@ -111,7 +102,6 @@ public class WhoAmIExtendedOperation
    */
   public void finalizeExtendedOperationHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeExtendedOperationHandler");
 
     DirectoryServer.deregisterSupportedExtension(OID_WHO_AM_I_REQUEST);
   }
@@ -125,8 +115,6 @@ public class WhoAmIExtendedOperation
    */
   public void processExtendedOperation(ExtendedOperation operation)
   {
-    assert debugEnter(CLASS_NAME, "processExtendedOperation",
-                      String.valueOf(operation));
 
 
     // Get the client connection and determine the DN of the user associated
@@ -142,7 +130,6 @@ public class WhoAmIExtendedOperation
       return;
     }
 
-
     // Get the auth info from the client connection.
     AuthenticationInfo authInfo = clientConnection.getAuthenticationInfo();
     if ((authInfo == null) || (authInfo.getAuthenticationDN() == null))
@@ -153,7 +140,6 @@ public class WhoAmIExtendedOperation
       operation.setResponseValue(new ASN1OctetString());
       return;
     }
-
 
     // Get the DN of the authenticated user and put that in the response.
     // FIXME -- Do we need to support the use of an authorization ID that is

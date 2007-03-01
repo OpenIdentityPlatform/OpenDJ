@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -31,7 +31,6 @@ package org.opends.server.api;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -58,11 +57,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class DirectoryThread
        extends Thread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.DirectoryThread";
 
 
 
@@ -90,7 +84,6 @@ public class DirectoryThread
     super (DirectoryServer.getDirectoryThreadGroup(), target,
            threadName);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(threadName));
 
     init();
   }
@@ -106,7 +99,6 @@ public class DirectoryThread
   {
     super(DirectoryServer.getDirectoryThreadGroup(), threadName);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(threadName));
 
     init();
   }
@@ -126,8 +118,6 @@ public class DirectoryThread
   {
     super(threadGroup, threadName);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(threadGroup),
-                            String.valueOf(threadName));
 
     init();
   }
@@ -175,7 +165,6 @@ public class DirectoryThread
    */
   public StackTraceElement[] getCreationStackTrace()
   {
-    assert debugEnter(CLASS_NAME, "getCreationStackTrace");
 
     return creationStackTrace;
   }
@@ -192,7 +181,6 @@ public class DirectoryThread
    */
   public Thread getParentThread()
   {
-    assert debugEnter(CLASS_NAME, "getParentThread");
 
     return parentThread;
   }
@@ -209,7 +197,6 @@ public class DirectoryThread
    */
   public Task getAssociatedTask()
   {
-    assert debugEnter(CLASS_NAME, "getAssociatedTask");
 
     return task;
   }
@@ -225,7 +212,6 @@ public class DirectoryThread
    */
   public void setAssociatedTask(Task task)
   {
-    assert debugEnter(CLASS_NAME, "setAssociatedTask");
 
     this.task = task;
   }

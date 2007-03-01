@@ -22,14 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
-
-
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.util.Validator.*;
 
 import java.util.ArrayList;
@@ -49,11 +45,6 @@ import org.opends.server.types.DN;
  */
 public final class ModifyChangeRecordEntry extends ChangeRecordEntry
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-      "org.opends.server.util.ModifyChangeRecordEntry";
 
 
   /**
@@ -76,8 +67,6 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
   {
     super(dn);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-        String.valueOf(modifications));
 
     ensureNotNull(modifications);
 
@@ -94,7 +83,6 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
    */
   public List<LDAPModification> getModifications()
   {
-    assert debugEnter(CLASS_NAME, "getModifications");
 
     return Collections.unmodifiableList(modifications);
   }
@@ -108,7 +96,6 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
    */
   public ChangeOperationType getChangeOperationType()
   {
-    assert debugEnter(CLASS_NAME, "getChangeOperationType");
 
     return ChangeOperationType.MODIFY;
   }

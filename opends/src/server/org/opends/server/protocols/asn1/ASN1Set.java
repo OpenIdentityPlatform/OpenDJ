@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
@@ -31,7 +31,6 @@ package org.opends.server.protocols.asn1;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -47,11 +46,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class ASN1Set
        extends ASN1Element
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.asn1.ASN1Set";
 
 
 
@@ -78,7 +72,6 @@ public class ASN1Set
   {
     super(UNIVERSAL_SET_TYPE);
 
-    assert debugConstructor(CLASS_NAME);
 
     this.elements = new ArrayList<ASN1Element>();
   }
@@ -94,7 +87,6 @@ public class ASN1Set
   {
     super(type);
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type));
 
     this.elements = new ArrayList<ASN1Element>();
   }
@@ -111,7 +103,6 @@ public class ASN1Set
   {
     super(UNIVERSAL_SET_TYPE, encodeValue(elements));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(elements));
 
     if (elements == null)
     {
@@ -136,8 +127,6 @@ public class ASN1Set
   {
     super(type, encodeValue(elements));
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type),
-                            String.valueOf(elements));
 
     if (elements == null)
     {
@@ -163,8 +152,6 @@ public class ASN1Set
   {
     super(type, value);
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type), bytesToHex(value),
-                            String.valueOf(elements));
 
     if (elements == null)
     {
@@ -186,7 +173,6 @@ public class ASN1Set
    */
   public ArrayList<ASN1Element> elements()
   {
-    assert debugEnter(CLASS_NAME, "elements");
 
     return elements;
   }
@@ -200,7 +186,6 @@ public class ASN1Set
    */
   public void setElements(ArrayList<ASN1Element> elements)
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(elements));
 
     if (elements == null)
     {
@@ -227,7 +212,6 @@ public class ASN1Set
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "setValue", bytesToHex(value));
 
     if (value == null)
     {
@@ -255,7 +239,6 @@ public class ASN1Set
   public static ASN1Set decodeAsSet(ASN1Element element)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsSet", String.valueOf(element));
 
     if (element == null)
     {
@@ -284,8 +267,6 @@ public class ASN1Set
   public static ASN1Set decodeAsSet(byte[] encodedElement)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsSet",
-                      bytesToHex(encodedElement));
 
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 set element.
@@ -363,7 +344,6 @@ public class ASN1Set
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ASN1Set(type=");
     buffer.append(byteToHex(getType()));
@@ -398,8 +378,6 @@ public class ASN1Set
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

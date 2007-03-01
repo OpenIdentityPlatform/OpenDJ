@@ -39,7 +39,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.Validator.*;
@@ -54,11 +56,6 @@ import static org.opends.server.util.Validator.*;
 public class SimpleStaticGroupMemberList
        extends MemberList
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.SimpleStaticGroupMemberList";
 
 
 
@@ -85,7 +82,6 @@ public class SimpleStaticGroupMemberList
    */
   public SimpleStaticGroupMemberList(DN groupDN, Set<DN> memberDNs)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(memberDNs));
 
     ensureNotNull(groupDN, memberDNs);
 
@@ -102,7 +98,6 @@ public class SimpleStaticGroupMemberList
   @Override()
   public boolean hasMoreMembers()
   {
-    assert debugEnter(CLASS_NAME, "hasMoreMembers");
 
     return memberDNIterator.hasNext();
   }
@@ -116,7 +111,6 @@ public class SimpleStaticGroupMemberList
   public DN nextMemberDN()
          throws MembershipException
   {
-    assert debugEnter(CLASS_NAME, "nextMemberDN");
 
     if (memberDNIterator.hasNext())
     {
@@ -135,7 +129,6 @@ public class SimpleStaticGroupMemberList
   public Entry nextMemberEntry()
          throws MembershipException
   {
-    assert debugEnter(CLASS_NAME, "nextMemberEntry");
 
     if (memberDNIterator.hasNext())
     {
@@ -156,7 +149,10 @@ public class SimpleStaticGroupMemberList
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "nextMemberEntry", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         int    msgID   = MSGID_STATICMEMBERS_CANNOT_GET_ENTRY;
         String message = getMessage(msgID, String.valueOf(memberDN),
@@ -177,7 +173,6 @@ public class SimpleStaticGroupMemberList
   @Override()
   public void close()
   {
-    assert debugEnter(CLASS_NAME, "close");
 
     // No implementation is required.
   }

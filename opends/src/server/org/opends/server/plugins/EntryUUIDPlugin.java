@@ -52,7 +52,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.operation.PreOperationAddOperation;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -71,11 +70,6 @@ import static org.opends.server.util.StaticUtils.*;
 public final class EntryUUIDPlugin
        extends DirectoryServerPlugin
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.plugins.EntryUUIDPlugin";
 
 
 
@@ -101,7 +95,6 @@ public final class EntryUUIDPlugin
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
 
     // Get the entryUUID attribute type.  This needs to be done in the
@@ -136,9 +129,6 @@ public final class EntryUUIDPlugin
                                      ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(pluginTypes),
-                      String.valueOf(configEntry));
 
 
     // Make sure that the plugin has been enabled for the appropriate types.
@@ -169,8 +159,6 @@ public final class EntryUUIDPlugin
   public final LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
                                              Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "doLDIFImport",
-                      String.valueOf(importConfig), String.valueOf(entry));
 
 
     // See if the entry being imported already contains an entryUUID attribute.
@@ -211,8 +199,6 @@ public final class EntryUUIDPlugin
   public final PreOperationPluginResult
        doPreOperation(PreOperationAddOperation addOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(addOperation));
 
 
     // See if the entry being added already contains an entryUUID attribute.

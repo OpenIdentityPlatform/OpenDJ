@@ -42,7 +42,12 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -58,11 +63,6 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class SearchFilter
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.SearchFilter";
 
 
 
@@ -139,21 +139,6 @@ public class SearchFilter
                       ByteString subFinalElement,
                       String matchingRuleID, boolean dnAttributes)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(filterType),
-                              String.valueOf(filterComponents),
-                              String.valueOf(notComponent),
-                              String.valueOf(attributeType),
-                              String.valueOf(attributeOptions),
-                              String.valueOf(assertionValue),
-                              String.valueOf(subInitialElement),
-                              String.valueOf(subAnyElements),
-                              String.valueOf(subFinalElement),
-                              String.valueOf(matchingRuleID),
-                              String.valueOf(dnAttributes)
-                            });
 
     // This used to happen in getSubAnyElements, but we do it here
     // so that we can make this.subAnyElements final.
@@ -193,8 +178,6 @@ public class SearchFilter
   public static SearchFilter createANDFilter(List<SearchFilter>
                                                   filterComponents)
   {
-    assert debugEnter(CLASS_NAME, "createANDFilter",
-                      String.valueOf(filterComponents));
 
     return new SearchFilter(FilterType.AND, filterComponents, null,
                             null, null, null, null, null, null, null,
@@ -214,8 +197,6 @@ public class SearchFilter
   public static SearchFilter createORFilter(List<SearchFilter>
                                                  filterComponents)
   {
-    assert debugEnter(CLASS_NAME, "createORFilter",
-                      String.valueOf(filterComponents));
 
     return new SearchFilter(FilterType.OR, filterComponents, null,
                             null, null, null, null, null, null, null,
@@ -234,8 +215,6 @@ public class SearchFilter
   public static SearchFilter createNOTFilter(
                                   SearchFilter notComponent)
   {
-    assert debugEnter(CLASS_NAME, "createNOTFilter",
-                      String.valueOf(notComponent));
 
     return new SearchFilter(FilterType.NOT, null, notComponent, null,
                             null, null, null, null, null, null,
@@ -259,9 +238,6 @@ public class SearchFilter
                                   AttributeType attributeType,
                                   AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createEqualityFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     return new SearchFilter(FilterType.EQUALITY, null, null,
                             attributeType, null, assertionValue, null,
@@ -288,10 +264,6 @@ public class SearchFilter
                                   Set<String> attributeOptions,
                                   AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createEqualityFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(attributeOptions),
-                      String.valueOf(assertionValue));
 
     return new SearchFilter(FilterType.EQUALITY, null, null,
                             attributeType, attributeOptions,
@@ -321,11 +293,6 @@ public class SearchFilter
                              List<ByteString> subAnyElements,
                              ByteString subFinalElement)
   {
-    assert debugEnter(CLASS_NAME, "createSubstringFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(subInitialElement),
-                      String.valueOf(subAnyElements),
-                      String.valueOf(subFinalElement));
 
     return new SearchFilter(FilterType.SUBSTRING, null, null,
                             attributeType, null, null,
@@ -358,12 +325,6 @@ public class SearchFilter
                              List<ByteString> subAnyElements,
                              ByteString subFinalElement)
   {
-    assert debugEnter(CLASS_NAME, "createSubstringFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(attributeOptions),
-                      String.valueOf(subInitialElement),
-                      String.valueOf(subAnyElements),
-                      String.valueOf(subFinalElement));
 
     return new SearchFilter(FilterType.SUBSTRING, null, null,
                             attributeType, attributeOptions, null,
@@ -388,9 +349,6 @@ public class SearchFilter
                                   AttributeType attributeType,
                                   AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createGreaterOrEqualFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     return new SearchFilter(FilterType.GREATER_OR_EQUAL, null, null,
                             attributeType, null, assertionValue, null,
@@ -417,10 +375,6 @@ public class SearchFilter
                                   Set<String> attributeOptions,
                                   AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createGreaterOrEqualFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(attributeOptions),
-                      String.valueOf(assertionValue));
 
     return new SearchFilter(FilterType.GREATER_OR_EQUAL, null, null,
                             attributeType, attributeOptions,
@@ -445,9 +399,6 @@ public class SearchFilter
                                   AttributeType attributeType,
                                   AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createLessOrEqualFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     return new SearchFilter(FilterType.LESS_OR_EQUAL, null, null,
                             attributeType, null, assertionValue, null,
@@ -474,10 +425,6 @@ public class SearchFilter
                                   Set<String> attributeOptions,
                                   AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createLessOrEqualFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(attributeOptions),
-                      String.valueOf(assertionValue));
 
     return new SearchFilter(FilterType.LESS_OR_EQUAL, null, null,
                             attributeType, attributeOptions,
@@ -498,8 +445,6 @@ public class SearchFilter
   public static SearchFilter createPresenceFilter(
                                   AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "createPresenceFilter",
-                      String.valueOf(attributeType));
 
     return new SearchFilter(FilterType.PRESENT, null, null,
                             attributeType, null, null, null, null,
@@ -522,9 +467,6 @@ public class SearchFilter
                                   AttributeType attributeType,
                                   Set<String> attributeOptions)
   {
-    assert debugEnter(CLASS_NAME, "createPresenceFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(attributeOptions));
 
     return new SearchFilter(FilterType.PRESENT, null, null,
                             attributeType, attributeOptions, null,
@@ -548,9 +490,6 @@ public class SearchFilter
                                   AttributeType attributeType,
                                   AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createApproximateFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     return new SearchFilter(FilterType.APPROXIMATE_MATCH, null, null,
                             attributeType, null, assertionValue, null,
@@ -577,10 +516,6 @@ public class SearchFilter
                                   Set<String> attributeOptions,
                                   AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createApproximateFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(attributeOptions),
-                      String.valueOf(assertionValue));
 
     return new SearchFilter(FilterType.APPROXIMATE_MATCH, null, null,
                             attributeType, attributeOptions,
@@ -611,11 +546,6 @@ public class SearchFilter
                                   String matchingRuleID,
                                   boolean dnAttributes)
   {
-    assert debugEnter(CLASS_NAME, "createExtensibleMatchFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue),
-                      String.valueOf(matchingRuleID),
-                      String.valueOf(dnAttributes));
 
     return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
                             attributeType, null, assertionValue, null,
@@ -649,12 +579,6 @@ public class SearchFilter
                                   String matchingRuleID,
                                   boolean dnAttributes)
   {
-    assert debugEnter(CLASS_NAME, "createExtensibleMatchFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(attributeOptions),
-                      String.valueOf(assertionValue),
-                      String.valueOf(matchingRuleID),
-                      String.valueOf(dnAttributes));
 
     return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
                             attributeType, attributeOptions,
@@ -680,8 +604,6 @@ public class SearchFilter
                                   String filterString)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createFilterFromString",
-                      String.valueOf(filterString));
 
 
     if (filterString == null)
@@ -700,13 +622,19 @@ public class SearchFilter
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "createFilterFromString", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       throw de;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createFilterFromString", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SEARCH_FILTER_UNCAUGHT_EXCEPTION;
       String message = getMessage(msgID, filterString,
@@ -741,10 +669,6 @@ public class SearchFilter
                                    int endPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createFilterFromString",
-                      String.valueOf(filterString),
-                      String.valueOf(startPos),
-                      String.valueOf(endPos));
 
 
     // Make sure that the length is sufficient for a valid search
@@ -1134,11 +1058,6 @@ public class SearchFilter
                                    int endPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decodeCompoundFilter",
-                      String.valueOf(filterType),
-                      String.valueOf(filterString),
-                      String.valueOf(startPos),
-                      String.valueOf(endPos));
 
 
     // Create a list to hold the returned components.
@@ -1265,12 +1184,6 @@ public class SearchFilter
                                    int endPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decodeSubstringFilter",
-                      String.valueOf(filterString),
-                      String.valueOf(attrType),
-                      String.valueOf(options),
-                      String.valueOf(equalPos),
-                      String.valueOf(endPos));
 
 
     // Get a binary representation of the value.
@@ -1885,11 +1798,6 @@ public class SearchFilter
                                    int equalPos, int endPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decodeExtensibleMatchFilter",
-                      String.valueOf(filterString),
-                      String.valueOf(startPos),
-                      String.valueOf(equalPos),
-                      String.valueOf(endPos));
 
 
     AttributeType attributeType    = null;
@@ -2192,7 +2100,6 @@ public class SearchFilter
    */
   public FilterType getFilterType()
   {
-    assert debugEnter(CLASS_NAME, "getFilterType");
 
     return filterType;
   }
@@ -2207,7 +2114,6 @@ public class SearchFilter
    */
   public Set<SearchFilter> getFilterComponents()
   {
-    assert debugEnter(CLASS_NAME, "getFilterComponents");
 
     return filterComponents;
   }
@@ -2222,7 +2128,6 @@ public class SearchFilter
    */
   public SearchFilter getNotComponent()
   {
-    assert debugEnter(CLASS_NAME, "getNotComponent");
 
     return notComponent;
   }
@@ -2237,7 +2142,6 @@ public class SearchFilter
    */
   public AttributeType getAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType");
 
     return attributeType;
   }
@@ -2252,7 +2156,6 @@ public class SearchFilter
    */
   public AttributeValue getAssertionValue()
   {
-    assert debugEnter(CLASS_NAME, "getAssertionValue");
 
     return assertionValue;
   }
@@ -2267,7 +2170,6 @@ public class SearchFilter
    */
   public ByteString getSubInitialElement()
   {
-    assert debugEnter(CLASS_NAME, "getSubInitialElement");
 
     return subInitialElement;
   }
@@ -2282,7 +2184,6 @@ public class SearchFilter
    */
   public List<ByteString> getSubAnyElements()
   {
-    assert debugEnter(CLASS_NAME, "getSubAnyElements");
 
     return subAnyElements;
   }
@@ -2296,7 +2197,6 @@ public class SearchFilter
    */
   public ByteString getSubFinalElement()
   {
-    assert debugEnter(CLASS_NAME, "getSubFinalElement");
 
     return subFinalElement;
   }
@@ -2312,7 +2212,6 @@ public class SearchFilter
    */
   public String getMatchingRuleID()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleID");
 
     return matchingRuleID;
   }
@@ -2328,7 +2227,6 @@ public class SearchFilter
    */
   public boolean getDNAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getDNAttributes");
 
     return dnAttributes;
   }
@@ -2349,8 +2247,6 @@ public class SearchFilter
   public boolean matchesEntry(Entry entry)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "matchesEntry",
-                      String.valueOf(entry));
 
     ConditionResult result = matchesEntryInternal(this, entry, 0);
     switch (result)
@@ -2399,9 +2295,6 @@ public class SearchFilter
                                Entry entry, int depth)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "matchesEntryInternal",
-                      String.valueOf(completeFilter),
-                      String.valueOf(entry), String.valueOf(depth));
 
 
     switch (filterType)
@@ -2425,10 +2318,10 @@ public class SearchFilter
           // "undefined" in RFC 2251, but is considered one of the
           // TRUE/FALSE filters in RFC 4526, in which case we should
           // always return true.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.INFO, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning TRUE for LDAP TRUE filter (&)");
+          if (debugEnabled())
+          {
+            debugInfo("Returning TRUE for LDAP TRUE filter (&)");
+          }
           return ConditionResult.TRUE;
         }
         else
@@ -2457,22 +2350,21 @@ public class SearchFilter
               case TRUE:
                 break;
               case FALSE:
-                assert debugMessage(DebugLogCategory.CORE_SERVER,
-                            DebugLogSeverity.VERBOSE, CLASS_NAME,
-                            "matchesEntryInternal",
-                            "Returning FALSE for AND component " +
-                            f.toString() + " in filter " +
-                            completeFilter.toString() +
-                            " for entry " + entry.getDN());
+                if (debugEnabled())
+                {
+                  debugVerbose(
+                      "Returning FALSE for AND component %s in " +
+                      "filter %s for entry %s",
+                               f, completeFilter, entry.getDN());
+                }
                 return result;
               case UNDEFINED:
-                assert debugMessage(DebugLogCategory.CORE_SERVER,
-                            DebugLogSeverity.INFO, CLASS_NAME,
-                            "matchesEntryInternal",
-                            "Undefined result for AND component " +
-                            f.toString() + " in filter " +
-                            completeFilter.toString() +
-                            " for entry " + entry.getDN());
+                if (debugEnabled())
+                {
+                  debugInfo(
+                 "Undefined result for AND component %s in filter " +
+                 "%s for entry %s", f, completeFilter, entry.getDN());
+                }
                 return result;
               default:
                 int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
@@ -2489,13 +2381,12 @@ public class SearchFilter
 
           // If we have gotten here, then all the components must have
           // matched.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.VERBOSE, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning TRUE for AND component " +
-                      toString() + " in filter " +
-                      completeFilter.toString() + " for entry " +
-                      entry.getDN());
+          if (debugEnabled())
+          {
+            debugVerbose(
+                "Returning TRUE for AND component %s in filter %s " +
+                "for entry %s", this, completeFilter, entry.getDN());
+          }
           return ConditionResult.TRUE;
         }
 
@@ -2519,10 +2410,10 @@ public class SearchFilter
           // "undefined" in RFC 2251, but is considered one of the
           // TRUE/FALSE filters in RFC 4526, in which case we should
           // always return false.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.INFO, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning FALSE for LDAP FALSE filter (|)");
+          if (debugEnabled())
+          {
+            debugInfo("Returning FALSE for LDAP FALSE filter (|)");
+          }
           return ConditionResult.FALSE;
         }
         else
@@ -2548,24 +2439,24 @@ public class SearchFilter
                                    depth+1))
             {
               case TRUE:
-                assert debugMessage(DebugLogCategory.CORE_SERVER,
-                            DebugLogSeverity.VERBOSE, CLASS_NAME,
-                            "matchesEntryInternal",
-                            "Returning TRUE for OR component " +
-                            f.toString() + " in filter " +
-                            completeFilter.toString() +
-                            " for entry " + entry.getDN());
+                if (debugEnabled())
+                {
+                  debugVerbose(
+                    "Returning TRUE for OR component %s in filter " +
+                    "%s for entry %s",
+                    f, completeFilter, entry.getDN());
+                }
                 return ConditionResult.TRUE;
               case FALSE:
                 break;
               case UNDEFINED:
-                assert debugMessage(DebugLogCategory.CORE_SERVER,
-                            DebugLogSeverity.INFO, CLASS_NAME,
-                            "matchesEntryInternal",
-                            "Undefined result for OR component " +
-                            f.toString() + " in filter " +
-                            completeFilter.toString() +
-                            " for entry " + entry.getDN());
+                if (debugEnabled())
+                {
+                  debugInfo(
+                  "Undefined result for OR component %s in filter " +
+                  "%s for entry %s",
+                  f, completeFilter, entry.getDN());
+                }
                 result = ConditionResult.UNDEFINED;
                 break;
               default:
@@ -2582,13 +2473,13 @@ public class SearchFilter
           }
 
 
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.VERBOSE, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning " + result + " for OR component " +
-                      toString() + " in filter " +
-                      completeFilter.toString() + " for entry " +
-                      entry.getDN());
+          if (debugEnabled())
+          {
+            debugVerbose(
+                "Returning %s for OR component %s in filter %s for " +
+                "entry %s", result, this, completeFilter,
+                            entry.getDN());
+          }
           return result;
         }
 
@@ -2627,31 +2518,31 @@ public class SearchFilter
           switch (result)
           {
             case TRUE:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Returning FALSE for NOT component " +
-                          toString() + " in filter " +
-                          completeFilter.toString() + " for entry " +
-                          entry.getDN());
+              if (debugEnabled())
+              {
+                debugVerbose(
+                   "Returning FALSE for NOT component %s in filter " +
+                   "%s for entry %s",
+                   notComponent, completeFilter, entry.getDN());
+              }
               return ConditionResult.FALSE;
             case FALSE:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Returning TRUE for NOT component " +
-                          toString() + " in filter " +
-                          completeFilter.toString() + " for entry " +
-                          entry.getDN());
+              if (debugEnabled())
+              {
+                debugVerbose(
+                    "Returning TRUE for NOT component %s in filter " +
+                    "%s for entry %s",
+                    notComponent, completeFilter, entry.getDN());
+              }
               return ConditionResult.TRUE;
             case UNDEFINED:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.INFO, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Undefined result for NOT component " +
-                          notComponent.toString() + " in filter " +
-                          completeFilter.toString() +
-                          " for entry " + entry.getDN());
+              if (debugEnabled())
+              {
+                debugInfo(
+                  "Undefined result for NOT component %s in filter " +
+                  "%s for entry %s",
+                  notComponent, completeFilter, entry.getDN());
+              }
               return ConditionResult.UNDEFINED;
             default:
               int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
@@ -2696,15 +2587,15 @@ public class SearchFilter
                                                    attributeOptions);
         if ((attrs == null) || (attrs.isEmpty()))
         {
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.VERBOSE, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning FALSE for equality component " +
-                      toString() + " in filter " +
-                      completeFilter.toString() +
-                      " because entry " + entry.getDN() +
-                      " didn't have attribute type " +
-                      attributeType.getNameOrOID());
+          if (debugEnabled())
+          {
+            debugVerbose(
+                "Returning FALSE for equality component %s in " +
+                "filter %s because entry %s didn't have attribute " +
+                "type %s",
+                         this, completeFilter, entry.getDN(),
+                         attributeType.getNameOrOID());
+          }
           return ConditionResult.FALSE;
         }
 
@@ -2714,27 +2605,27 @@ public class SearchFilter
         {
           if (a.hasValue(assertionValue))
           {
-            assert debugMessage(DebugLogCategory.CORE_SERVER,
-                        DebugLogSeverity.VERBOSE, CLASS_NAME,
-                        "matchesEntryInternal",
-                        "Returning TRUE for equality component " +
-                        toString() + " in filter " +
-                        completeFilter.toString() + " for entry " +
-                        entry.getDN());
+            if (debugEnabled())
+            {
+              debugVerbose(
+                  "Returning TRUE for equality component %s in " +
+                  "filter %s for entry %s",
+                           this, completeFilter, entry.getDN());
+            }
             return ConditionResult.TRUE;
           }
         }
 
-        assert debugMessage(DebugLogCategory.CORE_SERVER,
-                    DebugLogSeverity.VERBOSE, CLASS_NAME,
-                    "matchesEntryInternal",
-                    "Returning FALSE for equality component " +
-                    toString() + " in filter " +
-                    completeFilter.toString() +
-                    " because entry " + entry.getDN() +
-                    " didn't have attribute type " +
-                    attributeType.getNameOrOID() + " with value " +
-                    assertionValue.getStringValue());
+        if (debugEnabled())
+        {
+          debugVerbose(
+              "Returning FALSE for equality component %s in filter " +
+              "%s because entry %s didn't have attribute type " +
+              "%s with value %s",
+                       this, completeFilter, entry.getDN(),
+                       attributeType.getNameOrOID(),
+                       assertionValue.getStringValue());
+        }
         return ConditionResult.FALSE;
 
 
@@ -2770,15 +2661,15 @@ public class SearchFilter
         attrs = entry.getAttribute(attributeType, attributeOptions);
         if ((attrs == null) || (attrs.isEmpty()))
         {
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.VERBOSE, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning FALSE for substring component " +
-                      toString() + " in filter " +
-                      completeFilter.toString() +
-                      " because entry " + entry.getDN() +
-                      " didn't have attribute type " +
-                      attributeType.getNameOrOID());
+          if (debugEnabled())
+          {
+            debugVerbose(
+                "Returning FALSE for substring component %s in " +
+                "filter %s because entry %s didn't have attribute " +
+                "type %s",
+                         this, completeFilter, entry.getDN(),
+                         attributeType.getNameOrOID());
+          }
           return ConditionResult.FALSE;
         }
 
@@ -2792,37 +2683,37 @@ public class SearchFilter
                                      subFinalElement))
           {
             case TRUE:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Returning TRUE for substring component " +
-                          toString() + " in filter " +
-                          completeFilter.toString() + " for entry " +
-                          entry.getDN());
+              if (debugEnabled())
+              {
+                debugVerbose(
+                    "Returning TRUE for substring component %s in " +
+                    "filter %s for entry %s",
+                             this, completeFilter, entry.getDN());
+              }
               return ConditionResult.TRUE;
             case FALSE:
               break;
             case UNDEFINED:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Undefined result encountered for " +
-                          "substring component " + toString() +
-                          " in filter " + completeFilter.toString() +
-                          " for entry " + entry.getDN());
+              if (debugEnabled())
+              {
+                debugVerbose(
+                    "Undefined result encountered for substring " +
+                    "component %s in filter %s for entry %s",
+                             this, completeFilter, entry.getDN());
+              }
               result = ConditionResult.UNDEFINED;
               break;
             default:
           }
         }
 
-        assert debugMessage(DebugLogCategory.CORE_SERVER,
-                    DebugLogSeverity.VERBOSE, CLASS_NAME,
-                    "matchesEntryInternal",
-                    "Returning " + result + " for substring " +
-                    "component " + toString() + " in filter " +
-                    completeFilter.toString() + " for entry " +
-                    entry.getDN());
+        if (debugEnabled())
+        {
+          debugVerbose(
+              "Returning %s for substring component %s in filter " +
+              "%s for entry %s",
+              result, this, completeFilter, entry.getDN());
+        }
         return result;
 
 
@@ -2855,15 +2746,14 @@ public class SearchFilter
         attrs = entry.getAttribute(attributeType, attributeOptions);
         if ((attrs == null) || (attrs.isEmpty()))
         {
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.VERBOSE, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning FALSE for greater-or-equal " +
-                      "component " + toString() + " in filter " +
-                      completeFilter.toString() +
-                      " because entry " + entry.getDN() +
-                      " didn't have attribute type " +
-                      attributeType.getNameOrOID());
+          if (debugEnabled())
+          {
+            debugVerbose("Returning FALSE for greater-or-equal " +
+                "component %s in filter %s because entry %s didn't " +
+                "have attribute type %s",
+                         this, completeFilter, entry.getDN(),
+                         attributeType.getNameOrOID());
+          }
           return ConditionResult.FALSE;
         }
 
@@ -2875,37 +2765,38 @@ public class SearchFilter
           switch (a.greaterThanOrEqualTo(assertionValue))
           {
             case TRUE:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Returning TRUE for greater-or-equal " +
-                          "component " + toString() + " in filter " +
-                          completeFilter.toString() + " for entry " +
-                          entry.getDN());
+              if (debugEnabled())
+              {
+                debugVerbose(
+                    "Returning TRUE for greater-or-equal component " +
+                    "%s in filter %s for entry %s",
+                             this, completeFilter, entry.getDN());
+              }
               return ConditionResult.TRUE;
             case FALSE:
               break;
             case UNDEFINED:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Undefined result encountered for " +
-                          "greater-or-equal component " + toString() +
-                          " in filter " + completeFilter.toString() +
-                          " for entry " + entry.getDN());
+              if (debugEnabled())
+              {
+                debugVerbose(
+                    "Undefined result encountered for " +
+                    "greater-or-equal component %s in filter %s " +
+                    "for entry %s", this, completeFilter,
+                    entry.getDN());
+              }
               result = ConditionResult.UNDEFINED;
               break;
             default:
           }
         }
 
-        assert debugMessage(DebugLogCategory.CORE_SERVER,
-                    DebugLogSeverity.VERBOSE, CLASS_NAME,
-                    "matchesEntryInternal",
-                    "Returning " + result + " for greater-or-equal " +
-                    "component " + toString() + " in filter " +
-                    completeFilter.toString() + " for entry " +
-                    entry.getDN());
+        if (debugEnabled())
+        {
+          debugVerbose(
+              "Returning %s for greater-or-equal component %s in " +
+              "filter %s for entry %s",
+                       result, this, completeFilter, entry.getDN());
+        }
         return result;
 
 
@@ -2939,15 +2830,14 @@ public class SearchFilter
         attrs = entry.getAttribute(attributeType, attributeOptions);
         if ((attrs == null) || (attrs.isEmpty()))
         {
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.VERBOSE, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning FALSE for less-or-equal component " +
-                      toString() + " in filter " +
-                      completeFilter.toString() +
-                      " because entry " + entry.getDN() +
-                      " didn't have attribute type " +
-                      attributeType.getNameOrOID());
+          if (debugEnabled())
+          {
+            debugVerbose(
+                "Returning FALSE for less-or-equal component %s in " +
+                "filter %s because entry %s didn't have attribute " +
+                "type %s", this, completeFilter, entry.getDN(),
+                           attributeType.getNameOrOID());
+          }
           return ConditionResult.FALSE;
         }
 
@@ -2959,37 +2849,38 @@ public class SearchFilter
           switch (a.lessThanOrEqualTo(assertionValue))
           {
             case TRUE:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Returning TRUE for less-or-equal " +
-                          "component " + toString() + " in filter " +
-                          completeFilter.toString() + " for entry " +
-                          entry.getDN());
+              if (debugEnabled())
+              {
+                debugVerbose(
+                    "Returning TRUE for less-or-equal component %s " +
+                    "in filter %s for entry %s",
+                             this, completeFilter, entry.getDN());
+              }
               return ConditionResult.TRUE;
             case FALSE:
               break;
             case UNDEFINED:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Undefined result encountered for " +
-                          "less-or-equal component " + toString() +
-                          " in filter " + completeFilter.toString() +
-                          " for entry " + entry.getDN());
+              if (debugEnabled())
+              {
+                debugVerbose(
+                    "Undefined result encountered for " +
+                        "less-or-equal component %s in filter %s " +
+                        "for entry %s",
+                        this, completeFilter, entry.getDN());
+              }
               result = ConditionResult.UNDEFINED;
               break;
             default:
           }
         }
 
-        assert debugMessage(DebugLogCategory.CORE_SERVER,
-                    DebugLogSeverity.VERBOSE, CLASS_NAME,
-                    "matchesEntryInternal",
-                    "Returning " + result + " for less-or-equal " +
-                    "component " + toString() + " in filter " +
-                    completeFilter.toString() + " for entry " +
-                    entry.getDN());
+        if (debugEnabled())
+        {
+          debugVerbose(
+              "Returning %s for less-or-equal component %s in " +
+              "filter %s for entry %s",
+                       result, this, completeFilter, entry.getDN());
+        }
         return result;
 
 
@@ -3011,24 +2902,24 @@ public class SearchFilter
         // If so, then it's a match.  If not, then it's not a match.
         if (entry.hasAttribute(attributeType, attributeOptions))
         {
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.VERBOSE, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning TRUE for presence component " +
-                      toString() + " in filter " +
-                      completeFilter.toString() + " for entry " +
-                      entry.getDN());
+          if (debugEnabled())
+          {
+            debugVerbose(
+                "Returning TRUE for presence component %s in " +
+                "filter %s for entry %s",
+                this, completeFilter, entry.getDN());
+          }
           return ConditionResult.TRUE;
         }
         else
         {
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.VERBOSE, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning FALSE for presence component " +
-                      toString() + " in filter " +
-                      completeFilter.toString() + " for entry " +
-                      entry.getDN());
+          if (debugEnabled())
+          {
+            debugVerbose(
+                "Returning FALSE for presence component %s in " +
+                "filter %s for entry %s",
+                this, completeFilter, entry.getDN());
+          }
           return ConditionResult.FALSE;
         }
 
@@ -3063,15 +2954,14 @@ public class SearchFilter
         attrs = entry.getAttribute(attributeType, attributeOptions);
         if ((attrs == null) || (attrs.isEmpty()))
         {
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.VERBOSE, CLASS_NAME,
-                      "matchesEntryInternal",
-                      "Returning FALSE for approximate component " +
-                      toString() + " in filter " +
-                      completeFilter.toString() +
-                      " because entry " + entry.getDN() +
-                      " didn't have attribute type " +
-                      attributeType.getNameOrOID());
+          if (debugEnabled())
+          {
+            debugVerbose(
+                "Returning FALSE for approximate component %s in " +
+                "filter %s because entry %s didn't have attribute " +
+                "type %s", this, completeFilter, entry.getDN(),
+                           attributeType.getNameOrOID());
+          }
           return ConditionResult.FALSE;
         }
 
@@ -3083,37 +2973,37 @@ public class SearchFilter
           switch (a.approximatelyEqualTo(assertionValue))
           {
             case TRUE:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Returning TRUE for approximate " +
-                          "component " + toString() + " in filter " +
-                          completeFilter.toString() + " for entry " +
-                          entry.getDN());
+              if (debugEnabled())
+              {
+                debugVerbose(
+                   "Returning TRUE for approximate component %s in " +
+                   "filter %s for entry %s",
+                   this, completeFilter, entry.getDN());
+              }
               return ConditionResult.TRUE;
             case FALSE:
               break;
             case UNDEFINED:
-              assert debugMessage(DebugLogCategory.CORE_SERVER,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "matchesEntryInternal",
-                          "Undefined result encountered for " +
-                          "approximate component " + toString() +
-                          " in filter " + completeFilter.toString() +
-                          " for entry " + entry.getDN());
+              if (debugEnabled())
+              {
+                debugVerbose(
+                    "Undefined result encountered for approximate " +
+                    "component %s in filter %s for entry %s",
+                             this, completeFilter, entry.getDN());
+              }
               result = ConditionResult.UNDEFINED;
               break;
             default:
           }
         }
 
-        assert debugMessage(DebugLogCategory.CORE_SERVER,
-                    DebugLogSeverity.VERBOSE, CLASS_NAME,
-                    "matchesEntryInternal",
-                    "Returning " + result + " for approximate " +
-                    "component " + toString() + " in filter " +
-                    completeFilter.toString() + " for entry " +
-                    entry.getDN());
+        if (debugEnabled())
+        {
+          debugVerbose(
+              "Returning %s for approximate component %s in filter " +
+              "%s for entry %s",
+              result, this, completeFilter, entry.getDN());
+        }
         return result;
 
 
@@ -3159,9 +3049,6 @@ public class SearchFilter
                                Entry entry)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "processExtensibleMatch",
-                      String.valueOf(completeFilter),
-                      String.valueOf(entry));
 
 
     // We must have an assertion value for which to make the
@@ -3187,13 +3074,13 @@ public class SearchFilter
                 toLowerCase(matchingRuleID));
       if (matchingRule == null)
       {
-        assert debugMessage(DebugLogCategory.CORE_SERVER,
-                    DebugLogSeverity.INFO, CLASS_NAME,
-                    "processExtensibleMatch",
-                    "Unknown matching rule " + matchingRuleID +
-                    " defined in extensibleMatch component of " +
-                    "filter " + toString() +
-                    " -- returning undefined.");
+        if (debugEnabled())
+        {
+          debugInfo(
+              "Unknown matching rule %s defined in extensibleMatch " +
+              "component of filter %s -- returning undefined.",
+                    matchingRuleID, this);
+        }
         return ConditionResult.UNDEFINED;
       }
     }
@@ -3214,13 +3101,13 @@ public class SearchFilter
         matchingRule = attributeType.getEqualityMatchingRule();
         if (matchingRule == null)
         {
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.INFO, CLASS_NAME,
-                      "processExtensibleMatch",
-                      "Attribute type " +
-                      attributeType.getNameOrOID() +
-                      " does not have an equality matching rule -- " +
-                      "returning undefined.");
+          if (debugEnabled())
+          {
+            debugInfo(
+             "Attribute type %s does not have an equality matching " +
+             "rule -- returning undefined.",
+             attributeType.getNameOrOID());
+          }
           return ConditionResult.UNDEFINED;
         }
       }
@@ -3238,15 +3125,14 @@ public class SearchFilter
       {
         if (! mru.appliesToAttribute(attributeType))
         {
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.INFO, CLASS_NAME,
-                      "processExtensibleMatch",
-                      "Attribute type " +
-                      attributeType.getNameOrOID() +
-                      " is not allowed for use with matching rule " +
-                      matchingRule.getNameOrOID() + " because of " +
-                      "matching rule use definition " +
-                      mru.getName());
+          if (debugEnabled())
+          {
+            debugInfo(
+                "Attribute type %s is not allowed for use with " +
+                "matching rule %s because of matching rule use " +
+                "definition %s", attributeType.getNameOrOID(),
+                matchingRule.getNameOrOID(), mru.getName());
+          }
           return ConditionResult.UNDEFINED;
         }
       }
@@ -3262,7 +3148,10 @@ public class SearchFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processExtensibleMatch", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // We can't normalize the assertion value, so the result must be
       // undefined.
@@ -3312,8 +3201,10 @@ public class SearchFilter
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME,
-                                    "processExtensibleMatch", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't normalize one of the values.  If we don't
               // find a definite match, then we should return
@@ -3360,8 +3251,10 @@ public class SearchFilter
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME,
-                                    "processExtensibleMatch", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't normalize one of the values.  If we don't
               // find a definite match, then we should return
@@ -3401,8 +3294,10 @@ public class SearchFilter
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "processExtensibleMatch",
-                                e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // We couldn't normalize one of the values.  If we don't
           // find a definite match, then we should return undefined.
@@ -3449,8 +3344,10 @@ public class SearchFilter
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME,
-                                    "processExtensibleMatch", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               // We couldn't normalize one of the values.  If we don't
               // find a definite match, then we should return
@@ -3511,8 +3408,10 @@ public class SearchFilter
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME,
-                                  "processExtensibleMatch", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // We couldn't normalize one of the values.  If we don't
             // find a definite match, then we should return undefined.
@@ -3540,7 +3439,6 @@ public class SearchFilter
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (o == null)
     {
@@ -3720,7 +3618,6 @@ outerComponentLoop:
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     switch (filterType)
     {
@@ -3806,7 +3703,6 @@ outerComponentLoop:
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -3824,8 +3720,6 @@ outerComponentLoop:
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     switch (filterType)
     {
@@ -4029,9 +3923,6 @@ outerComponentLoop:
   private void valueToFilterString(StringBuilder buffer,
                                    ByteString value)
   {
-    assert debugEnter(CLASS_NAME, "valueToFilterString",
-                      "java.lang.StringBuilder",
-                      String.valueOf(value));
 
     if (value == null)
     {

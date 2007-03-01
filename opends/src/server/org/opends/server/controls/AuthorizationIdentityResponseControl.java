@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -34,11 +34,9 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -51,11 +49,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class AuthorizationIdentityResponseControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.AuthorizationIdentityResponseControl";
 
 
 
@@ -72,7 +65,6 @@ public class AuthorizationIdentityResponseControl
   {
     super(OID_AUTHZID_RESPONSE, false, new ASN1OctetString());
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -87,7 +79,6 @@ public class AuthorizationIdentityResponseControl
   {
     super(OID_AUTHZID_RESPONSE, false, encodeValue(authorizationID));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(authorizationID));
 
     this.authorizationID = authorizationID;
   }
@@ -104,7 +95,6 @@ public class AuthorizationIdentityResponseControl
   {
     super(OID_AUTHZID_RESPONSE, false, encodeValue(authorizationDN));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(authorizationDN));
 
     if (authorizationDN == null)
     {
@@ -133,9 +123,6 @@ public class AuthorizationIdentityResponseControl
   {
     super(oid, isCritical, encodeValue(authorizationID));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(authorizationID));
 
     this.authorizationID = authorizationID;
   }
@@ -157,9 +144,6 @@ public class AuthorizationIdentityResponseControl
   {
     super(oid, isCritical, encodeValue(authorizationDN));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(authorizationDN));
 
     if (authorizationDN == null)
     {
@@ -190,10 +174,6 @@ public class AuthorizationIdentityResponseControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(authorizationID),
-                            String.valueOf(encodedValue));
 
     this.authorizationID = authorizationID;
   }
@@ -211,8 +191,6 @@ public class AuthorizationIdentityResponseControl
    */
   private static ASN1OctetString encodeValue(String authorizationID)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue",
-                      String.valueOf(authorizationID));
 
 
     return new ASN1OctetString(authorizationID);
@@ -231,8 +209,6 @@ public class AuthorizationIdentityResponseControl
    */
   private static ASN1OctetString encodeValue(DN authorizationDN)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue",
-                      String.valueOf(authorizationDN));
 
 
     if (authorizationDN == null)
@@ -264,7 +240,6 @@ public class AuthorizationIdentityResponseControl
                                                           Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
 
     if (! control.hasValue())
@@ -290,7 +265,6 @@ public class AuthorizationIdentityResponseControl
    */
   public String getAuthorizationID()
   {
-    assert debugEnter(CLASS_NAME, "getAuthorizationID");
 
     return authorizationID;
   }
@@ -306,8 +280,6 @@ public class AuthorizationIdentityResponseControl
    */
   public void setAuthorizationID(String authorizationID)
   {
-    assert debugEnter(CLASS_NAME, "setAuthorizationID",
-                      String.valueOf(authorizationID));
 
     this.authorizationID = authorizationID;
     setValue(encodeValue(authorizationID));
@@ -324,7 +296,6 @@ public class AuthorizationIdentityResponseControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -341,7 +312,6 @@ public class AuthorizationIdentityResponseControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("AuthorizationIdentityResponseControl(authzID=\"");
     buffer.append(authorizationID);

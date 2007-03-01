@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -33,7 +33,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -44,11 +43,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public abstract class AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.AttributeSyntax";
 
 
 
@@ -80,7 +74,6 @@ public abstract class AttributeSyntax
    */
   public void finalizeSyntax()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSyntax");
 
     // No implementation required.
   }
@@ -193,7 +186,6 @@ public abstract class AttributeSyntax
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     int hashCode = 0;
 
@@ -223,7 +215,6 @@ public abstract class AttributeSyntax
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (o == null)
     {
@@ -254,7 +245,6 @@ public abstract class AttributeSyntax
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -272,8 +262,6 @@ public abstract class AttributeSyntax
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("( ");
     buffer.append(getOID());

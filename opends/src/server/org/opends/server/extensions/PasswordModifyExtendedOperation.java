@@ -79,7 +79,9 @@ import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -96,11 +98,6 @@ public class PasswordModifyExtendedOperation
        extends ExtendedOperationHandler
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.PasswordModifyExtendedOperation";
 
 
 
@@ -127,7 +124,6 @@ public class PasswordModifyExtendedOperation
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -152,8 +148,6 @@ public class PasswordModifyExtendedOperation
   public void initializeExtendedOperationHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeExtendedOperationHandler",
-                      String.valueOf(configEntry));
 
     configEntryDN = configEntry.getDN();
 
@@ -186,8 +180,10 @@ public class PasswordModifyExtendedOperation
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeExtendedOperationHandler",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
                                   stackTraceToSingleLineString(e));
@@ -214,7 +210,6 @@ public class PasswordModifyExtendedOperation
    */
   public void finalizeExtendedOperationHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeExtendedOperationHandler");
 
     DirectoryServer.deregisterConfigurableComponent(this);
 
@@ -230,8 +225,6 @@ public class PasswordModifyExtendedOperation
    */
   public void processExtendedOperation(ExtendedOperation operation)
   {
-    assert debugEnter(CLASS_NAME, "processExtendedOperation",
-                      String.valueOf(operation));
 
     // Initialize the variables associated with components that may be included
     // in the request.
@@ -298,7 +291,10 @@ public class PasswordModifyExtendedOperation
       }
       catch (ASN1Exception ae)
       {
-        assert debugException(CLASS_NAME, "processExtendedOperation", ae);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ae);
+        }
 
         operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
@@ -383,7 +379,10 @@ public class PasswordModifyExtendedOperation
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "processExtendedOperation", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             operation.setResultCode(ResultCode.INVALID_DN_SYNTAX);
 
@@ -439,7 +438,10 @@ public class PasswordModifyExtendedOperation
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "processExtendedOperation", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             if (oldPassword == null)
             {
@@ -483,7 +485,10 @@ public class PasswordModifyExtendedOperation
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "processExtendedOperation", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         operation.setResultCode(DirectoryServer.getServerErrorResultCode());
 
@@ -796,7 +801,10 @@ public class PasswordModifyExtendedOperation
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "processExtendedOperation", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           if (oldPassword == null)
           {
@@ -925,7 +933,10 @@ public class PasswordModifyExtendedOperation
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "processExtendedOperation", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           if (oldPassword == null)
           {
@@ -990,7 +1001,10 @@ public class PasswordModifyExtendedOperation
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME, "processExtendedOperation", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               // We couldn't decode the provided password value, so remove it
               // from the user's entry.
@@ -1026,7 +1040,10 @@ public class PasswordModifyExtendedOperation
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME, "processExtendedOperation", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               // We couldn't decode the provided password value, so remove it
               // from the user's entry.
@@ -1202,8 +1219,6 @@ public class PasswordModifyExtendedOperation
    */
   private Entry getEntryByDN(ExtendedOperation operation, DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getEntryByDN", String.valueOf(operation),
-                      String.valueOf(entryDN));
 
     // Retrieve the user's entry from the directory.  If it does not exist, then
     // fail.
@@ -1233,7 +1248,10 @@ public class PasswordModifyExtendedOperation
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "getEntryByDN", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
             break;
           }
 
@@ -1247,7 +1265,10 @@ public class PasswordModifyExtendedOperation
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "getEntryByDN", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       operation.setResultCode(de.getResultCode());
       operation.appendErrorMessage(de.getErrorMessage());
@@ -1265,7 +1286,6 @@ public class PasswordModifyExtendedOperation
    */
   public Set<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return supportedControlOIDs;
   }
@@ -1281,7 +1301,6 @@ public class PasswordModifyExtendedOperation
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -1297,7 +1316,6 @@ public class PasswordModifyExtendedOperation
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     List<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -1327,8 +1345,6 @@ public class PasswordModifyExtendedOperation
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                       List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "List<String>");
 
 
     // Make sure that the specified identity mapper is OK.
@@ -1363,7 +1379,10 @@ public class PasswordModifyExtendedOperation
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
       String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
@@ -1437,7 +1456,10 @@ public class PasswordModifyExtendedOperation
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       resultCode = DirectoryServer.getServerErrorResultCode();
 

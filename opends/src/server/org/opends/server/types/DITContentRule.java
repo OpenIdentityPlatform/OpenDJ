@@ -38,8 +38,6 @@ import java.util.Set;
 
 import org.opends.server.schema.DITContentRuleSyntax;
 
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -57,11 +55,6 @@ import static org.opends.server.util.Validator.*;
 public final class DITContentRule
        implements SchemaFileElement
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.DITContentRule";
 
 
 
@@ -138,16 +131,6 @@ public final class DITContentRule
                         boolean isObsolete,
                         Map<String,List<String>> extraProperties)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(definition),
-                            String.valueOf(structuralClass),
-                            String.valueOf(names),
-                            String.valueOf(description),
-                            String.valueOf(auxiliaryClasses),
-                            String.valueOf(requiredAttributes),
-                            String.valueOf(optionalAttributes),
-                            String.valueOf(prohibitedAttributes),
-                            String.valueOf(isObsolete),
-                            String.valueOf(extraProperties));
 
     ensureNotNull(definition, structuralClass);
 
@@ -229,7 +212,6 @@ public final class DITContentRule
    */
   public String getDefinition()
   {
-    assert debugEnter(CLASS_NAME, "getDefinition");
 
     return definition;
   }
@@ -273,7 +255,6 @@ public final class DITContentRule
    */
   public ObjectClass getStructuralClass()
   {
-    assert debugEnter(CLASS_NAME, "getStructuralClass");
 
     return structuralClass;
   }
@@ -291,7 +272,6 @@ public final class DITContentRule
    */
   public Map<String,String> getNames()
   {
-    assert debugEnter(CLASS_NAME, "getNames");
 
     return names;
   }
@@ -307,7 +287,6 @@ public final class DITContentRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     if (names.isEmpty())
     {
@@ -334,8 +313,6 @@ public final class DITContentRule
    */
   public boolean hasName(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "hasName",
-                      String.valueOf(lowerName));
 
     return names.containsKey(lowerName);
   }
@@ -352,7 +329,6 @@ public final class DITContentRule
    */
   public String getSchemaFile()
   {
-    assert debugEnter(CLASS_NAME, "getSchemaFile");
 
     List<String> values =
          extraProperties.get(SCHEMA_PROPERTY_FILENAME);
@@ -375,8 +351,6 @@ public final class DITContentRule
    */
   public void setSchemaFile(String schemaFile)
   {
-    assert debugEnter(CLASS_NAME, "setSchemaFile",
-                      String.valueOf(schemaFile));
 
     setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
@@ -391,7 +365,6 @@ public final class DITContentRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return description;
   }
@@ -407,7 +380,6 @@ public final class DITContentRule
    */
   public Set<ObjectClass> getAuxiliaryClasses()
   {
-    assert debugEnter(CLASS_NAME, "getAuxiliaryClasses");
 
     return auxiliaryClasses;
   }
@@ -427,7 +399,6 @@ public final class DITContentRule
    */
   public boolean isAllowedAuxiliaryClass(ObjectClass auxiliaryClass)
   {
-    assert debugEnter(CLASS_NAME, "isAllowedAuxiliaryClass");
 
     return auxiliaryClasses.contains(auxiliaryClass);
   }
@@ -443,7 +414,6 @@ public final class DITContentRule
    */
   public Set<AttributeType> getRequiredAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getRequiredAttributes");
 
     return requiredAttributes;
   }
@@ -462,8 +432,6 @@ public final class DITContentRule
    */
   public boolean isRequired(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "isRequired",
-                      String.valueOf(attributeType));
 
     return requiredAttributes.contains(attributeType);
   }
@@ -479,7 +447,6 @@ public final class DITContentRule
    */
   public Set<AttributeType> getOptionalAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getOptionalAttributes");
 
     return optionalAttributes;
   }
@@ -498,8 +465,6 @@ public final class DITContentRule
    */
   public boolean isOptional(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "isOptional",
-                      String.valueOf(attributeType));
 
     return optionalAttributes.contains(attributeType);
   }
@@ -519,8 +484,6 @@ public final class DITContentRule
    */
   public boolean isRequiredOrOptional(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "isRequiredOrOptional",
-                      String.valueOf(attributeType));
 
     return (requiredAttributes.contains(attributeType) ||
             optionalAttributes.contains(attributeType));
@@ -547,8 +510,6 @@ public final class DITContentRule
   public boolean isRequiredOrOptional(AttributeType attributeType,
                                       boolean acceptEmpty)
   {
-    assert debugEnter(CLASS_NAME, "isRequiredOrOptional",
-                      String.valueOf(attributeType));
 
     if (acceptEmpty &&
         (requiredAttributes.isEmpty() ||
@@ -572,7 +533,6 @@ public final class DITContentRule
    */
   public Set<AttributeType> getProhibitedAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getProhibitedAttributes");
 
     return prohibitedAttributes;
   }
@@ -592,8 +552,6 @@ public final class DITContentRule
    */
   public boolean isProhibited(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "isProhibited",
-                      String.valueOf(attributeType));
 
     return prohibitedAttributes.contains(attributeType);
   }
@@ -608,7 +566,6 @@ public final class DITContentRule
    */
   public boolean isObsolete()
   {
-    assert debugEnter(CLASS_NAME, "isObsolete");
 
     return isObsolete;
   }
@@ -626,7 +583,6 @@ public final class DITContentRule
    */
   public Map<String,List<String>> getExtraProperties()
   {
-    assert debugEnter(CLASS_NAME, "getExtraProperties");
 
     return extraProperties;
   }
@@ -646,8 +602,6 @@ public final class DITContentRule
    */
   public List<String> getExtraProperty(String propertyName)
   {
-    assert debugEnter(CLASS_NAME, "getExtraProperty",
-                      String.valueOf(propertyName));
 
     return extraProperties.get(propertyName);
   }
@@ -665,8 +619,6 @@ public final class DITContentRule
    */
   public void setExtraProperty(String name, String value)
   {
-    assert debugEnter(CLASS_NAME, "setExtraProperty",
-                      String.valueOf(name), String.valueOf(value));
 
     ensureNotNull(name);
 
@@ -696,8 +648,6 @@ public final class DITContentRule
    */
   public void setExtraProperty(String name, List<String> values)
   {
-    assert debugEnter(CLASS_NAME, "setExtraProperty",
-                      String.valueOf(name), String.valueOf(values));
 
     ensureNotNull(name);
 
@@ -730,7 +680,6 @@ public final class DITContentRule
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals");
 
     if (this == o)
     {
@@ -775,7 +724,6 @@ public final class DITContentRule
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     return structuralClass.hashCode();
   }
@@ -791,7 +739,6 @@ public final class DITContentRule
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer, true);
@@ -814,9 +761,6 @@ public final class DITContentRule
   public void toString(StringBuilder buffer,
   boolean includeFileElement)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder",
-                      String.valueOf(includeFileElement));
 
     buffer.append("( ");
     buffer.append(structuralClass.getOID());

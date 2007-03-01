@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
@@ -44,7 +44,6 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.operation.*;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
 
@@ -59,11 +58,6 @@ import static org.opends.server.messages.PluginMessages.*;
  */
 public abstract class DirectoryServerPlugin
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.plugin.DirectoryServerPlugin";
 
 
 
@@ -84,7 +78,7 @@ public abstract class DirectoryServerPlugin
    */
   protected DirectoryServerPlugin()
   {
-    assert debugConstructor(CLASS_NAME);
+
   }
 
 
@@ -101,9 +95,6 @@ public abstract class DirectoryServerPlugin
   public final void initializeInternal(DN pluginDN,
                                        Set<PluginType> pluginTypes)
   {
-    assert debugEnter(CLASS_NAME, "initializeInternal",
-                      String.valueOf(pluginDN),
-                      String.valueOf(pluginTypes));
 
     this.pluginDN    = pluginDN;
     this.pluginTypes = pluginTypes;
@@ -142,7 +133,6 @@ public abstract class DirectoryServerPlugin
    */
   public void finalizePlugin()
   {
-    assert debugEnter(CLASS_NAME, "finalizePlugin");
 
     // No implementation is required by default.
   }
@@ -156,7 +146,6 @@ public abstract class DirectoryServerPlugin
    */
   public final DN getPluginEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getPluginEntryDN");
 
     return pluginDN;
   }
@@ -171,7 +160,6 @@ public abstract class DirectoryServerPlugin
    */
   public final Set<PluginType> getPluginTypes()
   {
-    assert debugEnter(CLASS_NAME, "getPluginTypes");
 
     return pluginTypes;
   }
@@ -188,7 +176,6 @@ public abstract class DirectoryServerPlugin
    */
   public StartupPluginResult doStartup()
   {
-    assert debugEnter(CLASS_NAME, "doStartup");
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -209,8 +196,6 @@ public abstract class DirectoryServerPlugin
    */
   public void doShutdown(String reason)
   {
-    assert debugEnter(CLASS_NAME, "doShutdown",
-                      String.valueOf(reason));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -234,8 +219,6 @@ public abstract class DirectoryServerPlugin
   public PostConnectPluginResult doPostConnect(ClientConnection
                                                     clientConnection)
   {
-    assert debugEnter(CLASS_NAME, "doPostConnect",
-                      String.valueOf(clientConnection));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -267,11 +250,6 @@ public abstract class DirectoryServerPlugin
                                DisconnectReason disconnectReason,
                                int messageID, String message)
   {
-    assert debugEnter(CLASS_NAME, "doPostDisconnect",
-                      String.valueOf(clientConnection),
-                      String.valueOf(disconnectReason),
-                      String.valueOf(messageID),
-                      String.valueOf(message));
 
     int    msgID = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String msg   = getMessage(msgID, String.valueOf(pluginDN),
@@ -296,9 +274,6 @@ public abstract class DirectoryServerPlugin
   public LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
                                        Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "doLDIFImport",
-                      String.valueOf(importConfig),
-                      String.valueOf(entry));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -321,9 +296,6 @@ public abstract class DirectoryServerPlugin
   public LDIFPluginResult doLDIFExport(LDIFExportConfig exportConfig,
                                        Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "doLDIFExport",
-                      String.valueOf(exportConfig),
-                      String.valueOf(entry));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -345,8 +317,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseAbandonOperation abandonOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParse",
-                      String.valueOf(abandonOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -369,8 +339,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostOperation",
-                      String.valueOf(abandonOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
@@ -392,8 +360,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseAddOperation addOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParse",
-                      String.valueOf(addOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -417,8 +383,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationAddOperation addOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(addOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -442,8 +406,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationAddOperation addOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostOperation",
-                      String.valueOf(addOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -467,8 +429,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseAddOperation addOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostResponse",
-                      String.valueOf(addOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -490,8 +450,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseBindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParse",
-                      String.valueOf(bindOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -513,8 +471,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationBindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(bindOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -538,8 +494,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationBindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostOperation",
-                      String.valueOf(bindOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -563,8 +517,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseBindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostResponse",
-                      String.valueOf(bindOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -586,8 +538,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseCompareOperation compareOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParse",
-                      String.valueOf(compareOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -609,8 +559,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationCompareOperation compareOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(compareOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -634,8 +582,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationCompareOperation compareOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostOperation",
-                      String.valueOf(compareOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
@@ -660,8 +606,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseCompareOperation compareOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostResponse",
-                      String.valueOf(compareOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -683,8 +627,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseDeleteOperation deleteOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParse",
-                      String.valueOf(deleteOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -708,8 +650,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(deleteOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -733,8 +673,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostOperation",
-                      String.valueOf(deleteOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -758,8 +696,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostResponse",
-                      String.valueOf(deleteOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -781,8 +717,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseExtendedOperation extendedOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParse",
-                      String.valueOf(extendedOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -805,8 +739,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(extendedOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
@@ -833,8 +765,6 @@ public abstract class DirectoryServerPlugin
        doPostOperation(PostOperationExtendedOperation
                             extendedOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostOperation",
-                      String.valueOf(extendedOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
@@ -859,8 +789,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostResponse",
-                      String.valueOf(extendedOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
@@ -883,8 +811,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseModifyOperation modifyOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParse",
-                      String.valueOf(modifyOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -908,8 +834,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(modifyOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -933,8 +857,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostOperation",
-                      String.valueOf(modifyOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -958,8 +880,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseModifyOperation modifyOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostResponse",
-                      String.valueOf(modifyOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -981,8 +901,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParse",
-                      String.valueOf(modifyDNOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -1007,8 +925,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(modifyDNOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
@@ -1034,8 +950,6 @@ public abstract class DirectoryServerPlugin
        doPostOperation(PostOperationModifyDNOperation
                             modifyDNOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostOperation",
-                      String.valueOf(modifyDNOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
@@ -1060,8 +974,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostResponse",
-                      String.valueOf(modifyDNOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
@@ -1084,8 +996,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseSearchOperation searchOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParse",
-                      String.valueOf(searchOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -1107,8 +1017,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationSearchOperation searchOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreOperation",
-                      String.valueOf(searchOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -1138,9 +1046,6 @@ public abstract class DirectoryServerPlugin
        processSearchEntry(SearchEntrySearchOperation searchOperation,
                           SearchResultEntry searchEntry)
   {
-    assert debugEnter(CLASS_NAME, "processSearchEntry",
-                      String.valueOf(searchOperation),
-                      String.valueOf(searchEntry));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -1167,9 +1072,6 @@ public abstract class DirectoryServerPlugin
                                    searchOperation,
                               SearchResultReference searchReference)
   {
-    assert debugEnter(CLASS_NAME, "processSearchReference",
-                      String.valueOf(searchOperation),
-                      String.valueOf(searchReference));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
@@ -1194,8 +1096,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationSearchOperation searchOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostOperation",
-                      String.valueOf(searchOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -1219,8 +1119,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseSearchOperation searchOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostResponse",
-                      String.valueOf(searchOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -1242,8 +1140,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParse",
-                      String.valueOf(unbindOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -1266,8 +1162,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPostOperation",
-                      String.valueOf(unbindOperation));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
@@ -1290,8 +1184,6 @@ public abstract class DirectoryServerPlugin
               processIntermediateResponse(
                    IntermediateResponse intermediateResponse)
   {
-    assert debugEnter(CLASS_NAME, "processIntermediateResponse",
-                      String.valueOf(intermediateResponse));
 
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),

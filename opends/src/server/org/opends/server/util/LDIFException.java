@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -39,11 +34,6 @@ import static org.opends.server.loggers.Debug.*;
 public final class LDIFException
        extends Exception
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.util.LDIFException";
 
 
 
@@ -80,8 +70,6 @@ public final class LDIFException
   {
     super(message);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
-                            String.valueOf(message));
 
     this.messageID     = messageID;
     lineNumber         = -1;
@@ -101,8 +89,6 @@ public final class LDIFException
   {
     super(message, cause);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
-                            String.valueOf(message), String.valueOf(cause));
 
     this.messageID     = messageID;
     lineNumber         = -1;
@@ -126,9 +112,6 @@ public final class LDIFException
   {
     super(message);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
-                            String.valueOf(message), String.valueOf(lineNumber),
-                            String.valueOf(canContinueReading));
 
     this.messageID          = messageID;
     this.lineNumber         = lineNumber;
@@ -155,10 +138,6 @@ public final class LDIFException
   {
     super(message, cause);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
-                            String.valueOf(message), String.valueOf(lineNumber),
-                            String.valueOf(canContinueReading),
-                            String.valueOf(cause));
 
     this.messageID          = messageID;
     this.lineNumber         = lineNumber;
@@ -174,7 +153,6 @@ public final class LDIFException
    */
   public int getMessageID()
   {
-    assert debugEnter(CLASS_NAME, "getMessageID");
 
     return messageID;
   }
@@ -188,7 +166,6 @@ public final class LDIFException
    */
   public long getLineNumber()
   {
-    assert debugEnter(CLASS_NAME, "getLineNumber");
 
     return lineNumber;
   }
@@ -207,7 +184,6 @@ public final class LDIFException
    */
   public boolean canContinueReading()
   {
-    assert debugEnter(CLASS_NAME, "canContinueReading");
 
     return canContinueReading;
   }

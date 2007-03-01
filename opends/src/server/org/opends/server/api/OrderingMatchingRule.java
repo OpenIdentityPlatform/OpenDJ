@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -34,7 +34,6 @@ import java.util.Comparator;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -48,11 +47,6 @@ public abstract class OrderingMatchingRule
        extends MatchingRule
        implements Comparator<byte[]>, Serializable
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.OrderingMatchingRule";
 
 
 
@@ -113,9 +107,6 @@ public abstract class OrderingMatchingRule
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "valuesMatch",
-                      String.valueOf(attributeValue),
-                      String.valueOf(assertionValue));
 
     return ConditionResult.UNDEFINED;
   }

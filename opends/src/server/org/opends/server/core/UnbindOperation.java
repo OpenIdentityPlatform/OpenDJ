@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -41,7 +41,6 @@ import org.opends.server.types.operation.PostOperationUnbindOperation;
 import org.opends.server.types.operation.PreParseUnbindOperation;
 
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 
@@ -55,11 +54,6 @@ public class UnbindOperation
        extends Operation
        implements PreParseUnbindOperation, PostOperationUnbindOperation
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.UnbindOperation";
 
 
 
@@ -86,10 +80,6 @@ public class UnbindOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(clientConnection),
-                            String.valueOf(operationID),
-                            String.valueOf(messageID),
-                            String.valueOf(requestControls));
   }
 
 
@@ -162,7 +152,6 @@ public class UnbindOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-    assert debugEnter(CLASS_NAME, "getResponseControls");
 
     // An unbind operation can never have a response, so just return an empty
     // list.
@@ -199,7 +188,6 @@ public class UnbindOperation
   @Override()
   public long getProcessingStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
     return processingStartTime;
   }
@@ -212,7 +200,6 @@ public class UnbindOperation
   @Override()
   public long getProcessingStopTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
     return processingStopTime;
   }
@@ -225,7 +212,6 @@ public class UnbindOperation
   @Override()
   public long getProcessingTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingTime");
 
     return (processingStopTime - processingStartTime);
   }
@@ -238,7 +224,6 @@ public class UnbindOperation
   @Override()
   public final void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
 
     // Get the plugin config manager that will be used for invoking plugins.
@@ -281,7 +266,6 @@ public class UnbindOperation
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
     cancelRequest.addResponseMessage(getMessage(MSGID_CANNOT_CANCEL_UNBIND));
     return CancelResult.CANNOT_CANCEL;
@@ -295,7 +279,6 @@ public class UnbindOperation
   @Override()
   public final CancelRequest getCancelRequest()
   {
-    assert debugEnter(CLASS_NAME, "getCancelRequest");
 
     return null;
   }
@@ -308,8 +291,6 @@ public class UnbindOperation
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "setCancelRequest",
-                      String.valueOf(cancelRequest));
 
     // Unbind operations cannot be canceled.
     return false;
@@ -323,7 +304,6 @@ public class UnbindOperation
   @Override()
   public final void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("UnbindOperation(connID=");
     buffer.append(clientConnection.getConnectionID());

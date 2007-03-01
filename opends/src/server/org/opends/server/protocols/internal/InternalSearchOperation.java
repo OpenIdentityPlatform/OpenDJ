@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
 
@@ -44,7 +44,6 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -58,11 +57,6 @@ import static org.opends.server.loggers.Debug.*;
 public class InternalSearchOperation
        extends SearchOperation
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.internal.InternalSearchOperation";
 
 
 
@@ -125,23 +119,6 @@ public class InternalSearchOperation
           typesOnly, rawFilter, attributes);
 
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(internalConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(rawBaseDN),
-                              String.valueOf(scope),
-                              String.valueOf(derefPolicy),
-                              String.valueOf(sizeLimit),
-                              String.valueOf(timeLimit),
-                              String.valueOf(typesOnly),
-                              String.valueOf(rawFilter),
-                              String.valueOf(attributes),
-                              String.valueOf(searchListener)
-                            });
 
 
     if (searchListener == null)
@@ -207,23 +184,6 @@ public class InternalSearchOperation
           typesOnly, filter, attributes);
 
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(internalConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(baseDN),
-                              String.valueOf(scope),
-                              String.valueOf(derefPolicy),
-                              String.valueOf(sizeLimit),
-                              String.valueOf(timeLimit),
-                              String.valueOf(typesOnly),
-                              String.valueOf(filter),
-                              String.valueOf(attributes),
-                              String.valueOf(searchListener)
-                            });
 
 
     if (searchListener == null)
@@ -254,7 +214,6 @@ public class InternalSearchOperation
    */
   public LinkedList<SearchResultEntry> getSearchEntries()
   {
-    assert debugEnter(CLASS_NAME, "getSearchEntries");
 
     return entryList;
   }
@@ -271,8 +230,6 @@ public class InternalSearchOperation
    */
   public void addSearchEntry(SearchResultEntry searchEntry)
   {
-    assert debugEnter(CLASS_NAME, "addSearchEntry",
-                      String.valueOf(searchEntry));
 
     if (searchListener == null)
     {
@@ -296,7 +253,6 @@ public class InternalSearchOperation
    */
   public LinkedList<SearchResultReference> getSearchReferences()
   {
-    assert debugEnter(CLASS_NAME, "getSearchReferences");
 
     return referenceList;
   }
@@ -314,8 +270,6 @@ public class InternalSearchOperation
   public void addSearchReference(
                    SearchResultReference searchReference)
   {
-    assert debugEnter(CLASS_NAME, "addSearchReference",
-                      String.valueOf(searchReference));
 
     if (searchListener == null)
     {

@@ -37,7 +37,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.api.Backend;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -52,11 +54,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LockFileManager
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.LockFileManager";
 
 
 
@@ -90,8 +87,6 @@ public class LockFileManager
   public static boolean acquireSharedLock(String lockFile,
                                           StringBuilder failureReason)
   {
-    assert debugEnter(CLASS_NAME, "acquireSharedLock",
-                      String.valueOf(lockFile));
 
     mapLock.lock();
 
@@ -131,7 +126,10 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "acquireSharedLock", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_CREATE;
         failureReason.append(getMessage(msgID, lockFile,
@@ -149,7 +147,10 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "acquireSharedLock", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_OPEN;
         failureReason.append(getMessage(msgID, lockFile,
@@ -166,7 +167,10 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "acquireSharedLock", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_LOCK;
         failureReason.append(getMessage(msgID,
@@ -211,8 +215,6 @@ public class LockFileManager
   public static boolean acquireExclusiveLock(String lockFile,
                                              StringBuilder failureReason)
   {
-    assert debugEnter(CLASS_NAME, "acquireExclusiveLock",
-                      String.valueOf(lockFile));
 
     mapLock.lock();
 
@@ -250,7 +252,10 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "acquireExclusiveLock", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_CREATE;
         failureReason.append(getMessage(msgID, lockFile,
@@ -268,7 +273,10 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "acquireExclusiveLock", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_OPEN;
         failureReason.append(getMessage(msgID, lockFile,
@@ -285,7 +293,10 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "acquireExclusiveLock", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_LOCK;
         failureReason.append(getMessage(msgID, lockFile,
@@ -335,8 +346,6 @@ public class LockFileManager
   public static boolean releaseLock(String lockFile,
                                     StringBuilder failureReason)
   {
-    assert debugEnter(CLASS_NAME, "releaseLock",
-                      String.valueOf(lockFile));
 
     mapLock.lock();
 
@@ -353,7 +362,10 @@ public class LockFileManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "releaseLock", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_FILELOCKER_UNLOCK_EXCLUSIVE_FAILED_RELEASE;
           failureReason.append(getMessage(msgID, lockFile,
@@ -367,7 +379,10 @@ public class LockFileManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "releaseLock", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // Even though we couldn't close the channel for some reason, this
           // should still be OK because we released the lock above.
@@ -395,7 +410,10 @@ public class LockFileManager
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "releaseLock", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             int msgID = MSGID_FILELOCKER_UNLOCK_SHARED_FAILED_RELEASE;
             failureReason.append(getMessage(msgID, lockFile,
@@ -409,7 +427,10 @@ public class LockFileManager
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "releaseLock", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // Even though we couldn't close the channel for some reason, this
             // should still be OK because we released the lock above.
@@ -448,7 +469,6 @@ public class LockFileManager
    */
   public static String getLockDirectoryPath()
   {
-    assert debugEnter(CLASS_NAME, "getLockFileDirectory");
 
     String lockDirectory = System.getProperty(PROPERTY_LOCK_DIRECTORY);
     if ((lockDirectory == null) || (lockDirectory.length() == 0))
@@ -471,7 +491,6 @@ public class LockFileManager
    */
   public static String getServerLockFileName()
   {
-    assert debugEnter(CLASS_NAME, "getServerLockFileName");
 
     StringBuilder buffer = new StringBuilder();
     buffer.append(getLockDirectoryPath());
@@ -496,8 +515,6 @@ public class LockFileManager
    */
   public static String getBackendLockFileName(Backend backend)
   {
-    assert debugEnter(CLASS_NAME, "getBackendLockFileName",
-                      String.valueOf(backend));
 
     StringBuilder buffer = new StringBuilder();
     buffer.append(getLockDirectoryPath());

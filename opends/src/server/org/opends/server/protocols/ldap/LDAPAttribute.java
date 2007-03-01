@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -40,11 +40,12 @@ import org.opends.server.protocols.asn1.ASN1Set;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -59,11 +60,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LDAPAttribute
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.LDAPAttribute";
 
 
 
@@ -82,7 +78,6 @@ public class LDAPAttribute
    */
   public LDAPAttribute(String attributeType)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(attributeType));
 
     this.attributeType = attributeType;
 
@@ -99,7 +94,6 @@ public class LDAPAttribute
    */
   public LDAPAttribute(String attributeType, ArrayList<ASN1OctetString> values)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(attributeType));
 
     this.attributeType = attributeType;
 
@@ -122,7 +116,6 @@ public class LDAPAttribute
    */
   public LDAPAttribute(Attribute attribute)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(attribute));
 
     StringBuilder attrName = new StringBuilder(attribute.getName());
     for (String o : attribute.getOptions())
@@ -156,7 +149,6 @@ public class LDAPAttribute
    */
   public String getAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType");
 
     return attributeType;
   }
@@ -170,8 +162,6 @@ public class LDAPAttribute
    */
   public void setAttributeType(String attributeType)
   {
-    assert debugEnter(CLASS_NAME, "setAttributeType",
-                      String.valueOf(attributeType));
 
     this.attributeType = attributeType;
   }
@@ -186,7 +176,6 @@ public class LDAPAttribute
    */
   public ArrayList<ASN1OctetString> getValues()
   {
-    assert debugEnter(CLASS_NAME, "getValues");
 
     return values;
   }
@@ -200,7 +189,6 @@ public class LDAPAttribute
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1OctetString(attributeType));
@@ -239,7 +227,6 @@ public class LDAPAttribute
   public static LDAPAttribute decode(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -248,7 +235,10 @@ public class LDAPAttribute
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_LDAP_ATTRIBUTE_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -272,7 +262,10 @@ public class LDAPAttribute
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_LDAP_ATTRIBUTE_DECODE_TYPE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -293,7 +286,10 @@ public class LDAPAttribute
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_LDAP_ATTRIBUTE_DECODE_VALUES;
       String message = getMessage(msgID, String.valueOf(e));
@@ -318,7 +314,6 @@ public class LDAPAttribute
   public Attribute toAttribute()
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "toAttribute");
 
     String baseName;
     String lowerBaseName;
@@ -387,7 +382,6 @@ public class LDAPAttribute
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -403,7 +397,6 @@ public class LDAPAttribute
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("LDAPAttribute(type=");
     buffer.append(attributeType);
@@ -435,8 +428,6 @@ public class LDAPAttribute
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

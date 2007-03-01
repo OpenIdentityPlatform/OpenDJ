@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 - 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -55,7 +55,9 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
 
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 
@@ -75,11 +77,6 @@ import java.util.TimerTask;
  */
 public class VerifyJob
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.VerifyJob";
 
   /**
    * The verify configuration.
@@ -448,7 +445,10 @@ public class VerifyJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "iterateID2Entry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           errorCount++;
           System.err.printf("Malformed id2entry ID %s.%n",
                             StaticUtils.bytesToHex(key.getData()));
@@ -464,7 +464,10 @@ public class VerifyJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "iterateID2Entry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           errorCount++;
           System.err.printf("Malformed id2entry record for ID %d:%n%s%n",
               entryID.longValue(),
@@ -553,7 +556,10 @@ public class VerifyJob
         }
         catch (DirectoryException e)
         {
-          assert debugException(CLASS_NAME, "iterateDN2ID", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           errorCount++;
           System.err.printf("File dn2id has malformed key %s.%n",
                             StaticUtils.bytesToHex(key.getData()));
@@ -567,7 +573,10 @@ public class VerifyJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "iterateDN2ID", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           errorCount++;
           System.err.printf("File dn2id has malformed ID for DN <%s>:%n%s%n",
                             dn.toNormalizedString(),
@@ -582,7 +591,10 @@ public class VerifyJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "iterateDN2ID", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           errorCount++;
           System.err.println(e.getMessage());
           continue;
@@ -643,7 +655,10 @@ public class VerifyJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "iterateID2Children", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           errorCount++;
           System.err.printf("File id2children has malformed ID %s%n",
                             StaticUtils.bytesToHex(key.getData()));
@@ -659,7 +674,10 @@ public class VerifyJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "iterateID2Children", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           errorCount++;
           System.err.printf("File id2children has malformed ID list " +
                             "for ID %s:%n%s%n",
@@ -679,7 +697,10 @@ public class VerifyJob
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "iterateID2Children", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
             errorCount++;
             System.err.println(e.getMessage());
             continue;
@@ -702,7 +723,10 @@ public class VerifyJob
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "iterateID2Children", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               errorCount++;
               System.err.println(e.getMessage());
               continue;
@@ -766,7 +790,10 @@ public class VerifyJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "iterateID2Subtree", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           errorCount++;
           System.err.printf("File id2subtree has malformed ID %s%n",
                             StaticUtils.bytesToHex(key.getData()));
@@ -781,7 +808,10 @@ public class VerifyJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "iterateID2Subtree", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           errorCount++;
           System.err.printf("File id2subtree has malformed ID list " +
                             "for ID %s:%n%s%n",
@@ -801,7 +831,10 @@ public class VerifyJob
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "iterateID2Subtree", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
             errorCount++;
             System.err.println(e.getMessage());
             continue;
@@ -824,7 +857,10 @@ public class VerifyJob
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "iterateID2Subtree", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               errorCount++;
               System.err.println(e.getMessage());
               continue;
@@ -949,7 +985,10 @@ public class VerifyJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "iterateAttrIndex", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           errorCount++;
           System.err.printf("Malformed ID list: %s%n%s",
                             StaticUtils.bytesToHex(data.getData()),
@@ -1014,7 +1053,10 @@ public class VerifyJob
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "iterateAttrIndex", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               errorCount++;
               System.err.println(e.getMessage());
               continue;
@@ -1040,7 +1082,10 @@ public class VerifyJob
             }
             catch (DirectoryException e)
             {
-              assert debugException(CLASS_NAME, "iterateAttrIndex", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
             }
           }
         }
@@ -1106,7 +1151,10 @@ public class VerifyJob
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "verifyDN2ID", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       System.err.printf("File dn2id has error reading key %s: %s.%n",
                         dn.toNormalizedString(),
                         e.getMessage());
@@ -1129,7 +1177,10 @@ public class VerifyJob
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "verifyDN2ID", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         System.err.printf("File dn2id has error reading key %s: %s.%n",
                           parentDN.toNormalizedString(),
                           e.getMessage());
@@ -1164,7 +1215,10 @@ public class VerifyJob
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "verifyID2Children", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         System.err.printf("File dn2id has error reading key %s: %s.",
                           parentDN.toNormalizedString(),
                           e.getMessage());
@@ -1190,7 +1244,10 @@ public class VerifyJob
         }
         catch (DatabaseException e)
         {
-          assert debugException(CLASS_NAME, "verifyID2Children", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           System.err.printf("File id2children has error reading key %d: %s.",
                             parentID.longValue(), e.getMessage());
           errorCount++;
@@ -1222,7 +1279,10 @@ public class VerifyJob
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "verifyID2Children", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         System.err.printf("File dn2id has error reading key %s: %s.%n",
                           dn.toNormalizedString(),
                           e.getMessage());
@@ -1248,7 +1308,10 @@ public class VerifyJob
         }
         catch (DatabaseException e)
         {
-          assert debugException(CLASS_NAME, "verifyID2Subtree", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           System.err.printf("File id2subtree has error reading key %d: %s.%n",
                             id.longValue(), e.getMessage());
           errorCount++;
@@ -1309,7 +1372,10 @@ public class VerifyJob
       }
       catch (DirectoryException e)
       {
-        assert debugException(CLASS_NAME, "verifyAttrIndex", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         System.err.printf("Error normalizing values of attribute %s in " +
                           "entry <%s>: %s.%n",
                           attrIndex.getAttributeType().toString(),
@@ -1360,7 +1426,10 @@ public class VerifyJob
       }
       catch (DatabaseException e)
       {
-        assert debugException(CLASS_NAME, "verifyAttribute", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         System.err.printf("Error reading database: %s%n%s",
                           e.getMessage(),
                           keyDump(presenceIndex, presenceKey.getData()));
@@ -1399,7 +1468,10 @@ public class VerifyJob
             }
             catch (DatabaseException e)
             {
-              assert debugException(CLASS_NAME, "verifyAttribute", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               System.err.printf("Error reading database: %s%n%s",
                                 e.getMessage(),
                                 keyDump(equalityIndex, normalizedBytes));
@@ -1434,7 +1506,10 @@ public class VerifyJob
               }
               catch (DatabaseException e)
               {
-                assert debugException(CLASS_NAME, "verifyAttribute", e);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, e);
+                }
                 System.err.printf("Error reading database: %s%n%s",
                                   e.getMessage(),
                                   keyDump(substringIndex, key.getData()));
@@ -1472,7 +1547,10 @@ public class VerifyJob
             }
             catch (DatabaseException e)
             {
-              assert debugException(CLASS_NAME, "verifyAttribute", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               System.err.printf("Error reading database: %s%n%s",
                                 e.getMessage(),
                                 keyDump(orderingIndex, normalizedBytes));
@@ -1504,11 +1582,6 @@ public class VerifyJob
    */
   class ProgressTask extends TimerTask
   {
-    /**
-     * The fully-qualified name of this class for debugging purposes.
-     */
-    private static final String CLASS_NAME =
-         "org.opends.server.backends.jeb.VerifyJob.ProgressTask";
 
     /**
      * The number of records that had been processed at the time of the
@@ -1591,7 +1664,10 @@ public class VerifyJob
       }
       catch (DatabaseException e)
       {
-        debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -39,8 +39,10 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -69,11 +71,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class AccountUsableResponseControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.AccountUsableResponseControl";
 
 
 
@@ -176,8 +173,6 @@ public class AccountUsableResponseControl
     super(OID_ACCOUNT_USABLE_CONTROL, false,
           encodeValue(secondsBeforeExpiration));
 
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(secondsBeforeExpiration));
 
     this.secondsBeforeExpiration = secondsBeforeExpiration;
 
@@ -211,9 +206,6 @@ public class AccountUsableResponseControl
   {
     super(oid, isCritical, encodeValue(secondsBeforeExpiration));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(secondsBeforeExpiration));
 
     this.secondsBeforeExpiration = secondsBeforeExpiration;
 
@@ -260,11 +252,6 @@ public class AccountUsableResponseControl
           encodeValue(isInactive, isReset, isExpired, remainingGraceLogins,
                       isLocked, secondsBeforeUnlock));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(isInactive),
-                            String.valueOf(isReset), String.valueOf(isExpired),
-                            String.valueOf(remainingGraceLogins),
-                            String.valueOf(isLocked),
-                            String.valueOf(secondsBeforeUnlock));
 
     this.isInactive           = isInactive;
     this.isReset              = isReset;
@@ -316,13 +303,6 @@ public class AccountUsableResponseControl
           encodeValue(isInactive, isReset, isExpired, remainingGraceLogins,
                       isLocked, secondsBeforeUnlock));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(isInactive), String.valueOf(isReset),
-                            String.valueOf(isExpired),
-                            String.valueOf(remainingGraceLogins),
-                            String.valueOf(isLocked),
-                            String.valueOf(secondsBeforeUnlock));
 
     this.isInactive           = isInactive;
     this.isReset              = isReset;
@@ -385,16 +365,6 @@ public class AccountUsableResponseControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(isAvailable),
-                            String.valueOf(secondsBeforeExpiration),
-                            String.valueOf(isInactive),
-                            String.valueOf(isReset),
-                            String.valueOf(isExpired),
-                            String.valueOf(remainingGraceLogins),
-                            String.valueOf(isLocked),
-                            String.valueOf(secondsBeforeUnlock));
 
     this.isUsable                = isAvailable;
     this.secondsBeforeExpiration = secondsBeforeExpiration;
@@ -422,8 +392,6 @@ public class AccountUsableResponseControl
    */
   private static ASN1OctetString encodeValue(int secondsBeforeExpiration)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue",
-                      String.valueOf(secondsBeforeExpiration));
 
 
     ASN1Integer sbeInteger = new ASN1Integer(TYPE_SECONDS_BEFORE_EXPIRATION,
@@ -466,11 +434,6 @@ public class AccountUsableResponseControl
                                              boolean isLocked,
                                              int secondsBeforeUnlock)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue", String.valueOf(isInactive),
-                      String.valueOf(isReset), String.valueOf(isExpired),
-                      String.valueOf(remainingGraceLogins),
-                      String.valueOf(isLocked),
-                      String.valueOf(secondsBeforeUnlock));
 
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(5);
@@ -525,7 +488,6 @@ public class AccountUsableResponseControl
   public static AccountUsableResponseControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
 
     ASN1OctetString controlValue = control.getValue();
@@ -608,17 +570,23 @@ public class AccountUsableResponseControl
     }
     catch (ASN1Exception ae)
     {
-      assert debugException(CLASS_NAME, "decodeControl", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
 
-      int    msgID   = MSGID_ACCTUSABLERES_DECODE_ERROR;
+      int msgID = MSGID_ACCTUSABLERES_DECODE_ERROR;
       String message = getMessage(msgID, ae.getMessage());
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeControl", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_ACCTUSABLERES_DECODE_ERROR;
+      int msgID = MSGID_ACCTUSABLERES_DECODE_ERROR;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
     }
@@ -634,7 +602,6 @@ public class AccountUsableResponseControl
    */
   public boolean isUsable()
   {
-    assert debugEnter(CLASS_NAME, "isAvailable");
 
     return isUsable;
   }
@@ -651,7 +618,6 @@ public class AccountUsableResponseControl
    */
   public int getSecondsBeforeExpiration()
   {
-    assert debugEnter(CLASS_NAME, "getSecondsBeforeExpiration");
 
     return secondsBeforeExpiration;
   }
@@ -667,7 +633,6 @@ public class AccountUsableResponseControl
    */
   public boolean isInactive()
   {
-    assert debugEnter(CLASS_NAME, "isInactive");
 
     return isInactive;
   }
@@ -684,7 +649,6 @@ public class AccountUsableResponseControl
    */
   public boolean isReset()
   {
-    assert debugEnter(CLASS_NAME, "isReset");
 
     return isReset;
   }
@@ -699,7 +663,6 @@ public class AccountUsableResponseControl
    */
   public boolean isExpired()
   {
-    assert debugEnter(CLASS_NAME, "isExpired");
 
     return isExpired;
   }
@@ -715,7 +678,6 @@ public class AccountUsableResponseControl
    */
   public int getRemainingGraceLogins()
   {
-    assert debugEnter(CLASS_NAME, "getRemainingGraceLogins");
 
     return remainingGraceLogins;
   }
@@ -730,7 +692,6 @@ public class AccountUsableResponseControl
    */
   public boolean isLocked()
   {
-    assert debugEnter(CLASS_NAME, "isLocked");
 
     return isLocked;
   }
@@ -748,7 +709,6 @@ public class AccountUsableResponseControl
    */
   public int getSecondsBeforeUnlock()
   {
-    assert debugEnter(CLASS_NAME, "getSecondsBeforeUnlock");
 
     return secondsBeforeUnlock;
   }
@@ -762,7 +722,6 @@ public class AccountUsableResponseControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -779,7 +738,6 @@ public class AccountUsableResponseControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("AccountUsableResponseControl(isUsable=");
     buffer.append(isUsable);

@@ -58,8 +58,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
@@ -67,7 +65,12 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.debugWarning;
+import static org.opends.server.loggers.debug.DebugLogger.debugError;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -80,11 +83,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class PasswordPolicyState
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.PasswordPolicyState";
 
 
 
@@ -208,8 +206,6 @@ public class PasswordPolicyState
                              boolean debug)
          throws DirectoryException
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(userEntry),
-                            String.valueOf(passwordPolicy));
 
 
     this.userEntry   = userEntry;
@@ -273,10 +269,9 @@ public class PasswordPolicyState
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                       DebugLogSeverity.WARNING, CLASS_NAME, "<init>",
-                       "Could not determine password changed time for user " +
-                       userDNString);
+          debugWarning(
+              "Could not determine password changed time " +
+                           "for user %s", userDNString);
         }
       }
     }
@@ -295,7 +290,6 @@ public class PasswordPolicyState
   private PasswordPolicy getPasswordPolicyInternal()
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getPasswordPolicy");
 
 
     // See if the user entry contains the ds-pwp-password-policy-dn attribute to
@@ -309,10 +303,11 @@ public class PasswordPolicyState
       // There is no policy subentry defined, so we'll use the default.
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "getPasswordPolicy",
-                     "Using the default password policy for user " +
-                     userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Using the default password policy for user %s",
+                    userDNString);
+        }
       }
 
       return DirectoryServer.getDefaultPasswordPolicy();
@@ -330,16 +325,18 @@ public class PasswordPolicyState
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "getPasswordPolicy", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.ERROR, CLASS_NAME,
-                         "getPasswordPolicy",
-                         "Could not parse password policy subentry DN \"" +
-                         v.getStringValue() + "\" for user \"" + userDNString +
-                         "\":  " + stackTraceToSingleLineString(e));
+            debugError(
+                "Could not parse password policy subentry " +
+                    "DN %s for user %s: %s",
+                v.getStringValue(), userDNString,
+                stackTraceToSingleLineString(e));
           }
 
           int    msgID   = MSGID_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN;
@@ -354,13 +351,10 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.ERROR, CLASS_NAME,
-                         "getPasswordPolicy",
-                         "Password policy subentry \"" +
-                         String.valueOf(subentryDN) + "\" for user \"" +
-                         userDNString + "\" is not defined in the Directory " +
-                         "Server.");
+            debugError(
+                "Password policy subentry %s for user %s " +
+                           "is not defined in the Directory Server.",
+                       String.valueOf(subentryDN), userDNString);
           }
 
           int msgID = MSGID_PWPSTATE_NO_SUCH_POLICY;
@@ -374,11 +368,11 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME, "getPasswordPolicy",
-                         "Using password policy subentry \"" +
-                         String.valueOf(subentryDN) + "\" for user \"" +
-                         userDNString + "\".");
+            if (debugEnabled())
+            {
+              debugInfo("Using password policy subentry %s for user " +
+                  "%s.", String.valueOf(subentryDN), userDNString);
+            }
           }
 
           return policy;
@@ -390,10 +384,11 @@ public class PasswordPolicyState
     // This shouldn't happen, but if it does then use the default.
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "getPasswordPolicy",
-                   "Falling back to the default password policy for user " +
-                   userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Falling back to the default password policy for " +
+            "user %s", userDNString);
+      }
     }
 
     return DirectoryServer.getDefaultPasswordPolicy();
@@ -411,18 +406,18 @@ public class PasswordPolicyState
    */
   private String getValue(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "getValue", String.valueOf(attributeType));
 
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
     if ((attrList == null) || attrList.isEmpty())
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "getValue",
-                     "Returning null because attribute " +
-                     attributeType.getNameOrOID() + " does not exist in user " +
-                     "entry " + userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning null because attribute %s does not " +
+              "exist in user entry %s", attributeType.getNameOrOID(),
+                                        userDNString);
+        }
       }
 
       return null;
@@ -436,10 +431,11 @@ public class PasswordPolicyState
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "getValue",
-                       "Returning value \"" + stringValue + "\" for user " +
-                       userDNString);
+          if (debugEnabled())
+          {
+            debugInfo("Returning value %s for user %s", stringValue,
+                      userDNString);
+          }
         }
 
         return stringValue;
@@ -466,19 +462,18 @@ public class PasswordPolicyState
   private long getGeneralizedTime(AttributeType attributeType)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getGeneralizedTime",
-                      String.valueOf(attributeType));
 
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
     if ((attrList == null) || attrList.isEmpty())
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "getGeneralizedTime",
-                     "Returning -1 because attribute " +
-                     attributeType.getNameOrOID() + " does not exist in user " +
-                     "entry " + userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning -1 because attribute %s does not " +
+              "exist in user entry %s", attributeType.getNameOrOID(),
+                                        userDNString);
+        }
       }
 
       return -1;
@@ -496,16 +491,18 @@ public class PasswordPolicyState
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "getGeneralizedTime", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.WARNING, CLASS_NAME,
-                         "getGeneralizedTime",
-                         "Unable to decode value " + v.getStringValue() +
-                         " for attribute " + attributeType.getNameOrOID() +
-                         " in user entry " + userDNString + ":  " + e);
+            debugWarning(
+                "Unable to decode value %s for attribute " +
+                    "%s in user entry %s: %s",
+                v.getStringValue(),
+                attributeType.getNameOrOID(), userDNString);
           }
 
           int msgID = MSGID_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME;
@@ -521,11 +518,12 @@ public class PasswordPolicyState
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "getGeneralizedTime",
-                   "Returning -1 for attribute " +
-                   attributeType.getNameOrOID() + " in user entry " +
-                   userDNString + " because all options have been exhausted.");
+      if (debugEnabled())
+      {
+        debugInfo("Returning -1 for attribute %s in user entry %s " +
+            "because all options have been exhausted.",
+                  attributeType.getNameOrOID(), userDNString);
+      }
     }
 
     return -1;
@@ -549,8 +547,6 @@ public class PasswordPolicyState
   private List<Long> getGeneralizedTimes(AttributeType attributeType)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getGeneralizedTimes",
-                      String.valueOf(attributeType));
 
 
     ArrayList<Long> timeValues = new ArrayList<Long>();
@@ -560,11 +556,12 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "getGeneralizedTimes",
-                     "Returning an empty list because attribute " +
-                     attributeType.getNameOrOID() + " does not exist in user " +
-                     "entry " + userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning an empty list because attribute %s " +
+              "does not exist in user entry %s",
+                    attributeType.getNameOrOID(), userDNString);
+        }
       }
 
       return timeValues;
@@ -582,16 +579,19 @@ public class PasswordPolicyState
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "getGeneralizedTimes", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.WARNING, CLASS_NAME,
-                         "getGeneralizedTimes",
-                         "Unable to decode value " + v.getStringValue() +
-                         " for attribute " + attributeType.getNameOrOID() +
-                         " in user entry " + userDNString + ":  " + e);
+            debugWarning(
+                "Unable to decode value %s for attribute " +
+                    "%s in user entry %s: %s",
+                v.getStringValue(),
+                attributeType.getNameOrOID(),
+                userDNString, e);
           }
 
           int msgID = MSGID_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME;
@@ -626,19 +626,19 @@ public class PasswordPolicyState
   private boolean getBoolean(AttributeType attributeType, boolean defaultValue)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getBoolean", String.valueOf(attributeType),
-                      String.valueOf(defaultValue));
 
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
     if ((attrList == null) || attrList.isEmpty())
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "getBoolean",
-                     "Returning default of " + defaultValue +
-                     " because attribute " + attributeType.getNameOrOID() +
-                     " does not exist in user entry " + userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning default of %b because attribute " +
+              "%s does not exist in user entry %s",
+                    defaultValue, attributeType.getNameOrOID(),
+                    attributeType.getNameOrOID());
+        }
       }
 
       return defaultValue;
@@ -655,10 +655,11 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME, "getBoolean",
-                         "Attribute " + attributeType.getNameOrOID() +
-                         " resolves to true for user entry " + userDNString);
+            if (debugEnabled())
+            {
+              debugInfo("Attribute %s resolves to true for user " +
+                  "entry %s", attributeType.getNameOrOID(), userDNString);
+            }
           }
 
           return true;
@@ -668,10 +669,11 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME, "getBoolean",
-                         "Attribute " + attributeType.getNameOrOID() +
-                         " resolves to false for user entry " + userDNString);
+            if (debugEnabled())
+            {
+              debugInfo("Attribute %s resolves to false for user " +
+                  "entry %s", attributeType.getNameOrOID(), userDNString);
+            }
           }
 
           return false;
@@ -680,11 +682,11 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.ERROR, CLASS_NAME, "getBoolean",
-                         "Unable to resolve value \"" + valueString +
-                         "\" for attribute " + attributeType.getNameOrOID() +
-                         " in user entry " + userDNString + " as a Boolean.");
+            debugError(
+                "Unable to resolve value %s for attribute " +
+                           "%s in user entry %us as a Boolean.",
+                       valueString, attributeType.getNameOrOID(),
+                       userDNString);
           }
 
           int msgID = MSGID_PWPSTATE_CANNOT_DECODE_BOOLEAN;
@@ -700,11 +702,13 @@ public class PasswordPolicyState
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "getBoolean",
-                   "Returning default of " + defaultValue +" for attribute " +
-                   attributeType.getNameOrOID() + " in user entry " +
-                   userDNString + " because all options have been exhausted.");
+      if (debugEnabled())
+      {
+        debugInfo("Returning default of %b for attribute %s in " +
+            "user entry %s because all options have been " +
+            "exhausted.", defaultValue, attributeType.getNameOrOID(),
+                          userDNString);
+      }
     }
 
     return defaultValue;
@@ -719,7 +723,6 @@ public class PasswordPolicyState
    */
   public PasswordPolicy getPolicy()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordPolicy");
 
     return passwordPolicy;
   }
@@ -736,7 +739,6 @@ public class PasswordPolicyState
    */
   public LinkedList<Modification> getModifications()
   {
-    assert debugEnter(CLASS_NAME, "getModifications");
 
     return modifications;
   }
@@ -750,7 +752,6 @@ public class PasswordPolicyState
    */
   public LinkedHashSet<AttributeValue> getPasswordValues()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordValues");
 
     List<Attribute> attrList =
          userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
@@ -774,7 +775,6 @@ public class PasswordPolicyState
    */
   public boolean requireSecureAuthentication()
   {
-    assert debugEnter(CLASS_NAME, "requireSecureAuthentication");
 
     return passwordPolicy.requireSecureAuthentication();
   }
@@ -788,7 +788,6 @@ public class PasswordPolicyState
    */
   public long getCurrentTime()
   {
-    assert debugEnter(CLASS_NAME, "getCurrentTime");
 
     return currentTime;
   }
@@ -804,7 +803,6 @@ public class PasswordPolicyState
    */
   public String getCurrentGeneralizedTime()
   {
-    assert debugEnter(CLASS_NAME, "getCurrentGeneralizedTime");
 
     return currentGeneralizedTime;
   }
@@ -816,14 +814,14 @@ public class PasswordPolicyState
    */
   public void setPasswordChangedTime()
   {
-    assert debugEnter(CLASS_NAME, "setPasswordChangedTime");
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "setPasswordChangedTime",
-                   "Setting password changed time for user " + userDNString +
-                   " to current time of " + currentTime);
+      if (debugEnabled())
+      {
+        debugInfo("Setting password changed time for user %s to current time " +
+            "of %d", userDNString, currentTime);
+      }
     }
 
     if (passwordChangedTime != currentTime)
@@ -868,7 +866,6 @@ public class PasswordPolicyState
    */
   public boolean isDisabled()
   {
-    assert debugEnter(CLASS_NAME, "isDisabled");
 
     if ((isDisabled == null) || (isDisabled == ConditionResult.UNDEFINED))
     {
@@ -880,10 +877,10 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME, "isDisabled",
-                         "User " + userDNString +
-                         " is administratively disabled.");
+            if (debugEnabled())
+            {
+              debugInfo("User %s is administratively disabled.", userDNString);
+            }
           }
 
           isDisabled = ConditionResult.TRUE;
@@ -893,10 +890,11 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME, "isDisabled",
-                         "User " + userDNString +
-                         " is not administratively disabled.");
+            if (debugEnabled())
+            {
+              debugInfo("User %s is not administratively disabled.",
+                        userDNString);
+            }
           }
 
           isDisabled = ConditionResult.FALSE;
@@ -905,16 +903,18 @@ public class PasswordPolicyState
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "isDisabled", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                       DebugLogSeverity.WARNING, CLASS_NAME, "isDisabled",
-                       "User " + userDNString +" is considered " +
-                       "administratively disabled because an error occurred " +
-                       "while attempting to make the determination:  " +
-                       stackTraceToSingleLineString(e) + ".");
+          debugWarning(
+              "User %s is considered administratively disabled " +
+                  "because an error occurred while attempting to make " +
+                  "the determination: %s.",
+              userDNString, stackTraceToSingleLineString(e));
         }
 
         isDisabled = ConditionResult.TRUE;
@@ -926,10 +926,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "isDisabled",
-                     "Returning stored result of false for user " +
-                     userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning stored result of false for user %s",
+                    userDNString);
+        }
       }
 
       return false;
@@ -938,10 +939,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "isDisabled",
-                     "Returning stored result of true for user " +
-                     userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning stored result of true for user %s",
+                    userDNString);
+        }
       }
 
       return true;
@@ -959,14 +961,14 @@ public class PasswordPolicyState
    */
   public void setDisabled(boolean isDisabled)
   {
-    assert debugEnter(CLASS_NAME, "setDisabled", String.valueOf(isDisabled));
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "setDisabled",
-                   "Updating user " + userDNString +
-                   " to set the disabled flag to " + isDisabled);
+      if (debugEnabled())
+      {
+        debugInfo("Updating user %s to set the disabled flag to %b",
+                  userDNString, isDisabled);
+      }
     }
 
 
@@ -1031,7 +1033,6 @@ public class PasswordPolicyState
    */
   public boolean isAccountExpired()
   {
-    assert debugEnter(CLASS_NAME, "isAccountExpired");
 
     if ((isAccountExpired == null) ||
         (isAccountExpired == ConditionResult.UNDEFINED))
@@ -1048,11 +1049,12 @@ public class PasswordPolicyState
           // can't be expired.
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME, "isAccountExpired",
-                         "The account for user " + userDNString +
-                         " is not expired because there is no expiration " +
-                         "time in the user's entry.");
+            if (debugEnabled())
+            {
+              debugInfo("The account for user %s is not expired because " +
+                  "there is no expiration time in the user's entry.",
+              userDNString);
+            }
           }
 
           isAccountExpired = ConditionResult.FALSE;
@@ -1063,11 +1065,11 @@ public class PasswordPolicyState
           // The user does have an expiration time, but it hasn't arrived yet.
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME, "isAccountExpired",
-                         "The account for user " + userDNString +
-                         " is not expired because the expiration time has " +
-                         "not yet arrived.");
+            if (debugEnabled())
+            {
+              debugInfo("The account for user %s is not expired because the " +
+                  "expiration time has not yet arrived.", userDNString);
+            }
           }
 
           isAccountExpired = ConditionResult.FALSE;
@@ -1078,11 +1080,11 @@ public class PasswordPolicyState
           // The user does have an expiration time, and it is in the past.
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME, "isAccountExpired",
-                         "The account for user " + userDNString +
-                         " is expired because the expiration time in that " +
-                         "account has passed.");
+            if (debugEnabled())
+            {
+              debugInfo("The account for user %s is expired because the " +
+                  "expiration time in that account has passed.", userDNString);
+            }
           }
 
           isAccountExpired = ConditionResult.TRUE;
@@ -1091,16 +1093,18 @@ public class PasswordPolicyState
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "isAccountExpired", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                       DebugLogSeverity.WARNING, CLASS_NAME, "isAccountExpired",
-                       "User " + userDNString +" is considered to have an " +
-                       "expired account because an error occurred " +
-                       "while attempting to make the determination:  " +
-                       stackTraceToSingleLineString(e) + ".");
+          debugWarning(
+              "User %s is considered to have an expired account " +
+                  "because an error occurred while attempting to make " +
+                  "the determination: %s.",
+              userDNString, stackTraceToSingleLineString(e));
         }
 
         isAccountExpired = ConditionResult.TRUE;
@@ -1113,10 +1117,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "isAccountExpired",
-                     "Returning stored result of false for user " +
-                     userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning stored result of false for user %s",
+                    userDNString);
+        }
       }
 
       return false;
@@ -1125,10 +1130,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "isAccountExpired",
-                     "Returning stored result of true for user " +
-                     userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning stored result of true for user %s",
+                    userDNString);
+        }
       }
 
       return true;
@@ -1144,7 +1150,6 @@ public class PasswordPolicyState
    */
   public List<Long> getAuthFailureTimes()
   {
-    assert debugEnter(CLASS_NAME, "getAuthFailureTimes");
 
     if (authFailureTimes == null)
     {
@@ -1176,11 +1181,11 @@ public class PasswordPolicyState
             {
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.INFO, CLASS_NAME,
-                             "getAuthFailureTimes",
-                             "Removing expired auth failure time " + l +
-                             " for user " + userDNString);
+                if (debugEnabled())
+                {
+                  debugInfo("Removing expired auth failure time %d for user " +
+                      "%s", l, userDNString);
+                }
               }
 
               iterator.remove();
@@ -1241,15 +1246,18 @@ public class PasswordPolicyState
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "getAuthFailureTimes", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                       DebugLogSeverity.WARNING, CLASS_NAME,
-                       "getAuthFailureTimes",
-                       "Error while processing auth failure times for user " +
-                       userDNString + ":  " + stackTraceToSingleLineString(e));
+          debugWarning(
+              "Error while processing auth failure times " +
+                  "for user %s: %s",
+              userDNString,
+              stackTraceToSingleLineString(e));
         }
 
         authFailureTimes = new ArrayList<Long>();
@@ -1269,11 +1277,12 @@ public class PasswordPolicyState
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "getAuthFailureTimes",
-                   "Returning auth failure time list of " +
-                   authFailureTimes.size() + " elements for user " +
-                   userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Returning auth failure time list of %d " +
+            "elements for user %s" +
+            authFailureTimes.size(), userDNString);
+      }
     }
 
     return authFailureTimes;
@@ -1287,14 +1296,14 @@ public class PasswordPolicyState
    */
   public void updateAuthFailureTimes()
   {
-    assert debugEnter(CLASS_NAME, "updateAuthFailureTimes");
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "updateAuthFailureTimes",
-                   "Updating authentication failure times for user " +
-                   userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Updating authentication failure times for user %s",
+                  userDNString);
+      }
     }
 
 
@@ -1359,14 +1368,14 @@ public class PasswordPolicyState
    */
   public void clearAuthFailureTimes()
   {
-    assert debugEnter(CLASS_NAME, "clearAuthFailureTimes");
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "clearAuthFailureTimes",
-                   "Clearing authentication failure times for user " +
-                   userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Clearing authentication failure times for user %s",
+                  userDNString);
+      }
     }
 
     List<Long> failureTimes = getAuthFailureTimes();
@@ -1406,7 +1415,6 @@ public class PasswordPolicyState
    */
   public boolean lockedDueToFailures()
   {
-    assert debugEnter(CLASS_NAME, "lockedDueToFailures");
 
 
     int maxFailures = passwordPolicy.getLockoutFailureCount();
@@ -1414,10 +1422,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "lockedDueToFailures",
-                     "Returning false for user " + userDNString +
-                     " because lockout due to failures is not enabled.");
+        if (debugEnabled())
+        {
+          debugInfo("Returning false for user %s because lockout due to " +
+              "failures is not enabled.", userDNString);
+        }
       }
 
       return false;
@@ -1442,16 +1451,16 @@ public class PasswordPolicyState
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "lockedDueToFailures", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                       DebugLogSeverity.WARNING, CLASS_NAME,
-                       "lockedDueToFailures",
-                       "Returning true for user " + userDNString +
-                       " because an error occurred:  " +
-                       stackTraceToSingleLineString(e));
+          debugWarning(
+              "Returning true for user %s because an error occurred: %s",
+              userDNString, stackTraceToSingleLineString(e));
         }
 
         return true;
@@ -1471,45 +1480,46 @@ public class PasswordPolicyState
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "lockedDueToFailures",
-                       "Setting the lock for user " + userDNString +
-                       " because there were enough preexisting failures even " +
-                       "though there was no account locked time.");
+          if (debugEnabled())
+          {
+            debugInfo("Setting the lock for user " + userDNString +
+                " because there were enough preexisting failures even " +
+                "though there was no account locked time.");
+          }
         }
 
         return true;
       }
 
 
-
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                     DebugLogSeverity.INFO, CLASS_NAME, "lockedDueToFailures",
-                     "Returning false for user " + userDNString +
-                     " because there is no locked time.");
+        if (debugEnabled())
+        {
+          debugInfo("Returning false for user  because there is no locked " +
+              "time.", userDNString);
+        }
       }
 
       return false;
     }
-
 
     // There is a failure locked time, but it may be expired.  See if that's the
     // case.
     if (passwordPolicy.getLockoutDuration() > 0)
     {
       long unlockTime = failureLockedTime +
-           (1000L*passwordPolicy.getLockoutDuration());
+          (1000L * passwordPolicy.getLockoutDuration());
       if (unlockTime > currentTime)
       {
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "lockedDueToFailures",
-                       "Returning true for user " + userDNString +
-                       " because there is a locked time and the lockout " +
-                       "duration has not been reached.");
+          if (debugEnabled())
+          {
+            debugInfo("Returning true for user %s because there is a locked " +
+                "time and the lockout duration has not been reached.",
+                      userDNString);
+          }
 
           secondsUntilUnlock = (int) (unlockTime - currentTime);
         }
@@ -1530,10 +1540,11 @@ public class PasswordPolicyState
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "lockedDueToFailures",
-                       "Returning false for user " + userDNString +
-                       " because the existing lockout has expired.");
+          if (debugEnabled())
+          {
+            debugInfo("Returning false for user %s " +
+                "because the existing lockout has expired.", userDNString);
+          }
         }
 
         return false;
@@ -1543,11 +1554,12 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "lockedDueToFailures",
-                     "Returning true for user " + userDNString +
-                     " because there is a locked time and no lockout " +
-                     "duration.");
+        if (debugEnabled())
+        {
+          debugInfo("Returning true for user %s " +
+              "because there is a locked time and no lockout duration.",
+                    userDNString);
+        }
       }
 
       return true;
@@ -1567,7 +1579,6 @@ public class PasswordPolicyState
    */
   public int getSecondsUntilUnlock()
   {
-    assert debugEnter(CLASS_NAME, "getSecondsBeforeUnlock");
 
     if (secondsUntilUnlock < 0)
     {
@@ -1587,14 +1598,14 @@ public class PasswordPolicyState
    */
   public void lockDueToFailures()
   {
-    assert debugEnter(CLASS_NAME, "lockDueToFailures");
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "lockDueToFailures",
-                   "Locking user account " + userDNString +
-                   " due to too many failures.");
+      if (debugEnabled())
+      {
+        debugInfo("Locking user account %s due to too many failures.",
+                  userDNString);
+      }
     }
 
     failureLockedTime = currentTime;
@@ -1632,13 +1643,13 @@ public class PasswordPolicyState
    */
   public void clearFailureLockout()
   {
-    assert debugEnter(CLASS_NAME, "clearFailureLock");
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "clearFailureLockout",
-                   "Clearing lockout failures for user " + userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Clearing lockout failures for user %s", userDNString);
+      }
     }
 
     if (! lockedDueToFailures())
@@ -1676,7 +1687,6 @@ public class PasswordPolicyState
    */
   public long getLastLoginTime()
   {
-    assert debugEnter(CLASS_NAME, "getLastLoginTime");
 
     if (lastLoginTime == Long.MIN_VALUE)
     {
@@ -1687,10 +1697,11 @@ public class PasswordPolicyState
       {
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "getLastLoginTime",
-                       "Returning -1 for user " + userDNString +
-                       " because no last login time will be maintained.");
+          if (debugEnabled())
+          {
+            debugInfo("Returning -1 for user %s because no last " +
+                "login time will be maintained.", userDNString);
+          }
         }
 
         lastLoginTime = -1;
@@ -1702,10 +1713,11 @@ public class PasswordPolicyState
       {
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "getLastLoginTime",
-                       "Returning -1 for user " + userDNString +
-                       " because no last login time value exists.");
+          if (debugEnabled())
+          {
+            debugInfo("Returning -1 for user %s because no last " +
+                "login time value exists.", userDNString);
+          }
         }
 
         lastLoginTime = -1;
@@ -1726,19 +1738,22 @@ public class PasswordPolicyState
 
             if (debug)
             {
-              debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                           DebugLogSeverity.INFO,
-                           CLASS_NAME, "getLastLoginTime",
-                           "Returning last login time of " + lastLoginTime +
-                           " for user " + userDNString + " decoded using " +
-                           "current last login time format.");
+              if (debugEnabled())
+              {
+                debugInfo("Returning last login time of %s for user " +
+                    "%s decoded using current last login " +
+                    "time format.", lastLoginTime, userDNString);
+              }
             }
 
             return lastLoginTime;
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "getLastLoginTime", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // This could mean that the last login time was encoded using a
             // previous format.
@@ -1746,36 +1761,39 @@ public class PasswordPolicyState
             {
               try
               {
-                dateFormat    = new SimpleDateFormat(f);
+                dateFormat = new SimpleDateFormat(f);
                 lastLoginTime = dateFormat.parse(valueString).getTime();
 
                 if (debug)
                 {
-                  debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                               DebugLogSeverity.INFO,
-                               CLASS_NAME, "getLastLoginTime",
-                               "Returning last login time of " + lastLoginTime +
-                               " for user " + userDNString + " decoded using " +
-                               "previous last login time format of " + f);
+                  if (debugEnabled())
+                  {
+                    debugInfo("Returning last login time of %s for " +
+                        "user %s decoded using previous " +
+                        "last login time format of %s",
+                              lastLoginTime, userDNString, f);
+                  }
                 }
 
                 return lastLoginTime;
               }
               catch (Exception e2)
               {
-                assert debugException(CLASS_NAME, "getLastLoginTime", e2);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, e2);
+                }
               }
             }
 
 
             if (debug)
             {
-              debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                           DebugLogSeverity.WARNING,
-                           CLASS_NAME, "getLastLoginTime",
-                           "Returning -1 for user " + userDNString +
-                           " because the last login time value " + valueString +
-                           "could not be parsed using any known format.");
+              debugWarning(
+                  "Returning -1 for user %s because the " +
+                      "last login time value %s could not " +
+                      "be parsed using any known format.",
+                  userDNString, valueString);
             }
 
             lastLoginTime = -1;
@@ -1788,21 +1806,22 @@ public class PasswordPolicyState
       // We shouldn't get here.
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.WARNING,
-                     CLASS_NAME, "getLastLoginTime",
-                     "Returning -1 for user " + userDNString +
-                     " because even though there appears to be a last " +
-                     "login time value we couldn't decipher it.");
+        debugWarning(
+            "Returning -1 for user %s because even though " +
+                         "there appears to be a last login time " +
+                         "value we couldn't decipher it.",
+                     userDNString);
       }
       return -1;
     }
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "getLastLoginTime",
-                   "Returning previously calculated last login time of " +
-                   lastLoginTime + " for user " + userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Returning previously calculated last login time " +
+            "of %s for user %s", lastLoginTime, userDNString);
+      }
     }
 
     return lastLoginTime;
@@ -1815,10 +1834,9 @@ public class PasswordPolicyState
    */
   public void setLastLoginTime()
   {
-    assert debugEnter(CLASS_NAME, "setLastLoginTime");
 
-    AttributeType type   = passwordPolicy.getLastLoginTimeAttribute();
-    String        format = passwordPolicy.getLastLoginTimeFormat();
+    AttributeType type = passwordPolicy.getLastLoginTimeAttribute();
+    String format = passwordPolicy.getLastLoginTimeFormat();
 
     if ((type == null) || (format == null))
     {
@@ -1833,15 +1851,17 @@ public class PasswordPolicyState
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "setLastLoginTime", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.WARNING,
-                     CLASS_NAME, "setLastLoginTime",
-                     "Unable to set last login time for user " + userDNString +
-                     " because an error occurred:  " +
-                     stackTraceToSingleLineString(e));
+        debugWarning(
+            "Unable to set last login time for user %s because an " +
+                "error occurred: %s",
+            userDNString, stackTraceToSingleLineString(e));
       }
 
       return;
@@ -1853,10 +1873,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "setLastLoginTime",
-                     "Not updating last login time for user " + userDNString +
-                     " because the new value matches the existing value.");
+        if (debugEnabled())
+        {
+          debugInfo("Not updating last login time for user %s because the " +
+              "new value matches the existing value.", userDNString);
+        }
       }
 
       return;
@@ -1881,10 +1902,11 @@ public class PasswordPolicyState
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "setLastLoginTime",
-                   "Updated the last login time for user " + userDNString +
-                   " to " + timestamp);
+      if (debugEnabled())
+      {
+        debugInfo("Updated the last login time for user %s to %s",
+                  userDNString, timestamp);
+      }
     }
   }
 
@@ -1899,7 +1921,6 @@ public class PasswordPolicyState
    */
   public boolean lockedDueToIdleInterval()
   {
-    assert debugEnter(CLASS_NAME, "lockedDueToIdleInterval");
 
     if ((isIdleLocked == null) || (isIdleLocked == ConditionResult.UNDEFINED))
     {
@@ -1907,10 +1928,11 @@ public class PasswordPolicyState
       {
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "lockedDueToIdleInterval",
-                       "Returning false for user " + userDNString +
-                       " because no idle lockout interval is defined.");
+          if (debugEnabled())
+          {
+            debugInfo("Returning false for user %s because no idle lockout " +
+                "interval is defined.", userDNString);
+          }
         }
 
         isIdleLocked = ConditionResult.FALSE;
@@ -1918,7 +1940,7 @@ public class PasswordPolicyState
       }
 
       long lockTime = currentTime -
-                      (passwordPolicy.getIdleLockoutInterval()*1000L);
+          (passwordPolicy.getIdleLockoutInterval() * 1000L);
       long lastLoginTime = getLastLoginTime();
       if (lastLoginTime > 0)
       {
@@ -1926,12 +1948,11 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME,
-                         "lockedDueToIdleInterval",
-                         "Returning false for user " + userDNString +
-                         " because the last login time is in an acceptable " +
-                           "window.");
+            if (debugEnabled())
+            {
+              debugInfo("Returning false for user %s because the last login " +
+                  "time is in an acceptable window.", userDNString);
+            }
           }
 
           isIdleLocked = ConditionResult.FALSE;
@@ -1943,12 +1964,11 @@ public class PasswordPolicyState
           {
             if (debug)
             {
-              debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                           DebugLogSeverity.INFO, CLASS_NAME,
-                           "lockedDueToIdleInterval",
-                           "Returning false for user " + userDNString +
-                           " because the password changed time is in an " +
-                           "acceptable window.");
+              if (debugEnabled())
+              {
+                debugInfo("Returning false for user  because the password " +
+                    "changed time is in an acceptable window.", userDNString);
+              }
             }
 
             isIdleLocked = ConditionResult.FALSE;
@@ -1958,12 +1978,12 @@ public class PasswordPolicyState
           {
             if (debug)
             {
-              debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                           DebugLogSeverity.INFO, CLASS_NAME,
-                           "lockedDueToIdleInterval",
-                           "Returning true for user " + userDNString +
-                           " because neither last login time nor password " +
-                           "changed time are in an acceptable window.");
+              if (debugEnabled())
+              {
+                debugInfo("Returning true for user because neither last " +
+                    "login time nor password changed time are in an " +
+                    "acceptable window.", userDNString);
+              }
             }
 
             isIdleLocked = ConditionResult.TRUE;
@@ -1977,13 +1997,12 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME,
-                         "lockedDueToIdleInterval",
-                         "Returning true for user " + userDNString +
-                         " because there is no last login time and the " +
-                         "password changed time is not in an acceptable " +
-                         "window.");
+            if (debugEnabled())
+            {
+              debugInfo("Returning true for user %s because there is no last " +
+                  "login time and the password changed time is not in " +
+                  "an acceptable window.", userDNString);
+            }
           }
 
           isIdleLocked = ConditionResult.TRUE;
@@ -1993,12 +2012,12 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME,
-                         "lockedDueToIdleInterval",
-                         "Returning false for user " + userDNString +
-                         " because there is no last login time but the " +
-                         "password changed time is in an acceptable window.");
+            if (debugEnabled())
+            {
+              debugInfo("Returning false for user %s because there is no " +
+                  "last login time but the password changed time is in an " +
+                  "acceptable window.", userDNString);
+            }
           }
 
           isIdleLocked = ConditionResult.FALSE;
@@ -2012,10 +2031,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "lockedDueToIdleInterval",
-                     "Returning stored result of true for user " +
-                     userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning stored result of true for user %s",
+                    userDNString);
+        }
       }
 
       return true;
@@ -2024,10 +2044,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "lockedDueToIdleInterval",
-                     "Returning stored result of false for user " +
-                     userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning stored result of false for user %s",
+                    userDNString);
+        }
       }
 
       return false;
@@ -2045,7 +2066,6 @@ public class PasswordPolicyState
    */
   public boolean mustChangePassword()
   {
-    assert debugEnter(CLASS_NAME, "mustChangePassword");
 
     // If the password policy doesn't use force change on add or force change on
     // reset, or if it forbits the user from changing their password, then this
@@ -2078,10 +2098,10 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME,
-                         "mustChangePassword",
-                         "Returning true for user " + userDNString);
+            if (debugEnabled())
+            {
+              debugInfo("Returning true for user %", userDNString);
+            }
           }
 
           mustChangePassword = ConditionResult.TRUE;
@@ -2091,10 +2111,10 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME,
-                         "mustChangePassword",
-                         "Returning false for user " + userDNString);
+            if (debugEnabled())
+            {
+              debugInfo("Returning false for user %s", userDNString);
+            }
           }
 
           mustChangePassword = ConditionResult.FALSE;
@@ -2103,16 +2123,19 @@ public class PasswordPolicyState
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "mustChangePassword", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                       DebugLogSeverity.INFO, CLASS_NAME,
-                       "mustChangePassword",
-                       "Returning true for user " + userDNString +
-                       " because an unexpected error occurred:  " +
-                       stackTraceToSingleLineString(e));
+          if (debugEnabled())
+          {
+            debugInfo("Returning true for user %s because an unexpected " +
+                "error occurred: %s",
+                      userDNString, stackTraceToSingleLineString(e));
+          }
         }
 
         mustChangePassword = ConditionResult.TRUE;
@@ -2125,10 +2148,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "mustChangePassword",
-                     "Returning stored result of true for user " +
-                     userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning stored result of true for user %s",
+                    userDNString);
+        }
       }
 
       return true;
@@ -2137,10 +2161,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "mustChangePassword",
-                     "Returning stored result of false for user " +
-                     userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning stored result of false for user %s",
+                    userDNString);
+        }
       }
 
       return false;
@@ -2158,15 +2183,14 @@ public class PasswordPolicyState
    */
   public void setMustChangePassword(boolean mustChangePassword)
   {
-    assert debugEnter(CLASS_NAME, "setMustChangePassword",
-                      String.valueOf(mustChangePassword));
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "setMustChangePassword",
-                   "Updating user " + userDNString +
-                   " to set the reset flag to " + mustChangePassword);
+      if (debugEnabled())
+      {
+        debugInfo("Updating user %s to set the reset flag to %b",
+                  userDNString, mustChangePassword);
+      }
     }
 
     if (mustChangePassword ==
@@ -2230,44 +2254,46 @@ public class PasswordPolicyState
    */
   public boolean lockedDueToMaximumResetAge()
   {
-    assert debugEnter(CLASS_NAME, "lockedDueToMaximumResetAge");
 
     if (passwordPolicy.getMaximumPasswordResetAge() <= 0)
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "lockedDueToMaximumResetAge",
-                     "Returning false for user " + userDNString +
-                     " because there is no maximum reset age .");
+        if (debugEnabled())
+        {
+          debugInfo("Returning false for user %s because there is no maximum " +
+              "reset age .", userDNString);
+        }
       }
 
       return false;
     }
 
-    if (! mustChangePassword())
+    if (!mustChangePassword())
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "lockedDueToMaximumResetAge",
-                     "Returning false for user " + userDNString +
-                     " because the user's password has not been reset.");
+        if (debugEnabled())
+        {
+          debugInfo("Returning false for user %s because the user's password " +
+              "has not been reset.", userDNString);
+        }
       }
 
       return false;
     }
 
     long maxResetTime = passwordChangedTime +
-                        (1000L * passwordPolicy.getMaximumPasswordResetAge());
+        (1000L * passwordPolicy.getMaximumPasswordResetAge());
     boolean locked = (maxResetTime < currentTime);
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "lockedDueToMaximumResetAge",
-                   "Returning " + locked + " for user " + userDNString +
-                   " after comparing the current and max reset times.");
+      if (debugEnabled())
+      {
+        debugInfo("Returning %b for user %s after comparing the current and " +
+            "max reset times.", locked, userDNString);
+      }
     }
 
     return locked;
@@ -2289,7 +2315,6 @@ public class PasswordPolicyState
    */
   public long getPasswordExpirationTime()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordExpirationTime");
 
     if (expirationTime == Long.MIN_VALUE)
     {
@@ -2460,10 +2485,11 @@ public class PasswordPolicyState
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "getPasswordExpirationTime",
-                   "Returning password expiration time of " + expirationTime +
-                   " for user " + userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Returning password expiration time of %s for user " +
+            "%s", expirationTime, userDNString);
+      }
     }
 
     secondsUntilExpiration = (int) (expirationTime - currentTime);
@@ -2480,7 +2506,6 @@ public class PasswordPolicyState
    */
   public boolean isPasswordExpired()
   {
-    assert debugEnter(CLASS_NAME, "isPasswordExpired");
 
     if ((isPasswordExpired == null) ||
         (isPasswordExpired == ConditionResult.UNDEFINED))
@@ -2510,7 +2535,6 @@ public class PasswordPolicyState
    */
   public boolean isWithinMinimumAge()
   {
-    assert debugEnter(CLASS_NAME, "isWithinMinimumAge");
 
     int minAge = passwordPolicy.getMinimumPasswordAge();
     if (minAge <= 0)
@@ -2518,9 +2542,10 @@ public class PasswordPolicyState
       // There is no minimum age, so the user isn't in it.
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "isWithinMinimumAge",
-                     "Returning false because there is no minimum age.");
+        if (debugEnabled())
+        {
+          debugInfo("Returning false because there is no minimum age.");
+        }
       }
 
       return false;
@@ -2530,9 +2555,10 @@ public class PasswordPolicyState
       // It's been long enough since the user changed their password.
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "isWithinMinimumAge",
-                     "Returning false because the minimum age has expired.");
+        if (debugEnabled())
+        {
+          debugInfo("Returning false because the minimum age has expired.");
+        }
       }
 
       return false;
@@ -2542,10 +2568,11 @@ public class PasswordPolicyState
       // The user is in a must-change mode, so the minimum age doesn't apply.
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "isWithinMinimumAge",
-                     "Returning false because the account is in a " +
-                     "must-change state.");
+        if (debugEnabled())
+        {
+          debugInfo("Returning false because the account is in a must-change " +
+              "state.");
+        }
       }
 
       return false;
@@ -2555,8 +2582,7 @@ public class PasswordPolicyState
       // The user is within the minimum age.
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.WARNING,
-                     CLASS_NAME, "isWithinMinimumAge", "Returning true.");
+        debugWarning("Returning true.");
       }
 
       return true;
@@ -2579,7 +2605,6 @@ public class PasswordPolicyState
    */
   public boolean mayUseGraceLogin()
   {
-    assert debugEnter(CLASS_NAME, "mayUseGraceLogin");
 
     if ((mayUseGraceLogin == null) ||
         (mayUseGraceLogin == ConditionResult.UNDEFINED))
@@ -2609,7 +2634,6 @@ public class PasswordPolicyState
    */
   public boolean shouldWarn()
   {
-    assert debugEnter(CLASS_NAME, "shouldWarn");
 
     if ((shouldWarn == null) || (shouldWarn == ConditionResult.UNDEFINED))
     {
@@ -2637,7 +2661,6 @@ public class PasswordPolicyState
    */
   public boolean isFirstWarning()
   {
-    assert debugEnter(CLASS_NAME, "isFirstWarning");
 
     if ((isFirstWarning == null) ||
         (isFirstWarning == ConditionResult.UNDEFINED))
@@ -2666,7 +2689,6 @@ public class PasswordPolicyState
    */
   public int getSecondsUntilExpiration()
   {
-    assert debugEnter(CLASS_NAME, "getSecondsUntilExpiration");
 
     long expirationTime = getPasswordExpirationTime();
     if (expirationTime < 0)
@@ -2695,7 +2717,6 @@ public class PasswordPolicyState
    */
   public long getRequiredChangeTime()
   {
-    assert debugEnter(CLASS_NAME, "getRequiredChangeTime");
 
     if (requiredChangeTime == Long.MIN_VALUE)
     {
@@ -2708,16 +2729,18 @@ public class PasswordPolicyState
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "getRequiredChangeTime", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                       DebugLogSeverity.WARNING, CLASS_NAME,
-                       "getRequiredChangeTime",
-                       "An error occurred while attempting to determine the " +
-                       "required change time for user " + userDNString + ":  " +
-                       stackTraceToSingleLineString(e));
+          debugWarning(
+              "An error occurred while attempting to " +
+                  "determine the required change time for " +
+                  "user %s: %s",
+              userDNString, stackTraceToSingleLineString(e));
         }
 
         requiredChangeTime = -1;
@@ -2727,10 +2750,11 @@ public class PasswordPolicyState
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "getRequiredChangeTime",
-                   "Returning required change time of " + requiredChangeTime +
-                   " for user " + userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Returning required change time of %s for user %s",
+                  requiredChangeTime, userDNString);
+      }
     }
 
     return requiredChangeTime;
@@ -2744,13 +2768,13 @@ public class PasswordPolicyState
    */
   public void setRequiredChangeTime()
   {
-    assert debugEnter(CLASS_NAME, "setRequiredChangeTime");
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "setRequiredChangeTime",
-                   "Updating required change time for user " + userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Updating required change time for user %s", userDNString);
+      }
     }
 
 
@@ -2796,7 +2820,6 @@ public class PasswordPolicyState
    */
   public long getWarnedTime()
   {
-    assert debugEnter(CLASS_NAME, "getWarnedTime");
 
 
     if (warnedTime == Long.MIN_VALUE)
@@ -2809,14 +2832,17 @@ public class PasswordPolicyState
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "getWarnedTime", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                       DebugLogSeverity.WARNING, CLASS_NAME, "getWarnedTime",
-                       "Unable to decode the warned time for user " +
-                       userDNString + ":  " + stackTraceToSingleLineString(e));
+          debugWarning(
+              "Unable to decode the warned time for user " +
+                  "%s: %s",
+              userDNString, stackTraceToSingleLineString(e));
         }
 
         warnedTime = -1;
@@ -2826,10 +2852,11 @@ public class PasswordPolicyState
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "getWarnedTime",
-                   "Returning a warned time of " + warnedTime + " for user " +
-                   userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Returning a warned time of %d for user %s",
+                  warnedTime, userDNString);
+      }
     }
 
     return warnedTime;
@@ -2842,18 +2869,17 @@ public class PasswordPolicyState
    */
   public void setWarnedTime()
   {
-    assert debugEnter(CLASS_NAME, "setWarnedTime");
 
     long warnTime = getWarnedTime();
     if (warnTime == currentTime)
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "setWarnedTime",
-                     "Not updating warned time for user " + userDNString +
-                     " because the warned time is the same as the current " +
-                     "time.");
+        if (debugEnabled())
+        {
+          debugInfo("Not updating warned time for user %s because the warned " +
+              "time is the same as the current time.", userDNString);
+        }
       }
 
       return;
@@ -2881,9 +2907,10 @@ public class PasswordPolicyState
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "setWarnedTime",
-                   "Updated the warned time for user " + userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Updated the warned time for user %s", userDNString);
+      }
     }
   }
 
@@ -2894,7 +2921,6 @@ public class PasswordPolicyState
    */
   public void clearWarnedTime()
   {
-    assert debugEnter(CLASS_NAME, "clearWarnedTime");
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME, true);
@@ -2910,9 +2936,10 @@ public class PasswordPolicyState
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "clearWarnedTime",
-                   "Cleared the warned time for user " + userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Cleared the warned time for user %s", userDNString);
+      }
     }
   }
 
@@ -2927,7 +2954,6 @@ public class PasswordPolicyState
    */
   public List<Long> getGraceLoginTimes()
   {
-    assert debugEnter(CLASS_NAME, "getGraceLoginTimes");
 
 
     if (graceLoginTimes == null)
@@ -2946,15 +2972,17 @@ public class PasswordPolicyState
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "getGraceLoginTimes", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                       DebugLogSeverity.WARNING, CLASS_NAME,
-                       "getGraceLoginTimes",
-                       "Error while processing grace login times for user " +
-                       userDNString + ":  " + stackTraceToSingleLineString(e));
+          debugWarning(
+              "Error while processing grace login times " +
+                  "for user %s: %s",
+              userDNString, stackTraceToSingleLineString(e));
         }
 
         graceLoginTimes = new ArrayList<Long>();
@@ -2974,9 +3002,10 @@ public class PasswordPolicyState
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "getGraceLoginTimes",
-                   "Returning grace login times for user " + userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Returning grace login times for user %s", userDNString);
+      }
     }
 
     return graceLoginTimes;
@@ -2992,7 +3021,6 @@ public class PasswordPolicyState
    */
   public int getGraceLoginsRemaining()
   {
-    assert debugEnter(CLASS_NAME, "getGraceLoginsRemaining");
 
     int maxGraceLogins = passwordPolicy.getGraceLoginCount();
     if (maxGraceLogins <= 0)
@@ -3012,13 +3040,13 @@ public class PasswordPolicyState
    */
   public void updateGraceLoginTimes()
   {
-    assert debugEnter(CLASS_NAME, "updateGraceLoginTimes");
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "updateGraceLoginTimes",
-                   "Updating grace login times for user " + userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Updating grace login times for user %s", userDNString);
+      }
     }
 
 
@@ -3083,13 +3111,13 @@ public class PasswordPolicyState
    */
   public void clearGraceLoginTimes()
   {
-    assert debugEnter(CLASS_NAME, "clearGraceLoginTimes");
 
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "clearGraceLoginTimes",
-                   "Clearing grace login times for user " + userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Clearing grace login times for user %s", userDNString);
+      }
     }
 
     List<Long> graceTimes = getGraceLoginTimes();
@@ -3151,12 +3179,10 @@ public class PasswordPolicyState
               {
                 if (debug)
                 {
-                  debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                               DebugLogSeverity.WARNING, CLASS_NAME,
-                               "getClearPasswords",
-                               "User entry " + userDNString + " contains an " +
-                               "authPassword with scheme " + pwComponents[0] +
-                               " that is not defined in the server.");
+                  debugWarning("User entry %s contains an " +
+                                 "authPassword with scheme %s " +
+                                 "that is not defined in the " +
+                                 "server.", userDNString, pwComponents[0]);
                 }
 
                 continue;
@@ -3172,15 +3198,17 @@ public class PasswordPolicyState
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "getClearPasswords", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.WARNING, CLASS_NAME,
-                             "getClearPasswords",
-                             "Cannot get clear authPassword value for user " +
-                             userDNString + ":  " + e);
+                debugWarning(
+                    "Cannot get clear authPassword " +
+                        "value for user %s: %s",
+                    userDNString, e);
               }
             }
           }
@@ -3202,12 +3230,11 @@ public class PasswordPolicyState
               {
                 if (debug)
                 {
-                  debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                               DebugLogSeverity.WARNING, CLASS_NAME,
-                               "getClearPasswords",
-                               "User entry " + userDNString + " contains a " +
-                               "password with scheme " + pwComponents[0] +
-                               " that is not defined in the server.");
+                  debugWarning(
+                      "User entry %s contains a password " +
+                                 "with scheme %s that is not " +
+                                 "defined in the server.",
+                             userDNString, pwComponents[0]);
                 }
 
                 continue;
@@ -3222,15 +3249,16 @@ public class PasswordPolicyState
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "getClearPasswords", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.WARNING, CLASS_NAME,
-                             "getClearPasswords",
-                             "Cannot get clear password value for user " +
-                             userDNString + ":  " + e);
+                debugWarning(
+                    "Cannot get clear password value for " +
+                        "user %s: %s", userDNString, e);
               }
             }
           }
@@ -3254,7 +3282,6 @@ public class PasswordPolicyState
    */
   public boolean passwordMatches(ByteString password)
   {
-    assert debugEnter(CLASS_NAME, "passwordMatches", "ByteString");
 
 
     List<Attribute> attrList =
@@ -3263,11 +3290,13 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "passwordMatches",
-                     "Returning false because user " + userDNString +
-                     " does not have any values for password attribute " +
-                     passwordPolicy.getPasswordAttribute().getNameOrOID());
+        if (debugEnabled())
+        {
+          debugInfo("Returning false because user %s does not have any " +
+              "values for password attribute %s",
+                    userDNString,
+                    passwordPolicy.getPasswordAttribute().getNameOrOID());
+        }
       }
 
       return false;
@@ -3291,12 +3320,10 @@ public class PasswordPolicyState
             {
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.WARNING, CLASS_NAME,
-                             "passwordMatches",
-                             "User entry " + userDNString + " contains a " +
-                             "password with scheme " + pwComponents[0] +
-                             " that is not defined in the server.");
+                debugWarning(
+                    "User entry %s contains a password with scheme %s " +
+                                 "that is not defined in the server.",
+                             userDNString, pwComponents[0]);
               }
 
               continue;
@@ -3307,12 +3334,12 @@ public class PasswordPolicyState
             {
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.INFO, CLASS_NAME,
-                             "passwordMatches",
-                             "Returning true for user " + userDNString +
-                             " because the provided password matches a " +
-                             "value encoded with scheme " + pwComponents[0]);
+                if (debugEnabled())
+                {
+                  debugInfo("Returning true for user %s because the provided " +
+                      "password matches a value encoded with scheme %s",
+                            userDNString, pwComponents[0]);
+                }
               }
 
               return true;
@@ -3320,16 +3347,17 @@ public class PasswordPolicyState
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "passwordMatches", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             if (debug)
             {
-              debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                           DebugLogSeverity.ERROR, CLASS_NAME,
-                           "passwordMatches",
-                           "An error occurred while attempting to process a " +
-                           "password value for user " + userDNString + ":  " +
-                           stackTraceToSingleLineString(e));
+              debugError(
+                  "An error occurred while attempting to process a " +
+                      "password value for user %s: %s",
+                  userDNString, stackTraceToSingleLineString(e));
             }
           }
         }
@@ -3351,12 +3379,10 @@ public class PasswordPolicyState
             {
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.WARNING, CLASS_NAME,
-                             "passwordMatches",
-                             "User entry " + userDNString + " contains a " +
-                             "password with scheme " + pwComponents[0] +
-                             " that is not defined in the server.");
+                debugWarning(
+                    "User entry %s contains a password with scheme %s " +
+                                 "that is not defined in the server.",
+                             userDNString, pwComponents[0]);
               }
 
               continue;
@@ -3367,12 +3393,12 @@ public class PasswordPolicyState
             {
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.INFO, CLASS_NAME,
-                             "passwordMatches",
-                             "Returning true for user " + userDNString +
-                             " because the provided password matches a " +
-                             "value encoded with scheme " + pwComponents[0]);
+                if (debugEnabled())
+                {
+                  debugInfo("Returning true for user %s because the provided " +
+                      "password matches a value encoded with scheme %s",
+                            userDNString, pwComponents[0]);
+                }
               }
 
               return true;
@@ -3380,31 +3406,32 @@ public class PasswordPolicyState
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "passwordMatches", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             if (debug)
             {
-              debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                           DebugLogSeverity.ERROR, CLASS_NAME,
-                           "passwordMatches",
-                           "An error occurred while attempting to process a " +
-                           "password value for user " + userDNString + ":  " +
-                           stackTraceToSingleLineString(e));
+              debugError(
+                  "An error occurred while attempting to process a " +
+                      "password value for user %s: %s",
+                  userDNString, stackTraceToSingleLineString(e));
             }
           }
         }
       }
     }
 
-
     // If we've gotten here, then we couldn't find a match.
     if (debug)
     {
-      debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                   CLASS_NAME, "passwordMatches",
-                   "Returning false because the provided password does not " +
-                   "match any of the stored password values for user " +
-                   userDNString);
+      if (debugEnabled())
+      {
+        debugInfo("Returning false because the provided password does not " +
+            "match any of the stored password values for user %s",
+                  userDNString);
+      }
     }
 
     return false;
@@ -3422,7 +3449,6 @@ public class PasswordPolicyState
    */
   public boolean passwordIsPreEncoded(ByteString passwordValue)
   {
-    assert debugEnter(CLASS_NAME, "isPreEncoded", "ByteString");
 
     if (passwordPolicy.usesAuthPasswordSyntax())
     {
@@ -3450,7 +3476,6 @@ public class PasswordPolicyState
   public List<ByteString> encodePassword(ByteString password)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "encodePassword", "ByteString");
 
     List<PasswordStorageScheme> schemes =
          passwordPolicy.getDefaultStorageSchemes();
@@ -3499,9 +3524,6 @@ public class PasswordPolicyState
                                       Set<ByteString> currentPasswords,
                                       StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "passwordIsAcceptable",
-                      String.valueOf(operation), String.valueOf(userEntry),
-                      "ByteString", "StringBuilder");
 
     for (DN validatorDN : passwordPolicy.getPasswordValidators().keySet())
     {
@@ -3513,11 +3535,11 @@ public class PasswordPolicyState
       {
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "passwordIsAcceptable",
-                       "The password provided for user " + userDNString +
-                       " failed the " + validatorDN.toString() +
-                       " password validator.");
+          if (debugEnabled())
+          {
+            debugInfo("The password provided for user %s failed the %s " +
+                "password validator.", userDNString, validatorDN.toString());
+          }
         }
 
         return false;
@@ -3526,11 +3548,11 @@ public class PasswordPolicyState
       {
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "passwordIsAcceptable",
-                       "The password provided for user " + userDNString +
-                       " passed the " + validatorDN.toString() +
-                       " password validator.");
+          if (debugEnabled())
+          {
+            debugInfo("The password provided for user %s passed the %s " +
+                "password validator.", userDNString, validatorDN.toString());
+          }
         }
       }
     }
@@ -3549,18 +3571,16 @@ public class PasswordPolicyState
    */
   public void handleDeprecatedStorageSchemes(ByteString password)
   {
-    assert debugEnter(CLASS_NAME, "handleDeprecatedStorageSchemes",
-                      "ByteString");
 
     if (passwordPolicy.getDefaultStorageSchemes().isEmpty())
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "handleDeprecatedStorageSchemes",
-                     "Doing nothing for user " + userDNString +
-                     " because no deprecated storage schemes have been " +
-                     "defined.");
+        if (debugEnabled())
+        {
+          debugInfo("Doing nothing for user %s because no " +
+              "deprecated storage schemes have been defined.", userDNString);
+        }
       }
 
       return;
@@ -3573,10 +3593,11 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                     CLASS_NAME, "handleDeprecatedStorageSchemes",
-                     "Doing nothing for entry " + userDNString +
-                     " because no password values were found.");
+        if (debugEnabled())
+        {
+          debugInfo("Doing nothing for entry %s because no password values " +
+              "were found.", userDNString);
+        }
       }
 
       return;
@@ -3609,13 +3630,11 @@ public class PasswordPolicyState
             {
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.WARNING, CLASS_NAME,
-                             "handleDeprecatedStorageSchemes",
-                             "Skipping password value for user " +
-                             userDNString + " because the associated storage " +
-                             "scheme \"" + schemeName +
-                             "\" is not configured for use.");
+                debugWarning(
+                    "Skipping password value for user %s because the " +
+                                 "associated storage scheme %s is not " +
+                                 "configured for use.",
+                    userDNString, schemeName);
               }
 
               continue;
@@ -3633,12 +3652,11 @@ public class PasswordPolicyState
               {
                 if (debug)
                 {
-                  debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                               DebugLogSeverity.INFO,
-                               CLASS_NAME, "handleDeprecatedStorageSchemes",
-                               "Marking password with scheme " +
-                               pwComponents[0] + " for removal from user " +
-                               "entry " + userDNString);
+                  if (debugEnabled())
+                  {
+                    debugInfo("Marking password with scheme %s for removal " +
+                        "from user entry %s", pwComponents[0], userDNString);
+                  }
                 }
 
                 iterator.remove();
@@ -3652,18 +3670,18 @@ public class PasswordPolicyState
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "handleDeprecatedStorageSchemes",
-                                  e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             if (debug)
             {
-              debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                           DebugLogSeverity.WARNING, CLASS_NAME,
-                           "handleDeprecatedStorageSchemes",
-                           "Skipping password value for user " + userDNString +
-                           " because an error occurred while attempting " +
-                           "to decode it based on the user password syntax:  " +
-                           stackTraceToSingleLineString(e));
+              debugWarning(
+                  "Skipping password value for user %s because an " +
+                      "error occurred while attempting to decode it " +
+                      "based on the user password syntax: %s",
+                  userDNString, stackTraceToSingleLineString(e));
             }
           }
         }
@@ -3673,10 +3691,11 @@ public class PasswordPolicyState
       {
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "handleDeprecatedStorageSchemes",
-                       "User entry " + userDNString + " does not have any " +
-                       "password values encoded using deprecated schemes.");
+          if (debugEnabled())
+          {
+            debugInfo("User entry %s does not have any password values " +
+                "encoded using deprecated schemes.", userDNString);
+          }
         }
       }
       else
@@ -3698,18 +3717,18 @@ public class PasswordPolicyState
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME,
-                                    "handleDeprecatedStorageSchemes", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.WARNING, CLASS_NAME,
-                             "handleDeprecatedStorageSchemes",
-                             "Unable to encode password for user " +
-                             userDNString + " using default scheme " +
-                             s.getStorageSchemeName() + ":  " +
-                             stackTraceToSingleLineString(e));
+                debugWarning(
+                    "Unable to encode password for user %s using " +
+                        "default scheme %s: %s",
+                    userDNString, s.getStorageSchemeName(),
+                    stackTraceToSingleLineString(e));
               }
             }
           }
@@ -3719,12 +3738,10 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.WARNING, CLASS_NAME,
-                         "handleDeprecatedStorageSchemes",
-                         "Not updating user entry " + userDNString +
-                         " because removing deprecated schemes would leave " +
-                         "the user without a password.");
+            debugWarning(
+                "Not updating user entry %s because removing " +
+                             "deprecated schemes would leave the user " +
+                             "without a password.", userDNString);
           }
 
           return;
@@ -3758,13 +3775,12 @@ public class PasswordPolicyState
 
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME,
-                         "handleDeprecatedStorageSchemes",
-                         "Updating user entry " + userDNString +
-                         "to replace password values encoded with deprecated " +
-                         "schemes with values encoded with the default " +
-                         "schemes.");
+            if (debugEnabled())
+            {
+              debugInfo("Updating user entry %s to replace password values " +
+                  "encoded with deprecated schemes with values encoded " +
+                  "with the default schemes.", userDNString);
+            }
           }
         }
       }
@@ -3788,13 +3804,11 @@ public class PasswordPolicyState
             {
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.WARNING, CLASS_NAME,
-                             "handleDeprecatedStorageSchemes",
-                             "Skipping password value for user " +
-                             userDNString + " because the associated storage " +
-                             "scheme \"" + pwComponents[0] +
-                             "\" is not configured for use.");
+                debugWarning(
+                    "Skipping password value for user %s because the " +
+                                 "associated storage scheme %s is not " +
+                                 "configured for use.",
+                             userDNString, pwComponents[0]);
               }
 
               continue;
@@ -3813,12 +3827,11 @@ public class PasswordPolicyState
               {
                 if (debug)
                 {
-                  debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                               DebugLogSeverity.INFO,
-                               CLASS_NAME, "handleDeprecatedStorageSchemes",
-                               "Marking password with scheme " +
-                               pwComponents[0] + " for removal from user " +
-                               "entry " + userDNString);
+                  if (debugEnabled())
+                  {
+                    debugInfo("Marking password with scheme %s for removal " +
+                        "from user entry %s", pwComponents[0], userDNString);
+                  }
                 }
 
                 iterator.remove();
@@ -3832,18 +3845,18 @@ public class PasswordPolicyState
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "handleDeprecatedStorageSchemes",
-                                  e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             if (debug)
             {
-              debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                           DebugLogSeverity.WARNING, CLASS_NAME,
-                           "handleDeprecatedStorageSchemes",
-                           "Skipping password value for user " + userDNString +
-                           " because an error occurred while attempting " +
-                           "to decode it based on the user password syntax:  " +
-                           stackTraceToSingleLineString(e));
+              debugWarning(
+                  "Skipping password value for user %s because an error " +
+                      "occurred while attempting to decode it based on " +
+                      "the user password syntax: %s",
+                  userDNString, stackTraceToSingleLineString(e));
             }
           }
         }
@@ -3853,10 +3866,11 @@ public class PasswordPolicyState
       {
         if (debug)
         {
-          debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.INFO,
-                       CLASS_NAME, "handleDeprecatedStorageSchemes",
-                       "User entry " + userDNString + " does not have any " +
-                       "password values encoded using deprecated schemes.");
+          if (debugEnabled())
+          {
+            debugInfo("User entry %s does not have any password values " +
+                "encoded using deprecated schemes.", userDNString);
+          }
         }
       }
       else
@@ -3878,18 +3892,18 @@ public class PasswordPolicyState
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME,
-                                    "handleDeprecatedStorageSchemes", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               if (debug)
               {
-                debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                             DebugLogSeverity.WARNING, CLASS_NAME,
-                             "handleDeprecatedStorageSchemes",
-                             "Unable to encode password for user " +
-                             userDNString + " using default scheme " +
-                             s.getStorageSchemeName() + ":  " +
-                             stackTraceToSingleLineString(e));
+                debugWarning(
+                    "Unable to encode password for user %s using " +
+                        "default scheme %s: %s",
+                    userDNString, s.getStorageSchemeName(),
+                    stackTraceToSingleLineString(e));
               }
             }
           }
@@ -3899,12 +3913,10 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.WARNING, CLASS_NAME,
-                         "handleDeprecatedStorageSchemes",
-                         "Not updating user entry " + userDNString +
-                         " because removing deprecated schemes would leave " +
-                         "the user without a password.");
+            debugWarning(
+                "Not updating user entry %s because removing " +
+                             "deprecated schemes would leave the user " +
+                             "without a password.", userDNString);
           }
 
           return;
@@ -3938,13 +3950,12 @@ public class PasswordPolicyState
 
           if (debug)
           {
-            debugMessage(DebugLogCategory.PASSWORD_POLICY,
-                         DebugLogSeverity.INFO, CLASS_NAME,
-                         "handleDeprecatedStorageSchemes",
-                         "Updating user entry " + userDNString +
-                         "to replace password values encoded with deprecated " +
-                         "schemes with values encoded with the default " +
-                         "schemes.");
+            if (debugEnabled())
+            {
+              debugInfo("Updating user entry %sto replace password values " +
+                  "encoded with deprecated schemes with values encoded " +
+                  "with the default schemes.", userDNString);
+            }
           }
         }
       }
@@ -3963,20 +3974,19 @@ public class PasswordPolicyState
    *                              generate the new password.
    */
   public ByteString generatePassword()
-         throws DirectoryException
+      throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "generatePassword");
 
     PasswordGenerator generator = passwordPolicy.getPasswordGenerator();
     if (generator == null)
     {
       if (debug)
       {
-        debugMessage(DebugLogCategory.PASSWORD_POLICY, DebugLogSeverity.WARNING,
-                     CLASS_NAME, "generatePassword",
-                     "Unable to generate a new password for user " +
-                     userDNString + " because no password generator has been " +
-                     "defined in the associated password policy.");
+        debugWarning(
+            "Unable to generate a new password for user %s " +
+                         "because no password generator has been " +
+                         "defined in the associated password policy.",
+                     userDNString);
       }
 
       return null;
@@ -4000,9 +4010,6 @@ public class PasswordPolicyState
                    AccountStatusNotificationType notificationType,
                    DN userDN, int messageID, String message)
   {
-    assert debugEnter(CLASS_NAME, "generateAccountStatusNotification",
-                      String.valueOf(notificationType), String.valueOf(userDN),
-                      String.valueOf(messageID), String.valueOf(message));
 
 
     Collection<AccountStatusNotificationHandler> handlers =
@@ -4030,8 +4037,6 @@ public class PasswordPolicyState
   public void generateAccountStatusNotification(
                    AccountStatusNotification notification)
   {
-    assert debugEnter(CLASS_NAME, "generateAccountStatusNotification",
-                      String.valueOf(notification));
 
 
     Collection<AccountStatusNotificationHandler> handlers =
@@ -4059,7 +4064,6 @@ public class PasswordPolicyState
   public void updateUserEntry()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "updateUserEntry");
 
 
     // If there are no modifications, then there's nothing to do.

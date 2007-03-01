@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -38,11 +37,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class LDIFPluginResult
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.plugin.LDIFPluginResult";
 
 
 
@@ -92,9 +86,6 @@ public class LDIFPluginResult
   public LDIFPluginResult(boolean continuePluginProcessing,
                           boolean continueEntryProcessing)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(continuePluginProcessing),
-                            String.valueOf(continueEntryProcessing));
 
     this.continuePluginProcessing = continuePluginProcessing;
     this.continueEntryProcessing  = continueEntryProcessing;
@@ -112,7 +103,6 @@ public class LDIFPluginResult
    */
   public boolean continuePluginProcessing()
   {
-    assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
   }
@@ -128,7 +118,6 @@ public class LDIFPluginResult
    */
   public boolean continueEntryProcessing()
   {
-    assert debugEnter(CLASS_NAME, "continueEntryProcessing");
 
     return continueEntryProcessing;
   }
@@ -144,7 +133,6 @@ public class LDIFPluginResult
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -162,8 +150,6 @@ public class LDIFPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("LDIFPluginResult(continuePluginProcessing=");
     buffer.append(continuePluginProcessing);

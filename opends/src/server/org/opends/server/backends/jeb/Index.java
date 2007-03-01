@@ -22,11 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.JebMessages.
      MSGID_JEB_DATABASE_EXCEPTION;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -57,11 +59,6 @@ import java.util.*;
  */
 public class Index
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.Index";
 
 
   /**
@@ -329,7 +326,10 @@ public class Index
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "readKey", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       return new EntryIDSet();
     }
   }
@@ -473,7 +473,10 @@ public class Index
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "readRange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       return new EntryIDSet();
     }
   }
@@ -515,7 +518,10 @@ public class Index
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "openCursor", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       int msgID = MSGID_JEB_DATABASE_EXCEPTION;
       String message = getMessage(msgID, e.getMessage());
       throw new JebException(msgID, message, e);

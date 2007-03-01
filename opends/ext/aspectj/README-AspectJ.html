@@ -1,0 +1,346 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>AspectJ Readme</title>
+<STYLE TYPE="text/css">
+<!--
+
+   /* FOR THE SDA PAGE */
+
+	/*
+	BODY {margin-top: 15px; margin-left: 15px; margin-right: 15px;}
+	*/
+
+	A:link {
+		color:#4756AC;
+	}
+	A:visited {
+		color:#60657B;
+	}
+	A:hover {
+		color:red
+	}
+
+	INPUT {font:12px "Courier New", sans-serif;}
+
+	H2 {
+		font:18px/18px Verdana, Arial, Helvetica, sans-serif;
+		color:black;
+		font-weight:bold;
+		margin-left: 10px;
+		line-height:110%;
+	}
+	H3 {
+		font:18px/18px Verdana, Arial, Helvetica, sans-serif;
+		color:black;
+		font-weight:bold;
+		margin-left: 10px;
+		line-height:110%;
+	}
+	H4 {
+		font:15px/16px Verdana, Arial, Helvetica, sans-serif;
+		color:black;
+		font-weight:bold;
+		margin-left: 10px;
+		line-height:140%;
+	}
+	P {
+		font:13px/13px Verdana, Arial, Helvetica, sans-serif;
+		margin-right: 10px;
+		margin-left: 10px;
+		line-height:130%;
+	}
+	.paragraph {
+		font:13px/13px Verdana, Arial, Helvetica, sans-serif;
+		margin-right: 10px;
+		margin-left: 10px;
+		line-height:130%;
+	}
+	.smallParagraph {
+		font:11px/11px Verdana, Arial, Helvetica, sans-serif;
+		margin-right: 10px;
+		margin-left: 10px;
+		line-height:130%;
+	}
+	/*
+	LI {
+		font:13px/13px Verdana, Arial, Helvetica, sans-serif;
+		text-align:justify;
+		margin-right: 10px;
+		margin-left: 15px;
+		line-height:120%;
+	}
+
+	UL {
+		font:13px/13px Verdana, Arial, Helvetica, sans-serif;
+		text-align:justify;
+		margin-right: 10px;
+		margin-left: 15px;
+		line-height:120%;
+	}*/
+
+	DL {
+		font:13px/13px Verdana, Arial, Helvetica, sans-serif;
+		text-align:justify;
+		margin-right: 10px;
+		margin-left: 15px;
+		line-height:120%;
+	}
+	B { font:13px/13px Verdana, Arial, Helvetica, sans-serif;
+		font-weight:bold;
+		line-height:140%;
+	}
+	.footer {
+		font:10px/10px Verdana, Arial, Helvetica, sans-serif;
+		color:#888888;
+		text-align:left
+	}
+	.figureTitle {
+		font:13px/13px Verdana, Arial, Helvetica, sans-serif;
+		text-align:justify;
+		text-align:center
+	}
+	.copyrightNotice {
+		font:10px/10px Verdana, Arial, Helvetica, sans-serif;
+		color:#999999;
+		line-height:110%;
+	}
+	.smallHeading {
+		font:13px/13px Verdana, Arial, Helvetica, sans-serif;
+		font-weight:bold;
+		line-height:110%;
+	}
+	.tinyHeading {
+		font:11px/11px Verdana, Arial, Helvetica, sans-serif;
+		font-weight:bold;
+		line-height:120%;
+	}
+	.newsText {
+		font:11px/11px Verdana, Arial, Helvetica, sans-serif;
+		line-height:130%;
+	}
+	.smallParagraph {
+		font:11px/11px Verdana, Arial, Helvetica, sans-serif;
+		line-height:130%;
+	}
+	.fancyHeading {
+		font:20px/20px Chantilly, Arial, Helvetica, sans-serif;
+		margin-right: 10px;
+		color:#6f7a92;
+		margin-left: 10px;
+		line-height:130%;
+	}
+
+-->
+</STYLE>
+</head>
+
+<BODY BGCOLOR="white">
+
+<h2 align="center">AspectJ<sup><small>TM</small></sup></h2>
+
+<p align="center"><i>Version 1.5.3 released on Wednesday Nov 22, 2006.</i></p>
+
+<h3>1 Contents of this Package</h3>
+
+<UL>
+  <li>the <a href="bin"><CODE>&lt;aspectj install dir&gt;/bin</CODE></a>
+      directory has scripts for 
+       <ul>
+	 <li><CODE>ajc</CODE>: the compiler for the AspectJ language</li>
+
+     <!-- XXX removed references to ajdoc and ajdb -->
+	 <li><CODE>ajbrowser</CODE>: a graphical editor for 
+	 compiling programs with <CODE>ajc</CODE> 
+	 and navigating the crosscutting structure of those programs</li>
+       </ul>
+
+  <li>the directory <a href="lib"><CODE>&lt;aspectj install dir&gt;/lib</CODE></a>
+      has the AspectJ binaries,
+       <ul>
+	 <li><CODE><a href="lib/aspectjtools.jar">aspectjtools.jar</a></CODE>: libraries for 
+	 <code>ajc</code>, <code>ajbrowser</code>, and the Ant tasks</li>
+
+	 <li><CODE>aspectjrt.jar</CODE>: runtime library for AspectJ programs</li>
+       </ul>
+  </li>
+  <li>the directory <a href="doc"><CODE>&lt;aspectj install dir&gt;/doc</CODE></a>
+      has examples, programming and development environment guides,
+      instructions for the Ant tasks, a README for 1.1 changes,
+      and a quick reference, all linked
+      from the <a href="doc/index.html">index</a> page.
+  </li>
+  <li>this <a href="README-AspectJ.html">README-AspectJ.html</a>, and
+  </li>
+  <li>the <a href="LICENSE-AspectJ.html">LICENSE-AspectJ.html</a>
+      applying to this distribution.
+  </li>
+</UL>
+
+<hr>
+
+<h3>2 Install Procedure</h3>
+
+<p>The AspectJ tools <code>ajc</code> and <code>ajbrowser</code> are
+Java programs that can be run indirectly from the scripts or 
+directly from <code>aspectjtools.jar</code>.  
+The <code>aspectjrt.jar</code> needs to be on the classpath
+when compiling or running programs compiled
+by <code>ajc</code>.  This procedure shows ways to do that.
+</p>
+
+<p>After finishing automatic installation, we recommend that the
+following steps to complete your installation:</p>
+
+  <p><b>2.1 Add <CODE>&lt;aspectj install dir&gt;/lib/aspectjrt.jar</CODE> 
+      to your class path</b></p>
+
+<blockquote>
+  <p>This small .jar file contains classes required to compile programs 
+  with the ajc compiler, and to run programs compiled with the ajc
+  compiler.  You must have these classes somewhere on your class path
+  when running programs compiled with ajc.  For detailed instructions
+  please see the <a href="#configInstructions">Configuration
+  Instructions</a> at the bottom of this document.</p>
+</blockquote>
+
+  <p><b>2.2 Put the AspectJ <code>bin</code> directory on your PATH</b></p>
+
+<blockquote>
+  <p>Modify your PATH to include <code><b>&lt;aspectj install
+  dir&gt;/bin</b></code>.  This will make it easier to run ajc.
+  For detailed instructions please see the
+  <a href="#configInstructions">Configuration Instructions</a> at the
+  bottom of this document.</p>
+</blockquote>
+
+<p><b>2.3 Review the documentation and examples </b></p>
+
+<blockquote>
+  <p>Development and programming guides
+  are available in <a href="doc/index.html">docs</a>,
+  and example programs and an Ant script are available in
+  <a href="doc/examples/">examples</a>.
+</blockquote>
+
+<p>If you did not use the automatic installation process, you may wish
+to create short launch scripts to start ajc easily (section 3).</p>
+
+<hr>
+
+<h3>3. Running the Tools</h3>
+
+<p>If you did not use the automatic installation process or the
+default launch scripts do not work on your system, you may wish to
+create short launch scripts to start ajc easily.  </p>
+
+<p>You can also run the <code>aspectjtools.jar</code> directly
+using java's -jar option:
+
+<blockquote>
+<CODE>C:\jdk1.3\bin\java.exe -jar D:\aspectj\lib\aspectjtools.jar %*</CODE>
+</blockquote>
+
+<p>With no arguments or only argument list (.lst) files, this will launch
+<code>ajbrowser</code>, the GUI structure browser; otherwise, it will
+run <code>ajc</code>, the AspectJ compiler.  This means that 
+if your browser is set up to run jar files, clicking a link
+to <a href="lib/aspectjtools.jar">lib/aspectjtools.jar</a> will 
+launch <code>ajbrowser</code>.
+
+<p> You can also create scripts like those created by the installer.
+These scripts use full paths that are system dependent so you will
+likely have to change these. </p>
+
+<p>Here's a sample launch script for WinNT and Win2K (note that this
+is single line in the .bat file):</p>
+
+<blockquote>
+<CODE>C:\jdk1.3\bin\java.exe -classpath D:\aspectj\lib\aspectjtools.jar -Xmx64M
+org.aspectj.tools.ajc.Main %*</CODE>
+</blockquote>
+
+<p>Here's a sample launch script for a Unix shell (on Linux using Sun's JDK1.3):</p>
+
+<blockquote>
+<CODE>/usr/java/jdk1.3/jre/bin/java -classpath /home/aspectj/lib/aspectjtools.jar -Xmx64M org.aspectj.tools.ajc.Main "$@"</CODE>
+</blockquote>
+
+<hr>
+<h3><a name="configInstructions">4. Configuration Instructions</a></h3>
+
+<h4>4.1 Adding <code>&lt;aspectj install dir&gt;/lib/aspectjrt.jar</code> to your classpath</h4>
+
+<p>There are several ways to add this jar file to your classpath:</p>
+
+<ul>
+    <li>
+      copy <code>aspectjrt.jar</code> to the <code>jdk/jre/lib/ext</code> directory</li>
+    <li>
+      add <code>aspectjrt.jar</code> to your CLASSPATH
+      environment variable (see the next section for details)</li>
+    <li>
+      always use the "<code>-classpath aspectjrt.jar</code>" option when running
+      programs compiled with ajc</li>
+</ul>
+<h4>4.2 <A NAME="6.1">Setting the Environment Variables on Windows</A></h4>
+
+<P>The following instructions use the PATH variable as an example, but
+this process is identical for the CLASSPATH variable.  </P>
+
+<P>You can do the variables permanently for all the shells that you
+will run or temporarily only for the current shell.  To change the
+PATH only in the current shell, and assuming you've installed AspectJ
+in <code>C:\apps\aspectj</code>, type:</P>
+
+<blockquote><code>&gt; set PATH=%PATH%;C:\apps\aspectj\bin</code></blockquote>
+
+<P><b>Changing Environment Variables Permanently on WinNT and Win2000</b>
+<ul>
+  <li>
+    <p class="paragraph">open the Environment Variables dialog
+    <ul>
+      <li>
+        <p class="paragraph">WinNT: in "Control Panels" double-click
+        "System" and select the "Environment" tab</li>
+      <li>
+        <p class="paragraph">Win2K: in "Control Panels" double-click
+        "System", select the "Advanced" tab and click the
+        "Environment Variables..." button</li>
+    </ul>
+  </li>
+  <li>
+    <p class="paragraph">select the environment variable for editing, or add it
+    using the "New..." button if it does not exist</li>
+  <li>
+    <p class="paragraph">add the new entry separated from the others by a
+    semi-colon (;) and close the dialog</li>
+  <li>
+    <p class="paragraph">note that the change will not affect shells that were
+    already running </li>
+</ul>
+<P><b>Changing Environment Variables Permanently on Win9x</b>
+<ul>
+  <li>
+    <p class="paragraph">open the AUTOEXEC.BAT with an editor such as NotePad</li>
+
+<LI>
+  <p class="paragraph">edit the PATH statement to include the new entry and save
+  the file, e.g.<BR>
+
+<blockquote>
+  <CODE>PATH C:\WINDOWS;C:\WINDOWS\COMMAND;C:\;C:\DOS;C:\apps\aspectj\bin</CODE>
+  </blockquote>
+</LI>
+<LI>
+  <p class="paragraph">note that the change will not affect shells that were
+  already running
+</ul>
+
+</body>
+
+</html>

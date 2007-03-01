@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -40,13 +40,11 @@ import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ConfigurableComponent;
-import org.opends.server.api.DebugLogger;
 import org.opends.server.api.ErrorLogger;
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
-import org.opends.server.loggers.StartupDebugLogger;
 import org.opends.server.loggers.StartupErrorLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -54,10 +52,12 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -87,10 +87,6 @@ public class LoggerConfigManager
   private ConcurrentHashMap<DN,AccessLogger> activeAccessLoggers;
 
   // A mapping between the DNs of the logger configuration entries and the
-  // associated active debug loggers.
-  private ConcurrentHashMap<DN,DebugLogger> activeDebugLoggers;
-
-  // A mapping between the DNs of the logger configuration entries and the
   // associated active error loggers.
   private ConcurrentHashMap<DN,ErrorLogger> activeErrorLoggers;
 
@@ -104,12 +100,10 @@ public class LoggerConfigManager
    */
   public LoggerConfigManager()
   {
-    assert debugConstructor(CLASS_NAME);
 
     configHandler = DirectoryServer.getConfigHandler();
 
     activeAccessLoggers = new ConcurrentHashMap<DN,AccessLogger>();
-    activeDebugLoggers  = new ConcurrentHashMap<DN,DebugLogger>();
     activeErrorLoggers  = new ConcurrentHashMap<DN,ErrorLogger>();
   }
 
@@ -129,7 +123,6 @@ public class LoggerConfigManager
   public void initializeLoggers()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeLoggers");
 
 
     // First, get the logger configuration base entry.
@@ -141,7 +134,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeLoggers", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_LOGGER_CANNOT_GET_BASE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -181,52 +177,59 @@ public class LoggerConfigManager
     // configuration entries.
     for (ConfigEntry childEntry : loggerBaseEntry.getChildren().values())
     {
-      childEntry.registerChangeListener(this);
-
-      StringBuilder unacceptableReason = new StringBuilder();
-      if (! configAddIsAcceptable(childEntry, unacceptableReason))
+      if(!childEntry.hasObjectClass(OC_DEBUG_LOGGER))
       {
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 MSGID_CONFIG_LOGGER_ENTRY_UNACCEPTABLE,
-                 childEntry.getDN().toString(), unacceptableReason.toString());
-        continue;
-      }
+        childEntry.registerChangeListener(this);
 
-      try
-      {
-        ConfigChangeResult result = applyConfigurationAdd(childEntry);
-        if (result.getResultCode() != ResultCode.SUCCESS)
+        StringBuilder unacceptableReason = new StringBuilder();
+        if (! configAddIsAcceptable(childEntry, unacceptableReason))
         {
-          StringBuilder buffer = new StringBuilder();
+          logError(ErrorLogCategory.CONFIGURATION,
+                   ErrorLogSeverity.SEVERE_ERROR,
+                   MSGID_CONFIG_LOGGER_ENTRY_UNACCEPTABLE,
+                   childEntry.getDN().toString(),
+                   unacceptableReason.toString());
+          continue;
+        }
 
-          List<String> resultMessages = result.getMessages();
-          if ((resultMessages == null) || (resultMessages.isEmpty()))
+        try
+        {
+          ConfigChangeResult result = applyConfigurationAdd(childEntry);
+          if (result.getResultCode() != ResultCode.SUCCESS)
           {
-            buffer.append(getMessage(MSGID_CONFIG_UNKNOWN_UNACCEPTABLE_REASON));
-          }
-          else
-          {
-            Iterator<String> iterator = resultMessages.iterator();
+            StringBuilder buffer = new StringBuilder();
 
-            buffer.append(iterator.next());
-            while (iterator.hasNext())
+            List<String> resultMessages = result.getMessages();
+            if ((resultMessages == null) || (resultMessages.isEmpty()))
             {
-              buffer.append(EOL);
-              buffer.append(iterator.next());
+              buffer.append(
+                  getMessage(MSGID_CONFIG_UNKNOWN_UNACCEPTABLE_REASON));
             }
-          }
+            else
+            {
+              Iterator<String> iterator = resultMessages.iterator();
 
+              buffer.append(iterator.next());
+              while (iterator.hasNext())
+              {
+                buffer.append(EOL);
+                buffer.append(iterator.next());
+              }
+            }
+
+            logError(ErrorLogCategory.CONFIGURATION,
+                     ErrorLogSeverity.SEVERE_ERROR,
+                     MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER,
+                     childEntry.getDN().toString(), buffer.toString());
+          }
+        }
+        catch (Exception e)
+        {
           logError(ErrorLogCategory.CONFIGURATION,
                    ErrorLogSeverity.SEVERE_ERROR,
                    MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER,
-                   childEntry.getDN().toString(), buffer.toString());
+                   childEntry.getDN().toString(), String.valueOf(e));
         }
-      }
-      catch (Exception e)
-      {
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER,
-                 childEntry.getDN().toString(), String.valueOf(e));
       }
     }
 
@@ -244,12 +247,6 @@ public class LoggerConfigManager
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_WARNING,
                MSGID_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS);
     }
-
-    if (activeDebugLoggers.isEmpty())
-    {
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_WARNING,
-               MSGID_CONFIG_LOGGER_NO_ACTIVE_DEBUG_LOGGERS);
-    }
   }
 
 
@@ -262,7 +259,6 @@ public class LoggerConfigManager
    */
   public void stopLoggers()
   {
-    assert debugEnter(CLASS_NAME, "stopLoggers");
 
     StartupErrorLogger errorLogger = new StartupErrorLogger();
     errorLogger.initializeErrorLogger(null);
@@ -270,11 +266,6 @@ public class LoggerConfigManager
     removeAllErrorLoggers(true);
     addErrorLogger(errorLogger);
 
-    StartupDebugLogger debugLogger = new StartupDebugLogger();
-    debugLogger.initializeDebugLogger(null);
-
-    removeAllDebugLoggers(true);
-    addDebugLogger(debugLogger);
   }
 
 
@@ -295,8 +286,6 @@ public class LoggerConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configChangeIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // Make sure that the entry has an appropriate objectclass for an access,
@@ -346,7 +335,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -363,7 +355,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -380,7 +375,10 @@ public class LoggerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+        if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
         int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
         String message = getMessage(msgID, loggerClass.getName(),
@@ -398,7 +396,10 @@ public class LoggerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+        if(debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
         String message = getMessage(msgID, loggerClass.getName(),
@@ -410,21 +411,6 @@ public class LoggerConfigManager
     }
     else if (isDebugLogger)
     {
-      try
-      {
-        DebugLogger logger = (DebugLogger) loggerClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
-
-        int    msgID   = MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS;
-        String message = getMessage(msgID, loggerClass.getName(),
-                                    configEntry.getDN().toString(),
-                                    String.valueOf(e));
-        unacceptableReason.append(message);
-        return false;
-      }
     }
 
 
@@ -448,7 +434,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_ENABLED_VALUE;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -476,8 +465,6 @@ public class LoggerConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationChange",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -516,7 +503,6 @@ public class LoggerConfigManager
     boolean      isActive     = false;
     AccessLogger accessLogger = null;
     ErrorLogger  errorLogger  = null;
-    DebugLogger  debugLogger  = null;
     if (isAccessLogger)
     {
       accessLogger = activeAccessLoggers.get(configEntryDN);
@@ -526,11 +512,6 @@ public class LoggerConfigManager
     {
       errorLogger = activeErrorLoggers.get(configEntryDN);
       isActive = (errorLogger != null);
-    }
-    else if (isDebugLogger)
-    {
-      debugLogger = activeDebugLoggers.get(configEntryDN);
-      isActive = (debugLogger != null);
     }
 
 
@@ -581,11 +562,6 @@ public class LoggerConfigManager
             activeErrorLoggers.remove(configEntryDN);
             errorLogger.closeErrorLogger();
           }
-          else if (isDebugLogger)
-          {
-            activeDebugLoggers.remove(configEntryDN);
-            debugLogger.closeDebugLogger();
-          }
 
           return new ConfigChangeResult(resultCode, adminActionRequired,
                                         messages);
@@ -601,7 +577,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_ENABLED_VALUE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -636,7 +615,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -648,8 +630,7 @@ public class LoggerConfigManager
 
     boolean classChanged = false;
     String  oldClassName = null;
-    if (! (needsEnabled || (accessLogger == null) && (errorLogger == null) &&
-           (debugLogger == null)))
+    if (! (needsEnabled || (accessLogger == null) && (errorLogger == null) ))
     {
       if (isAccessLogger)
       {
@@ -659,11 +640,6 @@ public class LoggerConfigManager
       else if (isErrorLogger)
       {
         oldClassName = errorLogger.getClass().getName();
-        classChanged = (! className.equals(oldClassName));
-      }
-      else if (isDebugLogger)
-      {
-        oldClassName = debugLogger.getClass().getName();
         classChanged = (! className.equals(oldClassName));
       }
     }
@@ -696,7 +672,10 @@ public class LoggerConfigManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+          if(debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
           messages.add(getMessage(msgID, className,
@@ -713,7 +692,10 @@ public class LoggerConfigManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+          if(debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_CONFIG_LOGGER_ACCESS_INITIALIZATION_FAILED;
           messages.add(getMessage(msgID, className,
@@ -739,7 +721,10 @@ public class LoggerConfigManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+          if(debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
           messages.add(getMessage(msgID, className,
@@ -756,7 +741,10 @@ public class LoggerConfigManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+          if(debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_CONFIG_LOGGER_ERROR_INITIALIZATION_FAILED;
           messages.add(getMessage(msgID, className,
@@ -774,44 +762,6 @@ public class LoggerConfigManager
       }
       else
       {
-        try
-        {
-          // FIXME -- Should this be done with a dynamic class loader?
-          Class loggerClass = Class.forName(className);
-          debugLogger = (DebugLogger) loggerClass.newInstance();
-        }
-        catch (Exception e)
-        {
-          assert debugException(CLASS_NAME, "applyConfigurationChange", e);
-
-          int msgID = MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS;
-          messages.add(getMessage(msgID, className,
-                                  String.valueOf(configEntryDN),
-                                  String.valueOf(e)));
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-
-        try
-        {
-          debugLogger.initializeDebugLogger(configEntry);
-        }
-        catch (Exception e)
-        {
-          assert debugException(CLASS_NAME, "applyConfigurationChange", e);
-
-          int msgID = MSGID_CONFIG_LOGGER_DEBUG_INITIALIZATION_FAILED;
-          messages.add(getMessage(msgID, className,
-                                  String.valueOf(configEntryDN),
-                                  String.valueOf(e)));
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-
-        addDebugLogger(debugLogger);
-        activeDebugLoggers.put(configEntryDN, debugLogger);
         return new ConfigChangeResult(resultCode, adminActionRequired,
                                       messages);
       }
@@ -841,15 +791,12 @@ public class LoggerConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configAddIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (activeAccessLoggers.containsKey(configEntryDN) ||
-        activeErrorLoggers.containsKey(configEntryDN) ||
-        activeDebugLoggers.containsKey(configEntryDN))
+        activeErrorLoggers.containsKey(configEntryDN) )
     {
       int    msgID   = MSGID_CONFIG_LOGGER_EXISTS;
       String message = getMessage(msgID, String.valueOf(configEntryDN));
@@ -905,7 +852,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -922,7 +872,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -941,7 +894,10 @@ public class LoggerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+        if(debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
         String message = getMessage(msgID, loggerClass.getName(),
@@ -959,7 +915,10 @@ public class LoggerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+        if(debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
         String message = getMessage(msgID, loggerClass.getName(),
@@ -971,21 +930,6 @@ public class LoggerConfigManager
     }
     else if (isDebugLogger)
     {
-      try
-      {
-        logger = (DebugLogger) loggerClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
-
-        int    msgID   = MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS;
-        String message = getMessage(msgID, loggerClass.getName(),
-                                    configEntry.getDN().toString(),
-                                    String.valueOf(e));
-        unacceptableReason.append(message);
-        return false;
-      }
     }
 
 
@@ -1039,7 +983,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_ENABLED_VALUE;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -1066,8 +1013,6 @@ public class LoggerConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationAdd",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -1131,7 +1076,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_ENABLED_VALUE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1165,7 +1113,10 @@ public class LoggerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1189,7 +1140,10 @@ public class LoggerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+        if(debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
         int msgID = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
         messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
@@ -1206,7 +1160,10 @@ public class LoggerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+        if(debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_LOGGER_ACCESS_INITIALIZATION_FAILED;
         messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
@@ -1237,7 +1194,10 @@ public class LoggerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+        if(debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
         messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
@@ -1254,7 +1214,10 @@ public class LoggerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+        if(debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_LOGGER_ERROR_INITIALIZATION_FAILED;
         messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
@@ -1275,46 +1238,6 @@ public class LoggerConfigManager
     // class, and register it with the Directory Server.
     else
     {
-      DebugLogger debugLogger;
-
-      try
-      {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class loggerClass = Class.forName(className);
-        debugLogger = (DebugLogger) loggerClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
-
-        int msgID = MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS;
-        messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
-                                String.valueOf(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-
-      try
-      {
-        debugLogger.initializeDebugLogger(configEntry);
-      }
-      catch (Exception e)
-      {
-        assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
-
-        int msgID = MSGID_CONFIG_LOGGER_DEBUG_INITIALIZATION_FAILED;
-        messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
-                                String.valueOf(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-
-      addDebugLogger(debugLogger);
-      activeDebugLoggers.put(configEntryDN, debugLogger);
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
   }
@@ -1337,8 +1260,6 @@ public class LoggerConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configDeleteIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // A delete should always be acceptable, so just return true.
@@ -1357,8 +1278,6 @@ public class LoggerConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationDelete",
-                      String.valueOf(configEntry));
 
 
     DN         configEntryDN       = configEntry.getDN();
@@ -1388,15 +1307,6 @@ public class LoggerConfigManager
     }
 
 
-    // See if the entry is registered as a debug logger.  If so, deregister it
-    // and stop the logger.
-    DebugLogger debugLogger = activeDebugLoggers.remove(configEntryDN);
-    if (debugLogger != null)
-    {
-      removeDebugLogger(debugLogger);
-      debugLogger.closeDebugLogger();
-      return new ConfigChangeResult(resultCode, adminActionRequired);
-    }
 
 
     // If we've gotten here, then it wasn't an active logger so we can just

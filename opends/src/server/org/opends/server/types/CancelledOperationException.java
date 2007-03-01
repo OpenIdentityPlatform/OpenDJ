@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -40,11 +35,6 @@ import static org.opends.server.loggers.Debug.*;
 public class CancelledOperationException
        extends Exception
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.CancelledOperationException";
 
 
 
@@ -78,7 +68,6 @@ public class CancelledOperationException
   {
     super();
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(cancelResult));
 
     this.cancelResult = cancelResult;
     this.messageID    = -1;
@@ -103,9 +92,6 @@ public class CancelledOperationException
   {
     super(message);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(cancelResult),
-                            String.valueOf(message),
-                            String.valueOf(messageID));
 
     this.cancelResult = cancelResult;
     this.messageID    = messageID;
@@ -122,7 +108,6 @@ public class CancelledOperationException
    */
   public final CancelResult getCancelResult()
   {
-    assert debugEnter(CLASS_NAME, "getCancelResult");
 
     return cancelResult;
   }
@@ -139,7 +124,6 @@ public class CancelledOperationException
    */
   public final int getMessageID()
   {
-    assert debugEnter(CLASS_NAME, "getMessageID");
 
     return messageID;
   }

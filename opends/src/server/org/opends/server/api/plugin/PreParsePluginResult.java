@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -38,11 +37,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class PreParsePluginResult
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.plugin.PreParsePluginResult";
 
 
 
@@ -104,10 +98,6 @@ public class PreParsePluginResult
                               boolean continuePluginProcessing,
                               boolean sendResponseImmediately)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(connectionTerminated),
-                            String.valueOf(continuePluginProcessing),
-                            String.valueOf(sendResponseImmediately));
 
     this.connectionTerminated     = connectionTerminated;
     this.continuePluginProcessing = continuePluginProcessing;
@@ -125,7 +115,6 @@ public class PreParsePluginResult
    */
   public boolean connectionTerminated()
   {
-    assert debugEnter(CLASS_NAME, "connectionTerminated");
 
     return connectionTerminated;
   }
@@ -142,7 +131,6 @@ public class PreParsePluginResult
    */
   public boolean continuePluginProcessing()
   {
-    assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
   }
@@ -161,7 +149,6 @@ public class PreParsePluginResult
    */
   public boolean sendResponseImmediately()
   {
-    assert debugEnter(CLASS_NAME, "sendResponseImmediately");
 
     return sendResponseImmediately;
   }
@@ -177,7 +164,6 @@ public class PreParsePluginResult
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -195,8 +181,6 @@ public class PreParsePluginResult
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("PostResponsePluginResult(connectionTerminated=");
     buffer.append(connectionTerminated);

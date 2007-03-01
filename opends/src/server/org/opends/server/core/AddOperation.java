@@ -91,7 +91,9 @@ import org.opends.server.util.TimeThread;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -110,11 +112,6 @@ public class AddOperation
        implements PreParseAddOperation, PreOperationAddOperation,
                   PostOperationAddOperation, PostResponseAddOperation
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.AddOperation";
 
 
 
@@ -180,16 +177,6 @@ public class AddOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(rawEntryDN),
-                              String.valueOf(rawAttributes)
-                            });
 
     this.rawEntryDN    = rawEntryDN;
     this.rawAttributes = rawAttributes;
@@ -229,16 +216,6 @@ public class AddOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(rawEntryDN),
-                              String.valueOf(rawAttributes)
-                            });
 
     this.entryDN               = entryDN;
     this.objectClasses         = objectClasses;
@@ -292,7 +269,6 @@ public class AddOperation
    */
   public final ByteString getRawEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getRawEntryDN");
 
     return rawEntryDN;
   }
@@ -310,7 +286,6 @@ public class AddOperation
    */
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "setRawEntryDN", String.valueOf(rawEntryDN));
 
     this.rawEntryDN = rawEntryDN;
 
@@ -329,7 +304,6 @@ public class AddOperation
    */
   public final DN getEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getEntryDN");
 
     return entryDN;
   }
@@ -347,7 +321,6 @@ public class AddOperation
    */
   public final List<LDAPAttribute> getRawAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getRawAttributes");
 
     return rawAttributes;
   }
@@ -363,8 +336,6 @@ public class AddOperation
    */
   public final void addRawAttribute(LDAPAttribute rawAttribute)
   {
-    assert debugEnter(CLASS_NAME, "addRawAttribute",
-                      String.valueOf(rawAttribute));
 
     rawAttributes.add(rawAttribute);
 
@@ -383,8 +354,6 @@ public class AddOperation
    */
   public final void setRawAttributes(List<LDAPAttribute> rawAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setRawAttributes",
-                      String.valueOf(rawAttributes));
 
     this.rawAttributes = rawAttributes;
 
@@ -406,7 +375,6 @@ public class AddOperation
    */
   public final Map<ObjectClass,String> getObjectClasses()
   {
-    assert debugEnter(CLASS_NAME, "getObjectClasses");
 
     return objectClasses;
   }
@@ -425,8 +393,6 @@ public class AddOperation
    */
   public final void addObjectClass(ObjectClass objectClass, String name)
   {
-    assert debugEnter(CLASS_NAME, "addObjectClass", String.valueOf(objectClass),
-                      String.valueOf(name));
 
     objectClasses.put(objectClass, name);
   }
@@ -444,8 +410,6 @@ public class AddOperation
    */
   public final void removeObjectClass(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "removeObjectClass",
-                      String.valueOf(objectClass));
 
     objectClasses.remove(objectClass);
   }
@@ -463,7 +427,6 @@ public class AddOperation
    */
   public final Map<AttributeType,List<Attribute>> getUserAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getUserAttributes");
 
     return userAttributes;
   }
@@ -481,7 +444,6 @@ public class AddOperation
    */
   public final Map<AttributeType,List<Attribute>> getOperationalAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getOperationalAttributes");
 
     return operationalAttributes;
   }
@@ -502,8 +464,6 @@ public class AddOperation
   public final void setAttribute(AttributeType attributeType,
                                  List<Attribute> attributeList)
   {
-    assert debugEnter(CLASS_NAME, "setAttribute", String.valueOf(attributeType),
-                      String.valueOf(attributeList));
 
     if (attributeType.isOperational())
     {
@@ -542,8 +502,6 @@ public class AddOperation
    */
   public final void removeAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "removeAttribute",
-                      String.valueOf(attributeType));
 
     if (attributeType.isOperational())
     {
@@ -567,7 +525,6 @@ public class AddOperation
    */
   public final Entry getEntryToAdd()
   {
-    assert debugEnter(CLASS_NAME, "getEntryToAdd");
 
     return entry;
   }
@@ -580,7 +537,6 @@ public class AddOperation
   @Override()
   public final long getProcessingStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
     return processingStartTime;
   }
@@ -593,7 +549,6 @@ public class AddOperation
   @Override()
   public final long getProcessingStopTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
     return processingStopTime;
   }
@@ -606,7 +561,6 @@ public class AddOperation
   @Override()
   public final long getProcessingTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingTime");
 
     return (processingStopTime - processingStartTime);
   }
@@ -622,7 +576,6 @@ public class AddOperation
    */
   public final long getChangeNumber()
   {
-    assert debugEnter(CLASS_NAME, "getChangeNumber");
 
     return changeNumber;
   }
@@ -638,8 +591,6 @@ public class AddOperation
    */
   public final void setChangeNumber(long changeNumber)
   {
-    assert debugEnter(CLASS_NAME, "setChangeNumber",
-                      String.valueOf(changeNumber));
 
     this.changeNumber = changeNumber;
   }
@@ -771,7 +722,6 @@ public class AddOperation
   @Override()
   public final ArrayList<Control> getResponseControls()
   {
-    assert debugEnter(CLASS_NAME, "getResponseControls");
 
     return responseControls;
   }
@@ -806,7 +756,6 @@ public class AddOperation
   @Override()
   public final void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
 
     // Start the processing timer.
@@ -885,7 +834,10 @@ addProcessing:
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "run", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         setResultCode(de.getResultCode());
         appendErrorMessage(de.getErrorMessage());
@@ -1118,7 +1070,10 @@ addProcessing:
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "run", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
                      ErrorLogSeverity.SEVERE_ERROR,
@@ -1147,7 +1102,10 @@ addProcessing:
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "run", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           setResultCode(de.getResultCode());
           appendErrorMessage(de.getErrorMessage());
@@ -1180,7 +1138,10 @@ addProcessing:
                 }
                 catch (Exception e)
                 {
-                  assert debugException(CLASS_NAME, "run", e);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, e);
+                  }
                   break;
                 }
 
@@ -1198,7 +1159,10 @@ addProcessing:
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "run", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             setResultCode(de.getResultCode());
             appendErrorMessage(de.getErrorMessage());
@@ -1438,7 +1402,10 @@ addProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_ADD_INVALID_PWPOLICY_DN_SYNTAX;
                 appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
@@ -1472,7 +1439,10 @@ addProcessing:
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "run", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             setResponseData(de);
             break addProcessing;
@@ -1688,7 +1658,10 @@ addProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -1714,7 +1687,10 @@ addProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 setResultCode(ResultCode.PROTOCOL_ERROR);
 
@@ -1744,7 +1720,10 @@ addProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -1779,7 +1758,10 @@ addProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -1796,7 +1778,10 @@ addProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 setResultCode(de.getResultCode());
                 appendErrorMessage(de.getErrorMessage());
@@ -1833,7 +1818,10 @@ addProcessing:
                 }
                 catch (LDAPException le)
                 {
-                  assert debugException(CLASS_NAME, "run", le);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, le);
+                  }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
                   appendErrorMessage(le.getMessage());
@@ -1850,7 +1838,10 @@ addProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 setResultCode(de.getResultCode());
                 appendErrorMessage(de.getErrorMessage());
@@ -2025,7 +2016,10 @@ addProcessing:
                 }
                 catch (DirectoryException de)
                 {
-                  assert debugException(CLASS_NAME, "run", de);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, de);
+                  }
 
                   logError(ErrorLogCategory.SYNCHRONIZATION,
                            ErrorLogSeverity.SEVERE_ERROR,
@@ -2095,7 +2089,10 @@ addProcessing:
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "run", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             setResultCode(de.getResultCode());
             appendErrorMessage(de.getErrorMessage());
@@ -2106,7 +2103,10 @@ addProcessing:
           }
           catch (CancelledOperationException coe)
           {
-            assert debugException(CLASS_NAME, "run", coe);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, coe);
+            }
 
             CancelResult cancelResult = coe.getCancelResult();
 
@@ -2145,7 +2145,10 @@ addProcessing:
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "run", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
                      ErrorLogSeverity.SEVERE_ERROR,
@@ -2200,7 +2203,10 @@ addProcessing:
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "run", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_ADD_ERROR_NOTIFYING_CHANGE_LISTENER;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -2235,7 +2241,10 @@ addProcessing:
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "run", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_ADD_ERROR_NOTIFYING_PERSISTENT_SEARCH;
           String message = getMessage(msgID, String.valueOf(persistentSearch),
@@ -2263,8 +2272,6 @@ addProcessing:
    */
   private final void addObjectClassChain(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "addObjectClassChain",
-                      String.valueOf(objectClass));
 
     if (! objectClasses.containsKey(objectClass))
     {
@@ -2296,9 +2303,6 @@ addProcessing:
                                           Entry userEntry)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "handlePasswordPolicy",
-                      String.valueOf(passwordPolicy),
-                      String.valueOf(userEntry));
 
 
     // See if a password was specified.
@@ -2493,7 +2497,6 @@ addProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
     this.cancelRequest = cancelRequest;
 
@@ -2508,7 +2511,10 @@ addProcessing:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "cancel", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       cancelResult = getCancelResult();
@@ -2534,7 +2540,6 @@ addProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-    assert debugEnter(CLASS_NAME, "getCancelRequest");
 
     return cancelRequest;
   }
@@ -2547,8 +2552,6 @@ addProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "setCancelRequest",
-                      String.valueOf(cancelRequest));
 
     this.cancelRequest = cancelRequest;
     return true;
@@ -2562,7 +2565,6 @@ addProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("AddOperation(connID=");
     buffer.append(clientConnection.getConnectionID());

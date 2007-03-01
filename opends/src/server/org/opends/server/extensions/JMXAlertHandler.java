@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -56,8 +56,10 @@ import org.opends.server.config.JMXMBean;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -75,7 +77,7 @@ public class JMXAlertHandler
        implements AlertHandler, DynamicMBean, DirectoryServerMBean
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.JMXAlertHandler";
@@ -103,7 +105,6 @@ public class JMXAlertHandler
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -125,8 +126,6 @@ public class JMXAlertHandler
   public void initializeAlertHandler(ConfigEntry configEntry)
        throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeAlertHandler",
-                      String.valueOf(configEntry));
 
     sequenceNumber = new AtomicLong(1);
 
@@ -155,7 +154,10 @@ public class JMXAlertHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeAlertHandler", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_JMX_ALERT_HANDLER_CANNOT_REGISTER;
         String message = getMessage(msgID, String.valueOf(e));
@@ -172,7 +174,6 @@ public class JMXAlertHandler
    */
   public void finalizeAlertHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeAlertHandler");
 
     // No action is required.
   }
@@ -186,7 +187,6 @@ public class JMXAlertHandler
    */
   public ObjectName getObjectName()
   {
-    assert debugEnter(CLASS_NAME, "getObjectName");
 
     return objectName;
   }
@@ -206,9 +206,6 @@ public class JMXAlertHandler
   public void sendAlertNotification(AlertGenerator generator, String alertType,
                                     int alertID, String alertMessage)
   {
-    assert debugEnter(CLASS_NAME, "sendAlertNotification",
-                      String.valueOf(generator), String.valueOf(alertID),
-                      String.valueOf(alertMessage));
 
     sendNotification(new Notification(alertType, generator.getClassName(),
                                       sequenceNumber.getAndIncrement(),
@@ -227,7 +224,6 @@ public class JMXAlertHandler
    */
   public MBeanNotificationInfo[] getNotificationInfo()
   {
-    assert debugEnter(CLASS_NAME, "getNotificationInfo");
 
     ArrayList<MBeanNotificationInfo> notifications =
          new ArrayList<MBeanNotificationInfo>();
@@ -262,7 +258,6 @@ public class JMXAlertHandler
   public Attribute getAttribute(String attribute)
          throws AttributeNotFoundException
   {
-    assert debugEnter(CLASS_NAME, "getAttribute");
 
     // There are no attributes for this MBean.
     int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
@@ -288,7 +283,6 @@ public class JMXAlertHandler
   public void setAttribute(Attribute attribute)
          throws AttributeNotFoundException, InvalidAttributeValueException
   {
-    assert debugEnter(CLASS_NAME, "setAttribute", String.valueOf(attribute));
 
 
     // There are no attributes for this MBean.
@@ -309,7 +303,6 @@ public class JMXAlertHandler
    */
   public AttributeList getAttributes(String[] attributes)
   {
-    assert debugEnter(CLASS_NAME, "getAttributes", String.valueOf(attributes));
 
 
     // There are no attributes for this MBean.
@@ -329,7 +322,6 @@ public class JMXAlertHandler
    */
   public AttributeList setAttributes(AttributeList attributes)
   {
-    assert debugEnter(CLASS_NAME, "setAttributes", String.valueOf(attributes));
 
     // There are no attributes for this MBean.
     return new AttributeList();
@@ -357,8 +349,6 @@ public class JMXAlertHandler
   public Object invoke(String actionName, Object[] params, String[] signature)
          throws MBeanException
   {
-    assert debugEnter(CLASS_NAME, "invoke", String.valueOf(actionName),
-                      String.valueOf(params), String.valueOf(signature));
 
     // There are no invokable components for this MBean.
     StringBuilder buffer = new StringBuilder();
@@ -395,7 +385,6 @@ public class JMXAlertHandler
    */
   public MBeanInfo getMBeanInfo()
   {
-    assert debugEnter(CLASS_NAME, "getMBeanInfo");
 
     return new MBeanInfo(CLASS_NAME, "JMX Alert Handler",
                          new MBeanAttributeInfo[0], new MBeanConstructorInfo[0],

@@ -89,7 +89,6 @@ import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
-import org.opends.server.loggers.StartupDebugLogger;
 import org.opends.server.loggers.StartupErrorLogger;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
@@ -132,6 +131,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.CryptoManager;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
@@ -161,7 +161,8 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -182,7 +183,7 @@ public class DirectoryServer
        implements Thread.UncaughtExceptionHandler, AlertGenerator
 {
     /**
-    * The fully-qualified name of this class for debugging purposes.
+    * The fully-qualified name of this class.
     */
     private static final String CLASS_NAME =
        "org.opends.server.core.DirectoryServer";
@@ -497,8 +498,6 @@ public class DirectoryServer
   // The schema configuration manager for the Directory Server.
   private SchemaConfigManager schemaConfigManager;
 
-  // The debug logger that will be used during the Directory Server startup.
-  private StartupDebugLogger startupDebugLogger;
 
   // The error logger that will be used during the Directory Server startup.
   private StartupErrorLogger startupErrorLogger;
@@ -724,10 +723,6 @@ public class DirectoryServer
 
     // Install default debug and error loggers for use until enough of the
     // configuration has been read to allow the real loggers to be installed.
-    removeAllDebugLoggers(true);
-    startupDebugLogger = new StartupDebugLogger();
-    startupDebugLogger.initializeDebugLogger(null);
-    addDebugLogger(startupDebugLogger);
 
     removeAllErrorLoggers(true);
     startupErrorLogger = new StartupErrorLogger();
@@ -783,7 +778,6 @@ public class DirectoryServer
   public static void initializeJMX()
          throws InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeJMX");
 
     try
     {
@@ -798,7 +792,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapServer", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_CREATE_MBEAN_SERVER;
       String message = getMessage(msgID, String.valueOf(e));
@@ -838,7 +835,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapServer", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_LOAD_CONFIG_HANDLER_CLASS;
       String message = getMessage(msgID, configClass, e);
@@ -851,7 +851,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapServer", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_INSTANTIATE_CONFIG_HANDLER;
       String message = getMessage(msgID, configClass, e);
@@ -866,13 +869,19 @@ public class DirectoryServer
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "bootstrapServer", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       throw ie;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapServer", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_INITIALIZE_CONFIG_HANDLER;
       String message = getMessage(msgID, configClass, configFile, e);
@@ -891,7 +900,6 @@ public class DirectoryServer
    */
   public static String getConfigFile()
   {
-    assert debugEnter(CLASS_NAME, "getConfigFile");
 
     return directoryServer.configFile;
   }
@@ -957,7 +965,10 @@ public class DirectoryServer
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "startServer", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
           String message = getMessage(msgID, lockFile,
@@ -1112,8 +1123,6 @@ public class DirectoryServer
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, msgID, message);
 
 
-      // Deregister the startup-specific debug and error loggers.
-      removeDebugLogger(startupDebugLogger);
       removeErrorLogger(startupErrorLogger);
 
 
@@ -1146,7 +1155,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1165,7 +1177,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1184,7 +1199,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1204,7 +1222,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message =
@@ -1223,7 +1244,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1243,7 +1267,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message =
@@ -1263,7 +1290,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1283,7 +1313,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1302,7 +1335,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1321,7 +1357,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1341,7 +1380,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message =
@@ -1362,7 +1404,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message =
@@ -1382,7 +1427,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1401,7 +1449,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1421,7 +1472,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1440,7 +1494,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1459,7 +1516,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1478,7 +1538,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1498,7 +1561,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message =
@@ -1518,7 +1584,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1538,7 +1607,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1558,7 +1630,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message = getMessage(msgID,
@@ -1578,7 +1653,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
       String message =
@@ -1607,7 +1685,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID, AttributeTypeSyntax.class.getName(),
@@ -1625,7 +1706,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID, BinarySyntax.class.getName(),
@@ -1643,7 +1727,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID, BooleanSyntax.class.getName(),
@@ -1662,7 +1749,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID, DirectoryStringSyntax.class.getName(),
@@ -1680,7 +1770,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID,
@@ -1699,7 +1792,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID, IA5StringSyntax.class.getName(),
@@ -1717,7 +1813,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID, IntegerSyntax.class.getName(),
@@ -1735,7 +1834,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID, GeneralizedTimeSyntax.class.getName(),
@@ -1753,7 +1855,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID, ObjectClassSyntax.class.getName(),
@@ -1771,7 +1876,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID, OIDSyntax.class.getName(),
@@ -1789,7 +1897,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "bootstrapAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
       String message = getMessage(msgID, TelephoneNumberSyntax.class.getName(),
@@ -1808,7 +1919,6 @@ public class DirectoryServer
    */
   public static AuthenticatedUsers getAuthenticatedUsers()
   {
-    assert debugEnter(CLASS_NAME, "getAuthenticatedUsers");
 
     return directoryServer.authenticatedUsers;
   }
@@ -1840,7 +1950,6 @@ public class DirectoryServer
    */
   public static CryptoManager getCryptoManager()
   {
-    assert debugEnter(CLASS_NAME, "getCryptoManager");
 
     return directoryServer.cryptoManager;
   }
@@ -1861,7 +1970,6 @@ public class DirectoryServer
   public void initializeMailServerPropertySets()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMailServerPropertySets");
 
     mailServerPropertySets = new CopyOnWriteArrayList<Properties>();
 
@@ -1882,7 +1990,6 @@ public class DirectoryServer
    */
   public static CopyOnWriteArrayList<Properties> getMailServerPropertySets()
   {
-    assert debugEnter(CLASS_NAME, "getMailServerPropertySets");
 
     return directoryServer.mailServerPropertySets;
   }
@@ -1925,7 +2032,6 @@ public class DirectoryServer
   public void initializeSchema()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSchema");
 
 
     // Create the schema configuration manager, and initialize the schema from
@@ -1949,7 +2055,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchema", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     try
@@ -1958,13 +2067,19 @@ public class DirectoryServer
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "initializeSchema", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       throw ie;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchema", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_INITIALIZE_CONFIG_HANDLER;
       String message = getMessage(msgID, configClass, configFile, e);
@@ -1985,7 +2100,6 @@ public class DirectoryServer
   public static Set<BackendInitializationListener>
                      getBackendInitializationListeners()
   {
-    assert debugEnter(CLASS_NAME, "getBackendInitializationListeners");
 
     return directoryServer.backendInitializationListeners;
   }
@@ -2002,8 +2116,6 @@ public class DirectoryServer
   public static void registerBackendInitializationListener(
                           BackendInitializationListener listener)
   {
-    assert debugEnter(CLASS_NAME, "registerBackendInitializationListener",
-                      String.valueOf(listener));
 
     directoryServer.backendInitializationListeners.add(listener);
   }
@@ -2020,8 +2132,6 @@ public class DirectoryServer
   public static void deregisterBackendInitializationListener(
                           BackendInitializationListener listener)
   {
-    assert debugEnter(CLASS_NAME, "deregisterBackendInitializationListener",
-                      String.valueOf(listener));
 
     directoryServer.backendInitializationListeners.remove(listener);
   }
@@ -2041,7 +2151,6 @@ public class DirectoryServer
   private void initializeBackends()
           throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeBackends");
 
     backendConfigManager = new BackendConfigManager();
     backendConfigManager.initializeBackendConfig();
@@ -2057,7 +2166,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackends", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -2084,7 +2196,6 @@ public class DirectoryServer
   public void initializeGroupManager()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeGroupManager");
 
     groupManager = new GroupManager();
     groupManager.initializeGroupImplementations();
@@ -2103,7 +2214,6 @@ public class DirectoryServer
    */
   public static GroupManager getGroupManager()
   {
-    assert debugEnter(CLASS_NAME, "getGroupManager");
 
     return directoryServer.groupManager;
   }
@@ -2123,7 +2233,6 @@ public class DirectoryServer
   private void initializeSupportedControls()
           throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSupportedControls");
 
     supportedControls.add(OID_LDAP_ASSERTION);
     supportedControls.add(OID_LDAP_READENTRY_PREREAD);
@@ -2153,7 +2262,6 @@ public class DirectoryServer
   private void initializeSupportedFeatures()
           throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSupportedFeatures");
 
     supportedFeatures.add(OID_ALL_OPERATIONAL_ATTRS_FEATURE);
     supportedFeatures.add(OID_MODIFY_INCREMENT_FEATURE);
@@ -2175,7 +2283,6 @@ public class DirectoryServer
   private void initializeIdentityMappers()
           throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeIdentityMappers");
 
     identityMapperConfigManager = new IdentityMapperConfigManager();
     identityMapperConfigManager.initializeIdentityMappers();
@@ -2197,7 +2304,6 @@ public class DirectoryServer
   private void initializeExtendedOperations()
           throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeExtendedOperations");
 
     extendedOperationConfigManager = new ExtendedOperationConfigManager();
     extendedOperationConfigManager.initializeExtendedOperationHandlers();
@@ -2218,7 +2324,6 @@ public class DirectoryServer
   private void initializeSASLMechanisms()
           throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSASLMechanisms");
 
     saslConfigManager = new SASLConfigManager();
     saslConfigManager.initializeSASLMechanismHandlers();
@@ -2259,7 +2364,6 @@ public class DirectoryServer
   private void initializeConnectionHandlers()
           throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeConnectionHandlers");
 
     connectionHandlerConfigManager = new ConnectionHandlerConfigManager();
     connectionHandlerConfigManager.initializeConnectionHandlerConfig();
@@ -2281,7 +2385,6 @@ public class DirectoryServer
   public void initializePasswordPolicyComponents()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePasswordPolicyComponents");
 
 
     // Initialize all the password storage schemes.
@@ -2320,7 +2423,6 @@ public class DirectoryServer
    */
   public static OperatingSystem getOperatingSystem()
   {
-    assert debugEnter(CLASS_NAME, "getOperatingSystem");
 
     return directoryServer.operatingSystem;
   }
@@ -2336,7 +2438,6 @@ public class DirectoryServer
    */
   public static ThreadGroup getDirectoryThreadGroup()
   {
-    assert debugEnter(CLASS_NAME, "getDirectoryThreadGroup");
 
     return directoryServer.directoryThreadGroup;
   }
@@ -2350,7 +2451,6 @@ public class DirectoryServer
    */
   public static ConfigHandler getConfigHandler()
   {
-    assert debugEnter(CLASS_NAME, "getConfigHandler");
 
     return directoryServer.configHandler;
   }
@@ -2370,7 +2470,6 @@ public class DirectoryServer
   public void initializePlugins()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePlugins");
 
     pluginConfigManager.initializePluginConfig(null);
   }
@@ -2394,7 +2493,6 @@ public class DirectoryServer
   public void initializePlugins(Set<PluginType> pluginTypes)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePlugins");
 
     pluginConfigManager = new PluginConfigManager();
     pluginConfigManager.initializePluginConfig(pluginTypes);
@@ -2409,7 +2507,6 @@ public class DirectoryServer
    */
   public static PluginConfigManager getPluginConfigManager()
   {
-    assert debugEnter(CLASS_NAME, "getPluginConfigManager");
 
     return directoryServer.pluginConfigManager;
   }
@@ -2429,7 +2526,6 @@ public class DirectoryServer
   public static ConfigEntry getConfigEntry(DN entryDN)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getConfigEntry", String.valueOf(entryDN));
 
     return directoryServer.configHandler.getConfigEntry(entryDN);
   }
@@ -2445,7 +2541,6 @@ public class DirectoryServer
   */
   public static String getServerRoot()
   {
-    assert debugEnter(CLASS_NAME, "getServerRoot");
 
     if (directoryServer.configHandler == null)
     {
@@ -2478,7 +2573,6 @@ public class DirectoryServer
    */
   public static long getStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getStartTime");
 
     return directoryServer.startUpTime;
   }
@@ -2492,7 +2586,6 @@ public class DirectoryServer
    */
   public static String getStartTimeUTC()
   {
-    assert debugEnter(CLASS_NAME, "getStartTimeUTC");
 
     return directoryServer.startTimeUTC;
   }
@@ -2506,7 +2599,6 @@ public class DirectoryServer
    */
   public static Schema getSchema()
   {
-    assert debugEnter(CLASS_NAME, "getSchema");
 
     return directoryServer.schema;
   }
@@ -2520,7 +2612,6 @@ public class DirectoryServer
    */
   public static void setSchema(Schema schema)
   {
-    assert debugEnter(CLASS_NAME, "setSchema", String.valueOf(schema));
 
     directoryServer.schema = schema;
   }
@@ -2537,7 +2628,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<String,MatchingRule> getMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRules");
 
     return directoryServer.schema.getMatchingRules();
   }
@@ -2553,7 +2643,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getMatchingRuleSet()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleSet");
 
     return directoryServer.schema.getMatchingRuleSet();
   }
@@ -2571,7 +2660,6 @@ public class DirectoryServer
    */
   public static MatchingRule getMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRule", String.valueOf(lowerName));
 
     return directoryServer.schema.getMatchingRule(lowerName);
   }
@@ -2595,9 +2683,6 @@ public class DirectoryServer
                                           boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerMatchingRule",
-                      String.valueOf(matchingRule),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerMatchingRule(matchingRule,
                                                 overwriteExisting);
@@ -2612,8 +2697,6 @@ public class DirectoryServer
    */
   public static void deregisterMatchingRule(MatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterMatchingRule",
-                      String.valueOf(matchingRule));
 
     directoryServer.schema.deregisterMatchingRule(matchingRule);
   }
@@ -2633,7 +2716,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,ApproximateMatchingRule>
                      getApproximateMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRules");
 
     return directoryServer.schema.getApproximateMatchingRules();
   }
@@ -2652,8 +2734,6 @@ public class DirectoryServer
   public static ApproximateMatchingRule
                      getApproximateMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule",
-                      String.valueOf(lowerName));
 
     return directoryServer.schema.getApproximateMatchingRule(lowerName);
   }
@@ -2679,9 +2759,6 @@ public class DirectoryServer
                                                      boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerApproximateMatchingRule",
-                      String.valueOf(matchingRule),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerApproximateMatchingRule(matchingRule,
                                                            overwriteExisting);
@@ -2698,8 +2775,6 @@ public class DirectoryServer
   public static void deregisterApproximateMatchingRule(ApproximateMatchingRule
                                                             matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterApproximateMatchingRule",
-                      String.valueOf(matchingRule));
 
     directoryServer.schema.deregisterApproximateMatchingRule(matchingRule);
   }
@@ -2719,7 +2794,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,EqualityMatchingRule>
                      getEqualityMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRules");
 
     return directoryServer.schema.getEqualityMatchingRules();
   }
@@ -2737,8 +2811,6 @@ public class DirectoryServer
    */
   public static EqualityMatchingRule getEqualityMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule",
-                      String.valueOf(lowerName));
 
     return directoryServer.schema.getEqualityMatchingRule(lowerName);
   }
@@ -2763,9 +2835,6 @@ public class DirectoryServer
                                                   boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerEqualityMatchingRule",
-                      String.valueOf(matchingRule),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerEqualityMatchingRule(matchingRule,
                                                         overwriteExisting);
@@ -2781,8 +2850,6 @@ public class DirectoryServer
   public static void deregisterEqualityMatchingRule(EqualityMatchingRule
                                                     matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterEqualityMatchingRule",
-                      String.valueOf(matchingRule));
 
     directoryServer.schema.deregisterEqualityMatchingRule(matchingRule);
   }
@@ -2802,7 +2869,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,OrderingMatchingRule>
                      getOrderingMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRules");
 
     return directoryServer.schema.getOrderingMatchingRules();
   }
@@ -2820,8 +2886,6 @@ public class DirectoryServer
    */
   public static OrderingMatchingRule getOrderingMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule",
-                      String.valueOf(lowerName));
 
     return directoryServer.schema.getOrderingMatchingRule(lowerName);
   }
@@ -2846,9 +2910,6 @@ public class DirectoryServer
                                                   boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerOrderingMatchingRule",
-                      String.valueOf(matchingRule),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerOrderingMatchingRule(matchingRule,
                                                         overwriteExisting);
@@ -2864,8 +2925,6 @@ public class DirectoryServer
   public static void deregisterOrderingMatchingRule(OrderingMatchingRule
                                                     matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterOrderingMatchingRule",
-                      String.valueOf(matchingRule));
 
     directoryServer.schema.deregisterOrderingMatchingRule(matchingRule);
   }
@@ -2885,7 +2944,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,SubstringMatchingRule>
                      getSubstringMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRules");
 
     return directoryServer.schema.getSubstringMatchingRules();
   }
@@ -2903,8 +2961,6 @@ public class DirectoryServer
    */
   public static SubstringMatchingRule getSubstringMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule",
-                      String.valueOf(lowerName));
 
     return directoryServer.schema.getSubstringMatchingRule(lowerName);
   }
@@ -2929,9 +2985,6 @@ public class DirectoryServer
                                                    boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerSubstringMatchingRule",
-                      String.valueOf(matchingRule),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerSubstringMatchingRule(matchingRule,
                                                          overwriteExisting);
@@ -2947,8 +3000,6 @@ public class DirectoryServer
   public static void deregisterSubstringMatchingRule(SubstringMatchingRule
                                                      matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSubstringMatchingRule",
-                      String.valueOf(matchingRule));
 
     directoryServer.schema.deregisterSubstringMatchingRule(matchingRule);
   }
@@ -2962,7 +3013,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<String,ObjectClass> getObjectClasses()
   {
-    assert debugEnter(CLASS_NAME, "getObjectClasses");
 
     return directoryServer.schema.getObjectClasses();
   }
@@ -2978,7 +3028,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getObjectClassSet()
   {
-    assert debugEnter(CLASS_NAME, "getObjectClassSet");
 
     return directoryServer.schema.getObjectClassSet();
   }
@@ -2996,7 +3045,6 @@ public class DirectoryServer
    */
   public static ObjectClass getObjectClass(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getObjectClass", String.valueOf(lowerName));
 
     return directoryServer.schema.getObjectClass(lowerName);
   }
@@ -3021,8 +3069,6 @@ public class DirectoryServer
   public static ObjectClass getObjectClass(String lowerName,
                                            boolean returnDefault)
   {
-    assert debugEnter(CLASS_NAME, "getObjectClass", String.valueOf(lowerName),
-                      String.valueOf(returnDefault));
 
     ObjectClass oc = directoryServer.schema.getObjectClass(lowerName);
     if (returnDefault && (oc == null))
@@ -3053,9 +3099,6 @@ public class DirectoryServer
                                          boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerObjectClass",
-                      String.valueOf(objectClass),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerObjectClass(objectClass, overwriteExisting);
   }
@@ -3070,8 +3113,6 @@ public class DirectoryServer
    */
   public static void deregisterObjectClass(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "deregisterObjectClass",
-                      String.valueOf(objectClass));
 
     directoryServer.schema.deregisterObjectClass(objectClass);
   }
@@ -3087,7 +3128,6 @@ public class DirectoryServer
    */
   public static ObjectClass getTopObjectClass()
   {
-    assert debugEnter(CLASS_NAME, "getTopObjectClass");
 
     ObjectClass objectClass =
          directoryServer.schema.getObjectClass(TOP_OBJECTCLASS_NAME);
@@ -3124,8 +3164,6 @@ public class DirectoryServer
    */
   public static ObjectClass getDefaultObjectClass(String name)
   {
-    assert debugEnter(CLASS_NAME, "getDefaultObjectClass",
-                      String.valueOf(name));
 
     String lowerName = toLowerCase(name);
     ObjectClass objectClass = directoryServer.schema.getObjectClass(lowerName);
@@ -3158,8 +3196,6 @@ public class DirectoryServer
    */
   public static ObjectClass getDefaultAuxiliaryObjectClass(String name)
   {
-    assert debugEnter(CLASS_NAME, "getDefaultObjectClass",
-                      String.valueOf(name));
 
     String lowerName = toLowerCase(name);
     ObjectClass objectClass = directoryServer.schema.getObjectClass(lowerName);
@@ -3188,7 +3224,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<String,AttributeType> getAttributeTypes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeTypes");
 
     return directoryServer.schema.getAttributeTypes();
   }
@@ -3204,7 +3239,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getAttributeTypeSet()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeTypeSet");
 
     return directoryServer.schema.getAttributeTypeSet();
   }
@@ -3222,8 +3256,6 @@ public class DirectoryServer
    */
   public static AttributeType getAttributeType(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType",
-                      String.valueOf(lowerName));
 
     return directoryServer.schema.getAttributeType(lowerName);
   }
@@ -3248,9 +3280,6 @@ public class DirectoryServer
   public static AttributeType getAttributeType(String lowerName,
                                                boolean returnDefault)
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType",
-                      String.valueOf(lowerName),
-                      String.valueOf(returnDefault));
 
     AttributeType type = directoryServer.schema.getAttributeType(lowerName);
     if (returnDefault && (type == null))
@@ -3281,9 +3310,6 @@ public class DirectoryServer
                                            boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerAttributeType",
-                      String.valueOf(attributeType),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerAttributeType(attributeType,
                                                  overwriteExisting);
@@ -3299,8 +3325,6 @@ public class DirectoryServer
    */
   public static void deregisterAttributeType(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "deregisterAttributeType",
-                      String.valueOf(attributeType));
 
     directoryServer.schema.deregisterAttributeType(attributeType);
   }
@@ -3314,7 +3338,6 @@ public class DirectoryServer
    */
   public static AttributeType getObjectClassAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getObjectClassAttributeType");
 
     if (directoryServer.objectClassAttributeType == null)
     {
@@ -3336,7 +3359,10 @@ public class DirectoryServer
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "getObjectClassAttributeType", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
           }
         }
 
@@ -3358,7 +3384,10 @@ public class DirectoryServer
         catch (Exception e)
         {
           // This should never happen.
-          assert debugException(CLASS_NAME, "getObjectClassAttributeType", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -3380,8 +3409,6 @@ public class DirectoryServer
    */
   public static AttributeType getDefaultAttributeType(String name)
   {
-    assert debugEnter(CLASS_NAME, "getDefaultAttributeType",
-                      String.valueOf(name));
 
 
     return getDefaultAttributeType(name, getDefaultAttributeSyntax());
@@ -3403,8 +3430,6 @@ public class DirectoryServer
   public static AttributeType getDefaultAttributeType(String name,
                                                       AttributeSyntax syntax)
   {
-    assert debugEnter(CLASS_NAME, "getDefaultAttributeType",
-                      String.valueOf(name));
 
 
     String oid        = toLowerCase(name) + "-oid";
@@ -3426,7 +3451,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<String,AttributeSyntax> getAttributeSyntaxes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeSyntaxes");
 
     return directoryServer.schema.getSyntaxes();
   }
@@ -3442,7 +3466,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getAttributeSyntaxSet()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeSyntaxSet");
 
     return directoryServer.schema.getSyntaxSet();
   }
@@ -3463,8 +3486,6 @@ public class DirectoryServer
   public static AttributeSyntax getAttributeSyntax(String oid,
                                                    boolean allowDefault)
   {
-    assert debugEnter(CLASS_NAME, "getAttributeSyntax", String.valueOf(oid),
-                      String.valueOf(allowDefault));
 
     AttributeSyntax syntax = directoryServer.schema.getSyntax(oid);
     if ((syntax == null) && allowDefault)
@@ -3495,9 +3516,6 @@ public class DirectoryServer
                                              boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerAttributeSyntax",
-                      String.valueOf(syntax),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerSyntax(syntax, overwriteExisting);
   }
@@ -3512,8 +3530,6 @@ public class DirectoryServer
    */
   public static void deregisterAttributeSyntax(AttributeSyntax syntax)
   {
-    assert debugEnter(CLASS_NAME, "deregisterAttributeSyntax",
-                      String.valueOf(syntax));
 
     directoryServer.schema.deregisterSyntax(syntax);
   }
@@ -3529,7 +3545,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultAttributeSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultAttributeSyntax");
 
     return directoryServer.defaultSyntax;
   }
@@ -3547,7 +3562,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultBinarySyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultBinarySyntax");
 
     return directoryServer.defaultBinarySyntax;
   }
@@ -3565,7 +3579,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultBooleanSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultBooleanSyntax");
 
     return directoryServer.defaultBooleanSyntax;
   }
@@ -3582,7 +3595,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultDNSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultDNSyntax");
 
     return directoryServer.defaultDNSyntax;
   }
@@ -3600,7 +3612,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultIntegerSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultIntegerSyntax");
 
     return directoryServer.defaultIntegerSyntax;
   }
@@ -3618,7 +3629,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultStringSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultStringSyntax");
 
     return directoryServer.defaultStringSyntax;
   }
@@ -3633,7 +3643,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<MatchingRule,MatchingRuleUse>
                      getMatchingRuleUses()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleUses");
 
     return directoryServer.schema.getMatchingRuleUses();
   }
@@ -3649,7 +3658,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getMatchingRuleUseSet()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleUseSet");
 
     return directoryServer.schema.getMatchingRuleUseSet();
   }
@@ -3667,8 +3675,6 @@ public class DirectoryServer
    */
   public static MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleUse",
-                      String.valueOf(matchingRule));
 
     return directoryServer.schema.getMatchingRuleUse(matchingRule);
   }
@@ -3693,9 +3699,6 @@ public class DirectoryServer
                                              boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerMatchingRuleUse",
-                      String.valueOf(matchingRuleUse),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerMatchingRuleUse(matchingRuleUse,
                                                    overwriteExisting);
@@ -3711,8 +3714,6 @@ public class DirectoryServer
    */
   public static void deregisterMatchingRuleUse(MatchingRuleUse matchingRuleUse)
   {
-    assert debugEnter(CLASS_NAME, "deregisterMatchingRuleUse",
-                      String.valueOf(matchingRuleUse));
 
     directoryServer.schema.deregisterMatchingRuleUse(matchingRuleUse);
   }
@@ -3727,7 +3728,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<ObjectClass,DITContentRule>
                      getDITContentRules()
   {
-    assert debugEnter(CLASS_NAME, "getDITContentRules");
 
     return directoryServer.schema.getDITContentRules();
   }
@@ -3743,7 +3743,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getDITContentRuleSet()
   {
-    assert debugEnter(CLASS_NAME, "getDITContentRuleSet");
 
     return directoryServer.schema.getDITContentRuleSet();
   }
@@ -3761,8 +3760,6 @@ public class DirectoryServer
    */
   public static DITContentRule getDITContentRule(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "getDITContentRule",
-                      String.valueOf(objectClass));
 
     return directoryServer.schema.getDITContentRule(objectClass);
   }
@@ -3787,9 +3784,6 @@ public class DirectoryServer
                                             boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerDITContentRule",
-                      String.valueOf(ditContentRule),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerDITContentRule(ditContentRule,
                                                   overwriteExisting);
@@ -3804,8 +3798,6 @@ public class DirectoryServer
    */
   public static void deregisterDITContentRule(DITContentRule ditContentRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterDITContentRule",
-                      String.valueOf(ditContentRule));
 
     directoryServer.schema.deregisterDITContentRule(ditContentRule);
   }
@@ -3820,7 +3812,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<NameForm,DITStructureRule>
                      getDITStructureRules()
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRules");
 
     return directoryServer.schema.getDITStructureRulesByNameForm();
   }
@@ -3836,7 +3827,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getDITStructureRuleSet()
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRuleSet");
 
     return directoryServer.schema.getDITStructureRuleSet();
   }
@@ -3854,8 +3844,6 @@ public class DirectoryServer
    */
   public static DITStructureRule getDITStructureRule(int ruleID)
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRule",
-                      String.valueOf(ruleID));
 
     return directoryServer.schema.getDITStructureRule(ruleID);
   }
@@ -3873,8 +3861,6 @@ public class DirectoryServer
    */
   public static DITStructureRule getDITStructureRule(NameForm nameForm)
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRule",
-                      String.valueOf(nameForm));
 
     return directoryServer.schema.getDITStructureRule(nameForm);
   }
@@ -3899,9 +3885,6 @@ public class DirectoryServer
                                               boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerDITStructureRule",
-                      String.valueOf(ditStructureRule),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerDITStructureRule(ditStructureRule,
                                                     overwriteExisting);
@@ -3918,8 +3901,6 @@ public class DirectoryServer
   public static void deregisterDITStructureRule(DITStructureRule
                                                      ditStructureRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterDITStructureRule",
-                      String.valueOf(ditStructureRule));
 
     directoryServer.schema.deregisterDITStructureRule(ditStructureRule);
   }
@@ -3933,7 +3914,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<ObjectClass,NameForm> getNameForms()
   {
-    assert debugEnter(CLASS_NAME, "getNameForms");
 
     return directoryServer.schema.getNameFormsByObjectClass();
   }
@@ -3949,7 +3929,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getNameFormSet()
   {
-    assert debugEnter(CLASS_NAME, "getNameFormSet");
 
     return directoryServer.schema.getNameFormSet();
   }
@@ -3967,7 +3946,6 @@ public class DirectoryServer
    */
   public static NameForm getNameForm(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "getNameForm", String.valueOf(objectClass));
 
     return directoryServer.schema.getNameForm(objectClass);
   }
@@ -3985,7 +3963,6 @@ public class DirectoryServer
    */
   public static NameForm getNameForm(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getNameForm", String.valueOf(lowerName));
 
     return directoryServer.schema.getNameForm(lowerName);
   }
@@ -4009,8 +3986,6 @@ public class DirectoryServer
                                       boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerNameForm", String.valueOf(nameForm),
-                      String.valueOf(overwriteExisting));
 
     directoryServer.schema.registerNameForm(nameForm, overwriteExisting);
   }
@@ -4024,8 +3999,6 @@ public class DirectoryServer
    */
   public static void deregisterNameForm(NameForm nameForm)
   {
-    assert debugEnter(CLASS_NAME, "deregisterNameForm",
-                      String.valueOf(nameForm));
 
     directoryServer.schema.deregisterNameForm(nameForm);
   }
@@ -4040,7 +4013,6 @@ public class DirectoryServer
    */
   public static MBeanServer getJMXMBeanServer()
   {
-    assert debugEnter(CLASS_NAME, "getJMXMBeanServer");
 
     return directoryServer.mBeanServer;
   }
@@ -4054,7 +4026,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<DN,JMXMBean> getJMXMBeans()
   {
-    assert debugEnter(CLASS_NAME, "getJMXMBeans");
 
     return directoryServer.mBeans;
   }
@@ -4074,7 +4045,6 @@ public class DirectoryServer
    */
   public static JMXMBean getJMXMBean(DN configEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getJMXMBean", String.valueOf(configEntryDN));
 
     return directoryServer.mBeans.get(configEntryDN);
   }
@@ -4089,8 +4059,6 @@ public class DirectoryServer
   public static void registerConfigurableComponent(ConfigurableComponent
                                                         component)
   {
-    assert debugEnter(CLASS_NAME, "registerConfigurableComponent",
-                      String.valueOf(component));
 
     DN componentDN = component.getConfigurableComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
@@ -4116,8 +4084,6 @@ public class DirectoryServer
   public static void deregisterConfigurableComponent(ConfigurableComponent
                                                           component)
   {
-    assert debugEnter(CLASS_NAME, "deregisterConfigurableComponent",
-                      String.valueOf(component));
 
     DN componentDN = component.getConfigurableComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
@@ -4136,8 +4102,6 @@ public class DirectoryServer
    */
   public static void registerInvokableComponent(InvokableComponent component)
   {
-    assert debugEnter(CLASS_NAME, "registerInvokableComponent",
-                      String.valueOf(component));
 
     DN componentDN = component.getInvokableComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
@@ -4162,8 +4126,6 @@ public class DirectoryServer
    */
   public static void deregisterInvokableComponent(InvokableComponent component)
   {
-    assert debugEnter(CLASS_NAME, "deregisterInvokableComponent",
-                      String.valueOf(component));
 
     DN componentDN = component.getInvokableComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
@@ -4182,7 +4144,6 @@ public class DirectoryServer
    */
   public static void registerAlertGenerator(AlertGenerator alertGenerator)
   {
-    assert debugEnter(CLASS_NAME, "registerAlertGenerator");
 
     DN componentDN = alertGenerator.getComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
@@ -4207,7 +4168,6 @@ public class DirectoryServer
    */
   public static void deregisterAlertGenerator(AlertGenerator alertGenerator)
   {
-    assert debugEnter(CLASS_NAME, "deregisterAlertGenerator");
 
     DN componentDN = alertGenerator.getComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
@@ -4228,7 +4188,6 @@ public class DirectoryServer
    */
   public static CopyOnWriteArrayList<AlertHandler> getAlertHandlers()
   {
-    assert debugEnter(CLASS_NAME, "getAlertHandlers");
 
     return directoryServer.alertHandlers;
   }
@@ -4242,8 +4201,6 @@ public class DirectoryServer
    */
   public static void registerAlertHandler(AlertHandler alertHandler)
   {
-    assert debugEnter(CLASS_NAME, "registerAlertHandler",
-                      String.valueOf(alertHandler));
 
     directoryServer.alertHandlers.add(alertHandler);
   }
@@ -4257,8 +4214,6 @@ public class DirectoryServer
    */
   public static void deregisterAlertHandler(AlertHandler alertHandler)
   {
-    assert debugEnter(CLASS_NAME, "deregisterAlertHandler",
-                      String.valueOf(alertHandler));
 
     directoryServer.alertHandlers.remove(alertHandler);
   }
@@ -4279,9 +4234,6 @@ public class DirectoryServer
                                            String alertType, int alertID,
                                            String alertMessage)
   {
-    assert debugEnter(CLASS_NAME, "sendAlertNotification",
-                      String.valueOf(generator), String.valueOf(alertType),
-                      String.valueOf(alertID), String.valueOf(alertMessage));
 
 
     if ((directoryServer.alertHandlers == null) ||
@@ -4300,7 +4252,10 @@ public class DirectoryServer
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "sendAlertNotification", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -4334,7 +4289,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,PasswordStorageScheme>
                      getPasswordStorageSchemes()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordStorageSchemes");
 
     return directoryServer.passwordStorageSchemes;
   }
@@ -4352,8 +4306,6 @@ public class DirectoryServer
    */
   public static PasswordStorageScheme getPasswordStorageScheme(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getPasswordStorageScheme",
-                      String.valueOf(lowerName));
 
     return directoryServer.passwordStorageSchemes.get(lowerName);
   }
@@ -4371,7 +4323,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,PasswordStorageScheme>
                      getAuthPasswordStorageSchemes()
   {
-    assert debugEnter(CLASS_NAME, "getAuthPasswordStorageSchemes");
 
     return directoryServer.authPasswordStorageSchemes;
   }
@@ -4389,8 +4340,6 @@ public class DirectoryServer
    */
   public static PasswordStorageScheme getAuthPasswordStorageScheme(String name)
   {
-    assert debugEnter(CLASS_NAME, "getAuthPasswordStorageScheme",
-                      String.valueOf(name));
 
     return directoryServer.authPasswordStorageSchemes.get(name);
   }
@@ -4407,8 +4356,6 @@ public class DirectoryServer
    */
   public static void registerPasswordStorageScheme(PasswordStorageScheme scheme)
   {
-    assert debugEnter(CLASS_NAME, "registerPasswordStorageScheme",
-                      String.valueOf(scheme));
 
     String name = toLowerCase(scheme.getStorageSchemeName());
     directoryServer.passwordStorageSchemes.put(name, scheme);
@@ -4432,8 +4379,6 @@ public class DirectoryServer
    */
   public static void deregisterPasswordStorageScheme(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "deregisterPasswordStorageScheme",
-                      String.valueOf(lowerName));
 
     PasswordStorageScheme scheme =
          directoryServer.passwordStorageSchemes.remove(lowerName);
@@ -4457,7 +4402,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<DN,PasswordValidator> getPasswordValidators()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordValidators");
 
     return directoryServer.passwordValidators;
   }
@@ -4476,8 +4420,6 @@ public class DirectoryServer
    */
   public static PasswordValidator getPasswordValidator(DN configEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getPasswordValidator",
-                      String.valueOf(configEntryDN));
 
     return directoryServer.passwordValidators.get(configEntryDN);
   }
@@ -4496,8 +4438,6 @@ public class DirectoryServer
   public static void registerPasswordValidator(DN configEntryDN,
                                                PasswordValidator validator)
   {
-    assert debugEnter(CLASS_NAME, "registerPasswordValidator",
-                      String.valueOf(configEntryDN), String.valueOf(validator));
 
     directoryServer.passwordValidators.put(configEntryDN, validator);
   }
@@ -4513,8 +4453,6 @@ public class DirectoryServer
    */
   public static void deregisterPasswordValidator(DN configEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterPasswordValidator",
-                      String.valueOf(configEntryDN));
 
     directoryServer.passwordValidators.remove(configEntryDN);
   }
@@ -4532,7 +4470,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<DN,AccountStatusNotificationHandler>
                      getAccountStatusNotificationHandlers()
   {
-    assert debugEnter(CLASS_NAME, "getAccountStatusNotificationHandlers");
 
     return directoryServer.accountStatusNotificationHandlers;
   }
@@ -4552,8 +4489,6 @@ public class DirectoryServer
   public static AccountStatusNotificationHandler
                      getAccountStatusNotificationHandler(DN handlerDN)
   {
-    assert debugEnter(CLASS_NAME, "getAccountStatusNotificationHandler",
-                      String.valueOf(handlerDN));
 
     return directoryServer.accountStatusNotificationHandlers.get(handlerDN);
   }
@@ -4572,8 +4507,6 @@ public class DirectoryServer
   public static void registerAccountStatusNotificationHandler(DN handlerDN,
                           AccountStatusNotificationHandler handler)
   {
-    assert debugEnter(CLASS_NAME, "registerAccountStatusNotificationHandler",
-                      String.valueOf(handlerDN), String.valueOf(handler));
 
     directoryServer.accountStatusNotificationHandlers.put(handlerDN, handler);
   }
@@ -4589,8 +4522,6 @@ public class DirectoryServer
    */
   public static void deregisterAccountStatusNotificationHandler(DN handlerDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterAccountStatusNotificationHandler",
-                      String.valueOf(handlerDN));
 
     directoryServer.accountStatusNotificationHandlers.remove(handlerDN);
   }
@@ -4608,7 +4539,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<DN,PasswordGenerator> getPasswordGenerators()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordGenerators");
 
     return directoryServer.passwordGenerators;
   }
@@ -4627,8 +4557,6 @@ public class DirectoryServer
    */
   public static PasswordGenerator getPasswordGenerator(DN configEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getPasswordGenerator",
-                      String.valueOf(configEntryDN));
 
     return directoryServer.passwordGenerators.get(configEntryDN);
   }
@@ -4647,8 +4575,6 @@ public class DirectoryServer
   public static void registerPasswordGenerator(DN configEntryDN,
                                                PasswordGenerator generator)
   {
-    assert debugEnter(CLASS_NAME, "registerPasswordGenerator",
-                      String.valueOf(configEntryDN), String.valueOf(generator));
 
     directoryServer.passwordGenerators.put(configEntryDN, generator);
   }
@@ -4664,8 +4590,6 @@ public class DirectoryServer
    */
   public static void deregisterPasswordGenerator(DN configEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterPasswordGenerator",
-                      String.valueOf(configEntryDN));
 
     directoryServer.passwordGenerators.remove(configEntryDN);
   }
@@ -4682,7 +4606,6 @@ public class DirectoryServer
    */
   public static PasswordPolicy[] getPasswordPolicies()
   {
-    assert debugEnter(CLASS_NAME, "getPasswordPolicies");
 
     // The password policy objects are returned in an array to prevent the
     // caller from modifying the map structure.
@@ -4711,8 +4634,6 @@ public class DirectoryServer
    */
   public static PasswordPolicy getPasswordPolicy(DN configEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getPasswordPolicy",
-                      String.valueOf(configEntryDN));
     Validator.ensureNotNull(configEntryDN);
 
     PasswordPolicyConfig config
@@ -4734,8 +4655,6 @@ public class DirectoryServer
   public static void registerPasswordPolicy(DN configEntryDN,
                                             PasswordPolicy policy)
   {
-    assert debugEnter(CLASS_NAME, "registerPasswordPolicy",
-                      String.valueOf(configEntryDN), String.valueOf(policy));
     Validator.ensureNotNull(configEntryDN, policy);
 
     PasswordPolicyConfig config = new PasswordPolicyConfig(policy);
@@ -4754,8 +4673,6 @@ public class DirectoryServer
    */
   public static void deregisterPasswordPolicy(DN configEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterPasswordPolicy",
-                      String.valueOf(configEntryDN));
     Validator.ensureNotNull(configEntryDN);
 
     if (directoryServer.defaultPasswordPolicyDN.equals(configEntryDN))
@@ -4779,7 +4696,6 @@ public class DirectoryServer
    */
   public static DN getDefaultPasswordPolicyDN()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultPasswordPolicyDN");
 
     return directoryServer.defaultPasswordPolicyDN;
   }
@@ -4799,8 +4715,6 @@ public class DirectoryServer
    */
   public static void setDefaultPasswordPolicyDN(DN defaultPasswordPolicyDN)
   {
-    assert debugEnter(CLASS_NAME, "setDefaultPasswordPolicyDN",
-                      String.valueOf(defaultPasswordPolicyDN));
 
     directoryServer.defaultPasswordPolicyDN = defaultPasswordPolicyDN;
     directoryServer.defaultPasswordPolicyConfig = null;
@@ -4817,7 +4731,6 @@ public class DirectoryServer
    */
   public static PasswordPolicy getDefaultPasswordPolicy()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultPasswordPolicy");
     assert null != directoryServer.passwordPolicies.get(
                                        directoryServer.defaultPasswordPolicyDN)
             : "Internal Error: no default password policy defined." ;
@@ -4849,7 +4762,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<String,MonitorProvider> getMonitorProviders()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorProviders");
 
     return directoryServer.monitorProviders;
   }
@@ -4867,8 +4779,6 @@ public class DirectoryServer
    */
   public static MonitorProvider getMonitorProvider(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getMonitorProvider",
-                      String.valueOf(lowerName));
 
     return directoryServer.monitorProviders.get(lowerName);
   }
@@ -4885,8 +4795,6 @@ public class DirectoryServer
    */
   public static void registerMonitorProvider(MonitorProvider monitorProvider)
   {
-    assert debugEnter(CLASS_NAME, "registerMonitorProvider",
-                      String.valueOf(monitorProvider));
 
     String lowerName = toLowerCase(monitorProvider.getMonitorInstanceName());
     directoryServer.monitorProviders.put(lowerName, monitorProvider);
@@ -4910,7 +4818,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "registerMonitorProvider", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -4925,8 +4836,6 @@ public class DirectoryServer
    */
   public static void deregisterMonitorProvider(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "deregisterMonitorProvider",
-                      String.valueOf(lowerName));
 
     MonitorProvider provider =
          directoryServer.monitorProviders.remove(toLowerCase(lowerName));
@@ -4946,7 +4855,10 @@ public class DirectoryServer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "deregisterMonitorProvider", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -4960,7 +4872,6 @@ public class DirectoryServer
    */
   public static EntryCache getEntryCache()
   {
-    assert debugEnter(CLASS_NAME, "getEntryCache");
 
     return directoryServer.entryCache;
   }
@@ -4975,7 +4886,6 @@ public class DirectoryServer
    */
   public static void setEntryCache(EntryCache entryCache)
   {
-    assert debugEnter(CLASS_NAME, "setEntryCache");
 
     synchronized (directoryServer)
     {
@@ -4994,7 +4904,6 @@ public class DirectoryServer
    */
   public static Map<DN,KeyManagerProvider> getKeyManagerProviders()
   {
-    assert debugEnter(CLASS_NAME, "getKeyManagerProviders");
 
     return directoryServer.keyManagerProviders;
   }
@@ -5013,8 +4922,6 @@ public class DirectoryServer
    */
   public static KeyManagerProvider getKeyManagerProvider(DN providerDN)
   {
-    assert debugEnter(CLASS_NAME, "getKeyManagerProvider",
-                      String.valueOf(providerDN));
 
     return directoryServer.keyManagerProviders.get(providerDN);
   }
@@ -5030,8 +4937,6 @@ public class DirectoryServer
   public static void registerKeyManagerProvider(DN providerDN,
                                                 KeyManagerProvider provider)
   {
-    assert debugEnter(CLASS_NAME, "registerKeyManagerProvider",
-                      String.valueOf(providerDN), String.valueOf(provider));
 
     directoryServer.keyManagerProviders.put(providerDN, provider);
   }
@@ -5046,8 +4951,6 @@ public class DirectoryServer
    */
   public static void deregisterKeyManagerProvider(DN providerDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterKeyManagerProvider",
-                      String.valueOf(providerDN));
 
     directoryServer.keyManagerProviders.remove(providerDN);
   }
@@ -5063,7 +4966,6 @@ public class DirectoryServer
    */
   public static Map<DN,TrustManagerProvider> getTrustManagerProviders()
   {
-    assert debugEnter(CLASS_NAME, "getTrustManagerProviders");
 
     return directoryServer.trustManagerProviders;
   }
@@ -5082,8 +4984,6 @@ public class DirectoryServer
    */
   public static TrustManagerProvider getTrustManagerProvider(DN providerDN)
   {
-    assert debugEnter(CLASS_NAME, "getTrustManagerProvider",
-                      String.valueOf(providerDN));
 
     return directoryServer.trustManagerProviders.get(providerDN);
   }
@@ -5100,8 +5000,6 @@ public class DirectoryServer
   public static void registerTrustManagerProvider(DN providerDN,
                                                   TrustManagerProvider provider)
   {
-    assert debugEnter(CLASS_NAME, "registerTrustManagerProvider",
-                      String.valueOf(providerDN), String.valueOf(provider));
 
     directoryServer.trustManagerProviders.put(providerDN, provider);
   }
@@ -5116,8 +5014,6 @@ public class DirectoryServer
    */
   public static void deregisterTrustManagerProvider(DN providerDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterTrustManagerProvider",
-                      String.valueOf(providerDN));
 
     directoryServer.trustManagerProviders.remove(providerDN);
   }
@@ -5133,7 +5029,6 @@ public class DirectoryServer
    */
   public static Map<DN,CertificateMapper> getCertificateMappers()
   {
-    assert debugEnter(CLASS_NAME, "getCertificateMappers");
 
     return directoryServer.certificateMappers;
   }
@@ -5151,8 +5046,6 @@ public class DirectoryServer
    */
   public static CertificateMapper getCertificateMapper(DN mapperDN)
   {
-    assert debugEnter(CLASS_NAME, "getCertificateMapper",
-                      String.valueOf(mapperDN));
 
     return directoryServer.certificateMappers.get(mapperDN);
   }
@@ -5168,8 +5061,6 @@ public class DirectoryServer
   public static void registerCertificateMapper(DN mapperDN,
                                                CertificateMapper mapper)
   {
-    assert debugEnter(CLASS_NAME, "registerCertificateMapper",
-                      String.valueOf(mapperDN), String.valueOf(mapper));
 
     directoryServer.certificateMappers.put(mapperDN, mapper);
   }
@@ -5183,8 +5074,6 @@ public class DirectoryServer
    */
   public static void deregisterCertificateMapper(DN mapperDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterCertificateMapper",
-                      String.valueOf(mapperDN));
 
     directoryServer.certificateMappers.remove(mapperDN);
   }
@@ -5201,7 +5090,6 @@ public class DirectoryServer
    */
   public static Set<Privilege> getRootPrivileges()
   {
-    assert debugEnter(CLASS_NAME, "getRootPrivileges");
 
     return directoryServer.rootDNConfigManager.getRootPrivileges();
   }
@@ -5218,7 +5106,6 @@ public class DirectoryServer
    */
   public static CopyOnWriteArraySet<DN> getRootDNs()
   {
-    assert debugEnter(CLASS_NAME, "getRootDNs");
 
     return directoryServer.rootDNs;
   }
@@ -5236,7 +5123,6 @@ public class DirectoryServer
    */
   public static boolean isRootDN(DN userDN)
   {
-    assert debugEnter(CLASS_NAME, "isRootDN", String.valueOf(userDN));
 
     return directoryServer.rootDNs.contains(userDN);
   }
@@ -5250,7 +5136,6 @@ public class DirectoryServer
    */
   public static void registerRootDN(DN rootDN)
   {
-    assert debugEnter(CLASS_NAME, "registerRootDN", String.valueOf(rootDN));
 
     directoryServer.rootDNs.add(rootDN);
   }
@@ -5265,7 +5150,6 @@ public class DirectoryServer
    */
   public static void deregisterRootDN(DN rootDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterRootDN", String.valueOf(rootDN));
 
     directoryServer.rootDNs.remove(rootDN);
   }
@@ -5282,7 +5166,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<DN,DN> getAlternateRootBindDNs()
   {
-    assert debugEnter(CLASS_NAME, "getAlternateRootBindDNs");
 
     return directoryServer.alternateRootBindDNs;
   }
@@ -5301,8 +5184,6 @@ public class DirectoryServer
    */
   public static DN getActualRootBindDN(DN alternateRootBindDN)
   {
-    assert debugEnter(CLASS_NAME, "getActualRootBindDN",
-                      String.valueOf(alternateRootBindDN));
 
     return directoryServer.alternateRootBindDNs.get(alternateRootBindDN);
   }
@@ -5323,9 +5204,6 @@ public class DirectoryServer
                                              DN alternateRootBindDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerAlternateRootDN",
-                      String.valueOf(actualRootEntryDN),
-                      String.valueOf(alternateRootBindDN));
 
     DN existingRootEntryDN =
          directoryServer.alternateRootBindDNs.putIfAbsent(alternateRootBindDN,
@@ -5356,8 +5234,6 @@ public class DirectoryServer
    */
   public static DN deregisterAlternateRootBindDN(DN alternateRootBindDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterAlternateRootBindDN",
-                      String.valueOf(alternateRootBindDN));
 
     return directoryServer.alternateRootBindDNs.remove(alternateRootBindDN);
   }
@@ -5373,7 +5249,6 @@ public class DirectoryServer
    */
   public static ResultCode getServerErrorResultCode()
   {
-    assert debugEnter(CLASS_NAME, "getServerErrorResultCode");
 
     return directoryServer.serverErrorResultCode;
   }
@@ -5390,8 +5265,6 @@ public class DirectoryServer
    */
   public static void setServerErrorResultCode(ResultCode serverErrorResultCode)
   {
-    assert debugEnter(CLASS_NAME, "setServerErrorResultCode",
-                      String.valueOf(serverErrorResultCode));
 
     directoryServer.serverErrorResultCode = serverErrorResultCode;
   }
@@ -5408,7 +5281,6 @@ public class DirectoryServer
    */
   public static boolean addMissingRDNAttributes()
   {
-    assert debugEnter(CLASS_NAME, "addMissingRDNAttributes");
 
     return directoryServer.addMissingRDNAttributes;
   }
@@ -5426,8 +5298,6 @@ public class DirectoryServer
    */
   public static void setAddMissingRDNAttributes(boolean addMissingRDNAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setAddMissingRDNAttributes",
-                      String.valueOf(addMissingRDNAttributes));
 
     directoryServer.addMissingRDNAttributes = addMissingRDNAttributes;
   }
@@ -5446,7 +5316,6 @@ public class DirectoryServer
    */
   public static boolean allowAttributeNameExceptions()
   {
-    assert debugEnter(CLASS_NAME, "allowAttributeNameExceptions");
 
     return directoryServer.allowAttributeNameExceptions;
   }
@@ -5464,8 +5333,6 @@ public class DirectoryServer
   public static void setAllowAttributeNameExceptions(
                           boolean allowAttributeNameExceptions)
   {
-    assert debugEnter(CLASS_NAME, "setAllowAttributeNameExceptions",
-                      String.valueOf(allowAttributeNameExceptions));
 
     directoryServer.allowAttributeNameExceptions = allowAttributeNameExceptions;
   }
@@ -5480,7 +5347,6 @@ public class DirectoryServer
    */
   public static boolean checkSchema()
   {
-    assert debugEnter(CLASS_NAME, "checkSchema");
 
     return directoryServer.checkSchema;
   }
@@ -5495,8 +5361,6 @@ public class DirectoryServer
    */
   public static void setCheckSchema(boolean checkSchema)
   {
-    assert debugEnter(CLASS_NAME, "setCheckSchema",
-                      String.valueOf(checkSchema));
 
     directoryServer.checkSchema = checkSchema;
   }
@@ -5512,7 +5376,6 @@ public class DirectoryServer
    */
   public static AcceptRejectWarn getSingleStructuralObjectClassPolicy()
   {
-    assert debugEnter(CLASS_NAME, "getSingleStructuralObjectClassPolicy");
 
     return directoryServer.singleStructuralClassPolicy;
   }
@@ -5530,7 +5393,6 @@ public class DirectoryServer
   public static void setSingleStructuralObjectClassPolicy(
                           AcceptRejectWarn singleStructuralClassPolicy)
   {
-    assert debugEnter(CLASS_NAME, "getSingleStructuralObjectClassPolicy");
 
     directoryServer.singleStructuralClassPolicy = singleStructuralClassPolicy;
   }
@@ -5546,7 +5408,6 @@ public class DirectoryServer
    */
   public static AcceptRejectWarn getSyntaxEnforcementPolicy()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxEnforcementPolicy");
 
     return directoryServer.syntaxEnforcementPolicy;
   }
@@ -5565,7 +5426,6 @@ public class DirectoryServer
   public static void setSyntaxEnforcementPolicy(
                           AcceptRejectWarn syntaxEnforcementPolicy)
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxEnforcementPolicy");
 
     directoryServer.syntaxEnforcementPolicy = syntaxEnforcementPolicy;
   }
@@ -5585,7 +5445,6 @@ public class DirectoryServer
    */
   public static boolean notifyAbandonedOperations()
   {
-    assert debugEnter(CLASS_NAME, "notifyAbandonedOperations");
 
     return directoryServer.notifyAbandonedOperations;
   }
@@ -5606,8 +5465,6 @@ public class DirectoryServer
   public static void setNotifyAbandonedOperations(
                           boolean notifyAbandonedOperations)
   {
-    assert debugEnter(CLASS_NAME, "setNotifyAbandonedOperations",
-                      String.valueOf(notifyAbandonedOperations));
 
     directoryServer.notifyAbandonedOperations = notifyAbandonedOperations;
   }
@@ -5623,7 +5480,6 @@ public class DirectoryServer
    */
   public static Map<String,Backend> getBackends()
   {
-    assert debugEnter(CLASS_NAME, "getBackends");
 
     return directoryServer.backends;
   }
@@ -5640,7 +5496,6 @@ public class DirectoryServer
    */
   public static Backend getBackend(String backendID)
   {
-    assert debugEnter(CLASS_NAME, "getBackend", String.valueOf(backendID));
 
     return directoryServer.backends.get(backendID);
   }
@@ -5658,7 +5513,6 @@ public class DirectoryServer
    */
   public static boolean hasBackend(String backendID)
   {
-    assert debugEnter(CLASS_NAME, "hasBackend", String.valueOf(backendID));
 
     return directoryServer.backends.containsKey(backendID);
   }
@@ -5680,7 +5534,6 @@ public class DirectoryServer
   public static void registerBackend(Backend backend)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerBackend", String.valueOf(backend));
 
     ensureNotNull(backend);
 
@@ -5689,11 +5542,11 @@ public class DirectoryServer
 
     synchronized (directoryServer)
     {
-      TreeMap<String,Backend> newBackends =
-           new TreeMap<String,Backend>(directoryServer.backends);
+      TreeMap<String, Backend> newBackends =
+          new TreeMap<String, Backend>(directoryServer.backends);
       if (newBackends.containsKey(backendID))
       {
-        int    msgID   = MSGID_REGISTER_BACKEND_ALREADY_EXISTS;
+        int msgID = MSGID_REGISTER_BACKEND_ALREADY_EXISTS;
         String message = getMessage(msgID, backendID);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
                                      msgID);
@@ -5723,7 +5576,6 @@ public class DirectoryServer
    */
   public static void deregisterBackend(Backend backend)
   {
-    assert debugEnter(CLASS_NAME, "deregisterBackend", String.valueOf(backend));
 
     ensureNotNull(backend);
 
@@ -5757,7 +5609,6 @@ public class DirectoryServer
    */
   public static Map<DN,Backend> getBaseDNs()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDNs");
 
     return directoryServer.baseDNs;
   }
@@ -5775,8 +5626,6 @@ public class DirectoryServer
    */
   public static Backend getBackendWithBaseDN(DN baseDN)
   {
-    assert debugEnter(CLASS_NAME, "getBackendWithBaseDN",
-                      String.valueOf(baseDN));
 
     return directoryServer.baseDNs.get(baseDN);
   }
@@ -5796,8 +5645,6 @@ public class DirectoryServer
    */
   public static Backend getBackend(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getBackendForEntry",
-                      String.valueOf(entryDN));
 
     if (entryDN.isNullDN())
     {
@@ -5844,9 +5691,6 @@ public class DirectoryServer
                                     boolean isPrivate, boolean testOnly)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerBaseDN", String.valueOf(baseDN),
-                      String.valueOf(backend), String.valueOf(isPrivate),
-                      String.valueOf(testOnly));
 
     ensureNotNull(baseDN, backend);
 
@@ -6059,7 +5903,6 @@ public class DirectoryServer
   public static void deregisterBaseDN(DN baseDN, boolean testOnly)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "deregisterBaseDN", String.valueOf(baseDN));
 
     ensureNotNull(baseDN);
 
@@ -6203,7 +6046,6 @@ public class DirectoryServer
    */
   public static Map<DN,Backend> getPublicNamingContexts()
   {
-    assert debugEnter(CLASS_NAME, "getPublicNamingContexts");
 
     return directoryServer.publicNamingContexts;
   }
@@ -6219,7 +6061,6 @@ public class DirectoryServer
    */
   public static Map<DN,Backend> getPrivateNamingContexts()
   {
-    assert debugEnter(CLASS_NAME, "getPrivateNamingContexts");
 
     return directoryServer.privateNamingContexts;
   }
@@ -6237,7 +6078,6 @@ public class DirectoryServer
    */
   public static boolean isNamingContext(DN dn)
   {
-    assert debugEnter(CLASS_NAME, "isNamingContext");
 
     return (directoryServer.publicNamingContexts.containsKey(dn) ||
             directoryServer.privateNamingContexts.containsKey(dn));
@@ -6252,7 +6092,6 @@ public class DirectoryServer
    */
   public static Entry getRootDSE()
   {
-    assert debugEnter(CLASS_NAME, "getRootDSE");
 
     return directoryServer.rootDSEBackend.getRootDSE();
   }
@@ -6266,7 +6105,6 @@ public class DirectoryServer
    */
   public static RootDSEBackend getRootDSEBackend()
   {
-    assert debugEnter(CLASS_NAME, "getRootDSEBackend");
 
     return directoryServer.rootDSEBackend;
   }
@@ -6282,7 +6120,6 @@ public class DirectoryServer
    */
   public static DN getSchemaDN()
   {
-    assert debugEnter(CLASS_NAME, "getSchemaDN");
 
     return directoryServer.schemaDN;
   }
@@ -6297,7 +6134,6 @@ public class DirectoryServer
    */
   public static void setSchemaDN(DN schemaDN)
   {
-    assert debugEnter(CLASS_NAME, "setSchemaDN", String.valueOf(schemaDN));
 
     directoryServer.schemaDN = schemaDN;
   }
@@ -6320,7 +6156,6 @@ public class DirectoryServer
   public static Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
 
     // If the entry is the root DSE, then get and return that.
@@ -6329,7 +6164,6 @@ public class DirectoryServer
       return directoryServer.rootDSEBackend.getRootDSE();
     }
 
-
     // Figure out which backend should be used for the entry.  If it isn't
     // appropriate for any backend, then return null.
     Backend backend = getBackend(entryDN);
@@ -6337,7 +6171,6 @@ public class DirectoryServer
     {
       return null;
     }
-
 
     // Retrieve the requested entry from the backend.
     return backend.getEntry(entryDN);
@@ -6360,7 +6193,6 @@ public class DirectoryServer
   public static boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "entryExists", String.valueOf(entryDN));
 
 
     // If the entry is the root DSE, then it will always exist.
@@ -6369,7 +6201,6 @@ public class DirectoryServer
       return true;
     }
 
-
     // Figure out which backend should be used for the entry.  If it isn't
     // appropriate for any backend, then return false.
     Backend backend = getBackend(entryDN);
@@ -6377,7 +6208,6 @@ public class DirectoryServer
     {
       return false;
     }
-
 
     // Ask the appropriate backend if the entry exists.
     return backend.entryExists(entryDN);
@@ -6394,7 +6224,6 @@ public class DirectoryServer
    */
   public static TreeSet<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return directoryServer.supportedControls;
   }
@@ -6413,8 +6242,6 @@ public class DirectoryServer
    */
   public static boolean isSupportedControl(String controlOID)
   {
-    assert debugEnter(CLASS_NAME, "isSupportedControl",
-                      String.valueOf(controlOID));
 
     return directoryServer.supportedControls.contains(controlOID);
   }
@@ -6431,8 +6258,6 @@ public class DirectoryServer
    */
   public static void registerSupportedControl(String controlOID)
   {
-    assert debugEnter(CLASS_NAME, "registerSupportedControl",
-                      String.valueOf(controlOID));
 
     synchronized (directoryServer.supportedControls)
     {
@@ -6452,8 +6277,6 @@ public class DirectoryServer
    */
   public static void deregisterSupportedControl(String controlOID)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSupportedControl",
-                      String.valueOf(controlOID));
 
     synchronized (directoryServer.supportedControls)
     {
@@ -6472,7 +6295,6 @@ public class DirectoryServer
    */
   public static TreeSet<String> getSupportedFeatures()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return directoryServer.supportedFeatures;
   }
@@ -6491,8 +6313,6 @@ public class DirectoryServer
    */
   public static boolean isSupportedFeature(String featureOID)
   {
-    assert debugEnter(CLASS_NAME, "isSupportedFeature",
-                      String.valueOf(featureOID));
 
     return directoryServer.supportedFeatures.contains(featureOID);
   }
@@ -6509,8 +6329,6 @@ public class DirectoryServer
    */
   public static void registerSupportedFeature(String featureOID)
   {
-    assert debugEnter(CLASS_NAME, "registerSupportedFeature",
-                      String.valueOf(featureOID));
 
     synchronized (directoryServer.supportedFeatures)
     {
@@ -6530,8 +6348,6 @@ public class DirectoryServer
    */
   public static void deregisterSupportedFeature(String featureOID)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSupportedFeature",
-                      String.valueOf(featureOID));
 
     synchronized (directoryServer.supportedFeatures)
     {
@@ -6551,7 +6367,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,ExtendedOperationHandler>
                      getSupportedExtensions()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedExtensions");
 
     return directoryServer.extendedOperationHandlers;
   }
@@ -6568,8 +6383,6 @@ public class DirectoryServer
    */
   public static ExtendedOperationHandler getExtendedOperationHandler(String oid)
   {
-    assert debugEnter(CLASS_NAME, "getExtendedOperationHandler",
-                      String.valueOf(oid));
 
     return directoryServer.extendedOperationHandlers.get(oid);
   }
@@ -6587,8 +6400,6 @@ public class DirectoryServer
   public static void registerSupportedExtension(String oid,
                           ExtendedOperationHandler handler)
   {
-    assert debugEnter(CLASS_NAME, "registerSupportedExtension",
-                      String.valueOf(oid), String.valueOf(handler));
 
     directoryServer.extendedOperationHandlers.put(toLowerCase(oid), handler);
   }
@@ -6603,8 +6414,6 @@ public class DirectoryServer
    */
   public static void deregisterSupportedExtension(String oid)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSupportedExtension",
-                      String.valueOf(oid));
 
     directoryServer.extendedOperationHandlers.remove(toLowerCase(oid));
   }
@@ -6621,7 +6430,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,SASLMechanismHandler>
                      getSupportedSASLMechanisms()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedSASLMechanisms");
 
     return directoryServer.saslMechanismHandlers;
   }
@@ -6638,8 +6446,6 @@ public class DirectoryServer
    */
   public static SASLMechanismHandler getSASLMechanismHandler(String name)
   {
-    assert debugEnter(CLASS_NAME, "getSASLMechanismHandler",
-                      String.valueOf(name));
 
     return directoryServer.saslMechanismHandlers.get(name);
   }
@@ -6656,8 +6462,6 @@ public class DirectoryServer
   public static void registerSASLMechanismHandler(String name,
                                                   SASLMechanismHandler handler)
   {
-    assert debugEnter(CLASS_NAME, "registerSASLMechanismHandler",
-                      String.valueOf(name), String.valueOf(handler));
 
     // FIXME -- Should we force this name to be lowercase?  If so, then will
     // that cause the lower name to be used in the root DSE?
@@ -6673,8 +6477,6 @@ public class DirectoryServer
    */
   public static void deregisterSASLMechanismHandler(String name)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSASLMechanismHandler",
-                      String.valueOf(name));
 
     // FIXME -- Should we force this name to be lowercase?
     directoryServer.saslMechanismHandlers.remove(name);
@@ -6692,7 +6494,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<DN,IdentityMapper> getIdentityMappers()
   {
-    assert debugEnter(CLASS_NAME, "getIdentityMappers");
 
     return directoryServer.identityMappers;
   }
@@ -6712,8 +6513,6 @@ public class DirectoryServer
    */
   public static IdentityMapper getIdentityMapper(DN configEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "getIdentityMapper",
-                      String.valueOf(configEntryDN));
 
     return directoryServer.identityMappers.get(configEntryDN);
   }
@@ -6730,9 +6529,6 @@ public class DirectoryServer
   public static void registerIdentityMapper(DN configEntryDN,
                                             IdentityMapper identityMapper)
   {
-    assert debugEnter(CLASS_NAME, "registerIdentityMapper",
-                      String.valueOf(configEntryDN),
-                      String.valueOf(identityMapper));
 
     directoryServer.identityMappers.put(configEntryDN, identityMapper);
   }
@@ -6747,8 +6543,6 @@ public class DirectoryServer
    */
   public static void deregisterIdentityMapper(DN configEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "deregisterIdentityMapper",
-                      String.valueOf(configEntryDN));
 
     directoryServer.identityMappers.remove(configEntryDN);
   }
@@ -6765,7 +6559,6 @@ public class DirectoryServer
    */
   public static DN getProxiedAuthorizationIdentityMapperDN()
   {
-    assert debugEnter(CLASS_NAME, "getProxiedAuthorizationIdentityMapperDN");
 
     return directoryServer.proxiedAuthorizationIdentityMapperDN;
   }
@@ -6785,8 +6578,6 @@ public class DirectoryServer
   public static void setProxiedAuthorizationIdentityMapperDN(
                           DN proxiedAuthorizationIdentityMapperDN)
   {
-    assert debugEnter(CLASS_NAME, "setProxiedAuthorizationIdentityMapperDN",
-                      String.valueOf(proxiedAuthorizationIdentityMapperDN));
 
     directoryServer.proxiedAuthorizationIdentityMapperDN =
          proxiedAuthorizationIdentityMapperDN;
@@ -6804,7 +6595,6 @@ public class DirectoryServer
    */
   public static IdentityMapper getProxiedAuthorizationIdentityMapper()
   {
-    assert debugEnter(CLASS_NAME, "getProxiedAuthorizationIdentityMapper");
 
     if (directoryServer.proxiedAuthorizationIdentityMapperDN == null)
     {
@@ -6825,7 +6615,6 @@ public class DirectoryServer
    */
   public static CopyOnWriteArrayList<ConnectionHandler> getConnectionHandlers()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionHandlers");
 
     return directoryServer.connectionHandlers;
   }
@@ -6840,8 +6629,6 @@ public class DirectoryServer
    */
   public static void registerConnectionHandler(ConnectionHandler handler)
   {
-    assert debugEnter(CLASS_NAME, "registerConnectionHandler",
-                      String.valueOf(handler));
 
     synchronized (directoryServer.connectionHandlers)
     {
@@ -6864,8 +6651,6 @@ public class DirectoryServer
    */
   public static void deregisterConnectionHandler(ConnectionHandler handler)
   {
-    assert debugEnter(CLASS_NAME, "deregisterConnectionHandler",
-                      String.valueOf(handler));
 
     synchronized (directoryServer.connectionHandlers)
     {
@@ -6897,7 +6682,6 @@ public class DirectoryServer
   private void initializeWorkQueue()
           throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeWorkQueue");
 
     DN configEntryDN;
     try
@@ -6906,7 +6690,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeWorkQueue", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_WORKQ_CANNOT_PARSE_DN;
       String message = getMessage(msgID, DN_WORK_QUEUE_CONFIG,
@@ -6947,7 +6734,10 @@ public class DirectoryServer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeWorkQueue", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_WORKQ_CANNOT_LOAD;
         String message = getMessage(msgID, classAttr.activeValue(),
@@ -6961,7 +6751,10 @@ public class DirectoryServer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeWorkQueue", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_WORKQ_CANNOT_INSTANTIATE;
         String message = getMessage(msgID, classAttr.activeValue(),
@@ -6982,7 +6775,6 @@ public class DirectoryServer
    */
   public static WorkQueue getWorkQueue()
   {
-    assert debugEnter(CLASS_NAME, "getWorkQueue");
 
     return directoryServer.workQueue;
   }
@@ -7001,7 +6793,6 @@ public class DirectoryServer
   public static void enqueueRequest(Operation operation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "enqueueRequest", String.valueOf(operation));
 
 
     // See if a bind is already in progress on the associated connection.  If so
@@ -7110,7 +6901,6 @@ public class DirectoryServer
   public static CopyOnWriteArrayList<ChangeNotificationListener>
                      getChangeNotificationListeners()
   {
-    assert debugEnter(CLASS_NAME, "getChangeNotificationListeners");
 
     return directoryServer.changeNotificationListeners;
   }
@@ -7128,8 +6918,6 @@ public class DirectoryServer
   public static void registerChangeNotificationListener(
                           ChangeNotificationListener changeListener)
   {
-    assert debugEnter(CLASS_NAME, "registerChangeNotificationListener",
-                      String.valueOf(changeListener));
 
     directoryServer.changeNotificationListeners.add(changeListener);
   }
@@ -7147,8 +6935,6 @@ public class DirectoryServer
   public static void deregisterChangeNotificationListener(
                           ChangeNotificationListener changeListener)
   {
-    assert debugEnter(CLASS_NAME, "deregisterChangeNotificationListener",
-                      String.valueOf(changeListener));
 
     directoryServer.changeNotificationListeners.remove(changeListener);
   }
@@ -7164,7 +6950,6 @@ public class DirectoryServer
    */
   public static CopyOnWriteArrayList<PersistentSearch> getPersistentSearches()
   {
-    assert debugEnter(CLASS_NAME, "getPersistentSearches");
 
     return directoryServer.persistentSearches;
   }
@@ -7181,8 +6966,6 @@ public class DirectoryServer
    */
   public static void registerPersistentSearch(PersistentSearch persistentSearch)
   {
-    assert debugEnter(CLASS_NAME, "registerPersistentSearch",
-                      String.valueOf(persistentSearch));
 
     directoryServer.persistentSearches.add(persistentSearch);
     persistentSearch.getSearchOperation().getClientConnection().
@@ -7202,8 +6985,6 @@ public class DirectoryServer
   public static void deregisterPersistentSearch(PersistentSearch
                                                      persistentSearch)
   {
-    assert debugEnter(CLASS_NAME, "deregisterPersistentSearch",
-                      String.valueOf(persistentSearch));
 
     directoryServer.persistentSearches.remove(persistentSearch);
     persistentSearch.getSearchOperation().getClientConnection().
@@ -7223,7 +7004,6 @@ public class DirectoryServer
   public static CopyOnWriteArrayList<SynchronizationProvider>
               getSynchronizationProviders()
   {
-    assert debugEnter(CLASS_NAME, "getSynchronizationProviders");
 
     return directoryServer.synchronizationProviders;
   }
@@ -7238,8 +7018,6 @@ public class DirectoryServer
   public static void registerSynchronizationProvider(SynchronizationProvider
                                                           provider)
   {
-    assert debugEnter(CLASS_NAME, "registerSynchronizationProvider",
-                      String.valueOf(provider));
 
     directoryServer.synchronizationProviders.add(provider);
   }
@@ -7255,8 +7033,6 @@ public class DirectoryServer
   public static void deregisterSynchronizationProvider(SynchronizationProvider
                                                             provider)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSynchronizationProvider",
-                      String.valueOf(provider));
 
     directoryServer.synchronizationProviders.remove(provider);
   }
@@ -7272,8 +7048,6 @@ public class DirectoryServer
    */
   public static void registerShutdownListener(ServerShutdownListener listener)
   {
-    assert debugEnter(CLASS_NAME, "registerShutdownListener",
-                      String.valueOf(listener));
 
     directoryServer.shutdownListeners.add(listener);
   }
@@ -7288,8 +7062,6 @@ public class DirectoryServer
    */
   public static void deregisterShutdownListener(ServerShutdownListener listener)
   {
-    assert debugEnter(CLASS_NAME, "deregisterShutdownListener",
-                      String.valueOf(listener));
 
     directoryServer.shutdownListeners.remove(listener);
   }
@@ -7306,8 +7078,6 @@ public class DirectoryServer
    */
   public static void shutDown(String className, String reason)
   {
-    assert debugEnter(CLASS_NAME, "shutDown", String.valueOf(className),
-                      String.valueOf(reason));
 
     synchronized (directoryServer)
     {
@@ -7345,7 +7115,10 @@ public class DirectoryServer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "shutDown", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
     directoryServer.connectionHandlers.clear();
@@ -7393,7 +7166,10 @@ public class DirectoryServer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "shutDown", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -7418,7 +7194,10 @@ public class DirectoryServer
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "shutDown", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -7434,7 +7213,10 @@ public class DirectoryServer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "shutDown", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -7449,7 +7231,10 @@ public class DirectoryServer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "shutDown", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -7478,7 +7263,10 @@ public class DirectoryServer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "shutDown", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -7515,9 +7303,12 @@ public class DirectoryServer
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "applyConfigurationChange", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
 
-          msgID   = MSGID_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK;
+          msgID = MSGID_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK;
           message = getMessage(msgID, backend.getBackendID(),
                                stackTraceToSingleLineString(e2));
           logError(ErrorLogCategory.CONFIGURATION,
@@ -7527,7 +7318,10 @@ public class DirectoryServer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "shutDown", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -7539,7 +7333,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "shutDown", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
 
@@ -7558,7 +7355,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "startServer", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID   = MSGID_CANNOT_RELEASE_EXCLUSIVE_SERVER_LOCK;
       message = getMessage(msgID, lockFile, stackTraceToSingleLineString(e));
@@ -7579,18 +7379,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "shutDown", e);
-    }
-
-
-    // Shutdown all debug loggers.
-    try
-    {
-      removeAllDebugLoggers(true);
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
 
@@ -7617,8 +7409,6 @@ public class DirectoryServer
    */
   public static void restart(String className, String reason)
   {
-    assert debugEnter(CLASS_NAME, "restart", String.valueOf(className),
-                      String.valueOf(reason));
 
     try
     {
@@ -7653,7 +7443,6 @@ public class DirectoryServer
    */
   public static long getMaxAllowedConnections()
   {
-    assert debugEnter(CLASS_NAME, "getMaxAllowedConnections");
 
     return directoryServer.maxAllowedConnections;
   }
@@ -7670,8 +7459,6 @@ public class DirectoryServer
    */
   public static void setMaxAllowedConnections(long maxAllowedConnections)
   {
-    assert debugEnter(CLASS_NAME, "setMaxAllowedConnections",
-                      String.valueOf(maxAllowedConnections));
 
     if (maxAllowedConnections > 0)
     {
@@ -7698,8 +7485,6 @@ public class DirectoryServer
    */
   public static long newConnectionAccepted(ClientConnection clientConnection)
   {
-    assert debugEnter(CLASS_NAME, "newConnectionAccepted",
-                      String.valueOf(clientConnection));
 
     synchronized (directoryServer.establishedConnections)
     {
@@ -7731,8 +7516,6 @@ public class DirectoryServer
    */
   public static void connectionClosed(ClientConnection clientConnection)
   {
-    assert debugEnter(CLASS_NAME, "connectionClosed",
-                      String.valueOf(clientConnection));
 
     synchronized (directoryServer.establishedConnections)
     {
@@ -7750,7 +7533,6 @@ public class DirectoryServer
    */
   public static long getCurrentConnections()
   {
-    assert debugEnter(CLASS_NAME, "getCurrentConnections");
 
     return directoryServer.currentConnections;
   }
@@ -7766,7 +7548,6 @@ public class DirectoryServer
    */
   public static long getMaxConnections()
   {
-    assert debugEnter(CLASS_NAME, "getMaxConnections");
 
     return directoryServer.maxConnections;
   }
@@ -7782,7 +7563,6 @@ public class DirectoryServer
    */
   public static long getTotalConnections()
   {
-    assert debugEnter(CLASS_NAME, "getTotalConnections");
 
     return directoryServer.totalConnections;
   }
@@ -7825,7 +7605,6 @@ public class DirectoryServer
    */
   public static int getSizeLimit()
   {
-    assert debugEnter(CLASS_NAME, "getSizeLimit");
 
     return directoryServer.sizeLimit;
   }
@@ -7841,7 +7620,6 @@ public class DirectoryServer
    */
   public static void setSizeLimit(int sizeLimit)
   {
-    assert debugEnter(CLASS_NAME, "setSizeLimit", String.valueOf(sizeLimit));
 
     directoryServer.sizeLimit = sizeLimit;
   }
@@ -7857,7 +7635,6 @@ public class DirectoryServer
    */
   public static int getLookthroughLimit()
   {
-    assert debugEnter(CLASS_NAME, "getLookthroughLimit");
 
     return directoryServer.lookthroughLimit;
   }
@@ -7873,8 +7650,6 @@ public class DirectoryServer
    */
   public static void setLookthroughLimit(int lookthroughLimit)
   {
-    assert debugEnter(CLASS_NAME, "setLookthroughLimit",
-      String.valueOf(lookthroughLimit));
 
     directoryServer.lookthroughLimit = lookthroughLimit;
   }
@@ -7890,7 +7665,6 @@ public class DirectoryServer
    */
   public static int getTimeLimit()
   {
-    assert debugEnter(CLASS_NAME, "getTimeLimit");
 
     return directoryServer.timeLimit;
   }
@@ -7906,7 +7680,6 @@ public class DirectoryServer
    */
   public static void setTimeLimit(int timeLimit)
   {
-    assert debugEnter(CLASS_NAME, "setTimeLimit", String.valueOf(timeLimit));
 
     directoryServer.timeLimit = timeLimit;
   }
@@ -7921,7 +7694,6 @@ public class DirectoryServer
    */
   public static WritabilityMode getWritabilityMode()
   {
-    assert debugEnter(CLASS_NAME, "getWritabilityMode");
 
     return directoryServer.writabilityMode;
   }
@@ -7937,8 +7709,6 @@ public class DirectoryServer
    */
   public static void setWritabilityMode(WritabilityMode writabilityMode)
   {
-    assert debugEnter(CLASS_NAME, "setWritabilityMode",
-                      String.valueOf(writabilityMode));
 
     directoryServer.writabilityMode = writabilityMode;
   }
@@ -7956,7 +7726,6 @@ public class DirectoryServer
    */
   public static boolean bindWithDNRequiresPassword()
   {
-    assert debugEnter(CLASS_NAME, "bindWithDNRequiresPassword");
 
     return directoryServer.bindWithDNRequiresPassword;
   }
@@ -7974,8 +7743,6 @@ public class DirectoryServer
   public static void setBindWithDNRequiresPassword(boolean
                           bindWithDNRequiresPassword)
   {
-    assert debugEnter(CLASS_NAME, "setBindWithDNRequiresPassword",
-                      String.valueOf(bindWithDNRequiresPassword));
 
     directoryServer.bindWithDNRequiresPassword = bindWithDNRequiresPassword;
   }
@@ -7990,7 +7757,6 @@ public class DirectoryServer
    */
   public static boolean rejectUnauthenticatedRequests()
   {
-     assert debugEnter(CLASS_NAME, "rejectUnauthenticatedRequests");
 
      return directoryServer.rejectUnauthenticatedRequests;
   }
@@ -8005,8 +7771,6 @@ public class DirectoryServer
   public static void setRejectUnauthenticatedRequests(boolean
                           rejectUnauthenticatedRequests)
   {
-        assert debugEnter(CLASS_NAME, "rejectUnauthenticatedRequests",
-                         String.valueOf(rejectUnauthenticatedRequests));
 
         directoryServer.rejectUnauthenticatedRequests =
                                   rejectUnauthenticatedRequests;
@@ -8023,7 +7787,6 @@ public class DirectoryServer
    */
   public DN getComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getComponentEntryDN");
 
     try
     {
@@ -8038,7 +7801,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getComponentEntryDN", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This could theoretically happen if an alert needs to be sent before the
       // configuration is initialized.  In that case, just return an empty DN.
@@ -8057,7 +7823,6 @@ public class DirectoryServer
    */
   public String getClassName()
   {
-    assert debugEnter(CLASS_NAME, "getClassName");
 
     return CLASS_NAME;
   }
@@ -8099,10 +7864,11 @@ public class DirectoryServer
    */
   public void uncaughtException(Thread thread, Throwable exception)
   {
-    assert debugEnter(CLASS_NAME, "uncaughtException",
-                      String.valueOf(thread), String.valueOf(exception));
 
-    assert debugException(CLASS_NAME, "uncaughtException", exception);
+    if (debugEnabled())
+    {
+      debugCought(DebugLogLevel.ERROR, exception);
+    }
 
     int    msgID   = MSGID_UNCAUGHT_THREAD_EXCEPTION;
     String message = getMessage(msgID, thread.getName(),
@@ -8418,7 +8184,10 @@ public class DirectoryServer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "startServer", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
       String message = getMessage(msgID, lockFile,
@@ -8551,7 +8320,10 @@ public class DirectoryServer
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "main", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       int    msgID   = MSGID_DSCORE_CANNOT_BOOTSTRAP;
       String message = getMessage(msgID, ie.getMessage());
@@ -8572,7 +8344,10 @@ public class DirectoryServer
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "main", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       int    msgID   = MSGID_DSCORE_CANNOT_START;
       String message = getMessage(msgID, ie.getMessage());

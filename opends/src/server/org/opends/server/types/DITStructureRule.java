@@ -38,8 +38,6 @@ import java.util.Set;
 
 import org.opends.server.schema.DITStructureRuleSyntax;
 
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -55,11 +53,6 @@ import static org.opends.server.util.Validator.*;
 public final class DITStructureRule
        implements SchemaFileElement
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.DITStructureRule";
 
 
 
@@ -118,14 +111,6 @@ public final class DITStructureRule
                           Set<DITStructureRule> superiorRules,
                           Map<String,List<String>> extraProperties)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(definition),
-                            String.valueOf(names),
-                            String.valueOf(ruleID),
-                            String.valueOf(description),
-                            String.valueOf(isObsolete),
-                            String.valueOf(nameForm),
-                            String.valueOf(superiorRules),
-                            String.valueOf(extraProperties));
 
     ensureNotNull(definition);
 
@@ -177,7 +162,6 @@ public final class DITStructureRule
    */
   public String getDefinition()
   {
-    assert debugEnter(CLASS_NAME, "getDefinition");
 
     return definition;
   }
@@ -225,7 +209,6 @@ public final class DITStructureRule
    */
   public Map<String,String> getNames()
   {
-    assert debugEnter(CLASS_NAME, "getNames");
 
     return names;
   }
@@ -243,8 +226,6 @@ public final class DITStructureRule
    */
   public boolean hasName(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "hasName",
-                      String.valueOf(lowerName));
 
     return names.containsKey(lowerName);
   }
@@ -258,7 +239,6 @@ public final class DITStructureRule
    */
   public int getRuleID()
   {
-    assert debugEnter(CLASS_NAME, "getRuleID");
 
     return ruleID;
   }
@@ -274,7 +254,6 @@ public final class DITStructureRule
    */
   public String getNameOrRuleID()
   {
-    assert debugEnter(CLASS_NAME, "getNameOrRuleID");
 
     if (names.isEmpty())
     {
@@ -298,7 +277,6 @@ public final class DITStructureRule
    */
   public String getSchemaFile()
   {
-    assert debugEnter(CLASS_NAME, "getSchemaFile");
 
     List<String> values =
          extraProperties.get(SCHEMA_PROPERTY_FILENAME);
@@ -321,8 +299,6 @@ public final class DITStructureRule
    */
   public void setSchemaFile(String schemaFile)
   {
-    assert debugEnter(CLASS_NAME, "setSchemaFile",
-                      String.valueOf(schemaFile));
 
     setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
@@ -336,7 +312,6 @@ public final class DITStructureRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return description;
   }
@@ -350,7 +325,6 @@ public final class DITStructureRule
    */
   public NameForm getNameForm()
   {
-    assert debugEnter(CLASS_NAME, "getNameForm");
 
     return nameForm;
   }
@@ -366,7 +340,6 @@ public final class DITStructureRule
    */
   public ObjectClass getStructuralClass()
   {
-    assert debugEnter(CLASS_NAME, "getStructuralObjectClass");
 
     return nameForm.getStructuralClass();
   }
@@ -380,7 +353,6 @@ public final class DITStructureRule
    */
   public Set<DITStructureRule> getSuperiorRules()
   {
-    assert debugEnter(CLASS_NAME, "getSuperiorRules");
 
     return superiorRules;
   }
@@ -396,7 +368,6 @@ public final class DITStructureRule
    */
   public boolean hasSuperiorRules()
   {
-    assert debugEnter(CLASS_NAME, "hasSuperiorRules");
 
     return ((superiorRules != null) && (! superiorRules.isEmpty()));
   }
@@ -411,7 +382,6 @@ public final class DITStructureRule
    */
   public boolean isObsolete()
   {
-    assert debugEnter(CLASS_NAME, "isObsolete");
 
     return isObsolete;
   }
@@ -429,7 +399,6 @@ public final class DITStructureRule
    */
   public Map<String,List<String>> getExtraProperties()
   {
-    assert debugEnter(CLASS_NAME, "getExtraProperties");
 
     return extraProperties;
   }
@@ -449,8 +418,6 @@ public final class DITStructureRule
    */
   public List<String> getExtraProperty(String propertyName)
   {
-    assert debugEnter(CLASS_NAME, "getExtraProperty",
-                      String.valueOf(propertyName));
 
     return extraProperties.get(propertyName);
   }
@@ -468,8 +435,6 @@ public final class DITStructureRule
    */
   public void setExtraProperty(String name, String value)
   {
-    assert debugEnter(CLASS_NAME, "setExtraProperty",
-                      String.valueOf(name), String.valueOf(value));
 
     ensureNotNull(name);
 
@@ -499,8 +464,6 @@ public final class DITStructureRule
    */
   public void setExtraProperty(String name, List<String> values)
   {
-    assert debugEnter(CLASS_NAME, "setExtraProperty",
-                      String.valueOf(name), String.valueOf(values));
 
     ensureNotNull(name);
 
@@ -529,7 +492,6 @@ public final class DITStructureRule
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals");
 
     if (this == o)
     {
@@ -554,7 +516,6 @@ public final class DITStructureRule
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     return ruleID;
   }
@@ -570,7 +531,6 @@ public final class DITStructureRule
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer, true);
@@ -593,9 +553,6 @@ public final class DITStructureRule
   public void toString(StringBuilder buffer,
                        boolean includeFileElement)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder",
-                      String.valueOf(includeFileElement));
 
     buffer.append("( ");
     buffer.append(ruleID);

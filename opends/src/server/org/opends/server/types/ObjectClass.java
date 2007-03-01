@@ -39,8 +39,6 @@ import java.util.Set;
 
 import org.opends.server.schema.ObjectClassSyntax;
 
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -65,11 +63,6 @@ public final class ObjectClass
        extends CommonSchemaElements
        implements SchemaFileElement
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-    "org.opends.server.types.ObjectClass";
 
   // The set of optional attribute types for this objectclass.
   private final Set<AttributeType> optionalAttributes;
@@ -154,16 +147,6 @@ public final class ObjectClass
     super(primaryName, names, oid, description, isObsolete,
         extraProperties);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(primaryName),
-                            String.valueOf(names),
-                            String.valueOf(oid),
-                            String.valueOf(description),
-                            String.valueOf(superiorClass),
-                            String.valueOf(requiredAttributes),
-                            String.valueOf(optionalAttributes),
-                            String.valueOf(objectClassType),
-                            String.valueOf(isObsolete),
-                            String.valueOf(extraProperties));
 
     ensureNotNull(definition, oid);
 
@@ -232,7 +215,6 @@ public final class ObjectClass
    */
   public String getDefinition()
   {
-    assert debugEnter(CLASS_NAME, "getDefinition");
 
     return definition;
   }
@@ -276,7 +258,6 @@ public final class ObjectClass
    *         or <code>null</code> if there is none.
    */
   public ObjectClass getSuperiorClass() {
-    assert debugEnter(CLASS_NAME, "getSuperiorClass");
 
     return superiorClass;
   }
@@ -293,8 +274,6 @@ public final class ObjectClass
    *         of the provided class, or <code>false</code> if not.
    */
   public boolean isDescendantOf(ObjectClass objectClass) {
-    assert debugEnter(CLASS_NAME, "isDescendantOf", String
-        .valueOf(objectClass));
 
     if (superiorClass == null) {
       return false;
@@ -315,7 +294,6 @@ public final class ObjectClass
    *         attributes for this objectclass.
    */
   public Set<AttributeType> getRequiredAttributes() {
-    assert debugEnter(CLASS_NAME, "getRequiredAttributes");
 
     return requiredAttributes;
   }
@@ -332,7 +310,6 @@ public final class ObjectClass
    *         objectclasses that it might have.
    */
   public Set<AttributeType> getRequiredAttributeChain() {
-    assert debugEnter(CLASS_NAME, "getRequiredAttributeChain");
 
     return requiredAttributesChain;
   }
@@ -351,8 +328,6 @@ public final class ObjectClass
    *         classes, or <code>false</code> if not.
    */
   public boolean isRequired(AttributeType attributeType) {
-    assert debugEnter(CLASS_NAME, "isRequired", String
-        .valueOf(attributeType));
 
     return requiredAttributesChain.contains(attributeType);
   }
@@ -368,7 +343,6 @@ public final class ObjectClass
    *         attributes for this objectclass.
    */
   public Set<AttributeType> getOptionalAttributes() {
-    assert debugEnter(CLASS_NAME, "getOptionalAttributes");
 
     return optionalAttributes;
   }
@@ -385,7 +359,6 @@ public final class ObjectClass
    *         objectclasses that it might have.
    */
   public Set<AttributeType> getOptionalAttributeChain() {
-    assert debugEnter(CLASS_NAME, "getOptionalAttributeChain");
 
     return optionalAttributesChain;
   }
@@ -404,8 +377,6 @@ public final class ObjectClass
    *         classes, or <code>false</code> if not.
    */
   public boolean isOptional(AttributeType attributeType) {
-    assert debugEnter(CLASS_NAME, "isOptional", String
-        .valueOf(attributeType));
 
     if (optionalAttributesChain.contains(attributeType)) {
       return true;
@@ -436,8 +407,6 @@ public final class ObjectClass
    *         superior classes, or <code>false</code> if it is not.
    */
   public boolean isRequiredOrOptional(AttributeType attributeType) {
-    assert debugEnter(CLASS_NAME, "isRequiredOrOptional", String
-        .valueOf(attributeType));
 
     return (isRequired(attributeType) || isOptional(attributeType));
   }
@@ -450,7 +419,6 @@ public final class ObjectClass
    * @return The objectclass type for this objectclass.
    */
   public ObjectClassType getObjectClassType() {
-    assert debugEnter(CLASS_NAME, "getObjectClassType");
 
     return objectClassType;
   }
@@ -466,7 +434,6 @@ public final class ObjectClass
    *         it is not.
    */
   public boolean isExtensibleObject() {
-    assert debugEnter(CLASS_NAME, "isExtensibleObject");
 
     return isExtensibleObject;
   }
@@ -477,8 +444,6 @@ public final class ObjectClass
    * {@inheritDoc}
    */
   protected void toStringContent(StringBuilder buffer) {
-    assert debugEnter(CLASS_NAME, "toString",
-        "java.lang.StringBuilder");
 
     if (superiorClass != null) {
       buffer.append(" SUP ");

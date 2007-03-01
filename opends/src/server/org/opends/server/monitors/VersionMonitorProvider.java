@@ -42,7 +42,9 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.DynamicConstants;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -53,11 +55,6 @@ import static org.opends.server.loggers.Debug.*;
 public class VersionMonitorProvider
        extends MonitorProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.monitors.VersionMonitorProvider";
 
 
 
@@ -90,8 +87,6 @@ public class VersionMonitorProvider
   public void initializeMonitorProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMonitorProvider",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -106,7 +101,6 @@ public class VersionMonitorProvider
    */
   public String getMonitorInstanceName()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorInstanceName");
 
     return "Version";
   }
@@ -124,7 +118,6 @@ public class VersionMonitorProvider
    */
   public long getUpdateInterval()
   {
-    assert debugEnter(CLASS_NAME, "getUpdateInterval");
 
     // This monitor does not need to run periodically.
     return 0;
@@ -141,7 +134,6 @@ public class VersionMonitorProvider
    */
   public void updateMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "updateMonitorData");
 
     // This monitor does not need to run periodically.
     return;
@@ -159,7 +151,6 @@ public class VersionMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorData");
 
 
     ArrayList<Attribute> attrs = new ArrayList<Attribute>(8);
@@ -196,8 +187,6 @@ public class VersionMonitorProvider
    */
   private Attribute createAttribute(String name, String value)
   {
-    assert debugEnter(CLASS_NAME, "createAttribute", String.valueOf(name),
-                      String.valueOf(value));
 
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
 
@@ -211,7 +200,10 @@ public class VersionMonitorProvider
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createAttribute", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       values.add(new AttributeValue(encodedValue, encodedValue));
     }

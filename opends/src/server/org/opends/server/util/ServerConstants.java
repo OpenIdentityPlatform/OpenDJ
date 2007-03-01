@@ -790,33 +790,26 @@ public class ServerConstants
 
 
   /**
+   * The English name for the basic disabled log severity used for all
+   * log severities.
+   */
+  public static final String LOG_SEVERITY_DISABLED = "DISABLED";
+
+
+
+  /**
+   * The English name for the basic all log severity used for all log
+   * severities.
+   */
+  public static final String LOG_SEVERITY_ALL = "ALL";
+
+
+
+  /**
    * The English name for the debug log category used for access control
    * debugging.
    */
-  public static final String DEBUG_CATEGORY_ACCESS_CONTROL = "ACCESS_CONTROL";
-
-
-
-  /**
-   * The English name for the debug log category used for backend debugging.
-   */
-  public static final String DEBUG_CATEGORY_BACKEND = "BACKEND";
-
-
-
-  /**
-   * The English name for the debug log category used for configuration
-   * debugging.
-   */
-  public static final String DEBUG_CATEGORY_CONFIG = "CONFIG";
-
-
-
-  /**
-   * The English name for the debug log category used for connection handling
-   * debugging.
-   */
-  public static final String DEBUG_CATEGORY_CONNECTION_HANDLING = "CONNECTION";
+  public static final String DEBUG_CATEGORY_MESSAGE = "MESSAGE";
 
 
 
@@ -828,48 +821,24 @@ public class ServerConstants
 
 
   /**
-   * The English name for the debug log category used for core server debugging.
-   */
-  public static final String DEBUG_CATEGORY_CORE_SERVER = "CORE";
-
-
-
-  /**
    * The English name for the debug log category used for debugging raw data
    * read.
    */
-  public static final String DEBUG_CATEGORY_DATA_READ = "DATA_READ";
-
-
-
-  /**
-   * The English name for the debug log category used for debugging raw data
-   * written.
-   */
-  public static final String DEBUG_CATEGORY_DATA_WRITE = "DATA_WRITE";
+  public static final String DEBUG_CATEGORY_DATA = "DATA";
 
 
 
   /**
    * The English name for the debug log category used for exception debugging.
    */
-  public static final String DEBUG_CATEGORY_EXCEPTION = "EXCEPTION";
+  public static final String DEBUG_CATEGORY_THROWN = "THROWN";
 
 
 
   /**
-   * The English name for the debug log category used for extended operation
-   * debugging.
+   * The English name for the debug log category used for exception debugging.
    */
-  public static final String DEBUG_CATEGORY_EXTENDED_OPERATION = "EXTENDED_OP";
-
-
-
-  /**
-   * The English name for the debug log category used for server extensions
-   * debugging.
-   */
-  public static final String DEBUG_CATEGORY_EXTENSIONS = "EXTENSIONS";
+  public static final String DEBUG_CATEGORY_COUGHT = "COUGHT";
 
 
 
@@ -882,91 +851,24 @@ public class ServerConstants
 
 
   /**
-   * The English name for the debug log category used for password policy
+   * The English name for the debug log category used for method exit
    * debugging.
    */
-  public static final String DEBUG_CATEGORY_PASSWORD_POLICY = "PWPOLICY";
-
-
-
-  /**
-   * The English name for the debug log category used for plugin debugging.
-   */
-  public static final String DEBUG_CATEGORY_PLUGIN = "PLUGIN";
+  public static final String DEBUG_CATEGORY_EXIT = "EXIT";
 
 
 
   /**
    * The English name for the debug log category used for debugging protocol
-   * elements read.
+   * elements.
    */
-  public static final String DEBUG_CATEGORY_PROTOCOL_READ = "PROTOCOL_READ";
+  public static final String DEBUG_CATEGORY_PROTOCOL = "PROTOCOL";
 
 
 
   /**
-   * The English name for the debug log category used for debugging protocol
-   * elements written.
-   */
-  public static final String DEBUG_CATEGORY_PROTOCOL_WRITE = "PROTOCOL_WRITE";
-
-
-
-  /**
-   * The English name for the debug log category used for SASL debugging.
-   */
-  public static final String DEBUG_CATEGORY_SASL_MECHANISM = "SASL";
-
-
-
-  /**
-   * The English name for the debug log category used for schema debugging.
-   */
-  public static final String DEBUG_CATEGORY_SCHEMA = "SCHEMA";
-
-
-
-  /**
-   * The English name for the debug log category used for shutdown debugging.
-   */
-  public static final String DEBUG_CATEGORY_SHUTDOWN = "SHUTDOWN";
-
-
-
-  /**
-   * The English name for the debug log category used for startup debugging.
-   */
-  public static final String DEBUG_CATEGORY_STARTUP = "STARTUP";
-
-
-
-  /**
-   * The English name for the debug log category used for synchronization
-   * debugging.
-   */
-  public static final String DEBUG_CATEGORY_SYNCHRONIZATION = "SYNCH";
-
-
-
-  /**
-   * The English name for the debug log category used for raw data read
-   * from the database.
-   */
-  public static final String DEBUG_CATEGORY_DATABASE_READ = "DATABASE_READ";
-
-
-
-  /**
-   * The English name for the debug log category used for raw data written
-   * to the database.
-   */
-  public static final String DEBUG_CATEGORY_DATABASE_WRITE = "DATABASE_WRITE";
-
-
-
-  /**
-   * The English name for the debug log category used for access to the
-   * database.
+   * The English name for the debug log category used for raw data access
+   * from the JE database.
    */
   public static final String DEBUG_CATEGORY_DATABASE_ACCESS = "DATABASE_ACCESS";
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -35,8 +35,10 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -52,12 +54,6 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class LDAPControl
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.LDAPControl";
-
 
 
   // The control wrapped by this LDAP control.
@@ -72,7 +68,6 @@ public class LDAPControl
    */
   public LDAPControl(Control control)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(control));
 
     this.control = control;
   }
@@ -87,7 +82,6 @@ public class LDAPControl
    */
   public LDAPControl(String oid)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid));
 
     control = new Control(oid, false);
   }
@@ -104,8 +98,6 @@ public class LDAPControl
    */
   public LDAPControl(String oid, boolean isCritical)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical));
 
     control = new Control(oid, isCritical);
   }
@@ -122,8 +114,6 @@ public class LDAPControl
    */
   public LDAPControl(String oid, boolean isCritical, ASN1OctetString value)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(oid),
-                      String.valueOf(isCritical), String.valueOf(value));
 
     control = new Control(oid, isCritical, value);
   }
@@ -137,7 +127,6 @@ public class LDAPControl
    */
   public Control getControl()
   {
-    assert debugEnter(CLASS_NAME, "getControl");
 
     return control;
   }
@@ -151,7 +140,6 @@ public class LDAPControl
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3);
     elements.add(new ASN1OctetString(control.getOID()));
@@ -181,7 +169,6 @@ public class LDAPControl
    */
   public static ASN1Element encodeControls(ArrayList<LDAPControl> controls)
   {
-    assert debugEnter(CLASS_NAME, "encodeControls", String.valueOf(controls));
 
     ArrayList<ASN1Element> elements =
          new ArrayList<ASN1Element>(controls.size());
@@ -208,7 +195,6 @@ public class LDAPControl
   public static LDAPControl decode(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(element));
 
     if (element == null)
     {
@@ -225,9 +211,12 @@ public class LDAPControl
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_CONTROL_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_CONTROL_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -249,9 +238,12 @@ public class LDAPControl
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_CONTROL_DECODE_OID;
+      int msgID = MSGID_LDAP_CONTROL_DECODE_OID;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -278,9 +270,12 @@ public class LDAPControl
           }
           catch (Exception e2)
           {
-            assert debugException(CLASS_NAME, "decode", e2);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e2);
+            }
 
-            int    msgID   = MSGID_LDAP_CONTROL_DECODE_CRITICALITY;
+            int msgID = MSGID_LDAP_CONTROL_DECODE_CRITICALITY;
             String message = getMessage(msgID, String.valueOf(e));
             throw new LDAPException(PROTOCOL_ERROR, msgID, message, e2);
           }
@@ -294,9 +289,12 @@ public class LDAPControl
           }
           catch (Exception e2)
           {
-            assert debugException(CLASS_NAME, "decode", e2);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e2);
+            }
 
-            int    msgID   = MSGID_LDAP_CONTROL_DECODE_VALUE;
+            int msgID = MSGID_LDAP_CONTROL_DECODE_VALUE;
             String message = getMessage(msgID, String.valueOf(e));
             throw new LDAPException(PROTOCOL_ERROR, msgID, message, e2);
           }
@@ -318,9 +316,12 @@ public class LDAPControl
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "decode", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
-        int    msgID   = MSGID_LDAP_CONTROL_DECODE_CRITICALITY;
+        int msgID = MSGID_LDAP_CONTROL_DECODE_CRITICALITY;
         String message = getMessage(msgID, String.valueOf(e));
         throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
       }
@@ -332,9 +333,12 @@ public class LDAPControl
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "decode", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
-        int    msgID   = MSGID_LDAP_CONTROL_DECODE_VALUE;
+        int msgID = MSGID_LDAP_CONTROL_DECODE_VALUE;
         String message = getMessage(msgID, String.valueOf(e));
         throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
       }
@@ -358,7 +362,6 @@ public class LDAPControl
   public static ArrayList<LDAPControl> decodeControls(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControls", String.valueOf(element));
 
     if (element == null)
     {
@@ -400,7 +403,6 @@ public class LDAPControl
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return control.getOID();
   }
@@ -415,7 +417,6 @@ public class LDAPControl
    */
   public boolean isCritical()
   {
-    assert debugEnter(CLASS_NAME, "isCritical");
 
     return control.isCritical();
   }
@@ -429,7 +430,6 @@ public class LDAPControl
    */
   public ASN1OctetString getValue()
   {
-    assert debugEnter(CLASS_NAME, "getValue");
 
     return control.getValue();
   }
@@ -443,7 +443,6 @@ public class LDAPControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -460,7 +459,6 @@ public class LDAPControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("LDAPControl(oid=");
     buffer.append(control.getOID());
@@ -488,8 +486,6 @@ public class LDAPControl
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

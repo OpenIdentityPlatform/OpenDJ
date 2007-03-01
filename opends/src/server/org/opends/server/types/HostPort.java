@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -39,12 +34,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public final class HostPort
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.HostPort";
-
 
 
   // The host for this object.
@@ -63,7 +52,6 @@ public final class HostPort
    */
   public HostPort(int port)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(port));
 
     this.host = null;
     this.port = port;
@@ -81,8 +69,6 @@ public final class HostPort
    */
   public HostPort(String host, int port)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(host),
-                            String.valueOf(port));
 
     this.host = host;
     this.port = port;
@@ -98,7 +84,6 @@ public final class HostPort
    */
   public String getHost()
   {
-    assert debugEnter(CLASS_NAME, "getHost");
 
     return host;
   }
@@ -112,7 +97,6 @@ public final class HostPort
    */
   public int getPort()
   {
-    assert debugEnter(CLASS_NAME, "getPort");
 
     return port;
   }
@@ -128,7 +112,6 @@ public final class HostPort
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     if (host ==  null)
     {

@@ -75,7 +75,9 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -95,11 +97,6 @@ public class BackupBackend
        extends Backend
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.BackupBackend";
 
 
 
@@ -135,7 +132,6 @@ public class BackupBackend
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
 
     // Perform all initialization in initializeBackend.
@@ -162,8 +158,6 @@ public class BackupBackend
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeBackend",
-                      String.valueOf(configEntry));
 
 
     // Make sure that a configuration entry was provided.  If not, then we will
@@ -186,7 +180,10 @@ public class BackupBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_BACKUP_CANNOT_DECODE_BACKUP_ROOT_DN;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -223,11 +220,14 @@ public class BackupBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_BACKUP_CANNOT_DETERMINE_BACKUP_DIR_LIST;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message,e);
+      throw new InitializationException(msgID, message, e);
     }
 
 
@@ -281,7 +281,10 @@ public class BackupBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
       String message = getMessage(msgID, backupBaseDN.toString(),
@@ -305,7 +308,6 @@ public class BackupBackend
    */
   public void finalizeBackend()
   {
-    assert debugEnter(CLASS_NAME, "finalizeBackend");
 
     DirectoryServer.deregisterConfigurableComponent(this);
 
@@ -315,7 +317,10 @@ public class BackupBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "finalizeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -328,7 +333,6 @@ public class BackupBackend
    */
   public DN[] getBaseDNs()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDNs");
 
     return baseDNs;
   }
@@ -340,7 +344,6 @@ public class BackupBackend
    */
   public long getEntryCount()
   {
-    assert debugEnter(CLASS_NAME, "getEntryCount");
 
     int numEntries = 1;
 
@@ -382,7 +385,6 @@ public class BackupBackend
    */
   public boolean isLocal()
   {
-    assert debugEnter(CLASS_NAME, "isLocal");
 
     // For the purposes of this method, this is a local backend.
     return true;
@@ -404,7 +406,6 @@ public class BackupBackend
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
 
     // If the requested entry was null, then throw an exception.
@@ -470,8 +471,6 @@ public class BackupBackend
   private Entry getBackupDirectoryEntry(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getBackupDirectoryEntry",
-                      String.valueOf(entryDN));
 
 
     // Make sure that the DN specifies a backup directory.
@@ -497,9 +496,12 @@ public class BackupBackend
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "getBackupDirectoryEntry", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
-      int    msgID   = MSGID_BACKUP_INVALID_BACKUP_DIRECTORY;
+      int msgID = MSGID_BACKUP_INVALID_BACKUP_DIRECTORY;
       String message = getMessage(msgID, String.valueOf(entryDN),
                                   ce.getMessage());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
@@ -507,9 +509,12 @@ public class BackupBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getBackupDirectoryEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY;
+      int msgID = MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID);
@@ -568,7 +573,6 @@ public class BackupBackend
   private Entry getBackupEntry(DN entryDN)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getBackupEntry", String.valueOf(entryDN));
 
 
     // First, get the backup ID from the entry DN.
@@ -615,18 +619,24 @@ public class BackupBackend
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "getBackupEntry", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
-      int    msgID   = MSGID_BACKUP_INVALID_BACKUP_DIRECTORY;
+      int msgID = MSGID_BACKUP_INVALID_BACKUP_DIRECTORY;
       String message = getMessage(msgID, ce.getMessage());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                    msgID);
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getBackupEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY;
+      int msgID = MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID);
@@ -787,8 +797,6 @@ public class BackupBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addEntry", String.valueOf(entry),
-                      String.valueOf(addOperation));
 
     int    msgID   = MSGID_BACKUP_ADD_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -815,8 +823,6 @@ public class BackupBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "deleteEntry", String.valueOf(entryDN),
-                      String.valueOf(deleteOperation));
 
     int    msgID   = MSGID_BACKUP_DELETE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -843,8 +849,6 @@ public class BackupBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "replaceEntry", String.valueOf(entry),
-                      String.valueOf(modifyOperation));
 
     int    msgID   = MSGID_BACKUP_MODIFY_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -873,8 +877,6 @@ public class BackupBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "renameEntry", String.valueOf(currentDN),
-                      String.valueOf(entry), String.valueOf(modifyDNOperation));
 
     int    msgID   = MSGID_BACKUP_MODIFY_DN_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -897,7 +899,6 @@ public class BackupBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "search", String.valueOf(searchOperation));
 
 
     // Get the base entry for the search, if possible.  If it doesn't exist,
@@ -947,7 +948,10 @@ public class BackupBackend
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "search", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             continue;
           }
@@ -986,7 +990,10 @@ public class BackupBackend
                 }
                 catch (Exception e)
                 {
-                  assert debugException(CLASS_NAME, "search", e);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, e);
+                  }
 
                   continue;
                 }
@@ -1040,7 +1047,10 @@ public class BackupBackend
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "search", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               continue;
             }
@@ -1087,7 +1097,6 @@ public class BackupBackend
    */
   public HashSet<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return supportedControls;
   }
@@ -1101,7 +1110,6 @@ public class BackupBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return supportedFeatures;
   }
@@ -1117,7 +1125,6 @@ public class BackupBackend
    */
   public boolean supportsLDIFExport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFExport");
 
     // We do not support LDIF exports.
     return false;
@@ -1142,7 +1149,6 @@ public class BackupBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "exportLDIF", String.valueOf(exportConfig));
 
     int    msgID   = MSGID_BACKUP_EXPORT_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1161,7 +1167,6 @@ public class BackupBackend
    */
   public boolean supportsLDIFImport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFImport");
 
     // This backend does not support LDIF imports.
     return false;
@@ -1186,7 +1191,6 @@ public class BackupBackend
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "importLDIF", String.valueOf(importConfig));
 
 
     // This backend does not support LDIF imports.
@@ -1211,7 +1215,6 @@ public class BackupBackend
    */
   public boolean supportsBackup()
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
     // This backend does not provide a backup/restore mechanism.
     return false;
@@ -1237,7 +1240,6 @@ public class BackupBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1262,7 +1264,6 @@ public class BackupBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createBackup", String.valueOf(backupConfig));
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1290,9 +1291,6 @@ public class BackupBackend
                            String backupID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeBackup",
-                      String.valueOf(backupDirectory),
-                      String.valueOf(backupID));
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1312,7 +1310,6 @@ public class BackupBackend
    */
   public boolean supportsRestore()
   {
-    assert debugEnter(CLASS_NAME, "supportsRestore");
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1338,8 +1335,6 @@ public class BackupBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "restoreBackup",
-                      String.valueOf(restoreConfig));
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1360,7 +1355,6 @@ public class BackupBackend
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -1376,7 +1370,6 @@ public class BackupBackend
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrs = new LinkedList<ConfigAttribute>();
@@ -1415,8 +1408,6 @@ public class BackupBackend
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // We'll accept anything here.  The only configurable attribute is the
@@ -1446,9 +1437,6 @@ public class BackupBackend
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -1481,7 +1469,10 @@ public class BackupBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_BACKUP_CANNOT_DETERMINE_BACKUP_DIR_LIST;
       messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));

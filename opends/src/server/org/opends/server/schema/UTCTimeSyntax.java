@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -49,8 +49,10 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -69,11 +71,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class UTCTimeSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.UTCTimeSyntax";
 
 
 
@@ -129,7 +126,6 @@ public class UTCTimeSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -147,8 +143,6 @@ public class UTCTimeSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_GENERALIZED_TIME_OID);
@@ -187,7 +181,6 @@ public class UTCTimeSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_UTC_TIME_NAME;
   }
@@ -201,7 +194,6 @@ public class UTCTimeSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_UTC_TIME_OID;
   }
@@ -215,7 +207,6 @@ public class UTCTimeSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_UTC_TIME_DESCRIPTION;
   }
@@ -232,7 +223,6 @@ public class UTCTimeSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -249,7 +239,6 @@ public class UTCTimeSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     return defaultOrderingMatchingRule;
   }
@@ -266,7 +255,6 @@ public class UTCTimeSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -283,7 +271,6 @@ public class UTCTimeSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // Approximate matching will not be allowed by default.
     return null;
@@ -306,8 +293,6 @@ public class UTCTimeSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
 
     // Get the value as a string and verify that it is at least long enough for
@@ -770,8 +755,6 @@ public class UTCTimeSyntax
   private boolean hasValidOffset(String value, int startPos,
                                  StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "hasValidOffset", String.valueOf(value),
-                      String.valueOf(startPos), "java.lang.StringBuilder");
 
 
     int offsetLength = value.length() - startPos;
@@ -899,8 +882,6 @@ public class UTCTimeSyntax
    */
   public static AttributeValue createUTCTimeValue(Date d)
   {
-    assert debugEnter(CLASS_NAME, "createUTCTimeValue",
-                      String.valueOf(d));
 
     String valueString;
 
@@ -912,7 +893,10 @@ public class UTCTimeSyntax
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createUTCTimevalue", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This should never happen.
       valueString = null;
@@ -944,8 +928,6 @@ public class UTCTimeSyntax
   public static Date decodeUTCTimeValue(ByteString normalizedValue)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decodeUTCTimeValue",
-                      String.valueOf(normalizedValue));
 
     String valueString = normalizedValue.stringValue();
     try
@@ -968,7 +950,10 @@ public class UTCTimeSyntax
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeUTCTimeValue", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE;
       String message = getMessage(msgID, valueString, String.valueOf(e));

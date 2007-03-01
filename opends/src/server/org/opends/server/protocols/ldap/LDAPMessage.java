@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -36,12 +36,13 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Integer;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-
 
 
 /**
@@ -52,11 +53,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPMessage
        implements ProtocolElement
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.LDAPMessage";
 
 
 
@@ -80,8 +76,6 @@ public class LDAPMessage
    */
   public LDAPMessage(int messageID, ProtocolOp protocolOp)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
-                            String.valueOf(protocolOp));
 
     this.messageID  = messageID;
     this.protocolOp = protocolOp;
@@ -102,9 +96,6 @@ public class LDAPMessage
   public LDAPMessage(int messageID, ProtocolOp protocolOp,
                      ArrayList<LDAPControl> controls)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
-                            String.valueOf(protocolOp),
-                            String.valueOf(controls));
 
     this.messageID  = messageID;
     this.protocolOp = protocolOp;
@@ -128,7 +119,6 @@ public class LDAPMessage
    */
   public int getMessageID()
   {
-    assert debugEnter(CLASS_NAME, "getMessageID");
 
     return messageID;
   }
@@ -142,7 +132,6 @@ public class LDAPMessage
    */
   public void setMessageID(int messageID)
   {
-    assert debugEnter(CLASS_NAME, "setMessageID", String.valueOf(messageID));
 
     this.messageID = messageID;
   }
@@ -156,7 +145,6 @@ public class LDAPMessage
    */
   public ProtocolOp getProtocolOp()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOp");
 
     return protocolOp;
   }
@@ -170,7 +158,6 @@ public class LDAPMessage
    */
   public byte getProtocolOpType()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpType");
 
     return protocolOp.getType();
   }
@@ -184,7 +171,6 @@ public class LDAPMessage
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return protocolOp.getProtocolOpName();
   }
@@ -204,7 +190,6 @@ public class LDAPMessage
   public AbandonRequestProtocolOp getAbandonRequestProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getAbandonRequestProtocolOp");
 
     return (AbandonRequestProtocolOp) protocolOp;
   }
@@ -224,7 +209,6 @@ public class LDAPMessage
   public AddRequestProtocolOp getAddRequestProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getAddRequestProtocolOp");
 
     return (AddRequestProtocolOp) protocolOp;
   }
@@ -244,7 +228,6 @@ public class LDAPMessage
   public AddResponseProtocolOp getAddResponseProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getAddResponseProtocolOp");
 
     return (AddResponseProtocolOp) protocolOp;
   }
@@ -264,7 +247,6 @@ public class LDAPMessage
   public BindRequestProtocolOp getBindRequestProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getBindRequestProtocolOp");
 
     return (BindRequestProtocolOp) protocolOp;
   }
@@ -284,7 +266,6 @@ public class LDAPMessage
   public BindResponseProtocolOp getBindResponseProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getBindResponseProtocolOp");
 
     return (BindResponseProtocolOp) protocolOp;
   }
@@ -304,7 +285,6 @@ public class LDAPMessage
   public CompareRequestProtocolOp getCompareRequestProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getCompareRequestProtocolOp");
 
     return (CompareRequestProtocolOp) protocolOp;
   }
@@ -324,7 +304,6 @@ public class LDAPMessage
   public CompareResponseProtocolOp getCompareResponseProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getCompareResponseProtocolOp");
 
     return (CompareResponseProtocolOp) protocolOp;
   }
@@ -344,7 +323,6 @@ public class LDAPMessage
   public DeleteRequestProtocolOp getDeleteRequestProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getDeleteRequestProtocolOp");
 
     return (DeleteRequestProtocolOp) protocolOp;
   }
@@ -364,7 +342,6 @@ public class LDAPMessage
   public DeleteResponseProtocolOp getDeleteResponseProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getDeleteResponseProtocolOp");
 
     return (DeleteResponseProtocolOp) protocolOp;
   }
@@ -384,7 +361,6 @@ public class LDAPMessage
   public ExtendedRequestProtocolOp getExtendedRequestProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getExtendedRequestProtocolOp");
 
     return (ExtendedRequestProtocolOp) protocolOp;
   }
@@ -404,7 +380,6 @@ public class LDAPMessage
   public ExtendedResponseProtocolOp getExtendedResponseProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getExtendedResponseProtocolOp");
 
     return (ExtendedResponseProtocolOp) protocolOp;
   }
@@ -424,7 +399,6 @@ public class LDAPMessage
   public ModifyRequestProtocolOp getModifyRequestProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getModifyRequestProtocolOp");
 
     return (ModifyRequestProtocolOp) protocolOp;
   }
@@ -444,7 +418,6 @@ public class LDAPMessage
   public ModifyResponseProtocolOp getModifyResponseProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getModifyResponseProtocolOp");
 
     return (ModifyResponseProtocolOp) protocolOp;
   }
@@ -464,7 +437,6 @@ public class LDAPMessage
   public ModifyDNRequestProtocolOp getModifyDNRequestProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getModifyDNRequestProtocolOp");
 
     return (ModifyDNRequestProtocolOp) protocolOp;
   }
@@ -484,7 +456,6 @@ public class LDAPMessage
   public ModifyDNResponseProtocolOp getModifyDNResponseProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getModifyDNResponseProtocolOp");
 
     return (ModifyDNResponseProtocolOp) protocolOp;
   }
@@ -504,7 +475,6 @@ public class LDAPMessage
   public SearchRequestProtocolOp getSearchRequestProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getSearchRequestProtocolOp");
 
     return (SearchRequestProtocolOp) protocolOp;
   }
@@ -524,7 +494,6 @@ public class LDAPMessage
   public SearchResultDoneProtocolOp getSearchResultDoneProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getSearchResultDoneProtocolOp");
 
     return (SearchResultDoneProtocolOp) protocolOp;
   }
@@ -544,7 +513,6 @@ public class LDAPMessage
   public SearchResultEntryProtocolOp getSearchResultEntryProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getSearchResultEntryProtocolOp");
 
     return (SearchResultEntryProtocolOp) protocolOp;
   }
@@ -564,7 +532,6 @@ public class LDAPMessage
   public SearchResultReferenceProtocolOp getSearchResultReferenceProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getSearchResultReferenceProtocolOp");
 
     return (SearchResultReferenceProtocolOp) protocolOp;
   }
@@ -584,7 +551,6 @@ public class LDAPMessage
   public UnbindRequestProtocolOp getUnbindRequestProtocolOp()
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "getUnbindRequestProtocolOp");
 
     return (UnbindRequestProtocolOp) protocolOp;
   }
@@ -598,7 +564,6 @@ public class LDAPMessage
    */
   public void setProtocolOp(ProtocolOp protocolOp)
   {
-    assert debugEnter(CLASS_NAME, "setProtocolOp", String.valueOf(protocolOp));
 
     this.protocolOp = protocolOp;
   }
@@ -613,7 +578,6 @@ public class LDAPMessage
    */
   public ArrayList<LDAPControl> getControls()
   {
-    assert debugEnter(CLASS_NAME, "getControls");
 
     return controls;
   }
@@ -627,7 +591,6 @@ public class LDAPMessage
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> messageElements = new ArrayList<ASN1Element>(3);
     messageElements.add(new ASN1Integer(messageID));
@@ -656,7 +619,6 @@ public class LDAPMessage
   public static LDAPMessage decode(ASN1Sequence messageSequence)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(messageSequence));
 
     if (messageSequence == null)
     {
@@ -682,9 +644,12 @@ public class LDAPMessage
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MESSAGE_DECODE_MESSAGE_ID;
+      int msgID = MSGID_LDAP_MESSAGE_DECODE_MESSAGE_ID;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -697,9 +662,12 @@ public class LDAPMessage
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MESSAGE_DECODE_PROTOCOL_OP;
+      int msgID = MSGID_LDAP_MESSAGE_DECODE_PROTOCOL_OP;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -714,9 +682,12 @@ public class LDAPMessage
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "decode", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
-        int    msgID   = MSGID_LDAP_MESSAGE_DECODE_CONTROLS;
+        int msgID = MSGID_LDAP_MESSAGE_DECODE_CONTROLS;
         String message = getMessage(msgID, String.valueOf(e));
         throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
       }
@@ -739,7 +710,6 @@ public class LDAPMessage
    */
   public String getProtocolElementName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolElementName");
 
     return "LDAP";
   }
@@ -753,7 +723,6 @@ public class LDAPMessage
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -771,7 +740,6 @@ public class LDAPMessage
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("LDAPMessage(msgID=");
     buffer.append(messageID);
@@ -810,8 +778,6 @@ public class LDAPMessage
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

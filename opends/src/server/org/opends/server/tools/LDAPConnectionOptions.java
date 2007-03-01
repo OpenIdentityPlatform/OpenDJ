@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -42,11 +41,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class LDAPConnectionOptions
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tools.LDAPConnectionOptions";
 
   private boolean reportAuthzID = false;
   private boolean useSSL =  false;
@@ -65,7 +59,6 @@ public class LDAPConnectionOptions
    */
   public LDAPConnectionOptions()
   {
-    assert debugConstructor(CLASS_NAME);
   }
 
   /**

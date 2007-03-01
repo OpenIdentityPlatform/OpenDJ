@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -39,11 +34,6 @@ import static org.opends.server.loggers.Debug.*;
 public class MembershipException
        extends Exception
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.MembershipException";
 
 
 
@@ -96,10 +86,6 @@ public class MembershipException
   {
     super(errorMessage);
 
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(errorMessageID),
-                            String.valueOf(errorMessage),
-                            String.valueOf(continueIterating));
 
     this.errorMessageID    = errorMessageID;
     this.errorMessage      = errorMessage;
@@ -127,11 +113,6 @@ public class MembershipException
   {
     super(errorMessage, cause);
 
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(errorMessageID),
-                            String.valueOf(errorMessage),
-                            String.valueOf(continueIterating),
-                            String.valueOf(cause));
 
     this.errorMessageID    = errorMessageID;
     this.errorMessage      = errorMessage;
@@ -147,7 +128,6 @@ public class MembershipException
    */
   public final int getErrorMessageID()
   {
-    assert debugEnter(CLASS_NAME, "getErrorMessageID");
 
     return errorMessageID;
   }
@@ -161,7 +141,6 @@ public class MembershipException
    */
   public final String getErrorMessage()
   {
-    assert debugEnter(CLASS_NAME, "getErrorMessage");
 
     return errorMessage;
   }
@@ -178,7 +157,6 @@ public class MembershipException
    */
   public final boolean continueIterating()
   {
-    assert debugEnter(CLASS_NAME, "continueIterating");
 
     return continueIterating;
   }

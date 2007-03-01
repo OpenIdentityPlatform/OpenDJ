@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -61,7 +61,9 @@ import java.util.List;
 import java.util.Set;
 
 import static org.opends.server.util.ServerConstants.ATTR_REFERRAL_URL;
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.JebMessages.
      MSGID_JEB_REFERRAL_RESULT_MESSAGE;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -76,11 +78,6 @@ import static org.opends.server.messages.MessageHandler.getMessage;
  */
 public class DN2URI
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.EntryContainer";
 
   /**
    * The standard attribute type that is used to specify the set of referral
@@ -475,7 +472,10 @@ public class DN2URI
       }
       catch (DirectoryException e)
       {
-        assert debugException(CLASS_NAME, "throwReferralException", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         // Return the non-LDAP URI as is.
       }
 
@@ -545,11 +545,17 @@ public class DN2URI
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "targetEntryReferrals", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     catch (UnsupportedEncodingException e)
     {
-      assert debugException(CLASS_NAME, "targetEntryReferrals", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -667,7 +673,10 @@ public class DN2URI
             }
             catch (DirectoryException e)
             {
-              assert debugException(CLASS_NAME, "returnSearchReferences", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               // Return the non-LDAP URI as is.
             }
 
@@ -689,11 +698,17 @@ public class DN2URI
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "returnSearchReferences", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     catch (UnsupportedEncodingException e)
     {
-      assert debugException(CLASS_NAME, "returnSearchReferences", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     return true;

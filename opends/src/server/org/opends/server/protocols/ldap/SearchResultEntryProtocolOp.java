@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -48,7 +48,9 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.Base64;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -66,11 +68,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class SearchResultEntryProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.SearchResultEntryProtocolOp";
 
 
 
@@ -90,7 +87,6 @@ public class SearchResultEntryProtocolOp
    */
   public SearchResultEntryProtocolOp(DN dn)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn));
 
     this.dn         = dn;
     this.attributes = new LinkedList<LDAPAttribute>();
@@ -108,8 +104,6 @@ public class SearchResultEntryProtocolOp
   public SearchResultEntryProtocolOp(DN dn,
                                      LinkedList<LDAPAttribute> attributes)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(attributes));
 
     this.dn = dn;
 
@@ -134,7 +128,6 @@ public class SearchResultEntryProtocolOp
    */
   public SearchResultEntryProtocolOp(SearchResultEntry searchEntry)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(searchEntry));
 
     this.dn = searchEntry.getDN();
 
@@ -174,7 +167,6 @@ public class SearchResultEntryProtocolOp
    */
   public DN getDN()
   {
-    assert debugEnter(CLASS_NAME, "getDN");
 
     return dn;
   }
@@ -188,7 +180,6 @@ public class SearchResultEntryProtocolOp
    */
   public void setDN(DN dn)
   {
-    assert debugEnter(CLASS_NAME, "setDN", String.valueOf(dn));
 
     this.dn = dn;
   }
@@ -203,7 +194,6 @@ public class SearchResultEntryProtocolOp
    */
   public LinkedList<LDAPAttribute> getAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributes");
 
     return attributes;
   }
@@ -217,7 +207,6 @@ public class SearchResultEntryProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_SEARCH_RESULT_ENTRY;
   }
@@ -231,7 +220,6 @@ public class SearchResultEntryProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Search Result Entry";
   }
@@ -246,7 +234,6 @@ public class SearchResultEntryProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1OctetString(dn.toString()));
@@ -282,7 +269,6 @@ public class SearchResultEntryProtocolOp
                                                                    element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeSearchEntry", String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -291,7 +277,10 @@ public class SearchResultEntryProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_SEARCH_ENTRY_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -315,7 +304,10 @@ public class SearchResultEntryProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_SEARCH_ENTRY_DECODE_DN;
       String message = getMessage(msgID, String.valueOf(e));
@@ -337,7 +329,10 @@ public class SearchResultEntryProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSearchEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_SEARCH_ENTRY_DECODE_ATTRS;
       String message = getMessage(msgID, String.valueOf(e));
@@ -358,7 +353,6 @@ public class SearchResultEntryProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("SearchResultEntry(dn=");
     dn.toString(buffer);
@@ -391,8 +385,6 @@ public class SearchResultEntryProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
@@ -428,8 +420,6 @@ public class SearchResultEntryProtocolOp
    */
   public void toLDIF(StringBuilder buffer, int wrapColumn)
   {
-    assert debugEnter(CLASS_NAME, "toLDIF", "java.lang.StringBuilder",
-                      String.valueOf(wrapColumn));
 
 
     // Add the DN to the buffer.
@@ -556,7 +546,6 @@ public class SearchResultEntryProtocolOp
   public SearchResultEntry toSearchResultEntry()
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "toSearchResultEntry");
 
     HashMap<ObjectClass,String> objectClasses =
          new HashMap<ObjectClass,String>();

@@ -31,7 +31,9 @@ package org.opends.server.interop;
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -55,10 +57,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class LazyDN
        extends DN
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME = "org.opends.server.interop.LazyDN";
 
 
 
@@ -89,7 +87,6 @@ public class LazyDN
    */
   public LazyDN(String dnString)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dnString));
 
     this.dnString  = dnString;
     this.decodedDN = null;
@@ -104,7 +101,6 @@ public class LazyDN
   public boolean isNullDN()
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "isNullDN");
 
     return getDecodedDN().isNullDN();
   }
@@ -118,7 +114,6 @@ public class LazyDN
   public int getNumComponents()
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "getNumComponents");
 
     return getDecodedDN().getNumComponents();
   }
@@ -132,8 +127,6 @@ public class LazyDN
   public RDN getRDN()
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "getRDN");
-
     return getDecodedDN().getRDN();
   }
 
@@ -146,7 +139,6 @@ public class LazyDN
   public RDN getRDN(int pos)
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "getRDN", String.valueOf(pos));
 
     return getDecodedDN().getRDN(pos);
   }
@@ -160,7 +152,6 @@ public class LazyDN
   public DN getParent()
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "getParent");
 
     return getDecodedDN().getParent();
   }
@@ -174,7 +165,6 @@ public class LazyDN
   public DN getParentDNInSuffix()
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "getParentDNInSuffix");
 
     return getDecodedDN().getParentDNInSuffix();
   }
@@ -188,7 +178,6 @@ public class LazyDN
   public DN concat(RDN rdn)
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "concat", String.valueOf(rdn));
 
     return getDecodedDN().concat(rdn);
   }
@@ -202,7 +191,6 @@ public class LazyDN
   public DN concat(RDN[] rdnComponents)
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "concat", String.valueOf(rdnComponents));
 
     return getDecodedDN().concat(rdnComponents);
   }
@@ -216,7 +204,6 @@ public class LazyDN
   public DN concat(DN relativeBaseDN)
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "concat", String.valueOf(relativeBaseDN));
 
     return getDecodedDN().concat(relativeBaseDN);
   }
@@ -230,7 +217,6 @@ public class LazyDN
   public boolean isDescendantOf(DN dn)
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "isDescendantOf", String.valueOf(dn));
 
     return getDecodedDN().isDescendantOf(dn);
   }
@@ -244,7 +230,6 @@ public class LazyDN
   public boolean isAncestorOf(DN dn)
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "isAncestorOf", String.valueOf(dn));
 
     return getDecodedDN().isAncestorOf(dn);
   }
@@ -258,7 +243,6 @@ public class LazyDN
   public boolean equals(Object o)
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     return getDecodedDN().equals(o);
   }
@@ -272,7 +256,6 @@ public class LazyDN
   public int hashCode()
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     return getDecodedDN().hashCode();
   }
@@ -285,7 +268,6 @@ public class LazyDN
   @Override()
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     return dnString;
   }
@@ -298,7 +280,6 @@ public class LazyDN
   @Override()
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append(dnString);
   }
@@ -312,7 +293,6 @@ public class LazyDN
   public String toNormalizedString()
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "toNormalizedString");
 
     return getDecodedDN().toNormalizedString();
   }
@@ -326,8 +306,6 @@ public class LazyDN
   public void toNormalizedString(StringBuilder buffer)
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "toNormalizedString",
-                      "java.lang.StringBuilder");
 
     getDecodedDN().toNormalizedString(buffer);
   }
@@ -341,7 +319,6 @@ public class LazyDN
   public int compareTo(DN dn)
          throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "compareTo", String.valueOf(dn));
 
     return getDecodedDN().compareTo(dn);
   }
@@ -358,7 +335,6 @@ public class LazyDN
   private DN getDecodedDN()
           throws RuntimeException
   {
-    assert debugEnter(CLASS_NAME, "getDecodedDN");
 
     if (decodedDN == null)
     {
@@ -368,7 +344,10 @@ public class LazyDN
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "getDecodedDN", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         throw new RuntimeException(stackTraceToSingleLineString(e));
       }

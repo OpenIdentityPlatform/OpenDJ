@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -35,8 +35,9 @@ import java.util.ArrayList;
 
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -63,11 +64,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class FilePermission
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.FilePermission";
 
 
 
@@ -195,7 +191,10 @@ public class FilePermission
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<static>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
 
@@ -585,9 +584,12 @@ public class FilePermission
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getUsingUNIX", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_FILEPERM_CANNOT_EXEC_CHMOD;
+      int msgID = MSGID_FILEPERM_CANNOT_EXEC_CHMOD;
       String message = getMessage(msgID, f.getAbsolutePath(),
                                   String.valueOf(e));
       throw new DirectoryException(ResultCode.OTHER, message, msgID,
@@ -646,7 +648,10 @@ public class FilePermission
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "setUsingJava", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         exceptionThrown = true;
       }
     }
@@ -671,7 +676,10 @@ public class FilePermission
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "setUsingJava", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       exceptionThrown = true;
     }
 
@@ -694,7 +702,10 @@ public class FilePermission
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "setUsingJava", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         exceptionThrown = true;
       }
     }
@@ -719,7 +730,10 @@ public class FilePermission
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "setUsingJava", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       exceptionThrown = true;
     }
 
@@ -742,7 +756,10 @@ public class FilePermission
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "setUsingJava", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         exceptionThrown = true;
       }
     }
@@ -767,7 +784,10 @@ public class FilePermission
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "setUsingJava", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       exceptionThrown = true;
     }
 

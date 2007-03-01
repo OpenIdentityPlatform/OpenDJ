@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -38,11 +37,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class PostDisconnectPluginResult
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.plugin.PostDisconnectPluginResult";
 
 
 
@@ -83,8 +77,6 @@ public class PostDisconnectPluginResult
    */
   public PostDisconnectPluginResult(boolean continuePluginProcessing)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(continuePluginProcessing));
 
     this.continuePluginProcessing = continuePluginProcessing;
   }
@@ -101,7 +93,6 @@ public class PostDisconnectPluginResult
    */
   public boolean continuePluginProcessing()
   {
-    assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
   }
@@ -117,7 +108,6 @@ public class PostDisconnectPluginResult
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -135,8 +125,6 @@ public class PostDisconnectPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("PostDisconnectPluginResult(" +
                   "continuePluginProcessing=");

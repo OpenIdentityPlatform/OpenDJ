@@ -56,7 +56,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.CoreMessages.*;
@@ -72,10 +74,6 @@ public class TraditionalWorkQueue
        extends WorkQueue
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME = "org.opends.server.core.WorkQueue";
 
 
 
@@ -134,7 +132,6 @@ public class TraditionalWorkQueue
    */
   public TraditionalWorkQueue()
   {
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation should be performed here.
   }
@@ -147,8 +144,6 @@ public class TraditionalWorkQueue
   public void initializeWorkQueue(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeWorkQueue",
-                      String.valueOf(configEntry));
 
 
     shutdownRequested = false;
@@ -194,7 +189,10 @@ public class TraditionalWorkQueue
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_NUM_WORKER_THREADS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -240,7 +238,10 @@ public class TraditionalWorkQueue
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_QUEUE_CAPACITY;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -291,7 +292,10 @@ public class TraditionalWorkQueue
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR;
       String message = getMessage(msgID, TraditionalWorkQueueMonitor.class,
@@ -308,7 +312,6 @@ public class TraditionalWorkQueue
    */
   public void finalizeWorkQueue(String reason)
   {
-    assert debugEnter(CLASS_NAME, "finalizeWorkQueue");
 
     shutdownRequested = true;
 
@@ -326,7 +329,10 @@ public class TraditionalWorkQueue
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "processServerShutdown", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
                  MSGID_QUEUE_UNABLE_TO_CANCEL, String.valueOf(o),
@@ -344,7 +350,10 @@ public class TraditionalWorkQueue
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "processServerShutdown", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
                  MSGID_QUEUE_UNABLE_TO_NOTIFY_THREAD, t.getName(),
@@ -363,7 +372,6 @@ public class TraditionalWorkQueue
    */
   public boolean shutdownRequested()
   {
-    assert debugEnter(CLASS_NAME, "shutdownRequested");
 
     return shutdownRequested;
   }
@@ -384,7 +392,6 @@ public class TraditionalWorkQueue
   public void submitOperation(Operation operation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "submitOperation", String.valueOf(operation));
 
     if (shutdownRequested)
     {
@@ -420,7 +427,6 @@ public class TraditionalWorkQueue
    */
   public Operation nextOperation(TraditionalWorkerThread workerThread)
   {
-    assert debugEnter(CLASS_NAME, "nextOperation");
 
     return retryNextOperation(workerThread, 0);
   }
@@ -446,7 +452,6 @@ public class TraditionalWorkQueue
   private Operation retryNextOperation(TraditionalWorkerThread workerThread,
                                        int numFailures)
   {
-    assert debugEnter(CLASS_NAME, "retryNextOperation");
 
 
     // See if we should kill off this thread.  This could be necessary if the
@@ -477,7 +482,10 @@ public class TraditionalWorkQueue
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "retryNextOperation", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
       finally
       {
@@ -537,7 +545,10 @@ public class TraditionalWorkQueue
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "retryNextOperation", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
             }
             finally
             {
@@ -573,14 +584,17 @@ public class TraditionalWorkQueue
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "nextOperation", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This should not happen.  The only recourse we have is to log a message
       // and try again.
       logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
                MSGID_WORKER_WAITING_UNCAUGHT_EXCEPTION,
                Thread.currentThread().getName(), String.valueOf(e));
-      return retryNextOperation(workerThread, numFailures+1);
+      return retryNextOperation(workerThread, numFailures + 1);
     }
   }
 
@@ -597,7 +611,6 @@ public class TraditionalWorkQueue
    */
   public boolean removeOperation(Operation operation)
   {
-    assert debugEnter(CLASS_NAME, "removeOperation", String.valueOf(operation));
 
     return opQueue.remove(operation);
   }
@@ -615,7 +628,6 @@ public class TraditionalWorkQueue
    */
   public long getOpsSubmitted()
   {
-    assert debugEnter(CLASS_NAME, "getOpsSubmitted");
 
     return opsSubmitted.longValue();
   }
@@ -631,7 +643,6 @@ public class TraditionalWorkQueue
    */
   public long getOpsRejectedDueToQueueFull()
   {
-    assert debugEnter(CLASS_NAME, "getOpsRejectedDueToQueueFull");
 
     return queueFullRejects.longValue();
   }
@@ -649,7 +660,6 @@ public class TraditionalWorkQueue
    */
   public int size()
   {
-    assert debugEnter(CLASS_NAME, "size");
 
     return opQueue.size();
   }
@@ -665,7 +675,6 @@ public class TraditionalWorkQueue
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -681,7 +690,6 @@ public class TraditionalWorkQueue
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -724,8 +732,6 @@ public class TraditionalWorkQueue
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List");
 
 
     boolean configIsAcceptable = true;
@@ -765,7 +771,10 @@ public class TraditionalWorkQueue
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_NUM_WORKER_THREADS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -809,7 +818,10 @@ public class TraditionalWorkQueue
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_QUEUE_CAPACITY;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -843,9 +855,6 @@ public class TraditionalWorkQueue
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ArrayList<String> resultMessages = new ArrayList<String>();
@@ -890,7 +899,10 @@ public class TraditionalWorkQueue
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_NUM_WORKER_THREADS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -935,7 +947,10 @@ public class TraditionalWorkQueue
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_QUEUE_CAPACITY;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -990,7 +1005,10 @@ public class TraditionalWorkQueue
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
       finally
       {
@@ -1046,7 +1064,10 @@ public class TraditionalWorkQueue
             }
             catch (InterruptedException ie)
             {
-              assert debugException(CLASS_NAME, "applyNewConfiguration", ie);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, ie);
+              }
             }
           }
         }
@@ -1062,7 +1083,10 @@ public class TraditionalWorkQueue
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
       finally
       {
@@ -1081,7 +1105,6 @@ public class TraditionalWorkQueue
    */
   public boolean isIdle()
   {
-    assert debugEnter(CLASS_NAME, "isIdle");
 
     if (opQueue.size() > 0)
     {

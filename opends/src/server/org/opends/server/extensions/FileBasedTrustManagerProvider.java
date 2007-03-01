@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -55,7 +55,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -70,11 +72,6 @@ public class FileBasedTrustManagerProvider
        extends TrustManagerProvider
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.FileBasedTrustManagerProvider";
 
 
 
@@ -108,7 +105,6 @@ public class FileBasedTrustManagerProvider
    */
   public FileBasedTrustManagerProvider()
   {
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation is required.
   }
@@ -133,8 +129,6 @@ public class FileBasedTrustManagerProvider
   public void initializeTrustManagerProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeTrustManagerProvider",
-                      String.valueOf(configEntry));
 
 
     // Store the DN of the configuration entry.
@@ -169,19 +163,28 @@ public class FileBasedTrustManagerProvider
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "initializeTrustManagerProvider", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
       throw ce;
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "initializeTrustManagerProvider", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       throw ie;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeTrustManagerProvider", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -213,8 +216,10 @@ public class FileBasedTrustManagerProvider
         }
         catch (KeyStoreException kse)
         {
-          assert debugException(CLASS_NAME, "initializeTrustManagerProvider",
-                                kse);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, kse);
+          }
 
           msgID = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
           String message = getMessage(msgID, String.valueOf(typeStr),
@@ -226,13 +231,19 @@ public class FileBasedTrustManagerProvider
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "initializeTrustManagerProvider", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       throw ie;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeTrustManagerProvider", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_TYPE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -287,13 +298,19 @@ pinSelection:
       }
       catch (InitializationException ie)
       {
-        assert debugException(CLASS_NAME, "initializeTrustManagerProvider", ie);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ie);
+        }
 
         throw ie;
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeTrustManagerProvider", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -331,13 +348,19 @@ pinSelection:
       }
       catch (InitializationException ie)
       {
-        assert debugException(CLASS_NAME, "initializeTrustManagerProvider", ie);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ie);
+        }
 
         throw ie;
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeTrustManagerProvider", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -403,13 +426,19 @@ pinSelection:
       }
       catch (InitializationException ie)
       {
-        assert debugException(CLASS_NAME, "initializeTrustManagerProvider", ie);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ie);
+        }
 
         throw ie;
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeTrustManagerProvider", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FILE;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -434,7 +463,10 @@ pinSelection:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeTrustManagerProvider", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -455,7 +487,6 @@ pinSelection:
    */
   public void finalizeTrustManagerProvider()
   {
-    assert debugEnter(CLASS_NAME, "finalizeTrustManagerProvider");
 
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -475,7 +506,6 @@ pinSelection:
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getTrustManagers");
 
 
     KeyStore trustStore;
@@ -490,7 +520,10 @@ pinSelection:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getTrustManagers", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_LOAD;
       String message = getMessage(msgID, trustStoreFile,
@@ -510,7 +543,10 @@ pinSelection:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getTrustManagers", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY;
       String message = getMessage(msgID, trustStoreFile,
@@ -531,7 +567,6 @@ pinSelection:
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -547,7 +582,6 @@ pinSelection:
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -629,8 +663,6 @@ pinSelection:
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // Make sure that a trust store file was provided.
@@ -664,14 +696,20 @@ pinSelection:
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
       unacceptableReasons.add(ce.getMessage());
       return false;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -702,7 +740,10 @@ pinSelection:
         }
         catch (KeyStoreException kse)
         {
-          assert debugException(CLASS_NAME, "hasAcceptableConfiguration", kse);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, kse);
+          }
 
           msgID = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
           String message = getMessage(msgID, String.valueOf(typeStr),
@@ -715,7 +756,10 @@ pinSelection:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_TYPE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -759,7 +803,10 @@ pinSelection:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -797,7 +844,10 @@ pinSelection:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -865,7 +915,10 @@ pinSelection:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FILE;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -890,7 +943,10 @@ pinSelection:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -926,9 +982,6 @@ pinSelection:
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -968,7 +1021,10 @@ pinSelection:
     }
     catch (ConfigException ce)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -977,7 +1033,10 @@ pinSelection:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1012,7 +1071,10 @@ pinSelection:
         }
         catch (KeyStoreException kse)
         {
-          assert debugException(CLASS_NAME, "applyNewConfiguration", kse);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, kse);
+          }
 
           msgID = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
           messages.add(getMessage(msgID, String.valueOf(newTrustStoreType),
@@ -1028,7 +1090,10 @@ pinSelection:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_TYPE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1086,7 +1151,10 @@ pinSelection:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
         messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1136,7 +1204,10 @@ pinSelection:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
         messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1226,7 +1297,10 @@ pinSelection:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FILE;
         messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1257,7 +1331,10 @@ pinSelection:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
         messages.add(getMessage(msgID, String.valueOf(configEntryDN),

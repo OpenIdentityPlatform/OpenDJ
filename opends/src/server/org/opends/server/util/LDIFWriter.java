@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -44,7 +44,9 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
 
@@ -56,10 +58,6 @@ import static org.opends.server.util.Validator.*;
  */
 public final class LDIFWriter
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME = "org.opends.server.util.LDIFWriter";
 
 
   // FIXME -- Add support for generating a hash when writing the data.
@@ -89,7 +87,6 @@ public final class LDIFWriter
   public LDIFWriter(LDIFExportConfig exportConfig)
          throws IOException
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(exportConfig));
 
     ensureNotNull(exportConfig);
     this.exportConfig = exportConfig;
@@ -126,8 +123,6 @@ public final class LDIFWriter
   public void writeComment(String comment, int wrapColumn)
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "writeComment", String.valueOf(comment),
-                      String.valueOf(wrapColumn));
 
     ensureNotNull(comment);
 
@@ -223,7 +218,6 @@ outerLoop:
  */
 public boolean writeEntries(Collection <Entry> entries)
   throws IOException, LDIFException {
-      assert debugEnter(CLASS_NAME, "writeEntry", String.valueOf(entries));
 
      boolean ret=true;
      Iterator<Entry> i = entries.iterator();
@@ -251,7 +245,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public boolean writeEntry(Entry entry)
          throws IOException, LDIFException
   {
-    assert debugEnter(CLASS_NAME, "writeEntry", String.valueOf(entry));
 
     ensureNotNull(entry);
     return entry.toLDIF(exportConfig);
@@ -272,8 +265,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public void writeAddChangeRecord(Entry entry)
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "writeAddChangeRecord",
-                      String.valueOf(entry));
 
     ensureNotNull(entry);
 
@@ -352,8 +343,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public void writeDeleteChangeRecord(Entry entry, boolean commentEntry)
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "writeDeleteChangeRecord",
-                      String.valueOf(entry), String.valueOf(commentEntry));
 
     ensureNotNull(entry);
 
@@ -433,8 +422,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public void writeModifyChangeRecord(DN dn, List<Modification> modifications)
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "writeModifyChangeRecord", String.valueOf(dn),
-                      String.valueOf(modifications));
 
     ensureNotNull(dn, modifications);
 
@@ -546,10 +533,6 @@ public boolean writeEntries(Collection <Entry> entries)
                                         DN newSuperior)
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "writeModifyDNChangeRecord",
-                      String.valueOf(dn), String.valueOf(newRDN),
-                      String.valueOf(deleteOldRDN),
-                      String.valueOf(newSuperior));
 
     ensureNotNull(dn, newRDN);
 
@@ -619,7 +602,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public void flush()
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "flush");
 
     writer.flush();
   }
@@ -634,7 +616,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public void close()
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "close");
 
     writer.flush();
     writer.close();
@@ -657,9 +638,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public static void appendLDIFSeparatorAndValue(StringBuilder buffer,
                                                  byte[] valueBytes)
   {
-    assert debugEnter(CLASS_NAME, "appendLDIFSeparatorAndValue",
-                      "java.lang.StringBuilder",
-                      String.valueOf(valueBytes));
 
     ensureNotNull(buffer, valueBytes);
 
@@ -689,7 +667,10 @@ public boolean writeEntries(Collection <Entry> entries)
       catch (Exception e)
       {
         // This should never happen.
-        assert debugException(CLASS_NAME, "appendLDIFSeparatorAndValue", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         buffer.append(new String(valueBytes));
       }
     }
@@ -713,9 +694,6 @@ public boolean writeEntries(Collection <Entry> entries)
                                    boolean wrapLines, int wrapColumn)
           throws IOException
   {
-    assert debugEnter(CLASS_NAME, "writeLDIFLine", String.valueOf(line),
-                      String.valueOf(writer), String.valueOf(wrapLines),
-                      String.valueOf(wrapColumn));
 
     ensureNotNull(line, writer);
 

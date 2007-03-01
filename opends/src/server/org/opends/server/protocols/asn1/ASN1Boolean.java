@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -44,11 +43,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class ASN1Boolean
        extends ASN1Element
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.asn1.ASN1Boolean";
 
 
 
@@ -78,7 +72,6 @@ public class ASN1Boolean
   {
     super(UNIVERSAL_BOOLEAN_TYPE, encodeValue(booleanValue));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(booleanValue));
 
     this.booleanValue = booleanValue;
   }
@@ -95,8 +88,6 @@ public class ASN1Boolean
   {
     super(type, encodeValue(booleanValue));
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type),
-                            String.valueOf(booleanValue));
 
     this.booleanValue = booleanValue;
   }
@@ -114,8 +105,6 @@ public class ASN1Boolean
   {
     super(type, value);
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type), bytesToHex(value),
-                            String.valueOf(booleanValue));
 
     this.booleanValue = booleanValue;
   }
@@ -129,7 +118,6 @@ public class ASN1Boolean
    */
   public boolean booleanValue()
   {
-    assert debugEnter(CLASS_NAME, "booleanValue");
 
     return booleanValue;
   }
@@ -143,7 +131,6 @@ public class ASN1Boolean
    */
   public void setValue(boolean booleanValue)
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(booleanValue));
 
     this.booleanValue = booleanValue;
     setValueInternal(encodeValue(booleanValue));
@@ -162,7 +149,6 @@ public class ASN1Boolean
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "setValue", bytesToHex(value));
 
     if (value == null)
     {
@@ -173,7 +159,7 @@ public class ASN1Boolean
 
     if (value.length != 1)
     {
-      int    msgID   = MSGID_ASN1_BOOLEAN_SET_VALUE_INVALID_LENGTH;
+      int msgID = MSGID_ASN1_BOOLEAN_SET_VALUE_INVALID_LENGTH;
       String message = getMessage(msgID, value.length);
       throw new ASN1Exception(msgID, message);
     }
@@ -197,7 +183,6 @@ public class ASN1Boolean
   public static ASN1Boolean decodeAsBoolean(ASN1Element element)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsBoolean", String.valueOf(element));
 
     if (element == null)
     {
@@ -234,8 +219,6 @@ public class ASN1Boolean
   public static ASN1Boolean decodeAsBoolean(byte[] encodedElement)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsBoolean",
-                      bytesToHex(encodedElement));
 
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 Boolean element.
@@ -320,7 +303,6 @@ public class ASN1Boolean
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ASN1Boolean(type=");
     buffer.append(byteToHex(getType()));
@@ -342,8 +324,6 @@ public class ASN1Boolean
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

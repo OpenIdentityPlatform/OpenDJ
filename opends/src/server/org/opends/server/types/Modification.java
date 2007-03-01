@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -40,11 +39,6 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class Modification
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.Modification";
 
 
   // The attribute for this modification.
@@ -70,9 +64,6 @@ public class Modification
   public Modification(ModificationType modificationType,
                       Attribute attribute)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(modificationType),
-                            String.valueOf(attribute));
 
     this.modificationType = modificationType;
     this.attribute        = attribute;
@@ -96,9 +87,6 @@ public class Modification
   public Modification(ModificationType modificationType,
                       Attribute attribute, boolean isInternal)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(modificationType),
-                            String.valueOf(attribute));
 
     this.modificationType = modificationType;
     this.attribute        = attribute;
@@ -114,7 +102,6 @@ public class Modification
    */
   public ModificationType getModificationType()
   {
-    assert debugEnter(CLASS_NAME, "getModificationType");
 
     return modificationType;
   }
@@ -129,8 +116,6 @@ public class Modification
    */
   public void setModificationType(ModificationType modificationType)
   {
-    assert debugEnter(CLASS_NAME, "setModificationType",
-                      String.valueOf(modificationType));
 
     this.modificationType = modificationType;
   }
@@ -144,7 +129,6 @@ public class Modification
    */
   public Attribute getAttribute()
   {
-    assert debugEnter(CLASS_NAME, "getAttribute");
 
     return attribute;
   }
@@ -158,8 +142,6 @@ public class Modification
    */
   public void setAttribute(Attribute attribute)
   {
-    assert debugEnter(CLASS_NAME, "setAttribute",
-                      String.valueOf(attribute));
 
     this.attribute = attribute;
   }
@@ -176,7 +158,6 @@ public class Modification
    */
   public boolean isInternal()
   {
-    assert debugEnter(CLASS_NAME, "isInternal");
 
     return isInternal;
   }
@@ -195,8 +176,6 @@ public class Modification
    */
   public void setInternal(boolean isInternal)
   {
-    assert debugEnter(CLASS_NAME, "setInternal",
-                      String.valueOf(isInternal));
 
     this.isInternal = isInternal;
   }
@@ -217,7 +196,6 @@ public class Modification
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (this == o)
     {
@@ -249,7 +227,6 @@ public class Modification
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     return attribute.hashCode();
   }
@@ -263,7 +240,6 @@ public class Modification
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -281,8 +257,6 @@ public class Modification
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("Modification(");
     buffer.append(modificationType.toString());
@@ -301,7 +275,6 @@ public class Modification
    */
   public String toLDIF()
   {
-    assert debugEnter(CLASS_NAME, "toLDIF");
 
     StringBuilder buffer = new StringBuilder();
     toLDIF(buffer);
@@ -319,8 +292,6 @@ public class Modification
    */
   public void toLDIF(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toLDIF",
-                      "java.lang.StringBuilder");
 
     buffer.append(modificationType.toString());
     buffer.append(": ");

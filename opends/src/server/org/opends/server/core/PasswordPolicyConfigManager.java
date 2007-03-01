@@ -40,7 +40,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -56,11 +58,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class PasswordPolicyConfigManager
        implements ConfigAddListener, ConfigDeleteListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.PasswordPolicyConfigManager";
 
 
 
@@ -69,7 +66,6 @@ public class PasswordPolicyConfigManager
    */
   public PasswordPolicyConfigManager()
   {
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -89,7 +85,6 @@ public class PasswordPolicyConfigManager
   public void initializePasswordPolicies()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePasswordPolicies");
 
 
     // First, get the configuration base entry.
@@ -101,8 +96,10 @@ public class PasswordPolicyConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordPolicies",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_PWPOLICY_CANNOT_GET_BASE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -206,8 +203,6 @@ public class PasswordPolicyConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configAddIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // See if we can create a password policy from the provided configuration
@@ -259,8 +254,6 @@ public class PasswordPolicyConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationAdd",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -322,8 +315,6 @@ public class PasswordPolicyConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configDeleteIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // We'll allow the policy to be removed as long as it isn't the default.
@@ -357,8 +348,6 @@ public class PasswordPolicyConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationDelete",
-                      String.valueOf(configEntry));
 
 
     // We'll allow the policy to be removed as long as it isn't the default.

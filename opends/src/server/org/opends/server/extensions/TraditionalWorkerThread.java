@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -33,13 +33,15 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.Operation;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.debugWarning;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -54,11 +56,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class TraditionalWorkerThread
        extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-  "org.opends.server.core.WorkerThread";
 
 
 
@@ -96,8 +93,6 @@ public class TraditionalWorkerThread
   {
     super("Worker Thread " + threadID);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(workQueue),
-                            String.valueOf(threadID));
 
     this.workQueue = workQueue;
 
@@ -117,7 +112,6 @@ public class TraditionalWorkerThread
    */
   public void setStoppedByReducedThreadNumber()
   {
-    assert debugEnter(CLASS_NAME, "setStoppedByReducedThreadNumber");
 
     stoppedByReducedThreadNumber = true;
   }
@@ -135,7 +129,6 @@ public class TraditionalWorkerThread
    */
   public boolean isActive()
   {
-    assert debugEnter(CLASS_NAME, "isActive");
 
     return (isAlive() && (operation != null));
   }
@@ -148,9 +141,6 @@ public class TraditionalWorkerThread
    */
   public void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
-    assert debugMessage(DebugLogCategory.CORE_SERVER, DebugLogSeverity.INFO,
-                        CLASS_NAME, "run", getName() + " starting.");
 
     workerThread = currentThread();
 
@@ -190,12 +180,14 @@ public class TraditionalWorkerThread
       }
       catch (Exception e)
       {
-        assert debugMessage(DebugLogCategory.CORE_SERVER,
-                            DebugLogSeverity.WARNING, CLASS_NAME, "run",
-                            "Uncaught exception in worker thread while " +
-                            "processing operation " +
-                            String.valueOf(operation) + ":  " + e);
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugWarning(
+            "Uncaught exception in worker thread while processing " +
+                "operation %s: %s", String.valueOf(operation), e);
+
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         try
         {
@@ -213,12 +205,14 @@ public class TraditionalWorkerThread
         }
         catch (Exception e2)
         {
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                              DebugLogSeverity.WARNING, CLASS_NAME, "run",
-                              "Exception in worker thread while trying to " +
-                              "log a message about an uncaught exception " + e +
-                              ":  " + e2);
-          assert debugException(CLASS_NAME, "run", e2);
+          if (debugEnabled())
+          {
+            debugWarning(
+              "Exception in worker thread while trying to log a " +
+                  "message about an uncaught exception %s: %s", e, e2);
+
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
         }
 
 
@@ -234,11 +228,13 @@ public class TraditionalWorkerThread
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "run", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
         }
       }
     }
-
 
     // If we have gotten here, then we presume that the server thread is
     // shutting down.  However, if that's not the case then that is a problem
@@ -255,8 +251,10 @@ public class TraditionalWorkerThread
     }
 
 
-    assert debugMessage(DebugLogCategory.CORE_SERVER, DebugLogSeverity.INFO,
-                        CLASS_NAME, "run", getName() + " exiting.");
+    if (debugEnabled())
+    {
+      debugInfo(getName() + " exiting.");
+    }
   }
 
 
@@ -267,11 +265,11 @@ public class TraditionalWorkerThread
    */
   public void shutDown()
   {
-    assert debugEnter(CLASS_NAME, "shutDown");
-    assert debugMessage(DebugLogCategory.CORE_SERVER,
-                        DebugLogSeverity.INFO, CLASS_NAME, "shutDown",
-                        getName() + " being signaled to shut down.");
 
+    if (debugEnabled())
+    {
+      debugInfo(getName() + " being signaled to shut down.");
+    }
 
     // Set a flag that indicates that the thread should stop running.
     shutdownRequested = true;
@@ -287,11 +285,13 @@ public class TraditionalWorkerThread
       }
       catch (Exception e)
       {
-        assert debugMessage(DebugLogCategory.CORE_SERVER,
-                            DebugLogSeverity.WARNING, CLASS_NAME, "shutDown",
-                            "Caught an exception while trying to interrupt " +
-                            "the worker thread waiting for work:  " + e);
-        assert debugException(CLASS_NAME, "shutDown", e);
+        if (debugEnabled())
+        {
+          debugWarning(
+            "Caught an exception while trying to interrupt the worker " +
+                "thread waiting for work: %s", e);
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
     else
@@ -304,12 +304,13 @@ public class TraditionalWorkerThread
       }
       catch (Exception e)
       {
-        assert debugMessage(DebugLogCategory.CORE_SERVER,
-                            DebugLogSeverity.WARNING, CLASS_NAME, "shutDown",
-                            "Caught an exception while trying to abandon the " +
-                            "operation in progress for the worker thread:  " +
-                            e);
-        assert debugException(CLASS_NAME, "shutDown", e);
+        if (debugEnabled())
+        {
+          debugWarning(
+            "Caught an exception while trying to abandon the " +
+                "operation in progress for the worker thread: %s", e);
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }

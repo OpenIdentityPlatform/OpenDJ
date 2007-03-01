@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -39,7 +39,10 @@ import java.util.LinkedList;
 
 import org.opends.server.config.ConfigException;
 
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -55,11 +58,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class BackupDirectory
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.BackupDirectory";
 
 
 
@@ -98,8 +96,6 @@ public class BackupDirectory
    */
   public BackupDirectory(String path, DN configEntryDN)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(path),
-                            String.valueOf(configEntryDN));
 
     this.path          = path;
     this.configEntryDN = configEntryDN;
@@ -124,9 +120,6 @@ public class BackupDirectory
   public BackupDirectory(String path, DN configEntryDN,
                          LinkedHashMap<String,BackupInfo> backups)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(path),
-                            String.valueOf(configEntryDN),
-                            String.valueOf(backups));
 
     this.path          = path;
     this.configEntryDN = configEntryDN;
@@ -151,7 +144,6 @@ public class BackupDirectory
    */
   public String getPath()
   {
-    assert debugEnter(CLASS_NAME, "getPath");
 
     return path;
   }
@@ -167,7 +159,6 @@ public class BackupDirectory
    */
   public DN getConfigEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigEntryDN");
 
     return configEntryDN;
   }
@@ -184,7 +175,6 @@ public class BackupDirectory
    */
   public LinkedHashMap<String,BackupInfo> getBackups()
   {
-    assert debugEnter(CLASS_NAME, "getBackups");
 
     return backups;
   }
@@ -202,8 +192,6 @@ public class BackupDirectory
    */
   public BackupInfo getBackupInfo(String backupID)
   {
-    assert debugEnter(CLASS_NAME, "getBackupInfo",
-                      String.valueOf(backupID));
 
     return backups.get(backupID);
   }
@@ -220,7 +208,6 @@ public class BackupDirectory
    */
   public BackupInfo getLatestBackup()
   {
-    assert debugEnter(CLASS_NAME, "getLatestBackup");
 
     BackupInfo latestBackup = null;
     for (BackupInfo backup : backups.values())
@@ -257,8 +244,6 @@ public class BackupDirectory
   public void addBackup(BackupInfo backupInfo)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "addBackup",
-                      String.valueOf(backupInfo));
 
     String backupID = backupInfo.getBackupID();
     if (backups.containsKey(backupID))
@@ -288,8 +273,6 @@ public class BackupDirectory
   public void removeBackup(String backupID)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "removeBackup",
-                      String.valueOf(backupID));
 
     if (! backups.containsKey(backupID))
     {
@@ -323,7 +306,6 @@ public class BackupDirectory
    */
   public String getDescriptorPath()
   {
-    assert debugEnter(CLASS_NAME, "getDescriptorPath");
 
     return path + File.separator + BACKUP_DIRECTORY_DESCRIPTOR_FILE;
   }
@@ -339,7 +321,6 @@ public class BackupDirectory
   public void writeBackupDirectoryDescriptor()
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "writeBackupDirectoryDescriptor");
 
 
     // First make sure that the target directory exists.  If it
@@ -353,8 +334,10 @@ public class BackupDirectory
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME,
-                              "writeBackupDirectoryDescriptor", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY;
         String message = getMessage(msgID, path,
@@ -425,11 +408,13 @@ public class BackupDirectory
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME,
-                                "writeBackupDirectoryDescriptor", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
-          int msgID   =
-               MSGID_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR;
+          int msgID =
+              MSGID_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR;
           String message = getMessage(msgID, savedDescriptorFilePath,
                                       stackTraceToSingleLineString(e),
                                       newDescriptorFilePath,
@@ -444,11 +429,13 @@ public class BackupDirectory
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME,
-                              "writeBackupDirectoryDescriptor", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID =
-             MSGID_BACKUPDIRECTORY_CANNOT_RENAME_CURRENT_DESCRIPTOR;
+            MSGID_BACKUPDIRECTORY_CANNOT_RENAME_CURRENT_DESCRIPTOR;
         String message = getMessage(msgID, descriptorFilePath,
                                     savedDescriptorFilePath,
                                     stackTraceToSingleLineString(e),
@@ -465,8 +452,10 @@ public class BackupDirectory
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME,
-                            "writeBackupDirectoryDescriptor", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR;
       String message = getMessage(msgID, newDescriptorFilePath,
@@ -500,8 +489,6 @@ public class BackupDirectory
                      readBackupDirectoryDescriptor(String path)
          throws IOException, ConfigException
   {
-    assert debugEnter(CLASS_NAME, "readBackupDirectoryDescriptor",
-                      String.valueOf(path));
 
 
     // Make sure that the descriptor file exists.

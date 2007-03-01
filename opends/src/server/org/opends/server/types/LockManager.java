@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -34,7 +34,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugError;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugWarning;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -47,11 +52,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LockManager
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.LockManager";
 
 
 
@@ -129,8 +129,6 @@ public class LockManager
    */
   public static Lock tryLockRead(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "tryLockRead",
-                      String.valueOf(entryDN));
 
 
     int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
@@ -152,14 +150,16 @@ public class LockManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "lockRead", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
 
-      // This is not fine.  Some unexpected error occurred.
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                  DebugLogSeverity.ERROR, CLASS_NAME,  "lockRead",
-                  "Unexpected exception while trying to obtain the " +
-                  "global lock for entry " + entryDN.toString() +
-                  ":  " + stackTraceToSingleLineString(e));
+        // This is not fine.  Some unexpected error occurred.
+        debugError(
+            "Unexpected exception while trying to obtain the " +
+                "global lock for entry %s: %s",
+            entryDN, stackTraceToSingleLineString(e));
+      }
       return null;
     }
 
@@ -185,11 +185,12 @@ public class LockManager
         else
         {
           // This should never happen since we just created the lock.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.ERROR, CLASS_NAME, "lockRead",
-                      "Unable to acquire read lock on " +
-                      "newly-created lock for entry " +
-                      entryDN.toString());
+          if (debugEnabled())
+          {
+            debugError(
+                "Unable to acquire read lock on newly-created lock " +
+                "for entry %s", entryDN);
+          }
           return null;
         }
       }
@@ -205,26 +206,28 @@ public class LockManager
         else
         {
           // We couldn't get the read lock.  Write a debug message.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.WARNING, CLASS_NAME,
-                      "lockRead",
-                      "Unable to acquire a read lock for entry " +
-                      entryDN.toString() + " that was already " +
-                      "present in the lock table.");
+          if (debugEnabled())
+          {
+            debugWarning(
+                "Unable to acquire a read lock for entry %s that " +
+                "was already present in the lock table.", entryDN);
+          }
           return null;
         }
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "lockRead", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
 
-      // This is not fine.  Some unexpected error occurred.
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                  DebugLogSeverity.ERROR, CLASS_NAME, "lockRead",
-                  "Unexpected exception while trying to obtain a " +
-                  "read lock for entry " + entryDN.toString() +
-                  ":  " + stackTraceToSingleLineString(e));
+        // This is not fine.  Some unexpected error occurred.
+        debugError(
+            "Unexpected exception while trying to obtain a read " +
+                "lock for entry %s: %s",
+            entryDN, stackTraceToSingleLineString(e));
+      }
       return null;
     }
     finally
@@ -253,8 +256,6 @@ public class LockManager
    */
   public static Lock lockRead(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "lockRead",
-                      String.valueOf(entryDN));
 
     return lockRead(entryDN, DEFAULT_TIMEOUT);
   }
@@ -279,8 +280,6 @@ public class LockManager
    */
   public static Lock lockRead(DN entryDN, long timeout)
   {
-    assert debugEnter(CLASS_NAME, "lockRead", String.valueOf(entryDN),
-                      String.valueOf(timeout));
 
 
     int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
@@ -302,7 +301,10 @@ public class LockManager
     }
     catch (InterruptedException ie)
     {
-      assert debugException(CLASS_NAME, "lockRead", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       // This is fine.  The thread trying to acquire the lock was
       // interrupted.
@@ -310,14 +312,19 @@ public class LockManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "lockRead", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This is not fine.  Some unexpected error occurred.
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                  DebugLogSeverity.ERROR, CLASS_NAME, "lockRead",
-                  "Unexpected exception while trying to obtain the " +
-                  "global lock for entry " + entryDN.toString() +
-                  ":  " + stackTraceToSingleLineString(e));
+      if (debugEnabled())
+      {
+        debugError(
+            "Unexpected exception while trying to obtain the " +
+                "global lock for entry %s: %s",
+            entryDN, stackTraceToSingleLineString(e));
+      }
       return null;
     }
 
@@ -344,11 +351,12 @@ public class LockManager
         else
         {
           // This should never happen since we just created the lock.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.ERROR, CLASS_NAME, "lockRead",
-                      "Unable to acquire read lock on " +
-                      "newly-created lock for entry " +
-                      entryDN.toString());
+          if (debugEnabled())
+          {
+            debugError(
+                "Unable to acquire read lock on newly-created lock " +
+                "for entry %s", entryDN);
+          }
           return null;
         }
       }
@@ -365,19 +373,22 @@ public class LockManager
         else
         {
           // We couldn't get the read lock.  Write a debug message.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.WARNING, CLASS_NAME,
-                      "lockRead",
-                      "Unable to acquire a read lock for entry " +
-                      entryDN.toString() + " that was already " +
-                      "present in the lock table.");
+          if (debugEnabled())
+          {
+            debugWarning(
+                "Unable to acquire a read lock for entry %s that " +
+                "was already present in the lock table.", entryDN);
+          }
           return null;
         }
       }
     }
     catch (InterruptedException ie)
     {
-      assert debugException(CLASS_NAME, "lockRead", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       // This is fine.  The thread trying to acquire the lock was
       // interrupted.
@@ -385,14 +396,19 @@ public class LockManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "lockRead", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This is not fine.  Some unexpected error occurred.
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                  DebugLogSeverity.ERROR, CLASS_NAME, "lockRead",
-                  "Unexpected exception while trying to obtain a " +
-                  "read lock for entry " + entryDN.toString() +
-                  ":  " + stackTraceToSingleLineString(e));
+      if (debugEnabled())
+      {
+        debugError(
+            "Unexpected exception while trying to obtain a read " +
+                "lock for entry %s: %s",
+            entryDN, stackTraceToSingleLineString(e));
+      }
       return null;
     }
     finally
@@ -418,8 +434,6 @@ public class LockManager
    */
   public static Lock tryLockWrite(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "lockWrite",
-                      String.valueOf(entryDN));
 
 
     int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
@@ -441,14 +455,16 @@ public class LockManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "lockWrite", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
 
-      // This is not fine.  Some unexpected error occurred.
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                  DebugLogSeverity.ERROR, CLASS_NAME, "lockWrite",
-                  "Unexpected exception while trying to obtain the " +
-                  "global lock for entry " + entryDN.toString() +
-                  ":  " + stackTraceToSingleLineString(e));
+        // This is not fine.  Some unexpected error occurred.
+        debugError(
+            "Unexpected exception while trying to obtain the " +
+                "global lock for entry %s: %s",
+            entryDN, stackTraceToSingleLineString(e));
+      }
       return null;
     }
 
@@ -474,11 +490,12 @@ public class LockManager
         else
         {
           // This should never happen since we just created the lock.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.ERROR, CLASS_NAME, "lockWrite",
-                      "Unable to acquire write lock on " +
-                      "newly-created lock for entry " +
-                      entryDN.toString());
+          if (debugEnabled())
+          {
+            debugError(
+                "Unable to acquire write lock on newly-created " +
+                    "lock for entry %s", entryDN);
+          }
           return null;
         }
       }
@@ -495,26 +512,29 @@ public class LockManager
         else
         {
           // We couldn't get the write lock.  Write a debug message.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.WARNING, CLASS_NAME,
-                      "lockWrite",
-                      "Unable to acquire the write lock for entry " +
-                      entryDN.toString() + " that was already " +
-                      "present in the lock table.");
+          if (debugEnabled())
+          {
+            debugWarning(
+                "Unable to acquire the write lock for entry %s " +
+                    "that was already present in the lock table.",
+                entryDN);
+          }
           return null;
         }
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "lockWrite", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
 
-      // This is not fine.  Some unexpected error occurred.
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                  DebugLogSeverity.ERROR, CLASS_NAME, "lockWrite",
-                  "Unexpected exception while trying to obtain the " +
-                  "write lock for entry " + entryDN.toString() +
-                  ":  " + stackTraceToSingleLineString(e));
+        // This is not fine.  Some unexpected error occurred.
+        debugError(
+            "Unexpected exception while trying to obtain the write " +
+                "lock for entry %s: %s",
+            entryDN, stackTraceToSingleLineString(e));
+      }
       return null;
     }
     finally
@@ -541,8 +561,6 @@ public class LockManager
    */
   public static Lock lockWrite(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "lockWrite",
-                      String.valueOf(entryDN));
 
     return lockWrite(entryDN, DEFAULT_TIMEOUT);
   }
@@ -565,9 +583,6 @@ public class LockManager
    */
   public static Lock lockWrite(DN entryDN, long timeout)
   {
-    assert debugEnter(CLASS_NAME, "lockWrite",
-                      String.valueOf(entryDN),
-                      String.valueOf(timeout));
 
 
     int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
@@ -589,7 +604,10 @@ public class LockManager
     }
     catch (InterruptedException ie)
     {
-      assert debugException(CLASS_NAME, "lockWrite", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       // This is fine.  The thread trying to acquire the lock was
       // interrupted.
@@ -597,14 +615,19 @@ public class LockManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "lockWrite", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This is not fine.  Some unexpected error occurred.
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                  DebugLogSeverity.ERROR, CLASS_NAME, "lockWrite",
-                  "Unexpected exception while trying to obtain the " +
-                  "global lock for entry " + entryDN.toString() +
-                  ":  " + stackTraceToSingleLineString(e));
+      if (debugEnabled())
+      {
+        debugError(
+            "Unexpected exception while trying to obtain the " +
+                "global lock for entry %s: %s",
+            entryDN, stackTraceToSingleLineString(e));
+      }
       return null;
     }
 
@@ -631,11 +654,12 @@ public class LockManager
         else
         {
           // This should never happen since we just created the lock.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.ERROR, CLASS_NAME, "lockWrite",
-                      "Unable to acquire write lock on " +
-                      "newly-created lock for entry " +
-                      entryDN.toString());
+          if (debugEnabled())
+          {
+            debugError(
+                "Unable to acquire write lock on newly-created " +
+                    "lock for entry %s", entryDN.toString());
+          }
           return null;
         }
       }
@@ -653,19 +677,23 @@ public class LockManager
         else
         {
           // We couldn't get the write lock.  Write a debug message.
-          assert debugMessage(DebugLogCategory.CORE_SERVER,
-                      DebugLogSeverity.WARNING, CLASS_NAME,
-                      "lockWrite",
-                      "Unable to acquire the write lock for entry " +
-                      entryDN.toString() + " that was already " +
-                      "present in the lock table.");
+          if (debugEnabled())
+          {
+            debugWarning(
+                "Unable to acquire the write lock for entry %s " +
+                    "that was already present in the lock table.",
+                entryDN);
+          }
           return null;
         }
       }
     }
     catch (InterruptedException ie)
     {
-      assert debugException(CLASS_NAME, "lockWrite", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       // This is fine.  The thread trying to acquire the lock was
       // interrupted.
@@ -673,14 +701,16 @@ public class LockManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "lockWrite", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
 
-      // This is not fine.  Some unexpected error occurred.
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                  DebugLogSeverity.ERROR, CLASS_NAME, "lockWrite",
-                  "Unexpected exception while trying to obtain the " +
-                  "write lock for entry " + entryDN.toString() +
-                  ":  " + stackTraceToSingleLineString(e));
+        // This is not fine.  Some unexpected error occurred.
+        debugError(
+            "Unexpected exception while trying to obtain the write " +
+            "lock for entry %s: %s",
+            entryDN, stackTraceToSingleLineString(e));
+      }
       return null;
     }
     finally
@@ -701,7 +731,6 @@ public class LockManager
    */
   public static void unlock(DN entryDN, Lock lock)
   {
-    assert debugEnter(CLASS_NAME, "unlock", String.valueOf(entryDN));
 
 
     // Unlock the entry without grabbing any additional locks.
@@ -714,7 +743,10 @@ public class LockManager
       // This should never happen.  However, if it does, then just
       // capture the exception and continue because it may still be
       // necessary to remove the lock for the entry from the table.
-      assert debugException(CLASS_NAME, "unlock", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
 
@@ -734,7 +766,10 @@ public class LockManager
     }
     catch (InterruptedException ie)
     {
-      assert debugException(CLASS_NAME, "unlock", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       // The lock trying to acquire the lock was interrupted.  In this
       // case, we'll just return.  The worst that could happen here is
@@ -744,17 +779,19 @@ public class LockManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "unlock", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This is not fine.  Some unexpected error occurred.  But
       // again, the worst that could happen is that we may not clean
       // up an unheld lock, which isn't really that big a deal unless
       // it happens too often.
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                  DebugLogSeverity.ERROR, CLASS_NAME, "unlock",
-                  "Unexpected exception while trying to obtain the " +
-                  "global lock for entry " + entryDN.toString() +
-                  ":  " + stackTraceToSingleLineString(e));
+      debugError(
+          "Unexpected exception while trying to obtain the global " +
+              "lock for entry %s: %s",
+          entryDN, stackTraceToSingleLineString(e));
       return;
     }
 
@@ -775,15 +812,16 @@ public class LockManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "unlock", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // This should never happen.
-      assert debugMessage(DebugLogCategory.CORE_SERVER,
-                  DebugLogSeverity.ERROR, CLASS_NAME, "unlock",
-                  "Unexpected exception while trying to determine " +
-                  "whether the lock for entry " + entryDN.toString() +
-                  " can be removed:  " +
-                  stackTraceToSingleLineString(e));
+      debugError(
+          "Unexpected exception while trying to determine whether " +
+              "the lock for entry %s can be removed: %s",
+          entryDN, stackTraceToSingleLineString(e));
     }
     finally
     {
@@ -809,8 +847,6 @@ public class LockManager
    */
   public static ReentrantReadWriteLock destroyLock(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "destroyLock",
-                      String.valueOf(entryDN));
 
     return entryLocks.remove(entryDN);
   }
@@ -825,7 +861,6 @@ public class LockManager
    */
   public static int lockTableSize()
   {
-    assert debugEnter(CLASS_NAME, "lockTableSize");
 
     return entryLocks.size();
   }

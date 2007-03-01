@@ -45,7 +45,6 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -59,11 +58,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class ShutdownTask
        extends Task
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tasks.ShutdownTask";
 
 
 
@@ -89,7 +83,6 @@ public class ShutdownTask
   public void initializeTask()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "initializeTask");
 
 
     // See if the entry contains a shutdown message.  If so, then use it.
@@ -177,7 +170,6 @@ public class ShutdownTask
    */
   public TaskState runTask()
   {
-    assert debugEnter(CLASS_NAME, "runTask");
 
 
     // This is a unique case in that the shutdown cannot finish until this task

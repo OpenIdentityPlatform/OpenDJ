@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
 
@@ -36,13 +36,13 @@ import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.operation.PreParseSearchOperation;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.debugWarning;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -59,8 +59,6 @@ import static org.opends.server.util.StaticUtils.*;
 public final class LDAPADListPlugin
        extends DirectoryServerPlugin
 {
-  private static final String CLASS_NAME =
-      "org.opends.server.plugins.LDAPADListPlugin";
 
 
 
@@ -74,7 +72,6 @@ public final class LDAPADListPlugin
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -87,8 +84,6 @@ public final class LDAPADListPlugin
                                      ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(pluginTypes), String.valueOf(configEntry));
 
 
     // The set of plugin types must contain only the pre-parse search element.
@@ -127,8 +122,6 @@ public final class LDAPADListPlugin
   public final PreParsePluginResult
        doPreParse(PreParseSearchOperation searchOperation)
   {
-    assert debugEnter(CLASS_NAME, "doPreParseSearch",
-          String.valueOf(searchOperation));
 
 
     // Iterate through the requested attributes to see if any of them start with
@@ -156,15 +149,17 @@ public final class LDAPADListPlugin
           ObjectClass oc = DirectoryConfig.getObjectClass(lowerName, false);
           if (oc == null)
           {
-            debugMessage(DebugLogCategory.PLUGIN, DebugLogSeverity.WARNING,
-                         CLASS_NAME, "doPreParse",
-                         "Cannot replace unknown objectclass " + lowerName);
+            if (debugEnabled())
+            {
+              debugWarning("Cannot replace unknown objectclass %s", lowerName);
+            }
           }
           else
           {
-            debugMessage(DebugLogCategory.PLUGIN, DebugLogSeverity.INFO,
-                         CLASS_NAME, "doPreParse",
-                         "Replacing objectclass " + lowerName);
+            if (debugEnabled())
+            {
+              debugInfo("Replacing objectclass %s", lowerName);
+            }
 
             for (AttributeType at : oc.getRequiredAttributeChain())
             {

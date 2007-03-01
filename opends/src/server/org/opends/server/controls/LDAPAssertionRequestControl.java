@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -37,8 +37,10 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -55,11 +57,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPAssertionRequestControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.LDAPAssertionRequestControl";
 
 
 
@@ -85,8 +82,6 @@ public class LDAPAssertionRequestControl
     super(OID_LDAP_ASSERTION, isCritical,
           new ASN1OctetString(rawFilter.encode().encode()));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(isCritical),
-                            String.valueOf(rawFilter));
 
     this.rawFilter = rawFilter;
 
@@ -110,9 +105,6 @@ public class LDAPAssertionRequestControl
   {
     super(oid, isCritical, new ASN1OctetString(rawFilter.encode().encode()));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(rawFilter));
 
     this.rawFilter = rawFilter;
 
@@ -138,10 +130,6 @@ public class LDAPAssertionRequestControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(rawFilter),
-                            String.valueOf(encodedValue));
 
     this.rawFilter = rawFilter;
 
@@ -165,7 +153,6 @@ public class LDAPAssertionRequestControl
   public static LDAPAssertionRequestControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
     if (! control.hasValue())
     {
@@ -182,7 +169,10 @@ public class LDAPAssertionRequestControl
     }
     catch (ASN1Exception ae)
     {
-      assert debugException(CLASS_NAME, "decodeControl", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
 
       int    msgID   = MSGID_LDAPASSERT_INVALID_CONTROL_VALUE;
       String message = getMessage(msgID, ae.getMessage());
@@ -206,7 +196,6 @@ public class LDAPAssertionRequestControl
    */
   public LDAPFilter getRawFilter()
   {
-    assert debugEnter(CLASS_NAME, "getRawFilter");
 
     return rawFilter;
   }
@@ -221,7 +210,6 @@ public class LDAPAssertionRequestControl
    */
   public void setRawFilter(LDAPFilter rawFilter)
   {
-    assert debugEnter(CLASS_NAME, "setRawFilter", String.valueOf(rawFilter));
 
     this.rawFilter = rawFilter;
     this.filter    = null;
@@ -242,7 +230,6 @@ public class LDAPAssertionRequestControl
   public SearchFilter getSearchFilter()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getSearchFilter");
 
     if (filter == null)
     {
@@ -261,7 +248,6 @@ public class LDAPAssertionRequestControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -278,7 +264,6 @@ public class LDAPAssertionRequestControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("LDAPAssertionRequestControl(criticality=");
     buffer.append(isCritical());

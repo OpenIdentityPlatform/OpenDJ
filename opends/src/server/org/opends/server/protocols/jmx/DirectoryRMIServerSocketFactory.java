@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 
-import static org.opends.server.loggers.Debug.debugMessage;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -36,9 +37,6 @@ import java.rmi.server.RMIServerSocketFactory;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 
 /**
  * A <code>DirectoryRMIServerSocketFactory</code> instance is used by the RMI
@@ -62,11 +60,6 @@ public class DirectoryRMIServerSocketFactory implements
    */
   private final boolean needClientCertificate;
 
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-    "org.opends.server.protocols.jmx.DirectoryRMIServerSocketFactory";
 
   /**
    * Constructs a new <code>DirectoryRMIServerSocketFactory</code> with the
@@ -125,13 +118,11 @@ public class DirectoryRMIServerSocketFactory implements
       public Socket accept() throws IOException
       {
         Socket socket = super.accept();
-        assert debugMessage(
-            DebugLogCategory.CONNECTION_HANDLING,
-            DebugLogSeverity.VERBOSE,
-            CLASS_NAME,
-            "createServerSocket",
-            "host/port:" + socket.getInetAddress().getHostName() + "/"
-                + socket.getPort());
+        if (debugEnabled())
+        {
+          debugVerbose("host/port: %s/%d",
+                       socket.getInetAddress().getHostName(), socket.getPort());
+        }
         SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(
             socket,
             socket.getInetAddress().getHostName(),

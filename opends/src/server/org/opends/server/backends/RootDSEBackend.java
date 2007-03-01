@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -78,7 +78,9 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.util.LDIFWriter;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -103,11 +105,6 @@ public class RootDSEBackend
        extends Backend
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.RootDSEBackend";
 
 
 
@@ -156,7 +153,6 @@ public class RootDSEBackend
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
 
     // Perform all initialization in initializeBackend.
@@ -183,8 +179,6 @@ public class RootDSEBackend
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeBackend",
-                      String.valueOf(configEntry));
 
 
     // Make sure that a configuration entry was provided.  If not, then we will
@@ -271,11 +265,14 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message,e);
+      throw new InitializationException(msgID, message, e);
     }
 
 
@@ -298,7 +295,10 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_ROOTDSE_CANNOT_DETERMINE_ALL_USER_ATTRIBUTES;
       String message = getMessage(msgID, ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
@@ -370,7 +370,6 @@ public class RootDSEBackend
    */
   public void finalizeBackend()
   {
-    assert debugEnter(CLASS_NAME, "finalizeBackend");
 
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -388,8 +387,6 @@ public class RootDSEBackend
    */
   private boolean isDSEConfigAttribute(Attribute attribute)
   {
-    assert debugEnter(CLASS_NAME, "isConfigAttribute",
-                      String.valueOf(attribute));
 
     AttributeType attrType = attribute.getAttributeType();
     if (attrType.hasName(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN.toLowerCase()) ||
@@ -411,7 +408,6 @@ public class RootDSEBackend
    */
   public DN[] getBaseDNs()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDNs");
 
     return baseDNs;
   }
@@ -423,7 +419,6 @@ public class RootDSEBackend
    */
   public synchronized long getEntryCount()
   {
-    assert debugEnter(CLASS_NAME, "getEntryCount");
 
     // There is always just a single entry in this backend.
     return 1;
@@ -442,7 +437,6 @@ public class RootDSEBackend
    */
   public boolean isLocal()
   {
-    assert debugEnter(CLASS_NAME, "isLocal");
 
     // For the purposes of this method, this is a local backend.
     return true;
@@ -464,7 +458,6 @@ public class RootDSEBackend
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
 
     // If the requested entry was the root DSE, then create and return it.
@@ -511,7 +504,6 @@ public class RootDSEBackend
    */
   public Entry getRootDSE()
   {
-    assert debugEnter(CLASS_NAME, "getRootDSE");
 
     HashMap<AttributeType,List<Attribute>> dseUserAttrs =
          new HashMap<AttributeType,List<Attribute>>();
@@ -778,8 +770,6 @@ public class RootDSEBackend
   private Attribute createAttribute(String name, String lowerName,
                                     String value)
   {
-    assert debugEnter(CLASS_NAME, "createAttribute", String.valueOf(name),
-                      String.valueOf(lowerName), String.valueOf(value));
 
     AttributeType type = DirectoryServer.getAttributeType(lowerName);
     if (type == null)
@@ -809,8 +799,6 @@ public class RootDSEBackend
   private Attribute createDNAttribute(String name, String lowerName,
                                       Collection<DN> values)
   {
-    assert debugEnter(CLASS_NAME, "createDNAttribute", String.valueOf(name),
-                      String.valueOf(lowerName), String.valueOf(values));
 
     AttributeType type = DirectoryServer.getAttributeType(lowerName);
     if (type == null)
@@ -844,8 +832,6 @@ public class RootDSEBackend
   private Attribute createAttribute(String name, String lowerName,
                                     Collection<String> values)
   {
-    assert debugEnter(CLASS_NAME, "createAttribute", String.valueOf(name),
-                      String.valueOf(lowerName), String.valueOf(values));
 
     AttributeType type = DirectoryServer.getAttributeType(lowerName);
     if (type == null)
@@ -883,7 +869,6 @@ public class RootDSEBackend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "entryExists", String.valueOf(entryDN));
 
 
     // If the specified DN was the null DN, then it exists.
@@ -938,8 +923,6 @@ public class RootDSEBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addEntry", String.valueOf(entry),
-                      String.valueOf(addOperation));
 
     int    msgID   = MSGID_ROOTDSE_ADD_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entry.getDN()));
@@ -966,8 +949,6 @@ public class RootDSEBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "deleteEntry", String.valueOf(entryDN),
-                      String.valueOf(deleteOperation));
 
     int    msgID   = MSGID_ROOTDSE_DELETE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entryDN));
@@ -994,8 +975,6 @@ public class RootDSEBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "replaceEntry", String.valueOf(entry),
-                      String.valueOf(modifyOperation));
 
     int    msgID   = MSGID_ROOTDSE_MODIFY_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entry.getDN()),
@@ -1025,8 +1004,6 @@ public class RootDSEBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "renameEntry", String.valueOf(currentDN),
-                      String.valueOf(entry), String.valueOf(modifyDNOperation));
 
     int    msgID   = MSGID_ROOTDSE_MODIFY_DN_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(currentDN));
@@ -1053,7 +1030,6 @@ public class RootDSEBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException, CancelledOperationException
   {
-    assert debugEnter(CLASS_NAME, "search", String.valueOf(searchOperation));
 
     DN baseDN = searchOperation.getBaseDN();
     if (! baseDN.isNullDN())
@@ -1150,13 +1126,19 @@ public class RootDSEBackend
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "search", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           throw de;
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "search", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_ROOTDSE_UNEXPECTED_SEARCH_FAILURE;
           String message = getMessage(msgID, searchOperation.getConnectionID(),
@@ -1190,7 +1172,6 @@ public class RootDSEBackend
    */
   public HashSet<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return supportedControls;
   }
@@ -1204,7 +1185,6 @@ public class RootDSEBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return supportedFeatures;
   }
@@ -1220,7 +1200,6 @@ public class RootDSEBackend
    */
   public boolean supportsLDIFExport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFExport");
 
     // We will only export the DSE entry itself.
     return true;
@@ -1245,7 +1224,6 @@ public class RootDSEBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "exportLDIF", String.valueOf(exportConfig));
 
 
     // Create the LDIF writer.
@@ -1256,7 +1234,10 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1273,7 +1254,10 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_ROOTDSE_UNABLE_TO_EXPORT_DSE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1288,7 +1272,10 @@ public class RootDSEBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "exportLDIF", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -1304,7 +1291,6 @@ public class RootDSEBackend
    */
   public boolean supportsLDIFImport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFImport");
 
     // This backend does not support LDIF imports.
     return false;
@@ -1329,7 +1315,6 @@ public class RootDSEBackend
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "importLDIF", String.valueOf(importConfig));
 
 
     // This backend does not support LDIF imports.
@@ -1354,7 +1339,6 @@ public class RootDSEBackend
    */
   public boolean supportsBackup()
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
     // This backend does not provide a backup/restore mechanism.
     return false;
@@ -1380,7 +1364,6 @@ public class RootDSEBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1405,7 +1388,6 @@ public class RootDSEBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createBackup", String.valueOf(backupConfig));
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1433,9 +1415,6 @@ public class RootDSEBackend
                            String backupID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeBackup",
-                      String.valueOf(backupDirectory),
-                      String.valueOf(backupID));
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1455,7 +1434,6 @@ public class RootDSEBackend
    */
   public boolean supportsRestore()
   {
-    assert debugEnter(CLASS_NAME, "supportsRestore");
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1481,8 +1459,6 @@ public class RootDSEBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "restoreBackup",
-                      String.valueOf(restoreConfig));
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1503,7 +1479,6 @@ public class RootDSEBackend
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -1519,7 +1494,6 @@ public class RootDSEBackend
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -1563,8 +1537,6 @@ public class RootDSEBackend
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     boolean configIsAcceptable = true;
@@ -1599,7 +1571,10 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1619,7 +1594,10 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_ROOTDSE_CANNOT_DETERMINE_ALL_USER_ATTRIBUTES;
       String message = getMessage(msgID, ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
@@ -1654,9 +1632,6 @@ public class RootDSEBackend
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -1706,7 +1681,10 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1737,7 +1715,10 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_ROOTDSE_CANNOT_DETERMINE_ALL_USER_ATTRIBUTES;
       String message = getMessage(msgID, ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,

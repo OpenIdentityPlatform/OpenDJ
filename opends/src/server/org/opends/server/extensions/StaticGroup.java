@@ -57,7 +57,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -77,11 +79,6 @@ import static org.opends.server.util.Validator.*;
 public class StaticGroup
        extends Group
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.StaticGroup";
 
 
 
@@ -104,7 +101,6 @@ public class StaticGroup
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
     // No initialization is required here.
   }
@@ -126,9 +122,6 @@ public class StaticGroup
   {
     super();
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(groupEntryDN),
-                            String.valueOf(memberAttributeType),
-                            String.valueOf(memberDNs));
 
     ensureNotNull(groupEntryDN, memberAttributeType, memberDNs);
 
@@ -146,8 +139,6 @@ public class StaticGroup
   public void initializeGroupImplementation(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeGroupImplementation",
-                      String.valueOf(configEntry));
 
     // No additional initialization is required.
   }
@@ -162,7 +153,6 @@ public class StaticGroup
   public StaticGroup newInstance(Entry groupEntry)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "newInstance", String.valueOf(groupEntry));
 
     ensureNotNull(groupEntry);
 
@@ -219,7 +209,10 @@ public class StaticGroup
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "newInstance", de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN;
             String message =
@@ -247,7 +240,6 @@ public class StaticGroup
   public SearchFilter getGroupDefinitionFilter()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getGroupDefinitionFilter");
 
     // FIXME -- This needs to exclude enhanced groups once we have support for
     // them.
@@ -264,7 +256,6 @@ public class StaticGroup
   @Override()
   public boolean isGroupDefinition(Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "isGroupDefinition", String.valueOf(entry));
     ensureNotNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for
@@ -300,7 +291,6 @@ public class StaticGroup
   @Override()
   public DN getGroupDN()
   {
-    assert debugEnter(CLASS_NAME, "getGroupDN");
 
     return groupEntryDN;
   }
@@ -313,7 +303,6 @@ public class StaticGroup
   @Override()
   public boolean supportsNestedGroups()
   {
-    assert debugEnter(CLASS_NAME, "supportsNestedGroups");
 
     // FIXME -- We should add support for nested groups.
     return false;
@@ -327,7 +316,6 @@ public class StaticGroup
   @Override()
   public List<DN> getNestedGroupDNs()
   {
-    assert debugEnter(CLASS_NAME, "getNestedGroupDNs");
 
     // FIXME -- We should add support for nested groups.
     return Collections.<DN>emptyList();
@@ -342,8 +330,6 @@ public class StaticGroup
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addNestedGroup",
-                      String.valueOf(nestedGroupDN));
 
     // FIXME -- We should add support for nested groups.
     throw new UnsupportedOperationException();
@@ -358,8 +344,6 @@ public class StaticGroup
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeNestedGroup",
-                      String.valueOf(nestedGroupDN));
 
     // FIXME -- We should add support for nested groups.
     throw new UnsupportedOperationException();
@@ -374,7 +358,6 @@ public class StaticGroup
   public boolean isMember(DN userDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "isMember", String.valueOf(userDN));
 
     return memberDNs.contains(userDN);
   }
@@ -388,7 +371,6 @@ public class StaticGroup
   public boolean isMember(Entry userEntry)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "isMember", String.valueOf(userEntry));
 
     return memberDNs.contains(userEntry.getDN());
   }
@@ -402,7 +384,6 @@ public class StaticGroup
   public MemberList getMembers()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getMembers");
 
     return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
   }
@@ -417,8 +398,6 @@ public class StaticGroup
                                SearchFilter filter)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getMembers", String.valueOf(baseDN),
-                      String.valueOf(scope), String.valueOf(filter));
 
     if ((baseDN == null) && (filter == null))
     {
@@ -439,7 +418,6 @@ public class StaticGroup
   @Override()
   public boolean mayAlterMemberList()
   {
-    assert debugEnter(CLASS_NAME, "mayAlterMemberList");
 
     return true;
   }
@@ -453,7 +431,6 @@ public class StaticGroup
   public void addMember(Entry userEntry)
          throws UnsupportedOperationException, DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addMember", String.valueOf(userEntry));
 
     ensureNotNull(userEntry);
 
@@ -519,7 +496,6 @@ public class StaticGroup
   public void removeMember(DN userDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeMember", String.valueOf(userDN));
 
     ensureNotNull(userDN);
 
@@ -582,7 +558,6 @@ public class StaticGroup
   @Override()
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("StaticGroup(");
     buffer.append(groupEntryDN);

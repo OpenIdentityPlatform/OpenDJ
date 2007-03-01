@@ -51,7 +51,14 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.util.LDIFException;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugWarning;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -83,11 +90,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class Entry
        implements ProtocolElement
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.Entry";
 
 
 
@@ -135,10 +137,6 @@ public class Entry
                Map<AttributeType,List<Attribute>>
                     operationalAttributes)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(objectClasses),
-                            String.valueOf(userAttributes),
-                            String.valueOf(operationalAttributes));
 
 
     attachment = null;
@@ -193,7 +191,6 @@ public class Entry
    */
   public DN getDN()
   {
-    assert debugEnter(CLASS_NAME, "getDN");
 
     return dn;
   }
@@ -207,7 +204,6 @@ public class Entry
    */
   public void setDN(DN dn)
   {
-    assert debugEnter(CLASS_NAME, "setDN", String.valueOf(dn));
 
     if (dn == null)
     {
@@ -232,7 +228,6 @@ public class Entry
    */
   public Map<ObjectClass,String> getObjectClasses()
   {
-    assert debugEnter(CLASS_NAME, "getObjectClasses");
 
     return objectClasses;
   }
@@ -250,8 +245,6 @@ public class Entry
    */
   public boolean hasObjectClass(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "hasObjectClass",
-                      String.valueOf(objectClass));
 
     return objectClasses.containsKey(objectClass);
   }
@@ -268,7 +261,6 @@ public class Entry
    */
   public ObjectClass getStructuralObjectClass()
   {
-    assert debugEnter(CLASS_NAME, "getStructuralObjectClass");
 
     ObjectClass structuralClass = null;
 
@@ -309,8 +301,6 @@ public class Entry
                    Collection<AttributeValue> objectClassNames)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "setObjectClasses",
-                      String.valueOf(objectClassNames));
 
     attachment = null;
 
@@ -329,7 +319,10 @@ public class Entry
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "addObjectClasses", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         lowerName = toLowerCase(v.getStringValue());
       }
@@ -367,8 +360,6 @@ public class Entry
   public void addObjectClass(AttributeValue objectClassName)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addObjectClass",
-                      String.valueOf(objectClassName));
 
     attachment = null;
 
@@ -381,7 +372,10 @@ public class Entry
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "addObjectClass", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       lowerName = toLowerCase(name);
     }
@@ -412,8 +406,6 @@ public class Entry
   public void addObjectClass(ObjectClass oc)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addObjectClass",
-                      String.valueOf(oc));
 
     attachment = null;
 
@@ -447,8 +439,6 @@ public class Entry
                    Collection<AttributeValue> objectClassNames)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addObjectClasses",
-                      String.valueOf(objectClassNames));
 
     attachment = null;
 
@@ -469,7 +459,10 @@ public class Entry
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "addObjectClasses", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         lowerName = toLowerCase(v.getStringValue());
       }
@@ -528,7 +521,6 @@ public class Entry
    */
   public List<Attribute> getAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributes");
 
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
@@ -563,7 +555,6 @@ public class Entry
    */
   public Map<AttributeType,List<Attribute>> getUserAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getUserAttributes");
 
     return userAttributes;
   }
@@ -580,7 +571,6 @@ public class Entry
    */
   public Map<AttributeType,List<Attribute>> getOperationalAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getOperationalAttributes");
 
     return operationalAttributes;
   }
@@ -597,7 +587,6 @@ public class Entry
    */
   public Attribute getObjectClassAttribute()
   {
-    assert debugEnter(CLASS_NAME, "getObjectClassAttribute");
 
     if ((objectClasses == null) || objectClasses.isEmpty())
     {
@@ -630,8 +619,6 @@ public class Entry
    */
   public boolean hasAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "hasAttribute",
-                      String.valueOf(attributeType));
 
     if (userAttributes.containsKey(attributeType) ||
         operationalAttributes.containsKey(attributeType))
@@ -672,9 +659,6 @@ public class Entry
   public boolean hasAttribute(AttributeType attributeType,
                               Set<String> attributeOptions)
   {
-    assert debugEnter(CLASS_NAME, "hasAttribute",
-                      String.valueOf(attributeType),
-                      String.valueOf(attributeOptions));
 
     List<Attribute> attributes;
     if (attributeType.mayHaveSubordinateTypes())
@@ -759,8 +743,6 @@ public class Entry
    */
   public List<Attribute> getAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "getAttribute",
-                      String.valueOf(attributeType));
 
     if (attributeType.mayHaveSubordinateTypes())
     {
@@ -858,8 +840,6 @@ public class Entry
    */
   public List<Attribute> getAttribute(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getAttribute",
-                      String.valueOf(lowerName));
 
     for (AttributeType attr : userAttributes.keySet())
     {
@@ -908,9 +888,6 @@ public class Entry
   public List<Attribute> getAttribute(AttributeType attributeType,
                                       Set<String> options)
   {
-    assert debugEnter(CLASS_NAME, "getAttribute",
-                      String.valueOf(attributeType),
-                       String.valueOf(options));
 
     List<Attribute> attributes = new LinkedList<Attribute>();
     if (attributeType.mayHaveSubordinateTypes())
@@ -1021,9 +998,6 @@ public class Entry
   public List<Attribute> getAttribute(String lowerName,
                                       Set<String> options)
   {
-    assert debugEnter(CLASS_NAME, "getAttribute",
-                      String.valueOf(lowerName),
-                      String.valueOf(options));
 
     for (AttributeType attr : userAttributes.keySet())
     {
@@ -1084,8 +1058,6 @@ public class Entry
   public final <T> T getAttributeValue(AttributeType attributeType,
       AttributeValueDecoder<T> decoder) throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getAttributeValue", String
-        .valueOf(attributeType), decoder.getClass().getName());
 
     List<Attribute> attributes = getAttribute(attributeType);
     AttributeValueIterable values =
@@ -1134,8 +1106,6 @@ public class Entry
       Collection<T> collection)
       throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getAttributeValues", String
-        .valueOf(attributeType), decoder.getClass().getName());
 
     List<Attribute> attributes = getAttribute(attributeType);
     AttributeValueIterable values =
@@ -1162,8 +1132,6 @@ public class Entry
    */
   public boolean hasUserAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "hasUserAttribute",
-                      String.valueOf(attributeType));
 
     if (userAttributes.containsKey(attributeType))
     {
@@ -1200,8 +1168,6 @@ public class Entry
    */
   public List<Attribute> getUserAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "getUserAttribute",
-                      String.valueOf(attributeType));
 
     if (attributeType.mayHaveSubordinateTypes())
     {
@@ -1256,9 +1222,6 @@ public class Entry
   public List<Attribute> getUserAttribute(AttributeType attributeType,
                                           Set<String> options)
   {
-    assert debugEnter(CLASS_NAME, "getUserAttribute",
-                      String.valueOf(attributeType),
-                      String.valueOf(options));
 
     LinkedList<Attribute> attributes = new LinkedList<Attribute>();
     List<Attribute> attrs = userAttributes.get(attributeType);
@@ -1314,8 +1277,6 @@ public class Entry
   public List<Attribute> duplicateUserAttribute(
                              AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "duplicateUserAttribute",
-                      String.valueOf(attributeType));
 
     LinkedList<Attribute> attributes = new LinkedList<Attribute>();
 
@@ -1373,10 +1334,6 @@ public class Entry
        Set<String> options,
        boolean omitValues)
   {
-    assert debugEnter(CLASS_NAME, "duplicateAttribute",
-                      String.valueOf(attrList),
-                      String.valueOf(options),
-                      String.valueOf(omitValues));
 
     if (attrList == null)
     {
@@ -1427,10 +1384,6 @@ public class Entry
        Set<String> options,
        boolean omitValues)
   {
-    assert debugEnter(CLASS_NAME, "duplicateUserAttribute",
-                      String.valueOf(attributeType),
-                      String.valueOf(options),
-                      String.valueOf(omitValues));
 
     List<Attribute> currentList = getUserAttribute(attributeType);
     return duplicateAttribute(currentList, options, omitValues);
@@ -1460,10 +1413,6 @@ public class Entry
        Set<String> options,
        boolean omitValues)
   {
-    assert debugEnter(CLASS_NAME, "duplicateOperationalAttribute",
-                      String.valueOf(attributeType),
-                      String.valueOf(options),
-                      String.valueOf(omitValues));
 
     List<Attribute> currentList =
          getOperationalAttribute(attributeType);
@@ -1483,8 +1432,6 @@ public class Entry
    */
   public boolean hasOperationalAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "hasOperationalAttribute",
-                      String.valueOf(attributeType));
 
     if (operationalAttributes.containsKey(attributeType))
     {
@@ -1522,8 +1469,6 @@ public class Entry
   public List<Attribute> getOperationalAttribute(
                               AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "getOperationalAttribute",
-                      String.valueOf(attributeType));
 
     if (attributeType.mayHaveSubordinateTypes())
     {
@@ -1580,9 +1525,6 @@ public class Entry
                               AttributeType attributeType,
                               Set<String> options)
   {
-    assert debugEnter(CLASS_NAME, "getOperationalAttribute",
-                      String.valueOf(attributeType),
-                      String.valueOf(options));
 
     LinkedList<Attribute> attributes = new LinkedList<Attribute>();
     List<Attribute> attrs = operationalAttributes.get(attributeType);
@@ -1639,8 +1581,6 @@ public class Entry
   public List<Attribute> duplicateOperationalAttribute(
                               AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "duplicateOperationalAttribute",
-                      String.valueOf(attributeType));
 
     LinkedList<Attribute> attributes = new LinkedList<Attribute>();
 
@@ -1693,9 +1633,6 @@ public class Entry
   public void putAttribute(AttributeType attributeType,
                            List<Attribute> attributeList)
   {
-    assert debugEnter(CLASS_NAME, "putAttribute",
-                      String.valueOf(attributeType),
-                      String.valueOf(attributeList));
 
 
     attachment = null;
@@ -1744,9 +1681,6 @@ public class Entry
   public void addAttribute(Attribute attribute,
                            List<AttributeValue> duplicateValues)
   {
-    assert debugEnter(CLASS_NAME, "addAttribute",
-                      String.valueOf(attribute),
-                      "java.util.List<AttributeValue>");
 
     attachment = null;
 
@@ -1822,8 +1756,6 @@ public class Entry
    */
   public boolean removeAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "removeAttribute",
-                      String.valueOf(attributeType));
 
     attachment = null;
 
@@ -1862,8 +1794,6 @@ public class Entry
   public boolean removeAttribute(AttributeType attributeType,
                                  Set<String> options)
   {
-    assert debugEnter(CLASS_NAME, "removeAttribute",
-                      String.valueOf(attributeType));
 
     attachment = null;
 
@@ -1934,9 +1864,6 @@ public class Entry
   public boolean removeAttribute(Attribute attribute,
                                  List<AttributeValue> missingValues)
   {
-    assert debugEnter(CLASS_NAME, "removeAttribute",
-                      String.valueOf(attribute),
-                      "java.util.List<AttributeValue>");
 
 
     attachment = null;
@@ -1962,7 +1889,10 @@ public class Entry
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "removeAttribute", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           ocName = toLowerCase(v.getStringValue());
         }
@@ -2092,8 +2022,6 @@ public class Entry
    */
   public boolean allowsAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "allowsAttribute",
-                      String.valueOf(attributeType));
 
     for (ObjectClass o : objectClasses.keySet())
     {
@@ -2121,8 +2049,6 @@ public class Entry
    */
   public boolean requiresAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "requiresAttribute",
-                      String.valueOf(attributeType));
 
     for (ObjectClass o : objectClasses.keySet())
     {
@@ -2151,9 +2077,6 @@ public class Entry
   public boolean hasValue(AttributeType attributeType,
                           Set<String> options, AttributeValue value)
   {
-    assert debugEnter(CLASS_NAME, "hasValue",
-                      String.valueOf(attributeType),
-                      String.valueOf(options), String.valueOf(value));
 
     List<Attribute> attrList = getAttribute(attributeType);
     if ((attrList == null) || attrList.isEmpty())
@@ -2189,8 +2112,6 @@ public class Entry
   public void applyModification(Modification mod)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "applyModification",
-                      String.valueOf(mod));
 
     Attribute     a = mod.getAttribute();
     AttributeType t = a.getAttributeType();
@@ -2404,8 +2325,6 @@ public class Entry
   public void applyModifications(List<Modification> mods)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "applyModifications",
-                      String.valueOf(mods));
 
     for (Modification m : mods)
     {
@@ -2471,8 +2390,6 @@ public class Entry
                                   boolean validateStructureRules,
                                   StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "conformsToSchema",
-                      "java.lang.StringBuilder");
 
 
     // Get the structural objectclass for the entry.  If there isn't
@@ -2915,8 +2832,10 @@ public class Entry
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "conformsToSchema",
-                                    e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               int    msgID   = MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR;
               String message =
@@ -3024,8 +2943,10 @@ public class Entry
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "conformsToSchema",
-                                    e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               int msgID =
                    MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR;
@@ -3197,7 +3118,6 @@ public class Entry
    */
   public Object getAttachment()
   {
-    assert debugEnter(CLASS_NAME, "getAttachment");
 
     return attachment;
   }
@@ -3214,8 +3134,6 @@ public class Entry
    */
   public void setAttachment(Object attachment)
   {
-    assert debugEnter(CLASS_NAME, "setAttachment",
-                      String.valueOf(attachment));
 
     this.attachment = attachment;
   }
@@ -3231,7 +3149,6 @@ public class Entry
    */
   public Entry duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     HashMap<ObjectClass,String> objectClassesCopy =
          new HashMap<ObjectClass,String>(objectClasses);
@@ -3267,7 +3184,6 @@ public class Entry
   public Entry duplicateWithoutOperationalAttributes(
                     boolean typesOnly)
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     HashMap<ObjectClass,String> objectClassesCopy;
     if (typesOnly)
@@ -3349,7 +3265,6 @@ public class Entry
    */
   public Entry duplicateWithoutAttributes()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     HashMap<ObjectClass,String> objectClassesCopy =
          new HashMap<ObjectClass,String>(objectClasses.size());
@@ -3378,7 +3293,6 @@ public class Entry
    */
   public boolean isReferral()
   {
-    assert debugEnter(CLASS_NAME, "isReferral");
 
     ObjectClass referralOC =
          DirectoryServer.getObjectClass(OC_REFERRAL);
@@ -3386,11 +3300,12 @@ public class Entry
     {
       // This should not happen -- The server doesn't have a referral
       // objectclass defined.
-      assert debugMessage(DebugLogCategory.SCHEMA,
-                          DebugLogSeverity.WARNING, CLASS_NAME,
-                          "isReferral", "No " + OC_REFERRAL +
-                          " objectclass is defined in the server " +
-                          "schema.");
+      if (debugEnabled())
+      {
+        debugWarning(
+            "No %s objectclass is defined in the server schema.",
+                     OC_REFERRAL);
+      }
 
       for (String ocName : objectClasses.values())
       {
@@ -3414,11 +3329,12 @@ public class Entry
     {
       // This should not happen -- The server doesn't have a ref
       // attribute type defined.
-      assert debugMessage(DebugLogCategory.SCHEMA,
-                          DebugLogSeverity.WARNING, CLASS_NAME,
-                          "isReferral", "No " + ATTR_REFERRAL_URL +
-                          " attribute type is defined in the " +
-                          "server schema.");
+      if (debugEnabled())
+      {
+        debugWarning(
+            "No %s attribute type is defined in the server schema.",
+                     ATTR_REFERRAL_URL);
+      }
       return false;
     }
 
@@ -3439,7 +3355,6 @@ public class Entry
    */
   public LinkedHashSet<String> getReferralURLs()
   {
-    assert debugEnter(CLASS_NAME, "getReferralURLs");
 
     AttributeType referralType =
          DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
@@ -3447,12 +3362,12 @@ public class Entry
     {
       // This should not happen -- The server doesn't have a ref
       // attribute type defined.
-      assert debugMessage(DebugLogCategory.SCHEMA,
-                          DebugLogSeverity.WARNING,
-                          CLASS_NAME, "getReferralURLs",
-                          "No " + ATTR_REFERRAL_URL +
-                          " attribute type is defined in the " +
-                          "server schema.");
+      if (debugEnabled())
+      {
+        debugWarning(
+            "No %s attribute type is defined in the server schema.",
+                     ATTR_REFERRAL_URL);
+      }
       return null;
     }
 
@@ -3490,18 +3405,18 @@ public class Entry
    */
   public boolean isAlias()
   {
-    assert debugEnter(CLASS_NAME, "isAlias");
 
     ObjectClass aliasOC = DirectoryServer.getObjectClass(OC_ALIAS);
     if (aliasOC == null)
     {
       // This should not happen -- The server doesn't have an alias
       // objectclass defined.
-      assert debugMessage(DebugLogCategory.SCHEMA,
-                          DebugLogSeverity.WARNING, CLASS_NAME,
-                          "isAlias", "No " + OC_ALIAS +
-                          " objectclass is defined in the server " +
-                          "schema.");
+      if (debugEnabled())
+      {
+        debugWarning(
+            "No %s objectclass is defined in the server schema.",
+                     OC_ALIAS);
+      }
 
       for (String ocName : objectClasses.values())
       {
@@ -3525,11 +3440,12 @@ public class Entry
     {
       // This should not happen -- The server doesn't have an
       // aliasedObjectName attribute type defined.
-      assert debugMessage(DebugLogCategory.SCHEMA,
-                          DebugLogSeverity.WARNING, CLASS_NAME,
-                          "isAlias", "No " + ATTR_ALIAS_DN +
-                          " attribute type is defined in the " +
-                          "server schema.");
+      if (debugEnabled())
+      {
+        debugWarning(
+            "No %s attribute type is defined in the server schema.",
+                     ATTR_ALIAS_DN);
+      }
       return false;
     }
 
@@ -3554,7 +3470,6 @@ public class Entry
   public DN getAliasedDN()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getAliasedDN");
 
     AttributeType aliasType =
          DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
@@ -3562,11 +3477,12 @@ public class Entry
     {
       // This should not happen -- The server doesn't have an
       // aliasedObjectName attribute type defined.
-      assert debugMessage(DebugLogCategory.SCHEMA,
-                          DebugLogSeverity.WARNING, CLASS_NAME,
-                          "getAliasedDN", "No " + ATTR_ALIAS_DN +
-                          " attribute type is defined in the " +
-                          "server schema.");
+      if (debugEnabled())
+      {
+        debugWarning(
+            "No %s attribute type is defined in the server schema.",
+                     ATTR_ALIAS_DN);
+      }
       return null;
     }
 
@@ -3618,7 +3534,6 @@ public class Entry
    */
   public boolean isLDAPSubentry()
   {
-    assert debugEnter(CLASS_NAME, "isLDAPSubentry");
 
     ObjectClass ldapSubentryOC =
          DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC);
@@ -3626,11 +3541,12 @@ public class Entry
     {
       // This should not happen -- The server doesn't have an
       // ldapsubentry objectclass defined.
-      assert debugMessage(DebugLogCategory.SCHEMA,
-                          DebugLogSeverity.WARNING, CLASS_NAME,
-                          "isLDAPSubentry", "No " +
-                          OC_LDAP_SUBENTRY + " objectclass is " +
-                          "defined in the server schema.");
+      if (debugEnabled())
+      {
+        debugWarning(
+            "No %s objectclass is defined in the server schema.",
+                     OC_LDAP_SUBENTRY);
+      }
 
       for (String ocName : objectClasses.values())
       {
@@ -3664,8 +3580,6 @@ public class Entry
    */
   public boolean matchesBaseAndScope(DN baseDN, SearchScope scope)
   {
-    assert debugEnter(CLASS_NAME, "matchesBaseAndScope",
-                      String.valueOf(baseDN), String.valueOf(scope));
 
     switch (scope)
     {
@@ -3702,7 +3616,6 @@ public class Entry
    */
   public List<StringBuilder> toLDIF()
   {
-    assert debugEnter(CLASS_NAME, "toLDIF");
 
     LinkedList<StringBuilder> ldifLines =
          new LinkedList<StringBuilder>();
@@ -3795,8 +3708,6 @@ public class Entry
   public boolean toLDIF(LDIFExportConfig exportConfig)
          throws IOException, LDIFException
   {
-    assert debugEnter(CLASS_NAME, "toLDIF",
-                      String.valueOf(exportConfig));
 
 
     // See if this entry should be included in the export at all.
@@ -3804,17 +3715,21 @@ public class Entry
     {
       if (! exportConfig.includeEntry(this))
       {
-        assert debugMessage(DebugLogCategory.PROTOCOL_WRITE,
-                            DebugLogSeverity.INFO, CLASS_NAME,
-                            "writeEntry", "Skipping entry " +
-                            String.valueOf(dn) +
-                            " because of the export configuration.");
+        if (debugEnabled())
+        {
+          debugInfo(
+              "Skipping entry %s because of the export " +
+                  "configuration.", String.valueOf(dn));
+        }
         return false;
       }
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "toLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_EXPORT;
       String message = getMessage(msgID, String.valueOf(dn),
@@ -3872,11 +3787,12 @@ public class Entry
     }
     else
     {
-      assert debugMessage(DebugLogCategory.PROTOCOL_WRITE,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "writeEntry", "Skipping objectclasses " +
-                          "for entry " + String.valueOf(dn) +
-                          " because of the export configuration.");
+      if (debugEnabled())
+      {
+        debugVerbose(
+            "Skipping objectclasses for entry %s because of " +
+            "the export configuration.", String.valueOf(dn));
+      }
     }
 
 
@@ -3922,12 +3838,13 @@ public class Entry
       }
       else
       {
-        assert debugMessage(DebugLogCategory.PROTOCOL_WRITE,
-                            DebugLogSeverity.VERBOSE, CLASS_NAME,
-                            "writeEntry", "Skipping user attribute " +
-                            attrType.getNameOrOID() + " for entry " +
-                            String.valueOf(dn) +
-                            " because of the export configuration.");
+        if (debugEnabled())
+        {
+          debugVerbose(
+              "Skipping user attribute %s for entry %s because of " +
+                       "the export configuration.",
+              attrType.getNameOrOID(), String.valueOf(dn));
+        }
       }
     }
 
@@ -3978,27 +3895,26 @@ public class Entry
         }
         else
         {
-          assert debugMessage(DebugLogCategory.PROTOCOL_WRITE,
-                              DebugLogSeverity.VERBOSE, CLASS_NAME,
-                              "writeEntry",
-                              "Skipping operational attribute " +
-                              attrType.getNameOrOID() +
-                              " for entry " + String.valueOf(dn) +
-                              " because of the export " +
-                              "configuration.");
+          if (debugEnabled())
+          {
+            debugVerbose(
+                "Skipping operational attribute %s for entry %s " +
+                         "because of the export configuration.",
+                         attrType.getNameOrOID(), String.valueOf(dn));
+          }
         }
       }
     }
     else
     {
-      assert debugMessage(DebugLogCategory.PROTOCOL_WRITE,
-                          DebugLogSeverity.VERBOSE, CLASS_NAME,
-                          "writeEntry", "Skipping all operational " +
-                          "attributes for entry " +
-                          String.valueOf(dn) +
-                          " because of the export configuration.");
+      if (debugEnabled())
+      {
+        debugVerbose(
+            "Skipping all operational attributes for entry %s " +
+            "because of the export configuration.",
+            String.valueOf(dn));
+      }
     }
-
 
     // Make sure there is a blank line after the entry.
     writer.newLine();
@@ -4018,7 +3934,6 @@ public class Entry
    */
   public String getProtocolElementName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolElementName");
 
     return "Entry";
   }
@@ -4032,7 +3947,6 @@ public class Entry
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -4050,8 +3964,6 @@ public class Entry
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("Entry(dn=\"");
     dn.toString(buffer);
@@ -4113,9 +4025,6 @@ public class Entry
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
@@ -4140,7 +4049,6 @@ public class Entry
    */
   public String toSingleLineString()
   {
-    assert debugEnter(CLASS_NAME, "toSingleLineString");
 
     StringBuilder buffer = new StringBuilder();
     toSingleLineString(buffer);
@@ -4158,8 +4066,6 @@ public class Entry
    */
   public void toSingleLineString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toSingleLineString",
-                      "java.lang.StringBuilder");
 
     buffer.append("Entry(dn=\"");
     dn.toString(buffer);

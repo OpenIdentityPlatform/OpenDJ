@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -34,7 +34,6 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.types.DirectoryException;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -49,11 +48,6 @@ import static org.opends.server.loggers.Debug.*;
 public class InternalConnectionSecurityProvider
        extends NullConnectionSecurityProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.InternalConnectionSecurityProvider";
 
 
 
@@ -63,8 +57,6 @@ public class InternalConnectionSecurityProvider
   public InternalConnectionSecurityProvider()
   {
     super();
-
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -82,8 +74,6 @@ public class InternalConnectionSecurityProvider
                  ClientConnection clientConnection, SocketChannel socketChannel)
   {
     super(clientConnection, socketChannel);
-
-    assert debugConstructor(CLASS_NAME, String.valueOf(clientConnection));
   }
 
 
@@ -93,7 +83,6 @@ public class InternalConnectionSecurityProvider
    */
   public String getSecurityMechanismName()
   {
-    assert debugEnter(CLASS_NAME, "getSecurityMechanismName");
 
     return "INTERNAL";
   }
@@ -105,7 +94,6 @@ public class InternalConnectionSecurityProvider
    */
   public boolean isSecure()
   {
-    assert debugEnter(CLASS_NAME, "isSecure");
 
     // Internal connections are inherently secure.
     return true;
@@ -134,9 +122,6 @@ public class InternalConnectionSecurityProvider
                                                 SocketChannel socketChannel)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "newInstance",
-                      String.valueOf(clientConnection),
-                      String.valueOf(socketChannel));
 
     return new InternalConnectionSecurityProvider(clientConnection,
                                                   socketChannel);

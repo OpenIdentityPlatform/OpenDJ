@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -126,11 +121,6 @@ public enum TaskState
 
 
 
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.task.TaskState";
 
 
 
@@ -145,7 +135,7 @@ public enum TaskState
    */
   public static boolean isPending(TaskState taskState)
   {
-    assert debugEnter(CLASS_NAME, "isPending", String.valueOf(taskState));
+
 
     switch (taskState)
     {
@@ -170,7 +160,7 @@ public enum TaskState
    */
   public static boolean isRunning(TaskState taskState)
   {
-    assert debugEnter(CLASS_NAME, "isRunning", String.valueOf(taskState));
+
 
     switch (taskState)
     {
@@ -196,7 +186,7 @@ public enum TaskState
    */
   public static boolean isDone(TaskState taskState)
   {
-    assert debugEnter(CLASS_NAME, "isDone", String.valueOf(taskState));
+
 
     switch (taskState)
     {
@@ -224,7 +214,7 @@ public enum TaskState
    */
   public static boolean isSuccessful(TaskState taskState)
   {
-    assert debugEnter(CLASS_NAME, "isDone", String.valueOf(taskState));
+
 
     switch (taskState)
     {

@@ -62,7 +62,9 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -79,11 +81,6 @@ public class FingerprintCertificateMapper
        extends CertificateMapper
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.FingerprintCertificateMapper";
 
 
 
@@ -127,7 +124,6 @@ public class FingerprintCertificateMapper
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -138,8 +134,6 @@ public class FingerprintCertificateMapper
   public void initializeCertificateMapper(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeCertificateMapper",
-                      String.valueOf(configEntry));
 
     this.configEntryDN = configEntry.getDN();
 
@@ -180,7 +174,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FCM_CANNOT_GET_FINGERPRINT_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -214,7 +211,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FCM_CANNOT_GET_FINGERPRINT_ALGORITHM;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -242,7 +242,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FCM_CANNOT_GET_BASE_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -260,7 +263,6 @@ public class FingerprintCertificateMapper
    */
   public void finalizeCertificateMapper()
   {
-    assert debugEnter(CLASS_NAME, "finalizeCertificateMapper");
 
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -273,8 +275,6 @@ public class FingerprintCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "mapCertificateToUser",
-                      String.valueOf(certificateChain));
 
 
     // Make sure that a peer certificate was provided.
@@ -295,7 +295,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "mapCertificateToUser", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_FCM_PEER_CERT_NOT_X509;
       String message =
@@ -316,7 +319,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "mapCertificateToUser", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       String peerSubject = peerCertificate.getSubjectX500Principal().getName(
                                 X500Principal.RFC2253);
@@ -390,7 +396,6 @@ public class FingerprintCertificateMapper
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -406,7 +411,6 @@ public class FingerprintCertificateMapper
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -460,8 +464,6 @@ public class FingerprintCertificateMapper
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
     DN configEntryDN = configEntry.getDN();
     boolean configAcceptable = true;
@@ -503,7 +505,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FCM_CANNOT_GET_FINGERPRINT_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -540,7 +545,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FCM_CANNOT_GET_FINGERPRINT_ALGORITHM;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -569,7 +577,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_FCM_CANNOT_GET_BASE_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -607,9 +618,6 @@ public class FingerprintCertificateMapper
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -659,7 +667,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -702,7 +713,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -734,7 +748,10 @@ public class FingerprintCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {

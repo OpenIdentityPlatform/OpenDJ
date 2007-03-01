@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -49,7 +49,6 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -65,11 +64,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public final class DirectoryConfig
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-   private static final String CLASS_NAME =
-        "org.opends.server.types.DirectoryConfig";
 
 
 
@@ -80,7 +74,6 @@ public final class DirectoryConfig
    */
   public static final CryptoManager getCryptoManager()
   {
-    assert debugEnter(CLASS_NAME, "getCryptoManager");
 
     return DirectoryServer.getCryptoManager();
   }
@@ -96,7 +89,6 @@ public final class DirectoryConfig
    */
   public static final OperatingSystem getOperatingSystem()
   {
-    assert debugEnter(CLASS_NAME, "getOperatingSystem");
 
     return DirectoryServer.getOperatingSystem();
   }
@@ -112,7 +104,6 @@ public final class DirectoryConfig
    */
   public static final ConfigHandler getConfigHandler()
   {
-    assert debugEnter(CLASS_NAME, "getConfigHandler");
 
     return DirectoryServer.getConfigHandler();
   }
@@ -134,8 +125,6 @@ public final class DirectoryConfig
   public static final ConfigEntry getConfigEntry(DN entryDN)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getConfigEntry",
-                      String.valueOf(entryDN));
 
     return DirectoryServer.getConfigEntry(entryDN);
   }
@@ -151,7 +140,6 @@ public final class DirectoryConfig
   */
   public static final String getServerRoot()
   {
-    assert debugEnter(CLASS_NAME, "getServerRoot");
 
     return DirectoryServer.getServerRoot();
   }
@@ -167,7 +155,6 @@ public final class DirectoryConfig
    */
   public static final long getStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getStartTime");
 
     return DirectoryServer.getStartTime();
   }
@@ -183,7 +170,6 @@ public final class DirectoryConfig
    */
   public static final String getStartTimeUTC()
   {
-    assert debugEnter(CLASS_NAME, "getStartTimeUTC");
 
     return DirectoryServer.getStartTimeUTC();
   }
@@ -197,7 +183,6 @@ public final class DirectoryConfig
    */
   public static final Schema getSchema()
   {
-    assert debugEnter(CLASS_NAME, "getSchema");
 
     return DirectoryServer.getSchema();
   }
@@ -217,7 +202,6 @@ public final class DirectoryConfig
    */
   public static Map<String,MatchingRule> getMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRules");
 
     return DirectoryServer.getMatchingRules();
   }
@@ -235,8 +219,6 @@ public final class DirectoryConfig
    */
   public static final MatchingRule getMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRule",
-                      String.valueOf(lowerName));
 
     return DirectoryServer.getMatchingRule(lowerName);
   }
@@ -257,8 +239,6 @@ public final class DirectoryConfig
   public static final ApproximateMatchingRule
        getApproximateMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule",
-                      String.valueOf(lowerName));
 
     return DirectoryServer.getApproximateMatchingRule(lowerName);
   }
@@ -279,8 +259,6 @@ public final class DirectoryConfig
   public static final EqualityMatchingRule
        getEqualityMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule",
-                      String.valueOf(lowerName));
 
     return DirectoryServer.getEqualityMatchingRule(lowerName);
   }
@@ -301,8 +279,6 @@ public final class DirectoryConfig
   public static final OrderingMatchingRule
        getOrderingMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule",
-                      String.valueOf(lowerName));
 
     return DirectoryServer.getOrderingMatchingRule(lowerName);
   }
@@ -323,8 +299,6 @@ public final class DirectoryConfig
   public static final SubstringMatchingRule
        getSubstringMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule",
-                      String.valueOf(lowerName));
 
     return DirectoryServer.getSubstringMatchingRule(lowerName);
   }
@@ -344,7 +318,6 @@ public final class DirectoryConfig
    */
   public static final Map<String,ObjectClass> getObjectClasses()
   {
-    assert debugEnter(CLASS_NAME, "getObjectClasses");
 
     return DirectoryServer.getObjectClasses();
   }
@@ -370,9 +343,6 @@ public final class DirectoryConfig
   public static final ObjectClass
        getObjectClass(String lowerName, boolean returnDefault)
   {
-    assert debugEnter(CLASS_NAME, "getObjectClass",
-                      String.valueOf(lowerName),
-                      String.valueOf(returnDefault));
 
     return DirectoryServer.getObjectClass(lowerName, returnDefault);
   }
@@ -388,7 +358,6 @@ public final class DirectoryConfig
    */
   public static final ObjectClass getTopObjectClass()
   {
-    assert debugEnter(CLASS_NAME, "getTopObjectClass");
 
     return DirectoryServer.getTopObjectClass();
   }
@@ -408,7 +377,6 @@ public final class DirectoryConfig
    */
   public static final Map<String,AttributeType> getAttributeTypes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeTypes");
 
     return DirectoryServer.getAttributeTypes();
   }
@@ -434,9 +402,6 @@ public final class DirectoryConfig
   public static final AttributeType
        getAttributeType(String lowerName, boolean returnDefault)
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType",
-                      String.valueOf(lowerName),
-                      String.valueOf(returnDefault));
 
     return DirectoryServer.getAttributeType(lowerName, returnDefault);
   }
@@ -450,7 +415,6 @@ public final class DirectoryConfig
    */
   public static final AttributeType getObjectClassAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getObjectClassAttributeType");
 
     return DirectoryServer.getObjectClassAttributeType();
   }
@@ -469,7 +433,6 @@ public final class DirectoryConfig
   public static final Map<String,AttributeSyntax>
        getAttributeSyntaxes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeSyntaxes");
 
     return DirectoryServer.getAttributeSyntaxes();
   }
@@ -492,9 +455,6 @@ public final class DirectoryConfig
   public static final AttributeSyntax
        getAttributeSyntax(String oid, boolean allowDefault)
   {
-    assert debugEnter(CLASS_NAME, "getAttributeSyntax",
-                      String.valueOf(oid),
-                      String.valueOf(allowDefault));
 
     return DirectoryServer.getAttributeSyntax(oid, allowDefault);
   }
@@ -510,7 +470,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultAttributeSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultAttributeSyntax");
 
     return DirectoryServer.getDefaultAttributeSyntax();
   }
@@ -528,7 +487,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultBinarySyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultBinarySyntax");
 
     return DirectoryServer.getDefaultBinarySyntax();
   }
@@ -546,7 +504,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultBooleanSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultBooleanSyntax");
 
     return DirectoryServer.getDefaultBooleanSyntax();
   }
@@ -564,7 +521,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultDNSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultDNSyntax");
 
     return DirectoryServer.getDefaultDNSyntax();
   }
@@ -582,7 +538,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultIntegerSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultIntegerSyntax");
 
     return DirectoryServer.getDefaultIntegerSyntax();
   }
@@ -600,7 +555,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultStringSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getDefaultStringSyntax");
 
     return DirectoryServer.getDefaultStringSyntax();
   }
@@ -619,7 +573,6 @@ public final class DirectoryConfig
   public static final Map<MatchingRule,MatchingRuleUse>
        getMatchingRuleUses()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleUses");
 
     return DirectoryServer.getMatchingRuleUses();
   }
@@ -639,8 +592,6 @@ public final class DirectoryConfig
   public static final MatchingRuleUse
        getMatchingRuleUse(MatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleUse",
-                      String.valueOf(matchingRule));
 
     return DirectoryServer.getMatchingRuleUse(matchingRule);
   }
@@ -659,7 +610,6 @@ public final class DirectoryConfig
   public static final Map<ObjectClass,DITContentRule>
        getDITContentRules()
   {
-    assert debugEnter(CLASS_NAME, "getDITContentRules");
 
     return DirectoryServer.getDITContentRules();
   }
@@ -679,8 +629,6 @@ public final class DirectoryConfig
   public static final DITContentRule
        getDITContentRule(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "getDITContentRule",
-                      String.valueOf(objectClass));
 
     return DirectoryServer.getDITContentRule(objectClass);
   }
@@ -699,7 +647,6 @@ public final class DirectoryConfig
   public static final Map<NameForm,DITStructureRule>
        getDITStructureRules()
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRules");
 
     return DirectoryServer.getDITStructureRules();
   }
@@ -718,8 +665,6 @@ public final class DirectoryConfig
    */
   public static final DITStructureRule getDITStructureRule(int ruleID)
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRule",
-                      String.valueOf(ruleID));
 
     return DirectoryServer.getDITStructureRule(ruleID);
   }
@@ -739,8 +684,6 @@ public final class DirectoryConfig
   public static final DITStructureRule
        getDITStructureRule(NameForm nameForm)
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRule",
-                      String.valueOf(nameForm));
 
     return DirectoryServer.getDITStructureRule(nameForm);
   }
@@ -757,7 +700,6 @@ public final class DirectoryConfig
    */
   public static final Map<ObjectClass,NameForm> getNameForms()
   {
-    assert debugEnter(CLASS_NAME, "getNameForms");
 
     return DirectoryServer.getNameForms();
   }
@@ -776,8 +718,6 @@ public final class DirectoryConfig
    */
   public static final NameForm getNameForm(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "getNameForm",
-                      String.valueOf(objectClass));
 
     return DirectoryServer.getNameForm(objectClass);
   }
@@ -796,8 +736,6 @@ public final class DirectoryConfig
    */
   public static final NameForm getNameForm(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getNameForm",
-                      String.valueOf(lowerName));
 
     return DirectoryServer.getNameForm(lowerName);
   }
@@ -813,8 +751,6 @@ public final class DirectoryConfig
   public static final void registerConfigurableComponent(
                                 ConfigurableComponent component)
   {
-    assert debugEnter(CLASS_NAME, "registerConfigurableComponent",
-                      String.valueOf(component));
 
     DirectoryServer.registerConfigurableComponent(component);
   }
@@ -830,8 +766,6 @@ public final class DirectoryConfig
   public static final void deregisterConfigurableComponent(
                                 ConfigurableComponent component)
   {
-    assert debugEnter(CLASS_NAME, "deregisterConfigurableComponent",
-                      String.valueOf(component));
 
     DirectoryServer.deregisterConfigurableComponent(component);
   }
@@ -847,8 +781,6 @@ public final class DirectoryConfig
   public static final void registerInvokableComponent(
                                 InvokableComponent component)
   {
-    assert debugEnter(CLASS_NAME, "registerInvokableComponent",
-                      String.valueOf(component));
 
     DirectoryServer.registerInvokableComponent(component);
   }
@@ -864,8 +796,6 @@ public final class DirectoryConfig
   public static final void deregisterInvokableComponent(
                                 InvokableComponent component)
   {
-    assert debugEnter(CLASS_NAME, "deregisterInvokableComponent",
-                      String.valueOf(component));
 
     DirectoryServer.deregisterInvokableComponent(component);
   }
@@ -880,7 +810,6 @@ public final class DirectoryConfig
   public static final void registerAlertGenerator(
                                 AlertGenerator alertGenerator)
   {
-    assert debugEnter(CLASS_NAME, "registerAlertGenerator");
 
     DirectoryServer.registerAlertGenerator(alertGenerator);
   }
@@ -896,7 +825,6 @@ public final class DirectoryConfig
   public static final void deregisterAlertGenerator(
                                 AlertGenerator alertGenerator)
   {
-    assert debugEnter(CLASS_NAME, "deregisterAlertGenerator");
 
     DirectoryServer.deregisterAlertGenerator(alertGenerator);
   }
@@ -919,11 +847,6 @@ public final class DirectoryConfig
                              String alertType, int alertID,
                              String alertMessage)
   {
-    assert debugEnter(CLASS_NAME, "sendAlertNotification",
-                      String.valueOf(generator),
-                      String.valueOf(alertType),
-                      String.valueOf(alertID),
-                      String.valueOf(alertMessage));
 
     DirectoryServer.sendAlertNotification(generator, alertType,
                                           alertID, alertMessage);
@@ -940,7 +863,6 @@ public final class DirectoryConfig
    */
   public static final ResultCode getServerErrorResultCode()
   {
-    assert debugEnter(CLASS_NAME, "getServerErrorResultCode");
 
     return DirectoryServer.getServerErrorResultCode();
   }
@@ -964,8 +886,6 @@ public final class DirectoryConfig
   public static final Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntry",
-                      String.valueOf(entryDN));
 
     return DirectoryServer.getEntry(entryDN);
   }
@@ -989,8 +909,6 @@ public final class DirectoryConfig
   public static final boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "entryExists",
-                      String.valueOf(entryDN));
 
     return DirectoryServer.entryExists(entryDN);
   }
@@ -1006,7 +924,6 @@ public final class DirectoryConfig
    */
   public static final Set<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return DirectoryServer.getSupportedControls();
   }
@@ -1026,8 +943,6 @@ public final class DirectoryConfig
    */
   public static final boolean isSupportedControl(String controlOID)
   {
-    assert debugEnter(CLASS_NAME, "isSupportedControl",
-                      String.valueOf(controlOID));
 
     return DirectoryServer.isSupportedControl(controlOID);
   }
@@ -1044,8 +959,6 @@ public final class DirectoryConfig
    */
   public static final void registerSupportedControl(String controlOID)
   {
-    assert debugEnter(CLASS_NAME, "registerSupportedControl",
-                      String.valueOf(controlOID));
 
     DirectoryServer.registerSupportedControl(controlOID);
   }
@@ -1063,8 +976,6 @@ public final class DirectoryConfig
   public static final void
        deregisterSupportedControl(String controlOID)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSupportedControl",
-                      String.valueOf(controlOID));
 
     DirectoryServer.deregisterSupportedControl(controlOID);
   }
@@ -1080,7 +991,6 @@ public final class DirectoryConfig
    */
   public static final Set<String> getSupportedFeatures()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return DirectoryServer.getSupportedFeatures();
   }
@@ -1100,8 +1010,6 @@ public final class DirectoryConfig
    */
   public static final boolean isSupportedFeature(String featureOID)
   {
-    assert debugEnter(CLASS_NAME, "isSupportedFeature",
-                      String.valueOf(featureOID));
 
     return DirectoryServer.isSupportedFeature(featureOID);
   }
@@ -1118,8 +1026,6 @@ public final class DirectoryConfig
    */
   public static final void registerSupportedFeature(String featureOID)
   {
-    assert debugEnter(CLASS_NAME, "registerSupportedFeature",
-                      String.valueOf(featureOID));
 
     DirectoryServer.registerSupportedFeature(featureOID);
   }
@@ -1137,8 +1043,6 @@ public final class DirectoryConfig
   public static final void
        deregisterSupportedFeature(String featureOID)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSupportedFeature",
-                      String.valueOf(featureOID));
 
     DirectoryServer.deregisterSupportedFeature(featureOID);
   }
@@ -1158,7 +1062,6 @@ public final class DirectoryConfig
   public static final Map<String,ExtendedOperationHandler>
                      getSupportedExtensions()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedExtensions");
 
     return DirectoryServer.getSupportedExtensions();
   }
@@ -1177,8 +1080,6 @@ public final class DirectoryConfig
   public static final ExtendedOperationHandler
        getExtendedOperationHandler(String oid)
   {
-    assert debugEnter(CLASS_NAME, "getExtendedOperationHandler",
-                      String.valueOf(oid));
 
     return DirectoryServer.getExtendedOperationHandler(oid);
   }
@@ -1196,8 +1097,6 @@ public final class DirectoryConfig
   public static final void registerSupportedExtension(String oid,
                           ExtendedOperationHandler handler)
   {
-    assert debugEnter(CLASS_NAME, "registerSupportedExtension",
-                      String.valueOf(oid), String.valueOf(handler));
 
     DirectoryServer.registerSupportedExtension(oid, handler);
   }
@@ -1212,8 +1111,6 @@ public final class DirectoryConfig
    */
   public static final void deregisterSupportedExtension(String oid)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSupportedExtension",
-                      String.valueOf(oid));
 
     DirectoryServer.deregisterSupportedExtension(oid);
   }
@@ -1232,7 +1129,6 @@ public final class DirectoryConfig
   public static final Map<String,SASLMechanismHandler>
                      getSupportedSASLMechanisms()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedSASLMechanisms");
 
     return DirectoryServer.getSupportedSASLMechanisms();
   }
@@ -1250,8 +1146,6 @@ public final class DirectoryConfig
   public static final SASLMechanismHandler
        getSASLMechanismHandler(String name)
   {
-    assert debugEnter(CLASS_NAME, "getSASLMechanismHandler",
-                      String.valueOf(name));
 
     return DirectoryServer.getSASLMechanismHandler(name);
   }
@@ -1270,8 +1164,6 @@ public final class DirectoryConfig
        registerSASLMechanismHandler(String name,
                                     SASLMechanismHandler handler)
   {
-    assert debugEnter(CLASS_NAME, "registerSASLMechanismHandler",
-                      String.valueOf(name), String.valueOf(handler));
 
     DirectoryServer.registerSASLMechanismHandler(name, handler);
   }
@@ -1286,8 +1178,6 @@ public final class DirectoryConfig
    */
   public static final void deregisterSASLMechanismHandler(String name)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSASLMechanismHandler",
-                      String.valueOf(name));
 
     DirectoryServer.deregisterSASLMechanismHandler(name);
   }
@@ -1306,9 +1196,6 @@ public final class DirectoryConfig
        registerChangeNotificationListener(
             ChangeNotificationListener changeListener)
   {
-    assert debugEnter(CLASS_NAME,
-                      "registerChangeNotificationListener",
-                      String.valueOf(changeListener));
 
     DirectoryServer.registerChangeNotificationListener(
                          changeListener);
@@ -1327,9 +1214,6 @@ public final class DirectoryConfig
   public static final void deregisterChangeNotificationListener(
                           ChangeNotificationListener changeListener)
   {
-    assert debugEnter(CLASS_NAME,
-                      "deregisterChangeNotificationListener",
-                      String.valueOf(changeListener));
 
     DirectoryServer.deregisterChangeNotificationListener(
                          changeListener);
@@ -1347,8 +1231,6 @@ public final class DirectoryConfig
   public static final void
        registerShutdownListener(ServerShutdownListener listener)
   {
-    assert debugEnter(CLASS_NAME, "registerShutdownListener",
-                      String.valueOf(listener));
 
     DirectoryServer.registerShutdownListener(listener);
   }
@@ -1365,8 +1247,6 @@ public final class DirectoryConfig
   public static final void
        deregisterShutdownListener(ServerShutdownListener listener)
   {
-    assert debugEnter(CLASS_NAME, "deregisterShutdownListener",
-                      String.valueOf(listener));
 
     DirectoryServer.deregisterShutdownListener(listener);
   }

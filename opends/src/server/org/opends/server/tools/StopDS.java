@@ -80,7 +80,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class StopDS
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME = "org.opends.server.tools.StopDS";
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -30,7 +30,9 @@ package org.opends.server.protocols.ldap;
 
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Integer;
-import static org.opends.server.loggers.Debug.*;
+import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -47,11 +49,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class AbandonRequestProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.AbandonRequestProtocolOp";
 
 
 
@@ -68,7 +65,6 @@ public class AbandonRequestProtocolOp
    */
   public AbandonRequestProtocolOp(int idToAbandon)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(idToAbandon));
 
     this.idToAbandon = idToAbandon;
   }
@@ -82,7 +78,6 @@ public class AbandonRequestProtocolOp
    */
   public int getIDToAbandon()
   {
-    assert debugEnter(CLASS_NAME, "getIDToAbandon");
 
     return idToAbandon;
   }
@@ -96,8 +91,6 @@ public class AbandonRequestProtocolOp
    */
   public void setIDToAbandon(int idToAbandon)
   {
-    assert debugEnter(CLASS_NAME, "setIDToAbandon",
-                      String.valueOf(idToAbandon));
 
     this.idToAbandon = idToAbandon;
   }
@@ -111,7 +104,6 @@ public class AbandonRequestProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_ABANDON_REQUEST;
   }
@@ -125,7 +117,6 @@ public class AbandonRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Abandon Request";
   }
@@ -140,7 +131,6 @@ public class AbandonRequestProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     return new ASN1Integer(OP_TYPE_ABANDON_REQUEST, idToAbandon);
   }
@@ -161,8 +151,6 @@ public class AbandonRequestProtocolOp
                                                                    element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeAbandonRequest",
-                      String.valueOf(element));
 
     int idToAbandon;
     try
@@ -171,7 +159,10 @@ public class AbandonRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeAbandonRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_LDAP_ABANDON_REQUEST_DECODE_ID;
       String message = getMessage(msgID, String.valueOf(e));
@@ -191,7 +182,6 @@ public class AbandonRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("AbandonRequest(idToAbandon=");
     buffer.append(idToAbandon);
@@ -210,8 +200,6 @@ public class AbandonRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -42,8 +42,10 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Control;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -60,11 +62,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPPreReadRequestControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.LDAPPreReadRequestControl";
 
 
 
@@ -100,8 +97,6 @@ public class LDAPPreReadRequestControl
     super(OID_LDAP_READENTRY_PREREAD, isCritical,
           encodeAttributes(rawAttributes));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(isCritical),
-                            String.valueOf(rawAttributes));
 
     if (rawAttributes == null)
     {
@@ -135,9 +130,6 @@ public class LDAPPreReadRequestControl
   {
     super(oid, isCritical, encodeAttributes(rawAttributes));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(rawAttributes));
 
     if (rawAttributes == null)
     {
@@ -173,10 +165,6 @@ public class LDAPPreReadRequestControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(rawAttributes),
-                            String.valueOf(encodedValue));
 
     if (rawAttributes == null)
     {
@@ -210,7 +198,6 @@ public class LDAPPreReadRequestControl
   public static LDAPPreReadRequestControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
     if (! control.hasValue())
     {
@@ -232,7 +219,10 @@ public class LDAPPreReadRequestControl
     }
     catch (ASN1Exception ae)
     {
-      assert debugException(CLASS_NAME, "decodeControl", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
 
       int    msgID   = MSGID_PREREADREQ_CANNOT_DECODE_VALUE;
       String message = getMessage(msgID, ae.getMessage());
@@ -259,8 +249,6 @@ public class LDAPPreReadRequestControl
   private static ASN1OctetString encodeAttributes(LinkedHashSet<String>
                                                        rawAttributes)
   {
-    assert debugEnter(CLASS_NAME, "encodeAttributes",
-                      String.valueOf(rawAttributes));
 
     if (rawAttributes == null)
     {
@@ -288,7 +276,6 @@ public class LDAPPreReadRequestControl
    */
   public LinkedHashSet<String> getRawAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getRawAttributes");
 
     return rawAttributes;
   }
@@ -303,8 +290,6 @@ public class LDAPPreReadRequestControl
    */
   public void setRawAttributes(LinkedHashSet<String> rawAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setRawAttributes",
-                      String.valueOf(rawAttributes));
 
     if (rawAttributes == null)
     {
@@ -330,7 +315,6 @@ public class LDAPPreReadRequestControl
    */
   public LinkedHashSet<AttributeType> getRequestedAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getRequestedAttributes");
 
     if (requestedAttributes == null)
     {
@@ -390,7 +374,6 @@ public class LDAPPreReadRequestControl
    */
   public boolean returnAllUserAttributes()
   {
-    assert debugEnter(CLASS_NAME, "returnAllUserAttributes");
 
     if (requestedAttributes == null)
     {
@@ -414,7 +397,6 @@ public class LDAPPreReadRequestControl
    */
   public boolean returnAllOperationalAttributes()
   {
-    assert debugEnter(CLASS_NAME, "returnAllOperationalAttributes");
 
     if (requestedAttributes == null)
     {
@@ -438,8 +420,6 @@ public class LDAPPreReadRequestControl
    */
   public boolean allowsAttribute(AttributeType attrType)
   {
-    assert debugEnter(CLASS_NAME, "allowsAttribute",
-                      String.valueOf(attrType));
 
     if (requestedAttributes == null)
     {
@@ -470,7 +450,6 @@ public class LDAPPreReadRequestControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -487,7 +466,6 @@ public class LDAPPreReadRequestControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("LDAPPreReadRequestControl(criticality=");
     buffer.append(isCritical());

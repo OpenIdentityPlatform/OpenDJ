@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -40,7 +40,9 @@ import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -56,11 +58,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class PersistentSearchControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.PersistentSearchControl";
 
 
 
@@ -95,9 +92,6 @@ public class PersistentSearchControl
     super(OID_PERSISTENT_SEARCH, true,
           encodeValue(changeTypes, changesOnly, returnECs));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(changeTypes),
-                            String.valueOf(changesOnly),
-                            String.valueOf(returnECs));
 
     this.changeTypes = changeTypes;
     this.changesOnly = changesOnly;
@@ -127,11 +121,6 @@ public class PersistentSearchControl
   {
     super(oid, isCritical, encodeValue(changeTypes, changesOnly, returnECs));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(changeTypes),
-                            String.valueOf(changesOnly),
-                            String.valueOf(returnECs));
 
     this.changeTypes = changeTypes;
     this.changesOnly = changesOnly;
@@ -163,12 +152,6 @@ public class PersistentSearchControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(changeTypes),
-                            String.valueOf(changesOnly),
-                            String.valueOf(returnECs),
-                            String.valueOf(encodedValue));
 
     this.changeTypes = changeTypes;
     this.changesOnly = changesOnly;
@@ -197,8 +180,6 @@ public class PersistentSearchControl
                                              boolean changesOnly,
                                              boolean returnECs)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue", String.valueOf(changeTypes),
-                      String.valueOf(changesOnly), String.valueOf(returnECs));
 
 
     ArrayList<ASN1Element> elements =
@@ -229,7 +210,6 @@ public class PersistentSearchControl
   public static PersistentSearchControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
 
     if (! control.hasValue())
@@ -265,7 +245,10 @@ public class PersistentSearchControl
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeControl", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_PSEARCH_CANNOT_DECODE_VALUE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -287,7 +270,6 @@ public class PersistentSearchControl
    */
   public Set<PersistentSearchChangeType> getChangeTypes()
   {
-    assert debugEnter(CLASS_NAME, "getChangeTypes");
 
     return changeTypes;
   }
@@ -302,8 +284,6 @@ public class PersistentSearchControl
    */
   public void setChangeTypes(Set<PersistentSearchChangeType> changeTypes)
   {
-    assert debugEnter(CLASS_NAME, "setChangeTypes",
-                      String.valueOf(changeTypes));
 
     this.changeTypes = changeTypes;
 
@@ -322,7 +302,6 @@ public class PersistentSearchControl
    */
   public boolean getChangesOnly()
   {
-    assert debugEnter(CLASS_NAME, "getChangesOnly");
 
     return changesOnly;
   }
@@ -339,8 +318,6 @@ public class PersistentSearchControl
    */
   public void setChangesOnly(boolean changesOnly)
   {
-    assert debugEnter(CLASS_NAME, "setChangesOnly",
-                      String.valueOf(changesOnly));
 
     this.changesOnly = changesOnly;
 
@@ -359,7 +336,6 @@ public class PersistentSearchControl
    */
   public boolean getReturnECs()
   {
-    assert debugEnter(CLASS_NAME, "getReturnECs");
 
     return returnECs;
   }
@@ -377,7 +353,6 @@ public class PersistentSearchControl
    */
   public void setReturnECs(boolean returnECs)
   {
-    assert debugEnter(CLASS_NAME, "setReturnECs", String.valueOf(returnECs));
 
     this.returnECs = returnECs;
 
@@ -393,7 +368,6 @@ public class PersistentSearchControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -410,7 +384,6 @@ public class PersistentSearchControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("PersistentSearchControl(changeTypes=\"");
     PersistentSearchChangeType.changeTypesToString(changeTypes, buffer);

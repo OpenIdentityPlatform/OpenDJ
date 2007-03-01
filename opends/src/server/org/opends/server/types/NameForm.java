@@ -38,7 +38,6 @@ import java.util.Set;
 
 import org.opends.server.schema.NameFormSyntax;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
@@ -54,11 +53,6 @@ import static org.opends.server.util.Validator.*;
 public final class NameForm
        implements SchemaFileElement
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-      "org.opends.server.types.NameForm";
 
 
 
@@ -123,15 +117,6 @@ public final class NameForm
                   Set<AttributeType> optionalAttributes,
                   Map<String,List<String>> extraProperties)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(definition),
-                            String.valueOf(names),
-                            String.valueOf(oid),
-                            String.valueOf(description),
-                            String.valueOf(isObsolete),
-                            String.valueOf(structuralClass),
-                            String.valueOf(requiredAttributes),
-                            String.valueOf(optionalAttributes),
-                            String.valueOf(extraProperties));
 
     ensureNotNull(definition, oid, structuralClass);
 
@@ -191,7 +176,6 @@ public final class NameForm
    */
   public String getDefinition()
   {
-    assert debugEnter(CLASS_NAME, "getDefinition");
 
     return definition;
   }
@@ -236,7 +220,6 @@ public final class NameForm
    */
   public Map<String,String> getNames()
   {
-    assert debugEnter(CLASS_NAME, "getNames");
 
     return names;
   }
@@ -255,8 +238,6 @@ public final class NameForm
    */
   public boolean hasName(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "hasName",
-                      String.valueOf(lowerName));
 
     return names.containsKey(lowerName);
   }
@@ -270,7 +251,6 @@ public final class NameForm
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return oid;
   }
@@ -287,7 +267,6 @@ public final class NameForm
    */
   public String getNameOrOID()
   {
-    assert debugEnter(CLASS_NAME, "getNameOrOID");
 
     if (names.isEmpty())
     {
@@ -315,8 +294,6 @@ public final class NameForm
    */
   public boolean hasNameOrOID(String lowerValue)
   {
-    assert debugEnter(CLASS_NAME, "hasNameOrOID",
-                      String.valueOf(lowerValue));
 
     if (names.containsKey(lowerValue))
     {
@@ -338,7 +315,6 @@ public final class NameForm
    */
   public String getSchemaFile()
   {
-    assert debugEnter(CLASS_NAME, "getSchemaFile");
 
     List<String> values =
          extraProperties.get(SCHEMA_PROPERTY_FILENAME);
@@ -361,8 +337,6 @@ public final class NameForm
    */
   public void setSchemaFile(String schemaFile)
   {
-    assert debugEnter(CLASS_NAME, "setSchemaFile",
-                      String.valueOf(schemaFile));
 
     setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
@@ -377,7 +351,6 @@ public final class NameForm
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return description;
   }
@@ -393,7 +366,6 @@ public final class NameForm
    */
   public ObjectClass getStructuralClass()
   {
-    assert debugEnter(CLASS_NAME, "getStructuralClass");
 
     return structuralClass;
   }
@@ -407,7 +379,6 @@ public final class NameForm
    */
   public Set<AttributeType> getRequiredAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getRequiredAttributes");
 
     return requiredAttributes;
   }
@@ -426,8 +397,6 @@ public final class NameForm
    */
   public boolean isRequired(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "isRequired",
-                      String.valueOf(attributeType));
 
     return requiredAttributes.contains(attributeType);
   }
@@ -441,7 +410,6 @@ public final class NameForm
    */
   public Set<AttributeType> getOptionalAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getOptionalAttributes");
 
     return optionalAttributes;
   }
@@ -460,8 +428,6 @@ public final class NameForm
    */
   public boolean isOptional(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "isOptional",
-                      String.valueOf(attributeType));
 
     return optionalAttributes.contains(attributeType);
   }
@@ -481,8 +447,6 @@ public final class NameForm
    */
   public boolean isRequiredOrOptional(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "isRequiredOrOptional",
-                      String.valueOf(attributeType));
 
     return (requiredAttributes.contains(attributeType) ||
             optionalAttributes.contains(attributeType));
@@ -498,7 +462,6 @@ public final class NameForm
    */
   public boolean isObsolete()
   {
-    assert debugEnter(CLASS_NAME, "isObsolete");
 
     return isObsolete;
   }
@@ -516,7 +479,6 @@ public final class NameForm
    */
   public Map<String,List<String>> getExtraProperties()
   {
-    assert debugEnter(CLASS_NAME, "getExtraProperties");
 
     return extraProperties;
   }
@@ -536,8 +498,6 @@ public final class NameForm
    */
   public List<String> getExtraProperty(String propertyName)
   {
-    assert debugEnter(CLASS_NAME, "getExtraProperty",
-                      String.valueOf(propertyName));
 
     return extraProperties.get(propertyName);
   }
@@ -554,8 +514,6 @@ public final class NameForm
    */
   public void setExtraProperty(String name, String value)
   {
-    assert debugEnter(CLASS_NAME, "setExtraProperty",
-                      String.valueOf(name), String.valueOf(value));
 
     ensureNotNull(name);
 
@@ -584,8 +542,6 @@ public final class NameForm
    */
   public void setExtraProperty(String name, List<String> values)
   {
-    assert debugEnter(CLASS_NAME, "setExtraProperty",
-                      String.valueOf(name), String.valueOf(values));
 
     ensureNotNull(name);
 
@@ -614,7 +570,6 @@ public final class NameForm
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals");
 
     if (this == o)
     {
@@ -639,7 +594,6 @@ public final class NameForm
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     int oidLength = oid.length();
     int hashCode  = 0;
@@ -662,7 +616,6 @@ public final class NameForm
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer, true);
@@ -685,9 +638,6 @@ public final class NameForm
   public void toString(StringBuilder buffer,
                        boolean includeFileElement)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder",
-                      String.valueOf(includeFileElement));
 
     buffer.append("( ");
     buffer.append(oid);

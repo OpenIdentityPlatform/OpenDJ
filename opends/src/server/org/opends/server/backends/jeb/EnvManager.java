@@ -22,11 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.MSGID_JEB_CREATE_FAIL;
 import static org.opends.server.messages.JebMessages.
@@ -41,11 +43,6 @@ import java.io.FilenameFilter;
  */
 public class EnvManager
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.EnvManager";
 
   /**
    * A filename filter to match all kinds of JE files.
@@ -98,7 +95,10 @@ public class EnvManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "createBackendDirectory", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         String message = getMessage(MSGID_JEB_CREATE_FAIL, e.getMessage());
         throw new JebException(MSGID_JEB_CREATE_FAIL, message, e);
       }
@@ -132,7 +132,10 @@ public class EnvManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "removeFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       String message = getMessage(MSGID_JEB_REMOVE_FAIL, e.getMessage());
       throw new JebException(MSGID_JEB_REMOVE_FAIL, message, e);
     }

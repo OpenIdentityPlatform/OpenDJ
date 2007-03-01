@@ -51,7 +51,9 @@ import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -67,11 +69,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class DITContentRuleSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.DITContentRuleSyntax";
 
 
 
@@ -96,7 +93,6 @@ public class DITContentRuleSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -107,8 +103,6 @@ public class DITContentRuleSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
@@ -148,7 +142,6 @@ public class DITContentRuleSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_DIT_CONTENT_RULE_NAME;
   }
@@ -160,7 +153,6 @@ public class DITContentRuleSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_DIT_CONTENT_RULE_OID;
   }
@@ -172,7 +164,6 @@ public class DITContentRuleSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_DIT_CONTENT_RULE_DESCRIPTION;
   }
@@ -184,7 +175,6 @@ public class DITContentRuleSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -196,7 +186,6 @@ public class DITContentRuleSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     return defaultOrderingMatchingRule;
   }
@@ -208,7 +197,6 @@ public class DITContentRuleSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -220,7 +208,6 @@ public class DITContentRuleSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // There is no approximate matching rule by default.
     return null;
@@ -234,8 +221,6 @@ public class DITContentRuleSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
 
     // We'll use the decodeDITContentRule method to determine if the value is
@@ -247,7 +232,10 @@ public class DITContentRuleSyntax
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "valueIsAcceptable", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       invalidReason.append(de.getErrorMessage());
       return false;
@@ -283,8 +271,6 @@ public class DITContentRuleSyntax
                                     Schema schema, boolean allowUnknownElements)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "decodeDITContentRule",
-                      String.valueOf(value));
 
 
     // Get string representations of the provided value using the provided form
@@ -1007,8 +993,6 @@ public class DITContentRuleSyntax
                                    int startPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "readTokenName", String.valueOf(valueStr),
-                      "java.lang.StringBuilder", String.valueOf(startPos));
 
 
     // Skip over any spaces at the beginning of the value.
@@ -1070,8 +1054,6 @@ public class DITContentRuleSyntax
                                       StringBuilder valueBuffer, int startPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "readQuotedString", String.valueOf(valueStr),
-                      "java.lang.StringBuilder", String.valueOf(startPos));
 
 
     // Skip over any spaces at the beginning of the value.
@@ -1161,9 +1143,6 @@ public class DITContentRuleSyntax
                                       StringBuilder lowerBuffer, int startPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "readQuotedString", String.valueOf(valueStr),
-                      String.valueOf(lowerStr), "java.lang.StringBuilder",
-                      "java.lang.StringBuilder", String.valueOf(startPos));
 
 
     // Skip over any spaces at the beginning of the value.
@@ -1247,8 +1226,6 @@ public class DITContentRuleSyntax
                               int startPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "readWOID", String.valueOf(lowerStr),
-                      "java.lang.StringBuilder", String.valueOf(startPos));
 
 
 
@@ -1406,10 +1383,6 @@ public class DITContentRuleSyntax
                                               int startPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "readExtraParameterValues",
-                      String.valueOf(valueStr),
-                      "java.util.concurrent.CopyOnWriteArrayList<String>",
-                      String.valueOf(startPos));
 
 
     // Skip over any leading spaces.

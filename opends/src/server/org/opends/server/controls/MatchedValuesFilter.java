@@ -49,7 +49,9 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.util.Validator;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -67,11 +69,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class MatchedValuesFilter
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.MatchedValuesFilter";
 
 
 
@@ -198,12 +195,6 @@ public class MatchedValuesFilter
                               List<ASN1OctetString> subAny,
                               ASN1OctetString subFinal, String matchingRuleID)
   {
-    assert debugConstructor(CLASS_NAME, byteToHex(matchType),
-                            String.valueOf(rawAttributeType),
-                            String.valueOf(rawAssertionValue),
-                            String.valueOf(subInitial), String.valueOf(subAny),
-                            String.valueOf(subFinal),
-                            String.valueOf(matchingRuleID));
 
 
     this.matchType         = matchType;
@@ -241,9 +232,6 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ASN1OctetString rawAssertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createEqualityFilter",
-                      String.valueOf(rawAttributeType),
-                      String.valueOf(rawAssertionValue));
 
     Validator.ensureNotNull(rawAttributeType,rawAssertionValue);
 
@@ -265,9 +253,6 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createEqualityFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
 
     Validator.ensureNotNull(attributeType, assertionValue);
@@ -302,10 +287,6 @@ public class MatchedValuesFilter
                                          List<ASN1OctetString> subAny,
                                          ASN1OctetString subFinal)
   {
-    assert debugEnter(CLASS_NAME, "createSubstringsFilter",
-                      String.valueOf(rawAttributeType),
-                      String.valueOf(subInitial), String.valueOf(subAny),
-                      String.valueOf(subFinal));
 
 
     Validator.ensureNotNull(rawAttributeType);
@@ -331,9 +312,6 @@ public class MatchedValuesFilter
                                          List<ASN1OctetString> subAny,
                                          ASN1OctetString subFinal)
   {
-    assert debugEnter(CLASS_NAME, "createSubstringsFilter",
-                      String.valueOf(attributeType), String.valueOf(subInitial),
-                      String.valueOf(subAny), String.valueOf(subFinal));
 
 
     Validator.ensureNotNull(attributeType);
@@ -361,9 +339,6 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ASN1OctetString rawAssertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createGreaterOrEqualFilter",
-                      String.valueOf(rawAttributeType),
-                      String.valueOf(rawAssertionValue));
 
    Validator.ensureNotNull(rawAttributeType, rawAssertionValue);
 
@@ -385,9 +360,6 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createGreaterOrEqualFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     Validator.ensureNotNull(attributeType, assertionValue);
 
@@ -418,9 +390,6 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ASN1OctetString rawAssertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createLessOrEqualFilter",
-                      String.valueOf(rawAttributeType),
-                      String.valueOf(rawAssertionValue));
 
 
     Validator.ensureNotNull(rawAttributeType, rawAssertionValue);
@@ -442,9 +411,6 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createLessOrEqualFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     Validator.ensureNotNull(attributeType, assertionValue);
 
@@ -472,8 +438,6 @@ public class MatchedValuesFilter
    */
   public static MatchedValuesFilter createPresentFilter(String rawAttributeType)
   {
-    assert debugEnter(CLASS_NAME, "createPresentFilter",
-                      String.valueOf(rawAttributeType));
 
     Validator.ensureNotNull(rawAttributeType) ;
     return new MatchedValuesFilter(PRESENT_TYPE, rawAttributeType, null, null,
@@ -492,8 +456,6 @@ public class MatchedValuesFilter
   public static MatchedValuesFilter createPresentFilter(
                                          AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "createPresentFilter",
-                      String.valueOf(attributeType));
 
     Validator.ensureNotNull(attributeType);
     String rawAttributeType = attributeType.getNameOrOID();
@@ -520,9 +482,6 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ASN1OctetString rawAssertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createApproximateFilter",
-                      String.valueOf(rawAttributeType),
-                      String.valueOf(rawAssertionValue));
 
     Validator.ensureNotNull(rawAttributeType,rawAssertionValue);
 
@@ -544,9 +503,6 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createApproximateFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
 
     Validator.ensureNotNull(attributeType,assertionValue);
@@ -579,10 +535,6 @@ public class MatchedValuesFilter
                                          String matchingRuleID,
                                          ASN1OctetString rawAssertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createExtensibleMatchFilter",
-                      String.valueOf(rawAttributeType),
-                      String.valueOf(matchingRuleID),
-                      String.valueOf(rawAssertionValue));
 
     Validator
         .ensureNotNull(rawAttributeType, matchingRuleID, rawAssertionValue);
@@ -607,10 +559,6 @@ public class MatchedValuesFilter
                                          MatchingRule matchingRule,
                                          AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createExtensibleMatchFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(matchingRule),
-                      String.valueOf(assertionValue));
 
 
     Validator.ensureNotNull(attributeType, matchingRule, assertionValue);
@@ -645,8 +593,6 @@ public class MatchedValuesFilter
   public static MatchedValuesFilter createFromLDAPFilter(LDAPFilter filter)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "createFromLDAPFilter",
-                      String.valueOf(filter));
 
     switch (filter.getFilterType())
     {
@@ -736,7 +682,6 @@ public class MatchedValuesFilter
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
 
     switch (matchType)
@@ -824,7 +769,6 @@ public class MatchedValuesFilter
   public static MatchedValuesFilter decode(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(element));
 
 
     switch (element.getType())
@@ -860,7 +804,10 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "decode", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_AVA;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -959,7 +906,10 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "decode", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_SUBSTRINGS;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -979,7 +929,10 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "decode", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_PRESENT_TYPE;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1073,7 +1026,10 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "decode", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_EXTENSIBLE_MATCH;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1098,7 +1054,6 @@ public class MatchedValuesFilter
    */
   public byte getMatchType()
   {
-    assert debugEnter(CLASS_NAME, "getMatchType");
 
     return matchType;
   }
@@ -1114,7 +1069,6 @@ public class MatchedValuesFilter
    */
   public String getRawAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getRawAttributeType");
 
     return rawAttributeType;
   }
@@ -1130,8 +1084,6 @@ public class MatchedValuesFilter
    */
   public void setRawAttributeType(String rawAttributeType)
   {
-    assert debugEnter(CLASS_NAME, "setRawAttributeType",
-                      String.valueOf(rawAttributeType));
 
     this.rawAttributeType = rawAttributeType;
 
@@ -1153,7 +1105,6 @@ public class MatchedValuesFilter
    */
   public AttributeType getAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType");
 
     if (attributeType == null)
     {
@@ -1181,8 +1132,6 @@ public class MatchedValuesFilter
    */
   public void setAttributeType(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "setAttributeType",
-                      String.valueOf(attributeType));
 
     this.attributeType = attributeType;
 
@@ -1213,7 +1162,6 @@ public class MatchedValuesFilter
    */
   public ASN1OctetString getRawAssertionValue()
   {
-    assert debugEnter(CLASS_NAME, "getRawAssertionValue");
 
     return rawAssertionValue;
   }
@@ -1229,8 +1177,6 @@ public class MatchedValuesFilter
    */
   public void setRawAssertionValue(ASN1OctetString rawAssertionValue)
   {
-    assert debugEnter(CLASS_NAME, "setRawAssertionValue",
-                      String.valueOf(rawAssertionValue));
 
     this.rawAssertionValue = rawAssertionValue;
 
@@ -1248,7 +1194,6 @@ public class MatchedValuesFilter
    */
   public AttributeValue getAssertionValue()
   {
-    assert debugEnter(CLASS_NAME, "getAssertionValue");
 
     if (assertionValue == null)
     {
@@ -1271,8 +1216,6 @@ public class MatchedValuesFilter
    */
   public void setAssertionValue(AttributeValue assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "setAssertionValue",
-                      String.valueOf(assertionValue));
 
     this.assertionValue = assertionValue;
 
@@ -1298,7 +1241,6 @@ public class MatchedValuesFilter
    */
   public ASN1OctetString getSubInitialElement()
   {
-    assert debugEnter(CLASS_NAME, "getSubInitialElement");
 
     return subInitial;
   }
@@ -1312,8 +1254,6 @@ public class MatchedValuesFilter
    */
   public void setSubInitialElement(ASN1OctetString subInitial)
   {
-    assert debugEnter(CLASS_NAME, "setSubInitialElement",
-                      String.valueOf(subInitial));
 
     this.subInitial = subInitial;
 
@@ -1331,7 +1271,6 @@ public class MatchedValuesFilter
    */
   public ASN1OctetString getNormalizedSubInitialElement()
   {
-    assert debugEnter(CLASS_NAME, "getNormalizedSubInitialElement");
 
     if (normalizedSubInitial == null)
     {
@@ -1345,8 +1284,10 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "getNormalizedSubInitialElement",
-                                e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -1365,7 +1306,6 @@ public class MatchedValuesFilter
    */
   public List<ASN1OctetString> getSubAnyElements()
   {
-    assert debugEnter(CLASS_NAME, "getSubAnyElements");
 
     return subAny;
   }
@@ -1379,7 +1319,6 @@ public class MatchedValuesFilter
    */
   public void setSubAnyElements(List<ASN1OctetString> subAny)
   {
-    assert debugEnter(CLASS_NAME, "setSubAnyElements", String.valueOf(subAny));
 
     this.subAny = subAny;
 
@@ -1400,7 +1339,6 @@ public class MatchedValuesFilter
    */
   public List<ASN1OctetString> getNormalizedSubAnyElements()
   {
-    assert debugEnter(CLASS_NAME, "getNormalizedSubAnyElements");
 
     if (normalizedSubAny == null)
     {
@@ -1427,7 +1365,10 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "getNormalizedSubAnyElements", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           normalizedSubAny = null;
         }
@@ -1447,7 +1388,6 @@ public class MatchedValuesFilter
    */
   public ASN1OctetString getSubFinalElement()
   {
-    assert debugEnter(CLASS_NAME, "getSubFinal");
 
     return subFinal;
   }
@@ -1461,8 +1401,6 @@ public class MatchedValuesFilter
    */
   public void setSubFinalElement(ASN1OctetString subFinal)
   {
-    assert debugEnter(CLASS_NAME, "setSubFinalElement",
-                      String.valueOf(subFinal));
 
     this.subFinal = subFinal;
 
@@ -1480,7 +1418,6 @@ public class MatchedValuesFilter
    */
   public ASN1OctetString getNormalizedSubFinalElement()
   {
-    assert debugEnter(CLASS_NAME, "getNormalizedSubFinalElement");
 
     if (normalizedSubFinal == null)
     {
@@ -1494,7 +1431,10 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "getNormalizedSubFinalElement", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -1512,7 +1452,6 @@ public class MatchedValuesFilter
    */
   public String getMatchingRuleID()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleID");
 
     return matchingRuleID;
   }
@@ -1527,8 +1466,6 @@ public class MatchedValuesFilter
    */
   public void setMatchingRuleID(String matchingRuleID)
   {
-    assert debugEnter(CLASS_NAME, "setMatchingRuleID",
-                      String.valueOf(matchingRuleID));
 
     this.matchingRuleID = matchingRuleID;
 
@@ -1546,7 +1483,6 @@ public class MatchedValuesFilter
    */
   public MatchingRule getMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRule");
 
     if (matchingRule == null)
     {
@@ -1569,8 +1505,6 @@ public class MatchedValuesFilter
    */
   public void setMatchingRule(MatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "setMatchingRule",
-                      String.valueOf(matchingRule));
 
     this.matchingRule = matchingRule;
 
@@ -1597,7 +1531,6 @@ public class MatchedValuesFilter
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     if (approximateMatchingRule == null)
     {
@@ -1622,7 +1555,6 @@ public class MatchedValuesFilter
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     if (equalityMatchingRule == null)
     {
@@ -1647,7 +1579,6 @@ public class MatchedValuesFilter
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     if (orderingMatchingRule == null)
     {
@@ -1672,7 +1603,6 @@ public class MatchedValuesFilter
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     if (substringMatchingRule == null)
     {
@@ -1726,8 +1656,6 @@ public class MatchedValuesFilter
    */
   public boolean valueMatches(AttributeType type, AttributeValue value)
   {
-    assert debugEnter(CLASS_NAME, "valueMatches", String.valueOf(type),
-                      String.valueOf(value));
 
 
     fullyDecode();
@@ -1747,7 +1675,10 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "valueMatches", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             return false;
           }
@@ -1773,7 +1704,10 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "valueMatches", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             return false;
           }
@@ -1797,7 +1731,10 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "valueMatches", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             return false;
           }
@@ -1821,7 +1758,10 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "valueMatches", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             return false;
           }
@@ -1853,7 +1793,10 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "valueMatches", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             return false;
           }
@@ -1890,7 +1833,10 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "valueMatches", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             return false;
           }
@@ -1910,7 +1856,10 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "valueMatches", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             return false;
           }
@@ -1932,7 +1881,6 @@ public class MatchedValuesFilter
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -1949,7 +1897,6 @@ public class MatchedValuesFilter
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     switch (matchType)
     {

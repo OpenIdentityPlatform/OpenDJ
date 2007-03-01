@@ -22,12 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
-
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 
 import java.util.AbstractSet;
 import java.util.Collection;
@@ -47,9 +44,6 @@ import org.opends.server.types.Entry;
  */
 public final class SubtreeSpecificationSet extends
     AbstractSet<SubtreeSpecification> {
-  // Fully qualified class name for debugging purposes.
-  private static final String CLASS_NAME =
-       SubtreeSpecificationSet.class.getName();
 
   // Underlying implementation is simply a set.
   private HashSet<SubtreeSpecification> pimpl;
@@ -58,7 +52,6 @@ public final class SubtreeSpecificationSet extends
    * Constructs a new empty subtree specification set.
    */
   public SubtreeSpecificationSet() {
-    assert debugConstructor(CLASS_NAME);
 
     this.pimpl = new HashSet<SubtreeSpecification>();
   }
@@ -73,7 +66,6 @@ public final class SubtreeSpecificationSet extends
    */
   public SubtreeSpecificationSet(
       Collection<? extends SubtreeSpecification> c) {
-    assert debugConstructor(CLASS_NAME);
 
     this.pimpl = new HashSet<SubtreeSpecification>(c);
   }
@@ -88,7 +80,6 @@ public final class SubtreeSpecificationSet extends
    *         specified entry.
    */
   public boolean isWithinScope(Entry entry) {
-    assert debugEnter(CLASS_NAME, "contains");
 
     for (SubtreeSpecification subtreeSpecification : pimpl) {
       if (subtreeSpecification.isWithinScope(entry)) {
@@ -104,7 +95,6 @@ public final class SubtreeSpecificationSet extends
    */
   @Override
   public boolean add(SubtreeSpecification e) {
-    assert debugEnter(CLASS_NAME, "add");
 
     return pimpl.add(e);
   }
@@ -114,7 +104,6 @@ public final class SubtreeSpecificationSet extends
    */
   @Override
   public Iterator<SubtreeSpecification> iterator() {
-    assert debugEnter(CLASS_NAME, "iterator");
 
     return pimpl.iterator();
   }
@@ -124,7 +113,6 @@ public final class SubtreeSpecificationSet extends
    */
   @Override
   public boolean contains(Object o) {
-    assert debugEnter(CLASS_NAME, "contains");
 
     return pimpl.contains(o);
   }
@@ -134,7 +122,6 @@ public final class SubtreeSpecificationSet extends
    */
   @Override
   public int size() {
-    assert debugEnter(CLASS_NAME, "size");
 
     return pimpl.size();
   }

@@ -52,7 +52,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.SSLClientAuthPolicy;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -69,12 +71,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class TLSConnectionSecurityProvider
        extends ConnectionSecurityProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.TLSConnectionSecurityProvider";
-
 
 
   /**
@@ -140,7 +136,6 @@ public class TLSConnectionSecurityProvider
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -165,7 +160,6 @@ public class TLSConnectionSecurityProvider
   {
     super();
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(clientConnection));
 
     this.clientConnection = clientConnection;
     this.socketChannel    = socketChannel;
@@ -212,8 +206,10 @@ public class TLSConnectionSecurityProvider
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionSecurityProvider",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_TLS_SECURITY_PROVIDER_CANNOT_INITIALIZE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -292,8 +288,6 @@ public class TLSConnectionSecurityProvider
   public void initializeConnectionSecurityProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeConnectionSecurityProvider",
-                      String.valueOf(configEntry));
 
     // Initialize default values for the connection-specific variables.
     clientConnection = null;
@@ -321,7 +315,6 @@ public class TLSConnectionSecurityProvider
    */
   public void finalizeConnectionSecurityProvider()
   {
-    assert debugEnter(CLASS_NAME, "finalizeConnectionSecurityProvider");
 
     // No implementation is required.
   }
@@ -335,7 +328,6 @@ public class TLSConnectionSecurityProvider
    */
   public String getSecurityMechanismName()
   {
-    assert debugEnter(CLASS_NAME, "getSecurityMechanismName");
 
     return SSL_CONTEXT_INSTANCE_NAME;
   }
@@ -352,7 +344,6 @@ public class TLSConnectionSecurityProvider
    */
   public boolean isSecure()
   {
-    assert debugEnter(CLASS_NAME, "isSecure");
 
     // This should be considered secure.
     return true;
@@ -381,9 +372,6 @@ public class TLSConnectionSecurityProvider
                                                 SocketChannel socketChannel)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "newInstance",
-                      String.valueOf(clientConnection),
-                      String.valueOf(socketChannel));
 
     return new TLSConnectionSecurityProvider(clientConnection, socketChannel,
                                              this);
@@ -408,7 +396,6 @@ public class TLSConnectionSecurityProvider
    */
   public void disconnect(boolean connectionValid)
   {
-    assert debugEnter(CLASS_NAME, "disconnect");
 
     if (connectionValid)
     {
@@ -471,7 +458,10 @@ public class TLSConnectionSecurityProvider
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "disconnect", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -488,7 +478,6 @@ public class TLSConnectionSecurityProvider
    */
   public int getClearBufferSize()
   {
-    assert debugEnter(CLASS_NAME, "getClearBufferSize");
 
     return clearBufferSize;
   }
@@ -505,7 +494,6 @@ public class TLSConnectionSecurityProvider
    */
   public int getEncodedBufferSize()
   {
-    assert debugEnter(CLASS_NAME, "getEncodedBufferSize");
 
     return sslBufferSize;
   }
@@ -527,7 +515,6 @@ public class TLSConnectionSecurityProvider
    */
   public boolean readData()
   {
-    assert debugEnter(CLASS_NAME, "readData");
 
 
     while (true)
@@ -662,7 +649,10 @@ handshakeLoop:
       }
       catch (IOException ioe)
       {
-        assert debugException(CLASS_NAME, "readData", ioe);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ioe);
+        }
 
         // An error occurred while trying to communicate with the client.
         // Disconnect and return.
@@ -671,7 +661,10 @@ handshakeLoop:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "readData", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // An unexpected error occurred while trying to process the data read.
         // Disconnect and return.
@@ -705,7 +698,6 @@ handshakeLoop:
    */
   public boolean writeData(ByteBuffer clearData)
   {
-    assert debugEnter(CLASS_NAME, "writeData", "java.nio.ByteBuffer");
 
     int originalPosition = clearData.position();
     int originalLimit    = clearData.limit();
@@ -958,7 +950,10 @@ handshakeStatusLoop:
     }
     catch (IOException ioe)
     {
-      assert debugException(CLASS_NAME, "writeData", ioe);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ioe);
+      }
 
       // An error occurred while trying to communicate with the client.
       // Disconnect and return.
@@ -967,7 +962,10 @@ handshakeStatusLoop:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "writeData", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An unexpected error occurred while trying to process the data read.
       // Disconnect and return.
@@ -988,7 +986,6 @@ handshakeStatusLoop:
    */
   public String[] getEnabledProtocols()
   {
-    assert debugEnter(CLASS_NAME, "getEnabledProtocols");
 
     return enabledProtocols;
   }
@@ -1004,8 +1001,6 @@ handshakeStatusLoop:
    */
   public void setEnabledProtocols(String[] enabledProtocols)
   {
-    assert debugEnter(CLASS_NAME, "setEnabledProtocols",
-                      String.valueOf(enabledProtocols));
 
     this.enabledProtocols = enabledProtocols;
   }
@@ -1019,7 +1014,6 @@ handshakeStatusLoop:
    */
   public String[] getEnabledCipherSuites()
   {
-    assert debugEnter(CLASS_NAME, "getEnabledCipherSuites");
 
     return enabledCipherSuites;
   }
@@ -1034,8 +1028,6 @@ handshakeStatusLoop:
    */
   public void setEnabledCipherSuites(String[] enabledCipherSuites)
   {
-    assert debugEnter(CLASS_NAME, "setEnabledCipherSuites",
-                      String.valueOf(enabledCipherSuites));
 
     this.enabledCipherSuites = enabledCipherSuites;
   }
@@ -1049,7 +1041,6 @@ handshakeStatusLoop:
    */
   public SSLClientAuthPolicy getSSLClientAuthPolicy()
   {
-    assert debugEnter(CLASS_NAME, "getSSLClientAuthPolicy");
 
     return sslClientAuthPolicy;
   }
@@ -1064,8 +1055,6 @@ handshakeStatusLoop:
    */
   public void setSSLClientAuthPolicy(SSLClientAuthPolicy sslClientAuthPolicy)
   {
-    assert debugEnter(CLASS_NAME, "setSSLClientAuthPolicy",
-                      String.valueOf(sslClientAuthPolicy));
 
     this.sslClientAuthPolicy = sslClientAuthPolicy;
   }
@@ -1079,7 +1068,6 @@ handshakeStatusLoop:
    */
   public SSLSession getSSLSession()
   {
-    assert debugEnter(CLASS_NAME, "getSSLSession");
 
     return sslEngine.getSession();
   }
@@ -1097,7 +1085,6 @@ handshakeStatusLoop:
    */
   public Certificate[] getClientCertificateChain()
   {
-    assert debugEnter(CLASS_NAME, "getClientCertificateChain");
 
     try
     {
@@ -1105,7 +1092,10 @@ handshakeStatusLoop:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getClientCertificateChain", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return null;
     }

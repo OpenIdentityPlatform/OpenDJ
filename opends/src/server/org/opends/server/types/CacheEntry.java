@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -30,7 +30,6 @@ package org.opends.server.types;
 
 import org.opends.server.api.Backend;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -40,11 +39,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class CacheEntry
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.CacheEntry";
 
 
 
@@ -68,9 +62,6 @@ public class CacheEntry
    */
   public CacheEntry(Entry entry, Backend backend, long entryID)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(entry),
-                            String.valueOf(backend),
-                            String.valueOf(entryID));
 
     this.entry   = entry;
     this.backend = backend;
@@ -86,7 +77,6 @@ public class CacheEntry
    */
   public Entry getEntry()
   {
-    assert debugEnter(CLASS_NAME, "getEntry");
 
     return entry;
   }
@@ -100,7 +90,6 @@ public class CacheEntry
    */
   public void setEntry(Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "setEntry", String.valueOf(entry));
 
     this.entry = entry;
   }
@@ -114,7 +103,6 @@ public class CacheEntry
    */
   public Backend getBackend()
   {
-    assert debugEnter(CLASS_NAME, "getBackend");
 
     return backend;
   }
@@ -128,8 +116,6 @@ public class CacheEntry
    */
   public void setBackend(Backend backend)
   {
-    assert debugEnter(CLASS_NAME, "setBackend",
-                      String.valueOf(backend));
 
     this.backend = backend;
   }
@@ -143,7 +129,6 @@ public class CacheEntry
    */
   public long getEntryID()
   {
-    assert debugEnter(CLASS_NAME, "getEntryID");
 
     return entryID;
   }
@@ -157,7 +142,6 @@ public class CacheEntry
    */
   public void setEntryID(long entryID)
   {
-    assert debugEnter(CLASS_NAME, "setEntryID");
 
     this.entryID = entryID;
   }
@@ -171,7 +155,6 @@ public class CacheEntry
    */
   public DN getDN()
   {
-    assert debugEnter(CLASS_NAME, "getDN");
 
     return entry.getDN();
   }
@@ -186,7 +169,6 @@ public class CacheEntry
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     return (int) entryID;
   }
@@ -205,7 +187,6 @@ public class CacheEntry
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (o == null)
     {

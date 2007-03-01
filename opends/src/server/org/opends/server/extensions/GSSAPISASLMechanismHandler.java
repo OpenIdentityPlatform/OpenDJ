@@ -56,7 +56,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -72,11 +74,6 @@ public class GSSAPISASLMechanismHandler
        extends SASLMechanismHandler
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.GSSAPISASLMechanismHandler";
 
 
 
@@ -114,7 +111,6 @@ public class GSSAPISASLMechanismHandler
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -126,8 +122,6 @@ public class GSSAPISASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSASLMechanismHandler",
-                      String.valueOf(configEntry));
 
 
     this.configEntryDN = configEntry.getDN();
@@ -167,7 +161,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -199,7 +196,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -227,7 +227,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_KDC_ADDRESS;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -255,7 +258,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_REALM;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -282,7 +288,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_KEYTAB_FILE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -355,7 +364,6 @@ public class GSSAPISASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSASLMechanismHandler");
 
     DirectoryServer.deregisterConfigurableComponent(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_GSSAPI);
@@ -370,8 +378,6 @@ public class GSSAPISASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "processSASLBind",
-                      String.valueOf(bindOperation));
 
 
     // GSSAPI binds use multiple stages, so we need to determine whether this is
@@ -402,7 +408,10 @@ public class GSSAPISASLMechanismHandler
       }
       catch (InitializationException ie)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", ie);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ie);
+        }
 
         bindOperation.setAuthFailureReason(ie.getMessageID(), ie.getMessage());
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -436,7 +445,10 @@ public class GSSAPISASLMechanismHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
     else if (bindOperation.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS)
@@ -476,8 +488,6 @@ public class GSSAPISASLMechanismHandler
   public Entry getUserForAuthzID(BindOperation bindOperation, String authzID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getUserForAuthzID",
-                      String.valueOf(bindOperation), String.valueOf(authzID));
 
     return identityMapper.getEntryForID(authzID);
   }
@@ -493,7 +503,6 @@ public class GSSAPISASLMechanismHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -510,7 +519,6 @@ public class GSSAPISASLMechanismHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
@@ -553,8 +561,6 @@ public class GSSAPISASLMechanismHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // Look at the identity mapper configuration
@@ -590,7 +596,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -615,7 +624,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -636,7 +648,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_KDC_ADDRESS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -657,7 +672,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_REALM;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -691,9 +709,6 @@ public class GSSAPISASLMechanismHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -742,7 +757,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -777,7 +795,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -807,7 +828,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_KDC_ADDRESS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -837,7 +861,10 @@ public class GSSAPISASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_REALM;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1000,7 +1027,6 @@ public class GSSAPISASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isPasswordBased", String.valueOf(mechanism));
 
     // This is not a password-based mechanism.
     return false;
@@ -1014,7 +1040,6 @@ public class GSSAPISASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isSecure", String.valueOf(mechanism));
 
     // This may be considered a secure mechanism.
     return true;

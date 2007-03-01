@@ -55,7 +55,9 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDIFImportConfig;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
@@ -71,11 +73,6 @@ import static org.opends.server.util.StaticUtils.*;
 public final class PasswordPolicyImportPlugin
        extends DirectoryServerPlugin
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.plugins.PasswordPolicyImportPlugin";
 
 
 
@@ -99,7 +96,6 @@ public final class PasswordPolicyImportPlugin
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
 
     // Get the password policies from the Directory Server configuration.  This
@@ -183,9 +179,6 @@ public final class PasswordPolicyImportPlugin
                                      ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(pluginTypes),
-                      String.valueOf(configEntry));
 
 
     // Make sure that the plugin has been enabled for the appropriate types.
@@ -215,8 +208,6 @@ public final class PasswordPolicyImportPlugin
   public final LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
                                              Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "doLDIFImport",
-                      String.valueOf(importConfig), String.valueOf(entry));
 
 
     // Create a list that we will use to hold new encoded values.
@@ -258,7 +249,10 @@ public final class PasswordPolicyImportPlugin
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "doLDIFImport", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               int    msgID   = MSGID_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD;
               String message = getMessage(msgID, t.getNameOrOID(),
@@ -316,7 +310,10 @@ public final class PasswordPolicyImportPlugin
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "doLDIFImport", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               int    msgID   = MSGID_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD;
               String message = getMessage(msgID, t.getNameOrOID(),
