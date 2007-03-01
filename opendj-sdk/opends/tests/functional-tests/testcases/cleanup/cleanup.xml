@@ -35,20 +35,20 @@
 
       <!--- Delete file if it exists already-->
       <message>
-          'Delete folder %s/ldifdata.zip' % (DIRECTORY_INSTANCE_DIR)
+          'Delete folder %s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR
       </message>
-      <call function="'deletefile'">
-          { 'filename' : '%s/ldifdata.zip' % (DIRECTORY_INSTANCE_DIR),
-            'hostname'   :  STAF_REMOTE_HOSTNAME }
+      <call function="'deleteFile'">
+          { 'location' : STAF_REMOTE_HOSTNAME,
+            'filename' : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR }
       </call>
 
       <!--- Delete folder if it exists already-->
       <message>
-          'Delete folder %s/functional-tests' % (DIRECTORY_INSTANCE_DIR)
+          'Delete folder %s/functional-tests' % DIRECTORY_INSTANCE_DIR
       </message>
-      <call function="'deletefolder'">
-          { 'foldername' : '%s/functional-tests' % (DIRECTORY_INSTANCE_DIR),
-            'hostname'   :  STAF_REMOTE_HOSTNAME }
+      <call function="'deleteFolder'">
+          { 'location'   : STAF_REMOTE_HOSTNAME,
+            'foldername' : '%s/functional-tests' % DIRECTORY_INSTANCE_DIR }
       </call>
 
      </sequence>

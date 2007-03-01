@@ -117,7 +117,6 @@
     </function-map-args>
     <sequence>
       <script> 
-        import re 
         searchre = re.compile('%s' % expectedString)
       </script> 
 
@@ -155,7 +154,6 @@
 
     <sequence>
       <script>
-        import re
         searchre = re.compile('%s' % testString)
       </script>
       <if expr='re.search(searchre, returnString) == None'>
@@ -177,7 +175,7 @@
     </sequence>
   </function>
 
-    <function name="searchStringForSubstring">
+  <function name="searchStringForSubstring">
     <function-prolog>
       This function simply searches a string for a substring
     </function-prolog>
@@ -192,7 +190,6 @@
 
     <sequence>
       <script>
-        import re
         searchre = re.compile(testString)
       </script>
       <if expr='re.search(searchre, returnString) == None'>
@@ -214,7 +211,7 @@
       <return>returnCode</return>
     </sequence>
   </function>
-
+  
   <function name="isAlive">
     <function-prolog>
       Checks that the ldap server is running
@@ -497,7 +494,7 @@
     <sequence>
 
       <call function="'queryLogs'">
-        { 'hostname'  : STAXServiceMachine,
+        { 'location'  : STAXServiceMachine,
           'logname'   : 'STAX_Job_%s_User' % STAXJobID, 
           'startfrom' : starttime,
           'endat'     : endtime }
@@ -535,8 +532,8 @@
         NewLogDir=posixpath.dirname(logfile)
       </script>
       
-      <call function="'CreateFolder'">
-        { 'hostname'   : STAXServiceMachine, 
+      <call function="'createFolder'">
+        { 'location'   : STAXServiceMachine, 
           'foldername' : NewLogDir }
       </call>
 

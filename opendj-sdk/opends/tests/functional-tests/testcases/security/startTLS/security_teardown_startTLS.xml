@@ -79,11 +79,11 @@
                'Security: TLS: Postamble Step 3. Removing JKS Keystore'
             </message>
 
-            <call function="'deletefile'">
-            { 'filename' : '%s/../config/keystore' % (OPENDS_BINPATH),
-            'hostname' : STAF_REMOTE_HOSTNAME }
+            <call function="'deleteFile'">
+              { 'location' : STAF_REMOTE_HOSTNAME,
+                'filename' : '%s/../config/keystore' % OPENDS_BINPATH }
             </call>
-            
+
             <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }

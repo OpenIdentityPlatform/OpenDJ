@@ -40,28 +40,29 @@
           
       <call function="'testSuite_Preamble'"/>
 
-         <!--- Start DS -->
-         <sequence>
-           <message>
-              'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-           </message>
+        <!--- Start DS -->
+        <sequence>
+          <message>
+             'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+          </message>
   
-           <call function="'startDS'">
-             { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
-           </call>
+          <call function="'StartDsWithScript'">
+           { 'location'  : STAF_REMOTE_HOSTNAME }
+          </call>
  
-           <call function="'checkRC'">
-               { 'returncode' : RC ,
-                 'result'     : STAXResult }
-           </call>
+          <call function="'checkRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
+          </call>
  
-         </sequence>
+        </sequence>
                 
             <!--- Check that DS started -->
             <call function="'isAlive'">
               { 'noOfLoops'        : 5 ,
                 'noOfMilliSeconds' : 2000 }
-            </call>  
+            </call>
+              
               <testcase name="'Backend: Backup Tasks 1'">
               
               <sequence>

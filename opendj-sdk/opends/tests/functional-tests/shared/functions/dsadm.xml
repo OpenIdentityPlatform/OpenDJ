@@ -27,34 +27,106 @@
  ! -->
 <stax>
 
-  <function name="configureDS">
+  <!-- This function configures DS using the configure-ds script -->
+  <function name="ConfigureDsWithScript">
     <function-prolog>
-      This function configures a Directory Server
+      This function configures a Directory Server using a script
     </function-prolog>
+    
     <function-map-args>
-      <function-required-arg name="dsInstancePort">
-          Directory Server port number
-      </function-required-arg>
-      <function-optional-arg name="dsInstanceSuffix">
-          Directory Server suffix
-      </function-optional-arg>
-      <function-optional-arg name="dsInstanceDN" default="'%s' % DIRECTORY_INSTANCE_DN" >
-          Directory manager DN
-      </function-optional-arg>
-      <function-optional-arg name="dsInstancePassword" default="'%s' % DIRECTORY_INSTANCE_PSWD" >
-          Directory Server suffix
-      </function-optional-arg>
-      
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPort" type="optional" default="''">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsBaseDN" type="optional" default="''">
+        <function-arg-description>
+          Base DN (only single base DN supported).
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindDN" type="optional" default="''">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def> 
+      <function-arg-def name="dsBindPwd" type="optional" default="''">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>          
+      <function-arg-def name="dsBindPwdFile" type="optional" default="''">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional" default="''">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>    
     </function-map-args>
+    
     <sequence>
-      <process name="'Configure DS'">
-        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-        <command>'%s/configure-ds%s' % (OPENDS_BINPATH,fileExt)</command>
-        <parms>'-p %s -b "%s" -D "%s" -w %s' % (dsInstancePort,dsInstanceSuffix,dsInstanceDN,dsInstancePassword)</parms>
-        <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+
+        if dsPath:
+          STAFCmd='%s/bin/configure-ds%s' % (dsPath,fileExt)
+                  
+        if dsPort:
+          STAFCmdParamsList.append('-p %s' % dsPort)
+        
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+
+        if dsBindDN:
+          STAFCmdParamsList.append('-D "%s"' % dsBindDN)
+        
+        if dsBindPwd:
+          STAFCmdParamsList.append('-w "%s"' % dsBindPwd)
+        
+        if dsBindPwdFile:
+          STAFCmdParamsList.append('-W "%s"' % dsBindPwdFile)
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+            
+      <process name="'Configure DS Script'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          ['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
+        <console use="'same'"/>
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
@@ -65,66 +137,341 @@
     </sequence>
   </function>
 
-  <function name="startDS">
+  <!-- This function starts DS using the start-ds script -->
+  <function name="StartDsWithScript">
     <function-prolog>
       This function starts a Directory Server
     </function-prolog>
+
     <function-map-args>
-      <function-required-arg name="dsbinpath">
-        location of the Directory Server binaries
-      </function-required-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+     <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPort" type="optional" default="''">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional" default="''">
+        <function-arg-description>
+          Directory server version
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
+      <function-arg-def name="dsSystemInfo" type="optional" default="''">
+        <function-arg-description>
+          Directory server system info
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsNoDetach" type="optional" default="''">
+        <function-arg-description>
+          Do not detach directory server from process
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional" default="''">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>          
     </function-map-args>
+    
     <sequence>
-      <process name="'Start DS'">
-        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-        <command>'%s/start-ds%s' % (dsbinpath,fileExt)</command>
-        <workdir>'%s' % (dsbinpath)</workdir>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+
+        if dsPath:
+          STAFCmd='%s/bin/start-ds%s' % (dsPath,fileExt)
+                  
+        if dsVersion:
+          STAFCmdParamsList.append('-v')
+        
+        if dsSystemInfo:
+          STAFCmdParamsList.append('-s')
+          
+        if dsNoDetach:
+          STAFCmdParamsList.append('-N')
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+      
+      <process name="'Start DS Script'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s' % (dsbinpath), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          ['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
+      
       <call function="'checkRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
       </call>
+      
     </sequence>
+    
   </function>
 
-  <function name="stopDS">
-  <function-prolog>
-      This function stops a Directory Server
-  </function-prolog>
-  <function-map-args>
-      <function-required-arg name="dsInstancePort">
-          Directory Server port number
-      </function-required-arg>
-      <function-optional-arg name="dsInstanceDn" default="'%s' % DIRECTORY_INSTANCE_DN" >
-          Hostname
-      </function-optional-arg>
-      <function-optional-arg name="dsInstancePswd" default="'%s' % DIRECTORY_INSTANCE_PSWD" >
-          Password
-      </function-optional-arg>
- </function-map-args>
+  <!-- This function stops DS using the stop-ds script -->    
+  <function name="StopDsWithScript">
+    <function-prolog>
+      This function starts a Directory Server using the script
+    </function-prolog>
+    
+    <function-map-args>
+    
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+     <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsHost" type="optional" default="''">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPort" type="optional" default="''">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSSL" type="optional" default="''">
+        <function-arg-description>
+          Use SSL for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
+      <function-arg-def name="dsUseStartTLS" type="optional" default="''">
+        <function-arg-description>
+          Use StartTLS for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindDN" type="optional" default="''">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPwd" type="optional" default="''">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPwdFile" type="optional" default="''">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsSaslOption" type="optional" default="''">
+        <function-arg-description>
+          SASL bind options
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsProxyAuthZID" type="optional" default="''">
+        <function-arg-description>
+          Use the proxied authorization control with the given authorization ID
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>     
+      <function-arg-def name="dsStopReason" type="optional" default="''">
+        <function-arg-description>
+          Reason the server is being stopped or restarted
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+      <function-arg-def name="dsRestart" type="optional" default="''">
+        <function-arg-description>
+          Attempt to automatically restart the server once it has stopped
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def> 
+      <function-arg-def name="dsStopTime" type="optional" default="''">
+        <function-arg-description>
+          Time to begin the shutdown in YYYYMMDDhhmmss format (local time)
+        </function-arg-description>
+        <function-arg-property name="type" value="timestamp"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustAll" type="optional" default="''">
+        <function-arg-description>
+          Trust all server SSL certificates
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStoreFile" type="optional" default="''">
+        <function-arg-description>
+          Certificate keystore path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePwd" type="optional" default="''">
+        <function-arg-description>
+          Certificate keystore PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsKeyStorePwdFile" type="optional" default="''">
+        <function-arg-description>
+          Certificate keystore PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStoreFile" type="optional" default="''">
+        <function-arg-description>
+          Certificate trust store path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePwd" type="optional" default="''">
+        <function-arg-description>
+          Certificate trust store PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsTrustStorePwdFile" type="optional" default="''">
+        <function-arg-description>
+          Certificate trust store PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional" default="''">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+    </function-map-args>
+    
     <sequence>
-      <process name="'Stop DS'">
-          <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-          <command>'%s/stop-ds%s' % (OPENDS_BINPATH,fileExt)</command>
-          <parms>'-p %s -D "%s" -w %s' % (dsInstancePort, dsInstanceDn, dsInstancePswd)</parms>
-          <workdir>'%s' % (OPENDS_BINPATH)</workdir>
-          <envs>
-            ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-          </envs>
-          <stderr mode="'stdout'"/>
-          <returnstdout/>
-      </process>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
 
+        if dsPath:
+          STAFCmd='%s/bin/stop-ds%s' % (dsPath,fileExt)
+                  
+        if dsHost:
+          STAFCmdParamsList.append('-h %s' % dsHost)
+        
+        if dsPort:
+          STAFCmdParamsList.append('-p %s' % dsPort)
+        
+        if dsUseSSL:
+          STAFCmdParamsList.append('-Z')
+          
+        if dsUseStartTLS:
+          STAFCmdParamsList.append('-q')
+          
+        if dsBindDN:
+          STAFCmdParamsList.append('-D "%s"' % dsBindDN)
+        
+        if dsBindPwd:
+          STAFCmdParamsList.append('-w "%s"' % dsBindPwd)
+        
+        if dsBindPwdFile:
+          STAFCmdParamsList.append('-j "%s"' % dsBindPwdFile)
+
+        if dsSaslOption:
+          STAFCmdParamsList.append('-o "%s"' % dsSaslOption)
+           
+        if dsProxyAuthZID:
+          STAFCmdParamsList.append('-Y "%s"' % dsProxyAuthZID)
+              
+        if dsStopReason:
+          STAFCmdParamsList.append('-r "%s"' % dsStopReason)
+              
+        if dsRestart:
+          STAFCmdParamsList.append('-R')
+          
+        if dsStopTime:
+          STAFCmdParamsList.append('-t "%s"' % dsStopTime)
+          
+        if dsTrustAll:
+          STAFCmdParamsList.append('-X')
+
+        if dsKeyStoreFile:
+          STAFCmdParamsList.append('-K "%s"' % dsKeyStoreFile)
+
+        if dsKeyStorePwd:
+          STAFCmdParamsList.append('-W "%s"' % dsKeyStorePwd)
+          
+        if dsKeyStorePwdFile:
+          STAFCmdParamsList.append('-u "%s"' % dsKeyStorePwdFile)
+              
+        if dsTrustStoreFile:
+          STAFCmdParamsList.append('-P "%s"' % dsTrustStoreFile)
+
+        if dsTrustStorePwd:
+          STAFCmdParamsList.append('-T "%s"' % dsTrustStorePwd)
+          
+        if dsTrustStorePwdFile:
+          STAFCmdParamsList.append('-U "%s"' % dsTrustStorePwdFile)
+     
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+            
+      <process name="'Stop DS Script'">
+        <location>'%s' % (location)</location>
+        <command>'%s' % (STAFCmd)</command>
+        <parms>'%s' % (STAFCmdParams)</parms>
+        <workdir>'%s' % dsPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
       <call function="'checkRC'">
-          { 'returncode' : RC ,
-            'result'     : STAXResult }
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
       </call>
+   
     </sequence>
   </function>
 
@@ -444,8 +791,9 @@
       
       <!-- Copy the import-task ldif to remote host -->
       <message>'Copy import task ldif (import-task.ldif) file from %s to %s' % (TMP_DATA_DIR,STAGED_DATA_DIR)</message>
-      <call function="'copyfile'">
-        { 'srcfile'    : '%s/import-task.ldif' % TMP_DATA_DIR,
+      <call function="'copyFile'">
+        { 'location'   : STAXServiceMachine,
+          'srcfile'    : '%s/import-task.ldif' % TMP_DATA_DIR,
           'destfile'   : '%s/import-task.ldif' % STAGED_DATA_DIR,
           'remotehost' : STAF_REMOTE_HOSTNAME }
       </call>
@@ -483,7 +831,6 @@
       </script>
 
       <script> 
-        import re 
         searchre = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY') 
       </script> 
 
@@ -571,8 +918,8 @@
       <if expr="startDS == 'yes'">
         <sequence>
           <!-- StartDS -->
-          <call function="'startDS'">
-            { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+          <call function="'StartDsWithScript'">
+           { 'location'  : STAF_REMOTE_HOSTNAME }
           </call>
           
           <!-- Wait for DS to start -->
@@ -628,8 +975,12 @@
       <!-- Do we need to stop the Directory Server -->
       <if expr="stopDS == 'yes'">
         <!-- StopDS -->
-        <call function="'stopDS'">
-          { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
+        <call function="'StopDsWithScript'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'dsHost'    : DIRECTORY_INSTANCE_HOST,
+              'dsPort'    : DIRECTORY_INSTANCE_PORT,
+              'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
         </call>  
       </if>
     </sequence>
@@ -840,8 +1191,9 @@
       
       <!-- Copy the export-task ldif to remote host -->
       <message>'Copy export task ldif file.'</message>
-      <call function="'copyfile'">
-        { 'srcfile'    : '%s/export-task.ldif' % TMP_DATA_DIR,
+      <call function="'copyFile'">
+        { 'location'   : STAXServiceMachine,
+          'srcfile'    : '%s/export-task.ldif' % TMP_DATA_DIR,
           'destfile'   : '%s/export-task.ldif' % STAGED_DATA_DIR,
           'remotehost' : STAF_REMOTE_HOSTNAME }
       </call>
@@ -1072,8 +1424,9 @@
       
       <!-- Copy the backup-task ldif to remote host -->
       <message>'Copy backup task ldif file.'</message>
-      <call function="'copyfile'">
-        { 'srcfile'    : '%s/backup-task.ldif' % TMP_DATA_DIR,
+      <call function="'copyFile'">
+        { 'location'   : STAXServiceMachine,
+          'srcfile'    : '%s/backup-task.ldif' % TMP_DATA_DIR,
           'destfile'   : '%s/backup-task.ldif' % STAGED_DATA_DIR,
           'remotehost' : STAF_REMOTE_HOSTNAME }
       </call>
@@ -1111,7 +1464,6 @@
       </script>
       
       <script> 
-        import re 
         searchre = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY') 
       </script> 
       
@@ -1182,8 +1534,12 @@
       <message>
          'Stopping OpenDS' 
       </message>
-      <call function="'stopDS'">
-        { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT)}
+      <call function="'StopDsWithScript'">
+          { 'location'  : STAF_REMOTE_HOSTNAME,
+            'dsHost'    : DIRECTORY_INSTANCE_HOST,
+            'dsPort'    : DIRECTORY_INSTANCE_PORT,
+            'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+            'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
       </call>
       <call function="'checkRC'">
         { 'returncode' : RC ,
@@ -1212,10 +1568,10 @@
           'result'     : restoreResult }
       </call>
       <message>
-        'Starting OpenDS' 
+        'Starting DS' 
       </message>
-      <call function="'startDS'">
-        { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+      <call function="'StartDsWithScript'">
+       { 'location'  : STAF_REMOTE_HOSTNAME }
       </call>
       <call function="'checkRC'">
         { 'returncode' : RC ,
@@ -1291,8 +1647,9 @@
       
       <!-- Copy the restore-task ldif to remote host -->
       <message>'Copy restore task ldif file.'</message>
-      <call function="'copyfile'">
-        { 'srcfile'    : '%s/restore-task.ldif' % TMP_DATA_DIR,
+      <call function="'copyFile'">
+        { 'location'   : STAXServiceMachine,
+          'srcfile'    : '%s/restore-task.ldif' % TMP_DATA_DIR,
           'destfile'   : '%s/restore-task.ldif' % STAGED_DATA_DIR,
           'remotehost' : STAF_REMOTE_HOSTNAME }
       </call>
@@ -1330,7 +1687,6 @@
       </script>
 
       <script> 
-        import re 
         searchre = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY') 
       </script> 
 

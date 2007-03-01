@@ -32,51 +32,60 @@
   <function name="main_setup">
 
     <sequence>
-      
-      <!-- Delete any existing files -->
-      <message>'Delete temporary staging area'</message>
-      <call function="'deletefolder'">
-        { 'foldername' : '%s' % (TMP_DATA_DIR),
-          'hostname'   :  STAF_LOCAL_HOSTNAME }
+    
+      <!-- Locally delete any existing files from staging area -->
+      <message>'Delete the temporary staging area'</message>
+      <call function="'deleteFolder'">
+        { 'location'   :  STAXServiceMachine,
+          'foldername' : '%s' % TMP_DATA_DIR }
       </call>
 
+      <!-- Locally delete any existing files from the zip archive -->
       <message>'Delete existing zip archive.'</message>
-      <call function="'deletefile'">
-          { 'filename' : '%s/ldifdata.zip' % TMPDIR ,
-            'hostname' : STAF_LOCAL_HOSTNAME }
+      <call function="'deleteFile'">
+          { 'location' : STAXServiceMachine,
+            'filename' : '%s/ldifdata.zip' % TMPDIR }
       </call>
 
-      <!-- Copy static data files to temporary staging area -->
-      <!-- LDIF files -->
+      <!--- Delete folder if it exists on remote host-->
+      <message>
+        'Delete folder %s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+      </message>
+      <call function="'deleteFolder'">
+        { 'location'   :  STAF_REMOTE_HOSTNAME,
+          'foldername' : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
+           }
+      </call>
+      
+      <!-- Locally copy static data files to temporary staging area -->
+      <!-- LDIF (.ldif) files -->
       <message>'Copy ldif data files'</message>
       <call function="'CopyFolderByExtension'">
-          { 'srcfolder'  : TESTS_DIR,
+          { 'location'   : STAXServiceMachine,
+            'srcfolder'  : TESTS_DIR,
             'destfolder' : TMP_DATA_DIR,
-            'extension'  : 'ldif',
-            'hostname'   : STAF_LOCAL_HOSTNAME
-          }
+            'extension'  : 'ldif' }
       </call>
 
+      <!-- PWD (.pwd) files -->
       <call function="'CopyFolderByExtension'">
-          { 'srcfolder'  : TESTS_DIR,
+          { 'location'   : STAXServiceMachine,
+            'srcfolder'  : TESTS_DIR,
             'destfolder' : TMP_DATA_DIR,
-            'extension'  : 'pwd',
-            'hostname'   : STAF_LOCAL_HOSTNAME
-          }
+            'extension'  : 'pwd' }
       </call>
 
-      <!-- Archive (gz) files -->
+      <!-- Archive (.gz) files -->
       <message>'Copy gz data files'</message>
       <call function="'CopyFolderByExtension'">
-          { 'srcfolder'  : TESTS_DIR,
+          { 'location'   : STAXServiceMachine,
+            'srcfolder'  : TESTS_DIR,
             'destfolder' : TMP_DATA_DIR,
-            'extension'  : 'gz',
-            'hostname'   : STAF_LOCAL_HOSTNAME
-          }
+            'extension'  : 'gz' }
       </call>
 
       <!-- Dynamically create ldif files for staging -->
-      <!-- Modify SSL port to user-defined value -->
+      <!-- Modify SSL port to a user-defined value -->
       <script>
         write_ldaps_ldif_file('%s/shared/data' % (TMP_DATA_DIR), '%s' % (DIRECTORY_INSTANCE_SSL_PORT));
       </script>
@@ -85,69 +94,66 @@
       <message>
           'Zip up data directory.'
       </message>
-      <call function="'zipfile'">
-        { 'zipfilename' : '%s/ldifdata.zip' % TMPDIR , 
-          'foldername'  : TMP_DATA_DIR ,
-          'relativeto'  : TMPDIR }
+      <call function="'zipUpFile'">
+        { 'location'   : STAXServiceMachine,
+          'zipfile'    : '%s/ldifdata.zip' % TMPDIR , 
+          'folder'     : TMP_DATA_DIR ,
+          'relativeto' : TMPDIR }
       </call>
 
-      <!---   Copy data to remote host -->
+      <!---  Copy staging data to remote host -->
       <message>
         'Copy tests to %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
       </message>
-      <call function="'copyfile'">
-        { 'srcfile'    : '%s/ldifdata.zip' % TMPDIR,
+      <call function="'copyFile'">
+        { 'location'   : STAXServiceMachine,
+          'srcfile'    : '%s/ldifdata.zip' % TMPDIR,
           'destfile'   : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR,
           'remotehost' : STAF_REMOTE_HOSTNAME }
       </call>
 
-      <!---   Unzip contents of tests data on remote host -->
+      <!---   Unzip contents of staging data on remote host -->
       <message>
         'Extract contents of test data %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
       </message>
-      <call function="'unzipfile'">
-        { 'zipfile'  : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR, 
-          'unzipdir' : '%s' % (DIRECTORY_INSTANCE_DIR),
-          'ziphost'  : STAF_REMOTE_HOSTNAME }
+      <call function="'unZipFile'">
+        { 'location'   : STAF_REMOTE_HOSTNAME,
+          'zipfile'    : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR, 
+          'unzipdir'   : '%s' % DIRECTORY_INSTANCE_DIR,
+           }
       </call>
 
       <!--- Install DS Copy zip file -->
       <message>
         'Copy DS zip archive to %s on %s' % (DSTFILE,STAF_REMOTE_HOSTNAME)
       </message>
-      <call function="'copyfile'">
+      <call function="'copyFile'">
             { 'srcfile'    : SRCFILE, 
               'destfile'   : DSTFILE,
               'remotehost' : STAF_REMOTE_HOSTNAME }
-      </call>
-
-      <!--- Delete folder if it exists already-->
-      <message>
-        'Delete folder %s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-      </message>
-      <call function="'deletefolder'">
-        { 'foldername' : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
-          'hostname'   :  STAF_REMOTE_HOSTNAME }
       </call>
 
       <!--- Install DS Extract zip file -->
       <message>
         'Extract DS zip archive to %s on %s' % (DIRECTORY_INSTANCE_DIR,STAF_REMOTE_HOSTNAME)
       </message>
-      <call function="'unzipfile'">
-        { 'zipfile'  : DSTFILE, 
-          'unzipdir' : '%s' % (DIRECTORY_INSTANCE_DIR),
-          'ziphost'  : STAF_REMOTE_HOSTNAME }
+      <call function="'unZipFile'">
+        { 'location'   : STAF_REMOTE_HOSTNAME,
+          'zipfile'    : DSTFILE, 
+          'unzipdir'   : '%s' % DIRECTORY_INSTANCE_DIR }
       </call>
 
       <!--- Configure DS -->
       <sequence>
         <message>
-         'Configure DS to run on port %s with base suffix %s' % (DIRECTORY_INSTANCE_PORT,DIRECTORY_INSTANCE_SFX)
+         'Configuring DS on %s' % STAF_REMOTE_HOSTNAME
         </message>
-        <call function="'configureDS'">
-            { 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceSuffix' : DIRECTORY_INSTANCE_SFX }
+        <call function="'ConfigureDsWithScript'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'dsPort'    : DIRECTORY_INSTANCE_PORT,
+              'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
+              'dsBaseDN'  : DIRECTORY_INSTANCE_SFX }
         </call>
         <call function="'checkRC'">
           { 'returncode' : RC ,
